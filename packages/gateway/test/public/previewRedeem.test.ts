@@ -25,6 +25,13 @@ describe("previewRedeem", function () {
     ).rejects.toThrow("Client is not defined");
   });
 
+  it("should throw an error if parameters are not provided", async function () {
+    // @ts-expect-error - Testing invalid input
+    await expect(previewRedeem(client, undefined)).rejects.toThrow(
+      "Parameters are required",
+    );
+  });
+
   it("should throw an error if the gateway address is not valid", async function () {
     const parameters = {
       ...validParameters,

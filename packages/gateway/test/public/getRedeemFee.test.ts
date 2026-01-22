@@ -23,6 +23,13 @@ describe("getRedeemFee", function () {
     ).rejects.toThrow("Client is not defined");
   });
 
+  it("should throw an error if parameters are not provided", async function () {
+    // @ts-expect-error - Testing invalid input
+    await expect(getRedeemFee(client, undefined)).rejects.toThrow(
+      "Parameters are required",
+    );
+  });
+
   it("should throw an error if the address is not valid", async function () {
     const parameters = {
       ...validParameters,

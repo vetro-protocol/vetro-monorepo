@@ -20,6 +20,11 @@ export async function getRedeemFee(
     throw new Error("Client is not defined");
   }
 
+  // Validate parameters exist
+  if (!parameters) {
+    throw new Error("Parameters are required");
+  }
+
   // Validate gateway address
   if (!parameters.address || !isAddress(parameters.address)) {
     throw new Error("Invalid gateway address");

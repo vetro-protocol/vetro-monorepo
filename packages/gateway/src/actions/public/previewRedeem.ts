@@ -9,6 +9,7 @@ import { readContract } from "viem/actions";
 
 import { gatewayAbi } from "../../abi/gatewayAbi.js";
 
+// eslint-disable-next-line complexity
 export async function previewRedeem(
   client: Client,
   parameters: {
@@ -20,6 +21,11 @@ export async function previewRedeem(
   // Validate client
   if (!client) {
     throw new Error("Client is not defined");
+  }
+
+  // Validate parameters exist
+  if (!parameters) {
+    throw new Error("Parameters are required");
   }
 
   // Validate gateway address
