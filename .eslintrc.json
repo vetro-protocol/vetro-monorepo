@@ -23,7 +23,7 @@
       "files": ["*.d.ts"]
     },
     {
-      "extends": ["bloq/vitest"],
+      "extends": ["bloq/typescript", "bloq/vitest"],
       "files": ["*.{spec,test}.{js,ts}"]
     }
   ],

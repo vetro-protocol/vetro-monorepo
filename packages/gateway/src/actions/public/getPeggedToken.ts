@@ -1,0 +1,31 @@
+import type { Address, Client } from "viem";
+import { isAddress, isAddressEqual, zeroAddress } from "viem";
+import { readContract } from "viem/actions";
+
+import { gatewayAbi } from "../../abi/gatewayAbi.js";
+
+export async function getPeggedToken(
+  client: Client,
+  parameters: {
+    address: Address;
+  },
+) {
+  // Validate client
+  if (!client) {
+    throw new Error("Client is not defined");
+  }
+
+  // Validate gateway address
+  if (!parameters.address || !isAddress(parameters.address)) {
+    throw new Error("Invalid gateway address");
+  }
+  if (isAddressEqual(parameters.address, zeroAddress)) {
+    throw new Error("Gateway address cannot be zero address");
+  }
+
+  return readContract(client, {
+    abi: gatewayAbi,
+    address: parameters.address,
+    functionName: "PEGGED_TOKEN",
+  });
+}
