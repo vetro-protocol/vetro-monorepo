@@ -1,10 +1,10 @@
 // Export all public actions
-export * from './public/getPeggedToken.js'
-export * from './public/getMintFee.js'
-export * from './public/getRedeemFee.js'
-export * from './public/previewDeposit.js'
-export * from './public/previewRedeem.js'
+export * from "./public/getPeggedToken.js";
+export * from "./public/getMintFee.js";
+export * from "./public/getRedeemFee.js";
+export * from "./public/previewDeposit.js";
+export * from "./public/previewRedeem.js";
 
 // Export all wallet actions
-export * from './wallet/deposit.js'
-export * from './wallet/redeem.js'
+export * from "./wallet/deposit.js";
+export * from "./wallet/redeem.js";

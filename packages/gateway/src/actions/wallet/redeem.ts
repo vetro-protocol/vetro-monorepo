@@ -1,9 +1,15 @@
-import type { Address, WalletClient } from "viem";
-import { isAddress, isAddressEqual, zeroAddress } from "viem";
+import {
+  type Address,
+  type WalletClient,
+  isAddress,
+  isAddressEqual,
+  zeroAddress,
+} from "viem";
 import { writeContract } from "viem/actions";
 
 import { gatewayAbi } from "../../abi/gatewayAbi.js";
 
+// eslint-disable-next-line complexity
 export async function redeem(
   client: WalletClient,
   parameters: {
@@ -69,14 +75,14 @@ export async function redeem(
   return writeContract(client, {
     abi: gatewayAbi,
     account: client.account,
-    chain: client.chain,
     address: parameters.address,
-    functionName: "redeem",
     args: [
       parameters.tokenOut,
       parameters.peggedTokenIn,
       parameters.minAmountOut,
       parameters.receiver,
     ],
+    chain: client.chain,
+    functionName: "redeem",
   });
 }

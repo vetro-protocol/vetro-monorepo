@@ -1,6 +1,12 @@
-import type { Address, Client } from "viem";
-import { isAddress, isAddressEqual, zeroAddress } from "viem";
+import {
+  type Address,
+  type Client,
+  isAddress,
+  isAddressEqual,
+  zeroAddress,
+} from "viem";
 import { readContract } from "viem/actions";
+
 import { gatewayAbi } from "../../abi/gatewayAbi.js";
 
 export async function previewRedeem(
@@ -43,7 +49,7 @@ export async function previewRedeem(
   return readContract(client, {
     abi: gatewayAbi,
     address: parameters.address,
-    functionName: "previewRedeem",
     args: [parameters.tokenOut, parameters.peggedTokenIn],
+    functionName: "previewRedeem",
   });
 }

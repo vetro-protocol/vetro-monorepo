@@ -1,5 +1,10 @@
-import type { Address, Client } from "viem";
-import { isAddress, isAddressEqual, zeroAddress } from "viem";
+import {
+  type Address,
+  type Client,
+  isAddress,
+  isAddressEqual,
+  zeroAddress,
+} from "viem";
 import { readContract } from "viem/actions";
 
 import { gatewayAbi } from "../../abi/gatewayAbi.js";

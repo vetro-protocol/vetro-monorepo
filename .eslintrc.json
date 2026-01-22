@@ -5,7 +5,7 @@
     {
       "excludedFiles": ["web/dist/**/*"],
       "extends": ["bloq/esm", "bloq/typescript", "prettier"],
-      "files": ["web/**/*.{js,ts,tsx}"]
+      "files": ["packages/**/*.{js,ts,tsx}", "web/**/*.{js,ts,tsx}"]
     },
     {
       "extends": ["bloq/markdown"],
