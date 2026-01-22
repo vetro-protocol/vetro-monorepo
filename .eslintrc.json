@@ -1,0 +1,31 @@
+{
+  "extends": ["bloq", "prettier"],
+  "ignorePatterns": ["web/dist/**/*"],
+  "overrides": [
+    {
+      "excludedFiles": ["web/dist/**/*"],
+      "extends": ["bloq/esm", "bloq/typescript", "prettier"],
+      "files": ["web/**/*.{js,ts,tsx}"]
+    },
+    {
+      "extends": ["bloq/markdown"],
+      "files": ["*.md"]
+    },
+    {
+      "extends": ["bloq/markdown"],
+      "files": [".github/pull_request_template.md"],
+      "rules": {
+        "markdownlint/md041": "off"
+      }
+    },
+    {
+      "extends": ["bloq/typescript", "prettier"],
+      "files": ["*.d.ts"]
+    },
+    {
+      "extends": ["bloq/vitest"],
+      "files": ["*.{spec,test}.{js,ts}"]
+    }
+  ],
+  "root": true
+}
