@@ -1,1 +1,6 @@
-export const Home = () => <h1>Hello world</h1>;
+import { useTranslation } from "hooks/useTranslation";
+
+export const Home = function () {
+  const { t } = useTranslation();
+  return <h1>{t("pages.home.title")}</h1>;
+};
