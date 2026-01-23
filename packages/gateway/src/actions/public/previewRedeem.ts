@@ -9,7 +9,6 @@ import { readContract } from "viem/actions";
 
 import { gatewayAbi } from "../../abi/gatewayAbi.js";
 
-// eslint-disable-next-line complexity
 export async function previewRedeem(
   client: Client,
   parameters: {

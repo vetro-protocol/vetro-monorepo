@@ -25,6 +25,12 @@
     {
       "extends": ["bloq/typescript", "bloq/vitest"],
       "files": ["*.{spec,test}.{js,ts}"]
+    },
+    {
+      "files": ["packages/**/*.{js,ts,tsx}"],
+      "rules": {
+        "complexity": ["warn", { "max": 20 }]
+      }
     }
   ],
   "root": true

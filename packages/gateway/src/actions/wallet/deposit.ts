@@ -9,7 +9,6 @@ import { writeContract } from "viem/actions";
 
 import { gatewayAbi } from "../../abi/gatewayAbi.js";
 
-// eslint-disable-next-line complexity
 export async function deposit(
   client: WalletClient,
   parameters: {
