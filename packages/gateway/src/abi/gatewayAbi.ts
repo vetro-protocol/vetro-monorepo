@@ -1,0 +1,67 @@
+export const gatewayAbi = [
+  {
+    inputs: [],
+    name: "PEGGED_TOKEN",
+    outputs: [{ type: "address" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "mintFee",
+    outputs: [{ type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "redeemFee",
+    outputs: [{ type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "tokenIn_", type: "address" },
+      { name: "amountIn_", type: "uint256" },
+    ],
+    name: "previewDeposit",
+    outputs: [{ type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "tokenOut_", type: "address" },
+      { name: "peggedTokenIn_", type: "uint256" },
+    ],
+    name: "previewRedeem",
+    outputs: [{ type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "tokenIn_", type: "address" },
+      { name: "amountIn_", type: "uint256" },
+      { name: "minPeggedTokenOut_", type: "uint256" },
+      { name: "receiver_", type: "address" },
+    ],
+    name: "deposit",
+    outputs: [{ type: "uint256" }],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "tokenOut_", type: "address" },
+      { name: "peggedTokenIn_", type: "uint256" },
+      { name: "minAmountOut_", type: "uint256" },
+      { name: "receiver_", type: "address" },
+    ],
+    name: "redeem",
+    outputs: [{ type: "uint256" }],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+] as const;
