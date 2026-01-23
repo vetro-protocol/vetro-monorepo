@@ -42,7 +42,7 @@ importers:
   packages/gateway:
     devDependencies:
       '@tsconfig/node24':
-        specifier: ^24.0.4
+        specifier: 24.0.4
         version: 24.0.4
       typescript:
         specifier: 5.9.3

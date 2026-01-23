@@ -1,8 +1,21 @@
 {
   "name": "@vetro/gateway",
   "version": "1.0.0",
-  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@tsconfig/node24": "24.0.4",
+    "typescript": "5.9.3",
+    "viem": "2.44.4",
+    "vitest": "4.0.18"
+  },
+  "peerDependencies": {
+    "viem": "^2.x"
+  },
   "private": true,
+  "type": "module",
   "exports": {
     ".": {
       "types": "./src/index.ts",
@@ -12,18 +25,5 @@
       "types": "./src/actions/index.ts",
       "default": "./src/actions/index.ts"
     }
-  },
-  "peerDependencies": {
-    "viem": "^2.x"
-  },
-  "devDependencies": {
-    "@tsconfig/node24": "^24.0.4",
-    "typescript": "5.9.3",
-    "viem": "2.44.4",
-    "vitest": "4.0.18"
-  },
-  "scripts": {
-    "test": "vitest run",
-    "typecheck": "tsc --noEmit"
   }
 }
