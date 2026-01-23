@@ -31,7 +31,10 @@ export async function deposit(
   if (!client.chain) {
     throw new Error("Client must have a chain");
   }
-
+  // Validate parameters exist
+  if (!parameters) {
+    throw new Error("Parameters are required");
+  }
   // Validate gateway address
   if (!parameters.address || !isAddress(parameters.address)) {
     throw new Error("Invalid gateway address");
