@@ -2,8 +2,8 @@
   "name": "@vetro/gateway",
   "version": "1.0.0",
   "scripts": {
-    "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "build": "tsc --noEmit",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@tsconfig/node24": "24.0.4",
