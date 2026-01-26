@@ -46,3 +46,6 @@ coverage/
 # Misc
 *.tsbuildinfo
 .turbo/
+
+# Claude Code local settings
+.claude/settings.local.json
