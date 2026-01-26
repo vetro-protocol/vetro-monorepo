@@ -1,4 +1,4 @@
-import { useTranslation } from "hooks/useTranslation";
+import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router";
 
 export const SwitchLanguage = function () {

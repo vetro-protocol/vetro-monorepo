@@ -1,4 +1,4 @@
-import { useTranslation } from "hooks/useTranslation";
+import { useTranslation } from "react-i18next";
 
 export const Bridge = function () {
   const { t } = useTranslation();
