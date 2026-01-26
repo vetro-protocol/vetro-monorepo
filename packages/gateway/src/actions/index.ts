@@ -2,6 +2,9 @@
 export * from "./public/getPeggedToken.js";
 export * from "./public/getMintFee.js";
 export * from "./public/getRedeemFee.js";
+export * from "./public/getWithdrawalDelayEnabled.js";
+export * from "./public/getWithdrawalDelay.js";
+export * from "./public/isInstantRedeemWhitelisted.js";
 export * from "./public/previewDeposit.js";
 export * from "./public/previewRedeem.js";
 
