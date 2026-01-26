@@ -4,7 +4,7 @@
   "scripts": {
     "build": "tsc && vite build",
     "dev": "vite",
-    "prepreview": "npm run build",
+    "prepreview": "pnpm run build",
     "preview": "vite preview",
     "test": "vitest run"
   },
