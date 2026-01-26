@@ -1,1 +1,6 @@
-export const Bridge = () => <h1>Hello Bridge</h1>;
+import { useTranslation } from "react-i18next";
+
+export const Bridge = function () {
+  const { t } = useTranslation();
+  return <h1>{t("pages.bridge.title")}</h1>;
+};

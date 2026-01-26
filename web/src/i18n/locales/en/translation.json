@@ -1,0 +1,28 @@
+{
+  "language": {
+    "switchTo": "Switch to Spanish"
+  },
+  "pages": {
+    "analytics": {
+      "title": "Hello Analytics"
+    },
+    "borrow": {
+      "title": "Hello Borrow"
+    },
+    "bridge": {
+      "title": "Hello Bridge"
+    },
+    "earn": {
+      "title": "Hello Earn"
+    },
+    "faq": {
+      "title": "Hello Faq"
+    },
+    "home": {
+      "title": "Hello world"
+    },
+    "swap": {
+      "title": "Hello Swap"
+    }
+  }
+}

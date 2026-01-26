@@ -1,0 +1,28 @@
+{
+  "language": {
+    "switchTo": "Cambiar a Inglés"
+  },
+  "pages": {
+    "analytics": {
+      "title": "Hola Analíticas"
+    },
+    "borrow": {
+      "title": "Hola Préstamos"
+    },
+    "bridge": {
+      "title": "Hola Bridge"
+    },
+    "earn": {
+      "title": "Hola Earn"
+    },
+    "faq": {
+      "title": "Hola FAQ"
+    },
+    "home": {
+      "title": "Hola mundo"
+    },
+    "swap": {
+      "title": "Hola Intercambios"
+    }
+  }
+}
