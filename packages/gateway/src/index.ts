@@ -4,6 +4,8 @@ import {
   getPeggedToken,
   getMintFee,
   getRedeemFee,
+  getWithdrawalDelayEnabled,
+  isInstantRedeemWhitelisted,
   previewDeposit,
   previewRedeem,
 } from "./actions/public/index.js";
@@ -20,6 +22,12 @@ export const gatewayPublicActions = () => (client: Client) => ({
     getPeggedToken(client, params),
   getRedeemFee: (params: Parameters<typeof getRedeemFee>[1]) =>
     getRedeemFee(client, params),
+  getWithdrawalDelayEnabled: (
+    params: Parameters<typeof getWithdrawalDelayEnabled>[1],
+  ) => getWithdrawalDelayEnabled(client, params),
+  isInstantRedeemWhitelisted: (
+    params: Parameters<typeof isInstantRedeemWhitelisted>[1],
+  ) => isInstantRedeemWhitelisted(client, params),
   previewDeposit: (params: Parameters<typeof previewDeposit>[1]) =>
     previewDeposit(client, params),
   previewRedeem: (params: Parameters<typeof previewRedeem>[1]) =>
