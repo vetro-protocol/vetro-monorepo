@@ -4,6 +4,7 @@ import {
   getPeggedToken,
   getMintFee,
   getRedeemFee,
+  getWithdrawalDelay,
   getWithdrawalDelayEnabled,
   isInstantRedeemWhitelisted,
   previewDeposit,
@@ -22,6 +23,8 @@ export const gatewayPublicActions = () => (client: Client) => ({
     getPeggedToken(client, params),
   getRedeemFee: (params: Parameters<typeof getRedeemFee>[1]) =>
     getRedeemFee(client, params),
+  getWithdrawalDelay: (params: Parameters<typeof getWithdrawalDelay>[1]) =>
+    getWithdrawalDelay(client, params),
   getWithdrawalDelayEnabled: (
     params: Parameters<typeof getWithdrawalDelayEnabled>[1],
   ) => getWithdrawalDelayEnabled(client, params),
