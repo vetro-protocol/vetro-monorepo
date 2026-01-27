@@ -567,7 +567,7 @@ describe("deposit", function () {
     expect(onSettled).toHaveBeenCalledOnce();
   });
 
-  it("should emit 'unexpected-error' when getPeggedToken fails", async function () {
+  it("should emit 'unexpected-error' when allowance fails", async function () {
     vi.mocked(allowance).mockRejectedValue(
       new Error("Failed to get allowance"),
     );
