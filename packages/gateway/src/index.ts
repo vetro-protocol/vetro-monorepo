@@ -15,6 +15,9 @@ import { deposit, redeem } from "./actions/wallet/index.js";
 // Export ABI
 export { gatewayAbi } from "./abi/gatewayAbi.js";
 
+// Export gateway address utility
+export { getGatewayAddress } from "./getGatewayAddress.js";
+
 // Export factory functions for .extend() pattern
 export const gatewayPublicActions = () => (client: Client) => ({
   getMintFee: (params: Parameters<typeof getMintFee>[1]) =>
