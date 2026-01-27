@@ -1,22 +1,35 @@
-import { zeroAddress, WalletClient, Address } from "viem";
-import { writeContract } from "viem/actions";
+import {
+  type Address,
+  type TransactionReceipt,
+  type WalletClient,
+  zeroAddress,
+  zeroHash,
+} from "viem";
+import { waitForTransactionReceipt, writeContract } from "viem/actions";
 import { hemiSepolia } from "viem/chains";
-import { describe, it, expect, vi } from "vitest";
+import { allowance, approve } from "viem-erc20/actions";
+import { describe, expect, it, vi } from "vitest";
 
 import { deposit } from "../../src/actions/wallet/deposit";
 
 vi.mock("viem/actions", () => ({
+  waitForTransactionReceipt: vi.fn(),
   writeContract: vi.fn(),
 }));
 
-const client: WalletClient = {
-  // @ts-expect-error - We only create an empty client for testing purposes
-  account: "0x1111111111111111111111111111111111111111" as Address,
+vi.mock("viem-erc20/actions", () => ({
+  allowance: vi.fn(),
+  approve: vi.fn(),
+}));
+
+const mockWalletClient = {
+  account: {
+    address: "0x1111111111111111111111111111111111111111" as Address,
+  },
   chain: hemiSepolia,
-};
+} as unknown as WalletClient;
 
 const validParameters = {
-  address: "0x1234567890123456789012345678901234567890" as Address,
   amountIn: BigInt(1000),
   minPeggedTokenOut: BigInt(900),
   receiver: "0x2222222222222222222222222222222222222222" as Address,
@@ -24,208 +37,554 @@ const validParameters = {
 };
 
 describe("deposit", function () {
-  it("should throw an error if client is not defined", async function () {
-    await expect(
+  it("should emit 'deposit-failed-validation' if client is not defined", async function () {
+    const { emitter, promise } = deposit(
       // @ts-expect-error - Testing invalid input
-      deposit(undefined, validParameters),
-    ).rejects.toThrow("Client is not defined");
-  });
-
-  it("should throw an error if client.account is not defined", async function () {
-    // @ts-expect-error - Testing invalid input
-    const clientWithoutAccount: WalletClient = { chain: hemiSepolia };
-
-    await expect(
-      deposit(clientWithoutAccount, validParameters),
-    ).rejects.toThrow("Client must have an account");
-  });
-
-  it("should throw an error if client.chain is not defined", async function () {
-    // @ts-expect-error - Testing invalid input
-    const clientWithoutChain: WalletClient = { account: client.account };
-
-    await expect(deposit(clientWithoutChain, validParameters)).rejects.toThrow(
-      "Client must have a chain",
+      undefined,
+      validParameters,
     );
-  });
 
-  it("should throw an error if parameters are not provided", async function () {
-    // @ts-expect-error - Testing invalid input
-    await expect(deposit(client, undefined)).rejects.toThrow(
-      "Parameters are required",
+    const onDepositFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("deposit-failed-validation", onDepositFailedValidation);
+    emitter.on("deposit-settled", onSettled);
+
+    await promise;
+
+    expect(onDepositFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "Client is not defined",
     );
+    expect(onSettled).toHaveBeenCalledOnce();
   });
 
-  it("should throw an error if the gateway address is not valid", async function () {
-    const parameters = {
-      ...validParameters,
-      address: "invalid_address",
-    };
+  it("should emit 'deposit-failed-validation' if client.account is not defined", async function () {
+    const clientWithoutAccount = {
+      chain: hemiSepolia,
+    } as unknown as WalletClient;
 
-    // @ts-expect-error - Testing invalid input
-    await expect(deposit(client, parameters)).rejects.toThrow(
-      "Invalid gateway address",
+    const { emitter, promise } = deposit(clientWithoutAccount, validParameters);
+
+    const onDepositFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("deposit-failed-validation", onDepositFailedValidation);
+    emitter.on("deposit-settled", onSettled);
+
+    await promise;
+
+    expect(onDepositFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "Client must have an account",
     );
+    expect(onSettled).toHaveBeenCalledOnce();
   });
 
-  it("should throw an error if the gateway address is not provided", async function () {
-    const parameters = {
-      amountIn: validParameters.amountIn,
-      minPeggedTokenOut: validParameters.minPeggedTokenOut,
-      receiver: validParameters.receiver,
-      tokenIn: validParameters.tokenIn,
-    };
+  it("should emit 'deposit-failed-validation' when client chain is not defined", async function () {
+    const clientWithoutChain = {
+      account: mockWalletClient.account,
+    } as WalletClient;
 
-    // @ts-expect-error - testing invalid input
-    await expect(deposit(client, parameters)).rejects.toThrow(
-      "Invalid gateway address",
+    const { emitter, promise } = deposit(clientWithoutChain, validParameters);
+
+    const onDepositFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("deposit-failed-validation", onDepositFailedValidation);
+    emitter.on("deposit-settled", onSettled);
+
+    await promise;
+
+    expect(onDepositFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "Chain is not defined on wallet client",
     );
+    expect(onSettled).toHaveBeenCalledOnce();
   });
 
-  it("should throw an error if the gateway address is zero address", async function () {
-    const parameters = {
-      ...validParameters,
-      address: zeroAddress,
-    };
-
-    await expect(deposit(client, parameters)).rejects.toThrow(
-      "Gateway address cannot be zero address",
-    );
-  });
-
-  it("should throw an error if the token address is not valid", async function () {
+  it("should emit 'deposit-failed-validation' if token address is not valid", async function () {
     const parameters = {
       ...validParameters,
       tokenIn: "invalid_token",
     };
 
-    // @ts-expect-error - testing invalid input
-    await expect(deposit(client, parameters)).rejects.toThrow(
+    const { emitter, promise } = deposit(
+      mockWalletClient,
+      // @ts-expect-error - Testing invalid input
+      parameters,
+    );
+
+    const onDepositFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("deposit-failed-validation", onDepositFailedValidation);
+    emitter.on("deposit-settled", onSettled);
+
+    await promise;
+
+    expect(onDepositFailedValidation).toHaveBeenCalledExactlyOnceWith(
       "Invalid token address",
     );
+    expect(onSettled).toHaveBeenCalledOnce();
   });
 
-  it("should throw an error if the token address is not provided", async function () {
-    const parameters = {
-      address: validParameters.address,
-      amountIn: validParameters.amountIn,
-      minPeggedTokenOut: validParameters.minPeggedTokenOut,
-      receiver: validParameters.receiver,
-    };
-
-    // @ts-expect-error - testing invalid input
-    await expect(deposit(client, parameters)).rejects.toThrow(
-      "Invalid token address",
-    );
-  });
-
-  it("should throw an error if the token address is zero address", async function () {
+  it("should emit 'deposit-failed-validation' if token address is zero address", async function () {
     const parameters = {
       ...validParameters,
       tokenIn: zeroAddress,
     };
 
-    await expect(deposit(client, parameters)).rejects.toThrow(
+    const { emitter, promise } = deposit(mockWalletClient, parameters);
+
+    const onDepositFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("deposit-failed-validation", onDepositFailedValidation);
+    emitter.on("deposit-settled", onSettled);
+
+    await promise;
+
+    expect(onDepositFailedValidation).toHaveBeenCalledExactlyOnceWith(
       "Token address cannot be zero address",
     );
+    expect(onSettled).toHaveBeenCalledOnce();
   });
 
-  it("should throw an error if the receiver address is not valid", async function () {
+  it("should emit 'deposit-failed-validation' if receiver address is not valid", async function () {
     const parameters = {
       ...validParameters,
       receiver: "invalid_receiver",
     };
 
-    // @ts-expect-error - testing invalid input
-    await expect(deposit(client, parameters)).rejects.toThrow(
+    const { emitter, promise } = deposit(
+      mockWalletClient,
+      // @ts-expect-error - Testing invalid input
+      parameters,
+    );
+
+    const onDepositFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("deposit-failed-validation", onDepositFailedValidation);
+    emitter.on("deposit-settled", onSettled);
+
+    await promise;
+
+    expect(onDepositFailedValidation).toHaveBeenCalledExactlyOnceWith(
       "Invalid receiver address",
     );
+    expect(onSettled).toHaveBeenCalledOnce();
   });
 
-  it("should throw an error if the receiver address is not provided", async function () {
-    const parameters = {
-      address: validParameters.address,
-      amountIn: validParameters.amountIn,
-      minPeggedTokenOut: validParameters.minPeggedTokenOut,
-      tokenIn: validParameters.tokenIn,
-    };
-
-    // @ts-expect-error - testing invalid input
-    await expect(deposit(client, parameters)).rejects.toThrow(
-      "Invalid receiver address",
-    );
-  });
-
-  it("should throw an error if the receiver address is zero address", async function () {
+  it("should emit 'deposit-failed-validation' if receiver address is zero address", async function () {
     const parameters = {
       ...validParameters,
       receiver: zeroAddress,
     };
 
-    await expect(deposit(client, parameters)).rejects.toThrow(
+    const { emitter, promise } = deposit(mockWalletClient, parameters);
+
+    const onDepositFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("deposit-failed-validation", onDepositFailedValidation);
+    emitter.on("deposit-settled", onSettled);
+
+    await promise;
+
+    expect(onDepositFailedValidation).toHaveBeenCalledExactlyOnceWith(
       "Receiver address cannot be zero address",
     );
+    expect(onSettled).toHaveBeenCalledOnce();
   });
 
-  it("should throw an error if amountIn is not a bigint", async function () {
+  it("should emit 'deposit-failed-validation' if amountIn is not a bigint", async function () {
     const parameters = { ...validParameters, amountIn: 1000 };
 
-    // @ts-expect-error - testing invalid input
-    await expect(deposit(client, parameters)).rejects.toThrow(
+    const { emitter, promise } = deposit(
+      mockWalletClient,
+      // @ts-expect-error - Testing invalid input
+      parameters,
+    );
+
+    const onDepositFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("deposit-failed-validation", onDepositFailedValidation);
+    emitter.on("deposit-settled", onSettled);
+
+    await promise;
+
+    expect(onDepositFailedValidation).toHaveBeenCalledExactlyOnceWith(
       "Amount must be a bigint",
     );
+    expect(onSettled).toHaveBeenCalledOnce();
   });
 
-  it("should throw an error if amountIn is zero", async function () {
+  it("should emit 'deposit-failed-validation' if amountIn is zero", async function () {
     const parameters = { ...validParameters, amountIn: BigInt(0) };
 
-    await expect(deposit(client, parameters)).rejects.toThrow(
+    const { emitter, promise } = deposit(mockWalletClient, parameters);
+
+    const onDepositFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("deposit-failed-validation", onDepositFailedValidation);
+    emitter.on("deposit-settled", onSettled);
+
+    await promise;
+
+    expect(onDepositFailedValidation).toHaveBeenCalledExactlyOnceWith(
       "Amount must be greater than 0",
     );
+    expect(onSettled).toHaveBeenCalledOnce();
   });
 
-  it("should throw an error if amountIn is negative", async function () {
+  it("should emit 'deposit-failed-validation' if amountIn is negative", async function () {
     const parameters = { ...validParameters, amountIn: BigInt(-1) };
 
-    await expect(deposit(client, parameters)).rejects.toThrow(
+    const { emitter, promise } = deposit(mockWalletClient, parameters);
+
+    const onDepositFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("deposit-failed-validation", onDepositFailedValidation);
+    emitter.on("deposit-settled", onSettled);
+
+    await promise;
+
+    expect(onDepositFailedValidation).toHaveBeenCalledExactlyOnceWith(
       "Amount must be greater than 0",
     );
+    expect(onSettled).toHaveBeenCalledOnce();
   });
 
-  it("should throw an error if minPeggedTokenOut is not a bigint", async function () {
+  it("should emit 'deposit-failed-validation' if minPeggedTokenOut is not a bigint", async function () {
     const parameters = { ...validParameters, minPeggedTokenOut: 900 };
 
-    // @ts-expect-error - testing invalid input
-    await expect(deposit(client, parameters)).rejects.toThrow(
+    const { emitter, promise } = deposit(
+      mockWalletClient,
+      // @ts-expect-error - Testing invalid input
+      parameters,
+    );
+
+    const onDepositFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("deposit-failed-validation", onDepositFailedValidation);
+    emitter.on("deposit-settled", onSettled);
+
+    await promise;
+
+    expect(onDepositFailedValidation).toHaveBeenCalledExactlyOnceWith(
       "Minimum output must be a bigint",
     );
+    expect(onSettled).toHaveBeenCalledOnce();
   });
 
-  it("should throw an error if minPeggedTokenOut is negative", async function () {
+  it("should emit 'deposit-failed-validation' if minPeggedTokenOut is negative", async function () {
     const parameters = { ...validParameters, minPeggedTokenOut: BigInt(-1) };
 
-    await expect(deposit(client, parameters)).rejects.toThrow(
+    const { emitter, promise } = deposit(mockWalletClient, parameters);
+
+    const onDepositFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("deposit-failed-validation", onDepositFailedValidation);
+    emitter.on("deposit-settled", onSettled);
+
+    await promise;
+
+    expect(onDepositFailedValidation).toHaveBeenCalledExactlyOnceWith(
       "Minimum output cannot be negative",
     );
+    expect(onSettled).toHaveBeenCalledOnce();
   });
 
-  it("should call writeContract if all parameters are valid", async function () {
-    vi.mocked(writeContract);
+  it("should skip approval if allowance is sufficient and proceed to deposit", async function () {
+    const receipt = {
+      status: "success",
+    } as TransactionReceipt;
 
-    await deposit(client, validParameters);
+    vi.mocked(allowance).mockResolvedValue(validParameters.amountIn);
+    vi.mocked(writeContract).mockResolvedValue(zeroHash);
+    vi.mocked(waitForTransactionReceipt).mockResolvedValue(receipt);
 
-    expect(writeContract).toHaveBeenCalledWith(client, {
-      abi: expect.anything(),
-      account: client.account,
-      address: validParameters.address,
-      args: [
-        validParameters.tokenIn,
-        validParameters.amountIn,
-        validParameters.minPeggedTokenOut,
-        validParameters.receiver,
-      ],
-      chain: client.chain,
-      functionName: "deposit",
-    });
+    const { emitter, promise } = deposit(mockWalletClient, validParameters);
+
+    const onPreApprove = vi.fn();
+    const onPreDeposit = vi.fn();
+    const onUserSignedDeposit = vi.fn();
+    const onDepositTransactionSucceeded = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("pre-approve", onPreApprove);
+    emitter.on("pre-deposit", onPreDeposit);
+    emitter.on("user-signed-deposit", onUserSignedDeposit);
+    emitter.on("deposit-transaction-succeeded", onDepositTransactionSucceeded);
+    emitter.on("deposit-settled", onSettled);
+
+    await promise;
+
+    expect(onPreApprove).not.toHaveBeenCalled();
+    expect(onPreDeposit).toHaveBeenCalledOnce();
+    expect(onUserSignedDeposit).toHaveBeenCalledExactlyOnceWith(zeroHash);
+    expect(onDepositTransactionSucceeded).toHaveBeenCalledExactlyOnceWith(
+      receipt,
+    );
+    expect(approve).not.toHaveBeenCalled();
+    expect(writeContract).toHaveBeenCalledOnce();
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("should approve first if allowance is insufficient, then deposit", async function () {
+    const approvalReceipt = {
+      status: "success",
+    } as TransactionReceipt;
+    const depositReceipt = {
+      status: "success",
+    } as TransactionReceipt;
+
+    vi.mocked(allowance).mockResolvedValue(
+      validParameters.amountIn - BigInt(1),
+    );
+    vi.mocked(approve).mockResolvedValue(zeroHash);
+    vi.mocked(writeContract).mockResolvedValue(zeroHash);
+    vi.mocked(waitForTransactionReceipt)
+      .mockResolvedValueOnce(approvalReceipt)
+      .mockResolvedValueOnce(depositReceipt);
+
+    const { emitter, promise } = deposit(mockWalletClient, validParameters);
+
+    const onPreApprove = vi.fn();
+    const onUserSignedApproval = vi.fn();
+    const onApproveTransactionSucceeded = vi.fn();
+    const onPreDeposit = vi.fn();
+    const onUserSignedDeposit = vi.fn();
+    const onDepositTransactionSucceeded = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("pre-approve", onPreApprove);
+    emitter.on("user-signed-approval", onUserSignedApproval);
+    emitter.on("approve-transaction-succeeded", onApproveTransactionSucceeded);
+    emitter.on("pre-deposit", onPreDeposit);
+    emitter.on("user-signed-deposit", onUserSignedDeposit);
+    emitter.on("deposit-transaction-succeeded", onDepositTransactionSucceeded);
+    emitter.on("deposit-settled", onSettled);
+
+    await promise;
+
+    expect(onPreApprove).toHaveBeenCalledOnce();
+    expect(onUserSignedApproval).toHaveBeenCalledExactlyOnceWith(zeroHash);
+    expect(onApproveTransactionSucceeded).toHaveBeenCalledExactlyOnceWith(
+      approvalReceipt,
+    );
+    expect(onPreDeposit).toHaveBeenCalledOnce();
+    expect(onUserSignedDeposit).toHaveBeenCalledExactlyOnceWith(zeroHash);
+    expect(onDepositTransactionSucceeded).toHaveBeenCalledExactlyOnceWith(
+      depositReceipt,
+    );
+    expect(approve).toHaveBeenCalledOnce();
+    expect(writeContract).toHaveBeenCalledOnce();
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("should emit 'user-signing-approval-error' when approval signing fails", async function () {
+    vi.mocked(allowance).mockResolvedValue(
+      validParameters.amountIn - BigInt(1),
+    );
+    vi.mocked(approve).mockRejectedValue(new Error("Approval signing error"));
+
+    const { emitter, promise } = deposit(mockWalletClient, validParameters);
+
+    const onPreApprove = vi.fn();
+    const onUserSigningApprovalError = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("pre-approve", onPreApprove);
+    emitter.on("user-signing-approval-error", onUserSigningApprovalError);
+    emitter.on("deposit-settled", onSettled);
+
+    await promise;
+
+    expect(onPreApprove).toHaveBeenCalledOnce();
+    expect(onUserSigningApprovalError).toHaveBeenCalledExactlyOnceWith(
+      expect.any(Error),
+    );
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("should emit 'approve-transaction-reverted' when approval transaction reverts", async function () {
+    const approvalReceipt = {
+      status: "reverted",
+    } as TransactionReceipt;
+
+    vi.mocked(allowance).mockResolvedValue(
+      validParameters.amountIn - BigInt(1),
+    );
+    vi.mocked(approve).mockResolvedValue(zeroHash);
+    vi.mocked(waitForTransactionReceipt).mockResolvedValue(approvalReceipt);
+
+    const { emitter, promise } = deposit(mockWalletClient, validParameters);
+
+    const onPreApprove = vi.fn();
+    const onUserSignedApproval = vi.fn();
+    const onApproveTransactionReverted = vi.fn();
+    const onApproveTransactionSucceeded = vi.fn();
+    const onPreDeposit = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("pre-approve", onPreApprove);
+    emitter.on("user-signed-approval", onUserSignedApproval);
+    emitter.on("approve-transaction-reverted", onApproveTransactionReverted);
+    emitter.on("approve-transaction-succeeded", onApproveTransactionSucceeded);
+    emitter.on("pre-deposit", onPreDeposit);
+    emitter.on("deposit-settled", onSettled);
+
+    await promise;
+
+    expect(onPreApprove).toHaveBeenCalledOnce();
+    expect(onUserSignedApproval).toHaveBeenCalledExactlyOnceWith(zeroHash);
+    expect(onApproveTransactionReverted).toHaveBeenCalledExactlyOnceWith(
+      approvalReceipt,
+    );
+    expect(onApproveTransactionSucceeded).not.toHaveBeenCalled();
+    expect(onPreDeposit).not.toHaveBeenCalled();
+    expect(approve).toHaveBeenCalledOnce();
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("should emit 'deposit-failed' when approval receipt fails", async function () {
+    vi.mocked(allowance).mockResolvedValue(
+      validParameters.amountIn - BigInt(1),
+    );
+    vi.mocked(approve).mockResolvedValue(zeroHash);
+    vi.mocked(waitForTransactionReceipt).mockRejectedValue(
+      new Error("Receipt error"),
+    );
+
+    const { emitter, promise } = deposit(mockWalletClient, validParameters);
+
+    const onPreApprove = vi.fn();
+    const onUserSignedApproval = vi.fn();
+    const onDepositFailed = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("pre-approve", onPreApprove);
+    emitter.on("user-signed-approval", onUserSignedApproval);
+    emitter.on("deposit-failed", onDepositFailed);
+    emitter.on("deposit-settled", onSettled);
+
+    await promise;
+
+    expect(onPreApprove).toHaveBeenCalledOnce();
+    expect(onUserSignedApproval).toHaveBeenCalledExactlyOnceWith(zeroHash);
+    expect(onDepositFailed).toHaveBeenCalledExactlyOnceWith(expect.any(Error));
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("should emit 'user-signing-deposit-error' when deposit signing fails", async function () {
+    vi.mocked(allowance).mockResolvedValue(validParameters.amountIn);
+    vi.mocked(writeContract).mockRejectedValue(
+      new Error("Deposit signing error"),
+    );
+
+    const { emitter, promise } = deposit(mockWalletClient, validParameters);
+
+    const onPreDeposit = vi.fn();
+    const onUserSigningDepositError = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("pre-deposit", onPreDeposit);
+    emitter.on("user-signing-deposit-error", onUserSigningDepositError);
+    emitter.on("deposit-settled", onSettled);
+
+    await promise;
+
+    expect(onPreDeposit).toHaveBeenCalledOnce();
+    expect(onUserSigningDepositError).toHaveBeenCalledExactlyOnceWith(
+      expect.any(Error),
+    );
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("should emit 'deposit-failed' when deposit receipt fails", async function () {
+    vi.mocked(allowance).mockResolvedValue(validParameters.amountIn);
+    vi.mocked(writeContract).mockResolvedValue(zeroHash);
+    vi.mocked(waitForTransactionReceipt).mockRejectedValue(
+      new Error("Receipt error"),
+    );
+
+    const { emitter, promise } = deposit(mockWalletClient, validParameters);
+
+    const onPreDeposit = vi.fn();
+    const onUserSignedDeposit = vi.fn();
+    const onDepositFailed = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("pre-deposit", onPreDeposit);
+    emitter.on("user-signed-deposit", onUserSignedDeposit);
+    emitter.on("deposit-failed", onDepositFailed);
+    emitter.on("deposit-settled", onSettled);
+
+    await promise;
+
+    expect(onPreDeposit).toHaveBeenCalledOnce();
+    expect(onUserSignedDeposit).toHaveBeenCalledExactlyOnceWith(zeroHash);
+    expect(onDepositFailed).toHaveBeenCalledExactlyOnceWith(expect.any(Error));
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("should emit 'deposit-transaction-reverted' when deposit transaction reverts", async function () {
+    const receipt = {
+      status: "reverted",
+    } as TransactionReceipt;
+
+    vi.mocked(allowance).mockResolvedValue(validParameters.amountIn);
+    vi.mocked(writeContract).mockResolvedValue(zeroHash);
+    vi.mocked(waitForTransactionReceipt).mockResolvedValue(receipt);
+
+    const { emitter, promise } = deposit(mockWalletClient, validParameters);
+
+    const onPreDeposit = vi.fn();
+    const onUserSignedDeposit = vi.fn();
+    const onDepositTransactionReverted = vi.fn();
+    const onDepositTransactionSucceeded = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("pre-deposit", onPreDeposit);
+    emitter.on("user-signed-deposit", onUserSignedDeposit);
+    emitter.on("deposit-transaction-reverted", onDepositTransactionReverted);
+    emitter.on("deposit-transaction-succeeded", onDepositTransactionSucceeded);
+    emitter.on("deposit-settled", onSettled);
+
+    await promise;
+
+    expect(onPreDeposit).toHaveBeenCalledOnce();
+    expect(onUserSignedDeposit).toHaveBeenCalledExactlyOnceWith(zeroHash);
+    expect(onDepositTransactionReverted).toHaveBeenCalledExactlyOnceWith(
+      receipt,
+    );
+    expect(onDepositTransactionSucceeded).not.toHaveBeenCalled();
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("should emit 'unexpected-error' when getPeggedToken fails", async function () {
+    vi.mocked(allowance).mockRejectedValue(
+      new Error("Failed to get allowance"),
+    );
+
+    const { emitter, promise } = deposit(mockWalletClient, validParameters);
+
+    const onUnexpectedError = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("unexpected-error", onUnexpectedError);
+    emitter.on("deposit-settled", onSettled);
+
+    await promise;
+
+    expect(onUnexpectedError).toHaveBeenCalledExactlyOnceWith(
+      expect.any(Error),
+    );
+    expect(onSettled).toHaveBeenCalledOnce();
   });
 });
