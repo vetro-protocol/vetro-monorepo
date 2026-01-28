@@ -3,10 +3,16 @@
   "version": "1.0.0",
   "scripts": {
     "build": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "to-promise-event": "1.0.0",
+    "viem-erc20": "2.1.0"
   },
   "devDependencies": {
     "@tsconfig/node24": "24.0.4",
+    "@vitest/coverage-v8": "4.0.18",
     "typescript": "5.9.3",
     "viem": "2.44.4",
     "vitest": "4.0.18"

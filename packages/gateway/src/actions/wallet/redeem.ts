@@ -1,90 +1,255 @@
+import { EventEmitter } from "events";
+import { toPromiseEvent } from "to-promise-event";
 import {
   type Address,
+  type TransactionReceipt,
   type WalletClient,
+  encodeFunctionData,
   isAddress,
   isAddressEqual,
   zeroAddress,
 } from "viem";
-import { writeContract } from "viem/actions";
+import { waitForTransactionReceipt, writeContract } from "viem/actions";
+import { allowance, approve } from "viem-erc20/actions";
 
 import { gatewayAbi } from "../../abi/gatewayAbi.js";
+import { getGatewayAddress } from "../../getGatewayAddress.js";
+import type { RedeemEvents } from "../../types.js";
+import { getPeggedToken } from "../public/getPeggedToken.js";
 
-export async function redeem(
-  client: WalletClient,
-  parameters: {
-    address: Address;
-    tokenOut: Address;
-    peggedTokenIn: bigint;
-    minAmountOut: bigint;
-    receiver: Address;
-  },
-) {
+export type RedeemParams = {
+  minAmountOut: bigint;
+  peggedTokenIn: bigint;
+  receiver: Address;
+  tokenOut: Address;
+};
+
+const canRedeem = function ({
+  client,
+  minAmountOut,
+  peggedTokenIn,
+  receiver,
+  tokenOut,
+}: {
+  client: WalletClient;
+  minAmountOut: bigint;
+  peggedTokenIn: bigint;
+  receiver: Address;
+  tokenOut: Address;
+}): {
+  canRedeem: boolean;
+  reason?: string;
+} {
   // Validate client
   if (!client) {
-    throw new Error("Client is not defined");
+    return {
+      canRedeem: false,
+      reason: "Client is not defined",
+    };
+  }
+  if (!client.chain) {
+    return {
+      canRedeem: false,
+      reason: "Chain is not defined on wallet client",
+    };
   }
   // Validate client has required properties
   if (!client.account) {
-    throw new Error("Client must have an account");
+    return {
+      canRedeem: false,
+      reason: "Client must have an account",
+    };
   }
-  if (!client.chain) {
-    throw new Error("Client must have a chain");
-  }
-  // Validate parameters exist
-  if (!parameters) {
-    throw new Error("Parameters are required");
-  }
-  // Validate gateway address
-  if (!parameters.address || !isAddress(parameters.address)) {
-    throw new Error("Invalid gateway address");
-  }
-  if (isAddressEqual(parameters.address, zeroAddress)) {
-    throw new Error("Gateway address cannot be zero address");
-  }
-
   // Validate tokenOut address
-  if (!parameters.tokenOut || !isAddress(parameters.tokenOut)) {
-    throw new Error("Invalid token address");
+  if (!tokenOut || !isAddress(tokenOut)) {
+    return {
+      canRedeem: false,
+      reason: "Invalid token address",
+    };
   }
-  if (isAddressEqual(parameters.tokenOut, zeroAddress)) {
-    throw new Error("Token address cannot be zero address");
+  if (isAddressEqual(tokenOut, zeroAddress)) {
+    return {
+      canRedeem: false,
+      reason: "Token address cannot be zero address",
+    };
   }
 
   // Validate receiver address
-  if (!parameters.receiver || !isAddress(parameters.receiver)) {
-    throw new Error("Invalid receiver address");
+  if (!receiver || !isAddress(receiver)) {
+    return {
+      canRedeem: false,
+      reason: "Invalid receiver address",
+    };
   }
-  if (isAddressEqual(parameters.receiver, zeroAddress)) {
-    throw new Error("Receiver address cannot be zero address");
+  if (isAddressEqual(receiver, zeroAddress)) {
+    return {
+      canRedeem: false,
+      reason: "Receiver address cannot be zero address",
+    };
   }
 
   // Validate peggedTokenIn
-  if (typeof parameters.peggedTokenIn !== "bigint") {
-    throw new Error("Amount must be a bigint");
+  if (typeof peggedTokenIn !== "bigint") {
+    return {
+      canRedeem: false,
+      reason: "Amount must be a bigint",
+    };
   }
-  if (parameters.peggedTokenIn <= 0n) {
-    throw new Error("Amount must be greater than 0");
+  if (peggedTokenIn <= 0n) {
+    return {
+      canRedeem: false,
+      reason: "Amount must be greater than 0",
+    };
   }
 
   // Validate minAmountOut
-  if (typeof parameters.minAmountOut !== "bigint") {
-    throw new Error("Minimum output must be a bigint");
+  if (typeof minAmountOut !== "bigint") {
+    return {
+      canRedeem: false,
+      reason: "Minimum output must be a bigint",
+    };
   }
-  if (parameters.minAmountOut < 0n) {
-    throw new Error("Minimum output cannot be negative");
+  if (minAmountOut < 0n) {
+    return {
+      canRedeem: false,
+      reason: "Minimum output cannot be negative",
+    };
   }
 
-  return writeContract(client, {
+  return { canRedeem: true };
+};
+
+const runRedeem = (
+  walletClient: WalletClient,
+  { minAmountOut, peggedTokenIn, receiver, tokenOut }: RedeemParams,
+) =>
+  async function (emitter: EventEmitter<RedeemEvents>) {
+    try {
+      const { canRedeem: canRedeemFlag, reason } = canRedeem({
+        client: walletClient,
+        minAmountOut,
+        peggedTokenIn,
+        receiver,
+        tokenOut,
+      });
+
+      if (!canRedeemFlag) {
+        emitter.emit("redeem-failed-validation", reason!);
+        return;
+      }
+
+      // already validated
+      const gatewayAddress = getGatewayAddress(walletClient.chain!.id);
+
+      // Get the pegged token address
+      const peggedTokenAddress = await getPeggedToken(walletClient, {
+        address: gatewayAddress,
+      });
+
+      // Check current allowance for pegged token
+      const currentAllowance = await allowance(walletClient, {
+        address: peggedTokenAddress,
+        owner: walletClient.account!.address,
+        spender: gatewayAddress,
+      });
+
+      // If allowance is insufficient, approve first
+      if (currentAllowance < peggedTokenIn) {
+        emitter.emit("pre-approve");
+
+        const approvalHash = await approve(walletClient, {
+          address: peggedTokenAddress,
+          amount: peggedTokenIn,
+          spender: gatewayAddress,
+        }).catch(function (error: Error) {
+          emitter.emit("user-signing-approval-error", error);
+        });
+
+        if (!approvalHash) {
+          return;
+        }
+
+        emitter.emit("user-signed-approval", approvalHash);
+
+        const approvalReceipt = await waitForTransactionReceipt(walletClient, {
+          hash: approvalHash,
+        }).catch(function (error: Error) {
+          emitter.emit("redeem-failed", error);
+        });
+
+        if (!approvalReceipt) {
+          return;
+        }
+
+        if (approvalReceipt.status === "reverted") {
+          emitter.emit("approve-transaction-reverted", approvalReceipt);
+          return;
+        }
+
+        emitter.emit("approve-transaction-succeeded", approvalReceipt);
+      }
+
+      emitter.emit("pre-redeem");
+
+      const redeemHash = await writeContract(walletClient, {
+        abi: gatewayAbi,
+        account: walletClient.account!,
+        address: gatewayAddress,
+        args: [tokenOut, peggedTokenIn, minAmountOut, receiver],
+        chain: walletClient.chain,
+        functionName: "redeem",
+      }).catch(function (error: Error) {
+        emitter.emit("user-signing-redeem-error", error);
+      });
+
+      if (!redeemHash) {
+        return;
+      }
+
+      emitter.emit("user-signed-redeem", redeemHash);
+
+      const redeemReceipt = await waitForTransactionReceipt(walletClient, {
+        hash: redeemHash,
+      }).catch(function (error: Error) {
+        emitter.emit("redeem-failed", error);
+      });
+
+      if (!redeemReceipt) {
+        return;
+      }
+
+      const redeemEventMap: Record<
+        TransactionReceipt["status"],
+        keyof RedeemEvents
+      > = {
+        reverted: "redeem-transaction-reverted",
+        success: "redeem-transaction-succeeded",
+      };
+
+      emitter.emit(redeemEventMap[redeemReceipt.status], redeemReceipt);
+    } catch (error) {
+      emitter.emit("unexpected-error", error as Error);
+    } finally {
+      emitter.emit("redeem-settled");
+    }
+  };
+
+export const redeem = (...args: Parameters<typeof runRedeem>) =>
+  toPromiseEvent<RedeemEvents>(runRedeem(...args));
+
+export const encodeRedeem = ({
+  minAmountOut,
+  peggedTokenIn,
+  receiver,
+  tokenOut,
+}: {
+  minAmountOut: bigint;
+  peggedTokenIn: bigint;
+  receiver: Address;
+  tokenOut: Address;
+}) =>
+  encodeFunctionData({
     abi: gatewayAbi,
-    account: client.account,
-    address: parameters.address,
-    args: [
-      parameters.tokenOut,
-      parameters.peggedTokenIn,
-      parameters.minAmountOut,
-      parameters.receiver,
-    ],
-    chain: client.chain,
+    args: [tokenOut, peggedTokenIn, minAmountOut, receiver],
     functionName: "redeem",
   });
-}

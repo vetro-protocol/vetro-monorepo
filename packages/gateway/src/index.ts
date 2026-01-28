@@ -10,7 +10,8 @@ import {
   previewDeposit,
   previewRedeem,
 } from "./actions/public/index.js";
-import { deposit, redeem } from "./actions/wallet/index.js";
+import { type DepositParams, deposit } from "./actions/wallet/deposit.js";
+import { type RedeemParams, redeem } from "./actions/wallet/redeem.js";
 
 // Export ABI
 export { gatewayAbi } from "./abi/gatewayAbi.js";
@@ -41,6 +42,6 @@ export const gatewayPublicActions = () => (client: Client) => ({
 });
 
 export const gatewayWalletActions = () => (client: WalletClient) => ({
-  deposit: (params: Parameters<typeof deposit>[1]) => deposit(client, params),
-  redeem: (params: Parameters<typeof redeem>[1]) => redeem(client, params),
+  deposit: (params: DepositParams) => deposit(client, params),
+  redeem: (params: RedeemParams) => redeem(client, params),
 });
