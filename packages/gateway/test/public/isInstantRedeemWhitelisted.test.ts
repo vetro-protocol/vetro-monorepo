@@ -36,20 +36,20 @@ describe("isInstantRedeemWhitelisted", function () {
       ...validParameters,
       address: "invalid_address",
     };
-    // @ts-expect-error - Testing invalid input
     await expect(
+      // @ts-expect-error - Testing invalid input
       isInstantRedeemWhitelisted(client, parameters),
-    ).rejects.toThrow("Invalid gateway address");
+    ).rejects.toThrow("Gateway is invalid");
   });
 
   it("should throw an error if the gateway address is not provided", async function () {
     const parameters = {
       account: validParameters.account,
     };
-    // @ts-expect-error - Testing invalid input
     await expect(
+      // @ts-expect-error - Testing invalid input
       isInstantRedeemWhitelisted(client, parameters),
-    ).rejects.toThrow("Invalid gateway address");
+    ).rejects.toThrow("Gateway is invalid");
   });
 
   it("should throw an error if the gateway address is zero address", async function () {
@@ -60,7 +60,7 @@ describe("isInstantRedeemWhitelisted", function () {
 
     await expect(
       isInstantRedeemWhitelisted(client, parameters),
-    ).rejects.toThrow("Gateway address cannot be zero address");
+    ).rejects.toThrow("Gateway is invalid");
   });
 
   it("should throw an error if the account address is not valid", async function () {
@@ -68,20 +68,20 @@ describe("isInstantRedeemWhitelisted", function () {
       ...validParameters,
       account: "invalid_address",
     };
-    // @ts-expect-error - Testing invalid input
     await expect(
+      // @ts-expect-error - Testing invalid input
       isInstantRedeemWhitelisted(client, parameters),
-    ).rejects.toThrow("Invalid account address");
+    ).rejects.toThrow("Account is invalid");
   });
 
   it("should throw an error if the account address is not provided", async function () {
     const parameters = {
       address: validParameters.address,
     };
-    // @ts-expect-error - Testing invalid input
     await expect(
+      // @ts-expect-error - Testing invalid input
       isInstantRedeemWhitelisted(client, parameters),
-    ).rejects.toThrow("Invalid account address");
+    ).rejects.toThrow("Account is invalid");
   });
 
   it("should throw an error if the account address is zero address", async function () {
@@ -92,7 +92,7 @@ describe("isInstantRedeemWhitelisted", function () {
 
     await expect(
       isInstantRedeemWhitelisted(client, parameters),
-    ).rejects.toThrow("Account address cannot be zero address");
+    ).rejects.toThrow("Account is invalid");
   });
 
   it("should call readContract if parameters are valid", async function () {

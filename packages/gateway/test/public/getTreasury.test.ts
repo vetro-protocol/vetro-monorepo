@@ -1,8 +1,8 @@
 import { Address, Client, zeroAddress } from "viem";
 import { readContract } from "viem/actions";
-import { describe, it, expect, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import { getWithdrawalDelayEnabled } from "../../src/actions/public/getWithdrawalDelayEnabled";
+import { getTreasury } from "../../src/actions/public/getTreasury";
 
 vi.mock("viem/actions", () => ({
   readContract: vi.fn(),
@@ -15,17 +15,17 @@ const validParameters = {
 // @ts-expect-error - We only create an empty client for testing purposes
 const client: Client = {};
 
-describe("getWithdrawalDelayEnabled", function () {
+describe("getTreasury", function () {
   it("should throw an error if client is not defined", async function () {
     await expect(
       // @ts-expect-error - Testing invalid input
-      getWithdrawalDelayEnabled(undefined, validParameters),
+      getTreasury(undefined, validParameters),
     ).rejects.toThrow("Client is not defined");
   });
 
   it("should throw an error if parameters are not provided", async function () {
     // @ts-expect-error - Testing invalid input
-    await expect(getWithdrawalDelayEnabled(client, undefined)).rejects.toThrow(
+    await expect(getTreasury(client, undefined)).rejects.toThrow(
       "Parameters are required",
     );
   });
@@ -36,7 +36,7 @@ describe("getWithdrawalDelayEnabled", function () {
       address: "invalid_address",
     };
     // @ts-expect-error - Testing invalid input
-    await expect(getWithdrawalDelayEnabled(client, parameters)).rejects.toThrow(
+    await expect(getTreasury(client, parameters)).rejects.toThrow(
       "Gateway is invalid",
     );
   });
@@ -44,7 +44,7 @@ describe("getWithdrawalDelayEnabled", function () {
   it("should throw an error if the address is not provided", async function () {
     const parameters = {};
     // @ts-expect-error - Testing invalid input
-    await expect(getWithdrawalDelayEnabled(client, parameters)).rejects.toThrow(
+    await expect(getTreasury(client, parameters)).rejects.toThrow(
       "Gateway is invalid",
     );
   });
@@ -54,20 +54,20 @@ describe("getWithdrawalDelayEnabled", function () {
       address: zeroAddress,
     };
 
-    await expect(getWithdrawalDelayEnabled(client, parameters)).rejects.toThrow(
+    await expect(getTreasury(client, parameters)).rejects.toThrow(
       "Gateway is invalid",
     );
   });
 
-  it("should call readContract if parameters are valid", async function () {
+  it("should call readContract if all parameters are valid", async function () {
     vi.mocked(readContract);
 
-    await getWithdrawalDelayEnabled(client, validParameters);
+    await getTreasury(client, validParameters);
 
     expect(readContract).toHaveBeenCalledWith(client, {
       abi: expect.anything(),
       address: validParameters.address,
-      functionName: "withdrawalDelayEnabled",
+      functionName: "treasury",
     });
   });
 });

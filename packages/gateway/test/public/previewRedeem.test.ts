@@ -40,7 +40,7 @@ describe("previewRedeem", function () {
 
     // @ts-expect-error - Testing invalid input
     await expect(previewRedeem(client, parameters)).rejects.toThrow(
-      "Invalid gateway address",
+      "Gateway is invalid",
     );
   });
 
@@ -52,7 +52,7 @@ describe("previewRedeem", function () {
 
     // @ts-expect-error - Testing invalid input
     await expect(previewRedeem(client, parameters)).rejects.toThrow(
-      "Invalid gateway address",
+      "Gateway is invalid",
     );
   });
 
@@ -63,7 +63,7 @@ describe("previewRedeem", function () {
     };
 
     await expect(previewRedeem(client, parameters)).rejects.toThrow(
-      "Gateway address cannot be zero address",
+      "Gateway is invalid",
     );
   });
 
@@ -75,7 +75,7 @@ describe("previewRedeem", function () {
 
     // @ts-expect-error - Testing invalid input
     await expect(previewRedeem(client, parameters)).rejects.toThrow(
-      "Invalid token address",
+      "Token is invalid",
     );
   });
 
@@ -87,7 +87,7 @@ describe("previewRedeem", function () {
 
     // @ts-expect-error - Testing invalid input
     await expect(previewRedeem(client, parameters)).rejects.toThrow(
-      "Invalid token address",
+      "Token is invalid",
     );
   });
 
@@ -98,7 +98,7 @@ describe("previewRedeem", function () {
     };
 
     await expect(previewRedeem(client, parameters)).rejects.toThrow(
-      "Token address cannot be zero address",
+      "Token is invalid",
     );
   });
 

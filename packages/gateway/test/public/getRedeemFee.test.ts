@@ -38,7 +38,7 @@ describe("getRedeemFee", function () {
 
     // @ts-expect-error - Testing invalid input
     await expect(getRedeemFee(client, parameters)).rejects.toThrow(
-      "Invalid gateway address",
+      "Gateway is invalid",
     );
   });
 
@@ -46,7 +46,7 @@ describe("getRedeemFee", function () {
     const parameters = {};
     // @ts-expect-error - Testing invalid input
     await expect(getRedeemFee(client, parameters)).rejects.toThrow(
-      "Invalid gateway address",
+      "Gateway is invalid",
     );
   });
 
@@ -56,7 +56,7 @@ describe("getRedeemFee", function () {
     };
 
     await expect(getRedeemFee(client, parameters)).rejects.toThrow(
-      "Gateway address cannot be zero address",
+      "Gateway is invalid",
     );
   });
 

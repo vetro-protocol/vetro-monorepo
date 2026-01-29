@@ -4,12 +4,10 @@ import { readContract } from "viem/actions";
 import { gatewayAbi } from "../../abi/gatewayAbi.js";
 import { isAddressValid } from "../../utils/isAddressValid.js";
 
-export async function previewRedeem(
+export async function getTreasury(
   client: Client,
   parameters: {
     address: Address;
-    tokenOut: Address;
-    peggedTokenIn: bigint;
   },
 ) {
   // Validate client
@@ -27,23 +25,9 @@ export async function previewRedeem(
     throw new Error("Gateway is invalid");
   }
 
-  // Validate tokenOut address
-  if (!isAddressValid(parameters.tokenOut)) {
-    throw new Error("Token is invalid");
-  }
-
-  // Validate peggedTokenIn
-  if (typeof parameters.peggedTokenIn !== "bigint") {
-    throw new Error("Amount must be a bigint");
-  }
-  if (parameters.peggedTokenIn <= 0n) {
-    throw new Error("Amount must be greater than 0");
-  }
-
   return readContract(client, {
     abi: gatewayAbi,
     address: parameters.address,
-    args: [parameters.tokenOut, parameters.peggedTokenIn],
-    functionName: "previewRedeem",
+    functionName: "treasury",
   });
 }
