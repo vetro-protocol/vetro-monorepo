@@ -1,1 +1,45 @@
 @import "tailwindcss";
+
+@theme {
+  --color-blue-50: #eaf4ff;
+  --color-blue-100: #d9ebff;
+  --color-blue-200: #bad8ff;
+  --color-blue-300: #90bcff;
+  --color-blue-400: #6494ff;
+  --color-blue-500: #416bff;
+  --color-blue-600: #2040ff;
+  --color-blue-700: #1531ed;
+  --color-blue-800: #152ec6;
+  --color-blue-900: #1a2f95;
+  --color-blue-950: #0f1957;
+
+  --font-size-xsm: 0.8125rem; /* 13px */
+  --font-size-mid: 0.9375rem; /* 15px */
+
+  --line-height-xsm: 1.25rem; /* 20px */
+  --line-height-mid: 1.375rem; /* 22px */
+
+  --shadow-bs: 0 0 0 1px rgba(0, 0, 0, 0.04);
+  --shadow-sm:
+    0 0 0 1px rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.08),
+    0 7px 11px -6px rgba(0, 0, 0, 0.08);
+  --shadow-md:
+    0 0 0 1px rgba(0, 0, 0, 0.04), 0 5px 16px -2px rgba(0, 0, 0, 0.08),
+    0 7px 11px -6px rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+  --shadow-lg:
+    0 0 0 1px rgba(0, 0, 0, 0.04), 0 12px 28px -8px rgba(0, 0, 0, 0.16),
+    0 5px 16px -2px rgba(0, 0, 0, 0.06);
+  --shadow-xl:
+    0 0 0 1px rgba(0, 0, 0, 0.04), 0 5px 16px -2px rgba(0, 0, 0, 0.06),
+    0 15px 35px -5px rgba(0, 0, 0, 0.2);
+}
+
+@utility text-xsm {
+  font-size: var(--font-size-xsm);
+  line-height: var(--line-height-xsm);
+}
+
+@utility text-mid {
+  font-size: var(--font-size-mid);
+  line-height: var(--line-height-mid);
+}
