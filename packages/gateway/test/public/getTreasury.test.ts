@@ -37,7 +37,7 @@ describe("getTreasury", function () {
     };
     // @ts-expect-error - Testing invalid input
     await expect(getTreasury(client, parameters)).rejects.toThrow(
-      "Invalid gateway address",
+      "Gateway is invalid",
     );
   });
 
@@ -45,7 +45,7 @@ describe("getTreasury", function () {
     const parameters = {};
     // @ts-expect-error - Testing invalid input
     await expect(getTreasury(client, parameters)).rejects.toThrow(
-      "Invalid gateway address",
+      "Gateway is invalid",
     );
   });
 
@@ -55,7 +55,7 @@ describe("getTreasury", function () {
     };
 
     await expect(getTreasury(client, parameters)).rejects.toThrow(
-      "Gateway address cannot be zero address",
+      "Gateway is invalid",
     );
   });
 

@@ -1,13 +1,8 @@
-import {
-  type Address,
-  type Client,
-  isAddress,
-  isAddressEqual,
-  zeroAddress,
-} from "viem";
+import { type Address, type Client } from "viem";
 import { readContract } from "viem/actions";
 
 import { gatewayAbi } from "../../abi/gatewayAbi.js";
+import { isAddressValid } from "../../utils/isAddressValid.js";
 
 export async function previewRedeem(
   client: Client,
@@ -28,19 +23,13 @@ export async function previewRedeem(
   }
 
   // Validate gateway address
-  if (!parameters.address || !isAddress(parameters.address)) {
-    throw new Error("Invalid gateway address");
-  }
-  if (isAddressEqual(parameters.address, zeroAddress)) {
-    throw new Error("Gateway address cannot be zero address");
+  if (!isAddressValid(parameters.address)) {
+    throw new Error("Gateway is invalid");
   }
 
   // Validate tokenOut address
-  if (!parameters.tokenOut || !isAddress(parameters.tokenOut)) {
-    throw new Error("Invalid token address");
-  }
-  if (isAddressEqual(parameters.tokenOut, zeroAddress)) {
-    throw new Error("Token address cannot be zero address");
+  if (!isAddressValid(parameters.tokenOut)) {
+    throw new Error("Token is invalid");
   }
 
   // Validate peggedTokenIn

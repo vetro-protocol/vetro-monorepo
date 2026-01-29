@@ -37,7 +37,7 @@ describe("getPeggedToken", function () {
     };
     // @ts-expect-error - Testing invalid input
     await expect(getPeggedToken(client, parameters)).rejects.toThrow(
-      "Invalid gateway address",
+      "Gateway is invalid",
     );
   });
 
@@ -45,7 +45,7 @@ describe("getPeggedToken", function () {
     const parameters = {};
     // @ts-expect-error - Testing invalid input
     await expect(getPeggedToken(client, parameters)).rejects.toThrow(
-      "Invalid gateway address",
+      "Gateway is invalid",
     );
   });
 
@@ -55,7 +55,7 @@ describe("getPeggedToken", function () {
     };
 
     await expect(getPeggedToken(client, parameters)).rejects.toThrow(
-      "Gateway address cannot be zero address",
+      "Gateway is invalid",
     );
   });
 

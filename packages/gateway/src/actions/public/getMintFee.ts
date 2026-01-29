@@ -1,13 +1,8 @@
-import {
-  type Address,
-  type Client,
-  isAddress,
-  isAddressEqual,
-  zeroAddress,
-} from "viem";
+import { type Address, type Client } from "viem";
 import { readContract } from "viem/actions";
 
 import { gatewayAbi } from "../../abi/gatewayAbi.js";
+import { isAddressValid } from "../../utils/isAddressValid.js";
 
 export async function getMintFee(
   client: Client,
@@ -26,11 +21,8 @@ export async function getMintFee(
   }
 
   // Validate gateway address
-  if (!parameters.address || !isAddress(parameters.address)) {
-    throw new Error("Invalid gateway address");
-  }
-  if (isAddressEqual(parameters.address, zeroAddress)) {
-    throw new Error("Gateway address cannot be zero address");
+  if (!isAddressValid(parameters.address)) {
+    throw new Error("Gateway is invalid");
   }
 
   return readContract(client, {
