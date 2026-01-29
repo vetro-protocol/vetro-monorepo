@@ -50,3 +50,10 @@ coverage/
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# Subgraphs
+subgraph/.env
+subgraph/data/
+subgraph/generated/
+subgraph/tests/.bin/
+subgraph/tests/.latest.json

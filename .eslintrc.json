@@ -3,9 +3,13 @@
   "ignorePatterns": ["web/dist/**/*", "web/storybook-static/**/*"],
   "overrides": [
     {
-      "excludedFiles": ["web/dist/**/*"],
+      "excludedFiles": ["subgraph/generated/**/*", "web/dist/**/*"],
       "extends": ["bloq/esm", "bloq/typescript", "prettier"],
-      "files": ["packages/**/*.{js,ts,tsx}", "web/**/*.{js,ts,tsx}"]
+      "files": [
+        "packages/**/*.{js,ts,tsx}",
+        "subgraph/**/*.ts",
+        "web/**/*.{js,ts,tsx}"
+      ]
     },
     {
       "extends": ["bloq/markdown"],
@@ -23,6 +27,7 @@
       "files": ["*.d.ts"]
     },
     {
+      "excludedFiles": ["subgraph/tests/*.ts"],
       "extends": ["bloq/typescript", "bloq/vitest"],
       "files": ["*.{spec,test}.{js,ts}"]
     },
