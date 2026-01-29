@@ -1,6 +1,6 @@
 {
   "extends": ["bloq", "prettier"],
-  "ignorePatterns": ["web/dist/**/*"],
+  "ignorePatterns": ["web/dist/**/*", "web/storybook-static/**/*"],
   "overrides": [
     {
       "excludedFiles": ["web/dist/**/*"],

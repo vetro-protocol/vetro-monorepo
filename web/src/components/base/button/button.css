@@ -1,0 +1,71 @@
+@reference "../../../index.css";
+
+.button--base {
+  @apply relative box-border inline-flex cursor-pointer items-center justify-center overflow-hidden rounded-full font-medium focus-visible:outline-0 disabled:opacity-65;
+}
+
+/* Button Variants */
+.button-primary {
+  @apply bg-blue-100 text-blue-500 hover:bg-blue-200;
+}
+
+.button-primary:focus-visible {
+  box-shadow: 0 0 0 4px var(--color-blue-500);
+}
+
+.button-secondary {
+  @apply bg-white text-gray-900 shadow-sm hover:bg-gray-50;
+}
+
+.button-secondary:focus-visible {
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.04),
+    0 1px 2px 0 rgba(0, 0, 0, 0.08),
+    0 7px 11px -6px rgba(0, 0, 0, 0.08),
+    0 0 0 4px var(--color-gray-300);
+}
+
+.button-tertiary {
+  @apply hover:shadow-bs bg-transparent text-gray-700 hover:bg-gray-100 hover:text-gray-900 focus-visible:bg-gray-100;
+}
+
+.button-tertiary:focus-visible {
+  box-shadow: 0 0 0 4px var(--color-gray-300);
+}
+
+/* Button Sizes */
+.button-x-small {
+  @apply text-xsm h-7;
+}
+
+.button-x-small.button-regular {
+  @apply gap-x-1 px-3;
+}
+
+.button-x-small.button-icon {
+  @apply min-w-7;
+}
+
+.button-small {
+  @apply h-8 text-sm;
+}
+
+.button-small.button-icon {
+  @apply min-w-8;
+}
+
+.button-small.button-regular {
+  @apply gap-x-2 px-3;
+}
+
+.button-x-large {
+  @apply text-mid h-10;
+}
+
+.button-x-large.button-icon {
+  @apply min-w-11;
+}
+
+.button-x-large.button-regular {
+  @apply gap-x-2 px-4;
+}
