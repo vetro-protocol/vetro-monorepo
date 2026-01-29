@@ -22,6 +22,13 @@ export const gatewayAbi = [
   },
   {
     inputs: [],
+    name: "treasury",
+    outputs: [{ type: "address" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "withdrawalDelayEnabled",
     outputs: [{ type: "bool" }],
     stateMutability: "view",
