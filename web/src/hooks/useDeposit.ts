@@ -83,6 +83,9 @@ export const useDeposit = function ({
       });
       emitter.on("approve-transaction-succeeded", function (receipt) {
         updateNativeBalanceAfterReceipt(receipt);
+        queryClient.invalidateQueries({
+          queryKey: allowanceKey,
+        });
       });
       emitter.on("deposit-transaction-reverted", function (receipt) {
         updateNativeBalanceAfterReceipt(receipt);
