@@ -9,7 +9,7 @@ import { useHemiClient } from "./useHemiClient";
 
 const vusdQueryKey = (chainId: Chain["id"] | undefined) => ["vusd", chainId];
 
-// TODO this are hardcoded for testing, but will be updated
+// TODO these are hardcoded for testing, but will be updated
 // later with final addresses. There isn't a vusd for testing either
 const initialVusd: Token = {
   // mainnet VUSD address in hemi
