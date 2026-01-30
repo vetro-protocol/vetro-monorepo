@@ -54,6 +54,9 @@ export const useRedeem = function ({
 
   return useMutation({
     async mutationFn() {
+      if (!account) {
+        throw new Error("No account connected");
+      }
       await ensureConnectedTo(hemi.id);
 
       const minAmountOut = await queryClient.ensureQueryData(
@@ -69,7 +72,7 @@ export const useRedeem = function ({
       const { emitter, promise } = redeem(walletClient!, {
         minAmountOut,
         peggedTokenIn,
-        receiver: account!,
+        receiver: account,
         tokenOut,
       });
 
