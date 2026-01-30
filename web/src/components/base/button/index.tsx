@@ -1,8 +1,8 @@
 import { type ComponentProps } from "react";
-import { Link } from "react-router";
 import { isRelativeUrl } from "utils/url";
 
 import { ExternalLink } from "../externalLink";
+import { I18nLink } from "../i18nLink";
 
 import "./button.css";
 
@@ -40,7 +40,7 @@ type ButtonProps = Omit<ComponentProps<"button">, "className"> &
   ButtonStyleProps;
 
 type ButtonLinkProps = Omit<ComponentProps<"a">, "href" | "ref" | "className"> &
-  Required<{ href: ComponentProps<typeof Link>["to"] }> &
+  Required<{ href: ComponentProps<typeof I18nLink>["to"] }> &
   ButtonStyleProps;
 
 export const Button = ({
@@ -83,5 +83,5 @@ export const ButtonLink = function ({
       />
     );
   }
-  return <Link className={className} {...props} to={props.href} />;
+  return <I18nLink className={className} {...props} to={props.href} />;
 };
