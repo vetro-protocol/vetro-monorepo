@@ -1,8 +1,4 @@
-import {
-  useQuery,
-  queryOptions,
-  type UseQueryOptions,
-} from "@tanstack/react-query";
+import { useQuery, queryOptions } from "@tanstack/react-query";
 import { getGatewayAddress } from "@vetro/gateway";
 import { previewDeposit } from "@vetro/gateway/actions";
 import type { Address, Chain, Client } from "viem";
@@ -33,10 +29,10 @@ export const previewDepositTokenOptions = ({
   client: Client;
   chainId: Chain["id"];
   gatewayAddress: Address;
-  options?: Omit<UseQueryOptions<bigint, Error>, "queryKey" | "queryFn">;
   tokenIn: Address;
 }) =>
   queryOptions({
+    enabled: !!client && amountIn > 0n,
     queryFn: () =>
       previewDeposit(client, {
         address: gatewayAddress,
@@ -68,9 +64,6 @@ export const usePreviewDeposit = function ({
       chainId: hemi.id,
       client: client!,
       gatewayAddress,
-      options: {
-        enabled: !!client && amountIn > 0n,
-      },
       tokenIn,
     }),
   );
