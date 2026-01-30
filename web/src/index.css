@@ -46,8 +46,9 @@
   line-height: var(--line-height-mid);
 }
 
-/* using 4.16 to keep the proportion of REM > utility number */
-@utility text-4.16xl {
+/* I'm using "4.4" as proportional from values. 
+If text-4xl is 2.25 rem => 4, then here 2.5 rem => 4.4 */
+@utility text-4.4xl {
   font-size: 2.5rem;
   line-height: 44px;
 }
@@ -62,7 +63,7 @@ h5 {
 }
 
 h1 {
-  @apply text-4.16xl;
+  @apply text-4.4xl;
 }
 
 h2 {
