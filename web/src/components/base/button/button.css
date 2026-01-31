@@ -33,6 +33,23 @@
   box-shadow: 0 0 0 4px var(--color-gray-300);
 }
 
+/* Navbar link variants - color/state only */
+.button-nav-tertiary {
+  @apply bg-transparent text-gray-500 hover:text-gray-900;
+}
+
+.button-nav-tertiary:focus-visible {
+  box-shadow: 0 0 0 4px var(--color-gray-300);
+}
+
+.button-nav-primary {
+  @apply bg-blue-50 text-blue-500;
+}
+
+.button-nav-primary:focus-visible {
+  box-shadow: 0 0 0 4px var(--color-blue-500);
+}
+
 /* Button Sizes */
 .button-x-small {
   @apply text-xsm h-7;
