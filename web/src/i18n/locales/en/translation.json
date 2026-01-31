@@ -2,6 +2,12 @@
   "language": {
     "switchTo": "Switch to Spanish"
   },
+  "nav": {
+    "borrow": "Borrow",
+    "bridge": "Bridge",
+    "earn": "Earn",
+    "swap": "Swap"
+  },
   "pages": {
     "analytics": {
       "title": "Hello Analytics"
