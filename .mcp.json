@@ -1,8 +1,7 @@
 {
   "mcpServers": {
-    "figma": {
-      "command": "npx",
-      "args": ["-y", "@figma/mcp-server-figma"]
+    "figmaDesktop": {
+      "url": "http://127.0.0.1:3845/mcp"
     }
   }
 }
