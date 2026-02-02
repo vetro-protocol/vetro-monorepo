@@ -2,6 +2,12 @@
   "language": {
     "switchTo": "Cambiar a Inglés"
   },
+  "nav": {
+    "borrow": "Préstamos",
+    "bridge": "Bridge",
+    "earn": "Earn",
+    "swap": "Intercambios"
+  },
   "pages": {
     "analytics": {
       "title": "Hola Analíticas"

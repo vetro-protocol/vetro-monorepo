@@ -1,4 +1,5 @@
 import { AppLayout } from "components/base/appLayout";
+import { Header } from "components/header";
 import { SwitchLanguage } from "components/switchLanguage";
 import { I18nInitializer } from "i18n/config";
 import { Analytics } from "pages/analytics";
@@ -21,6 +22,7 @@ export const App = () => (
           path="/:lang/*"
           element={
             <>
+              <Header />
               <I18nInitializer />
               <Routes>
                 <Route path="swap" element={<Swap />} />

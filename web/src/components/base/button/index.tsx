@@ -40,8 +40,9 @@ type ButtonProps = Omit<ComponentProps<"button">, "className"> &
   ButtonStyleProps;
 
 type ButtonLinkProps = Omit<ComponentProps<"a">, "href" | "ref" | "className"> &
-  Required<{ href: ComponentProps<typeof I18nLink>["to"] }> &
-  ButtonStyleProps;
+  Required<{ href: ComponentProps<typeof I18nLink>["to"] }> & {
+    size?: ButtonSize;
+  };
 
 export const Button = ({
   size = "small",
@@ -55,7 +56,7 @@ export const Button = ({
 );
 
 export const ButtonIcon = ({
-  size = "small",
+  size = "xSmall",
   variant = "primary",
   ...props
 }: ButtonProps) => (
@@ -66,22 +67,29 @@ export const ButtonIcon = ({
 );
 
 export const ButtonLink = function ({
-  size = "small",
-  variant = "primary",
+  size = "xSmall",
   ...props
 }: ButtonLinkProps) {
-  const className = `button--base ${buttonSizePresets[size].regular} ${variants[variant]}`;
+  const sizeClass = buttonSizePresets[size].regular;
+
   if (
     !props.href ||
     (typeof props.href === "string" && !isRelativeUrl(props.href))
   ) {
     return (
       <ExternalLink
-        className={className}
+        // External links can't be active
+        className={`button--base button-nav-secondary ${sizeClass}`}
         {...props}
-        href={props.href as string | undefined}
+        href={props.href}
       />
     );
   }
-  return <I18nLink className={className} {...props} to={props.href} />;
+
+  // ButtonLink always uses navbar-style active state detection
+  const navClassName = ({ isActive }: { isActive: boolean }) =>
+    `button--base ${isActive ? "button-nav-primary" : "button-nav-secondary"} ${sizeClass}`;
+
+  // Internal links use NavLink's active state detection
+  return <I18nLink className={navClassName} {...props} to={props.href} />;
 };
