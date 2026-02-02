@@ -1,6 +1,5 @@
 import { AppViewport } from "components/base/appViewport";
 import { Header } from "components/header";
-import { SwitchLanguage } from "components/switchLanguage";
 import { I18nInitializer } from "i18n/config";
 import { Analytics } from "pages/analytics";
 import { Borrow } from "pages/borrow";
@@ -32,7 +31,6 @@ export const App = () => (
                 <Route path="analytics" element={<Analytics />} />
                 <Route path="faq" element={<Faq />} />
               </Routes>
-              <SwitchLanguage />
             </>
           }
         />
