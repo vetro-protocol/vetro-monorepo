@@ -110,7 +110,9 @@ export function Dropdown<T>({
     switch (event.key) {
       case "ArrowDown":
         event.preventDefault();
-        setFocusedIndex((prev) => (prev < items.length - 1 ? prev + 1 : prev));
+        setFocusedIndex((prev) =>
+          prev === -1 ? 0 : prev < items.length - 1 ? prev + 1 : prev,
+        );
         break;
       case "ArrowUp":
         event.preventDefault();
@@ -155,15 +157,14 @@ export function Dropdown<T>({
           ref={listRef}
           role="listbox"
         >
-          {items.map(function (item) {
+          {items.map(function (item, index) {
             const isSelected = isItemEqual(item, value);
+            const isFocused = index === focusedIndex;
 
             return (
               <div
                 aria-selected={isSelected}
-                className={
-                  "text-xsm flex cursor-pointer items-center px-3 py-2 hover:rounded hover:bg-gray-50"
-                }
+                className={`text-xsm flex cursor-pointer items-center rounded px-3 py-2 ${isFocused ? "bg-gray-100" : "hover:bg-gray-50"}`}
                 key={getItemKey(item)}
                 onClick={() => handleItemClick(item)}
                 role="option"
