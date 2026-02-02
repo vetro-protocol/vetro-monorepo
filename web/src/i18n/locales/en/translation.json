@@ -1,4 +1,7 @@
 {
+  "common": {
+    "select-option": "Select option"
+  },
   "language": {
     "switchTo": "Switch to Spanish"
   },

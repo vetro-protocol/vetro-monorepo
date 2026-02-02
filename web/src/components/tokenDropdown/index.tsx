@@ -1,0 +1,44 @@
+import { type Token } from "types";
+
+import { Dropdown } from "../base/dropdown";
+import { TokenLogo } from "../tokenLogo";
+
+type TokenDropdownProps = {
+  onChange: (token: Token) => void;
+  tokens: Token[];
+  value: Token;
+};
+
+const renderTrigger = (selectedToken: Token) => (
+  <>
+    <TokenLogo logoURI={selectedToken.logoURI} symbol={selectedToken.symbol} />
+    <span className="text-sm font-semibold text-gray-900">
+      {selectedToken.symbol}
+    </span>
+  </>
+);
+
+const renderItem = (token: Token) => (
+  <>
+    <div className="flex items-center gap-2">
+      <TokenLogo logoURI={token.logoURI} symbol={token.symbol} />
+      <span className="text-gray-500">{token.name}</span>
+    </div>
+    <span>{token.symbol}</span>
+  </>
+);
+
+export const TokenDropdown = ({
+  onChange,
+  tokens,
+  value,
+}: TokenDropdownProps) => (
+  <Dropdown
+    getItemKey={(token) => `${token.address}-${token.chainId}`}
+    items={tokens}
+    onChange={onChange}
+    renderItem={renderItem}
+    renderTrigger={renderTrigger}
+    value={value}
+  />
+);
