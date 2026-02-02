@@ -11,7 +11,7 @@ type TokenDropdownProps = {
 
 const renderTrigger = (selectedToken: Token) => (
   <>
-    <TokenLogo logoURI={selectedToken.logoURI} symbol={selectedToken.symbol} />
+    <TokenLogo {...selectedToken} />
     <span className="text-sm font-semibold text-gray-900">
       {selectedToken.symbol}
     </span>
@@ -21,7 +21,7 @@ const renderTrigger = (selectedToken: Token) => (
 const renderItem = (token: Token) => (
   <>
     <div className="flex items-center gap-2">
-      <TokenLogo logoURI={token.logoURI} symbol={token.symbol} />
+      <TokenLogo {...token} />
       <span className="text-gray-500">{token.name}</span>
     </div>
     <span>{token.symbol}</span>
