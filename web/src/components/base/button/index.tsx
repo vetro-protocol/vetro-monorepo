@@ -79,7 +79,7 @@ export const ButtonLink = function ({
     return (
       <ExternalLink
         // External links can't be active
-        className={`button--base button-nav-tertiary ${sizeClass}`}
+        className={`button--base button-nav-secondary ${sizeClass}`}
         {...props}
         href={props.href}
       />
@@ -88,7 +88,7 @@ export const ButtonLink = function ({
 
   // ButtonLink always uses navbar-style active state detection
   const navClassName = ({ isActive }: { isActive: boolean }) =>
-    `button--base ${isActive ? "button-nav-primary" : "button-nav-tertiary"} ${sizeClass}`;
+    `button--base ${isActive ? "button-nav-primary" : "button-nav-secondary"} ${sizeClass}`;
 
   // Internal links use NavLink's active state detection
   return <I18nLink className={navClassName} {...props} to={props.href} />;
