@@ -1,7 +1,4 @@
 {
-  "common": {
-    "select-option": "Select option"
-  },
   "language": {
     "switchTo": "Switch to Spanish"
   },
@@ -28,6 +25,7 @@
       "title": "Hello Faq"
     },
     "swap": {
+      "select-option": "Select token to swap",
       "title": "Swap stablecoins for VUSD and back"
     }
   }

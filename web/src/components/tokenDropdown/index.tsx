@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { type Token } from "types";
 
 import { Dropdown } from "../base/dropdown";
@@ -28,17 +29,21 @@ const renderItem = (token: Token) => (
   </>
 );
 
-export const TokenDropdown = ({
+export const TokenDropdown = function ({
   onChange,
   tokens,
   value,
-}: TokenDropdownProps) => (
-  <Dropdown
-    getItemKey={(token) => `${token.address}-${token.chainId}`}
-    items={tokens}
-    onChange={onChange}
-    renderItem={renderItem}
-    renderTrigger={renderTrigger}
-    value={value}
-  />
-);
+}: TokenDropdownProps) {
+  const { t } = useTranslation();
+  return (
+    <Dropdown
+      getItemKey={(token) => `${token.address}-${token.chainId}`}
+      items={tokens}
+      onChange={onChange}
+      renderItem={renderItem}
+      renderTrigger={renderTrigger}
+      triggerId={t("pages.swap.select-option")}
+      value={value}
+    />
+  );
+};

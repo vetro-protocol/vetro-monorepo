@@ -7,7 +7,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { useTranslation } from "react-i18next";
 
 import { ChevronIcon } from "../chevronIcon";
 
@@ -17,6 +16,7 @@ type DropdownProps<T> = {
   onChange: (item: T) => void;
   renderItem: (item: T, isSelected: boolean) => ReactNode;
   renderTrigger: (selectedItem: T, isOpen: boolean) => ReactNode;
+  triggerId: string;
   value: T;
 };
 
@@ -26,13 +26,13 @@ export function Dropdown<T>({
   onChange,
   renderItem,
   renderTrigger,
+  triggerId,
   value,
 }: DropdownProps<T>) {
   const [isOpen, setIsOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const triggerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
-  const { t } = useTranslation();
   const { height: windowHeight, width: windowWidth } = useWindowSize();
 
   const isItemEqual = (a: T, b: T) => getItemKey(a) === getItemKey(b);
@@ -135,6 +135,7 @@ export function Dropdown<T>({
       <div
         aria-expanded={isOpen}
         aria-haspopup="listbox"
+        id={triggerId}
         onClick={handleTriggerClick}
         onKeyDown={handleKeyDown}
         ref={triggerRef}
@@ -149,7 +150,7 @@ export function Dropdown<T>({
 
       {isOpen && (
         <div
-          aria-label={t("common.select-option")}
+          aria-labelledby={triggerId}
           className="fixed z-10 min-w-3xs overflow-y-auto rounded-lg bg-white p-1 shadow-xl"
           ref={listRef}
           role="listbox"
