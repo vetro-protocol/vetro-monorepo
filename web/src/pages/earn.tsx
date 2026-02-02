@@ -1,6 +1,7 @@
+import { PageTitle } from "components/base/pageTitle";
 import { useTranslation } from "react-i18next";
 
 export const Earn = function () {
   const { t } = useTranslation();
-  return <h1>{t("pages.earn.title")}</h1>;
+  return <PageTitle value={t("pages.earn.title")} />;
 };
