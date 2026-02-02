@@ -1,0 +1,28 @@
+{
+  "name": "vetro-api",
+  "version": "1.0.0",
+  "main": "server.ts",
+  "scripts": {
+    "deps:check": "knip",
+    "docker:build": "docker build --tag $npm_package_name:local .",
+    "docker:run": "docker run --interactive --publish 3000:3000 --rm --tty $npm_package_name:local",
+    "start": "node server.ts"
+  },
+  "dependencies": {
+    "@sentry/node": "10.38.0",
+    "config": "4.2.0",
+    "cors": "2.8.6",
+    "dotenv": "17.2.3",
+    "express": "5.2.1",
+    "promise-limit-one": "1.1.0",
+    "promise-mem": "1.0.4",
+    "promise-swr": "1.0.2",
+    "safe-async-fn": "1.0.0",
+    "simple-linear-regression": "1.0.3"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "24.1.0"
+  },
+  "type": "module"
+}

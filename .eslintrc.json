@@ -6,6 +6,7 @@
       "excludedFiles": ["subgraph/generated/**/*", "web/dist/**/*"],
       "extends": ["bloq/esm", "bloq/typescript", "prettier"],
       "files": [
+        "api/**/*.ts",
         "packages/**/*.{js,ts,tsx}",
         "subgraph/**/*.ts",
         "web/**/*.{js,ts,tsx}"
@@ -13,7 +14,10 @@
     },
     {
       "extends": ["bloq/markdown"],
-      "files": ["*.md"]
+      "files": ["*.md"],
+      "rules": {
+        "markdownlint/md024": "off"
+      }
     },
     {
       "extends": ["bloq/markdown"],
@@ -27,7 +31,7 @@
       "files": ["*.d.ts"]
     },
     {
-      "excludedFiles": ["subgraph/tests/*.ts"],
+      "excludedFiles": ["api/tests/*.ts", "subgraph/tests/*.ts"],
       "extends": ["bloq/typescript", "bloq/vitest"],
       "files": ["*.{spec,test}.{js,ts}"]
     },
@@ -41,6 +45,12 @@
       "files": ["packages/**/*.{js,ts,tsx}"],
       "rules": {
         "complexity": ["warn", { "max": 20 }]
+      }
+    },
+    {
+      "files": ["api/**/*.ts"],
+      "rules": {
+        "no-console": "off"
       }
     }
   ],
