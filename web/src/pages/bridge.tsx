@@ -1,6 +1,7 @@
+import { PageTitle } from "components/base/pageTitle";
 import { useTranslation } from "react-i18next";
 
 export const Bridge = function () {
   const { t } = useTranslation();
-  return <h1>{t("pages.bridge.title")}</h1>;
+  return <PageTitle value={t("pages.bridge.title")} />;
 };
