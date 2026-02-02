@@ -1,4 +1,4 @@
-import { AppLayout } from "components/base/appLayout";
+import { AppViewport } from "components/base/appViewport";
 import { Header } from "components/header";
 import { SwitchLanguage } from "components/switchLanguage";
 import { I18nInitializer } from "i18n/config";
@@ -12,7 +12,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 
 export const App = () => (
   <BrowserRouter>
-    <AppLayout>
+    <AppViewport>
       <Routes>
         {/* Redirect root to English */}
         <Route path="/" element={<Navigate to="/en" replace />} />
@@ -37,6 +37,6 @@ export const App = () => (
           }
         />
       </Routes>
-    </AppLayout>
+    </AppViewport>
   </BrowserRouter>
 );
