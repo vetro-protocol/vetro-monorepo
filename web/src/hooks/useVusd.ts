@@ -16,6 +16,8 @@ const initialVusd: Token = {
   address: "0x7A06C4AeF988e7925575C50261297a946aD204A8",
   chainId: hemi.id,
   decimals: 18,
+  logoURI: "https://hemilabs.github.io/token-list/l1Logos/vusd.svg",
+  name: "VUSD",
   symbol: "VUSD",
 };
 
