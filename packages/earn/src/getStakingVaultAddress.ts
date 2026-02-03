@@ -1,9 +1,9 @@
 import { type Address, zeroAddress } from "viem";
-import { hemi, hemiSepolia } from "viem/chains";
+import { mainnet, sepolia } from "viem/chains";
 
 const STAKING_VAULT_ADDRESSES: Record<number, Address> = {
-  [hemi.id]: zeroAddress,
-  [hemiSepolia.id]: zeroAddress,
+  [mainnet.id]: zeroAddress,
+  [sepolia.id]: zeroAddress,
 };
 
 export function getStakingVaultAddress(chainId: number): Address {

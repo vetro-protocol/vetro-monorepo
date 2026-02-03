@@ -5,7 +5,7 @@ import {
   zeroHash,
 } from "viem";
 import { waitForTransactionReceipt, writeContract } from "viem/actions";
-import { hemiSepolia } from "viem/chains";
+import { sepolia } from "viem/chains";
 import { describe, expect, it, vi } from "vitest";
 
 import { cancelWithdraw } from "../../src/actions/wallet/cancelWithdraw";
@@ -19,7 +19,7 @@ const mockWalletClient = {
   account: {
     address: "0x1111111111111111111111111111111111111111" as Address,
   },
-  chain: hemiSepolia,
+  chain: sepolia,
 } as unknown as WalletClient;
 
 const validParameters = {
@@ -50,7 +50,7 @@ describe("cancelWithdraw", function () {
 
   it("should emit 'cancel-withdraw-failed-validation' if client.account is not defined", async function () {
     const clientWithoutAccount = {
-      chain: hemiSepolia,
+      chain: sepolia,
     } as unknown as WalletClient;
 
     const { emitter, promise } = cancelWithdraw(
