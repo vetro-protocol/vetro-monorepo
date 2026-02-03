@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { type Token } from "types";
 
 import { Dropdown } from "../base/dropdown";
+import { TokenDisplay } from "../tokenDisplay";
 import { TokenLogo } from "../tokenLogo";
 
 type TokenDropdownProps = {
@@ -11,12 +12,7 @@ type TokenDropdownProps = {
 };
 
 const renderTrigger = (selectedToken: Token) => (
-  <>
-    <TokenLogo {...selectedToken} />
-    <span className="text-sm font-semibold text-gray-900">
-      {selectedToken.symbol}
-    </span>
-  </>
+  <TokenDisplay logoURI={selectedToken.logoURI} symbol={selectedToken.symbol} />
 );
 
 const renderItem = (token: Token) => (

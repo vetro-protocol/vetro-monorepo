@@ -87,7 +87,12 @@ export function Dropdown<T>({
     [isOpen, windowHeight, windowWidth],
   );
 
+  const canOpenMenu = items.length > 1;
+
   function handleTriggerClick() {
+    if (!canOpenMenu) {
+      return;
+    }
     setIsOpen(!isOpen);
     setFocusedIndex(-1);
   }
@@ -144,9 +149,13 @@ export function Dropdown<T>({
         role="button"
         tabIndex={0}
       >
-        <div className="flex cursor-pointer items-center gap-1.5 rounded-full bg-white/5 py-1.5 pr-3 pl-1.5 shadow-sm hover:bg-gray-50">
+        <div
+          className={`flex ${canOpenMenu ? "cursor-pointer hover:bg-gray-50" : ""} items-center gap-1.5 rounded-full bg-white/5 py-1.5 pr-3 pl-1.5 shadow-sm`}
+        >
           {renderTrigger(value, isOpen)}
-          <ChevronIcon direction={isOpen ? "up" : "down"} />
+          {items.length > 1 && (
+            <ChevronIcon direction={isOpen ? "up" : "down"} />
+          )}
         </div>
       </div>
 
