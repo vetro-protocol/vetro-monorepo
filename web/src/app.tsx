@@ -1,3 +1,4 @@
+import { AppLayout } from "components/base/appLayout";
 import { AppViewport } from "components/base/appViewport";
 import { Header } from "components/header";
 import { I18nInitializer } from "i18n/config";
@@ -23,14 +24,16 @@ export const App = () => (
             <>
               <Header />
               <I18nInitializer />
-              <Routes>
-                <Route path="swap" element={<Swap />} />
-                <Route path="earn" element={<Earn />} />
-                <Route path="borrow" element={<Borrow />} />
-                <Route path="bridge" element={<Bridge />} />
-                <Route path="analytics" element={<Analytics />} />
-                <Route path="faq" element={<Faq />} />
-              </Routes>
+              <AppLayout>
+                <Routes>
+                  <Route path="swap" element={<Swap />} />
+                  <Route path="earn" element={<Earn />} />
+                  <Route path="borrow" element={<Borrow />} />
+                  <Route path="bridge" element={<Bridge />} />
+                  <Route path="analytics" element={<Analytics />} />
+                  <Route path="faq" element={<Faq />} />
+                </Routes>
+              </AppLayout>
             </>
           }
         />
