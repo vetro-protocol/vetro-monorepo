@@ -3,18 +3,18 @@ import { getGatewayAddress } from "@vetro/gateway";
 import { fetchVusd } from "fetchers/fetchVusd";
 import type { Token } from "types";
 import type { Chain, Client } from "viem";
-import { hemi } from "viem/chains";
+import { mainnet } from "viem/chains";
 
-import { useHemiClient } from "./useHemiClient";
+import { useEthereumClient } from "./useEthereumClient";
 
 const vusdQueryKey = (chainId: Chain["id"] | undefined) => ["vusd", chainId];
 
 // TODO these are hardcoded for testing, but will be updated
 // later with final addresses. There isn't a vusd for testing either
 const initialVusd: Token = {
-  // mainnet VUSD address in hemi
-  address: "0x7A06C4AeF988e7925575C50261297a946aD204A8",
-  chainId: hemi.id,
+  // mainnet VUSD address in ethereum
+  address: "0x677ddbd918637E5F2c79e164D402454dE7dA8619",
+  chainId: mainnet.id,
   decimals: 18,
   logoURI: "https://hemilabs.github.io/token-list/l1Logos/vusd.svg",
   name: "VUSD",
@@ -34,6 +34,6 @@ export const vusdOptions = ({ client }: { client: Client | undefined }) =>
   });
 
 export const useVusd = function () {
-  const client = useHemiClient();
+  const client = useEthereumClient();
   return useQuery(vusdOptions({ client }));
 };

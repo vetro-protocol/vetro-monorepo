@@ -1,11 +1,11 @@
 import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { hemi, hemiSepolia } from "viem/chains";
+import { mainnet, sepolia } from "viem/chains";
 import { WagmiProvider } from "wagmi";
 
 const config = getDefaultConfig({
   appName: "Vetro",
-  chains: [hemi, hemiSepolia],
+  chains: [mainnet, sepolia],
   // TODO add project id for wallet connect
   projectId: "YOUR_PROJECT_ID_HERE",
 });

@@ -4,8 +4,8 @@ import { fetchRedeemDelay } from "fetchers/fetchRedeemDelay";
 import type { Address, Chain } from "viem";
 import { useAccount } from "wagmi";
 
-import { useHemi } from "./useHemi";
-import { useHemiClient } from "./useHemiClient";
+import { useEthereumClient } from "./useEthereumClient";
+import { useMainnet } from "./useMainnet";
 
 export const redeemDelayQueryKey = ({
   account,
@@ -19,9 +19,9 @@ export const redeemDelayQueryKey = ({
 
 export const useRedeemDelay = function () {
   const { address: account } = useAccount();
-  const hemi = useHemi();
-  const client = useHemiClient();
-  const gatewayAddress = getGatewayAddress(hemi.id);
+  const ethereumChain = useMainnet();
+  const client = useEthereumClient();
+  const gatewayAddress = getGatewayAddress(ethereumChain.id);
 
   return useQuery({
     enabled: !!client && !!account,

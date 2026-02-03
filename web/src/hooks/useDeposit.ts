@@ -8,8 +8,8 @@ import { deposit } from "@vetro/gateway/actions";
 import type { Address } from "viem";
 import { useAccount } from "wagmi";
 
-import { useHemi } from "./useHemi";
-import { useHemiWalletClient } from "./useHemiWalletClient";
+import { useEthereumWalletClient } from "./useEthereumWalletClient";
+import { useMainnet } from "./useMainnet";
 import {
   previewDepositQueryKey,
   previewDepositTokenOptions,
@@ -24,26 +24,26 @@ export const useDeposit = function ({
   tokenIn: Address;
 }) {
   const { address: account } = useAccount();
-  const { data: walletClient } = useHemiWalletClient();
+  const { data: walletClient } = useEthereumWalletClient();
   const ensureConnectedTo = useEnsureConnectedTo();
-  const hemi = useHemi();
-  const gatewayAddress = getGatewayAddress(hemi.id);
+  const ethereumChain = useMainnet();
+  const gatewayAddress = getGatewayAddress(ethereumChain.id);
   const queryClient = useQueryClient();
   const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
-    hemi.id,
+    ethereumChain.id,
   );
   const { data: vusd } = useVusd();
 
   const allowanceKey = allowanceQueryKey({
     owner: account,
     spender: gatewayAddress,
-    token: { address: tokenIn, chainId: hemi.id },
+    token: { address: tokenIn, chainId: ethereumChain.id },
   });
 
   const tokenInBalanceQueryKey = tokenBalanceQueryKey(
     {
       address: tokenIn,
-      chainId: hemi.id,
+      chainId: ethereumChain.id,
     },
     account,
   );
@@ -56,12 +56,12 @@ export const useDeposit = function ({
         throw new Error("No account connected");
       }
 
-      await ensureConnectedTo(hemi.id);
+      await ensureConnectedTo(ethereumChain.id);
 
       const minPeggedTokenOut = await queryClient.ensureQueryData(
         previewDepositTokenOptions({
           amountIn,
-          chainId: hemi.id,
+          chainId: ethereumChain.id,
           client: walletClient!,
           gatewayAddress,
           tokenIn,
@@ -124,7 +124,7 @@ export const useDeposit = function ({
       queryClient.removeQueries({
         queryKey: previewDepositQueryKey({
           amountIn,
-          chainId: hemi.id,
+          chainId: ethereumChain.id,
           gatewayAddress,
           tokenIn,
         }),

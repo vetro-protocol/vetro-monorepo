@@ -3,8 +3,8 @@ import { getGatewayAddress } from "@vetro/gateway";
 import { previewDeposit } from "@vetro/gateway/actions";
 import type { Address, Chain, Client } from "viem";
 
-import { useHemi } from "./useHemi";
-import { useHemiClient } from "./useHemiClient";
+import { useEthereumClient } from "./useEthereumClient";
+import { useMainnet } from "./useMainnet";
 
 export const previewDepositQueryKey = ({
   amountIn,
@@ -54,14 +54,14 @@ export const usePreviewDeposit = function ({
   amountIn: bigint;
   tokenIn: Address;
 }) {
-  const hemi = useHemi();
-  const client = useHemiClient();
-  const gatewayAddress = getGatewayAddress(hemi.id);
+  const ethereumChain = useMainnet();
+  const client = useEthereumClient();
+  const gatewayAddress = getGatewayAddress(ethereumChain.id);
 
   return useQuery(
     previewDepositTokenOptions({
       amountIn,
-      chainId: hemi.id,
+      chainId: ethereumChain.id,
       client: client!,
       gatewayAddress,
       tokenIn,
