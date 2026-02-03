@@ -8,8 +8,8 @@ import { redeem } from "@vetro/gateway/actions";
 import type { Address } from "viem";
 import { useAccount } from "wagmi";
 
-import { useHemi } from "./useHemi";
-import { useHemiWalletClient } from "./useHemiWalletClient";
+import { useEthereumWalletClient } from "./useEthereumWalletClient";
+import { useMainnet } from "./useMainnet";
 import {
   previewRedeemQueryKey,
   previewRedeemTokenOptions,
@@ -24,14 +24,14 @@ export const useRedeem = function ({
   tokenOut: Address;
 }) {
   const { address: account } = useAccount();
-  const { data: walletClient } = useHemiWalletClient();
+  const { data: walletClient } = useEthereumWalletClient();
   const ensureConnectedTo = useEnsureConnectedTo();
-  const hemi = useHemi();
-  const gatewayAddress = getGatewayAddress(hemi.id);
+  const ethereumChain = useMainnet();
+  const gatewayAddress = getGatewayAddress(ethereumChain.id);
   const queryClient = useQueryClient();
 
   const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
-    hemi.id,
+    ethereumChain.id,
   );
 
   const { data: vusd } = useVusd();
@@ -47,7 +47,7 @@ export const useRedeem = function ({
   const tokenOutBalanceQueryKey = tokenBalanceQueryKey(
     {
       address: tokenOut,
-      chainId: hemi.id,
+      chainId: ethereumChain.id,
     },
     account,
   );
@@ -57,11 +57,11 @@ export const useRedeem = function ({
       if (!account) {
         throw new Error("No account connected");
       }
-      await ensureConnectedTo(hemi.id);
+      await ensureConnectedTo(ethereumChain.id);
 
       const minAmountOut = await queryClient.ensureQueryData(
         previewRedeemTokenOptions({
-          chainId: hemi.id,
+          chainId: ethereumChain.id,
           client: walletClient!,
           gatewayAddress,
           peggedTokenIn,
@@ -123,7 +123,7 @@ export const useRedeem = function ({
       // again, it has to be recalculated
       queryClient.removeQueries({
         queryKey: previewRedeemQueryKey({
-          chainId: hemi.id,
+          chainId: ethereumChain.id,
           gatewayAddress,
           peggedTokenIn,
           tokenOut,

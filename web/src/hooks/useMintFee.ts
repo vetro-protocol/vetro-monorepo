@@ -3,8 +3,8 @@ import { getGatewayAddress } from "@vetro/gateway";
 import { getMintFee } from "@vetro/gateway/actions";
 import type { Address, Chain } from "viem";
 
-import { useHemi } from "./useHemi";
-import { useHemiClient } from "./useHemiClient";
+import { useEthereumClient } from "./useEthereumClient";
+import { useMainnet } from "./useMainnet";
 
 export const mintFeeQueryKey = ({
   chainId,
@@ -15,13 +15,13 @@ export const mintFeeQueryKey = ({
 }) => ["mint-fee", chainId, gatewayAddress];
 
 export const useMintFee = function () {
-  const hemi = useHemi();
-  const client = useHemiClient();
-  const gatewayAddress = getGatewayAddress(hemi.id);
+  const ethereumChain = useMainnet();
+  const client = useEthereumClient();
+  const gatewayAddress = getGatewayAddress(ethereumChain.id);
 
   return useQuery({
     enabled: !!client,
     queryFn: () => getMintFee(client!, { address: gatewayAddress }),
-    queryKey: mintFeeQueryKey({ chainId: hemi.id, gatewayAddress }),
+    queryKey: mintFeeQueryKey({ chainId: ethereumChain.id, gatewayAddress }),
   });
 };

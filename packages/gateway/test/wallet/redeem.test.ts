@@ -6,7 +6,7 @@ import {
   zeroHash,
 } from "viem";
 import { waitForTransactionReceipt, writeContract } from "viem/actions";
-import { hemiSepolia } from "viem/chains";
+import { sepolia } from "viem/chains";
 import { allowance, approve } from "viem-erc20/actions";
 import { describe, expect, it, vi } from "vitest";
 
@@ -35,7 +35,7 @@ const mockWalletClient = {
   account: {
     address: "0x1111111111111111111111111111111111111111" as Address,
   },
-  chain: hemiSepolia,
+  chain: sepolia,
 } as WalletClient;
 
 const validParameters = {
@@ -70,7 +70,7 @@ describe("redeem", function () {
   it("should emit 'redeem-failed-validation' if client.account is not defined", async function () {
     // @ts-expect-error - Testing invalid input
     const clientWithoutAccount = {
-      chain: hemiSepolia,
+      chain: sepolia,
     } as WalletClient;
 
     const { emitter, promise } = redeem(clientWithoutAccount, validParameters);
