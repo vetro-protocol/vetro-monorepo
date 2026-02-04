@@ -9,7 +9,7 @@ type Props = {
   errorKey?: string;
   label: string;
   onChange: (value: string) => void;
-  onClickMax: () => void;
+  onClickMax: VoidFunction;
   tokenSelector: ReactNode;
   value: string;
 };

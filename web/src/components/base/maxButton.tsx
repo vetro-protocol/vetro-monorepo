@@ -1,6 +1,6 @@
 type Props = {
   disabled?: boolean;
-  onClick: () => void;
+  onClick: VoidFunction;
 };
 
 export const MaxButton = ({ disabled = false, onClick }: Props) => (
