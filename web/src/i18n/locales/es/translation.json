@@ -30,7 +30,7 @@
         "networkFee": "Tarifa de Red",
         "oracleDeviationFee": "Tarifa de Desviación del Oráculo"
       },
-      "select-option": "Selecciona el token a intercambiar",
+      "select-option": "Seleccione el token a intercambiar",
       "title": "Intercambie stablecoins por VUSD y viceversa"
     }
   }
