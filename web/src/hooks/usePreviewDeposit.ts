@@ -16,7 +16,13 @@ export const previewDepositQueryKey = ({
   chainId: Chain["id"];
   gatewayAddress: Address;
   tokenIn: Address;
-}) => ["preview-deposit", chainId, gatewayAddress, tokenIn, amountIn];
+}) => [
+  "preview-deposit",
+  chainId,
+  gatewayAddress,
+  tokenIn,
+  amountIn.toString(),
+];
 
 export const previewDepositTokenOptions = ({
   amountIn,

@@ -16,7 +16,13 @@ export const previewRedeemQueryKey = ({
   gatewayAddress: Address;
   peggedTokenIn: bigint;
   tokenOut: Address;
-}) => ["preview-redeem", chainId, gatewayAddress, tokenOut, peggedTokenIn];
+}) => [
+  "preview-redeem",
+  chainId,
+  gatewayAddress,
+  tokenOut,
+  peggedTokenIn.toString(),
+];
 
 export const previewRedeemTokenOptions = ({
   chainId,
