@@ -25,6 +25,11 @@
       "title": "Hello Faq"
     },
     "swap": {
+      "fees": {
+        "fixedProtocolFee": "Fixed Protocol Fee",
+        "networkFee": "Network Fee",
+        "oracleDeviationFee": "Oracle Deviation Fee"
+      },
       "select-option": "Select token to swap",
       "title": "Swap stablecoins for VUSD and back"
     }

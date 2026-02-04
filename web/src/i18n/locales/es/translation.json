@@ -25,7 +25,12 @@
       "title": "Hola FAQ"
     },
     "swap": {
-      "select-option": "Select token to swap",
+      "fees": {
+        "fixedProtocolFee": "Tarifa de Protocolo Fija",
+        "networkFee": "Tarifa de Red",
+        "oracleDeviationFee": "Tarifa de Desviación del Oráculo"
+      },
+      "select-option": "Seleccione el token a intercambiar",
       "title": "Intercambie stablecoins por VUSD y viceversa"
     }
   }
