@@ -19,6 +19,7 @@
     "@vetro/earn": "workspace:*",
     "@vetro/gateway": "workspace:*",
     "i18next": "25.8.0",
+    "nuqs": "2.8.8",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-i18next": "16.5.3",
