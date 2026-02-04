@@ -27,6 +27,12 @@
       "files": ["*.{spec,test}.{js,ts}"]
     },
     {
+      "files": ["web/stories/**/*.{js,ts,tsx}"],
+      "rules": {
+        "no-alert": "off"
+      }
+    },
+    {
       "files": ["packages/**/*.{js,ts,tsx}"],
       "rules": {
         "complexity": ["warn", { "max": 20 }]

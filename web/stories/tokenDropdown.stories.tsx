@@ -77,6 +77,31 @@ const tokensWithMissingLogo: Token[] = [
   },
 ];
 
+export const SingleToken: Story = {
+  args: {
+    onChange: () => ({}),
+    tokens: [tokens[0]],
+    value: tokens[0],
+  },
+  render: function Render(args) {
+    const [selectedToken, setSelectedToken] = useState<Token>(args.value);
+
+    function handleTokenSelect(token: Token) {
+      setSelectedToken(token);
+    }
+
+    return (
+      <div className="w-[120px]">
+        <TokenDropdown
+          onChange={handleTokenSelect}
+          tokens={args.tokens}
+          value={selectedToken}
+        />
+      </div>
+    );
+  },
+};
+
 export const WithMissingLogoUri: Story = {
   args: {
     onChange: () => ({}),
