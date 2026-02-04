@@ -19,3 +19,5 @@
 - **Expected errors**: Use `@ts-expect-error [explanation]` instead of `as any` for known type issues
 - **Return types**: Omit explicit return types when the compiler can infer them
 - **Type vs Interface**: Prefer `type` over `interface`, except for module augmentation
+- **Running TypeScript files**: Use `node <path/to/file>.ts` directly — Node natively supports TypeScript execution
+- **Component Props naming**: When creating a type for component props, use generic name `Props` if they're the only props defined in the file. Otherwise, use `<ComponentName>Props`
