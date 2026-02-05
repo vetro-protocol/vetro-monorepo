@@ -20,11 +20,11 @@
     },
     "earn": {
       "stats": {
-        "earnedAmount": "Tu monto ganado",
-        "rewards": "Tus recompensas",
-        "stakedBalance": "Tu balance stakeado"
+        "earnedAmount": "Su monto ganado",
+        "rewards": "Sus recompensas",
+        "stakedBalance": "Su balance stakeado"
       },
-      "title": "Stake VUSD para ganar rendimiento variable."
+      "title": "Haga stake de VUSD para ganar un rendimiento variable."
     },
     "faq": {
       "title": "Hola FAQ"

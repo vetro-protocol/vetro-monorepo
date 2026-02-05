@@ -1,9 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
+import { tokenBalanceQueryOptions } from "@hemilabs/react-hooks/useTokenBalance";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getStakingVaultAddress } from "@vetro/earn";
-import { fetchStakedBalance } from "fetchers/fetchStakedBalance";
 import { useEthereumClient } from "hooks/useEthereumClient";
 import { useMainnet } from "hooks/useMainnet";
 import type { Address } from "viem";
+import { convertToAssets } from "viem-erc4626/actions";
+import { useAccount } from "wagmi";
 
 const stakedBalanceQueryKey = ({
   account,
@@ -15,23 +17,28 @@ const stakedBalanceQueryKey = ({
   stakingVaultAddress: Address;
 }) => ["staked-balance", chainId, stakingVaultAddress, account];
 
-export function useStakedBalance({
-  account,
-}: {
-  account: Address | undefined;
-}) {
+export function useStakedBalance() {
+  const { address: account } = useAccount();
   const chain = useMainnet();
   const client = useEthereumClient();
+  const queryClient = useQueryClient();
   const stakingVaultAddress = getStakingVaultAddress(chain.id);
 
   return useQuery({
     enabled: !!client && !!account,
-    queryFn: () =>
-      fetchStakedBalance({
-        account: account!,
-        client: client!,
-        stakingVaultAddress,
-      }),
+    async queryFn() {
+      const shares = await queryClient.ensureQueryData(
+        tokenBalanceQueryOptions({
+          account: account!,
+          client: client!,
+          token: { address: stakingVaultAddress, chainId: chain.id },
+        }),
+      );
+      return convertToAssets(client!, {
+        address: stakingVaultAddress,
+        shares,
+      });
+    },
     queryKey: stakedBalanceQueryKey({
       account: account!,
       chainId: chain.id,

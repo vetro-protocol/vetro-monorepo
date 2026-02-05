@@ -1,9 +1,11 @@
-import { useEarnedAmount } from "hooks/useEarnedAmount";
+import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
+import { getStakingVaultAddress } from "@vetro/earn";
+import { useMainnet } from "hooks/useMainnet";
 import { useStakedBalance } from "hooks/useStakedBalance";
+import { useSvusd } from "hooks/useSvusd";
 import { useVusd } from "hooks/useVusd";
 import { useTranslation } from "react-i18next";
 import { formatUnits } from "viem";
-import { useAccount } from "wagmi";
 
 import { BoltIcon } from "../../icons/boltIcon";
 import { SparklesIcon } from "../../icons/sparklesIcon";
@@ -12,14 +14,16 @@ import { StatCard } from "../statCard";
 
 export function EarnStats() {
   const { t } = useTranslation();
-  const { address } = useAccount();
+  const chain = useMainnet();
+  const stakingVaultAddress = getStakingVaultAddress(chain.id);
+  const { data: svusd } = useSvusd();
   const { data: vusd } = useVusd();
 
   const { data: stakedBalance, isLoading: isLoadingStakedBalance } =
-    useStakedBalance({ account: address });
+    useStakedBalance();
 
   const { data: earnedAmount, isLoading: isLoadingEarnedAmount } =
-    useEarnedAmount({ account: address });
+    useTokenBalance({ address: stakingVaultAddress, chainId: chain.id });
 
   const formatStakedBalance = function () {
     if (stakedBalance !== undefined && vusd) {
@@ -29,8 +33,8 @@ export function EarnStats() {
   };
 
   const formatEarnedAmount = function () {
-    if (earnedAmount !== undefined && vusd) {
-      return `${formatUnits(earnedAmount, vusd.decimals)} s${vusd.symbol}`;
+    if (earnedAmount !== undefined && svusd) {
+      return `${formatUnits(earnedAmount, svusd.decimals)} ${svusd.symbol}`;
     }
     return "";
   };
