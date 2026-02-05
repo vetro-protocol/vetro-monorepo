@@ -35,6 +35,19 @@
         "networkFee": "Tarifa de Red",
         "oracleDeviationFee": "Tarifa de Desviación del Oráculo"
       },
+      "form": {
+        "allowance-error": "No se pudo cargar el monto autorizado",
+        "balance": "Saldo",
+        "connect-wallet": "Conectar billetera",
+        "deposit": "Depositar",
+        "enter-amount": "Ingrese un monto",
+        "insufficient-balance": "Saldo insuficiente",
+        "insufficient-gas": "ETH insuficiente para gas",
+        "preview-error": "No se pudo calcular el monto a recibir",
+        "redeem": "Canjear",
+        "you-are-swapping": "Vas a intercambiar",
+        "you-will-receive": "Vas a recibir"
+      },
       "select-option": "Seleccione el token a intercambiar",
       "title": "Intercambie stablecoins por VUSD y viceversa"
     }

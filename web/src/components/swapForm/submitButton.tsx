@@ -20,10 +20,18 @@ const Container = ({ children }: { children: ReactNode }) => (
 type Props = {
   actionText: string;
   inputError: InputError;
+  isPreviewError: boolean;
+  previewValue: bigint | undefined;
   token: Token;
 };
 
-export function SubmitButton({ actionText, inputError, token }: Props) {
+export function SubmitButton({
+  actionText,
+  inputError,
+  isPreviewError,
+  previewValue,
+  token,
+}: Props) {
   const { address } = useAccount();
   const { openConnectModal } = useConnectModal();
   const ethereumChain = useMainnet();
@@ -50,12 +58,11 @@ export function SubmitButton({ actionText, inputError, token }: Props) {
     );
   }
 
-  // show spinner for loading allowance
-  if (allowance === undefined && !isAllowanceError) {
+  if (inputError) {
     return (
       <Container>
         <Button disabled size="xLarge" type="button">
-          <Spinner />
+          {t(`pages.swap.form.${inputError}`)}
         </Button>
       </Container>
     );
@@ -72,11 +79,26 @@ export function SubmitButton({ actionText, inputError, token }: Props) {
     );
   }
 
-  if (!inputError) {
+  if (isPreviewError) {
     return (
       <Container>
-        <Button size="xLarge" type="submit">
-          {actionText}
+        <Button disabled size="xLarge" type="button">
+          {t("pages.swap.form.preview-error")}
+        </Button>
+      </Container>
+    );
+  }
+
+  const showSpinner = () =>
+    // show spinner for loading allowance, or calculating output values
+    previewValue === undefined ||
+    (allowance === undefined && !isAllowanceError);
+
+  if (showSpinner()) {
+    return (
+      <Container>
+        <Button disabled size="xLarge" type="button">
+          <Spinner />
         </Button>
       </Container>
     );
@@ -84,8 +106,8 @@ export function SubmitButton({ actionText, inputError, token }: Props) {
 
   return (
     <Container>
-      <Button disabled size="xLarge" type="button">
-        {t(`pages.swap.form.${inputError}`)}
+      <Button size="xLarge" type="submit">
+        {actionText}
       </Button>
     </Container>
   );

@@ -35,6 +35,19 @@
         "networkFee": "Network Fee",
         "oracleDeviationFee": "Oracle Deviation Fee"
       },
+      "form": {
+        "allowance-error": "Error loading allowance",
+        "balance": "Balance",
+        "connect-wallet": "Connect wallet",
+        "deposit": "Deposit",
+        "enter-amount": "Enter an amount",
+        "insufficient-balance": "Insufficient balance",
+        "insufficient-gas": "Insufficient ETH for gas",
+        "preview-error": "Failed to calculate amount to receive",
+        "redeem": "Redeem",
+        "you-are-swapping": "You are swapping",
+        "you-will-receive": "You will receive"
+      },
       "select-option": "Select token to swap",
       "title": "Swap stablecoins for VUSD and back"
     }
