@@ -1,0 +1,32 @@
+import { queryOptions, useQuery } from "@tanstack/react-query";
+import { getStakingVaultAddress } from "@vetro/earn";
+import { fetchSvusd } from "fetchers/fetchSvusd";
+import { useEthereumClient } from "hooks/useEthereumClient";
+import { useMainnet } from "hooks/useMainnet";
+import type { Client } from "viem";
+
+const svusdQueryKey = (chainId: number | undefined) => ["svusd", chainId];
+
+export const svusdOptions = ({
+  chainId,
+  client,
+}: {
+  chainId: number;
+  client: Client | undefined;
+}) =>
+  queryOptions({
+    enabled: !!client,
+    queryFn: () =>
+      fetchSvusd({
+        client: client!,
+        stakingVaultAddress: getStakingVaultAddress(chainId),
+      }),
+    queryKey: svusdQueryKey(chainId),
+  });
+
+export function useSvusd() {
+  const chain = useMainnet();
+  const client = useEthereumClient();
+
+  return useQuery(svusdOptions({ chainId: chain.id, client }));
+}

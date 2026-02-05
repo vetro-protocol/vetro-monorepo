@@ -19,7 +19,12 @@
       "title": "Hola Bridge"
     },
     "earn": {
-      "title": "Hola Earn"
+      "stats": {
+        "earnedAmount": "Su monto ganado",
+        "rewards": "Sus recompensas",
+        "stakedBalance": "Su balance stakeado"
+      },
+      "title": "Haga stake de VUSD para ganar un rendimiento variable."
     },
     "faq": {
       "title": "Hola FAQ"

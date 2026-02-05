@@ -19,7 +19,12 @@
       "title": "Hello Bridge"
     },
     "earn": {
-      "title": "Hello Earn"
+      "stats": {
+        "earnedAmount": "Your earned amount",
+        "rewards": "Your rewards",
+        "stakedBalance": "Your staked balance"
+      },
+      "title": "Stake VUSD to earn variable yield."
     },
     "faq": {
       "title": "Hello Faq"
