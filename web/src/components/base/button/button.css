@@ -6,7 +6,7 @@
 
 /* Button Variants */
 .button-primary {
-  @apply bg-blue-100 text-blue-500 hover:bg-blue-200;
+  @apply bg-blue-100 text-blue-500 enabled:hover:bg-blue-200;
 }
 
 .button-primary:focus-visible {
@@ -14,7 +14,7 @@
 }
 
 .button-secondary {
-  @apply bg-white text-gray-900 shadow-sm hover:bg-gray-50;
+  @apply bg-white text-gray-900 shadow-sm enabled:hover:bg-gray-50;
 }
 
 .button-secondary:focus-visible {
@@ -26,7 +26,7 @@
 }
 
 .button-tertiary {
-  @apply hover:shadow-bs bg-transparent text-gray-700 hover:bg-gray-100 hover:text-gray-900 focus-visible:bg-gray-100;
+  @apply enabled:hover:shadow-bs bg-transparent text-gray-700 focus-visible:bg-gray-100 enabled:hover:bg-gray-100 enabled:hover:text-gray-900;
 }
 
 .button-tertiary:focus-visible {
@@ -35,7 +35,7 @@
 
 /* Navbar link variants - color/state only */
 .button-nav-secondary {
-  @apply bg-transparent text-gray-500 hover:text-gray-900;
+  @apply bg-transparent text-gray-500 enabled:hover:text-gray-900;
 }
 
 .button-nav-secondary:focus-visible {
