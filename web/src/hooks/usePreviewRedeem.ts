@@ -38,13 +38,15 @@ export const previewRedeemTokenOptions = ({
   tokenOut: Address;
 }) =>
   queryOptions({
-    enabled: !!client && peggedTokenIn > 0n,
+    enabled: !!client,
     queryFn: () =>
-      previewRedeem(client, {
-        address: gatewayAddress,
-        peggedTokenIn,
-        tokenOut,
-      }),
+      peggedTokenIn > 0n
+        ? previewRedeem(client, {
+            address: gatewayAddress,
+            peggedTokenIn,
+            tokenOut,
+          })
+        : 0n,
     queryKey: previewRedeemQueryKey({
       chainId,
       gatewayAddress,

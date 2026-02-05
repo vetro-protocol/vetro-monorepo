@@ -38,13 +38,15 @@ export const previewDepositTokenOptions = ({
   tokenIn: Address;
 }) =>
   queryOptions({
-    enabled: !!client && amountIn > 0n,
+    enabled: !!client,
     queryFn: () =>
-      previewDeposit(client, {
-        address: gatewayAddress,
-        amountIn,
-        tokenIn,
-      }),
+      amountIn > 0n
+        ? previewDeposit(client, {
+            address: gatewayAddress,
+            amountIn,
+            tokenIn,
+          })
+        : 0n,
     queryKey: previewDepositQueryKey({
       amountIn,
       chainId,
