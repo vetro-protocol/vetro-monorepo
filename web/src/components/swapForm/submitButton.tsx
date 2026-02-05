@@ -89,12 +89,12 @@ export function SubmitButton({
     );
   }
 
-  const showSpinner = () =>
+  const shouldShowSpinner = () =>
     // show spinner for loading allowance, or calculating output values
     previewValue === undefined ||
     (allowance === undefined && !isAllowanceError);
 
-  if (showSpinner()) {
+  if (shouldShowSpinner()) {
     return (
       <Container>
         <Button disabled size="xLarge" type="button">
