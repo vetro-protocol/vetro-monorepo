@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 
+import { MaxButton } from "../src/components/base/maxButton";
 import { TokenDropdown } from "../src/components/tokenDropdown";
 import { TokenInput } from "../src/components/tokenInput";
 import { TokenSelectorReadOnly } from "../src/components/tokenSelectorReadOnly";
@@ -40,12 +41,12 @@ export const SwitchToken: Story = {
     balanceLabel: "Balance",
     balanceValue: "2",
     label: "You are swapping",
+    maxButton: <MaxButton onClick={() => alert("max clicked")} />,
     onChange: () => ({}),
-    onClickMax: () => ({}),
     tokenSelector: undefined,
     value: "0",
   },
-  render: function Render() {
+  render: function Render(args) {
     const [amount, setAmount] = useAmount();
     const [selectedToken, setSelectedToken] = useState<Token>(tokens[0]);
 
@@ -56,11 +57,8 @@ export const SwitchToken: Story = {
     return (
       <div className="w-[450px]">
         <TokenInput
-          balanceLabel="Balance"
-          balanceValue="2"
-          label="You are swapping"
+          {...args}
           onChange={setAmount}
-          onClickMax={() => setAmount("2")}
           tokenSelector={
             <TokenDropdown
               onChange={handleTokenSelect}
@@ -80,30 +78,22 @@ export const ReadOnlyToken: Story = {
     balanceLabel: "Available to withdraw",
     balanceValue: "200",
     label: "You will withdraw",
+    maxButton: <MaxButton onClick={() => alert("max clicked")} />,
     onChange: () => ({}),
-    onClickMax: () => ({}),
-    tokenSelector: undefined,
+    tokenSelector: (
+      <TokenSelectorReadOnly
+        logoURI={tokens[0].logoURI}
+        symbol={tokens[0].symbol}
+      />
+    ),
     value: "0",
   },
-  render: function Render() {
+  render: function Render(args) {
     const [amount, setAmount] = useAmount();
 
     return (
       <div className="w-[450px]">
-        <TokenInput
-          balanceLabel="Available to withdraw"
-          balanceValue="200"
-          label="You will withdraw"
-          onChange={setAmount}
-          onClickMax={() => setAmount("200")}
-          tokenSelector={
-            <TokenSelectorReadOnly
-              logoURI={tokens[0].logoURI}
-              symbol={tokens[0].symbol}
-            />
-          }
-          value={amount}
-        />
+        <TokenInput {...args} onChange={setAmount} value={amount} />
       </div>
     );
   },
@@ -115,9 +105,14 @@ export const WithError: Story = {
     balanceValue: "2",
     errorKey: "insufficient-balance",
     label: "You are swapping",
+    maxButton: <MaxButton onClick={() => alert("max clicked")} />,
     onChange: () => ({}),
-    onClickMax: () => ({}),
-    tokenSelector: undefined,
+    tokenSelector: (
+      <TokenSelectorReadOnly
+        logoURI={tokens[0].logoURI}
+        symbol={tokens[0].symbol}
+      />
+    ),
     value: "100",
   },
   render: function Render(args) {
@@ -125,21 +120,7 @@ export const WithError: Story = {
 
     return (
       <div className="w-[450px]">
-        <TokenInput
-          balanceLabel="Balance"
-          balanceValue="2"
-          errorKey="insufficient-balance"
-          label="You are swapping"
-          onChange={setAmount}
-          onClickMax={() => setAmount("2")}
-          tokenSelector={
-            <TokenSelectorReadOnly
-              logoURI={tokens[0].logoURI}
-              symbol={tokens[0].symbol}
-            />
-          }
-          value={amount}
-        />
+        <TokenInput {...args} onChange={setAmount} value={amount} />
       </div>
     );
   },
