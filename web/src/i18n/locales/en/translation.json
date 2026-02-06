@@ -19,6 +19,14 @@
       "title": "Hello Bridge"
     },
     "earn": {
+      "poolInfo": {
+        "apy": "Current 7-Day APY",
+        "deposit": "Deposit",
+        "poolContract": "Pool contract",
+        "potentialRewards": "Potential rewards",
+        "totalDeposits": "Total deposits",
+        "withdraw": "Withdraw"
+      },
       "stats": {
         "earnedAmount": "Your earned amount",
         "rewards": "Your rewards",
