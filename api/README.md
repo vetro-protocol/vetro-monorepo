@@ -11,7 +11,9 @@ Returns the APY of the Vetro vault calculated using the share value variations o
 #### Response
 
 ```jsonc
-{ "7d": 100 } // 100 = 1%
+{
+  "7d": 100, // 100 = 1%
+}
 ```
 
 ### `GET /variable-stake/rewards/:address`
@@ -50,38 +52,41 @@ Returns all user's variable stake exit tickets to i.e. allow claiming the withdr
 
 #### Response
 
-```json
-{
-  "requestId": "1",
-  "requestTxHash": "0x0000000000000000000000000000000000000000000000000000000000000001",
-  "owner": "0x0000000000000000000000000000000000000001",
-  "assets": "1050000000000000000",
-  "shares": "1000000000000000000",
-  "claimableAt": 1700000000
-  // Optionally: cancelTxHash, claimTxHash and receiver address
-}
+```jsonc
+[
+  {
+    "requestId": "1",
+    "requestTxHash": "0x0000000000000000000000000000000000000000000000000000000000000001",
+    "owner": "0x0000000000000000000000000000000000000001",
+    "assets": "1050000000000000000",
+    "shares": "1000000000000000000",
+    "claimableAt": 1700000000,
+    // Optionally: cancelTxHash, claimTxHash and receiver address
+  },
+]
 ```
 
 ## Configuration
 
 Use the following environment variables to configure the service:
 
-| Variable              | Description                                    | Default                 |
-| --------------------- | ---------------------------------------------- | ----------------------- |
-| MERKL_OPPORTUNITY_ID  | The Merkle opportunity id to look for rewards. |                         |
-| ORIGINS               | Comma-separated list of allowed origins. (1)   | `http://localhost:5173` |
-| PORT                  | Port for the server                            | 3000                    |
-| SENTRY_DSN            | Sentry DSN                                     |                         |
-| SENTRY_LOGGING_LEVELS | Log levels (props of console as JSON)          | ["log","warn","error"]  |
-| SUBGRAPH_API_KEY      | The subgraph API key                           |                         |
-| SUBGRAPH_ID           | The subgraph id                                |                         |
-| SUBGRAPH_URL_TEMPLATE | The subgraph URL template                      | (localhost)             |
+| Variable              | Description                                   | Default                 |
+| --------------------- | --------------------------------------------- | ----------------------- |
+| MERKL_OPPORTUNITY_ID  | The Merkl opportunity id to look for rewards. |                         |
+| ORIGINS               | Comma-separated list of allowed origins. (1)  | `http://localhost:5173` |
+| PORT                  | Port for the server.                          | 3000                    |
+| SENTRY_DSN            | Sentry DSN.                                   |                         |
+| SENTRY_LOGGING_LEVELS | Log levels (props of console as JSON).        | ["log","warn","error"]  |
+| SUBGRAPH_API_KEY      | The subgraph API key.                         |                         |
+| SUBGRAPH_ID           | The subgraph id.                              |                         |
+| SUBGRAPH_URL_TEMPLATE | The subgraph URL template. (2)                | (localhost)             |
 
 (1) Globs with stars (`*`) are supported. I.e. `https://*.hemi.xyz` will match any subdomain or subdomain chain.
+(2) API key and id are replaced in the template at the `$API_KEY` and `$ID` positions.
 
 ## Local development
 
-Crete a `.env` file to configure the service. Then run:
+Create a `.env` file to configure the service. Then run:
 
 ```sh
 pnpm start
