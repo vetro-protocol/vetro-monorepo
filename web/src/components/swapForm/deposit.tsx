@@ -1,12 +1,13 @@
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
+import { ApproveSection } from "components/approveSection";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenDropdown } from "components/tokenDropdown";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useDeposit } from "hooks/useDeposit";
 import { useMainnet } from "hooks/useMainnet";
 import { usePreviewDeposit } from "hooks/usePreviewDeposit";
-import type { FormEvent } from "react";
+import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 import { formatAmount } from "utils/token";
@@ -38,8 +39,11 @@ export function Deposit({
   toToken,
   whitelistedTokens,
 }: Props) {
+  const [approve10x, setApprove10x] = useState(false);
   const ethereumChain = useMainnet();
   const { t } = useTranslation();
+
+  const approveAmount = approve10x ? amountBigInt * 10n : undefined;
 
   const { data: fromTokenBalance, isError: isFromTokenBalanceError } =
     useTokenBalance({
@@ -58,6 +62,7 @@ export function Deposit({
 
   const depositMutation = useDeposit({
     amountIn: amountBigInt,
+    approveAmount,
     tokenIn: fromToken.address,
   });
 
@@ -89,31 +94,39 @@ export function Deposit({
     }
   }
   return (
-    <Form
-      balanceValue={formattedBalance}
-      errorKey={balancesLoaded ? inputError : undefined}
-      fromInputValue={fromInputValue}
-      fromTokenSelector={
-        <TokenDropdown
-          onChange={onTokenChange}
-          tokens={whitelistedTokens}
-          value={fromToken}
+    <>
+      <Form
+        balanceValue={formattedBalance}
+        errorKey={balancesLoaded ? inputError : undefined}
+        fromInputValue={fromInputValue}
+        fromTokenSelector={
+          <TokenDropdown
+            onChange={onTokenChange}
+            tokens={whitelistedTokens}
+            value={fromToken}
+          />
+        }
+        maxButton={
+          <SetMaxErc20Balance onClick={onMaxClick} token={fromToken} />
+        }
+        onInputChange={onInputChange}
+        onSubmit={handleSubmit}
+        onToggle={onToggle}
+        outputValue={outputValue}
+        toTokenSelector={<TokenSelectorReadOnly {...toToken} />}
+      >
+        <SubmitButton
+          actionText={t("pages.swap.form.deposit")}
+          inputError={inputError}
+          isPreviewError={isDepositPreviewError}
+          previewValue={depositPreview}
+          token={fromToken}
         />
-      }
-      maxButton={<SetMaxErc20Balance onClick={onMaxClick} token={fromToken} />}
-      onInputChange={onInputChange}
-      onSubmit={handleSubmit}
-      onToggle={onToggle}
-      outputValue={outputValue}
-      toTokenSelector={<TokenSelectorReadOnly {...toToken} />}
-    >
-      <SubmitButton
-        actionText={t("pages.swap.form.deposit")}
-        inputError={inputError}
-        isPreviewError={isDepositPreviewError}
-        previewValue={depositPreview}
-        token={fromToken}
+      </Form>
+      <ApproveSection
+        active={approve10x}
+        onToggle={() => setApprove10x((prev) => !prev)}
       />
-    </Form>
+    </>
   );
 }
