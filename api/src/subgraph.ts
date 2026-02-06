@@ -8,11 +8,14 @@ type GraphQLResponse = {
 };
 
 const url = config
-  .get("subgraph.urlTemplate")
-  .replace("$API_KEY", config.get("subgraph.apiKey"))
-  .replace("$ID", config.get("subgraph.id"));
+  .get<string>("subgraph.urlTemplate")
+  .replace("$API_KEY", config.get<string>("subgraph.apiKey"))
+  .replace("$ID", config.get<string>("subgraph.id"));
 
-export async function runQuery(query, variables) {
+export async function runQuery(
+  query: string,
+  variables: Record<string, unknown>,
+) {
   const response = await postToJsonApi<GraphQLResponse>(url, {
     query,
     variables,

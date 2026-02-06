@@ -59,7 +59,7 @@ export async function getApy() {
  * opportunity.
  */
 export async function getUserRewards({ address }: { address: `0x${string}` }) {
-  const opportunityId = config.get("merkl.opportunityId");
+  const opportunityId = config.get<string | undefined>("merkl.opportunityId");
   if (!opportunityId) {
     return [];
   }

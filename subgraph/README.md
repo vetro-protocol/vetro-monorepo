@@ -47,7 +47,7 @@ Sample response:
         "number": 24000000,
       },
     },
-    "taskEvents": [
+    "exitTickets": [
       {
         "owner": "0x0000000000000000000000000000000000000001",
         "assets": "1000000000000000000",

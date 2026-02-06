@@ -66,16 +66,16 @@ Returns all user's variable stake exit tickets to i.e. allow claiming the withdr
 
 Use the following environment variables to configure the service:
 
-| Variable              | Description                                    | Default                |
-| --------------------- | ---------------------------------------------- | ---------------------- |
-| MERKL_OPPORTUNITY_ID  | The Merkle opportunity id to look for rewards. |                        |
-| ORIGINS               | Comma-separated list of allowed origins. (1)   | `http://localhos:5173` |
-| PORT                  | Port for the server                            | 3000                   |
-| SENTRY_DSN            | Sentry DSN                                     |                        |
-| SENTRY_LOGGING_LEVELS | Log levels (props of console as JSON)          | ["log","warn","error"] |
-| SUBGRAPH_API_KEY      | The subgraph API key                           |                        |
-| SUBGRAPH_ID           | The subgraph id                                |                        |
-| SUBGRAPH_URL_TEMPLATE | The subgraph URL template                      | (localhost)            |
+| Variable              | Description                                    | Default                 |
+| --------------------- | ---------------------------------------------- | ----------------------- |
+| MERKL_OPPORTUNITY_ID  | The Merkle opportunity id to look for rewards. |                         |
+| ORIGINS               | Comma-separated list of allowed origins. (1)   | `http://localhost:5173` |
+| PORT                  | Port for the server                            | 3000                    |
+| SENTRY_DSN            | Sentry DSN                                     |                         |
+| SENTRY_LOGGING_LEVELS | Log levels (props of console as JSON)          | ["log","warn","error"]  |
+| SUBGRAPH_API_KEY      | The subgraph API key                           |                         |
+| SUBGRAPH_ID           | The subgraph id                                |                         |
+| SUBGRAPH_URL_TEMPLATE | The subgraph URL template                      | (localhost)             |
 
 (1) Globs with stars (`*`) are supported. I.e. `https://*.hemi.xyz` will match any subdomain or subdomain chain.
 
