@@ -1,0 +1,77 @@
+import { getStakingVaultAddress } from "@vetro/earn";
+import { useApy } from "hooks/useApy";
+import { useMainnet } from "hooks/useMainnet";
+import { useTotalDeposits } from "hooks/useTotalDeposits";
+import { useUserRewards } from "hooks/useUserRewards";
+import { useVusd } from "hooks/useVusd";
+import { useTranslation } from "react-i18next";
+import { formatUsd } from "utils/currency";
+import { formatEvmAddress } from "utils/format";
+import { formatUnits } from "viem";
+
+import { PoolInfoButtons } from "./poolInfoButtons";
+import { PoolInfoItem } from "./poolInfoItem";
+import { TokenIconStack } from "./tokenIconStack";
+
+export function PoolInfoBar() {
+  const { t } = useTranslation();
+  const chain = useMainnet();
+  const stakingVaultAddress = getStakingVaultAddress(chain.id);
+  const { data: vusd } = useVusd();
+
+  const { data: apy, isLoading: isLoadingApy } = useApy();
+  const { data: totalDeposits, isLoading: isLoadingDeposits } =
+    useTotalDeposits();
+  const { data: userRewards } = useUserRewards();
+
+  const rewardTokens =
+    userRewards?.map((reward) => ({
+      symbol: reward.token.symbol,
+    })) ?? [];
+
+  function formatTotalDeposits() {
+    if (totalDeposits !== undefined && vusd) {
+      const formatted = Number(formatUnits(totalDeposits, vusd.decimals));
+      return formatUsd(formatted);
+    }
+    return undefined;
+  }
+
+  function formatApy() {
+    if (apy !== undefined) {
+      return `${apy.toFixed(2)}%`;
+    }
+    return undefined;
+  }
+
+  return (
+    <div className="flex flex-col gap-6 border-b border-gray-200 bg-white p-4 sm:gap-4 md:flex-row md:items-center md:justify-between md:px-16 md:py-6">
+      <div className="grid grid-cols-2 gap-4 sm:flex sm:items-center sm:justify-center sm:gap-6 md:justify-start md:gap-8">
+        <PoolInfoItem
+          label={t("pages.earn.poolInfo.poolContract")}
+          value={formatEvmAddress(stakingVaultAddress)}
+        />
+        <PoolInfoItem
+          isLoading={isLoadingDeposits}
+          label={t("pages.earn.poolInfo.totalDeposits")}
+          value={formatTotalDeposits()}
+        />
+        <PoolInfoItem label={t("pages.earn.poolInfo.potentialRewards")}>
+          <TokenIconStack tokens={rewardTokens} />
+        </PoolInfoItem>
+        <PoolInfoItem
+          isLoading={isLoadingApy}
+          label={t("pages.earn.poolInfo.apy")}
+        >
+          <div className="flex items-center gap-1">
+            <span className="text-xsm font-semibold text-gray-900">
+              {formatApy() ?? "-"}
+            </span>
+            <TokenIconStack tokens={rewardTokens} />
+          </div>
+        </PoolInfoItem>
+      </div>
+      <PoolInfoButtons />
+    </div>
+  );
+}

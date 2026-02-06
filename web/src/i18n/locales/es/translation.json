@@ -19,6 +19,14 @@
       "title": "Hola Bridge"
     },
     "earn": {
+      "poolInfo": {
+        "apy": "TEA de 7 días",
+        "deposit": "Depositar",
+        "poolContract": "Contrato del pool",
+        "potentialRewards": "Recompensas potenciales",
+        "totalDeposits": "Depósitos totales",
+        "withdraw": "Retirar"
+      },
       "stats": {
         "earnedAmount": "Su monto ganado",
         "rewards": "Sus recompensas",
