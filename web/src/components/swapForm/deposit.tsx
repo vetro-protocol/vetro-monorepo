@@ -7,7 +7,7 @@ import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useDeposit } from "hooks/useDeposit";
 import { useMainnet } from "hooks/useMainnet";
 import { usePreviewDeposit } from "hooks/usePreviewDeposit";
-import { type FormEvent, useState } from "react";
+import { type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 import { formatAmount } from "utils/token";
@@ -18,32 +18,35 @@ import { getSwapErrors } from "./validation";
 
 type Props = {
   amountBigInt: bigint;
+  approve10x: boolean;
+  approveAmount: bigint | undefined;
   fromInputValue: string;
   fromToken: Token;
   onInputChange: (value: string) => void;
   onMaxClick: (maxValue: string) => void;
   onToggle: VoidFunction;
   onTokenChange: (token: Token) => void;
+  onToggleApprove10x: VoidFunction;
   toToken: Token;
   whitelistedTokens: Token[];
 };
 
 export function Deposit({
   amountBigInt,
+  approve10x,
+  approveAmount,
   fromInputValue,
   fromToken,
   onInputChange,
   onMaxClick,
   onToggle,
+  onToggleApprove10x,
   onTokenChange,
   toToken,
   whitelistedTokens,
 }: Props) {
-  const [approve10x, setApprove10x] = useState(false);
   const ethereumChain = useMainnet();
   const { t } = useTranslation();
-
-  const approveAmount = approve10x ? amountBigInt * 10n : undefined;
 
   const { data: fromTokenBalance, isError: isFromTokenBalanceError } =
     useTokenBalance({
@@ -123,10 +126,7 @@ export function Deposit({
           token={fromToken}
         />
       </Form>
-      <ApproveSection
-        active={approve10x}
-        onToggle={() => setApprove10x((prev) => !prev)}
-      />
+      <ApproveSection active={approve10x} onToggle={onToggleApprove10x} />
     </>
   );
 }
