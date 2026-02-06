@@ -1,12 +1,13 @@
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
+import { ApproveSection } from "components/approveSection";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenDropdown } from "components/tokenDropdown";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useMainnet } from "hooks/useMainnet";
 import { usePreviewRedeem } from "hooks/usePreviewRedeem";
 import { useRedeem } from "hooks/useRedeem";
-import type { FormEvent } from "react";
+import { type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 import { formatAmount } from "utils/token";
@@ -17,23 +18,29 @@ import { getSwapErrors } from "./validation";
 
 type Props = {
   amountBigInt: bigint;
+  approve10x: boolean;
+  approveAmount: bigint | undefined;
   fromInputValue: string;
   fromToken: Token;
   onInputChange: (value: string) => void;
   onMaxClick: (maxValue: string) => void;
   onToggle: VoidFunction;
   onTokenChange: (token: Token) => void;
+  onToggleApprove10x: VoidFunction;
   toToken: Token;
   whitelistedTokens: Token[];
 };
 
 export function Redeem({
   amountBigInt,
+  approve10x,
+  approveAmount,
   fromInputValue,
   fromToken,
   onInputChange,
   onMaxClick,
   onToggle,
+  onToggleApprove10x,
   onTokenChange,
   toToken,
   whitelistedTokens,
@@ -56,6 +63,7 @@ export function Redeem({
   });
 
   const redeemMutation = useRedeem({
+    approveAmount,
     peggedTokenIn: amountBigInt,
     tokenOut: toToken.address,
   });
@@ -89,36 +97,41 @@ export function Redeem({
   }
 
   return (
-    <Form
-      balanceValue={formattedBalance}
-      errorKey={balancesLoaded ? inputError : undefined}
-      fromInputValue={fromInputValue}
-      fromTokenSelector={
-        <TokenSelectorReadOnly
-          logoURI={fromToken.logoURI}
-          symbol={fromToken.symbol}
+    <>
+      <Form
+        balanceValue={formattedBalance}
+        errorKey={balancesLoaded ? inputError : undefined}
+        fromInputValue={fromInputValue}
+        fromTokenSelector={
+          <TokenSelectorReadOnly
+            logoURI={fromToken.logoURI}
+            symbol={fromToken.symbol}
+          />
+        }
+        maxButton={
+          <SetMaxErc20Balance onClick={onMaxClick} token={fromToken} />
+        }
+        onInputChange={onInputChange}
+        onSubmit={handleSubmit}
+        onToggle={onToggle}
+        outputValue={outputValue}
+        toTokenSelector={
+          <TokenDropdown
+            onChange={onTokenChange}
+            tokens={whitelistedTokens}
+            value={toToken}
+          />
+        }
+      >
+        <SubmitButton
+          actionText={t("pages.swap.form.redeem")}
+          inputError={inputError}
+          isPreviewError={isPreviewError}
+          previewValue={redeemPreview}
+          token={fromToken}
         />
-      }
-      maxButton={<SetMaxErc20Balance onClick={onMaxClick} token={fromToken} />}
-      onInputChange={onInputChange}
-      onSubmit={handleSubmit}
-      onToggle={onToggle}
-      outputValue={outputValue}
-      toTokenSelector={
-        <TokenDropdown
-          onChange={onTokenChange}
-          tokens={whitelistedTokens}
-          value={toToken}
-        />
-      }
-    >
-      <SubmitButton
-        actionText={t("pages.swap.form.redeem")}
-        inputError={inputError}
-        isPreviewError={isPreviewError}
-        previewValue={redeemPreview}
-        token={fromToken}
-      />
-    </Form>
+      </Form>
+      <ApproveSection active={approve10x} onToggle={onToggleApprove10x} />
+    </>
   );
 }

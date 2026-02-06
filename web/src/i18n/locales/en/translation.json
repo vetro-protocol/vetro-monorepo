@@ -37,6 +37,7 @@
       },
       "form": {
         "allowance-error": "Error loading allowance",
+        "approve-10x": "Approve 10x",
         "balance": "Balance",
         "connect-wallet": "Connect wallet",
         "deposit": "Deposit",

@@ -22,6 +22,7 @@ const mockToken2 = {
 };
 
 const createInitialState = (): SwapFormState => ({
+  approve10x: false,
   fromInputValue: "0",
   fromToken: mockToken1,
   toToken: mockToken2,
@@ -95,6 +96,18 @@ describe("swapFormReducer", function () {
     expect(result.fromToken).toBe(mockToken2);
     expect(result.toToken).toBe(mockToken1);
     expect(result.fromInputValue).toBe("500");
+  });
+
+  it("TOGGLE_APPROVE_10X toggles approve10x from false to true", function () {
+    const state = createInitialState();
+    const result = swapFormReducer(state, { type: "TOGGLE_APPROVE_10X" });
+    expect(result.approve10x).toBe(true);
+  });
+
+  it("TOGGLE_APPROVE_10X toggles approve10x from true to false", function () {
+    const state = { ...createInitialState(), approve10x: true };
+    const result = swapFormReducer(state, { type: "TOGGLE_APPROVE_10X" });
+    expect(result.approve10x).toBe(false);
   });
 
   it("returns unchanged state for unknown action", function () {

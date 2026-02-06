@@ -18,6 +18,7 @@ export function SwapForm() {
   const firstStablecoin = whitelistedTokens[0];
 
   const initialState: SwapFormState = {
+    approve10x: false,
     fromInputValue: "0",
     fromToken: mode === "deposit" ? firstStablecoin : vusd,
     toToken: mode === "deposit" ? vusd : firstStablecoin,
@@ -43,12 +44,20 @@ export function SwapForm() {
     dispatch({ payload: value, type: "SET_FROM_INPUT_VALUE" });
   }
 
+  function onToggleApprove10x() {
+    dispatch({ type: "TOGGLE_APPROVE_10X" });
+  }
+
+  const approveAmount = state.approve10x ? amountBigInt * 10n : undefined;
+
   const childProps = {
     amountBigInt,
+    approveAmount,
     dispatch,
     onInputChange,
     onMaxClick,
     onToggle,
+    onToggleApprove10x,
     whitelistedTokens,
   };
 

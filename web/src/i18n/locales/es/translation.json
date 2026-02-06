@@ -37,6 +37,7 @@
       },
       "form": {
         "allowance-error": "No se pudo cargar el monto autorizado",
+        "approve-10x": "Aprobar 10x",
         "balance": "Saldo",
         "connect-wallet": "Conectar billetera",
         "deposit": "Depositar",
