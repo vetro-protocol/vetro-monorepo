@@ -1,5 +1,7 @@
 packages:
+  - "api"
   - "packages/*"
+  - "subgraph"
   - "web"
 
 # https://github.com/microsoft/vscode-eslint/issues/1986#issuecomment-2799868163

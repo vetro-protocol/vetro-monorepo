@@ -17,9 +17,11 @@ import {
 import { useVusd } from "./useVusd";
 
 export const useRedeem = function ({
+  approveAmount,
   peggedTokenIn,
   tokenOut,
 }: {
+  approveAmount?: bigint;
   peggedTokenIn: bigint;
   tokenOut: Address;
 }) {
@@ -70,6 +72,7 @@ export const useRedeem = function ({
       );
 
       const { emitter, promise } = redeem(walletClient!, {
+        approveAmount,
         minAmountOut,
         peggedTokenIn,
         receiver: account,

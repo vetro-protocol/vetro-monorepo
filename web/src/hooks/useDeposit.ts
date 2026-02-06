@@ -18,9 +18,11 @@ import { useVusd } from "./useVusd";
 
 export const useDeposit = function ({
   amountIn,
+  approveAmount,
   tokenIn,
 }: {
   amountIn: bigint;
+  approveAmount?: bigint;
   tokenIn: Address;
 }) {
   const { address: account } = useAccount();
@@ -70,6 +72,7 @@ export const useDeposit = function ({
 
       const { emitter, promise } = deposit(walletClient!, {
         amountIn,
+        approveAmount,
         minPeggedTokenOut,
         receiver: account,
         tokenIn,

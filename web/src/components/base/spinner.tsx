@@ -1,5 +1,5 @@
 type Props = {
-  size?: "base" | "large";
+  size?: "base" | "large" | "xLarge";
 };
 
 const sizeConfig = {
@@ -16,6 +16,13 @@ const sizeConfig = {
     radius: 10.25,
     strokeWidth: 3.5,
     viewBox: "0 0 24 24",
+  },
+  xLarge: {
+    center: 16,
+    className: "size-8",
+    radius: 13.75,
+    strokeWidth: 4.5,
+    viewBox: "0 0 32 32",
   },
 };
 

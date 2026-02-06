@@ -18,6 +18,7 @@ import type { DepositEvents } from "../../types.js";
 
 export type DepositParams = {
   amountIn: bigint;
+  approveAmount?: bigint;
   minPeggedTokenOut: bigint;
   receiver: Address;
   tokenIn: Address;
@@ -25,12 +26,14 @@ export type DepositParams = {
 
 const canDeposit = function ({
   amountIn,
+  approveAmount,
   client,
   minPeggedTokenOut,
   receiver,
   tokenIn,
 }: {
   amountIn: bigint;
+  approveAmount: bigint;
   client: WalletClient;
   minPeggedTokenOut: bigint;
   receiver: Address;
@@ -115,17 +118,32 @@ const canDeposit = function ({
     };
   }
 
+  // Validate approveAmount
+  if (approveAmount < amountIn) {
+    return {
+      canDeposit: false,
+      reason: "Approve amount must be greater than or equal to amount",
+    };
+  }
+
   return { canDeposit: true };
 };
 
 const runDeposit = (
   walletClient: WalletClient,
-  { amountIn, minPeggedTokenOut, receiver, tokenIn }: DepositParams,
+  {
+    amountIn,
+    approveAmount = amountIn,
+    minPeggedTokenOut,
+    receiver,
+    tokenIn,
+  }: DepositParams,
 ) =>
   async function (emitter: EventEmitter<DepositEvents>) {
     try {
       const { canDeposit: canDepositFlag, reason } = canDeposit({
         amountIn,
+        approveAmount,
         client: walletClient,
         minPeggedTokenOut,
         receiver,
@@ -154,7 +172,7 @@ const runDeposit = (
 
         const approvalHash = await approve(walletClient, {
           address: tokenIn,
-          amount: amountIn,
+          amount: approveAmount,
           spender: gatewayAddress,
         }).catch(function (error: Error) {
           emitter.emit("user-signing-approval-error", error);

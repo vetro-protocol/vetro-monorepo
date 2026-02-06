@@ -7,6 +7,7 @@ export type SwapFormAction =
   | { payload: string; type: "SET_FROM_INPUT_VALUE" }
   | { payload: Token; type: "SET_FROM_TOKEN" }
   | { payload: Token; type: "SET_TO_TOKEN" }
+  | { type: "TOGGLE_APPROVE_10X" }
   | { type: "TOGGLE_TOKENS" };
 
 export function swapFormReducer(
@@ -25,6 +26,8 @@ export function swapFormReducer(
       return { ...state, fromToken: action.payload };
     case "SET_TO_TOKEN":
       return { ...state, toToken: action.payload };
+    case "TOGGLE_APPROVE_10X":
+      return { ...state, approve10x: !state.approve10x };
     case "TOGGLE_TOKENS":
       return {
         ...state,

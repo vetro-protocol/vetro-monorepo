@@ -16,8 +16,14 @@ export const Default: Story = {
   render: () => <Spinner />,
 };
 
-export const LargeSize: Story = {
-  render: () => <Spinner size="large" />,
+export const SizeVariants: Story = {
+  render: () => (
+    <div className="flex items-center gap-x-3">
+      <Spinner />
+      <Spinner size="large" />
+      <Spinner size="xLarge" />
+    </div>
+  ),
 };
 
 export const InButton: Story = {
