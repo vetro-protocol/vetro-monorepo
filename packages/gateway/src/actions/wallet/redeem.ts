@@ -18,6 +18,7 @@ import type { RedeemEvents } from "../../types.js";
 import { getPeggedToken } from "../public/getPeggedToken.js";
 
 export type RedeemParams = {
+  approveAmount?: bigint;
   minAmountOut: bigint;
   peggedTokenIn: bigint;
   receiver: Address;
@@ -25,12 +26,14 @@ export type RedeemParams = {
 };
 
 const canRedeem = function ({
+  approveAmount,
   client,
   minAmountOut,
   peggedTokenIn,
   receiver,
   tokenOut,
 }: {
+  approveAmount: bigint;
   client: WalletClient;
   minAmountOut: bigint;
   peggedTokenIn: bigint;
@@ -115,17 +118,31 @@ const canRedeem = function ({
       reason: "Minimum output cannot be negative",
     };
   }
+  // Validate approveAmount
+  if (approveAmount < peggedTokenIn) {
+    return {
+      canRedeem: false,
+      reason: "Approve amount must be greater than or equal to amount",
+    };
+  }
 
   return { canRedeem: true };
 };
 
 const runRedeem = (
   walletClient: WalletClient,
-  { minAmountOut, peggedTokenIn, receiver, tokenOut }: RedeemParams,
+  {
+    minAmountOut,
+    peggedTokenIn,
+    approveAmount = peggedTokenIn,
+    receiver,
+    tokenOut,
+  }: RedeemParams,
 ) =>
   async function (emitter: EventEmitter<RedeemEvents>) {
     try {
       const { canRedeem: canRedeemFlag, reason } = canRedeem({
+        approveAmount,
         client: walletClient,
         minAmountOut,
         peggedTokenIn,
@@ -159,7 +176,7 @@ const runRedeem = (
 
         const approvalHash = await approve(walletClient, {
           address: peggedTokenAddress,
-          amount: peggedTokenIn,
+          amount: approveAmount,
           spender: gatewayAddress,
         }).catch(function (error: Error) {
           emitter.emit("user-signing-approval-error", error);

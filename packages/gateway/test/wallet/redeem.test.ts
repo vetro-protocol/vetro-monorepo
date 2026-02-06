@@ -268,6 +268,64 @@ describe("redeem", function () {
     expect(onSettled).toHaveBeenCalledOnce();
   });
 
+  it("should emit 'redeem-failed-validation' if approveAmount is less than peggedTokenIn", async function () {
+    const parameters = {
+      ...validParameters,
+      approveAmount: validParameters.peggedTokenIn - BigInt(1),
+    };
+
+    const { emitter, promise } = redeem(mockWalletClient, parameters);
+
+    const onRedeemFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("redeem-failed-validation", onRedeemFailedValidation);
+    emitter.on("redeem-settled", onSettled);
+
+    await promise;
+
+    expect(onRedeemFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "Approve amount must be greater than or equal to amount",
+    );
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("should approve with approveAmount when provided and allowance is insufficient", async function () {
+    const successReceipt = {
+      status: "success",
+    } as TransactionReceipt;
+
+    const approveAmount = validParameters.peggedTokenIn * BigInt(10);
+
+    vi.mocked(getPeggedToken).mockResolvedValue(mockPeggedTokenAddress);
+    vi.mocked(allowance).mockResolvedValue(
+      validParameters.peggedTokenIn - BigInt(1),
+    );
+    vi.mocked(approve).mockResolvedValue(zeroHash);
+    vi.mocked(writeContract).mockResolvedValue(zeroHash);
+    vi.mocked(waitForTransactionReceipt)
+      .mockResolvedValueOnce(successReceipt)
+      .mockResolvedValueOnce(successReceipt);
+
+    const { emitter, promise } = redeem(mockWalletClient, {
+      ...validParameters,
+      approveAmount,
+    });
+
+    const onSettled = vi.fn();
+    emitter.on("redeem-settled", onSettled);
+
+    await promise;
+
+    expect(approve).toHaveBeenCalledWith(
+      mockWalletClient,
+      expect.objectContaining({
+        amount: approveAmount,
+      }),
+    );
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
   it("should emit 'redeem-failed-validation' if minAmountOut is not a bigint", async function () {
     const parameters = { ...validParameters, minAmountOut: 900 };
 
