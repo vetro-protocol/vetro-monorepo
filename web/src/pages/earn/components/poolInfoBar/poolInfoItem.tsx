@@ -16,12 +16,11 @@ export function PoolInfoItem({ children, isLoading, label, value }: Props) {
     if (isLoading) {
       return <Skeleton height={20} width={80} />;
     }
-    if (value) {
-      return (
-        <span className="text-xsm font-semibold text-gray-900">{value}</span>
-      );
-    }
-    return <span className="text-xsm font-semibold text-gray-900">-</span>;
+    return (
+      <span className="text-xsm font-semibold text-gray-900">
+        {value ?? "-"}
+      </span>
+    );
   }
 
   return (
