@@ -64,9 +64,11 @@ export async function getUserRewards({ address }: { address: `0x${string}` }) {
     return [];
   }
 
-  const { campaigns } = await merkl.getOpportunityCampaigns({ opportunityId });
+  const [{ campaigns }, allRewards] = await Promise.all([
+    merkl.getOpportunityCampaigns({ opportunityId }),
+    merkl.getUserRewards({ address, chainId: 1 }),
+  ]);
   const campaignIds = campaigns.map((c) => c.campaignId);
-  const allRewards = await merkl.getUserRewards({ address, chainId: 1 });
   return allRewards
     .flatMap((r) => r.rewards)
     .filter((r) =>
@@ -88,7 +90,9 @@ type ExitTicket = {
 
 /**
  * Query the subgraph. Get all exit tickets for the user. No pagination is
- * supported.
+ * supported. If more than 100 entities exist, pagination will have to be
+ * implemented in the query. Then the function may have to support returning
+ * paginated results too.
  */
 export async function getUserExitTickets({
   address,
@@ -123,6 +127,11 @@ export async function getUserExitTickets({
   const exitTickets = await subgraph.runQuery(query, variables);
   if (!Array.isArray(exitTickets)) {
     throw new Error(`Invalid subgraph response for exit tickets of ${address}`);
+  }
+  if (exitTickets.length === 100) {
+    console.warn(
+      `Got exactly 100 exit tickets for ${address}. Implement pagination!`,
+    );
   }
   return exitTickets;
 }

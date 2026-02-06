@@ -19,11 +19,12 @@
     "promise-mem": "1.0.4",
     "promise-swr": "1.0.2",
     "safe-async-fn": "1.0.0",
-    "simple-linear-regression": "1.0.3"
+    "simple-linear-regression": "1.0.3",
+    "tiny-post-json": "1.0.0"
   },
   "devDependencies": {
     "@types/config": "3.3.5",
-    "@types/express": "^5.0.6",
+    "@types/express": "5.0.6",
     "@types/node": "24.1.0"
   },
   "type": "module"
