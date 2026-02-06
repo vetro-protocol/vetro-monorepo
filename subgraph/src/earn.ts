@@ -1,0 +1,69 @@
+import { BigInt, dataSource, ethereum } from "@graphprotocol/graph-ts";
+
+import { ExitTicket, VaultHistory } from "../generated/schema";
+import {
+  StakingVault,
+  WithdrawCancelled,
+  WithdrawClaimed,
+  WithdrawRequested,
+} from "../generated/StakingVault/StakingVault";
+
+export function handleBlock(block: ethereum.Block): void {
+  const daySeconds = BigInt.fromI32(86400);
+  const dayTimestamp = block.timestamp.div(daySeconds).times(daySeconds);
+
+  const id = dayTimestamp.toString();
+  let entity = VaultHistory.load(id);
+  if (entity == null) {
+    entity = new VaultHistory(id);
+    entity.timestamp = dayTimestamp;
+  }
+
+  const vaultAddress = dataSource.address();
+  const vault = StakingVault.bind(vaultAddress);
+  const decimals = vault.decimals();
+  const oneShare = BigInt.fromI32(10).pow(<u8>decimals);
+  const shareValue = vault.convertToAssets(oneShare);
+  entity.shareValue = shareValue;
+
+  entity.save();
+}
+
+export function handleWithdrawRequested(event: WithdrawRequested): void {
+  const id = `${event.transaction.hash.toHex()}-${event.logIndex.toString()}`;
+  const entity = new ExitTicket(id);
+
+  entity.owner = event.params.owner;
+  entity.assets = event.params.assets;
+  entity.claimableAt = event.params.claimableAt;
+  entity.requestId = event.params.requestId;
+  entity.shares = event.params.shares;
+
+  entity.requestTxHash = event.transaction.hash;
+
+  entity.save();
+}
+
+export function handleWithdrawCancelled(event: WithdrawCancelled): void {
+  const id = `${event.transaction.hash.toHex()}-${event.logIndex.toString()}`;
+  const entity = ExitTicket.load(id);
+  if (entity == null) {
+    return;
+  }
+
+  entity.cancelTxHash = event.transaction.hash;
+
+  entity.save();
+}
+
+export function handleWithdrawClaimed(event: WithdrawClaimed): void {
+  const id = `${event.transaction.hash.toHex()}-${event.logIndex.toString()}`;
+  const entity = ExitTicket.load(id);
+  if (entity == null) {
+    return;
+  }
+
+  entity.claimTxHash = event.transaction.hash;
+
+  entity.save();
+}

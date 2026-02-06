@@ -1,0 +1,25 @@
+{
+  "name": "vetro-app-subgraph",
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+    "prebuild": "npm run codegen",
+    "build": "graph build",
+    "codegen": "graph codegen",
+    "create-local": "graph create --node http://localhost:8020/ $npm_package_name",
+    "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ $npm_package_name --version-label $npm_package_version",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 $npm_package_name --version-label $npm_package_version",
+    "postinstall": "npm run codegen",
+    "remove-local": "graph remove --node http://localhost:8020/ $npm_package_name",
+    "pretest": "npm run codegen",
+    "test": "graph test"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "0.98.1",
+    "@graphprotocol/graph-ts": "0.38.2",
+    "assemblyscript": "0.19.23"
+  },
+  "devDependencies": {
+    "matchstick-as": "0.6.0"
+  }
+}

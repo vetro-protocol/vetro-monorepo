@@ -1,0 +1,18 @@
+type VaultHistory @entity(immutable: false) {
+  id: ID!
+  shareValue: BigInt!
+  timestamp: BigInt! # Timestamp fixed to YYYY-MM-DD 00:00:00 UTC
+}
+
+type ExitTicket @entity(immutable: false) {
+  assets: BigInt!
+  cancelTxHash: Bytes
+  claimableAt: BigInt!
+  claimTxHash: Bytes
+  id: ID!
+  owner: Bytes!
+  receiver: Bytes
+  requestId: BigInt!
+  requestTxHash: Bytes!
+  shares: BigInt!
+}
