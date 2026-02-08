@@ -37,6 +37,12 @@ export { stakingVaultAbi } from "./abi/stakingVaultAbi.js";
 // Export staking vault address utility
 export { getStakingVaultAddress } from "./getStakingVaultAddress.js";
 
+// Export wallet actions directly for use outside of .extend() pattern
+export { deposit } from "./actions/wallet/deposit.js";
+export type { DepositParams } from "./actions/wallet/deposit.js";
+export { requestWithdraw } from "./actions/wallet/requestWithdraw.js";
+export type { RequestWithdrawParams } from "./actions/wallet/requestWithdraw.js";
+
 // Export types
 export type {
   CancelWithdrawEvents,

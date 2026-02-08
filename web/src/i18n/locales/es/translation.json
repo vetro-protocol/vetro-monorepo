@@ -27,6 +27,28 @@
         "totalDeposits": "Depósitos totales",
         "withdraw": "Retirar"
       },
+      "stake": {
+        "availableToDeposit": "Disponible para depositar",
+        "availableToWithdraw": "Disponible para retirar",
+        "deposit": "Depositar",
+        "depositing": "Depositando...",
+        "feesLabel": "Haciendo stake de {{amount}} {{token}}",
+        "howWithdrawalsWork": "Cómo funcionan los retiros",
+        "managePosition": "Administre su posición de stake",
+        "requestWithdrawal": "Solicitar retiro",
+        "requesting": "Solicitando...",
+        "withdraw": "Retirar",
+        "withdrawComingSoon": "Retiro próximamente",
+        "withdrawStep1Description": "Envíe una solicitud de retiro para iniciar el proceso de salida. Sus fondos permanecen en stake en esta etapa.",
+        "withdrawStep1Title": "Solicitar retiro",
+        "withdrawStep2Description": "Comienza un período de enfriamiento de 7 días. Durante este tiempo, sus fondos están bloqueados y no se generan rendimientos.",
+        "withdrawStep2Title": "Iniciar enfriamiento de 7 días",
+        "withdrawStep3Description": "Una vez que termina el enfriamiento, sus fondos estarán disponibles para desbloquear y retirar.",
+        "withdrawStep3Title": "Retirar fondos",
+        "withdrawingFeesLabel": "Retirando {{amount}} {{token}}",
+        "youWillStake": "Vas a hacer stake de",
+        "youWillWithdraw": "Vas a retirar"
+      },
       "stats": {
         "earnedAmount": "Su monto ganado",
         "rewards": "Sus recompensas",

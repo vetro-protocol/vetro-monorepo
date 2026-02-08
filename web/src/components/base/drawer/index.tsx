@@ -1,6 +1,11 @@
 import { useOnClickOutside } from "@hemilabs/react-hooks/useOnClickOutside";
 import { useOnKeyUp } from "@hemilabs/react-hooks/useOnKeyUp";
 import {
+  useAccountModal,
+  useChainModal,
+  useConnectModal,
+} from "@rainbow-me/rainbowkit";
+import {
   type ReactNode,
   type TransitionEvent,
   useEffect,
@@ -15,6 +20,10 @@ type Props = {
   onClose: VoidFunction;
 };
 
+// Check if any RainbowKit modal is present in the DOM
+const isRainbowKitModalOpen = () =>
+  document.querySelector('[role="dialog"]') !== null;
+
 // Use with useDrawerState hook for proper state management:
 // const { hasAnimated, isDrawerOpen, onAnimated, onClose, onOpen } = useDrawerState();
 // The hook tracks animation state to allow seamless content swapping during lazy loading.
@@ -25,8 +34,22 @@ export function Drawer({
   onClose,
 }: Props) {
   const [isOpen, setIsOpen] = useState(hasAnimated);
+  const { accountModalOpen } = useAccountModal();
+  const { chainModalOpen } = useChainModal();
+  const { connectModalOpen } = useConnectModal();
 
-  const handleClose = () => setIsOpen(false);
+  function handleClose() {
+    // Prevent closing when a RainbowKit modal is open
+    if (
+      accountModalOpen ||
+      chainModalOpen ||
+      connectModalOpen ||
+      isRainbowKitModalOpen()
+    ) {
+      return;
+    }
+    setIsOpen(false);
+  }
 
   const drawerRef = useOnClickOutside<HTMLDivElement>(handleClose);
 

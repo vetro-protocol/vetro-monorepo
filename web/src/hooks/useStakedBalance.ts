@@ -7,7 +7,7 @@ import type { Address } from "viem";
 import { convertToAssets } from "viem-erc4626/actions";
 import { useAccount } from "wagmi";
 
-const stakedBalanceQueryKey = ({
+export const stakedBalanceQueryKey = ({
   account,
   chainId,
   stakingVaultAddress,

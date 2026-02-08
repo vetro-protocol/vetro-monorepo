@@ -27,6 +27,28 @@
         "totalDeposits": "Total deposits",
         "withdraw": "Withdraw"
       },
+      "stake": {
+        "availableToDeposit": "Available to deposit",
+        "availableToWithdraw": "Available to withdraw",
+        "deposit": "Deposit",
+        "depositing": "Depositing...",
+        "feesLabel": "Staking {{amount}} {{token}}",
+        "howWithdrawalsWork": "How withdrawals work",
+        "managePosition": "Manage your stake position",
+        "requestWithdrawal": "Request withdrawal",
+        "requesting": "Requesting...",
+        "withdraw": "Withdraw",
+        "withdrawComingSoon": "Withdraw coming soon",
+        "withdrawStep1Description": "Submit a withdrawal request to begin the exit process. Your funds remain staked at this stage.",
+        "withdrawStep1Title": "Request withdrawal",
+        "withdrawStep2Description": "A 7-day cooldown period begins. During this time, your funds are locked and no yield is earned.",
+        "withdrawStep2Title": "Start 7-day cooldown",
+        "withdrawStep3Description": "Once the cooldown ends, your funds become available to unlock and withdraw.",
+        "withdrawStep3Title": "Withdraw funds",
+        "withdrawingFeesLabel": "Withdrawing {{amount}} {{token}}",
+        "youWillStake": "You will stake",
+        "youWillWithdraw": "You will withdraw"
+      },
       "stats": {
         "earnedAmount": "Your earned amount",
         "rewards": "Your rewards",
