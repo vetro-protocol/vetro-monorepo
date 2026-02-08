@@ -92,11 +92,12 @@ export const useStakeDeposit = function ({ assets }: Params) {
           updateNativeBalanceAfterReceipt(receipt);
 
           // Optimistically update balances
-          queryClient.setQueryData(
-            vusdBalanceKey,
-            (old: bigint) => old - assets,
+          queryClient.setQueryData(vusdBalanceKey, (old: bigint | undefined) =>
+            old !== undefined ? old - assets : old,
           );
-          queryClient.setQueryData(stakedKey, (old: bigint) => old + assets);
+          queryClient.setQueryData(stakedKey, (old: bigint | undefined) =>
+            old !== undefined ? old + assets : old,
+          );
         },
       );
 

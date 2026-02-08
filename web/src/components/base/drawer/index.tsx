@@ -20,10 +20,6 @@ type Props = {
   onClose: VoidFunction;
 };
 
-// Check if any RainbowKit modal is present in the DOM
-const isRainbowKitModalOpen = () =>
-  document.querySelector('[role="dialog"]') !== null;
-
 // Use with useDrawerState hook for proper state management:
 // const { hasAnimated, isDrawerOpen, onAnimated, onClose, onOpen } = useDrawerState();
 // The hook tracks animation state to allow seamless content swapping during lazy loading.
@@ -40,12 +36,7 @@ export function Drawer({
 
   function handleClose() {
     // Prevent closing when a RainbowKit modal is open
-    if (
-      accountModalOpen ||
-      chainModalOpen ||
-      connectModalOpen ||
-      isRainbowKitModalOpen()
-    ) {
+    if (accountModalOpen || chainModalOpen || connectModalOpen) {
       return;
     }
     setIsOpen(false);

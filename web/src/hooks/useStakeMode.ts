@@ -3,4 +3,4 @@ import type { StakeMode } from "pages/earn/components/stakeDrawer/types";
 
 const stakeModeParser = parseAsStringEnum<StakeMode>(["deposit", "withdraw"]);
 
-export const useStakeMode = () => useQueryState("mode", stakeModeParser);
+export const useStakeMode = () => useQueryState("stake", stakeModeParser);

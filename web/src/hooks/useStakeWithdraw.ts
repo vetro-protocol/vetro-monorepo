@@ -56,7 +56,9 @@ export const useStakeWithdraw = function ({ assets }: Params) {
           updateNativeBalanceAfterReceipt(receipt);
 
           // Optimistically update staked balance
-          queryClient.setQueryData(stakedKey, (old: bigint) => old - assets);
+          queryClient.setQueryData(stakedKey, (old: bigint | undefined) =>
+            old !== undefined ? old - assets : old,
+          );
         },
       );
 

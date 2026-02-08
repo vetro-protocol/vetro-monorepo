@@ -10,7 +10,7 @@ type Props = {
 export const VerticalStepper = ({ steps }: Props) => (
   <div className="flex flex-col gap-5 py-4">
     {steps.map((step, index) => (
-      <div className="flex gap-4" key={step.title}>
+      <div className="flex gap-4" key={`${step.title}-${index}`}>
         {/* Step circle with connector line */}
         <div className="relative flex shrink-0 flex-col items-center">
           <div className="relative z-10 flex size-4 items-center justify-center rounded-full bg-blue-50">
