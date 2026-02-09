@@ -34,7 +34,7 @@ export function StakeSubmitButton({
     return (
       <Button
         onClick={onConnectWallet}
-        size="xSmall"
+        size="small"
         type="button"
         variant="primary"
       >
@@ -67,7 +67,7 @@ export function StakeSubmitButton({
   const isDisabled = !balancesLoaded || !!inputError || isPending;
 
   return (
-    <Button disabled={isDisabled} size="xSmall" type="submit" variant="primary">
+    <Button disabled={isDisabled} size="small" type="submit" variant="primary">
       {getButtonText()}
     </Button>
   );

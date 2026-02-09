@@ -9,20 +9,19 @@ import { useMainnet } from "hooks/useMainnet";
 import { useStakedBalance } from "hooks/useStakedBalance";
 import { useStakeWithdraw } from "hooks/useStakeWithdraw";
 import { useVusd } from "hooks/useVusd";
-import type { Dispatch, FormEvent } from "react";
+import type { FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { formatAmount } from "utils/token";
 import { parseUnits } from "viem";
 import { useAccount } from "wagmi";
 
 import { HowWithdrawalsWork } from "./howWithdrawalsWork";
-import type { StakeAction } from "./stakeReducer";
 import { StakeSubmitButton } from "./stakeSubmitButton";
 
 type Props = {
-  dispatch: Dispatch<StakeAction>;
   inputValue: string;
   onClose: VoidFunction;
+  onInputChange: (value: string) => void;
 };
 
 function getWithdrawErrors({
@@ -46,7 +45,11 @@ function getWithdrawErrors({
   return undefined;
 }
 
-export function StakeWithdrawForm({ dispatch, inputValue, onClose }: Props) {
+export function StakeWithdrawForm({
+  inputValue,
+  onClose,
+  onInputChange,
+}: Props) {
   const { isConnected } = useAccount();
   const chain = useMainnet();
   const { openConnectModal } = useConnectModal();
@@ -80,12 +83,8 @@ export function StakeWithdrawForm({ dispatch, inputValue, onClose }: Props) {
   const balancesLoaded =
     nativeBalance !== undefined && stakedBalance !== undefined;
 
-  function handleInputChange(value: string) {
-    dispatch({ payload: value, type: "SET_INPUT_VALUE" });
-  }
-
   function handleMaxClick(maxValue: string) {
-    dispatch({ payload: maxValue, type: "SET_INPUT_VALUE" });
+    onInputChange(maxValue);
   }
 
   function handleSubmit(e: FormEvent) {
@@ -114,7 +113,7 @@ export function StakeWithdrawForm({ dispatch, inputValue, onClose }: Props) {
               onClick={handleMaxClick}
             />
           }
-          onChange={handleInputChange}
+          onChange={onInputChange}
           tokenSelector={<TokenSelectorReadOnly {...vusd} />}
           value={inputValue}
         />

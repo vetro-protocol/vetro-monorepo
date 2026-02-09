@@ -9,19 +9,18 @@ import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useMainnet } from "hooks/useMainnet";
 import { useStakeDeposit } from "hooks/useStakeDeposit";
 import { useVusd } from "hooks/useVusd";
-import type { Dispatch, FormEvent } from "react";
+import type { FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { formatAmount } from "utils/token";
 import { parseUnits } from "viem";
 import { useAccount } from "wagmi";
 
-import type { StakeAction } from "./stakeReducer";
 import { StakeSubmitButton } from "./stakeSubmitButton";
 
 type Props = {
-  dispatch: Dispatch<StakeAction>;
   inputValue: string;
   onClose: VoidFunction;
+  onInputChange: (value: string) => void;
 };
 
 function getStakeErrors({
@@ -45,7 +44,11 @@ function getStakeErrors({
   return undefined;
 }
 
-export function StakeDepositForm({ dispatch, inputValue, onClose }: Props) {
+export function StakeDepositForm({
+  inputValue,
+  onClose,
+  onInputChange,
+}: Props) {
   const { isConnected } = useAccount();
   const chain = useMainnet();
   const { openConnectModal } = useConnectModal();
@@ -81,12 +84,8 @@ export function StakeDepositForm({ dispatch, inputValue, onClose }: Props) {
   const balancesLoaded =
     nativeBalance !== undefined && vusdBalance !== undefined;
 
-  function handleInputChange(value: string) {
-    dispatch({ payload: value, type: "SET_INPUT_VALUE" });
-  }
-
   function handleMaxClick(maxValue: string) {
-    dispatch({ payload: maxValue, type: "SET_INPUT_VALUE" });
+    onInputChange(maxValue);
   }
 
   function handleSubmit(e: FormEvent) {
@@ -112,7 +111,7 @@ export function StakeDepositForm({ dispatch, inputValue, onClose }: Props) {
           maxButton={
             <SetMaxErc20Balance onClick={handleMaxClick} token={vusd!} />
           }
-          onChange={handleInputChange}
+          onChange={onInputChange}
           tokenSelector={<TokenSelectorReadOnly {...vusd} />}
           value={inputValue}
         />

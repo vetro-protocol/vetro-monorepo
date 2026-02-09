@@ -1,11 +1,11 @@
 import { SegmentedControl } from "components/base/segmentedControl";
-import { useReducer } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { sanitizeAmount } from "utils/sanitizeAmount";
 
 import { StakeDepositForm } from "./stakeDepositForm";
-import { stakeReducer } from "./stakeReducer";
 import { StakeWithdrawForm } from "./stakeWithdrawForm";
-import type { StakeFormState, StakeMode } from "./types";
+import type { StakeMode } from "./types";
 
 type Props = {
   mode: StakeMode;
@@ -15,12 +15,14 @@ type Props = {
 
 export function StakeDrawerContent({ mode, onClose, onModeChange }: Props) {
   const { t } = useTranslation();
+  const [inputValue, setInputValue] = useState("0");
 
-  const initialState: StakeFormState = {
-    inputValue: "0",
-  };
-
-  const [state, dispatch] = useReducer(stakeReducer, initialState);
+  function handleInputChange(value: string) {
+    const result = sanitizeAmount(value);
+    if (!("error" in result)) {
+      setInputValue(result.value);
+    }
+  }
 
   return (
     <div className="flex h-full flex-col">
@@ -41,15 +43,15 @@ export function StakeDrawerContent({ mode, onClose, onModeChange }: Props) {
 
       {mode === "deposit" ? (
         <StakeDepositForm
-          dispatch={dispatch}
-          inputValue={state.inputValue}
+          inputValue={inputValue}
           onClose={onClose}
+          onInputChange={handleInputChange}
         />
       ) : (
         <StakeWithdrawForm
-          dispatch={dispatch}
-          inputValue={state.inputValue}
+          inputValue={inputValue}
           onClose={onClose}
+          onInputChange={handleInputChange}
         />
       )}
     </div>
