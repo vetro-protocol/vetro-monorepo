@@ -6,23 +6,23 @@ export function HowWithdrawalsWork() {
 
   const steps = [
     {
-      description: t("pages.earn.stake.withdrawStep1Description"),
-      title: t("pages.earn.stake.withdrawStep1Title"),
+      description: t("pages.earn.stake.withdraw-step-1-description"),
+      title: t("pages.earn.stake.withdraw-step-1-title"),
     },
     {
-      description: t("pages.earn.stake.withdrawStep2Description"),
-      title: t("pages.earn.stake.withdrawStep2Title"),
+      description: t("pages.earn.stake.withdraw-step-2-description"),
+      title: t("pages.earn.stake.withdraw-step-2-title"),
     },
     {
-      description: t("pages.earn.stake.withdrawStep3Description"),
-      title: t("pages.earn.stake.withdrawStep3Title"),
+      description: t("pages.earn.stake.withdraw-step-3-description"),
+      title: t("pages.earn.stake.withdraw-step-3-title"),
     },
   ];
 
   return (
     <div className="flex flex-col gap-2 px-6">
       <p className="text-xs font-medium tracking-wide text-gray-500">
-        {t("pages.earn.stake.howWithdrawalsWork")}
+        {t("pages.earn.stake.how-withdrawals-work")}
       </p>
       <div className="border-t border-gray-200">
         <VerticalStepper steps={steps} />

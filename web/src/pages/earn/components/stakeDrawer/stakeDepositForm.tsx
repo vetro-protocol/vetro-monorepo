@@ -105,29 +105,20 @@ export function StakeDepositForm({ dispatch, inputValue, onClose }: Props) {
     <form className="flex flex-col" onSubmit={handleSubmit}>
       <div className="p-6">
         <TokenInput
-          balanceLabel={t("pages.earn.stake.availableToDeposit")}
+          balanceLabel={t("pages.earn.stake.available-to-deposit")}
           balanceValue={formattedBalance}
           errorKey={balancesLoaded ? inputError : undefined}
-          label={t("pages.earn.stake.youWillStake")}
+          label={t("pages.earn.stake.you-will-stake")}
           maxButton={
-            vusd ? (
-              <SetMaxErc20Balance onClick={handleMaxClick} token={vusd} />
-            ) : null
+            <SetMaxErc20Balance onClick={handleMaxClick} token={vusd!} />
           }
           onChange={handleInputChange}
-          tokenSelector={
-            vusd ? (
-              <TokenSelectorReadOnly
-                logoURI={vusd.logoURI}
-                symbol={vusd.symbol}
-              />
-            ) : null
-          }
+          tokenSelector={<TokenSelectorReadOnly {...vusd} />}
           value={inputValue}
         />
       </div>
 
-      <div className="flex border-t border-b border-gray-200 bg-gray-50 px-6 py-3 *:flex-1">
+      <div className="flex border-y border-gray-200 bg-gray-50 px-6 py-3 *:flex-1">
         <StakeSubmitButton
           actionText={t("pages.earn.stake.deposit")}
           balancesLoaded={balancesLoaded}
@@ -141,14 +132,14 @@ export function StakeDepositForm({ dispatch, inputValue, onClose }: Props) {
 
       <div className="px-6">
         <FeesContainer
-          label={t("pages.earn.stake.feesLabel", {
+          label={t("pages.earn.stake.fees-label", {
             amount: inputValue,
-            token: "VUSD",
+            token: vusd.symbol,
           })}
           totalFees={networkFee}
         >
           <FeeDetails
-            label={t("pages.swap.fees.networkFee")}
+            label={t("pages.swap.fees.network-fee")}
             value={networkFee}
           />
         </FeesContainer>

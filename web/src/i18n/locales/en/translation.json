@@ -1,6 +1,6 @@
 {
   "language": {
-    "switchTo": "Switch to Spanish"
+    "switch-to": "Switch to Spanish"
   },
   "nav": {
     "borrow": "Borrow",
@@ -19,40 +19,40 @@
       "title": "Hello Bridge"
     },
     "earn": {
-      "poolInfo": {
+      "pool-info": {
         "apy": "Current 7-Day APY",
         "deposit": "Deposit",
-        "poolContract": "Pool contract",
-        "potentialRewards": "Potential rewards",
-        "totalDeposits": "Total deposits",
+        "pool-contract": "Pool contract",
+        "potential-rewards": "Potential rewards",
+        "total-deposits": "Total deposits",
         "withdraw": "Withdraw"
       },
       "stake": {
-        "availableToDeposit": "Available to deposit",
-        "availableToWithdraw": "Available to withdraw",
+        "available-to-deposit": "Available to deposit",
+        "available-to-withdraw": "Available to withdraw",
         "deposit": "Deposit",
         "depositing": "Depositing...",
-        "feesLabel": "Staking {{amount}} {{token}}",
-        "howWithdrawalsWork": "How withdrawals work",
-        "managePosition": "Manage your stake position",
-        "requestWithdrawal": "Request withdrawal",
+        "fees-label": "Staking {{amount}} {{token}}",
+        "how-withdrawals-work": "How withdrawals work",
+        "manage-position": "Manage your stake position",
+        "request-withdrawal": "Request withdrawal",
         "requesting": "Requesting...",
         "withdraw": "Withdraw",
-        "withdrawComingSoon": "Withdraw coming soon",
-        "withdrawStep1Description": "Submit a withdrawal request to begin the exit process. Your funds remain staked at this stage.",
-        "withdrawStep1Title": "Request withdrawal",
-        "withdrawStep2Description": "A 7-day cooldown period begins. During this time, your funds are locked and no yield is earned.",
-        "withdrawStep2Title": "Start 7-day cooldown",
-        "withdrawStep3Description": "Once the cooldown ends, your funds become available to unlock and withdraw.",
-        "withdrawStep3Title": "Withdraw funds",
-        "withdrawingFeesLabel": "Withdrawing {{amount}} {{token}}",
-        "youWillStake": "You will stake",
-        "youWillWithdraw": "You will withdraw"
+        "withdraw-coming-soon": "Withdraw coming soon",
+        "withdraw-step-1-description": "Submit a withdrawal request to begin the exit process. Your funds remain staked at this stage.",
+        "withdraw-step-1-title": "Request withdrawal",
+        "withdraw-step-2-description": "A 7-day cooldown period begins. During this time, your funds are locked and no yield is earned.",
+        "withdraw-step-2-title": "Start 7-day cooldown",
+        "withdraw-step-3-description": "Once the cooldown ends, your funds become available to unlock and withdraw.",
+        "withdraw-step-3-title": "Withdraw funds",
+        "withdrawing-fees-label": "Withdrawing {{amount}} {{token}}",
+        "you-will-stake": "You will stake",
+        "you-will-withdraw": "You will withdraw"
       },
       "stats": {
-        "earnedAmount": "Your earned amount",
+        "earned-amount": "Your earned amount",
         "rewards": "Your rewards",
-        "stakedBalance": "Your staked balance"
+        "staked-balance": "Your staked balance"
       },
       "title": "Stake VUSD to earn variable yield."
     },
@@ -61,9 +61,9 @@
     },
     "swap": {
       "fees": {
-        "fixedProtocolFee": "Fixed Protocol Fee",
-        "networkFee": "Network Fee",
-        "oracleDeviationFee": "Oracle Deviation Fee"
+        "fixed-protocol-fee": "Fixed Protocol Fee",
+        "network-fee": "Network Fee",
+        "oracle-deviation-fee": "Oracle Deviation Fee"
       },
       "form": {
         "allowance-error": "Error loading allowance",

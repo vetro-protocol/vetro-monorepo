@@ -104,34 +104,25 @@ export function StakeWithdrawForm({ dispatch, inputValue, onClose }: Props) {
     <form className="flex flex-1 flex-col" onSubmit={handleSubmit}>
       <div className="p-6">
         <TokenInput
-          balanceLabel={t("pages.earn.stake.availableToWithdraw")}
+          balanceLabel={t("pages.earn.stake.available-to-withdraw")}
           balanceValue={formattedBalance}
           errorKey={balancesLoaded ? inputError : undefined}
-          label={t("pages.earn.stake.youWillWithdraw")}
+          label={t("pages.earn.stake.you-will-withdraw")}
           maxButton={
-            vusd ? (
-              <SetMaxStakedBalance
-                decimals={vusd.decimals}
-                onClick={handleMaxClick}
-              />
-            ) : null
+            <SetMaxStakedBalance
+              decimals={vusd!.decimals}
+              onClick={handleMaxClick}
+            />
           }
           onChange={handleInputChange}
-          tokenSelector={
-            vusd ? (
-              <TokenSelectorReadOnly
-                logoURI={vusd.logoURI}
-                symbol={vusd.symbol}
-              />
-            ) : null
-          }
+          tokenSelector={<TokenSelectorReadOnly {...vusd} />}
           value={inputValue}
         />
       </div>
 
-      <div className="flex border-t border-b border-gray-200 bg-gray-50 px-6 py-3 *:flex-1">
+      <div className="flex border-y border-gray-200 bg-gray-50 px-6 py-3 *:flex-1">
         <StakeSubmitButton
-          actionText={t("pages.earn.stake.requestWithdrawal")}
+          actionText={t("pages.earn.stake.request-withdrawal")}
           balancesLoaded={balancesLoaded}
           inputError={inputError}
           isConnected={isConnected}
@@ -143,14 +134,14 @@ export function StakeWithdrawForm({ dispatch, inputValue, onClose }: Props) {
 
       <div className="px-6">
         <FeesContainer
-          label={t("pages.earn.stake.withdrawingFeesLabel", {
+          label={t("pages.earn.stake.withdrawing-fees-label", {
             amount: inputValue,
-            token: "VUSD",
+            token: vusd.symbol,
           })}
           totalFees={networkFee}
         >
           <FeeDetails
-            label={t("pages.swap.fees.networkFee")}
+            label={t("pages.swap.fees.network-fee")}
             value={networkFee}
           />
         </FeesContainer>

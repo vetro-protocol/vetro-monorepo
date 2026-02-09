@@ -1,10 +1,8 @@
 import { sanitizeAmount } from "utils/sanitizeAmount";
 
-import type { StakeFormState, StakeMode } from "./types";
+import type { StakeFormState } from "./types";
 
-export type StakeAction =
-  | { payload: string; type: "SET_INPUT_VALUE" }
-  | { payload: StakeMode; type: "SET_MODE" };
+export type StakeAction = { payload: string; type: "SET_INPUT_VALUE" };
 
 export function stakeReducer(
   state: StakeFormState,
@@ -18,8 +16,6 @@ export function stakeReducer(
       }
       return { ...state, inputValue: result.value };
     }
-    case "SET_MODE":
-      return { ...state, mode: action.payload };
     default:
       return state;
   }

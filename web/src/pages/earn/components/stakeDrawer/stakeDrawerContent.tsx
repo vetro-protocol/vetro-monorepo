@@ -8,48 +8,38 @@ import { StakeWithdrawForm } from "./stakeWithdrawForm";
 import type { StakeFormState, StakeMode } from "./types";
 
 type Props = {
-  initialMode: StakeMode;
+  mode: StakeMode;
   onClose: VoidFunction;
   onModeChange: (mode: StakeMode) => void;
 };
 
-export function StakeDrawerContent({
-  initialMode,
-  onClose,
-  onModeChange,
-}: Props) {
+export function StakeDrawerContent({ mode, onClose, onModeChange }: Props) {
   const { t } = useTranslation();
 
   const initialState: StakeFormState = {
     inputValue: "0",
-    mode: initialMode,
   };
 
   const [state, dispatch] = useReducer(stakeReducer, initialState);
 
-  function handleModeChange(mode: StakeMode) {
-    dispatch({ payload: mode, type: "SET_MODE" });
-    onModeChange(mode);
-  }
-
   return (
     <div className="flex h-full flex-col">
       <h3 className="px-6 pt-8 text-2xl font-semibold text-gray-900">
-        {t("pages.earn.stake.managePosition")}
+        {t("pages.earn.stake.manage-position")}
       </h3>
 
       <div className="mt-8">
         <SegmentedControl
-          onChange={handleModeChange}
+          onChange={onModeChange}
           options={[
             { label: t("pages.earn.stake.deposit"), value: "deposit" },
             { label: t("pages.earn.stake.withdraw"), value: "withdraw" },
           ]}
-          value={state.mode}
+          value={mode}
         />
       </div>
 
-      {state.mode === "deposit" ? (
+      {mode === "deposit" ? (
         <StakeDepositForm
           dispatch={dispatch}
           inputValue={state.inputValue}

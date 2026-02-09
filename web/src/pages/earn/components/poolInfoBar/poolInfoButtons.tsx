@@ -38,17 +38,17 @@ export function PoolInfoButtons() {
     <>
       <div className="flex w-full gap-3 *:flex-1 md:w-auto md:*:flex-initial">
         <Button onClick={handleOpenDeposit} size="xSmall" variant="primary">
-          {t("pages.earn.poolInfo.deposit")}
+          {t("pages.earn.pool-info.deposit")}
         </Button>
         <Button onClick={handleOpenWithdraw} size="xSmall" variant="secondary">
-          {t("pages.earn.poolInfo.withdraw")}
+          {t("pages.earn.pool-info.withdraw")}
         </Button>
       </div>
 
       {drawerState.isDrawerOpen && mode && (
         <StakeDrawer
           hasAnimated={drawerState.hasAnimated}
-          initialMode={mode}
+          mode={mode}
           onAnimated={drawerState.onAnimated}
           onClose={handleClose}
           onModeChange={setMode}

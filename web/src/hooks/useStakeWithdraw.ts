@@ -1,7 +1,9 @@
 import { useEnsureConnectedTo } from "@hemilabs/react-hooks/useEnsureConnectedTo";
+import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpdateNativeBalanceAfterReceipt";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { getStakingVaultAddress, requestWithdraw } from "@vetro/earn";
+import { getStakingVaultAddress } from "@vetro/earn";
+import { requestWithdraw } from "@vetro/earn/actions";
 import type { TransactionReceipt } from "viem";
 import { useAccount } from "wagmi";
 
@@ -20,6 +22,7 @@ export const useStakeWithdraw = function ({ assets }: Params) {
   const ensureConnectedTo = useEnsureConnectedTo();
   const queryClient = useQueryClient();
   const stakingVaultAddress = getStakingVaultAddress(chain.id);
+  const { queryKey: nativeBalanceKey } = useNativeBalance(chain.id);
   const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
     chain.id,
   );
@@ -65,6 +68,10 @@ export const useStakeWithdraw = function ({ assets }: Params) {
       return promise;
     },
     onSettled() {
+      queryClient.invalidateQueries({
+        queryKey: nativeBalanceKey,
+      });
+
       queryClient.invalidateQueries({
         queryKey: stakedKey,
       });

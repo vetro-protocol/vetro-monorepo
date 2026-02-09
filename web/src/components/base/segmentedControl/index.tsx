@@ -14,7 +14,7 @@ export const SegmentedControl = <T extends string>({
   options,
   value,
 }: Props<T>) => (
-  <div className="flex w-full gap-2 border-t border-b border-gray-200 bg-gray-50 px-6 py-3">
+  <div className="flex w-full gap-2 border-y border-gray-200 bg-gray-50 px-6 py-3">
     {options.map((option) => (
       <button
         className={`h-8 flex-1 cursor-pointer rounded-full px-3 text-sm font-semibold transition-all ${

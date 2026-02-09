@@ -1,6 +1,6 @@
 {
   "language": {
-    "switchTo": "Cambiar a Inglés"
+    "switch-to": "Cambiar a Inglés"
   },
   "nav": {
     "borrow": "Préstamos",
@@ -19,40 +19,40 @@
       "title": "Hola Bridge"
     },
     "earn": {
-      "poolInfo": {
+      "pool-info": {
         "apy": "TEA de 7 días",
         "deposit": "Depositar",
-        "poolContract": "Contrato del pool",
-        "potentialRewards": "Recompensas potenciales",
-        "totalDeposits": "Depósitos totales",
+        "pool-contract": "Contrato del pool",
+        "potential-rewards": "Recompensas potenciales",
+        "total-deposits": "Depósitos totales",
         "withdraw": "Retirar"
       },
       "stake": {
-        "availableToDeposit": "Disponible para depositar",
-        "availableToWithdraw": "Disponible para retirar",
+        "available-to-deposit": "Disponible para depositar",
+        "available-to-withdraw": "Disponible para retirar",
         "deposit": "Depositar",
         "depositing": "Depositando...",
-        "feesLabel": "Haciendo stake de {{amount}} {{token}}",
-        "howWithdrawalsWork": "Cómo funcionan los retiros",
-        "managePosition": "Administre su posición de stake",
-        "requestWithdrawal": "Solicitar retiro",
+        "fees-label": "Haciendo stake de {{amount}} {{token}}",
+        "how-withdrawals-work": "Cómo funcionan los retiros",
+        "manage-position": "Administre su posición de stake",
+        "request-withdrawal": "Solicitar retiro",
         "requesting": "Solicitando...",
         "withdraw": "Retirar",
-        "withdrawComingSoon": "Retiro próximamente",
-        "withdrawStep1Description": "Envíe una solicitud de retiro para iniciar el proceso de salida. Sus fondos permanecen en stake en esta etapa.",
-        "withdrawStep1Title": "Solicitar retiro",
-        "withdrawStep2Description": "Comienza un período de enfriamiento de 7 días. Durante este tiempo, sus fondos están bloqueados y no se generan rendimientos.",
-        "withdrawStep2Title": "Iniciar enfriamiento de 7 días",
-        "withdrawStep3Description": "Una vez que termina el enfriamiento, sus fondos estarán disponibles para desbloquear y retirar.",
-        "withdrawStep3Title": "Retirar fondos",
-        "withdrawingFeesLabel": "Retirando {{amount}} {{token}}",
-        "youWillStake": "Vas a hacer stake de",
-        "youWillWithdraw": "Vas a retirar"
+        "withdraw-coming-soon": "Retiro próximamente",
+        "withdraw-step-1-description": "Envíe una solicitud de retiro para iniciar el proceso de salida. Sus fondos permanecen en stake en esta etapa.",
+        "withdraw-step-1-title": "Solicitar retiro",
+        "withdraw-step-2-description": "Comienza un período de enfriamiento de 7 días. Durante este tiempo, sus fondos están bloqueados y no se generan rendimientos.",
+        "withdraw-step-2-title": "Iniciar enfriamiento de 7 días",
+        "withdraw-step-3-description": "Una vez que termina el enfriamiento, sus fondos estarán disponibles para desbloquear y retirar.",
+        "withdraw-step-3-title": "Retirar fondos",
+        "withdrawing-fees-label": "Retirando {{amount}} {{token}}",
+        "you-will-stake": "Vas a hacer stake de",
+        "you-will-withdraw": "Vas a retirar"
       },
       "stats": {
-        "earnedAmount": "Su monto ganado",
+        "earned-amount": "Su monto ganado",
         "rewards": "Sus recompensas",
-        "stakedBalance": "Su balance stakeado"
+        "staked-balance": "Su balance stakeado"
       },
       "title": "Haga stake de VUSD para ganar un rendimiento variable."
     },
@@ -61,9 +61,9 @@
     },
     "swap": {
       "fees": {
-        "fixedProtocolFee": "Tarifa de Protocolo Fija",
-        "networkFee": "Tarifa de Red",
-        "oracleDeviationFee": "Tarifa de Desviación del Oráculo"
+        "fixed-protocol-fee": "Tarifa de Protocolo Fija",
+        "network-fee": "Tarifa de Red",
+        "oracle-deviation-fee": "Tarifa de Desviación del Oráculo"
       },
       "form": {
         "allowance-error": "No se pudo cargar el monto autorizado",

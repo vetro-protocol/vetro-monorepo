@@ -5,7 +5,7 @@ import type { StakeMode } from "./types";
 
 type Props = {
   hasAnimated: boolean;
-  initialMode: StakeMode;
+  mode: StakeMode;
   onAnimated: VoidFunction;
   onClose: VoidFunction;
   onModeChange: (mode: StakeMode) => void;
@@ -13,7 +13,7 @@ type Props = {
 
 export default function StakeDrawer({
   hasAnimated,
-  initialMode,
+  mode,
   onAnimated,
   onClose,
   onModeChange,
@@ -21,7 +21,7 @@ export default function StakeDrawer({
   return (
     <Drawer hasAnimated={hasAnimated} onAnimated={onAnimated} onClose={onClose}>
       <StakeDrawerContent
-        initialMode={initialMode}
+        mode={mode}
         onClose={onClose}
         onModeChange={onModeChange}
       />
