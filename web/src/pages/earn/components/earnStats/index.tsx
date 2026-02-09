@@ -44,13 +44,13 @@ export function EarnStats() {
       <StatCard
         icon={<BoltIcon />}
         isLoading={isLoadingStakedBalance}
-        label={t("pages.earn.stats.stakedBalance")}
+        label={t("pages.earn.stats.staked-balance")}
         value={formatStakedBalance()}
       />
       <StatCard
         icon={<TrendingUpIcon />}
         isLoading={isLoadingEarnedAmount}
-        label={t("pages.earn.stats.earnedAmount")}
+        label={t("pages.earn.stats.earned-amount")}
         value={formatEarnedAmount()}
       />
       {/* TODO - Rewards should be implemented as soon we have the API available */}

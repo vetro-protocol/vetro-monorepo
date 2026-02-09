@@ -48,20 +48,20 @@ export function PoolInfoBar() {
     <div className="flex flex-col gap-6 border-b border-gray-200 bg-white p-4 sm:gap-4 md:flex-row md:items-center md:justify-between md:px-16 md:py-6">
       <div className="grid grid-cols-2 gap-4 sm:flex sm:items-center sm:justify-center sm:gap-6 md:justify-start md:gap-8">
         <PoolInfoItem
-          label={t("pages.earn.poolInfo.poolContract")}
+          label={t("pages.earn.pool-info.pool-contract")}
           value={formatEvmAddress(stakingVaultAddress)}
         />
         <PoolInfoItem
           isLoading={isLoadingDeposits}
-          label={t("pages.earn.poolInfo.totalDeposits")}
+          label={t("pages.earn.pool-info.total-deposits")}
           value={formatTotalDeposits()}
         />
-        <PoolInfoItem label={t("pages.earn.poolInfo.potentialRewards")}>
+        <PoolInfoItem label={t("pages.earn.pool-info.potential-rewards")}>
           <TokenIconStack tokens={rewardTokens} />
         </PoolInfoItem>
         <PoolInfoItem
           isLoading={isLoadingApy}
-          label={t("pages.earn.poolInfo.apy")}
+          label={t("pages.earn.pool-info.apy")}
         >
           <div className="flex items-center gap-1">
             <span className="text-xsm font-semibold text-gray-900">
