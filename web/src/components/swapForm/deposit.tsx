@@ -48,11 +48,10 @@ export function Deposit({
   const ethereumChain = useMainnet();
   const { t } = useTranslation();
 
-  const { data: fromTokenBalance, isError: isFromTokenBalanceError } =
-    useTokenBalance({
-      address: fromToken.address,
-      chainId: ethereumChain.id,
-    });
+  const { data: fromTokenBalance } = useTokenBalance({
+    address: fromToken.address,
+    chainId: ethereumChain.id,
+  });
 
   const { data: nativeBalanceData } = useNativeBalance(ethereumChain.id);
   const nativeBalance = nativeBalanceData?.value;
@@ -81,12 +80,6 @@ export function Deposit({
     isError: isDepositPreviewError,
   });
 
-  const formattedBalance = formatAmount({
-    amount: fromTokenBalance,
-    decimals: fromToken.decimals,
-    isError: isFromTokenBalanceError,
-  });
-
   const balancesLoaded =
     nativeBalance !== undefined && fromTokenBalance !== undefined;
 
@@ -99,9 +92,9 @@ export function Deposit({
   return (
     <>
       <Form
-        balanceValue={formattedBalance}
         errorKey={balancesLoaded ? inputError : undefined}
         fromInputValue={fromInputValue}
+        fromToken={fromToken}
         fromTokenSelector={
           <TokenDropdown
             onChange={onTokenChange}
@@ -116,6 +109,7 @@ export function Deposit({
         onSubmit={handleSubmit}
         onToggle={onToggle}
         outputValue={outputValue}
+        toToken={toToken}
         toTokenSelector={<TokenSelectorReadOnly {...toToken} />}
       >
         <SubmitButton

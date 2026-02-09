@@ -48,11 +48,10 @@ export function Redeem({
   const ethereumChain = useMainnet();
   const { t } = useTranslation();
 
-  const { data: fromTokenBalance, isError: isFromTokenBalanceError } =
-    useTokenBalance({
-      address: fromToken.address,
-      chainId: ethereumChain.id,
-    });
+  const { data: fromTokenBalance } = useTokenBalance({
+    address: fromToken.address,
+    chainId: ethereumChain.id,
+  });
 
   const { data: nativeBalanceData } = useNativeBalance(ethereumChain.id);
   const nativeBalance = nativeBalanceData?.value;
@@ -80,12 +79,6 @@ export function Redeem({
     isError: isPreviewError,
   });
 
-  const formattedBalance = formatAmount({
-    amount: fromTokenBalance,
-    decimals: fromToken.decimals,
-    isError: isFromTokenBalanceError,
-  });
-
   const balancesLoaded =
     nativeBalance !== undefined && fromTokenBalance !== undefined;
 
@@ -99,9 +92,9 @@ export function Redeem({
   return (
     <>
       <Form
-        balanceValue={formattedBalance}
         errorKey={balancesLoaded ? inputError : undefined}
         fromInputValue={fromInputValue}
+        fromToken={fromToken}
         fromTokenSelector={
           <TokenSelectorReadOnly
             logoURI={fromToken.logoURI}
@@ -115,6 +108,7 @@ export function Redeem({
         onSubmit={handleSubmit}
         onToggle={onToggle}
         outputValue={outputValue}
+        toToken={toToken}
         toTokenSelector={
           <TokenDropdown
             onChange={onTokenChange}
