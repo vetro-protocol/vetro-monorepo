@@ -27,6 +27,7 @@ export const App = () => (
                 <I18nInitializer />
                 <AppLayout>
                   <Routes>
+                    <Route element={<Navigate replace to="swap" />} index />
                     <Route element={<Swap />} path="swap" />
                     <Route element={<Earn />} path="earn" />
                     <Route element={<Borrow />} path="borrow" />
