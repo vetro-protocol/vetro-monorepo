@@ -10,5 +10,7 @@ export * from "./public/previewDeposit.js";
 export * from "./public/previewRedeem.js";
 
 // Export all wallet actions
+export * from "./wallet/cancelRedeemRequest.js";
 export * from "./wallet/deposit.js";
 export * from "./wallet/redeem.js";
+export * from "./wallet/requestRedeem.js";

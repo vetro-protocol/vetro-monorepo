@@ -10,8 +10,13 @@ import {
   previewDeposit,
   previewRedeem,
 } from "./actions/public/index.js";
+import { cancelRedeemRequest } from "./actions/wallet/cancelRedeemRequest.js";
 import { type DepositParams, deposit } from "./actions/wallet/deposit.js";
 import { type RedeemParams, redeem } from "./actions/wallet/redeem.js";
+import {
+  type RequestRedeemParams,
+  requestRedeem,
+} from "./actions/wallet/requestRedeem.js";
 
 // Export ABI
 export { gatewayAbi } from "./abi/gatewayAbi.js";
@@ -42,6 +47,8 @@ export const gatewayPublicActions = () => (client: Client) => ({
 });
 
 export const gatewayWalletActions = () => (client: WalletClient) => ({
+  cancelRedeemRequest: () => cancelRedeemRequest(client),
   deposit: (params: DepositParams) => deposit(client, params),
   redeem: (params: RedeemParams) => redeem(client, params),
+  requestRedeem: (params: RequestRedeemParams) => requestRedeem(client, params),
 });

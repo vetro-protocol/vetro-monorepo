@@ -36,6 +36,17 @@ export type MintEvents = ApprovalEvents &
     "user-signing-mint-error": [Error];
   };
 
+export type CancelRedeemRequestEvents = CommonEvents & {
+  "cancel-redeem-request-failed": [Error];
+  "cancel-redeem-request-failed-validation": [string];
+  "cancel-redeem-request-settled": [];
+  "cancel-redeem-request-transaction-reverted": [TransactionReceipt];
+  "cancel-redeem-request-transaction-succeeded": [TransactionReceipt];
+  "pre-cancel-redeem-request": [];
+  "user-signed-cancel-redeem-request": [Hash];
+  "user-signing-cancel-redeem-request-error": [Error];
+};
+
 export type RedeemEvents = ApprovalEvents &
   CommonEvents & {
     "pre-redeem": [];
@@ -47,6 +58,17 @@ export type RedeemEvents = ApprovalEvents &
     "user-signed-redeem": [Hash];
     "user-signing-redeem-error": [Error];
   };
+
+export type RequestRedeemEvents = CommonEvents & {
+  "pre-request-redeem": [];
+  "request-redeem-failed": [Error];
+  "request-redeem-failed-validation": [string];
+  "request-redeem-settled": [];
+  "request-redeem-transaction-reverted": [TransactionReceipt];
+  "request-redeem-transaction-succeeded": [TransactionReceipt];
+  "user-signed-request-redeem": [Hash];
+  "user-signing-request-redeem-error": [Error];
+};
 
 export type WithdrawEvents = ApprovalEvents &
   CommonEvents & {
