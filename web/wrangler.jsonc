@@ -1,0 +1,27 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "vetro-web",
+  "compatibility_date": "2026-02-06",
+  "workers_dev": false,
+  "preview_urls": true,
+  "upload_source_maps": true,
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 0.1,
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 0.1,
+    },
+  },
+  "assets": {
+    "not_found_handling": "single-page-application",
+  },
+  "env": {
+    "production": {
+      "name": "vetro-web",
+    },
+    "staging": {
+      "name": "vetro-web-staging",
+    },
+  },
+}
