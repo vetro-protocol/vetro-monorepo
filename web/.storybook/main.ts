@@ -7,16 +7,16 @@ const config: StorybookConfig = {
     options: {},
   },
   stories: ["../stories/*.stories.@(ts|tsx)"],
-  viteFinal(config) {
+  viteFinal(conf) {
     // Remove the cloudflare plugin - not needed for Storybook.
-    config.plugins = config.plugins?.flat().filter((plugin) => {
+    conf.plugins = conf.plugins?.flat().filter(function (plugin) {
       const name = plugin && "name" in plugin ? plugin.name : "";
       const isCloudflare = name
         .toLowerCase()
         .startsWith("vite-plugin-cloudflare");
       return !isCloudflare;
     });
-    return config;
+    return conf;
   },
 };
 
