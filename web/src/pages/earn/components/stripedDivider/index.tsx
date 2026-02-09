@@ -1,7 +1,7 @@
 export const StripedDivider = () => (
   <div
     aria-hidden="true"
-    className="h-[88px] w-full"
+    className="h-22 w-full"
     style={{
       background: `repeating-linear-gradient(
         120deg,
