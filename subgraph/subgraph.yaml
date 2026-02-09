@@ -8,9 +8,9 @@ dataSources:
     name: StakingVault
     network: mainnet
     source:
-      address: "0x0000000000000000000000000000000000000000" # FIXME
+      address: "0x4a16B99f23c5511f0A23EF9770Bf4ab28f37D830" # Test contract
       abi: StakingVault
-      startBlock: 0 # FIXME
+      startBlock: 24420695
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.9

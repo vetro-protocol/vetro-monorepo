@@ -17,7 +17,7 @@ export async function getApy() {
         $end: BigInt!,
         $start: BigInt!, 
       ) {
-        vaultHistory(
+        vaultHistories(
           orderBy: timestamp,
           where: {
             timestamp_gte: $start,
@@ -35,7 +35,9 @@ export async function getApy() {
     end: end.toString(),
     start: start.toString(),
   };
-  const history = await subgraph.runQuery(query, variables);
+  const { vaultHistories: history } = await subgraph.runQuery<{
+    vaultHistories: { timestamp: number; shareValue: string }[];
+  }>(query, variables);
   if (!Array.isArray(history)) {
     throw new Error("Invalid subgraph response for vault history");
   }
@@ -124,7 +126,9 @@ export async function getUserExitTickets({
   const variables = {
     owner: address.toLowerCase(),
   };
-  const exitTickets = await subgraph.runQuery(query, variables);
+  const { exitTickets } = await subgraph.runQuery<{
+    exitTickets: ExitTicket[];
+  }>(query, variables);
   if (!Array.isArray(exitTickets)) {
     throw new Error(`Invalid subgraph response for exit tickets of ${address}`);
   }
