@@ -20,6 +20,7 @@ type FormatAmountParams = {
   amount: bigint | undefined;
   decimals: number;
   isError: boolean;
+  symbol?: string;
 };
 
 /**
@@ -34,9 +35,11 @@ export function formatAmount({
   amount,
   decimals,
   isError,
+  symbol,
 }: FormatAmountParams) {
   if (amount !== undefined) {
-    return formatUnits(amount, decimals);
+    const formatted = formatUnits(amount, decimals);
+    return symbol ? `${formatted} ${symbol}` : formatted;
   }
 
   if (isError) {
