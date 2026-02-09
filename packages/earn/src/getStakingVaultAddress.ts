@@ -2,7 +2,7 @@ import { type Address, zeroAddress } from "viem";
 import { mainnet, sepolia } from "viem/chains";
 
 const STAKING_VAULT_ADDRESSES: Record<number, Address> = {
-  [mainnet.id]: zeroAddress,
+  [mainnet.id]: "0x4a16B99f23c5511f0A23EF9770Bf4ab28f37D830",
   [sepolia.id]: zeroAddress,
 };
 
