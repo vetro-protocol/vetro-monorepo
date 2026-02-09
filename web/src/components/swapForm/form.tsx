@@ -1,37 +1,56 @@
+import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
 import { TokenInput } from "components/tokenInput";
+import { useMainnet } from "hooks/useMainnet";
 import type { FormEvent, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import type { Token } from "types";
+import { formatAmount } from "utils/token";
 
 import { SwapToggleButton } from "./swapToggleButton";
 
 type Props = {
-  balanceValue: string;
   children: ReactNode;
   errorKey?: string;
   fromInputValue: string;
+  fromToken: Token;
   fromTokenSelector: ReactNode;
   maxButton?: ReactNode;
   onInputChange: (value: string) => void;
   onSubmit: (e: FormEvent) => void;
   onToggle: VoidFunction;
   outputValue: string;
+  toToken: Token;
   toTokenSelector: ReactNode;
 };
 
 export function Form({
-  balanceValue,
   children,
   errorKey,
   fromInputValue,
+  fromToken,
   fromTokenSelector,
   maxButton,
   onInputChange,
   onSubmit,
   onToggle,
   outputValue,
+  toToken,
   toTokenSelector,
 }: Props) {
+  const ethereumChain = useMainnet();
   const { t } = useTranslation();
+
+  const { data: fromTokenBalance, isError: isFromTokenBalanceError } =
+    useTokenBalance({
+      address: fromToken.address,
+      chainId: ethereumChain.id,
+    });
+
+  const { data: toTokenBalance, isError: isToTokenBalanceError } =
+    useTokenBalance({
+      address: toToken.address,
+      chainId: ethereumChain.id,
+    });
 
   return (
     <div className="flex w-full justify-center border-y border-gray-200 bg-gray-100">
@@ -42,7 +61,11 @@ export function Form({
         <div className="px-2">
           <TokenInput
             balanceLabel={t("pages.swap.form.balance")}
-            balanceValue={balanceValue}
+            balanceValue={formatAmount({
+              amount: fromTokenBalance,
+              decimals: fromToken.decimals,
+              isError: isFromTokenBalanceError,
+            })}
             errorKey={errorKey}
             label={t("pages.swap.form.you-are-swapping")}
             maxButton={maxButton}
@@ -57,6 +80,12 @@ export function Form({
         </div>
         <div className="px-2">
           <TokenInput
+            balanceLabel={t("pages.swap.form.balance")}
+            balanceValue={formatAmount({
+              amount: toTokenBalance,
+              decimals: toToken.decimals,
+              isError: isToTokenBalanceError,
+            })}
             disabled
             label={t("pages.swap.form.you-will-receive")}
             tokenSelector={toTokenSelector}
