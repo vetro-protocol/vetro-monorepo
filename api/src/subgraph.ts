@@ -2,8 +2,8 @@ import config from "config";
 
 import postToJsonApi from "./post-to-json-api.ts";
 
-type GraphQLResponse = {
-  data?: unknown;
+type GraphQLResponse<T> = {
+  data?: T;
   errors?: { message: string }[];
 };
 
@@ -12,11 +12,11 @@ const url = config
   .replace("$API_KEY", config.get<string>("subgraph.apiKey"))
   .replace("$ID", config.get<string>("subgraph.id"));
 
-export async function runQuery(
+export async function runQuery<R>(
   query: string,
   variables: Record<string, unknown>,
-) {
-  const response = await postToJsonApi<GraphQLResponse>(url, {
+): Promise<R> {
+  const response = await postToJsonApi<GraphQLResponse<R>>(url, {
     query,
     variables,
   });
@@ -26,5 +26,5 @@ export async function runQuery(
   if (response.errors) {
     throw new Error(response.errors.map((e) => e.message).join("; "));
   }
-  return response.data;
+  return response.data!;
 }

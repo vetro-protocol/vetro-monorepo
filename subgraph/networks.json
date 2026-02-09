@@ -1,8 +1,8 @@
 {
   "mainnet": {
     "StakingVault": {
-      "address": "0x0000000000000000000000000000000000000000",
-      "startBlock": 0
+      "address": "0xc440C003594d5bB16E5eb12C6181a5Ef771CE3a3",
+      "startBlock": 24405393
     }
   }
 }
