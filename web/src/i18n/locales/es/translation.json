@@ -41,13 +41,13 @@
         "withdraw-coming-soon": "Retiro próximamente",
         "withdraw-step-1-description": "Envíe una solicitud de retiro para iniciar el proceso de salida. Sus fondos permanecen en stake en esta etapa.",
         "withdraw-step-1-title": "Solicitar retiro",
-        "withdraw-step-2-description": "Comienza un período de enfriamiento de 7 días. Durante este tiempo, sus fondos están bloqueados y no se generan rendimientos.",
-        "withdraw-step-2-title": "Iniciar enfriamiento de 7 días",
-        "withdraw-step-3-description": "Una vez que termina el enfriamiento, sus fondos estarán disponibles para desbloquear y retirar.",
+        "withdraw-step-2-description": "Comienza un período de espera de 7 días. Durante este tiempo, sus fondos están bloqueados y no se generan rendimientos.",
+        "withdraw-step-2-title": "Iniciar período de espera de 7 días",
+        "withdraw-step-3-description": "Una vez que termina el período de espera, sus fondos estarán disponibles para desbloquear y retirar.",
         "withdraw-step-3-title": "Retirar fondos",
         "withdrawing-fees-label": "Retirando {{amount}} {{token}}",
-        "you-will-stake": "Vas a hacer stake de",
-        "you-will-withdraw": "Vas a retirar"
+        "you-will-stake": "Usted va a hacer stake de",
+        "you-will-withdraw": "Usted va a retirar"
       },
       "stats": {
         "earned-amount": "Su monto ganado",
