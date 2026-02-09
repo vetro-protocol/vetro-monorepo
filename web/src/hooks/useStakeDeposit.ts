@@ -65,9 +65,6 @@ export const useStakeDeposit = function ({ assets }: Params) {
       emitter.on(
         "approve-transaction-reverted",
         function (receipt: TransactionReceipt) {
-          queryClient.invalidateQueries({
-            queryKey: allowanceKey,
-          });
           updateNativeBalanceAfterReceipt(receipt);
         },
       );
