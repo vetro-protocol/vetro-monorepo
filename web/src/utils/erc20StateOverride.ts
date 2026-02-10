@@ -12,7 +12,6 @@ import {
 // the estimation call will revert due to insufficient allowance.
 // This state override lets us update the internal storage view so the user does not have to
 // perform an approval transaction before the operation, and thus the gas estimation can be calculated.
-// Thanks, Claude!
 export function createErc20AllowanceStateOverride({
   owner,
   spender,

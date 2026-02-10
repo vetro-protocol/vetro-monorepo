@@ -1,16 +1,30 @@
 import { type ReactNode, useState } from "react";
+import Skeleton from "react-loading-skeleton";
 
 import { ChevronIcon } from "./base/chevronIcon";
 import feesSvg from "./icons/fees.svg";
 
 type Props = {
   children: ReactNode;
+  isError?: boolean;
   label: string;
-  totalFees: string;
+  totalFees?: string;
 };
 
-export const FeesContainer = function ({ children, label, totalFees }: Props) {
+export function FeesContainer({ children, isError, label, totalFees }: Props) {
   const [isOpen, setIsOpen] = useState(false);
+
+  function renderTotalFees() {
+    if (totalFees !== undefined) {
+      return totalFees;
+    }
+
+    if (isError) {
+      return "-";
+    }
+
+    return <Skeleton width={50} />;
+  }
 
   return (
     <div className={`w-full border-b border-gray-200`}>
@@ -26,7 +40,9 @@ export const FeesContainer = function ({ children, label, totalFees }: Props) {
           {!isOpen && (
             <>
               <img alt="Fees icon" height="16" src={feesSvg} width="16" />
-              <span className="font-semibold text-gray-500">{totalFees}</span>
+              <span className="font-semibold text-gray-500">
+                {renderTotalFees()}
+              </span>
             </>
           )}
           <ChevronIcon direction={isOpen ? "up" : "down"} />
@@ -40,4 +56,4 @@ export const FeesContainer = function ({ children, label, totalFees }: Props) {
       )}
     </div>
   );
-};
+}
