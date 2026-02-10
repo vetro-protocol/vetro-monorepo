@@ -5,6 +5,7 @@ type Step = {
 
 type Props = {
   currentStep?: number;
+  mode?: "list" | "progress";
   steps: Step[];
 };
 
@@ -23,14 +24,18 @@ const CheckIcon = () => (
   </svg>
 );
 
-export const VerticalStepper = function ({ currentStep, steps }: Props) {
+export const VerticalStepper = function ({
+  currentStep,
+  mode = "progress",
+  steps,
+}: Props) {
   const activeStep = currentStep ?? 0;
 
   return (
     <div className="flex flex-col gap-5 py-4">
       {steps.map(function (step, index) {
-        const isCompleted = index < activeStep;
-        const notReady = index > activeStep;
+        const isCompleted = mode === "progress" && index < activeStep;
+        const notReady = mode === "progress" && index > activeStep;
 
         return (
           <div className="flex gap-4" key={`${step.title}-${index}`}>

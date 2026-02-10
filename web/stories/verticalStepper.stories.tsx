@@ -86,3 +86,10 @@ export const ThreeStepsAllActive: Story = {
     steps: withdrawalSteps,
   },
 };
+
+export const ListMode: Story = {
+  args: {
+    mode: "list",
+    steps: withdrawalSteps,
+  },
+};
