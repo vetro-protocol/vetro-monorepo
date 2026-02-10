@@ -1,24 +1,29 @@
 import { Button } from "components/base/button";
-import { useDrawerState } from "components/base/drawer/useDrawerState";
+import { Drawer } from "components/base/drawer";
+import { DrawerLoader } from "components/base/drawer/drawerLoader";
 import { useStakeMode } from "hooks/useStakeMode";
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import StakeDrawer from "../stakeDrawer";
+const StakeDrawerContent = lazy(() =>
+  import("../stakeDrawer/stakeDrawerContent").then((mod) => ({
+    default: mod.StakeDrawerContent,
+  })),
+);
 
 export function PoolInfoButtons() {
   const { t } = useTranslation();
-  const drawerState = useDrawerState();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [mode, setMode] = useStakeMode();
 
   // Auto-open drawer when mode is in URL
   useEffect(
     function openDrawerFromUrl() {
-      if (mode && !drawerState.isDrawerOpen) {
-        drawerState.onOpen();
+      if (mode && !isDrawerOpen) {
+        setIsDrawerOpen(true);
       }
     },
-    [mode, drawerState.isDrawerOpen],
+    [mode, isDrawerOpen],
   );
 
   function handleOpenDeposit() {
@@ -31,7 +36,7 @@ export function PoolInfoButtons() {
 
   function handleClose() {
     setMode(null);
-    drawerState.onClose();
+    setIsDrawerOpen(false);
   }
 
   return (
@@ -45,14 +50,16 @@ export function PoolInfoButtons() {
         </Button>
       </div>
 
-      {drawerState.isDrawerOpen && mode && (
-        <StakeDrawer
-          hasAnimated={drawerState.hasAnimated}
-          mode={mode}
-          onAnimated={drawerState.onAnimated}
-          onClose={handleClose}
-          onModeChange={setMode}
-        />
+      {isDrawerOpen && mode && (
+        <Drawer onClose={handleClose}>
+          <Suspense fallback={<DrawerLoader />}>
+            <StakeDrawerContent
+              mode={mode}
+              onClose={handleClose}
+              onModeChange={setMode}
+            />
+          </Suspense>
+        </Drawer>
       )}
     </>
   );
