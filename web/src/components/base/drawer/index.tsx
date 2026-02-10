@@ -45,7 +45,8 @@ export function Drawer({ children, onClose }: Props) {
     // This ensures the drawer starts in the closed position (translate-x-full)
     // and then transitions to open (translate-x-0), enabling the CSS transition.
     function openOnMount() {
-      requestAnimationFrame(() => setIsOpen(true));
+      const rafId = requestAnimationFrame(() => setIsOpen(true));
+      return () => cancelAnimationFrame(rafId);
     },
     [],
   );
