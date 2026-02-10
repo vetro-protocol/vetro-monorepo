@@ -14,7 +14,7 @@ type Params = {
   minAmountOut: bigint;
   peggedToken: Token;
   peggedTokenIn: bigint;
-  receiver: Address;
+  receiver: Address | undefined;
   tokenOut: Address;
 };
 
