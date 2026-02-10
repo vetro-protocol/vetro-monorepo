@@ -23,7 +23,11 @@ export function useWithdrawFees({ account, amount, isConnected }: Params) {
     amount > 0n && isConnected && account !== undefined && hasEnoughBalance;
 
   // Estimate gas for requestWithdraw
-  const { data: withdrawGasUnits, isError: isGasError } = useEstimateGas({
+  const {
+    data: withdrawGasUnits,
+    isEnabled,
+    isError: isGasError,
+  } = useEstimateGas({
     chainId: chain.id,
     data: encodeFunctionData({
       abi: stakingVaultAbi,
@@ -42,6 +46,7 @@ export function useWithdrawFees({ account, amount, isConnected }: Params) {
 
   return useNetworkFee({
     fees: withdrawFees,
+    isEnabled,
     isError: isFeeEstimateError,
   });
 }

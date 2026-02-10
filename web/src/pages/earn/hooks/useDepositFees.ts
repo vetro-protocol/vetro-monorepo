@@ -83,6 +83,7 @@ export function useDepositFees({
 
   return useNetworkFee({
     fees: sumFees(approvalFees, depositFees),
+    isEnabled: canEstimate,
     isError: isApprovalError || isDepositFeeError,
   });
 }
