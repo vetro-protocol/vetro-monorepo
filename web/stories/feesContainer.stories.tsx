@@ -8,6 +8,9 @@ const meta: Meta<typeof FeesContainer> = {
     children: {
       control: false,
     },
+    isError: {
+      control: "boolean",
+    },
     label: {
       control: "text",
     },
@@ -33,6 +36,41 @@ export const Default: Story = {
     ),
     label: "1000 USDC = 999 VUSD",
     totalFees: "$0.40",
+  },
+  render: (args) => (
+    <div className="w-md">
+      <FeesContainer {...args} />
+    </div>
+  ),
+};
+
+export const Loading: Story = {
+  args: {
+    children: (
+      <>
+        <FeeDetails label="Network Fee" />
+        <FeeDetails label="Percentage Fee" />
+      </>
+    ),
+    label: "1000 USDC = 999 VUSD",
+  },
+  render: (args) => (
+    <div className="w-md">
+      <FeesContainer {...args} />
+    </div>
+  ),
+};
+
+export const Error: Story = {
+  args: {
+    children: (
+      <>
+        <FeeDetails isError label="Network Fee" />
+        <FeeDetails isError label="Percentage Fee" />
+      </>
+    ),
+    isError: true,
+    label: "1000 USDC = 999 VUSD",
   },
   render: (args) => (
     <div className="w-md">

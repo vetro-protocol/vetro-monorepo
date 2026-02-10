@@ -9,6 +9,7 @@ import { useMainnet } from "hooks/useMainnet";
 import { useStakedBalance } from "hooks/useStakedBalance";
 import { useStakeWithdraw } from "hooks/useStakeWithdraw";
 import { useVusd } from "hooks/useVusd";
+import { useWithdrawFees } from "pages/earn/hooks/useWithdrawFees";
 import type { FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { formatAmount } from "utils/token";
@@ -50,7 +51,7 @@ export function StakeWithdrawForm({
   onClose,
   onInputChange,
 }: Props) {
-  const { isConnected } = useAccount();
+  const { address: account, isConnected } = useAccount();
   const chain = useMainnet();
   const { openConnectModal } = useConnectModal();
   const { t } = useTranslation();
@@ -66,6 +67,12 @@ export function StakeWithdrawForm({
 
   const withdrawMutation = useStakeWithdraw({
     assets: amountBigInt,
+  });
+
+  const { data: networkFee, isError: isFeeError } = useWithdrawFees({
+    account,
+    amount: amountBigInt,
+    isConnected,
   });
 
   const inputError = getWithdrawErrors({
@@ -95,9 +102,6 @@ export function StakeWithdrawForm({
       });
     }
   }
-
-  // TODO: implement real gas estimation
-  const networkFee = "$0.40";
 
   return (
     <form className="flex flex-1 flex-col" onSubmit={handleSubmit}>
@@ -133,6 +137,7 @@ export function StakeWithdrawForm({
 
       <div className="px-6">
         <FeesContainer
+          isError={isFeeError}
           label={t("pages.earn.stake.withdrawing-fees-label", {
             amount: inputValue,
             token: vusd.symbol,
@@ -140,6 +145,7 @@ export function StakeWithdrawForm({
           totalFees={networkFee}
         >
           <FeeDetails
+            isError={isFeeError}
             label={t("pages.swap.fees.network-fee")}
             value={networkFee}
           />

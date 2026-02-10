@@ -9,6 +9,7 @@ import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useMainnet } from "hooks/useMainnet";
 import { useStakeDeposit } from "hooks/useStakeDeposit";
 import { useVusd } from "hooks/useVusd";
+import { useDepositFees } from "pages/earn/hooks/useDepositFees";
 import type { FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { formatAmount } from "utils/token";
@@ -49,7 +50,7 @@ export function StakeDepositForm({
   onClose,
   onInputChange,
 }: Props) {
-  const { isConnected } = useAccount();
+  const { address: account, isConnected } = useAccount();
   const chain = useMainnet();
   const { openConnectModal } = useConnectModal();
   const { t } = useTranslation();
@@ -67,6 +68,13 @@ export function StakeDepositForm({
 
   const depositMutation = useStakeDeposit({
     assets: amountBigInt,
+  });
+
+  const { data: networkFee, isError: isFeeError } = useDepositFees({
+    account,
+    amount: amountBigInt,
+    isConnected,
+    token: vusd,
   });
 
   const inputError = getStakeErrors({
@@ -96,9 +104,6 @@ export function StakeDepositForm({
       });
     }
   }
-
-  // TODO: implement real gas estimation
-  const networkFee = "$0.40";
 
   return (
     <form className="flex flex-col" onSubmit={handleSubmit}>
@@ -131,6 +136,7 @@ export function StakeDepositForm({
 
       <div className="px-6">
         <FeesContainer
+          isError={isFeeError}
           label={t("pages.earn.stake.fees-label", {
             amount: inputValue,
             token: vusd.symbol,
@@ -138,6 +144,7 @@ export function StakeDepositForm({
           totalFees={networkFee}
         >
           <FeeDetails
+            isError={isFeeError}
             label={t("pages.swap.fees.network-fee")}
             value={networkFee}
           />
