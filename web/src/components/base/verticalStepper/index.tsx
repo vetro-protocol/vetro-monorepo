@@ -10,6 +10,7 @@ type Props = {
 
 const CheckIcon = () => (
   <svg
+    aria-hidden="true"
     className="size-2.5"
     fill="none"
     stroke="white"
