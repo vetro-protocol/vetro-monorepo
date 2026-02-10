@@ -7,11 +7,11 @@ import {
   toHex,
 } from "viem";
 
-// The operation requires the user has enough allowance to estimate it
-// but if the user needs to approve some amount (because it has no allowance), the estimation will revert!.
-// The revert error in the estimation is that the user has not enough allowance.
-// This override of the state here let's us update the internal state so the user does not have to
-// make an approval to perform the operation, and thus, the estimation can be calculated.
+// The operation requires the user to have enough allowance for gas estimation to succeed,
+// but if the user needs to approve some amount (because they currently have no allowance),
+// the estimation call will revert due to insufficient allowance.
+// This state override lets us update the internal storage view so the user does not have to
+// perform an approval transaction before the operation, and thus the gas estimation can be calculated.
 // Thanks, Claude!
 export function createErc20AllowanceStateOverride({
   owner,
