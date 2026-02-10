@@ -8,6 +8,24 @@ type Props = {
   isError: boolean;
 };
 
+function formatFeeInUsd(feeInUsd: number) {
+  if (feeInUsd > 0 && feeInUsd < 0.01) {
+    return "<$0.01";
+  }
+  return `$${feeInUsd.toFixed(2)}`;
+}
+
+function calculateFee(fees: bigint, ethPrice: number, decimals: number) {
+  const gasInEth = parseFloat(formatUnits(fees, decimals));
+  const feeInUsd = gasInEth * ethPrice;
+
+  if (!Number.isFinite(gasInEth) || !Number.isFinite(feeInUsd)) {
+    return undefined;
+  }
+
+  return formatFeeInUsd(feeInUsd);
+}
+
 export function useNetworkFee({ fees, isError: isGasError }: Props) {
   const {
     data: ethPrice,
@@ -17,15 +35,15 @@ export function useNetworkFee({ fees, isError: isGasError }: Props) {
   const { nativeCurrency } = useMainnet();
 
   const isError = isGasError || isPriceError;
+  const canCalculate =
+    fees !== undefined && ethPrice !== undefined && Number.isFinite(ethPrice);
 
-  if (fees !== undefined && ethPrice !== undefined) {
-    const gasInEth = parseFloat(formatUnits(fees, nativeCurrency.decimals));
-    const feeInUsd = gasInEth * ethPrice;
-
-    const formattedFee =
-      feeInUsd > 0 && feeInUsd < 0.01 ? "<$0.01" : `$${feeInUsd.toFixed(2)}`;
-
-    return { data: formattedFee, isError: false, isLoading: false };
+  if (canCalculate) {
+    const formattedFee = calculateFee(fees, ethPrice, nativeCurrency.decimals);
+    if (formattedFee !== undefined) {
+      return { data: formattedFee, isError: false, isLoading: false };
+    }
+    return { data: undefined, isError: true, isLoading: false };
   }
 
   if (isError) {

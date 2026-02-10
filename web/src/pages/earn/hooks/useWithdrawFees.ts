@@ -17,6 +17,11 @@ export function useWithdrawFees({ account, amount, isConnected }: Params) {
   const stakingVaultAddress = getStakingVaultAddress(chain.id);
   const { data: stakedBalance } = useStakedBalance();
 
+  const hasEnoughBalance =
+    stakedBalance !== undefined && stakedBalance >= amount;
+  const canEstimate =
+    amount > 0n && isConnected && account !== undefined && hasEnoughBalance;
+
   // Estimate gas for requestWithdraw
   const { data: withdrawGasUnits, isError: isGasError } = useEstimateGas({
     chainId: chain.id,
@@ -25,13 +30,7 @@ export function useWithdrawFees({ account, amount, isConnected }: Params) {
       args: [amount, account ?? zeroAddress],
       functionName: "requestWithdraw",
     }),
-    query: {
-      enabled:
-        amount > 0n &&
-        isConnected &&
-        stakedBalance !== undefined &&
-        stakedBalance >= amount,
-    },
+    query: { enabled: canEstimate },
     to: stakingVaultAddress,
   });
 

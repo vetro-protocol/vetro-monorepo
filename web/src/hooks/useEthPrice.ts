@@ -9,13 +9,22 @@ type PricesResponse = {
   time: string;
 };
 
+function parseEthPrice(data: PricesResponse) {
+  const ethPriceRaw = data?.prices?.ETH;
+  const ethPrice =
+    typeof ethPriceRaw === "string" ? parseFloat(ethPriceRaw) : NaN;
+
+  if (!Number.isFinite(ethPrice)) {
+    throw new Error("Invalid ETH price received from API");
+  }
+
+  return ethPrice;
+}
+
 export const useEthPrice = () =>
   useQuery({
     enabled: apiUrl !== undefined && isValidUrl(apiUrl),
-    queryFn: () =>
-      fetch(`${apiUrl}/prices`).then((data: PricesResponse) =>
-        parseFloat(data.prices.ETH),
-      ),
+    queryFn: () => fetch(`${apiUrl}/prices`).then(parseEthPrice),
     queryKey: ["eth-price"],
     refetchInterval: 60 * 1000, // 1 minute
     retry: 2,

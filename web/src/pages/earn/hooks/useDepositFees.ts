@@ -57,7 +57,7 @@ export function useDepositFees({
   const { fees: approvalFees, isError: isApprovalError } =
     useEstimateApproveErc20Fees({
       amount,
-      enabled: amount > 0n && token !== undefined,
+      enabled: canEstimate,
       spender: stakingVaultAddress,
       token: { address: tokenAddress, chainId: chain.id },
     });
