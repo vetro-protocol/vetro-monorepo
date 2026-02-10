@@ -25,7 +25,7 @@ export function HowWithdrawalsWork() {
         {t("pages.earn.stake.how-withdrawals-work")}
       </p>
       <div className="border-t border-gray-200">
-        <VerticalStepper steps={steps} />
+        <VerticalStepper mode="list" steps={steps} />
       </div>
     </div>
   );

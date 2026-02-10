@@ -10,62 +10,86 @@ const meta: Meta<typeof VerticalStepper> = {
 export default meta;
 type Story = StoryObj<typeof VerticalStepper>;
 
-export const WithdrawalSteps: Story = {
+const swapSteps = [
+  {
+    description: "This allows the app to use this token for your swap.",
+    title: "Approve in wallet",
+  },
+  {
+    description: "Review the details and confirm the swap in your wallet.",
+    title: "Confirm swap",
+  },
+];
+
+const withdrawalSteps = [
+  {
+    description:
+      "Submit a withdrawal request to begin the exit process. Your funds remain staked at this stage.",
+    title: "Request withdrawal",
+  },
+  {
+    description:
+      "A 7-day cooldown period begins. During this time, your funds are locked and no yield is earned.",
+    title: "Start 7-day cooldown",
+  },
+  {
+    description:
+      "Once the cooldown ends, your funds become available to unlock and withdraw.",
+    title: "Withdraw funds",
+  },
+];
+
+export const FirstStepActive: Story = {
   args: {
-    steps: [
-      {
-        description:
-          "Submit a withdrawal request to begin the exit process. Your funds remain staked at this stage.",
-        title: "Request withdrawal",
-      },
-      {
-        description:
-          "A 7-day cooldown period begins. During this time, your funds are locked and no yield is earned.",
-        title: "Start 7-day cooldown",
-      },
-      {
-        description:
-          "Once the cooldown ends, your funds become available to unlock and withdraw.",
-        title: "Withdraw funds",
-      },
-    ],
+    currentStep: 0,
+    steps: swapSteps,
   },
 };
 
-export const TwoSteps: Story = {
+export const SecondStepActive: Story = {
   args: {
-    steps: [
-      {
-        description: "First step description goes here.",
-        title: "Step one",
-      },
-      {
-        description: "Second step description goes here.",
-        title: "Step two",
-      },
-    ],
+    currentStep: 1,
+    steps: swapSteps,
   },
 };
 
-export const FourSteps: Story = {
+export const AllStepsCompleted: Story = {
   args: {
-    steps: [
-      {
-        description: "Connect your wallet to get started.",
-        title: "Connect wallet",
-      },
-      {
-        description: "Enter the amount you want to deposit.",
-        title: "Enter amount",
-      },
-      {
-        description: "Approve the transaction in your wallet.",
-        title: "Approve transaction",
-      },
-      {
-        description: "Your deposit is complete!",
-        title: "Done",
-      },
-    ],
+    currentStep: 2,
+    steps: swapSteps,
+  },
+};
+
+export const DefaultNoCurrentStep: Story = {
+  args: {
+    steps: swapSteps,
+  },
+};
+
+export const ThreeStepsFirstActive: Story = {
+  args: {
+    currentStep: 0,
+    steps: withdrawalSteps,
+  },
+};
+
+export const ThreeStepsSecondActive: Story = {
+  args: {
+    currentStep: 1,
+    steps: withdrawalSteps,
+  },
+};
+
+export const ThreeStepsAllActive: Story = {
+  args: {
+    currentStep: 2,
+    steps: withdrawalSteps,
+  },
+};
+
+export const ListMode: Story = {
+  args: {
+    mode: "list",
+    steps: withdrawalSteps,
   },
 };
