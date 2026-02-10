@@ -35,20 +35,24 @@ export async function getApy() {
     end: end.toString(),
     start: start.toString(),
   };
-  const { vaultHistories: history } = await subgraph.runQuery<{
-    vaultHistories: { timestamp: number; shareValue: string }[];
+  const { vaultHistories } = await subgraph.runQuery<{
+    vaultHistories: { timestamp: string; shareValue: string }[];
   }>(query, variables);
-  if (!Array.isArray(history)) {
+  if (!Array.isArray(vaultHistories)) {
     throw new Error("Invalid subgraph response for vault history");
   }
-  if (!history.length || history.length < 2) {
+  if (!vaultHistories.length || vaultHistories.length < 2) {
     return {
       "7d": 0,
     };
   }
 
-  const days = history.map((h) => Math.floor(h.timestamp / secsPerDay));
-  const values = history.map((h) => parseBigIntStringToFloat(h.shareValue, 18));
+  const days = vaultHistories.map((h) =>
+    Math.floor(Number.parseInt(h.timestamp) / secsPerDay),
+  );
+  const values = vaultHistories.map((h) =>
+    parseBigIntStringToFloat(h.shareValue, 18),
+  );
   const delta = linearRegression(days, values).a;
   const apy = ((delta * 365) / values[values.length - 1]) * 100;
   return {
