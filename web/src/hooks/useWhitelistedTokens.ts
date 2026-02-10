@@ -7,6 +7,9 @@ const whitelistedTokens: Token[] = [
     address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
     chainId: mainnet.id,
     decimals: 6,
+    extensions: {
+      allowanceSlot: 10n,
+    },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/usdc.svg",
     name: "USD Coin",
     symbol: "USDC",
@@ -15,6 +18,9 @@ const whitelistedTokens: Token[] = [
     address: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
     chainId: mainnet.id,
     decimals: 6,
+    extensions: {
+      allowanceSlot: 5n,
+    },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/usdt.svg",
     name: "Tether USD",
     symbol: "USDT",

@@ -5,7 +5,9 @@ import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenDropdown } from "components/tokenDropdown";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useDeposit } from "hooks/useDeposit";
+import { useEstimateDepositGas } from "hooks/useEstimateDepositGas";
 import { useMainnet } from "hooks/useMainnet";
+import { useMintFee } from "hooks/useMintFee";
 import { usePreviewDeposit } from "hooks/usePreviewDeposit";
 import { type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
@@ -14,6 +16,7 @@ import { formatAmount } from "utils/token";
 
 import { Form } from "./form";
 import { SubmitButton } from "./submitButton";
+import { SwapFees } from "./swapFees";
 import { getSwapErrors } from "./validation";
 
 type Props = {
@@ -61,6 +64,14 @@ export function Deposit({
       amountIn: amountBigInt,
       tokenIn: fromToken.address,
     });
+
+  const protocolFee = useMintFee();
+
+  const operationGasEstimation = useEstimateDepositGas({
+    amountIn: amountBigInt,
+    minPeggedTokenOut: depositPreview,
+    token: fromToken,
+  });
 
   const depositMutation = useDeposit({
     amountIn: amountBigInt,
@@ -121,6 +132,16 @@ export function Deposit({
         />
       </Form>
       <ApproveSection active={approve10x} onToggle={onToggleApprove10x} />
+      <SwapFees
+        amountBigInt={amountBigInt}
+        approveAmount={approveAmount}
+        fromInputValue={fromInputValue}
+        fromToken={fromToken}
+        operationGasEstimation={operationGasEstimation}
+        outputValue={outputValue}
+        protocolFee={protocolFee}
+        toToken={toToken}
+      />
     </>
   );
 }

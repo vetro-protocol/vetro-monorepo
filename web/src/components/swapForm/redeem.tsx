@@ -4,16 +4,20 @@ import { ApproveSection } from "components/approveSection";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenDropdown } from "components/tokenDropdown";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
+import { useEstimateRedeemGas } from "hooks/useEstimateRedeemGas";
 import { useMainnet } from "hooks/useMainnet";
 import { usePreviewRedeem } from "hooks/usePreviewRedeem";
 import { useRedeem } from "hooks/useRedeem";
+import { useRedeemFee } from "hooks/useRedeemFee";
 import { type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 import { formatAmount } from "utils/token";
+import { useAccount } from "wagmi";
 
 import { Form } from "./form";
 import { SubmitButton } from "./submitButton";
+import { SwapFees } from "./swapFees";
 import { getSwapErrors } from "./validation";
 
 type Props = {
@@ -45,6 +49,7 @@ export function Redeem({
   toToken,
   whitelistedTokens,
 }: Props) {
+  const { address } = useAccount();
   const ethereumChain = useMainnet();
   const { t } = useTranslation();
 
@@ -60,6 +65,17 @@ export function Redeem({
     peggedTokenIn: amountBigInt,
     tokenOut: toToken.address,
   });
+
+  const operationGasEstimation = useEstimateRedeemGas({
+    enabled: amountBigInt > 0n && !!redeemPreview && !!address,
+    minAmountOut: redeemPreview ?? 0n,
+    peggedToken: fromToken,
+    peggedTokenIn: amountBigInt,
+    receiver: address!,
+    tokenOut: toToken.address,
+  });
+
+  const protocolFee = useRedeemFee();
 
   const redeemMutation = useRedeem({
     approveAmount,
@@ -126,6 +142,16 @@ export function Redeem({
         />
       </Form>
       <ApproveSection active={approve10x} onToggle={onToggleApprove10x} />
+      <SwapFees
+        amountBigInt={amountBigInt}
+        approveAmount={approveAmount}
+        fromInputValue={fromInputValue}
+        fromToken={fromToken}
+        operationGasEstimation={operationGasEstimation}
+        outputValue={outputValue}
+        protocolFee={protocolFee}
+        toToken={toToken}
+      />
     </>
   );
 }

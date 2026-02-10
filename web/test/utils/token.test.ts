@@ -86,6 +86,50 @@ describe("utils/token", function () {
 
       expect(result).toBe("0.000000000000000001");
     });
+
+    it("appends symbol when amount is defined", function () {
+      const result = formatAmount({
+        amount: BigInt(1000000000000000000),
+        decimals,
+        isError: false,
+        symbol: "ETH",
+      });
+
+      expect(result).toBe("1 ETH");
+    });
+
+    it("appends symbol when amount is zero", function () {
+      const result = formatAmount({
+        amount: 0n,
+        decimals,
+        isError: false,
+        symbol: "ETH",
+      });
+
+      expect(result).toBe("0 ETH");
+    });
+
+    it('returns "..." without symbol when loading', function () {
+      const result = formatAmount({
+        amount: undefined,
+        decimals,
+        isError: false,
+        symbol: "ETH",
+      });
+
+      expect(result).toBe("...");
+    });
+
+    it('returns "-" without symbol when error', function () {
+      const result = formatAmount({
+        amount: undefined,
+        decimals,
+        isError: true,
+        symbol: "ETH",
+      });
+
+      expect(result).toBe("-");
+    });
   });
 
   describe("parseTokenUnits", function () {
