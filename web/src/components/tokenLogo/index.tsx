@@ -1,9 +1,17 @@
 import { useEffect, useState } from "react";
 import type { Token } from "types";
 
-type Props = Pick<Token, "logoURI" | "symbol">;
+const sizeClasses = {
+  base: "size-5",
+  large: "size-8",
+};
 
-export const TokenLogo = function ({ logoURI, symbol }: Props) {
+type Props = Pick<Token, "logoURI" | "symbol"> & {
+  size?: keyof typeof sizeClasses;
+};
+
+export const TokenLogo = function ({ logoURI, size = "base", symbol }: Props) {
+  const sizeClass = sizeClasses[size];
   const [hasError, setHasError] = useState(false);
 
   useEffect(
@@ -15,7 +23,9 @@ export const TokenLogo = function ({ logoURI, symbol }: Props) {
 
   if (!logoURI || hasError) {
     return (
-      <div className="flex size-5 items-center justify-center overflow-hidden rounded-full border border-solid border-white bg-neutral-50 text-[8px] font-semibold text-neutral-700">
+      <div
+        className={`flex ${sizeClass} items-center justify-center overflow-hidden rounded-full border border-solid border-white bg-neutral-50 text-[8px] font-semibold text-neutral-700`}
+      >
         {symbol}
       </div>
     );
@@ -24,7 +34,7 @@ export const TokenLogo = function ({ logoURI, symbol }: Props) {
   return (
     <img
       alt={`${symbol} logo`}
-      className="size-5 rounded-full"
+      className={`${sizeClass} rounded-full`}
       onError={() => setHasError(true)}
       src={logoURI}
     />
