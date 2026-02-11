@@ -1,6 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { VerticalStepper } from "../src/components/base/verticalStepper";
+import {
+  stepStatus,
+  VerticalStepper,
+} from "../src/components/base/verticalStepper";
 
 const meta: Meta<typeof VerticalStepper> = {
   component: VerticalStepper,
@@ -10,86 +13,247 @@ const meta: Meta<typeof VerticalStepper> = {
 export default meta;
 type Story = StoryObj<typeof VerticalStepper>;
 
-const swapSteps = [
-  {
-    description: "This allows the app to use this token for your swap.",
-    title: "Approve in wallet",
-  },
-  {
-    description: "Review the details and confirm the swap in your wallet.",
-    title: "Confirm swap",
-  },
-];
+const swapSteps = {
+  allCompleted: [
+    {
+      description: "This allows the app to use this token for your swap.",
+      status: stepStatus.completed,
+      title: "Approve in wallet",
+    },
+    {
+      description: "Review the details and confirm the swap in your wallet.",
+      status: stepStatus.completed,
+      title: "Confirm swap",
+    },
+  ],
+  firstActive: [
+    {
+      description: "This allows the app to use this token for your swap.",
+      status: stepStatus.ready,
+      title: "Approve in wallet",
+    },
+    {
+      description: "Review the details and confirm the swap in your wallet.",
+      status: stepStatus.notReady,
+      title: "Confirm swap",
+    },
+  ],
+  firstSpinning: [
+    {
+      description: "This allows the app to use this token for your swap.",
+      status: stepStatus.progress,
+      title: "Approve in wallet",
+    },
+    {
+      description: "Review the details and confirm the swap in your wallet.",
+      status: stepStatus.notReady,
+      title: "Confirm swap",
+    },
+  ],
+  idle: [
+    {
+      description: "This allows the app to use this token for your swap.",
+      status: stepStatus.notReady,
+      title: "Approve in wallet",
+    },
+    {
+      description: "Review the details and confirm the swap in your wallet.",
+      status: stepStatus.notReady,
+      title: "Confirm swap",
+    },
+  ],
+  secondActive: [
+    {
+      description: "This allows the app to use this token for your swap.",
+      status: stepStatus.completed,
+      title: "Approve in wallet",
+    },
+    {
+      description: "Review the details and confirm the swap in your wallet.",
+      status: stepStatus.ready,
+      title: "Confirm swap",
+    },
+  ],
+  secondSpinning: [
+    {
+      description: "This allows the app to use this token for your swap.",
+      status: stepStatus.completed,
+      title: "Approve in wallet",
+    },
+    {
+      description: "Review the details and confirm the swap in your wallet.",
+      status: stepStatus.progress,
+      title: "Confirm swap",
+    },
+  ],
+};
 
-const withdrawalSteps = [
-  {
-    description:
-      "Submit a withdrawal request to begin the exit process. Your funds remain staked at this stage.",
-    title: "Request withdrawal",
-  },
-  {
-    description:
-      "A 7-day cooldown period begins. During this time, your funds are locked and no yield is earned.",
-    title: "Start 7-day cooldown",
-  },
-  {
-    description:
-      "Once the cooldown ends, your funds become available to unlock and withdraw.",
-    title: "Withdraw funds",
-  },
-];
+const withdrawalSteps = {
+  allReady: [
+    {
+      description:
+        "Submit a withdrawal request to begin the exit process. Your funds remain staked at this stage.",
+      status: stepStatus.ready,
+      title: "Request withdrawal",
+    },
+    {
+      description:
+        "A 7-day cooldown period begins. During this time, your funds are locked and no yield is earned.",
+      status: stepStatus.ready,
+      title: "Start 7-day cooldown",
+    },
+    {
+      description:
+        "Once the cooldown ends, your funds become available to unlock and withdraw.",
+      status: stepStatus.ready,
+      title: "Withdraw funds",
+    },
+  ],
+  firstActive: [
+    {
+      description:
+        "Submit a withdrawal request to begin the exit process. Your funds remain staked at this stage.",
+      status: stepStatus.ready,
+      title: "Request withdrawal",
+    },
+    {
+      description:
+        "A 7-day cooldown period begins. During this time, your funds are locked and no yield is earned.",
+      status: stepStatus.notReady,
+      title: "Start 7-day cooldown",
+    },
+    {
+      description:
+        "Once the cooldown ends, your funds become available to unlock and withdraw.",
+      status: stepStatus.notReady,
+      title: "Withdraw funds",
+    },
+  ],
+  firstSpinning: [
+    {
+      description:
+        "Submit a withdrawal request to begin the exit process. Your funds remain staked at this stage.",
+      status: stepStatus.progress,
+      title: "Request withdrawal",
+    },
+    {
+      description:
+        "A 7-day cooldown period begins. During this time, your funds are locked and no yield is earned.",
+      status: stepStatus.notReady,
+      title: "Start 7-day cooldown",
+    },
+    {
+      description:
+        "Once the cooldown ends, your funds become available to unlock and withdraw.",
+      status: stepStatus.notReady,
+      title: "Withdraw funds",
+    },
+  ],
+  secondActive: [
+    {
+      description:
+        "Submit a withdrawal request to begin the exit process. Your funds remain staked at this stage.",
+      status: stepStatus.completed,
+      title: "Request withdrawal",
+    },
+    {
+      description:
+        "A 7-day cooldown period begins. During this time, your funds are locked and no yield is earned.",
+      status: stepStatus.ready,
+      title: "Start 7-day cooldown",
+    },
+    {
+      description:
+        "Once the cooldown ends, your funds become available to unlock and withdraw.",
+      status: stepStatus.notReady,
+      title: "Withdraw funds",
+    },
+  ],
+
+  thirdActive: [
+    {
+      description:
+        "Submit a withdrawal request to begin the exit process. Your funds remain staked at this stage.",
+      status: stepStatus.completed,
+      title: "Request withdrawal",
+    },
+    {
+      description:
+        "A 7-day cooldown period begins. During this time, your funds are locked and no yield is earned.",
+      status: stepStatus.completed,
+      title: "Start 7-day cooldown",
+    },
+    {
+      description:
+        "Once the cooldown ends, your funds become available to unlock and withdraw.",
+      status: stepStatus.ready,
+      title: "Withdraw funds",
+    },
+  ],
+};
 
 export const FirstStepActive: Story = {
   args: {
-    currentStep: 0,
-    steps: swapSteps,
+    steps: swapSteps.firstActive,
+  },
+};
+
+export const FirstStepSpinning: Story = {
+  args: {
+    steps: swapSteps.firstSpinning,
   },
 };
 
 export const SecondStepActive: Story = {
   args: {
-    currentStep: 1,
-    steps: swapSteps,
+    steps: swapSteps.secondActive,
+  },
+};
+
+export const SecondStepSpinning: Story = {
+  args: {
+    steps: swapSteps.secondSpinning,
   },
 };
 
 export const AllStepsCompleted: Story = {
   args: {
-    currentStep: 2,
-    steps: swapSteps,
+    steps: swapSteps.allCompleted,
   },
 };
 
-export const DefaultNoCurrentStep: Story = {
+export const Idle: Story = {
   args: {
-    steps: swapSteps,
+    steps: swapSteps.idle,
   },
 };
 
 export const ThreeStepsFirstActive: Story = {
   args: {
-    currentStep: 0,
-    steps: withdrawalSteps,
+    steps: withdrawalSteps.firstActive,
+  },
+};
+
+export const ThreeStepsFirstSpinning: Story = {
+  args: {
+    steps: withdrawalSteps.firstSpinning,
   },
 };
 
 export const ThreeStepsSecondActive: Story = {
   args: {
-    currentStep: 1,
-    steps: withdrawalSteps,
+    steps: withdrawalSteps.secondActive,
   },
 };
 
-export const ThreeStepsAllActive: Story = {
+export const ThreeStepsAllReady: Story = {
   args: {
-    currentStep: 2,
-    steps: withdrawalSteps,
+    steps: withdrawalSteps.allReady,
   },
 };
 
-export const ListMode: Story = {
+export const ThreeStepsThirdActive: Story = {
   args: {
-    mode: "list",
-    steps: withdrawalSteps,
+    steps: withdrawalSteps.thirdActive,
   },
 };

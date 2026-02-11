@@ -1,4 +1,4 @@
-import { VerticalStepper } from "components/base/verticalStepper";
+import { stepStatus, VerticalStepper } from "components/base/verticalStepper";
 import { useTranslation } from "react-i18next";
 
 export function HowWithdrawalsWork() {
@@ -7,14 +7,17 @@ export function HowWithdrawalsWork() {
   const steps = [
     {
       description: t("pages.earn.stake.withdraw-step-1-description"),
+      status: stepStatus.ready,
       title: t("pages.earn.stake.withdraw-step-1-title"),
     },
     {
       description: t("pages.earn.stake.withdraw-step-2-description"),
+      status: stepStatus.ready,
       title: t("pages.earn.stake.withdraw-step-2-title"),
     },
     {
       description: t("pages.earn.stake.withdraw-step-3-description"),
+      status: stepStatus.ready,
       title: t("pages.earn.stake.withdraw-step-3-title"),
     },
   ];
@@ -25,7 +28,7 @@ export function HowWithdrawalsWork() {
         {t("pages.earn.stake.how-withdrawals-work")}
       </p>
       <div className="border-t border-gray-200">
-        <VerticalStepper mode="list" steps={steps} />
+        <VerticalStepper steps={steps} />
       </div>
     </div>
   );
