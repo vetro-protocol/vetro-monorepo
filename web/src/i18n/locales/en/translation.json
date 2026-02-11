@@ -28,9 +28,18 @@
         "withdraw": "Withdraw"
       },
       "stake": {
+        "approve-and-deposit": "Approve and deposit",
+        "approving": "Approving...",
         "available-to-deposit": "Available to deposit",
         "available-to-withdraw": "Available to withdraw",
         "deposit": "Deposit",
+        "deposit-progress": "Deposit progress",
+        "deposit-step-approve-description": "This allows the app to use this token for your deposit.",
+        "deposit-step-approve-title": "Approve in wallet",
+        "deposit-step-confirm-description": "Review the details and confirm the stake in your wallet.",
+        "deposit-step-confirm-title": "Confirm stake",
+        "deposit-toast-description": "Your funds are now staked and earning yield.",
+        "deposit-toast-title": "Stake deposit confirmed",
         "depositing": "Depositing...",
         "fees-label": "Staking {{amount}} {{token}}",
         "how-withdrawals-work": "How withdrawals work",
@@ -45,6 +54,9 @@
         "withdraw-step-2-title": "Start 7-day cooldown",
         "withdraw-step-3-description": "Once the cooldown ends, your funds become available to unlock and withdraw.",
         "withdraw-step-3-title": "Withdraw funds",
+        "withdraw-toast-description": "Your 7-day cooldown has started.",
+        "withdraw-toast-title": "Withdrawal request confirmed",
+        "withdrawals-progress": "Withdrawals progress",
         "withdrawing-fees-label": "Withdrawing {{amount}} {{token}}",
         "you-will-stake": "You will stake",
         "you-will-withdraw": "You will withdraw"

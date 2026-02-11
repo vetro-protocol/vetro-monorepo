@@ -1,55 +1,82 @@
 import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { SegmentedControl } from "components/base/segmentedControl";
-import { useState } from "react";
+import { useReducer } from "react";
 import { useTranslation } from "react-i18next";
-import { sanitizeAmount } from "utils/sanitizeAmount";
 
 import { StakeDepositForm } from "./stakeDepositForm";
+import {
+  type DepositStep,
+  type WithdrawStep,
+  initialStakeDrawerState,
+  stakeDrawerReducer,
+} from "./stakeDrawerReducer";
 import { StakeWithdrawForm } from "./stakeWithdrawForm";
 import type { StakeMode } from "./types";
 
-type Props = {
-  mode: StakeMode;
-  onClose: VoidFunction;
-  onModeChange: (mode: StakeMode) => void;
+type ToastData = {
+  description: string;
+  title: string;
 };
 
-export function StakeDrawerContent({ mode, onClose, onModeChange }: Props) {
+type Props = {
+  mode: StakeMode;
+  onModeChange: (mode: StakeMode) => void;
+  onSuccess: (toast: ToastData) => void;
+};
+
+export function StakeDrawerContent({ mode, onModeChange, onSuccess }: Props) {
   const { t } = useTranslation();
-  const [inputValue, setInputValue] = useState("0");
+  const [state, dispatch] = useReducer(
+    stakeDrawerReducer,
+    initialStakeDrawerState,
+  );
 
   function handleInputChange(value: string) {
-    const result = sanitizeAmount(value);
-    if (!("error" in result)) {
-      setInputValue(result.value);
-    }
+    dispatch({ payload: value, type: "SET_INPUT_VALUE" });
+  }
+
+  function handleDepositStepChange(step: DepositStep) {
+    dispatch({ payload: step, type: "SET_DEPOSIT_STEP" });
+  }
+
+  function handleToggleApprove10x() {
+    dispatch({ type: "TOGGLE_APPROVE_10X" });
+  }
+
+  function handleWithdrawStepChange(step: WithdrawStep) {
+    dispatch({ payload: step, type: "SET_WITHDRAW_STEP" });
   }
 
   return (
     <div className="flex h-full flex-col">
       <DrawerTitle>{t("pages.earn.stake.manage-position")}</DrawerTitle>
-      <div className="mt-8">
-        <SegmentedControl
-          onChange={onModeChange}
-          options={[
-            { label: t("pages.earn.stake.deposit"), value: "deposit" },
-            { label: t("pages.earn.stake.withdraw"), value: "withdraw" },
-          ]}
-          value={mode}
-        />
-      </div>
+      <SegmentedControl
+        onChange={onModeChange}
+        options={[
+          { label: t("pages.earn.stake.deposit"), value: "deposit" },
+          { label: t("pages.earn.stake.withdraw"), value: "withdraw" },
+        ]}
+        value={mode}
+      />
 
       {mode === "deposit" ? (
         <StakeDepositForm
-          inputValue={inputValue}
-          onClose={onClose}
+          approve10x={state.approve10x}
+          approvalCompleted={state.approvalCompleted}
+          depositStep={state.depositStep}
+          inputValue={state.inputValue}
+          onApprove10xToggle={handleToggleApprove10x}
+          onDepositStepChange={handleDepositStepChange}
           onInputChange={handleInputChange}
+          onSuccess={onSuccess}
         />
       ) : (
         <StakeWithdrawForm
-          inputValue={inputValue}
-          onClose={onClose}
+          inputValue={state.inputValue}
           onInputChange={handleInputChange}
+          onSuccess={onSuccess}
+          onWithdrawStepChange={handleWithdrawStepChange}
+          withdrawStep={state.withdrawStep}
         />
       )}
     </div>

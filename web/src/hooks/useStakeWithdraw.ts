@@ -1,5 +1,6 @@
 import { useEnsureConnectedTo } from "@hemilabs/react-hooks/useEnsureConnectedTo";
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
+import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
 import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpdateNativeBalanceAfterReceipt";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { getStakingVaultAddress } from "@vetro/earn";
@@ -11,11 +12,19 @@ import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { useMainnet } from "./useMainnet";
 import { stakedBalanceQueryKey } from "./useStakedBalance";
 
+type WithdrawStatus = "completed" | "requesting";
+
 type Params = {
   assets: bigint;
+  onStatusChange?: (status: WithdrawStatus) => void;
+  onSuccess?: VoidFunction;
 };
 
-export const useStakeWithdraw = function ({ assets }: Params) {
+export const useStakeWithdraw = function ({
+  assets,
+  onStatusChange,
+  onSuccess,
+}: Params) {
   const { address: account } = useAccount();
   const chain = useMainnet();
   const { data: walletClient } = useEthereumWalletClient();
@@ -25,6 +34,11 @@ export const useStakeWithdraw = function ({ assets }: Params) {
   const { queryKey: nativeBalanceKey } = useNativeBalance(chain.id);
   const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
     chain.id,
+  );
+
+  const sharesBalanceKey = tokenBalanceQueryKey(
+    { address: stakingVaultAddress, chainId: chain.id },
+    account,
   );
 
   const stakedKey = stakedBalanceQueryKey({
@@ -46,6 +60,10 @@ export const useStakeWithdraw = function ({ assets }: Params) {
         owner: account,
       });
 
+      emitter.on("user-signed-request-withdraw", function () {
+        onStatusChange?.("requesting");
+      });
+
       emitter.on(
         "request-withdraw-transaction-reverted",
         function (receipt: TransactionReceipt) {
@@ -57,6 +75,8 @@ export const useStakeWithdraw = function ({ assets }: Params) {
         "request-withdraw-transaction-succeeded",
         function (receipt: TransactionReceipt) {
           updateNativeBalanceAfterReceipt(receipt);
+          onStatusChange?.("completed");
+          onSuccess?.();
 
           // Optimistically update staked balance
           queryClient.setQueryData(stakedKey, (old: bigint | undefined) =>
@@ -67,9 +87,15 @@ export const useStakeWithdraw = function ({ assets }: Params) {
 
       return promise;
     },
-    onSettled() {
+    async onSettled() {
       queryClient.invalidateQueries({
         queryKey: nativeBalanceKey,
+      });
+
+      // Shares must be refetched before staked balance, because
+      // useStakedBalance uses ensureQueryData to read shares from cache
+      await queryClient.invalidateQueries({
+        queryKey: sharesBalanceKey,
       });
 
       queryClient.invalidateQueries({

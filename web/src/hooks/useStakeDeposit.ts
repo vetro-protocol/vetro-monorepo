@@ -14,11 +14,21 @@ import { useMainnet } from "./useMainnet";
 import { stakedBalanceQueryKey } from "./useStakedBalance";
 import { useVusd } from "./useVusd";
 
+type DepositStatus = "approved" | "approving" | "completed" | "depositing";
+
 type Params = {
+  approveAmount?: bigint;
   assets: bigint;
+  onStatusChange?: (status: DepositStatus) => void;
+  onSuccess?: VoidFunction;
 };
 
-export const useStakeDeposit = function ({ assets }: Params) {
+export const useStakeDeposit = function ({
+  approveAmount,
+  assets,
+  onStatusChange,
+  onSuccess,
+}: Params) {
   const { address: account } = useAccount();
   const chain = useMainnet();
   const { data: walletClient } = useEthereumWalletClient();
@@ -39,6 +49,11 @@ export const useStakeDeposit = function ({ assets }: Params) {
 
   const vusdBalanceKey = tokenBalanceQueryKey(vusd, account);
 
+  const sharesBalanceKey = tokenBalanceQueryKey(
+    { address: stakingVaultAddress, chainId: chain.id },
+    account,
+  );
+
   const stakedKey = stakedBalanceQueryKey({
     account: account!,
     chainId: chain.id,
@@ -57,9 +72,27 @@ export const useStakeDeposit = function ({ assets }: Params) {
       await ensureConnectedTo(chain.id);
 
       const { emitter, promise } = deposit(walletClient!, {
+        approveAmount,
         assets,
         receiver: account,
         token: vusd.address,
+      });
+
+      emitter.on("user-signed-approval", function () {
+        onStatusChange?.("approving");
+      });
+
+      emitter.on("approve-transaction-succeeded", function () {
+        onStatusChange?.("approved");
+      });
+
+      emitter.on("user-signed-deposit", function () {
+        onStatusChange?.("depositing");
+      });
+
+      emitter.on("deposit-transaction-succeeded", function () {
+        onStatusChange?.("completed");
+        onSuccess?.();
       });
 
       emitter.on(
@@ -103,7 +136,7 @@ export const useStakeDeposit = function ({ assets }: Params) {
 
       return promise;
     },
-    onSettled() {
+    async onSettled() {
       queryClient.invalidateQueries({
         queryKey: allowanceKey,
       });
@@ -114,6 +147,12 @@ export const useStakeDeposit = function ({ assets }: Params) {
 
       queryClient.invalidateQueries({
         queryKey: vusdBalanceKey,
+      });
+
+      // Shares must be refetched before staked balance, because
+      // useStakedBalance uses ensureQueryData to read shares from cache
+      await queryClient.invalidateQueries({
+        queryKey: sharesBalanceKey,
       });
 
       queryClient.invalidateQueries({

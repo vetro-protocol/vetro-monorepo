@@ -516,6 +516,64 @@ describe("deposit", function () {
     expect(onSettled).toHaveBeenCalledOnce();
   });
 
+  it("should emit 'deposit-failed-validation' if approveAmount is less than assets", async function () {
+    const parameters = {
+      ...validParameters,
+      approveAmount: validParameters.assets - BigInt(1),
+    };
+
+    const { emitter, promise } = deposit(mockWalletClient, parameters);
+
+    const onDepositFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("deposit-failed-validation", onDepositFailedValidation);
+    emitter.on("deposit-settled", onSettled);
+
+    await promise;
+
+    expect(onDepositFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "Approve amount must be greater than or equal to assets",
+    );
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("should approve with approveAmount when provided and allowance is insufficient", async function () {
+    const approvalReceipt = {
+      status: "success",
+    } as TransactionReceipt;
+    const depositReceipt = {
+      status: "success",
+    } as TransactionReceipt;
+
+    const approveAmount = validParameters.assets * BigInt(10);
+
+    vi.mocked(allowance).mockResolvedValue(validParameters.assets - BigInt(1));
+    vi.mocked(approve).mockResolvedValue(zeroHash);
+    vi.mocked(writeContract).mockResolvedValue(zeroHash);
+    vi.mocked(waitForTransactionReceipt)
+      .mockResolvedValueOnce(approvalReceipt)
+      .mockResolvedValueOnce(depositReceipt);
+
+    const { emitter, promise } = deposit(mockWalletClient, {
+      ...validParameters,
+      approveAmount,
+    });
+
+    const onSettled = vi.fn();
+    emitter.on("deposit-settled", onSettled);
+
+    await promise;
+
+    expect(approve).toHaveBeenCalledWith(
+      mockWalletClient,
+      expect.objectContaining({
+        amount: approveAmount,
+      }),
+    );
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
   it("should emit 'unexpected-error' when allowance fails", async function () {
     vi.mocked(allowance).mockRejectedValue(
       new Error("Failed to get allowance"),
