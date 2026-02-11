@@ -1,12 +1,21 @@
+/* eslint-disable sort-keys */
+export const stepStatus = {
+  notReady: 0,
+  ready: 1,
+  progress: 2,
+  completed: 3,
+} as const;
+/* eslint-enable sort-keys */
+
+type StepStatus = (typeof stepStatus)[keyof typeof stepStatus];
+
 type Step = {
   description: string;
+  status: StepStatus;
   title: string;
 };
 
 type Props = {
-  currentStep?: number;
-  mode?: "list" | "progress";
-  spinning?: boolean;
   steps: Step[];
 };
 
@@ -45,62 +54,48 @@ const SpinningArc = () => (
   </svg>
 );
 
-export const VerticalStepper = function ({
-  currentStep,
-  mode = "progress",
-  spinning = false,
-  steps,
-}: Props) {
-  const activeStep = currentStep ?? 0;
-
-  return (
-    <div className="flex flex-col gap-5 py-4">
-      {steps.map(function (step, index) {
-        const isCompleted = mode === "progress" && index < activeStep;
-        const notReady = mode === "progress" && index > activeStep;
-
-        return (
-          <div className="flex gap-4" key={`${step.title}-${index}`}>
-            {/* Step circle with connector line */}
-            <div className="relative flex shrink-0 flex-col items-center">
-              {isCompleted ? (
-                <div className="relative z-10 flex size-4 items-center justify-center rounded-full bg-blue-500">
-                  <CheckIcon />
-                </div>
-              ) : (
-                <div
-                  className={`relative z-10 flex size-4 items-center justify-center rounded-full ${
-                    notReady
-                      ? "bg-gray-100 text-gray-600"
-                      : "bg-blue-50 text-blue-500"
-                  }`}
-                >
-                  {mode === "progress" && spinning && index === activeStep && (
-                    <SpinningArc />
-                  )}
-                  <span className="text-[8px] leading-none font-semibold">
-                    {index + 1}
-                  </span>
-                </div>
-              )}
-              {/* Line connecting to next step - extends through the gap */}
-              {index < steps.length - 1 && (
-                <div
-                  className={`-mb-5 w-0.5 flex-1 rounded-full ${
-                    notReady ? "bg-gray-100" : "bg-blue-50"
-                  }`}
-                />
-              )}
+export const VerticalStepper = ({ steps }: Props) => (
+  <div className="flex flex-col gap-5 py-4">
+    {steps.map((step, index) => (
+      <div className="flex gap-4" key={`${step.title}-${index}`}>
+        {/* Step circle with connector line */}
+        <div className="relative flex shrink-0 flex-col items-center">
+          {step.status === stepStatus.completed ? (
+            <div className="relative z-10 flex size-4 items-center justify-center rounded-full bg-blue-500">
+              <CheckIcon />
             </div>
-
-            {/* Step content */}
-            <div className="flex flex-col gap-0.5 text-sm leading-5">
-              <p className="font-semibold text-gray-900">{step.title}</p>
-              <p className="text-gray-500">{step.description}</p>
+          ) : (
+            <div
+              className={`relative z-10 flex size-4 items-center justify-center rounded-full ${
+                step.status === stepStatus.notReady
+                  ? "bg-gray-100 text-gray-600"
+                  : "bg-blue-50 text-blue-500"
+              }`}
+            >
+              {step.status === stepStatus.progress && <SpinningArc />}
+              <span className="text-[8px] leading-none font-semibold">
+                {index + 1}
+              </span>
             </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-};
+          )}
+          {/* Line connecting to next step - extends through the gap */}
+          {index < steps.length - 1 && (
+            <div
+              className={`-mb-5 w-0.5 flex-1 rounded-full ${
+                step.status === stepStatus.notReady
+                  ? "bg-gray-100"
+                  : "bg-blue-50"
+              }`}
+            />
+          )}
+        </div>
+
+        {/* Step content */}
+        <div className="flex flex-col gap-0.5 text-sm leading-5">
+          <p className="font-semibold text-gray-900">{step.title}</p>
+          <p className="text-gray-500">{step.description}</p>
+        </div>
+      </div>
+    ))}
+  </div>
+);
