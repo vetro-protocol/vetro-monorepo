@@ -24,6 +24,26 @@ const CheckIcon = () => (
   </svg>
 );
 
+const SpinningArc = () => (
+  <svg
+    aria-hidden="true"
+    className="absolute inset-0 size-4 animate-spin"
+    fill="none"
+    viewBox="0 0 16 16"
+  >
+    <circle
+      cx="8"
+      cy="8"
+      r="7"
+      stroke="rgb(59 130 246)"
+      strokeDasharray="33"
+      strokeDashoffset="11"
+      strokeLinecap="round"
+      strokeWidth="1.5"
+    />
+  </svg>
+);
+
 export const VerticalStepper = function ({
   currentStep,
   mode = "progress",
@@ -53,6 +73,9 @@ export const VerticalStepper = function ({
                       : "bg-blue-50 text-blue-500"
                   }`}
                 >
+                  {mode === "progress" && index === activeStep && (
+                    <SpinningArc />
+                  )}
                   <span className="text-[8px] leading-none font-semibold">
                     {index + 1}
                   </span>
