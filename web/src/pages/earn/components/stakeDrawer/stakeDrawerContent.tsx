@@ -1,3 +1,4 @@
+import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { SegmentedControl } from "components/base/segmentedControl";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -26,10 +27,7 @@ export function StakeDrawerContent({ mode, onClose, onModeChange }: Props) {
 
   return (
     <div className="flex h-full flex-col">
-      <h3 className="px-6 pt-8 text-2xl font-semibold text-gray-900">
-        {t("pages.earn.stake.manage-position")}
-      </h3>
-
+      <DrawerTitle>{t("pages.earn.stake.manage-position")}</DrawerTitle>
       <div className="mt-8">
         <SegmentedControl
           onChange={onModeChange}
