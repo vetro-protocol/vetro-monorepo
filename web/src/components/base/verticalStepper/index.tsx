@@ -6,6 +6,7 @@ type Step = {
 type Props = {
   currentStep?: number;
   mode?: "list" | "progress";
+  spinning?: boolean;
   steps: Step[];
 };
 
@@ -47,6 +48,7 @@ const SpinningArc = () => (
 export const VerticalStepper = function ({
   currentStep,
   mode = "progress",
+  spinning = false,
   steps,
 }: Props) {
   const activeStep = currentStep ?? 0;
@@ -73,7 +75,7 @@ export const VerticalStepper = function ({
                       : "bg-blue-50 text-blue-500"
                   }`}
                 >
-                  {mode === "progress" && index === activeStep && (
+                  {mode === "progress" && spinning && index === activeStep && (
                     <SpinningArc />
                   )}
                   <span className="text-[8px] leading-none font-semibold">

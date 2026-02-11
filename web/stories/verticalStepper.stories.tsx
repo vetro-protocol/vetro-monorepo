@@ -46,9 +46,25 @@ export const FirstStepActive: Story = {
   },
 };
 
+export const FirstStepSpinning: Story = {
+  args: {
+    currentStep: 0,
+    spinning: true,
+    steps: swapSteps,
+  },
+};
+
 export const SecondStepActive: Story = {
   args: {
     currentStep: 1,
+    steps: swapSteps,
+  },
+};
+
+export const SecondStepSpinning: Story = {
+  args: {
+    currentStep: 1,
+    spinning: true,
     steps: swapSteps,
   },
 };
@@ -66,9 +82,24 @@ export const DefaultNoCurrentStep: Story = {
   },
 };
 
+export const Idle: Story = {
+  args: {
+    currentStep: -1,
+    steps: swapSteps,
+  },
+};
+
 export const ThreeStepsFirstActive: Story = {
   args: {
     currentStep: 0,
+    steps: withdrawalSteps,
+  },
+};
+
+export const ThreeStepsFirstSpinning: Story = {
+  args: {
+    currentStep: 0,
+    spinning: true,
     steps: withdrawalSteps,
   },
 };
