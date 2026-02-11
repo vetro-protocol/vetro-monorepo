@@ -27,15 +27,15 @@ const CheckIcon = () => (
 const SpinningArc = () => (
   <svg
     aria-hidden="true"
-    className="absolute inset-0 size-4 animate-spin"
+    className="absolute inset-0 size-4 animate-spin motion-reduce:animate-none"
     fill="none"
     viewBox="0 0 16 16"
   >
     <circle
+      className="stroke-blue-500"
       cx="8"
       cy="8"
       r="7"
-      stroke="rgb(59 130 246)"
       strokeDasharray="33"
       strokeDashoffset="11"
       strokeLinecap="round"
