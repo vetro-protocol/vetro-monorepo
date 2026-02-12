@@ -1,8 +1,7 @@
-import { useOnClickOutside } from "@hemilabs/react-hooks/useOnClickOutside";
-import { type KeyboardEvent, type ReactNode, useRef, useState } from "react";
+import { type ReactNode } from "react";
 
-import { useMenuPosition } from "../../../hooks/useMenuPosition";
 import { ChevronIcon } from "../chevronIcon";
+import { Dropdown } from "../dropdown";
 
 type FilterOption = {
   label: string;
@@ -36,6 +35,16 @@ const CheckIcon = () => (
   </svg>
 );
 
+const Checkbox = ({ checked }: { checked: boolean }) => (
+  <span
+    className={`flex size-4 shrink-0 items-center justify-center rounded ${
+      checked ? "bg-blue-500" : "bg-white shadow-sm"
+    }`}
+  >
+    {checked && <CheckIcon />}
+  </span>
+);
+
 export function FilterMenu({
   icon,
   label,
@@ -43,81 +52,34 @@ export function FilterMenu({
   options,
   selectedValues,
 }: Props) {
-  const [isOpen, setIsOpen] = useState(false);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const listRef = useRef<HTMLDivElement>(null);
-
-  const containerRef = useOnClickOutside<HTMLDivElement>(() =>
-    setIsOpen(false),
-  );
-
-  useMenuPosition({ isOpen, listRef, triggerRef });
-
-  function handleToggle(value: string) {
-    const isSelected = selectedValues.includes(value);
-    const next = isSelected
-      ? selectedValues.filter((v) => v !== value)
-      : [...selectedValues, value];
+  function handleChange(option: FilterOption, selected: boolean) {
+    const next = selected
+      ? [...selectedValues, option.value]
+      : selectedValues.filter((v) => v !== option.value);
     onChange(next);
   }
 
-  function handleKeyDown(event: KeyboardEvent) {
-    if (event.key === "Escape" && isOpen) {
-      event.preventDefault();
-      setIsOpen(false);
-      triggerRef.current?.focus();
-    }
-  }
-
   return (
-    <div
-      className="relative inline-block"
-      onKeyDown={handleKeyDown}
-      ref={containerRef}
-    >
-      <button
-        aria-expanded={isOpen}
-        aria-haspopup="true"
-        className="text-xsm flex cursor-pointer items-center gap-1 rounded-full bg-white px-3 py-1.5 font-semibold text-gray-900 shadow-sm hover:bg-gray-50"
-        onClick={() => setIsOpen(!isOpen)}
-        ref={triggerRef}
-        type="button"
-      >
-        {icon}
-        {label}
-        <ChevronIcon direction={isOpen ? "up" : "down"} />
-      </button>
-
-      {isOpen && (
-        <div
-          className="fixed z-10 overflow-y-auto rounded-lg bg-white p-1 shadow-xl"
-          ref={listRef}
-          role="menu"
-        >
-          {options.map(function (option) {
-            const isSelected = selectedValues.includes(option.value);
-            return (
-              <button
-                className="text-xsm flex w-full cursor-pointer items-center gap-2 rounded px-3 py-2 font-medium text-gray-900 hover:bg-gray-50"
-                key={option.value}
-                onClick={() => handleToggle(option.value)}
-                aria-checked={isSelected}
-                role="menuitemcheckbox"
-                type="button"
-              >
-                <span
-                  className={`flex size-4 shrink-0 items-center justify-center rounded ${
-                    isSelected ? "bg-blue-500" : "bg-white shadow-sm"
-                  }`}
-                >
-                  {isSelected && <CheckIcon />}
-                </span>
-                {option.label}
-              </button>
-            );
-          })}
+    <Dropdown
+      getItemKey={(option) => option.value}
+      items={options}
+      multiSelect
+      onChange={handleChange}
+      renderItem={(option, isSelected) => (
+        <div className="flex items-center gap-2">
+          <Checkbox checked={isSelected} />
+          {option.label}
         </div>
       )}
-    </div>
+      renderTrigger={(isOpen) => (
+        <div className="text-xsm flex cursor-pointer items-center gap-1 rounded-full bg-white px-3 py-1.5 font-semibold text-gray-900 shadow-sm hover:bg-gray-50">
+          {icon}
+          {label}
+          <ChevronIcon direction={isOpen ? "up" : "down"} />
+        </div>
+      )}
+      selectedValues={selectedValues}
+      triggerId="filter-menu"
+    />
   );
 }

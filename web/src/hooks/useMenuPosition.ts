@@ -4,16 +4,10 @@ import { type RefObject, useEffect } from "react";
 type Props = {
   isOpen: boolean;
   listRef: RefObject<HTMLElement | null>;
-  matchTriggerWidth?: boolean;
   triggerRef: RefObject<HTMLElement | null>;
 };
 
-export function useMenuPosition({
-  isOpen,
-  listRef,
-  matchTriggerWidth = false,
-  triggerRef,
-}: Props) {
+export function useMenuPosition({ isOpen, listRef, triggerRef }: Props) {
   const { height: windowHeight, width: windowWidth } = useWindowSize();
 
   useEffect(
@@ -51,11 +45,7 @@ export function useMenuPosition({
 
       listRef.current.style.top = `${top}px`;
       listRef.current.style.left = `${left}px`;
-
-      if (matchTriggerWidth) {
-        listRef.current.style.width = `${triggerRect.width}px`;
-      }
     },
-    [isOpen, listRef, matchTriggerWidth, triggerRef, windowHeight, windowWidth],
+    [isOpen, listRef, triggerRef, windowHeight, windowWidth],
   );
 }
