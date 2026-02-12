@@ -1,5 +1,6 @@
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { VerticalStepper, stepStatus } from "components/base/verticalStepper";
 import { FeeDetails } from "components/feeDetails";
 import { FeesContainer } from "components/feesContainer";
 import { SetMaxStakedBalance } from "components/setMaxStakedBalance";
@@ -10,19 +11,21 @@ import { useStakedBalance } from "hooks/useStakedBalance";
 import { useStakeWithdraw } from "hooks/useStakeWithdraw";
 import { useVusd } from "hooks/useVusd";
 import { useWithdrawFees } from "pages/earn/hooks/useWithdrawFees";
-import type { FormEvent } from "react";
+import { type FormEvent, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { formatAmount } from "utils/token";
 import { parseUnits } from "viem";
 import { useAccount } from "wagmi";
 
-import { HowWithdrawalsWork } from "./howWithdrawalsWork";
+import type { WithdrawStep } from "./stakeDrawerReducer";
 import { StakeSubmitButton } from "./stakeSubmitButton";
 
 type Props = {
   inputValue: string;
-  onClose: VoidFunction;
   onInputChange: (value: string) => void;
+  onSuccess: (toast: { description: string; title: string }) => void;
+  onWithdrawStepChange: (step: WithdrawStep) => void;
+  withdrawStep: WithdrawStep;
 };
 
 function getWithdrawErrors({
@@ -46,10 +49,25 @@ function getWithdrawErrors({
   return undefined;
 }
 
+function getRequestStepStatus(withdrawStep: WithdrawStep) {
+  if (withdrawStep === "completed") {
+    return stepStatus.completed;
+  }
+  if (withdrawStep === "requesting") {
+    return stepStatus.progress;
+  }
+  if (withdrawStep === "request-failed") {
+    return stepStatus.failed;
+  }
+  return stepStatus.ready;
+}
+
 export function StakeWithdrawForm({
   inputValue,
-  onClose,
   onInputChange,
+  onSuccess,
+  onWithdrawStepChange,
+  withdrawStep,
 }: Props) {
   const { address: account, isConnected } = useAccount();
   const chain = useMainnet();
@@ -65,8 +83,20 @@ export function StakeWithdrawForm({
 
   const amountBigInt = vusd ? parseUnits(inputValue, vusd.decimals) : 0n;
 
+  const handleWithdrawSuccess = useCallback(
+    function handleWithdrawSuccess() {
+      onSuccess({
+        description: t("pages.earn.stake.withdraw-toast-description"),
+        title: t("pages.earn.stake.withdraw-toast-title"),
+      });
+    },
+    [onSuccess, t],
+  );
+
   const withdrawMutation = useStakeWithdraw({
     assets: amountBigInt,
+    onStatusChange: onWithdrawStepChange,
+    onSuccess: handleWithdrawSuccess,
   });
 
   const { data: networkFee, isError: isFeeError } = useWithdrawFees({
@@ -90,6 +120,27 @@ export function StakeWithdrawForm({
   const balancesLoaded =
     nativeBalance !== undefined && stakedBalance !== undefined;
 
+  const requestStatus = getRequestStepStatus(withdrawStep);
+
+  const withdrawSteps = [
+    {
+      description: t("pages.earn.stake.withdraw-step-1-description"),
+      status: requestStatus,
+      title: t("pages.earn.stake.withdraw-step-1-title"),
+    },
+    {
+      description: t("pages.earn.stake.withdraw-step-2-description"),
+      status:
+        withdrawStep === "completed" ? stepStatus.ready : stepStatus.notReady,
+      title: t("pages.earn.stake.withdraw-step-2-title"),
+    },
+    {
+      description: t("pages.earn.stake.withdraw-step-3-description"),
+      status: stepStatus.notReady,
+      title: t("pages.earn.stake.withdraw-step-3-title"),
+    },
+  ];
+
   function handleMaxClick(maxValue: string) {
     onInputChange(maxValue);
   }
@@ -97,9 +148,7 @@ export function StakeWithdrawForm({
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!inputError) {
-      withdrawMutation.mutate(undefined, {
-        onSuccess: onClose,
-      });
+      withdrawMutation.mutate();
     }
   }
 
@@ -152,8 +201,13 @@ export function StakeWithdrawForm({
         </FeesContainer>
       </div>
 
-      <div className="mt-auto">
-        <HowWithdrawalsWork />
+      <div className="mt-auto flex flex-col gap-2 px-6">
+        <p className="text-xs font-medium tracking-wide text-gray-500">
+          {t("pages.earn.stake.withdrawals-progress")}
+        </p>
+        <div className="border-t border-gray-200">
+          <VerticalStepper steps={withdrawSteps} />
+        </div>
       </div>
     </form>
   );

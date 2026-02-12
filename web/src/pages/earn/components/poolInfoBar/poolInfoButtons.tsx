@@ -1,8 +1,16 @@
 import { Button } from "components/base/button";
 import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
+import { Toast } from "components/base/toast";
 import { useStakeMode } from "hooks/useStakeMode";
-import { lazy, Suspense, useEffect, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 
 const StakeDrawerContent = lazy(() =>
@@ -11,10 +19,18 @@ const StakeDrawerContent = lazy(() =>
   })),
 );
 
+type ToastData = {
+  description: string;
+  title: string;
+};
+
 export function PoolInfoButtons() {
   const { t } = useTranslation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [mode, setMode] = useStakeMode();
+  const [requestCloseDrawer, setRequestCloseDrawer] = useState(false);
+  const [toast, setToast] = useState<ToastData | null>(null);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   // Auto-open drawer when mode is in URL
   useEffect(
@@ -26,6 +42,8 @@ export function PoolInfoButtons() {
     [mode, isDrawerOpen],
   );
 
+  useEffect(() => () => clearTimeout(closeTimerRef.current), []);
+
   function handleOpenDeposit() {
     setMode("deposit");
   }
@@ -35,8 +53,22 @@ export function PoolInfoButtons() {
   }
 
   function handleClose() {
+    setRequestCloseDrawer(false);
     setMode(null);
     setIsDrawerOpen(false);
+  }
+
+  const handleSuccess = useCallback(function handleSuccess(
+    toastData: ToastData,
+  ) {
+    setToast(toastData);
+    closeTimerRef.current = setTimeout(function closeDrawerAfterDelay() {
+      setRequestCloseDrawer(true);
+    }, 2000);
+  }, []);
+
+  function handleToastClose() {
+    setToast(null);
   }
 
   return (
@@ -51,15 +83,24 @@ export function PoolInfoButtons() {
       </div>
 
       {isDrawerOpen && mode && (
-        <Drawer onClose={handleClose}>
+        <Drawer onClose={handleClose} requestClose={requestCloseDrawer}>
           <Suspense fallback={<DrawerLoader />}>
             <StakeDrawerContent
               mode={mode}
-              onClose={handleClose}
               onModeChange={setMode}
+              onSuccess={handleSuccess}
             />
           </Suspense>
         </Drawer>
+      )}
+
+      {toast && (
+        <Toast
+          closable={true}
+          description={toast.description}
+          onClose={handleToastClose}
+          title={toast.title}
+        />
       )}
     </>
   );

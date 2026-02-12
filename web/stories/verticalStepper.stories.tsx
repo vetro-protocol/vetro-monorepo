@@ -38,6 +38,18 @@ const swapSteps = {
       title: "Confirm swap",
     },
   ],
+  firstFailed: [
+    {
+      description: "This allows the app to use this token for your swap.",
+      status: stepStatus.failed,
+      title: "Approve in wallet",
+    },
+    {
+      description: "Review the details and confirm the swap in your wallet.",
+      status: stepStatus.notReady,
+      title: "Confirm swap",
+    },
+  ],
   firstSpinning: [
     {
       description: "This allows the app to use this token for your swap.",
@@ -71,6 +83,18 @@ const swapSteps = {
     {
       description: "Review the details and confirm the swap in your wallet.",
       status: stepStatus.ready,
+      title: "Confirm swap",
+    },
+  ],
+  secondFailed: [
+    {
+      description: "This allows the app to use this token for your swap.",
+      status: stepStatus.completed,
+      title: "Approve in wallet",
+    },
+    {
+      description: "Review the details and confirm the swap in your wallet.",
+      status: stepStatus.failed,
       title: "Confirm swap",
     },
   ],
@@ -255,5 +279,17 @@ export const ThreeStepsAllReady: Story = {
 export const ThreeStepsThirdActive: Story = {
   args: {
     steps: withdrawalSteps.thirdActive,
+  },
+};
+
+export const FirstStepFailed: Story = {
+  args: {
+    steps: swapSteps.firstFailed,
+  },
+};
+
+export const SecondStepFailed: Story = {
+  args: {
+    steps: swapSteps.secondFailed,
   },
 };

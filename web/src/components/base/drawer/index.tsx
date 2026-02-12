@@ -16,9 +16,10 @@ import { createPortal } from "react-dom";
 type Props = {
   children: ReactNode;
   onClose: VoidFunction;
+  requestClose?: boolean;
 };
 
-export function Drawer({ children, onClose }: Props) {
+export function Drawer({ children, onClose, requestClose }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const { accountModalOpen } = useAccountModal();
   const { chainModalOpen } = useChainModal();
@@ -49,6 +50,15 @@ export function Drawer({ children, onClose }: Props) {
       return () => cancelAnimationFrame(rafId);
     },
     [],
+  );
+
+  useEffect(
+    function closeFromParent() {
+      if (requestClose) {
+        setIsOpen(false);
+      }
+    },
+    [requestClose],
   );
 
   function handleTransitionEnd(e: TransitionEvent) {

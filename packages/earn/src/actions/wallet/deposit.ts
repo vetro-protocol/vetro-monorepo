@@ -17,17 +17,20 @@ import { getStakingVaultAddress } from "../../getStakingVaultAddress.js";
 import type { DepositEvents } from "../../types.js";
 
 export type DepositParams = {
+  approveAmount?: bigint;
   assets: bigint;
   receiver: Address;
   token: Address;
 };
 
 const canDeposit = function ({
+  approveAmount,
   assets,
   client,
   receiver,
   token,
 }: {
+  approveAmount: bigint;
   assets: bigint;
   client: WalletClient;
   receiver: Address;
@@ -93,16 +96,24 @@ const canDeposit = function ({
     };
   }
 
+  if (approveAmount < assets) {
+    return {
+      canDeposit: false,
+      reason: "Approve amount must be greater than or equal to assets",
+    };
+  }
+
   return { canDeposit: true };
 };
 
-const runDeposit = (
-  walletClient: WalletClient,
-  { assets, receiver, token }: DepositParams,
-) =>
+const runDeposit = (walletClient: WalletClient, params: DepositParams) =>
   async function (emitter: EventEmitter<DepositEvents>) {
+    const { assets, receiver, token } = params;
+    const approveAmount = params.approveAmount ?? assets;
+
     try {
       const { canDeposit: canDepositFlag, reason } = canDeposit({
+        approveAmount,
         assets,
         client: walletClient,
         receiver,
@@ -129,7 +140,7 @@ const runDeposit = (
 
         const approvalHash = await approve(walletClient, {
           address: token,
-          amount: assets,
+          amount: approveAmount,
           spender: stakingVaultAddress,
         }).catch(function (error: Error) {
           emitter.emit("user-signing-approval-error", error);
