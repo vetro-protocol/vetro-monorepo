@@ -59,7 +59,7 @@ export const VerticalStepper = ({ steps }: Props) => (
     {steps.map((step, index) => (
       <div className="flex gap-4" key={`${step.title}-${index}`}>
         {/* Step circle with connector line */}
-        <div className="relative flex shrink-0 flex-col items-center">
+        <div className="relative mt-0.5 flex shrink-0 flex-col items-center">
           {step.status === stepStatus.completed ? (
             <div className="relative z-10 flex size-4 items-center justify-center rounded-full bg-blue-500">
               <CheckIcon />
@@ -91,7 +91,7 @@ export const VerticalStepper = ({ steps }: Props) => (
         </div>
 
         {/* Step content */}
-        <div className="flex flex-col gap-0.5 text-sm leading-5">
+        <div className="text-xsm flex flex-col gap-0.5 leading-5">
           <p className="font-semibold text-gray-900">{step.title}</p>
           <p className="text-gray-500">{step.description}</p>
         </div>
