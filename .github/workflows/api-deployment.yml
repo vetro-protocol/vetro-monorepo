@@ -1,0 +1,30 @@
+name: Deploy API
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "api/**"
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: deploy-api-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: hemilabs/actions/setup-node-env@e67f2b7d682accaeb026ebe393f8a161b2daa35b # v2.2.0
+        with:
+          package-manager: "pnpm"
+      - run: pnpm run deploy
+        working-directory: api
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
