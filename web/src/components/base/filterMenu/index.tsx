@@ -145,6 +145,7 @@ export function FilterMenu({
                 className="text-xsm flex w-full cursor-pointer items-center gap-2 rounded px-3 py-2 font-medium text-gray-900 hover:bg-gray-50"
                 key={option.value}
                 onClick={() => handleToggle(option.value)}
+                aria-checked={isSelected}
                 role="menuitemcheckbox"
                 type="button"
               >
