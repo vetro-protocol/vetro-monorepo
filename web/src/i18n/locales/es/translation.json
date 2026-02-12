@@ -80,6 +80,7 @@
       "form": {
         "allowance-error": "No se pudo cargar el monto autorizado",
         "approve-10x": "Aprobar 10x",
+        "approve-10x-tooltip": "Apruebe hasta 10× el monto de su intercambio, reduciendo futuros pasos de aprobación. Puede revocarlo en cualquier momento.",
         "balance": "Saldo",
         "connect-wallet": "Conectar billetera",
         "deposit": "Depositar",

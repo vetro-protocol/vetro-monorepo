@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 
 import { ToggleButton } from "./base/toggleButton";
 import infoIcon from "./icons/info.svg";
+import { Tooltip } from "./tooltip";
 
 type Props = {
   active: boolean;
@@ -17,14 +18,23 @@ export const ApproveSection = function ({ active, onToggle }: Props) {
         <span className="font-semibold text-gray-900">
           {t("pages.swap.form.approve-10x")}
         </span>
-        <img
-          alt={t("pages.swap.form.approve-10x")}
-          className="mr-auto"
-          height={16}
-          src={infoIcon}
-          width={16}
-        />
-        <ToggleButton active={active} onClick={onToggle} />
+        <Tooltip
+          content={
+            <span className="block max-w-64">
+              {t("pages.swap.form.approve-10x-tooltip")}
+            </span>
+          }
+        >
+          <img
+            alt={t("pages.swap.form.approve-10x")}
+            height={16}
+            src={infoIcon}
+            width={16}
+          />
+        </Tooltip>
+        <div className="ml-auto">
+          <ToggleButton active={active} onClick={onToggle} />
+        </div>
       </div>
     </div>
   );
