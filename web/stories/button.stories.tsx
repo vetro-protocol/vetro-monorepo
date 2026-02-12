@@ -4,6 +4,9 @@ import { Button } from "../src/components/base/button";
 
 const meta: Meta<typeof Button> = {
   argTypes: {
+    badge: {
+      control: "text",
+    },
     children: {
       control: "text",
     },
@@ -43,5 +46,14 @@ export const Tertiary: Story = {
     children: "Connected Wallet",
     size: "small",
     variant: "tertiary",
+  },
+};
+
+export const WithBadge: Story = {
+  args: {
+    badge: 4,
+    children: "Withdraw all",
+    size: "xSmall",
+    variant: "primary",
   },
 };

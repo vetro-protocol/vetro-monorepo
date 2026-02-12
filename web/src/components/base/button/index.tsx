@@ -32,8 +32,9 @@ const buttonSizePresets = {
 /* eslint-enable sort-keys */
 
 type ButtonStyleProps = {
-  variant?: keyof typeof variants;
+  badge?: number | string;
   size?: ButtonSize;
+  variant?: keyof typeof variants;
 };
 
 type ButtonProps = Omit<ComponentProps<"button">, "className"> &
@@ -45,6 +46,8 @@ type ButtonLinkProps = Omit<ComponentProps<"a">, "href" | "ref" | "className"> &
   };
 
 export const Button = ({
+  badge,
+  children,
   size = "small",
   variant = "primary",
   ...props
@@ -52,7 +55,10 @@ export const Button = ({
   <button
     className={`button--base ${buttonSizePresets[size].regular} ${variants[variant]}`}
     {...props}
-  />
+  >
+    {children}
+    {badge !== undefined && <span className="button-badge">{badge}</span>}
+  </button>
 );
 
 export const ButtonIcon = ({

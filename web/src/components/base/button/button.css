@@ -50,6 +50,11 @@
   box-shadow: 0 0 0 4px var(--color-blue-500);
 }
 
+/* Button Badge */
+.button-badge {
+  @apply inline-flex h-4 items-center justify-center rounded-md bg-blue-500 px-1.5 text-[11px] leading-4 font-medium text-white;
+}
+
 /* Button Sizes */
 .button-x-small {
   @apply text-xsm h-7;
