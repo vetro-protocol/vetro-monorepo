@@ -66,9 +66,13 @@ const fetchMerkl = async function <R>(
 ): Promise<R> {
   const url =
     "https://api.merkl.xyz" +
-    `/v4${endpoint}${queryStringObjectToString(options?.query)}`;
-  const response = await fetch(url);
-  return response.json();
+    `/v4${endpoint}` +
+    `${queryStringObjectToString(options?.query)}`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Merkl API error: ${res.statusText}`);
+  }
+  return res.json();
 };
 
 /**
