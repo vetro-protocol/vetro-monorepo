@@ -28,6 +28,7 @@ export function PoolInfoButtons() {
   const { t } = useTranslation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [mode, setMode] = useStakeMode();
+  const [requestCloseDrawer, setRequestCloseDrawer] = useState(false);
   const [toast, setToast] = useState<ToastData | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -52,6 +53,7 @@ export function PoolInfoButtons() {
   }
 
   function handleClose() {
+    setRequestCloseDrawer(false);
     setMode(null);
     setIsDrawerOpen(false);
   }
@@ -61,8 +63,7 @@ export function PoolInfoButtons() {
   ) {
     setToast(toastData);
     closeTimerRef.current = setTimeout(function closeDrawerAfterDelay() {
-      setMode(null);
-      setIsDrawerOpen(false);
+      setRequestCloseDrawer(true);
     }, 2000);
   }, []);
 
@@ -82,7 +83,7 @@ export function PoolInfoButtons() {
       </div>
 
       {isDrawerOpen && mode && (
-        <Drawer onClose={handleClose}>
+        <Drawer onClose={handleClose} requestClose={requestCloseDrawer}>
           <Suspense fallback={<DrawerLoader />}>
             <StakeDrawerContent
               mode={mode}
@@ -95,6 +96,7 @@ export function PoolInfoButtons() {
 
       {toast && (
         <Toast
+          closable={true}
           description={toast.description}
           onClose={handleToastClose}
           title={toast.title}

@@ -18,7 +18,7 @@ const CloseIcon = (props: React.SVGProps<SVGSVGElement>) => (
     {...props}
   >
     <path
-      fill="#99A1AF"
+      fill="currentColor"
       d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z"
     />
   </svg>
@@ -60,7 +60,7 @@ const ToastCard = ({
   onClose: VoidFunction;
   title: string;
 }) => (
-  <div className="flex items-start gap-3 rounded-lg bg-gray-950 p-3 pr-4">
+  <div className="group flex items-start gap-3 rounded-lg bg-gray-950 p-3 pr-4">
     <CheckCircleIcon className="size-4 shrink-0 text-blue-500" />
     <div className="flex min-w-0 flex-1 flex-col gap-0.5">
       <p className="text-sm leading-5 font-medium text-gray-50">{title}</p>
@@ -70,8 +70,10 @@ const ToastCard = ({
     </div>
     {closable && (
       <button
-        className="shrink-0 cursor-pointer text-gray-400 hover:text-gray-200"
+        aria-label="Close notification"
+        className="shrink-0 cursor-pointer text-gray-400 opacity-0 transition-all group-hover:opacity-100 hover:text-white"
         onClick={onClose}
+        type="button"
       >
         <CloseIcon className="size-4" />
       </button>
@@ -151,7 +153,7 @@ function ToastItem({
   return (
     <div
       ref={ref}
-      className={`transition-all duration-400 ease-out ${
+      className={`transition-all duration-300 ease-out ${
         isVisible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
       }`}
       onTransitionEnd={handleTransitionEnd}
@@ -166,11 +168,7 @@ function ToastItem({
   );
 }
 
-export function Toaster({
-  autoCloseMs = 10000,
-  onClose,
-  toasts,
-}: ToasterProps) {
+export function Toaster({ autoCloseMs = 8000, onClose, toasts }: ToasterProps) {
   const [hovered, setHovered] = useState(false);
   const heightsRef = useRef<Record<string, number>>({});
   const [, forceRender] = useState(0);
@@ -205,7 +203,7 @@ export function Toaster({
 
   return createPortal(
     <div
-      className="fixed inset-x-4 bottom-4 z-40 md:inset-x-auto md:right-4"
+      className="fixed inset-x-4 bottom-4 z-40 md:inset-x-auto md:right-4 md:w-96"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >

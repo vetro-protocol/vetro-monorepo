@@ -59,12 +59,16 @@ function getApproveStepStatus(depositStep: DepositStep) {
   if (
     depositStep === "approved" ||
     depositStep === "completed" ||
+    depositStep === "deposit-failed" ||
     depositStep === "depositing"
   ) {
     return stepStatus.completed;
   }
   if (depositStep === "approving") {
     return stepStatus.progress;
+  }
+  if (depositStep === "approve-failed") {
+    return stepStatus.failed;
   }
   return stepStatus.ready;
 }
@@ -75,6 +79,9 @@ function getConfirmStepStatus(depositStep: DepositStep) {
   }
   if (depositStep === "depositing") {
     return stepStatus.progress;
+  }
+  if (depositStep === "deposit-failed") {
+    return stepStatus.failed;
   }
   if (depositStep === "approved") {
     return stepStatus.ready;

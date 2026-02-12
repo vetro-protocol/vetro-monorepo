@@ -42,32 +42,20 @@ export const ClosableWithDescription: Story = {
   },
 };
 
-const toastMessages: { description?: string; title: string }[] = [
-  {
-    description: "Your funds are now staked and earning yield.",
-    title: "Stake deposit confirmed",
-  },
-  {
-    description: "Your 7-day cooldown has started.",
-    title: "Withdrawal request confirmed",
-  },
-  { title: "Transaction confirmed" },
-  {
-    description: "You earned 12.5 vUSD in rewards.",
-    title: "Rewards claimed",
-  },
-];
-
 function MultipleToastsDemo() {
   const [toasts, setToasts] = useState<ToastData[]>([]);
   const counterRef = useRef(0);
 
   const handleAdd = useCallback(function handleAdd() {
-    const message = toastMessages[counterRef.current % toastMessages.length];
     counterRef.current += 1;
     setToasts((prev) => [
       ...prev,
-      { ...message, closable: true, id: counterRef.current },
+      {
+        closable: true,
+        description: "Your funds are now staked and earning yield.",
+        id: counterRef.current,
+        title: "Stake deposit confirmed",
+      },
     ]);
   }, []);
 

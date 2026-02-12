@@ -14,7 +14,13 @@ import { useMainnet } from "./useMainnet";
 import { stakedBalanceQueryKey } from "./useStakedBalance";
 import { useVusd } from "./useVusd";
 
-type DepositStatus = "approved" | "approving" | "completed" | "depositing";
+type DepositStatus =
+  | "approve-failed"
+  | "approved"
+  | "approving"
+  | "completed"
+  | "deposit-failed"
+  | "depositing";
 
 type Params = {
   approveAmount?: bigint;
@@ -95,10 +101,15 @@ export const useStakeDeposit = function ({
         onSuccess?.();
       });
 
+      emitter.on("user-signing-approval-error", function () {
+        onStatusChange?.("approve-failed");
+      });
+
       emitter.on(
         "approve-transaction-reverted",
         function (receipt: TransactionReceipt) {
           updateNativeBalanceAfterReceipt(receipt);
+          onStatusChange?.("approve-failed");
         },
       );
 
@@ -112,10 +123,15 @@ export const useStakeDeposit = function ({
         },
       );
 
+      emitter.on("user-signing-deposit-error", function () {
+        onStatusChange?.("deposit-failed");
+      });
+
       emitter.on(
         "deposit-transaction-reverted",
         function (receipt: TransactionReceipt) {
           updateNativeBalanceAfterReceipt(receipt);
+          onStatusChange?.("deposit-failed");
         },
       );
 

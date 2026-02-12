@@ -1,13 +1,19 @@
 import { sanitizeAmount } from "utils/sanitizeAmount";
 
 export type DepositStep =
+  | "approve-failed"
   | "approved"
   | "approving"
   | "completed"
+  | "deposit-failed"
   | "depositing"
   | "idle";
 
-export type WithdrawStep = "completed" | "idle" | "requesting";
+export type WithdrawStep =
+  | "completed"
+  | "idle"
+  | "request-failed"
+  | "requesting";
 
 export type StakeDrawerState = {
   approve10x: boolean;

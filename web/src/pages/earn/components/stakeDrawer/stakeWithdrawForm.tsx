@@ -56,6 +56,9 @@ function getRequestStepStatus(withdrawStep: WithdrawStep) {
   if (withdrawStep === "requesting") {
     return stepStatus.progress;
   }
+  if (withdrawStep === "request-failed") {
+    return stepStatus.failed;
+  }
   return stepStatus.ready;
 }
 

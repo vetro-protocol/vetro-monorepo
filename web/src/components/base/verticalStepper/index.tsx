@@ -4,6 +4,7 @@ export const stepStatus = {
   ready: 1,
   progress: 2,
   completed: 3,
+  failed: 4,
 } as const;
 /* eslint-enable sort-keys */
 
@@ -31,6 +32,21 @@ const CheckIcon = () => (
     viewBox="0 0 12 12"
   >
     <path d="M2 6l3 3 5-5" />
+  </svg>
+);
+
+const XIcon = () => (
+  <svg
+    aria-hidden="true"
+    className="size-2.5"
+    fill="none"
+    stroke="white"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    strokeWidth={2.5}
+    viewBox="0 0 12 12"
+  >
+    <path d="M3 3l6 6M9 3l-6 6" />
   </svg>
 );
 
@@ -63,6 +79,10 @@ export const VerticalStepper = ({ steps }: Props) => (
           {step.status === stepStatus.completed ? (
             <div className="relative z-10 flex size-4 items-center justify-center rounded-full bg-blue-500">
               <CheckIcon />
+            </div>
+          ) : step.status === stepStatus.failed ? (
+            <div className="relative z-10 flex size-4 items-center justify-center rounded-full bg-red-500">
+              <XIcon />
             </div>
           ) : (
             <div

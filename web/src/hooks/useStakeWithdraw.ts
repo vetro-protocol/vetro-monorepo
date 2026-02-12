@@ -12,7 +12,7 @@ import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { useMainnet } from "./useMainnet";
 import { stakedBalanceQueryKey } from "./useStakedBalance";
 
-type WithdrawStatus = "completed" | "requesting";
+type WithdrawStatus = "completed" | "request-failed" | "requesting";
 
 type Params = {
   assets: bigint;
@@ -64,10 +64,15 @@ export const useStakeWithdraw = function ({
         onStatusChange?.("requesting");
       });
 
+      emitter.on("user-signing-request-withdraw-error", function () {
+        onStatusChange?.("request-failed");
+      });
+
       emitter.on(
         "request-withdraw-transaction-reverted",
         function (receipt: TransactionReceipt) {
           updateNativeBalanceAfterReceipt(receipt);
+          onStatusChange?.("request-failed");
         },
       );
 

@@ -54,7 +54,7 @@
         "withdraw-step-2-title": "Iniciar período de espera de 7 días",
         "withdraw-step-3-description": "Una vez que termina el período de espera, sus fondos estarán disponibles para desbloquear y retirar.",
         "withdraw-step-3-title": "Retirar fondos",
-        "withdraw-toast-description": "Tu período de espera de 7 días ha comenzado.",
+        "withdraw-toast-description": "Su período de espera de 7 días ha comenzado.",
         "withdraw-toast-title": "Solicitud de retiro confirmada",
         "withdrawals-progress": "Progreso de retiros",
         "withdrawing-fees-label": "Retirando {{amount}} {{token}}",
