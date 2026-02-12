@@ -1,4 +1,4 @@
-import { mainnet } from "viem/chains";
+import { mainnet } from "networks/mainnet";
 
 // TODO implement mainnet|testnet selector
 export const useMainnet = () => mainnet;

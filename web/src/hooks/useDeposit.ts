@@ -3,8 +3,9 @@ import { useEnsureConnectedTo } from "@hemilabs/react-hooks/useEnsureConnectedTo
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
 import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpdateNativeBalanceAfterReceipt";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { getGatewayAddress } from "@vetro/gateway";
+import { type DepositEvents, getGatewayAddress } from "@vetro/gateway";
 import { deposit } from "@vetro/gateway/actions";
+import type { EventEmitter } from "events";
 import type { Address } from "viem";
 import { useAccount } from "wagmi";
 
@@ -19,10 +20,12 @@ import { useVusd } from "./useVusd";
 export const useDeposit = function ({
   amountIn,
   approveAmount,
+  onEmitter,
   tokenIn,
 }: {
   amountIn: bigint;
   approveAmount?: bigint;
+  onEmitter?: (emitter: EventEmitter<DepositEvents>) => void;
   tokenIn: Address;
 }) {
   const { address: account } = useAccount();
@@ -77,6 +80,8 @@ export const useDeposit = function ({
         receiver: account,
         tokenIn,
       });
+
+      onEmitter?.(emitter);
 
       emitter.on("approve-transaction-reverted", function (receipt) {
         queryClient.invalidateQueries({
