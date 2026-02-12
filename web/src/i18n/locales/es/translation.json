@@ -38,7 +38,7 @@
         "deposit-step-approve-title": "Aprobar en billetera",
         "deposit-step-confirm-description": "Revise los detalles y confirme el stake en su billetera.",
         "deposit-step-confirm-title": "Confirmar stake",
-        "deposit-toast-description": "Tus fondos ahora están en stake y generando rendimiento.",
+        "deposit-toast-description": "Sus fondos ahora están en stake y generando rendimiento.",
         "deposit-toast-title": "Depósito de stake confirmado",
         "depositing": "Depositando...",
         "fees-label": "Haciendo stake de {{amount}} {{token}}",
