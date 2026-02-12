@@ -27,13 +27,14 @@ export const ApproveSection = function ({ active, onToggle }: Props) {
         >
           <img
             alt={t("pages.swap.form.approve-10x")}
-            className="mr-auto"
             height={16}
             src={infoIcon}
             width={16}
           />
         </Tooltip>
-        <ToggleButton active={active} onClick={onToggle} />
+        <div className="ml-auto">
+          <ToggleButton active={active} onClick={onToggle} />
+        </div>
       </div>
     </div>
   );
