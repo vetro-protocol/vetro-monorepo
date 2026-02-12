@@ -1,0 +1,23 @@
+name: Subgraph Deployment
+
+on:
+  push:
+    tags:
+      - "vetro-app-subgraph@*"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: false
+
+jobs:
+  deploy-subgraph:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: hemilabs/actions/setup-node-env@v1
+      - run: npm run deploy -- --deploy-key "$GRAPH_API_KEY"
+        working-directory: subgraph
+        env:
+          GRAPH_API_KEY: ${{ secrets.GRAPH_API_KEY }}
