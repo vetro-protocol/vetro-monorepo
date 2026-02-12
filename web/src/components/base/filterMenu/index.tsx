@@ -1,13 +1,7 @@
 import { useOnClickOutside } from "@hemilabs/react-hooks/useOnClickOutside";
-import { useWindowSize } from "@hemilabs/react-hooks/useWindowSize";
-import {
-  type KeyboardEvent,
-  type ReactNode,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { type KeyboardEvent, type ReactNode, useRef, useState } from "react";
 
+import { useMenuPosition } from "../../../hooks/useMenuPosition";
 import { ChevronIcon } from "../chevronIcon";
 
 type FilterOption = {
@@ -52,50 +46,12 @@ export function FilterMenu({
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
-  const { height: windowHeight, width: windowWidth } = useWindowSize();
 
   const containerRef = useOnClickOutside<HTMLDivElement>(() =>
     setIsOpen(false),
   );
 
-  useEffect(
-    function positionMenuOnScreen() {
-      if (!isOpen || !triggerRef.current || !listRef.current) {
-        return;
-      }
-
-      const triggerRect = triggerRef.current.getBoundingClientRect();
-      const listRect = listRef.current.getBoundingClientRect();
-      const gap = 8;
-
-      const spaceBelow = windowHeight - triggerRect.bottom;
-      const spaceAbove = triggerRect.top;
-
-      let top: number;
-      if (spaceBelow >= listRect.height || spaceBelow > spaceAbove) {
-        top = triggerRect.bottom + gap;
-      } else {
-        top = triggerRect.top - listRect.height - gap;
-      }
-
-      const spaceRight = windowWidth - triggerRect.left;
-      const spaceLeft = triggerRect.right;
-
-      let left: number;
-      if (spaceRight >= listRect.width || spaceRight > spaceLeft) {
-        left = triggerRect.left;
-      } else {
-        left = triggerRect.right - listRect.width;
-      }
-
-      left = Math.max(gap, Math.min(left, windowWidth - listRect.width - gap));
-      top = Math.max(gap, Math.min(top, windowHeight - listRect.height - gap));
-
-      listRef.current.style.top = `${top}px`;
-      listRef.current.style.left = `${left}px`;
-    },
-    [isOpen, windowHeight, windowWidth],
-  );
+  useMenuPosition({ isOpen, listRef, triggerRef });
 
   function handleToggle(value: string) {
     const isSelected = selectedValues.includes(value);

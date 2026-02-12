@@ -1,13 +1,7 @@
 import { useOnClickOutside } from "@hemilabs/react-hooks/useOnClickOutside";
-import { useWindowSize } from "@hemilabs/react-hooks/useWindowSize";
-import {
-  type KeyboardEvent,
-  type ReactNode,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { type KeyboardEvent, type ReactNode, useRef, useState } from "react";
 
+import { useMenuPosition } from "../../../hooks/useMenuPosition";
 import { ChevronIcon } from "../chevronIcon";
 
 type DropdownProps<T> = {
@@ -33,7 +27,6 @@ export function Dropdown<T>({
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const triggerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
-  const { height: windowHeight, width: windowWidth } = useWindowSize();
 
   const isItemEqual = (a: T, b: T) => getItemKey(a) === getItemKey(b);
 
@@ -41,51 +34,7 @@ export function Dropdown<T>({
     setIsOpen(false),
   );
 
-  // Position dropdown based on viewport
-  useEffect(
-    function positionDropdownOnScreen() {
-      if (!isOpen || !triggerRef.current || !listRef.current) {
-        return;
-      }
-
-      const triggerRect = triggerRef.current.getBoundingClientRect();
-      const listRect = listRef.current.getBoundingClientRect();
-      const gap = 8;
-
-      // Vertical positioning
-      const spaceBelow = windowHeight - triggerRect.bottom;
-      const spaceAbove = triggerRect.top;
-
-      let top: number;
-      if (spaceBelow >= listRect.height || spaceBelow > spaceAbove) {
-        top = triggerRect.bottom + gap;
-      } else {
-        top = triggerRect.top - listRect.height - gap;
-      }
-
-      // Horizontal positioning
-      const spaceRight = windowWidth - triggerRect.left;
-      const spaceLeft = triggerRect.right;
-
-      let left: number;
-      if (spaceRight >= listRect.width || spaceRight > spaceLeft) {
-        // Align to left edge of trigger
-        left = triggerRect.left;
-      } else {
-        // Align to right edge of trigger
-        left = triggerRect.right - listRect.width;
-      }
-
-      // Ensure the menu doesn't go off-screen
-      left = Math.max(gap, Math.min(left, windowWidth - listRect.width - gap));
-      top = Math.max(gap, Math.min(top, windowHeight - listRect.height - gap));
-
-      listRef.current.style.top = `${top}px`;
-      listRef.current.style.left = `${left}px`;
-      listRef.current.style.width = `${triggerRect.width}px`;
-    },
-    [isOpen, windowHeight, windowWidth],
-  );
+  useMenuPosition({ isOpen, listRef, matchTriggerWidth: true, triggerRef });
 
   const canOpenMenu = items.length > 1;
 
