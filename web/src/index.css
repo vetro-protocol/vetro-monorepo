@@ -57,6 +57,14 @@
   line-height: var(--line-height-mid);
 }
 
+@utility text-b-regular {
+  @apply text-xsm font-normal;
+}
+
+@utility text-b-medium {
+  @apply text-xsm font-medium;
+}
+
 /* I'm using "4.4" as proportional from values. 
 If text-4xl is 2.25 rem => 4, then here 2.5 rem => 4.4 */
 @utility text-4.4xl {
@@ -74,21 +82,21 @@ h5 {
 }
 
 h1 {
-  @apply text-4.4xl;
+  @apply text-4.4xl tracking-[-1.6px];
 }
 
 h2 {
-  @apply text-4xl;
+  @apply text-4xl tracking-[-0.72px];
 }
 
 h3 {
   /* override line height from tailwind */
-  @apply text-2xl leading-[28px];
+  @apply text-2xl leading-[28px] tracking-[-0.24px];
 }
 
 h4 {
   /* override line height from tailwind */
-  @apply text-base leading-[22px];
+  @apply text-base leading-[22px] tracking-[-0.16px];
 }
 
 h5 {

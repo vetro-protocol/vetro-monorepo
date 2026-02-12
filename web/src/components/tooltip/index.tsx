@@ -11,7 +11,7 @@ type Props = {
 export const Tooltip = ({ children, content }: Props) => (
   <RcTooltip
     overlay={
-      <div className="text-xsm rounded-md bg-gray-900 px-1.5 py-1 font-medium text-white">
+      <div className="text-b-medium rounded-md bg-gray-900 px-1.5 py-1 text-white">
         {content}
       </div>
     }
