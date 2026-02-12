@@ -23,7 +23,6 @@ export const useSwapFeesDisplay = function ({
 }: {
   amountBigInt: bigint;
   approveAmount: bigint | undefined;
-  fromInputValue: string;
   fromToken: Token;
   operationGasEstimation: {
     fees: bigint | undefined;

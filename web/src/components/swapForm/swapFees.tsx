@@ -37,7 +37,6 @@ export const SwapFees = function ({
     useSwapFeesDisplay({
       amountBigInt,
       approveAmount,
-      fromInputValue,
       fromToken,
       operationGasEstimation,
       protocolFee,

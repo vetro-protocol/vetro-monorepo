@@ -135,7 +135,6 @@ export function Deposit({
     useSwapFeesDisplay({
       amountBigInt,
       approveAmount,
-      fromInputValue,
       fromToken,
       operationGasEstimation,
       protocolFee,
