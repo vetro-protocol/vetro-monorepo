@@ -9,7 +9,7 @@ export const stepStatus = {
 
 type StepStatus = (typeof stepStatus)[keyof typeof stepStatus];
 
-type Step = {
+export type Step = {
   description: string;
   status: StepStatus;
   title: string;

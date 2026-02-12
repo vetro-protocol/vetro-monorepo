@@ -8,7 +8,7 @@ import feesSvg from "./icons/fees.svg";
 type Props = {
   children: ReactNode;
   isError?: boolean;
-  label: string;
+  label: ReactNode;
   totalFees?: string;
 };
 

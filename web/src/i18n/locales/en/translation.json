@@ -79,6 +79,14 @@
         "you-are-swapping": "You are swapping",
         "you-will-receive": "You will receive"
       },
+      "progress": {
+        "approve-description": "This allows the app to use this token for your swap.",
+        "approve-title": "Approve in wallet",
+        "confirm-description": "Review the details and confirm the swap in your wallet.",
+        "confirm-title": "Confirm swap",
+        "swap-progress": "Swap progress",
+        "title": "Swap in progress"
+      },
       "select-option": "Select token to swap",
       "title": "Swap stablecoins for VUSD and back"
     }

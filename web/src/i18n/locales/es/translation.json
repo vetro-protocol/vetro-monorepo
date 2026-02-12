@@ -79,6 +79,14 @@
         "you-are-swapping": "Vas a intercambiar",
         "you-will-receive": "Vas a recibir"
       },
+      "progress": {
+        "approve-description": "Esto permite que la app use este token para su intercambio.",
+        "approve-title": "Aprobar en billetera",
+        "confirm-description": "Revise los detalles y confirme el intercambio en su billetera.",
+        "confirm-title": "Confirmar intercambio",
+        "swap-progress": "Progreso del intercambio",
+        "title": "Intercambio en progreso"
+      },
       "select-option": "Seleccione el token a intercambiar",
       "title": "Intercambie stablecoins por VUSD y viceversa"
     }

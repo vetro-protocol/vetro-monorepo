@@ -1,5 +1,7 @@
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
+import { useNeedsApproval } from "@hemilabs/react-hooks/useNeedsApproval";
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
+import { getGatewayAddress } from "@vetro/gateway";
 import { ApproveSection } from "components/approveSection";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenDropdown } from "components/tokenDropdown";
@@ -9,13 +11,15 @@ import { useEstimateDepositGas } from "hooks/useEstimateDepositGas";
 import { useMainnet } from "hooks/useMainnet";
 import { useMintFee } from "hooks/useMintFee";
 import { usePreviewDeposit } from "hooks/usePreviewDeposit";
-import { type FormEvent } from "react";
+import { useSwapFeesDisplay } from "hooks/useSwapFeesDisplay";
+import { type FormEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 import { formatAmount } from "utils/token";
 
 import { Form } from "./form";
 import { SubmitButton } from "./submitButton";
+import { type DepositFlowStatus, SwapDepositDrawer } from "./swapDepositDrawer";
 import { SwapFees } from "./swapFees";
 import { getSwapErrors } from "./validation";
 
@@ -50,6 +54,12 @@ export function Deposit({
 }: Props) {
   const ethereumChain = useMainnet();
   const { t } = useTranslation();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const handleDrawerClose = useCallback(() => setIsDrawerOpen(false), []);
+  const [flowStatus, setFlowStatus] = useState<DepositFlowStatus>("idle");
+  // Captures whether approval was needed when the flow started, because
+  // useNeedsApproval flips to false after a successful approval tx.
+  const [startedWithApproval, setStartedWithApproval] = useState(false);
 
   const { data: fromTokenBalance } = useTokenBalance({
     address: fromToken.address,
@@ -57,7 +67,12 @@ export function Deposit({
   });
 
   const { data: nativeBalanceData } = useNativeBalance(ethereumChain.id);
-  const nativeBalance = nativeBalanceData?.value;
+
+  const { data: needsApproval } = useNeedsApproval({
+    amount: amountBigInt,
+    spender: getGatewayAddress(ethereumChain.id),
+    token: fromToken,
+  });
 
   const { data: depositPreview, isError: isDepositPreviewError } =
     usePreviewDeposit({
@@ -76,8 +91,33 @@ export function Deposit({
   const depositMutation = useDeposit({
     amountIn: amountBigInt,
     approveAmount,
+    onEmitter(emitter) {
+      emitter.on("user-signed-approval", () => setFlowStatus("approving"));
+      emitter.on("approve-transaction-succeeded", () =>
+        setFlowStatus("approved"),
+      );
+      emitter.on("approve-transaction-reverted", () =>
+        setFlowStatus("approve-error"),
+      );
+      emitter.on("user-signing-approval-error", () =>
+        setFlowStatus("approve-error"),
+      );
+      emitter.on("pre-deposit", () => setFlowStatus("deposit-ready"));
+      emitter.on("user-signed-deposit", () => setFlowStatus("depositing"));
+      emitter.on("deposit-transaction-succeeded", () =>
+        setFlowStatus("deposited"),
+      );
+      emitter.on("deposit-transaction-reverted", () =>
+        setFlowStatus("deposit-error"),
+      );
+      emitter.on("user-signing-deposit-error", () =>
+        setFlowStatus("deposit-error"),
+      );
+    },
     tokenIn: fromToken.address,
   });
+
+  const nativeBalance = nativeBalanceData?.value;
 
   const inputError = getSwapErrors({
     amount: amountBigInt,
@@ -91,15 +131,29 @@ export function Deposit({
     isError: isDepositPreviewError,
   });
 
+  const { networkFeeDisplay, protocolFeeDisplay, totalFeesDisplay } =
+    useSwapFeesDisplay({
+      amountBigInt,
+      approveAmount,
+      fromInputValue,
+      fromToken,
+      operationGasEstimation,
+      protocolFee,
+    });
+
   const balancesLoaded =
     nativeBalance !== undefined && fromTokenBalance !== undefined;
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!inputError) {
+      setStartedWithApproval(!!needsApproval);
+      setFlowStatus(needsApproval ? "approving" : "deposit-ready");
       depositMutation.mutate();
+      setIsDrawerOpen(true);
     }
   }
+
   return (
     <>
       <Form
@@ -142,6 +196,20 @@ export function Deposit({
         protocolFee={protocolFee}
         toToken={toToken}
       />
+      {isDrawerOpen && flowStatus !== "idle" && (
+        <SwapDepositDrawer
+          flowStatus={flowStatus}
+          fromAmount={fromInputValue}
+          fromToken={fromToken}
+          networkFee={networkFeeDisplay}
+          onClose={handleDrawerClose}
+          outputValue={outputValue}
+          protocolFee={protocolFeeDisplay}
+          showApproveStep={startedWithApproval}
+          toToken={toToken}
+          totalFees={totalFeesDisplay}
+        />
+      )}
     </>
   );
 }
