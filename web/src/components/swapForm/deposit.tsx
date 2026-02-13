@@ -58,9 +58,9 @@ export function Deposit({
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const handleDrawerClose = useCallback(() => setIsDrawerOpen(false), []);
   const [flowStatus, setFlowStatus] = useState<DepositFlowStatus>("idle");
+  const [showToast, setShowToast] = useState(false);
   // Captures whether approval was needed when the flow started, because
   // useNeedsApproval flips to false after a successful approval tx.
-  const [showToast, setShowToast] = useState(false);
   const [startedWithApproval, setStartedWithApproval] = useState(false);
 
   const { data: fromTokenBalance } = useTokenBalance({
