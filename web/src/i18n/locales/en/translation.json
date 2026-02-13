@@ -101,6 +101,10 @@
         "title": "Swap in progress"
       },
       "select-option": "Select token to swap",
+      "toast": {
+        "deposit-description": "VUSD is now available on your wallet",
+        "deposit-title": "Deposit confirmed"
+      },
       "title": "Swap stablecoins for VUSD and back"
     }
   }
