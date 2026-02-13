@@ -1,5 +1,4 @@
 import { useOnClickOutside } from "@hemilabs/react-hooks/useOnClickOutside";
-import { useWindowSize } from "@hemilabs/react-hooks/useWindowSize";
 import {
   type KeyboardEvent,
   type ReactNode,
@@ -8,84 +7,78 @@ import {
   useState,
 } from "react";
 
-import { ChevronIcon } from "../chevronIcon";
+import { useMenuPosition } from "../../../hooks/useMenuPosition";
 
-type DropdownProps<T> = {
+type BaseProps<T> = {
   getItemKey: (item: T) => string;
   items: T[];
-  onChange: (item: T) => void;
+  matchTriggerWidth?: boolean;
   renderItem: (item: T, isSelected: boolean) => ReactNode;
-  renderTrigger: (selectedItem: T, isOpen: boolean) => ReactNode;
+  renderTrigger: (isOpen: boolean) => ReactNode;
   triggerId: string;
+};
+
+type SingleSelectProps<T> = BaseProps<T> & {
+  multiSelect?: false;
+  onChange: (item: T) => void;
   value: T;
 };
 
-export function Dropdown<T>({
-  getItemKey,
-  items,
-  onChange,
-  renderItem,
-  renderTrigger,
-  triggerId,
-  value,
-}: DropdownProps<T>) {
+type MultiSelectProps<T> = BaseProps<T> & {
+  multiSelect: true;
+  onChange: (item: T, selected: boolean) => void;
+  selectedValues: string[];
+};
+
+type DropdownProps<T> = MultiSelectProps<T> | SingleSelectProps<T>;
+
+const isMultiSelect = <T,>(
+  props: DropdownProps<T>,
+): props is MultiSelectProps<T> => props.multiSelect === true;
+
+export function Dropdown<T>(props: DropdownProps<T>) {
+  const {
+    getItemKey,
+    items,
+    matchTriggerWidth = false,
+    renderItem,
+    renderTrigger,
+    triggerId,
+  } = props;
+
   const [isOpen, setIsOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const triggerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
-  const { height: windowHeight, width: windowWidth } = useWindowSize();
-
-  const isItemEqual = (a: T, b: T) => getItemKey(a) === getItemKey(b);
 
   const containerRef = useOnClickOutside<HTMLDivElement>(() =>
     setIsOpen(false),
   );
 
-  // Position dropdown based on viewport
+  useMenuPosition({ isOpen, listRef, triggerRef });
+
   useEffect(
-    function positionDropdownOnScreen() {
-      if (!isOpen || !triggerRef.current || !listRef.current) {
+    function applyTriggerWidth() {
+      if (
+        !matchTriggerWidth ||
+        !isOpen ||
+        !triggerRef.current ||
+        !listRef.current
+      ) {
         return;
       }
-
       const triggerRect = triggerRef.current.getBoundingClientRect();
-      const listRect = listRef.current.getBoundingClientRect();
-      const gap = 8;
-
-      // Vertical positioning
-      const spaceBelow = windowHeight - triggerRect.bottom;
-      const spaceAbove = triggerRect.top;
-
-      let top: number;
-      if (spaceBelow >= listRect.height || spaceBelow > spaceAbove) {
-        top = triggerRect.bottom + gap;
-      } else {
-        top = triggerRect.top - listRect.height - gap;
-      }
-
-      // Horizontal positioning
-      const spaceRight = windowWidth - triggerRect.left;
-      const spaceLeft = triggerRect.right;
-
-      let left: number;
-      if (spaceRight >= listRect.width || spaceRight > spaceLeft) {
-        // Align to left edge of trigger
-        left = triggerRect.left;
-      } else {
-        // Align to right edge of trigger
-        left = triggerRect.right - listRect.width;
-      }
-
-      // Ensure the menu doesn't go off-screen
-      left = Math.max(gap, Math.min(left, windowWidth - listRect.width - gap));
-      top = Math.max(gap, Math.min(top, windowHeight - listRect.height - gap));
-
-      listRef.current.style.top = `${top}px`;
-      listRef.current.style.left = `${left}px`;
       listRef.current.style.width = `${triggerRect.width}px`;
     },
-    [isOpen, windowHeight, windowWidth],
+    [isOpen, matchTriggerWidth],
   );
+
+  function isItemSelected(item: T) {
+    if (isMultiSelect(props)) {
+      return props.selectedValues.includes(getItemKey(item));
+    }
+    return getItemKey(item) === getItemKey(props.value);
+  }
 
   const canOpenMenu = items.length > 1;
 
@@ -98,9 +91,14 @@ export function Dropdown<T>({
   }
 
   function handleItemClick(item: T) {
-    onChange(item);
-    setIsOpen(false);
-    triggerRef.current?.focus();
+    if (isMultiSelect(props)) {
+      const selected = !isItemSelected(item);
+      props.onChange(item, selected);
+    } else {
+      props.onChange(item);
+      setIsOpen(false);
+      triggerRef.current?.focus();
+    }
   }
 
   function handleKeyDown(event: KeyboardEvent) {
@@ -137,11 +135,15 @@ export function Dropdown<T>({
     }
   }
 
+  const multi = isMultiSelect(props);
+  const listRole = multi ? "menu" : "listbox";
+  const itemRole = multi ? "menuitemcheckbox" : "option";
+
   return (
     <div className="relative inline-block" ref={containerRef}>
       <div
         aria-expanded={isOpen}
-        aria-haspopup="listbox"
+        aria-haspopup={multi ? "true" : "listbox"}
         id={triggerId}
         onClick={handleTriggerClick}
         onKeyDown={handleKeyDown}
@@ -149,14 +151,7 @@ export function Dropdown<T>({
         role="button"
         tabIndex={0}
       >
-        <div
-          className={`flex ${canOpenMenu ? "cursor-pointer hover:bg-gray-50" : ""} items-center gap-1.5 rounded-full bg-white/5 py-1.5 pr-3 pl-1.5 shadow-sm`}
-        >
-          {renderTrigger(value, isOpen)}
-          {items.length > 1 && (
-            <ChevronIcon direction={isOpen ? "up" : "down"} />
-          )}
-        </div>
+        {renderTrigger(isOpen)}
       </div>
 
       {isOpen && (
@@ -164,19 +159,21 @@ export function Dropdown<T>({
           aria-labelledby={triggerId}
           className="fixed z-10 min-w-3xs overflow-y-auto rounded-lg bg-white p-1 shadow-xl"
           ref={listRef}
-          role="listbox"
+          role={listRole}
         >
           {items.map(function (item, index) {
-            const isSelected = isItemEqual(item, value);
+            const isSelected = isItemSelected(item);
             const isFocused = index === focusedIndex;
 
             return (
               <div
-                aria-selected={isSelected}
+                {...(multi
+                  ? { "aria-checked": isSelected }
+                  : { "aria-selected": isSelected })}
                 className={`text-xsm flex cursor-pointer items-center rounded px-3 py-2 ${isFocused ? "bg-gray-100" : "hover:bg-gray-50"}`}
                 key={getItemKey(item)}
                 onClick={() => handleItemClick(item)}
-                role="option"
+                role={itemRole}
               >
                 <div className="flex w-full items-center justify-between gap-2 font-medium text-gray-900">
                   {renderItem(item, isSelected)}
