@@ -1,8 +1,10 @@
+import { Button } from "components/base/button";
 import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { type Step, VerticalStepper } from "components/base/verticalStepper";
 import { FeeDetails } from "components/feeDetails";
 import { FeesContainer } from "components/feesContainer";
 import { TokenLogo } from "components/tokenLogo";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 
@@ -12,6 +14,7 @@ type Props = {
   fromAmount: string;
   fromToken: Token;
   networkFee: string;
+  onRetry?: VoidFunction;
   outputValue: string;
   protocolFee: string;
   steps: Step[];
@@ -23,6 +26,7 @@ export function SwapProgressDrawer({
   fromAmount,
   fromToken,
   networkFee,
+  onRetry,
   outputValue,
   protocolFee,
   steps,
@@ -30,6 +34,22 @@ export function SwapProgressDrawer({
   toToken,
 }: Props) {
   const { t } = useTranslation();
+  const [renderRetry, setRenderRetry] = useState(false);
+  const [showRetry, setShowRetry] = useState(false);
+
+  useEffect(
+    function animateRetryButton() {
+      if (onRetry) {
+        setRenderRetry(true);
+        const frameId = requestAnimationFrame(() => setShowRetry(true));
+        return () => cancelAnimationFrame(frameId);
+      }
+      setShowRetry(false);
+      const timeoutId = setTimeout(() => setRenderRetry(false), 300);
+      return () => clearTimeout(timeoutId);
+    },
+    [onRetry],
+  );
 
   return (
     <>
@@ -96,6 +116,22 @@ export function SwapProgressDrawer({
             </p>
             <div className="border-t border-gray-200">
               <VerticalStepper steps={steps} />
+            </div>
+          </div>
+        )}
+
+        {renderRetry && (
+          <div
+            className={`grid transition-[grid-template-rows] duration-300 ease-out ${
+              showRetry ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+            }`}
+          >
+            <div className="overflow-hidden">
+              <div className="border-t border-gray-200 bg-gray-50 px-6 py-3 *:w-full">
+                <Button onClick={onRetry} size="small" variant="primary">
+                  {t("pages.swap.progress.retry")}
+                </Button>
+              </div>
             </div>
           </div>
         )}

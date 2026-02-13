@@ -106,6 +106,7 @@ export function Deposit({
       );
       emitter.on("pre-deposit", () => setFlowStatus("deposit-ready"));
       emitter.on("user-signed-deposit", () => setFlowStatus("depositing"));
+      emitter.on("deposit-failed", () => setFlowStatus("deposit-error"));
       emitter.on("deposit-transaction-succeeded", function () {
         setFlowStatus("deposited");
         setShowToast(true);
@@ -114,6 +115,9 @@ export function Deposit({
         setFlowStatus("deposit-error"),
       );
       emitter.on("user-signing-deposit-error", () =>
+        setFlowStatus("deposit-error"),
+      );
+      emitter.on("deposit-failed-validation", () =>
         setFlowStatus("deposit-error"),
       );
     },
@@ -145,6 +149,11 @@ export function Deposit({
 
   const balancesLoaded =
     nativeBalance !== undefined && fromTokenBalance !== undefined;
+
+  const handleRetry = function () {
+    setFlowStatus(startedWithApproval ? "approving" : "deposit-ready");
+    depositMutation.mutate();
+  };
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -205,6 +214,7 @@ export function Deposit({
           fromToken={fromToken}
           networkFee={networkFeeDisplay}
           onClose={handleDrawerClose}
+          onRetry={handleRetry}
           outputValue={outputValue}
           protocolFee={protocolFeeDisplay}
           showApproveStep={startedWithApproval}
