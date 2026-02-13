@@ -1,4 +1,5 @@
 import {
+  type Address,
   type TransactionReceipt,
   type WalletClient,
   zeroAddress,
@@ -6,14 +7,28 @@ import {
 } from "viem";
 import { waitForTransactionReceipt, writeContract } from "viem/actions";
 import { sepolia } from "viem/chains";
+import { allowance, approve } from "viem-erc20/actions";
 import { describe, expect, it, vi } from "vitest";
 
+import { getPeggedToken } from "../../src/actions/public/getPeggedToken";
 import { requestRedeem } from "../../src/actions/wallet/requestRedeem";
+
+vi.mock("../../src/actions/public/getPeggedToken", () => ({
+  getPeggedToken: vi.fn(),
+}));
 
 vi.mock("viem/actions", () => ({
   waitForTransactionReceipt: vi.fn(),
   writeContract: vi.fn(),
 }));
+
+vi.mock("viem-erc20/actions", () => ({
+  allowance: vi.fn(),
+  approve: vi.fn(),
+}));
+
+const mockPeggedTokenAddress =
+  "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee" as Address;
 
 // @ts-expect-error - mock client
 const mockWalletClient = {
@@ -159,7 +174,203 @@ describe("requestRedeem", function () {
     expect(onSettled).toHaveBeenCalledOnce();
   });
 
+  it("should skip approval if allowance is sufficient and proceed to request redeem", async function () {
+    const receipt = {
+      status: "success",
+    } as TransactionReceipt;
+
+    vi.mocked(getPeggedToken).mockResolvedValue(mockPeggedTokenAddress);
+    vi.mocked(allowance).mockResolvedValue(validParameters.peggedTokenAmount);
+    vi.mocked(writeContract).mockResolvedValue(zeroHash);
+    vi.mocked(waitForTransactionReceipt).mockResolvedValue(receipt);
+
+    const { emitter, promise } = requestRedeem(
+      mockWalletClient,
+      validParameters,
+    );
+
+    const onPreApprove = vi.fn();
+    const onPreRequestRedeem = vi.fn();
+    const onUserSigned = vi.fn();
+    const onSucceeded = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("pre-approve", onPreApprove);
+    emitter.on("pre-request-redeem", onPreRequestRedeem);
+    emitter.on("user-signed-request-redeem", onUserSigned);
+    emitter.on("request-redeem-transaction-succeeded", onSucceeded);
+    emitter.on("request-redeem-settled", onSettled);
+
+    await promise;
+
+    expect(onPreApprove).not.toHaveBeenCalled();
+    expect(approve).not.toHaveBeenCalled();
+    expect(onPreRequestRedeem).toHaveBeenCalledOnce();
+    expect(onUserSigned).toHaveBeenCalledExactlyOnceWith(zeroHash);
+    expect(onSucceeded).toHaveBeenCalledExactlyOnceWith(receipt);
+    expect(writeContract).toHaveBeenCalledOnce();
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("should approve first if allowance is insufficient, then request redeem", async function () {
+    const successReceipt = {
+      status: "success",
+    } as TransactionReceipt;
+
+    vi.mocked(getPeggedToken).mockResolvedValue(mockPeggedTokenAddress);
+    vi.mocked(allowance).mockResolvedValue(
+      validParameters.peggedTokenAmount - BigInt(1),
+    );
+    vi.mocked(approve).mockResolvedValue(zeroHash);
+    vi.mocked(writeContract).mockResolvedValue(zeroHash);
+    vi.mocked(waitForTransactionReceipt)
+      .mockResolvedValueOnce(successReceipt)
+      .mockResolvedValueOnce(successReceipt);
+
+    const { emitter, promise } = requestRedeem(
+      mockWalletClient,
+      validParameters,
+    );
+
+    const onPreApprove = vi.fn();
+    const onUserSignedApproval = vi.fn();
+    const onApproveTransactionSucceeded = vi.fn();
+    const onPreRequestRedeem = vi.fn();
+    const onUserSigned = vi.fn();
+    const onSucceeded = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("pre-approve", onPreApprove);
+    emitter.on("user-signed-approval", onUserSignedApproval);
+    emitter.on("approve-transaction-succeeded", onApproveTransactionSucceeded);
+    emitter.on("pre-request-redeem", onPreRequestRedeem);
+    emitter.on("user-signed-request-redeem", onUserSigned);
+    emitter.on("request-redeem-transaction-succeeded", onSucceeded);
+    emitter.on("request-redeem-settled", onSettled);
+
+    await promise;
+
+    expect(onPreApprove).toHaveBeenCalledOnce();
+    expect(onUserSignedApproval).toHaveBeenCalledExactlyOnceWith(zeroHash);
+    expect(onApproveTransactionSucceeded).toHaveBeenCalledExactlyOnceWith(
+      successReceipt,
+    );
+    expect(onPreRequestRedeem).toHaveBeenCalledOnce();
+    expect(onUserSigned).toHaveBeenCalledExactlyOnceWith(zeroHash);
+    expect(onSucceeded).toHaveBeenCalledExactlyOnceWith(successReceipt);
+    expect(approve).toHaveBeenCalledOnce();
+    expect(writeContract).toHaveBeenCalledOnce();
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("should emit 'user-signing-approval-error' when approval signing fails", async function () {
+    vi.mocked(getPeggedToken).mockResolvedValue(mockPeggedTokenAddress);
+    vi.mocked(allowance).mockResolvedValue(
+      validParameters.peggedTokenAmount - BigInt(1),
+    );
+    vi.mocked(approve).mockRejectedValue(new Error("Approval signing error"));
+
+    const { emitter, promise } = requestRedeem(
+      mockWalletClient,
+      validParameters,
+    );
+
+    const onPreApprove = vi.fn();
+    const onUserSigningApprovalError = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("pre-approve", onPreApprove);
+    emitter.on("user-signing-approval-error", onUserSigningApprovalError);
+    emitter.on("request-redeem-settled", onSettled);
+
+    await promise;
+
+    expect(onPreApprove).toHaveBeenCalledOnce();
+    expect(onUserSigningApprovalError).toHaveBeenCalledExactlyOnceWith(
+      expect.any(Error),
+    );
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("should emit 'approve-transaction-reverted' when approval transaction reverts", async function () {
+    const approvalReceipt = {
+      status: "reverted",
+    } as TransactionReceipt;
+
+    vi.mocked(getPeggedToken).mockResolvedValue(mockPeggedTokenAddress);
+    vi.mocked(allowance).mockResolvedValue(
+      validParameters.peggedTokenAmount - BigInt(1),
+    );
+    vi.mocked(approve).mockResolvedValue(zeroHash);
+    vi.mocked(waitForTransactionReceipt).mockResolvedValue(approvalReceipt);
+
+    const { emitter, promise } = requestRedeem(
+      mockWalletClient,
+      validParameters,
+    );
+
+    const onPreApprove = vi.fn();
+    const onUserSignedApproval = vi.fn();
+    const onApproveTransactionReverted = vi.fn();
+    const onPreRequestRedeem = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("pre-approve", onPreApprove);
+    emitter.on("user-signed-approval", onUserSignedApproval);
+    emitter.on("approve-transaction-reverted", onApproveTransactionReverted);
+    emitter.on("pre-request-redeem", onPreRequestRedeem);
+    emitter.on("request-redeem-settled", onSettled);
+
+    await promise;
+
+    expect(onPreApprove).toHaveBeenCalledOnce();
+    expect(onUserSignedApproval).toHaveBeenCalledExactlyOnceWith(zeroHash);
+    expect(onApproveTransactionReverted).toHaveBeenCalledExactlyOnceWith(
+      approvalReceipt,
+    );
+    expect(onPreRequestRedeem).not.toHaveBeenCalled();
+    expect(approve).toHaveBeenCalledOnce();
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("should emit 'request-redeem-failed' when approval receipt fails", async function () {
+    vi.mocked(getPeggedToken).mockResolvedValue(mockPeggedTokenAddress);
+    vi.mocked(allowance).mockResolvedValue(
+      validParameters.peggedTokenAmount - BigInt(1),
+    );
+    vi.mocked(approve).mockResolvedValue(zeroHash);
+    vi.mocked(waitForTransactionReceipt).mockRejectedValue(
+      new Error("Receipt error"),
+    );
+
+    const { emitter, promise } = requestRedeem(
+      mockWalletClient,
+      validParameters,
+    );
+
+    const onPreApprove = vi.fn();
+    const onUserSignedApproval = vi.fn();
+    const onRequestRedeemFailed = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("pre-approve", onPreApprove);
+    emitter.on("user-signed-approval", onUserSignedApproval);
+    emitter.on("request-redeem-failed", onRequestRedeemFailed);
+    emitter.on("request-redeem-settled", onSettled);
+
+    await promise;
+
+    expect(onPreApprove).toHaveBeenCalledOnce();
+    expect(onUserSignedApproval).toHaveBeenCalledExactlyOnceWith(zeroHash);
+    expect(onRequestRedeemFailed).toHaveBeenCalledExactlyOnceWith(
+      expect.any(Error),
+    );
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
   it("should emit 'user-signing-request-redeem-error' when signing fails", async function () {
+    vi.mocked(getPeggedToken).mockResolvedValue(mockPeggedTokenAddress);
+    vi.mocked(allowance).mockResolvedValue(validParameters.peggedTokenAmount);
     vi.mocked(writeContract).mockRejectedValue(new Error("Signing error"));
 
     const { emitter, promise } = requestRedeem(
@@ -183,6 +394,8 @@ describe("requestRedeem", function () {
   });
 
   it("should emit 'request-redeem-failed' when receipt fails", async function () {
+    vi.mocked(getPeggedToken).mockResolvedValue(mockPeggedTokenAddress);
+    vi.mocked(allowance).mockResolvedValue(validParameters.peggedTokenAmount);
     vi.mocked(writeContract).mockResolvedValue(zeroHash);
     vi.mocked(waitForTransactionReceipt).mockRejectedValue(
       new Error("Receipt error"),
@@ -216,6 +429,8 @@ describe("requestRedeem", function () {
       status: "reverted",
     } as TransactionReceipt;
 
+    vi.mocked(getPeggedToken).mockResolvedValue(mockPeggedTokenAddress);
+    vi.mocked(allowance).mockResolvedValue(validParameters.peggedTokenAmount);
     vi.mocked(writeContract).mockResolvedValue(zeroHash);
     vi.mocked(waitForTransactionReceipt).mockResolvedValue(receipt);
 
@@ -250,6 +465,8 @@ describe("requestRedeem", function () {
       status: "success",
     } as TransactionReceipt;
 
+    vi.mocked(getPeggedToken).mockResolvedValue(mockPeggedTokenAddress);
+    vi.mocked(allowance).mockResolvedValue(validParameters.peggedTokenAmount);
     vi.mocked(writeContract).mockResolvedValue(zeroHash);
     vi.mocked(waitForTransactionReceipt).mockResolvedValue(receipt);
 
@@ -278,6 +495,8 @@ describe("requestRedeem", function () {
   });
 
   it("should emit 'unexpected-error' when an unexpected error occurs", async function () {
+    vi.mocked(getPeggedToken).mockResolvedValue(mockPeggedTokenAddress);
+    vi.mocked(allowance).mockResolvedValue(validParameters.peggedTokenAmount);
     vi.mocked(writeContract).mockImplementation(function () {
       throw new Error("Unexpected");
     });

@@ -6,10 +6,12 @@ import {
   encodeFunctionData,
 } from "viem";
 import { waitForTransactionReceipt, writeContract } from "viem/actions";
+import { allowance, approve } from "viem-erc20/actions";
 
 import { gatewayAbi } from "../../abi/gatewayAbi.js";
 import { getGatewayAddress } from "../../getGatewayAddress.js";
 import type { RequestRedeemEvents } from "../../types.js";
+import { getPeggedToken } from "../public/getPeggedToken.js";
 
 export type RequestRedeemParams = {
   peggedTokenAmount: bigint;
@@ -79,6 +81,54 @@ const runRequestRedeem = (
 
       // already validated
       const gatewayAddress = getGatewayAddress(walletClient.chain!.id);
+
+      // Get the pegged token address
+      const peggedTokenAddress = await getPeggedToken(walletClient, {
+        address: gatewayAddress,
+      });
+
+      // Check current allowance for pegged token
+      const currentAllowance = await allowance(walletClient, {
+        address: peggedTokenAddress,
+        owner: walletClient.account!.address,
+        spender: gatewayAddress,
+      });
+
+      // If allowance is insufficient, approve first
+      if (currentAllowance < peggedTokenAmount) {
+        emitter.emit("pre-approve");
+
+        const approvalHash = await approve(walletClient, {
+          address: peggedTokenAddress,
+          amount: peggedTokenAmount,
+          spender: gatewayAddress,
+        }).catch(function (error: Error) {
+          emitter.emit("user-signing-approval-error", error);
+        });
+
+        if (!approvalHash) {
+          return;
+        }
+
+        emitter.emit("user-signed-approval", approvalHash);
+
+        const approvalReceipt = await waitForTransactionReceipt(walletClient, {
+          hash: approvalHash,
+        }).catch(function (error: Error) {
+          emitter.emit("request-redeem-failed", error);
+        });
+
+        if (!approvalReceipt) {
+          return;
+        }
+
+        if (approvalReceipt.status === "reverted") {
+          emitter.emit("approve-transaction-reverted", approvalReceipt);
+          return;
+        }
+
+        emitter.emit("approve-transaction-succeeded", approvalReceipt);
+      }
 
       emitter.emit("pre-request-redeem");
 
