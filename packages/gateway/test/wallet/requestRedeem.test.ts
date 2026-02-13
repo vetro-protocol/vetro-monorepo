@@ -258,7 +258,12 @@ describe("requestRedeem", function () {
     expect(onPreRequestRedeem).toHaveBeenCalledOnce();
     expect(onUserSigned).toHaveBeenCalledExactlyOnceWith(zeroHash);
     expect(onSucceeded).toHaveBeenCalledExactlyOnceWith(successReceipt);
-    expect(approve).toHaveBeenCalledOnce();
+    expect(approve).toHaveBeenCalledWith(
+      mockWalletClient,
+      expect.objectContaining({
+        amount: validParameters.peggedTokenAmount,
+      }),
+    );
     expect(writeContract).toHaveBeenCalledOnce();
     expect(onSettled).toHaveBeenCalledOnce();
   });
