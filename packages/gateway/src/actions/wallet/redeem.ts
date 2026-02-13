@@ -16,6 +16,7 @@ import { gatewayAbi } from "../../abi/gatewayAbi.js";
 import { getGatewayAddress } from "../../getGatewayAddress.js";
 import type { RedeemEvents } from "../../types.js";
 import { getPeggedToken } from "../public/getPeggedToken.js";
+import { isInstantRedeemWhitelisted } from "../public/isInstantRedeemWhitelisted.js";
 
 export type RedeemParams = {
   approveAmount?: bigint;
@@ -158,52 +159,66 @@ const runRedeem = (
       // already validated
       const gatewayAddress = getGatewayAddress(walletClient.chain!.id);
 
-      // Get the pegged token address
-      const peggedTokenAddress = await getPeggedToken(walletClient, {
+      // Check if user is whitelisted for instant redeem
+      const isWhitelisted = await isInstantRedeemWhitelisted(walletClient, {
+        account: walletClient.account!.address,
         address: gatewayAddress,
       });
 
-      // Check current allowance for pegged token
-      const currentAllowance = await allowance(walletClient, {
-        address: peggedTokenAddress,
-        owner: walletClient.account!.address,
-        spender: gatewayAddress,
-      });
+      // Approval is only needed for whitelisted users (instant redeem burns pegged tokens)
+      // and this requires enough allowance. For non-whitelisted users,
+      // the redeem function will just transfer the tokenOut to the user
+      if (isWhitelisted) {
+        // Get the pegged token address
+        const peggedTokenAddress = await getPeggedToken(walletClient, {
+          address: gatewayAddress,
+        });
 
-      // If allowance is insufficient, approve first
-      if (currentAllowance < peggedTokenIn) {
-        emitter.emit("pre-approve");
-
-        const approvalHash = await approve(walletClient, {
+        // Check current allowance for pegged token
+        const currentAllowance = await allowance(walletClient, {
           address: peggedTokenAddress,
-          amount: approveAmount,
+          owner: walletClient.account!.address,
           spender: gatewayAddress,
-        }).catch(function (error: Error) {
-          emitter.emit("user-signing-approval-error", error);
         });
 
-        if (!approvalHash) {
-          return;
+        // If allowance is insufficient, approve first
+        if (currentAllowance < peggedTokenIn) {
+          emitter.emit("pre-approve");
+
+          const approvalHash = await approve(walletClient, {
+            address: peggedTokenAddress,
+            amount: approveAmount,
+            spender: gatewayAddress,
+          }).catch(function (error: Error) {
+            emitter.emit("user-signing-approval-error", error);
+          });
+
+          if (!approvalHash) {
+            return;
+          }
+
+          emitter.emit("user-signed-approval", approvalHash);
+
+          const approvalReceipt = await waitForTransactionReceipt(
+            walletClient,
+            {
+              hash: approvalHash,
+            },
+          ).catch(function (error: Error) {
+            emitter.emit("redeem-failed", error);
+          });
+
+          if (!approvalReceipt) {
+            return;
+          }
+
+          if (approvalReceipt.status === "reverted") {
+            emitter.emit("approve-transaction-reverted", approvalReceipt);
+            return;
+          }
+
+          emitter.emit("approve-transaction-succeeded", approvalReceipt);
         }
-
-        emitter.emit("user-signed-approval", approvalHash);
-
-        const approvalReceipt = await waitForTransactionReceipt(walletClient, {
-          hash: approvalHash,
-        }).catch(function (error: Error) {
-          emitter.emit("redeem-failed", error);
-        });
-
-        if (!approvalReceipt) {
-          return;
-        }
-
-        if (approvalReceipt.status === "reverted") {
-          emitter.emit("approve-transaction-reverted", approvalReceipt);
-          return;
-        }
-
-        emitter.emit("approve-transaction-succeeded", approvalReceipt);
       }
 
       emitter.emit("pre-redeem");
