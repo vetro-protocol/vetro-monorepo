@@ -97,6 +97,7 @@
         "approve-title": "Aprobar en billetera",
         "confirm-description": "Revise los detalles y confirme el intercambio en su billetera.",
         "confirm-title": "Confirmar intercambio",
+        "retry": "Reintentar",
         "swap-progress": "Progreso del intercambio",
         "title": "Intercambio en progreso"
       },

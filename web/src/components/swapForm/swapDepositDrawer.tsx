@@ -25,7 +25,7 @@ const approveStepStatuses: Record<
   Exclude<DepositFlowStatus, "idle">,
   Step["status"]
 > = {
-  "approve-error": stepStatus.ready,
+  "approve-error": stepStatus.failed,
   approved: stepStatus.completed,
   approving: stepStatus.progress,
   "deposit-error": stepStatus.completed,
@@ -41,7 +41,7 @@ const confirmStepStatuses: Record<
   "approve-error": stepStatus.notReady,
   approved: stepStatus.notReady,
   approving: stepStatus.notReady,
-  "deposit-error": stepStatus.ready,
+  "deposit-error": stepStatus.failed,
   "deposit-ready": stepStatus.ready,
   deposited: stepStatus.completed,
   depositing: stepStatus.progress,
@@ -53,6 +53,7 @@ type Props = {
   fromToken: Token;
   networkFee: string;
   onClose: VoidFunction;
+  onRetry: VoidFunction;
   outputValue: string;
   protocolFee: string;
   showApproveStep: boolean;
@@ -66,6 +67,7 @@ export function SwapDepositDrawer({
   fromToken,
   networkFee,
   onClose,
+  onRetry,
   outputValue,
   protocolFee,
   showApproveStep,
@@ -83,6 +85,9 @@ export function SwapDepositDrawer({
     },
     [flowStatus, onClose],
   );
+
+  const isError =
+    flowStatus === "approve-error" || flowStatus === "deposit-error";
 
   const steps: Step[] = [
     {
@@ -107,6 +112,7 @@ export function SwapDepositDrawer({
           fromAmount={fromAmount}
           fromToken={fromToken}
           networkFee={networkFee}
+          onRetry={isError ? onRetry : undefined}
           outputValue={outputValue}
           protocolFee={protocolFee}
           steps={steps}
