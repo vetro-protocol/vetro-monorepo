@@ -13,6 +13,7 @@
   "dependencies": {
     "hono": "4.11.9",
     "simple-linear-regression": "1.0.3",
+    "tiny-fetch-json": "2.0.1",
     "tiny-post-json": "1.0.0"
   },
   "devDependencies": {

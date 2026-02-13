@@ -50,6 +50,9 @@ importers:
       simple-linear-regression:
         specifier: 1.0.3
         version: 1.0.3
+      tiny-fetch-json:
+        specifier: 2.0.1
+        version: 2.0.1
       tiny-post-json:
         specifier: 1.0.0
         version: 1.0.0
