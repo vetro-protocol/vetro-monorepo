@@ -1,3 +1,5 @@
+import fetchJson from "tiny-fetch-json";
+
 import { queryStringObjectToString } from "./querystring-object-to-string.ts";
 
 type MerklBreakdown = {
@@ -58,7 +60,7 @@ type MerklOpportunityResponse = {
   status: "LIVE" | "PAST";
 };
 
-const fetchMerkl = async function <R>(
+const fetchMerkl = function <R>(
   endpoint: string,
   options?: {
     query?: Record<string, string>;
@@ -66,9 +68,9 @@ const fetchMerkl = async function <R>(
 ): Promise<R> {
   const url =
     "https://api.merkl.xyz" +
-    `/v4${endpoint}${queryStringObjectToString(options?.query)}`;
-  const response = await fetch(url);
-  return response.json();
+    `/v4${endpoint}` +
+    `${queryStringObjectToString(options?.query)}`;
+  return fetchJson(url);
 };
 
 /**

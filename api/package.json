@@ -1,31 +1,25 @@
 {
   "name": "vetro-api",
   "version": "1.0.0",
-  "main": "server.ts",
   "scripts": {
+    "deploy": "wrangler deploy --env production",
     "deps:check": "knip",
-    "docker:build": "docker build --tag $npm_package_name:local .",
-    "docker:run": "docker run --interactive --publish 3000:3000 --rm --tty $npm_package_name:local",
-    "start": "node server.ts"
+    "dev": "wrangler dev",
+    "postinstall": "wrangler types",
+    "logs": "wrangler tail --env production",
+    "secret:set": "wrangler secret put SUBGRAPH_API_KEY --env production",
+    "types": "wrangler types"
   },
   "dependencies": {
-    "@sentry/core": "10.38.0",
-    "@sentry/node": "10.38.0",
-    "config": "4.2.0",
-    "cors": "2.8.6",
-    "dotenv": "17.2.3",
-    "express": "5.2.1",
-    "promise-limit-one": "1.1.0",
-    "promise-mem": "1.0.4",
-    "promise-swr": "1.0.2",
-    "safe-async-fn": "1.0.0",
+    "hono": "4.11.9",
     "simple-linear-regression": "1.0.3",
+    "tiny-fetch-json": "2.0.1",
     "tiny-post-json": "1.0.0"
   },
   "devDependencies": {
-    "@types/config": "3.3.5",
-    "@types/express": "5.0.6",
-    "@types/node": "24.1.0"
+    "@cloudflare/workers-types": "4.20260212.0",
+    "@types/node": "24.10.13",
+    "wrangler": "4.65.0"
   },
   "type": "module"
 }

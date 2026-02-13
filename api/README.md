@@ -68,15 +68,13 @@ Returns all user's variable stake exit tickets to i.e. allow claiming the withdr
 
 ## Configuration
 
-Use the following environment variables to configure the service:
+Environment variables are configured in `wrangler.jsonc`.
+Secrets are set separately using the Wrangler CLI.
 
 | Variable              | Description                                   | Default                 |
 | --------------------- | --------------------------------------------- | ----------------------- |
 | MERKL_OPPORTUNITY_ID  | The Merkl opportunity id to look for rewards. |                         |
 | ORIGINS               | Comma-separated list of allowed origins. (1)  | `http://localhost:5173` |
-| PORT                  | Port for the server.                          | 3000                    |
-| SENTRY_DSN            | Sentry DSN.                                   |                         |
-| SENTRY_LOGGING_LEVELS | Log levels (props of console as JSON).        | ["log","warn","error"]  |
 | SUBGRAPH_API_KEY      | The subgraph API key.                         |                         |
 | SUBGRAPH_ID           | The subgraph id.                              |                         |
 | SUBGRAPH_URL_TEMPLATE | The subgraph URL template. (2)                | (localhost)             |
@@ -86,15 +84,29 @@ Use the following environment variables to configure the service:
 
 ## Local development
 
-Create a `.env` file to configure the service. Then run:
+Set secrets in a `.dev.vars` environment variables file.
+Then start the local Cloudflare Workers dev server:
 
 ```sh
-pnpm start
+pnpm dev
 ```
 
-Alternatively, build a Docker image and run the container:
+## Deployment
+
+Set the production secret (once):
 
 ```sh
-pnpm run docker:build
-pnpm run docker:run
+pnpm secret:set
+```
+
+Deploy to Cloudflare Workers:
+
+```sh
+pnpm deploy
+```
+
+View real-time logs:
+
+```sh
+pnpm logs
 ```

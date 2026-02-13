@@ -1,4 +1,3 @@
-import config from "config";
 import linearRegression from "simple-linear-regression";
 
 import * as merkl from "./merkl.ts";
@@ -11,7 +10,7 @@ const secsPerDay = 86400;
  * Query the subgraph. Get the last 7 days of data. Compute the APY using a
  * linear regression and getting the slope.
  */
-export async function getApy() {
+export async function getApy({ url }: { url: string }) {
   const query = `
       query(
         $end: BigInt!,
@@ -28,7 +27,7 @@ export async function getApy() {
           shareValue
         }
       }
-    `.replace(/\s+/g, "");
+    `.replace(/\s+/g, " ");
   const end = Math.floor(Date.now() / 1000);
   const start = end - (7 + 1) * secsPerDay + 1; // Window is 8 days to get 7 data points
   const variables = {
@@ -37,7 +36,7 @@ export async function getApy() {
   };
   const { vaultHistories } = await subgraph.runQuery<{
     vaultHistories: { timestamp: string; shareValue: string }[];
-  }>(query, variables);
+  }>(url, query, variables);
   if (!Array.isArray(vaultHistories)) {
     throw new Error("Invalid subgraph response for vault history");
   }
@@ -54,6 +53,12 @@ export async function getApy() {
     parseBigIntStringToFloat(h.shareValue, 18),
   );
   const delta = linearRegression(days, values).a;
+  if (Number.isNaN(delta)) {
+    return {
+      "7d": 0,
+    };
+  }
+
   const apy = ((delta * 365) / values[values.length - 1]) * 100;
   return {
     "7d": apy,
@@ -64,8 +69,13 @@ export async function getApy() {
  * Gets all the Merkl rewards for the user that are associated with the Vetro
  * opportunity.
  */
-export async function getUserRewards({ address }: { address: `0x${string}` }) {
-  const opportunityId = config.get<string | undefined>("merkl.opportunityId");
+export async function getUserRewards({
+  address,
+  opportunityId,
+}: {
+  address: `0x${string}`;
+  opportunityId?: string;
+}) {
   if (!opportunityId) {
     return [];
   }
@@ -102,8 +112,10 @@ type ExitTicket = {
  */
 export async function getUserExitTickets({
   address,
+  url,
 }: {
   address: string;
+  url: string;
 }): Promise<ExitTicket[]> {
   const query = `
       query(
@@ -126,13 +138,13 @@ export async function getUserExitTickets({
           shares
         }
       }
-    `.replace(/\s+/g, "");
+    `.replace(/\s+/g, " ");
   const variables = {
     owner: address.toLowerCase(),
   };
   const { exitTickets } = await subgraph.runQuery<{
     exitTickets: ExitTicket[];
-  }>(query, variables);
+  }>(url, query, variables);
   if (!Array.isArray(exitTickets)) {
     throw new Error(`Invalid subgraph response for exit tickets of ${address}`);
   }

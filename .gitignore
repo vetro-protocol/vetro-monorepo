@@ -63,4 +63,4 @@ subgraph/tests/.bin/
 subgraph/tests/.latest.json
 
 # API
-api/.env
+api/worker-configuration.d.ts

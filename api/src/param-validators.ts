@@ -1,20 +1,15 @@
-import type { Request, Response, NextFunction } from "express";
+import type { Context, Next } from "hono";
 
 /**
  * Middleware to validate that the "address" route parameter is a valid
- * Ethereum address. If invalid, the request is skipped to the next route.
+ * Ethereum address. If invalid, returns a 404 response.
  */
-export function validateAddress(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  const { address } = req.params;
+export async function validateAddress(c: Context, next: Next) {
+  const address = c.req.param("address");
   const isValid =
     typeof address === "string" && /^0x[a-f0-9]{40}$/i.test(address);
   if (!isValid) {
-    next("route");
-    return;
+    return c.json({ error: "Not Found" }, 404);
   }
-  next();
+  return next();
 }

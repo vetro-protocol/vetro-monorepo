@@ -1,25 +1,19 @@
-import config from "config";
-
-import postToJsonApi from "./post-to-json-api.ts";
+import postJson from "tiny-post-json";
 
 type GraphQLResponse<T> = {
   data?: T;
   errors?: { message: string }[];
 };
 
-const url = config
-  .get<string>("subgraph.urlTemplate")
-  .replace("$API_KEY", config.get<string>("subgraph.apiKey"))
-  .replace("$ID", config.get<string>("subgraph.id"));
-
 export async function runQuery<R>(
+  url: string,
   query: string,
   variables: Record<string, unknown>,
 ): Promise<R> {
-  const response = await postToJsonApi<GraphQLResponse<R>>(url, {
+  const response = (await postJson(url, {
     query,
     variables,
-  });
+  })) as GraphQLResponse<R>;
   if (!response) {
     throw new Error("No response from subgraph");
   }
