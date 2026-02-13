@@ -3,6 +3,7 @@ import { useNeedsApproval } from "@hemilabs/react-hooks/useNeedsApproval";
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
 import { getGatewayAddress } from "@vetro/gateway";
 import { ApproveSection } from "components/approveSection";
+import { Toast } from "components/base/toast";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenDropdown } from "components/tokenDropdown";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
@@ -57,6 +58,7 @@ export function Deposit({
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const handleDrawerClose = useCallback(() => setIsDrawerOpen(false), []);
   const [flowStatus, setFlowStatus] = useState<DepositFlowStatus>("idle");
+  const [showToast, setShowToast] = useState(false);
   // Captures whether approval was needed when the flow started, because
   // useNeedsApproval flips to false after a successful approval tx.
   const [startedWithApproval, setStartedWithApproval] = useState(false);
@@ -104,9 +106,10 @@ export function Deposit({
       );
       emitter.on("pre-deposit", () => setFlowStatus("deposit-ready"));
       emitter.on("user-signed-deposit", () => setFlowStatus("depositing"));
-      emitter.on("deposit-transaction-succeeded", () =>
-        setFlowStatus("deposited"),
-      );
+      emitter.on("deposit-transaction-succeeded", function () {
+        setFlowStatus("deposited");
+        setShowToast(true);
+      });
       emitter.on("deposit-transaction-reverted", () =>
         setFlowStatus("deposit-error"),
       );
@@ -207,6 +210,14 @@ export function Deposit({
           showApproveStep={startedWithApproval}
           toToken={toToken}
           totalFees={totalFeesDisplay}
+        />
+      )}
+      {showToast && (
+        <Toast
+          closable
+          description={t("pages.swap.toast.deposit-description")}
+          onClose={() => setShowToast(false)}
+          title={t("pages.swap.toast.deposit-title")}
         />
       )}
     </>
