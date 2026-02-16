@@ -172,7 +172,10 @@ export function Dropdown<T>(props: DropdownProps<T>) {
             role={listRole}
           >
             {menuLabel && (
-              <div className="text-xsm px-3 py-2 font-medium text-gray-500">
+              <div
+                className="text-xsm px-3 py-2 font-medium text-gray-500"
+                role="presentation"
+              >
                 {menuLabel}
               </div>
             )}
