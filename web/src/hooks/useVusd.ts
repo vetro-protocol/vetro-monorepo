@@ -12,8 +12,8 @@ const vusdQueryKey = (chainId: Chain["id"] | undefined) => ["vusd", chainId];
 // TODO these are hardcoded for testing, but will be updated
 // later with final addresses. There isn't a vusd for testing either
 const initialVusd: Token = {
-  // mainnet VUSD address in ethereum
-  address: "0x677ddbd918637E5F2c79e164D402454dE7dA8619",
+  // TODO replace with mainnet VUSD address in ethereum once we go live
+  address: "0xB94724aa74A0296447D13a63A35B050b7F137C6d",
   chainId: mainnet.id,
   decimals: 18,
   logoURI: "https://hemilabs.github.io/token-list/l1Logos/vusd.svg",
