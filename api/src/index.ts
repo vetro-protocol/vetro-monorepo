@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { cache } from "hono/cache";
 import { cors } from "hono/cors";
 
-import { type Env, getSubgraphUrl } from "./env.ts";
+import { getSubgraphUrl } from "./env.ts";
 import { validateAddress } from "./param-validators.ts";
 import { createOriginFn, parseOrigins } from "./validate-origin.ts";
 import * as variableStake from "./variable-stake.ts";

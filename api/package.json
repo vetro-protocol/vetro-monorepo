@@ -1,14 +1,11 @@
 {
-  "name": "vetro-api",
+  "name": "@vetro/api",
   "version": "1.0.0",
   "scripts": {
-    "deploy": "wrangler deploy --env production",
     "deps:check": "knip",
     "dev": "wrangler dev",
-    "postinstall": "wrangler types",
-    "logs": "wrangler tail --env production",
-    "secret:set": "wrangler secret put SUBGRAPH_API_KEY --env production",
-    "types": "wrangler types"
+    "types": "wrangler types",
+    "types:check": "pnpm types && tsc"
   },
   "dependencies": {
     "hono": "4.11.9",
@@ -17,9 +14,10 @@
     "tiny-post-json": "1.0.0"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "4.20260212.0",
     "@types/node": "24.10.13",
+    "typescript": "5.9.3",
     "wrangler": "4.65.0"
   },
+  "private": true,
   "type": "module"
 }

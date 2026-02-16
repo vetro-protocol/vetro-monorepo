@@ -1,10 +1,15 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "vetro-api",
   "main": "src/index.ts",
-  "compatibility_date": "2025-03-20",
+  "compatibility_date": "2026-02-16",
+  "workers_dev": false,
+  "preview_urls": true,
+  "upload_source_maps": true,
   "observability": {
     "enabled": true,
+    "traces": {
+      "enabled": true,
+    },
   },
   "vars": {
     "MERKL_OPPORTUNITY_ID": "",
@@ -17,13 +22,23 @@
     "staging": {
       "name": "vetro-api-staging",
       "vars": {
+        "MERKL_OPPORTUNITY_ID": "",
         "SUBGRAPH_ID": "7vnTMFYNE6Nv7RTeoaog4QgqQ3bwZTFoPUGv2gcmTxJ6",
         "SUBGRAPH_URL_TEMPLATE": "https://gateway.thegraph.com/api/$API_KEY/subgraphs/id/$ID",
       },
     },
     "production": {
       "name": "vetro-api",
+      "observability": {
+        "enabled": true,
+        "head_sampling_rate": 0.1,
+        "traces": {
+          "enabled": true,
+          "head_sampling_rate": 0.1,
+        },
+      },
       "vars": {
+        "MERKL_OPPORTUNITY_ID": "",
         "ORIGINS": "https://app.vetro.com",
         "SUBGRAPH_ID": "7vnTMFYNE6Nv7RTeoaog4QgqQ3bwZTFoPUGv2gcmTxJ6",
         "SUBGRAPH_URL_TEMPLATE": "https://gateway.thegraph.com/api/$API_KEY/subgraphs/id/$ID",
