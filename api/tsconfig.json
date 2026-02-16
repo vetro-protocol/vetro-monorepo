@@ -19,7 +19,7 @@
     "strict": true,
     "erasableSyntaxOnly": true,
     "useUnknownInCatchVariables": false,
-    "skipLibCheck": true,
+    "skipLibCheck": true
   },
   "exclude": ["node_modules", "dist", "test"],
   "include": ["**/*.ts"]
