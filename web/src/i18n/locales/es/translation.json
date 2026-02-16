@@ -107,6 +107,11 @@
         "deposit-description": "VUSD disponible en su billetera",
         "deposit-title": "Depósito confirmado"
       }
+    },
+    "wallet": {
+      "recent-activity": "Actividad reciente",
+      "view-operations-from": "Ver operaciones de:",
+      "view-settings": "Ver ajustes"
     }
   }
 }
