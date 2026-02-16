@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 
 import { useMenuPosition } from "../../../hooks/useMenuPosition";
 
@@ -51,9 +52,14 @@ export function Dropdown<T>(props: DropdownProps<T>) {
   const triggerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
-  const containerRef = useOnClickOutside<HTMLDivElement>(() =>
-    setIsOpen(false),
-  );
+  const containerRef = useOnClickOutside<HTMLDivElement>(function (e) {
+    // The list is portaled to document.body, so it's not a DOM child
+    // of the container. Ignore clicks inside the portaled list.
+    if (listRef.current?.contains(e.target as Node)) {
+      return;
+    }
+    setIsOpen(false);
+  });
 
   useMenuPosition({ isOpen, listRef, triggerRef });
 
@@ -154,35 +160,38 @@ export function Dropdown<T>(props: DropdownProps<T>) {
         {renderTrigger(isOpen)}
       </div>
 
-      {isOpen && (
-        <div
-          aria-labelledby={triggerId}
-          className="fixed z-10 min-w-3xs overflow-y-auto rounded-lg bg-white p-1 shadow-xl"
-          ref={listRef}
-          role={listRole}
-        >
-          {items.map(function (item, index) {
-            const isSelected = isItemSelected(item);
-            const isFocused = index === focusedIndex;
+      {isOpen &&
+        createPortal(
+          <div
+            aria-labelledby={triggerId}
+            className="fixed z-30 min-w-3xs overflow-y-auto rounded-lg bg-white p-1 shadow-xl"
+            onMouseDown={(e) => e.stopPropagation()}
+            ref={listRef}
+            role={listRole}
+          >
+            {items.map(function (item, index) {
+              const isSelected = isItemSelected(item);
+              const isFocused = index === focusedIndex;
 
-            return (
-              <div
-                {...(multi
-                  ? { "aria-checked": isSelected }
-                  : { "aria-selected": isSelected })}
-                className={`text-xsm flex cursor-pointer items-center rounded px-3 py-2 ${isFocused ? "bg-gray-100" : "hover:bg-gray-50"}`}
-                key={getItemKey(item)}
-                onClick={() => handleItemClick(item)}
-                role={itemRole}
-              >
-                <div className="flex w-full items-center justify-between gap-2 font-medium text-gray-900">
-                  {renderItem(item, isSelected)}
+              return (
+                <div
+                  {...(multi
+                    ? { "aria-checked": isSelected }
+                    : { "aria-selected": isSelected })}
+                  className={`text-xsm flex cursor-pointer items-center rounded px-3 py-2 ${isFocused ? "bg-gray-100" : "hover:bg-gray-50"}`}
+                  key={getItemKey(item)}
+                  onClick={() => handleItemClick(item)}
+                  role={itemRole}
+                >
+                  <div className="flex w-full items-center justify-between gap-2 font-medium text-gray-900">
+                    {renderItem(item, isSelected)}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
