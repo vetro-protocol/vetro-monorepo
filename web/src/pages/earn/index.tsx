@@ -2,6 +2,7 @@ import { PageTitle } from "components/base/pageTitle";
 import { useTranslation } from "react-i18next";
 
 import { EarnStats } from "./components/earnStats";
+import { ExitTickets } from "./components/exitTickets";
 import { PoolInfoBar } from "./components/poolInfoBar";
 import { StripedDivider } from "./components/stripedDivider";
 
@@ -18,6 +19,7 @@ export function Earn() {
       <div className="border-b border-gray-200 bg-gray-100 p-2">
         <StripedDivider />
       </div>
+      <ExitTickets />
     </>
   );
 }

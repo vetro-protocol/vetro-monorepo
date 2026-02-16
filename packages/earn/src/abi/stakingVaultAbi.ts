@@ -130,4 +130,17 @@ export const stakingVaultAbi = [
     stateMutability: "nonpayable",
     type: "function",
   },
+  // Events
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: "owner", type: "address" },
+      { indexed: true, name: "requestId", type: "uint256" },
+      { indexed: false, name: "shares", type: "uint256" },
+      { indexed: false, name: "assets", type: "uint256" },
+      { indexed: false, name: "claimableAt", type: "uint256" },
+    ],
+    name: "WithdrawRequested",
+    type: "event",
+  },
 ] as const;

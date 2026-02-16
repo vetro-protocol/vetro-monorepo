@@ -1,0 +1,25 @@
+import { useVusd } from "hooks/useVusd";
+import { useTranslation } from "react-i18next";
+import { formatAmount } from "utils/token";
+
+import type { ExitTicket } from "../../types";
+
+type Props = {
+  ticket: ExitTicket;
+};
+
+export function WithdrawalCell({ ticket }: Props) {
+  const { t } = useTranslation();
+  const { data: vusd } = useVusd();
+  const amount = formatAmount({
+    amount: BigInt(ticket.assets),
+    decimals: vusd?.decimals ?? 18,
+    isError: false,
+  });
+
+  return (
+    <span className="text-xsm font-medium text-gray-900">
+      {t("pages.earn.exit-tickets.withdrawal-amount", { amount })}
+    </span>
+  );
+}
