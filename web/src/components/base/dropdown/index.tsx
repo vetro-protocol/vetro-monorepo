@@ -14,6 +14,7 @@ type BaseProps<T> = {
   getItemKey: (item: T) => string;
   items: T[];
   matchTriggerWidth?: boolean;
+  menuLabel?: string;
   renderItem: (item: T, isSelected: boolean) => ReactNode;
   renderTrigger: (isOpen: boolean) => ReactNode;
   triggerId: string;
@@ -42,6 +43,7 @@ export function Dropdown<T>(props: DropdownProps<T>) {
     getItemKey,
     items,
     matchTriggerWidth = false,
+    menuLabel,
     renderItem,
     renderTrigger,
     triggerId,
@@ -169,6 +171,11 @@ export function Dropdown<T>(props: DropdownProps<T>) {
             ref={listRef}
             role={listRole}
           >
+            {menuLabel && (
+              <div className="text-xsm px-3 py-2 font-medium text-gray-500">
+                {menuLabel}
+              </div>
+            )}
             {items.map(function (item, index) {
               const isSelected = isItemSelected(item);
               const isFocused = index === focusedIndex;

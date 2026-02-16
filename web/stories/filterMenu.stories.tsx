@@ -43,6 +43,23 @@ export const Default: Story = {
   },
 };
 
+export const WithMenuLabel: Story = {
+  render: function Component() {
+    const [selected, setSelected] = useState(["pending", "completed"]);
+
+    return (
+      <FilterMenu
+        icon={<TableCellsIcon />}
+        label="View settings"
+        menuLabel="View operations from:"
+        onChange={setSelected}
+        options={withdrawalOptions}
+        selectedValues={selected}
+      />
+    );
+  },
+};
+
 export const NoneSelected: Story = {
   render: function Component() {
     const [selected, setSelected] = useState<string[]>([]);
@@ -67,6 +84,7 @@ export const ManyOptions: Story = {
       <FilterMenu
         icon={<TableCellsIcon />}
         label="View settings"
+        menuLabel="View operations from:"
         onChange={setSelected}
         options={[
           { label: "Pending withdrawals", value: "pending" },
