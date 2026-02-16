@@ -1,3 +1,4 @@
+// @ts-expect-error Type declarations are not available for this dependency.
 import linearRegression from "simple-linear-regression";
 
 import * as merkl from "./merkl.ts";
