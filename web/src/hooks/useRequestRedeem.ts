@@ -19,20 +19,19 @@ export const useRequestRedeem = function ({
   shares: bigint;
 }) {
   const { address: account } = useAccount();
-  const chain = useMainnet();
   const { data: walletClient } = useEthereumWalletClient();
   const ensureConnectedTo = useEnsureConnectedTo();
   const ethereumChain = useMainnet();
   const { queryKey: nativeBalanceKey } = useNativeBalance(ethereumChain.id);
   const queryClient = useQueryClient();
-  const stakingVaultAddress = getStakingVaultAddress(chain.id);
+  const stakingVaultAddress = getStakingVaultAddress(ethereumChain.id);
 
   const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
     ethereumChain.id,
   );
 
   const sharesBalanceKey = tokenBalanceQueryKey(
-    { address: stakingVaultAddress, chainId: chain.id },
+    { address: stakingVaultAddress, chainId: ethereumChain.id },
     account,
   );
 
@@ -42,7 +41,7 @@ export const useRequestRedeem = function ({
         throw new Error("No account connected");
       }
 
-      await ensureConnectedTo(chain.id);
+      await ensureConnectedTo(ethereumChain.id);
 
       const { emitter, promise } = requestRedeem(walletClient!, {
         owner: account,
