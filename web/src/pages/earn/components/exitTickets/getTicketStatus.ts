@@ -1,7 +1,7 @@
 import type { ExitTicket } from "../../types";
 
 export function getTicketStatus(ticket: ExitTicket) {
-  if (ticket.claimTxHash !== null) {
+  if (ticket.claimTxHash) {
     return "withdrawn";
   }
   const now = Math.floor(Date.now() / 1000);

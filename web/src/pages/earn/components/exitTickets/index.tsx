@@ -10,6 +10,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { formatDate } from "utils/date";
 
+import { useCooldownDuration } from "../../hooks/useCooldownDuration";
 import { useExitTickets } from "../../hooks/useExitTickets";
 import type { ExitTicket } from "../../types";
 
@@ -27,13 +28,20 @@ const statusLabels = {
 } as const;
 
 const getColumns = (
+  cooldownDuration: bigint | undefined,
   language: string,
   t: ReturnType<typeof useTranslation>["t"],
 ): ColumnDef<ExitTicket>[] => [
   {
     cell: ({ row }) => (
       <span className="text-xsm font-normal text-gray-500">
-        {formatDate(row.original.claimableAt, language)}
+        {/* Derive creation date by subtracting cooldown duration from claimableAt */}
+        {cooldownDuration !== undefined
+          ? formatDate(
+              Number(row.original.claimableAt) - Number(cooldownDuration),
+              language,
+            )
+          : "-"}
       </span>
     ),
     header: () => (
@@ -81,6 +89,7 @@ const getColumns = (
 ];
 
 export function ExitTickets() {
+  const { data: cooldownDuration } = useCooldownDuration();
   const { data, isLoading } = useExitTickets();
   const { i18n, t } = useTranslation();
   const [selectedFilters, setSelectedFilters] = useState([
@@ -103,8 +112,8 @@ export function ExitTickets() {
   );
 
   const columns = useMemo(
-    () => getColumns(i18n.language, t),
-    [i18n.language, t],
+    () => getColumns(cooldownDuration, i18n.language, t),
+    [cooldownDuration, i18n.language, t],
   );
 
   // Filter and sort data based on selected filters and ticket status
@@ -128,7 +137,7 @@ export function ExitTickets() {
           return false;
         })
         .sort(function (a, b) {
-          // Ready tickets first, then sort by claimableAt date (soonest first)
+          // Ready tickets first, then most recent first
           const aReady = getTicketStatus(a) === "ready" ? 0 : 1;
           const bReady = getTicketStatus(b) === "ready" ? 0 : 1;
           if (aReady !== bReady) {

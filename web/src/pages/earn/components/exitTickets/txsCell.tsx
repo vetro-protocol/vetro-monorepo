@@ -1,8 +1,8 @@
 import { Badge } from "components/base/badge";
 import { Tooltip } from "components/tooltip";
 import { useTranslation } from "react-i18next";
-import { formatEvmAddress } from "utils/format";
-import type { Address } from "viem";
+import { formatEvmHash } from "utils/format";
+import type { Hash } from "viem";
 
 import type { ExitTicket } from "../../types";
 
@@ -17,7 +17,7 @@ const ExternalLinkIcon = () => (
   </svg>
 );
 
-const TxRow = ({ hash, label }: { hash: string; label: string }) => (
+const TxRow = ({ hash, label }: { hash: Hash; label: string }) => (
   <div className="flex items-center justify-between gap-4">
     <span className="text-xsm font-medium text-gray-400">{label}</span>
     <a
@@ -27,7 +27,7 @@ const TxRow = ({ hash, label }: { hash: string; label: string }) => (
       rel="noopener noreferrer"
       target="_blank"
     >
-      {formatEvmAddress(hash as Address)}
+      {formatEvmHash(hash)}
       <ExternalLinkIcon />
     </a>
   </div>
