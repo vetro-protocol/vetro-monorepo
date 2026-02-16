@@ -3,9 +3,10 @@ import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
 import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpdateNativeBalanceAfterReceipt";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { getStakingVaultAddress } from "@vetro/earn";
+import { getStakingVaultAddress, stakingVaultAbi } from "@vetro/earn";
 import { requestWithdraw } from "@vetro/earn/actions";
-import type { TransactionReceipt } from "viem";
+import type { ExitTicket } from "pages/earn/types";
+import { type TransactionReceipt, parseEventLogs } from "viem";
 import { useAccount } from "wagmi";
 
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
@@ -87,6 +88,33 @@ export const useStakeWithdraw = function ({
           queryClient.setQueryData(stakedKey, (old: bigint | undefined) =>
             old !== undefined ? old - assets : old,
           );
+
+          // Optimistically add exit ticket to cache
+          const logs = parseEventLogs({
+            abi: stakingVaultAbi,
+            eventName: "WithdrawRequested",
+            logs: receipt.logs,
+          });
+
+          if (logs.length > 0) {
+            const { args } = logs[0];
+            const ticket: ExitTicket = {
+              assets: args.assets.toString(),
+              cancelTxHash: null,
+              claimableAt: args.claimableAt.toString(),
+              claimTxHash: null,
+              owner: args.owner,
+              receiver: null,
+              requestId: args.requestId.toString(),
+              requestTxHash: receipt.transactionHash,
+              shares: args.shares.toString(),
+            };
+
+            queryClient.setQueryData(
+              ["exit-tickets", account],
+              (old: ExitTicket[] | undefined) => [ticket, ...(old ?? [])],
+            );
+          }
         },
       );
 
@@ -105,6 +133,10 @@ export const useStakeWithdraw = function ({
 
       queryClient.invalidateQueries({
         queryKey: stakedKey,
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["exit-tickets", account],
       });
     },
   });

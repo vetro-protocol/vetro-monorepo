@@ -1,0 +1,184 @@
+import { useWindowSize } from "@hemilabs/react-hooks/useWindowSize";
+import {
+  type ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { type ReactNode, useMemo } from "react";
+import Skeleton from "react-loading-skeleton";
+
+import { Column } from "./column";
+import { ColumnHeader } from "./columnHeader";
+
+const getColumnOrder = function <T>({
+  columns,
+  priorityColumnIds = [],
+  width,
+}: {
+  columns: ColumnDef<T>[];
+  priorityColumnIds?: string[];
+  width: number;
+}) {
+  // 768px = md breakpoint
+  if (width >= 768 || priorityColumnIds.length === 0) {
+    return undefined;
+  }
+  return [
+    ...priorityColumnIds,
+    ...columns
+      .filter((c) => c.id)
+      .map((c) => c.id!)
+      .filter((id) => !priorityColumnIds.includes(id)),
+  ];
+};
+
+type Props<TData> = {
+  columns: ColumnDef<TData>[];
+  data: TData[];
+  loading?: boolean;
+  maxBodyHeight?: string;
+  placeholder?: ReactNode;
+  priorityColumnIdsOnSmall?: string[];
+};
+
+export function Table<TData>({
+  columns,
+  data,
+  loading = false,
+  maxBodyHeight,
+  placeholder,
+  priorityColumnIdsOnSmall,
+}: Props<TData>) {
+  const { width } = useWindowSize();
+
+  const showSkeleton = data.length === 0 && loading;
+
+  const columnsWithSkeleton = useMemo(
+    () =>
+      columns.map((col) =>
+        showSkeleton
+          ? {
+              ...col,
+              cell: () => (
+                <div className="w-16">
+                  <Skeleton height={16} />
+                </div>
+              ),
+            }
+          : col,
+      ),
+    [columns, showSkeleton],
+  );
+
+  const skeletonData = useMemo(() => new Array(4).fill(null) as TData[], []);
+
+  const columnOrder = getColumnOrder({
+    columns: columnsWithSkeleton,
+    priorityColumnIds: priorityColumnIdsOnSmall,
+    width,
+  });
+
+  const table = useReactTable({
+    columns: columnsWithSkeleton,
+    data: data.length > 0 ? data : showSkeleton ? skeletonData : [],
+    getCoreRowModel: getCoreRowModel(),
+    state: { columnOrder: columnOrder ?? undefined },
+  });
+
+  const isMobileReordered = columnOrder !== undefined;
+  const prioritySet = useMemo(
+    () => new Set(priorityColumnIdsOnSmall ?? []),
+    [priorityColumnIdsOnSmall],
+  );
+
+  function getColumnClassName(columnId: string, meta?: string) {
+    if (isMobileReordered && prioritySet.has(columnId)) {
+      return "justify-start";
+    }
+    return meta ?? "justify-start";
+  }
+
+  const showPlaceholder = data.length === 0 && !loading && placeholder;
+
+  return (
+    <div
+      className="max-w-[100vw] overflow-x-auto"
+      style={{
+        scrollbarColor: "#d4d4d4 transparent",
+        scrollbarWidth: "thin",
+      }}
+    >
+      <div className="min-w-max">
+        {/* Header */}
+        <div className="border-b border-gray-200 bg-gray-100">
+          <table className="w-full border-separate border-spacing-0 whitespace-nowrap">
+            <thead>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <tr
+                  className="flex w-full items-center px-16"
+                  key={headerGroup.id}
+                >
+                  {headerGroup.headers.map((header) => (
+                    <ColumnHeader
+                      className={getColumnClassName(
+                        header.column.id,
+                        header.column.columnDef.meta?.className,
+                      )}
+                      key={header.id}
+                      style={{ width: header.column.columnDef.meta?.width }}
+                    >
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
+                    </ColumnHeader>
+                  ))}
+                </tr>
+              ))}
+            </thead>
+          </table>
+        </div>
+        {/* Body */}
+        {!showPlaceholder && (
+          <div
+            className="overflow-y-auto border-b border-gray-200"
+            style={{
+              maxHeight: maxBodyHeight,
+              scrollbarColor: "#d4d4d4 transparent",
+              scrollbarWidth: "thin",
+            }}
+          >
+            <table className="w-full border-separate border-spacing-0 whitespace-nowrap">
+              <tbody>
+                {table.getRowModel().rows.map((row) => (
+                  <tr
+                    className="flex w-full items-center border-b border-gray-200 px-16"
+                    key={row.id}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <Column
+                        className={getColumnClassName(
+                          cell.column.id,
+                          cell.column.columnDef.meta?.className,
+                        )}
+                        key={cell.id}
+                        style={{ width: cell.column.columnDef.meta?.width }}
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </Column>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+      {showPlaceholder && placeholder}
+    </div>
+  );
+}
