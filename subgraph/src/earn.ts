@@ -30,7 +30,7 @@ export function handleBlock(block: ethereum.Block): void {
 }
 
 export function handleWithdrawRequested(event: WithdrawRequested): void {
-  const id = `${event.transaction.hash.toHex()}-${event.logIndex.toString()}`;
+  const id = event.params.requestId.toString();
   const entity = new ExitTicket(id);
 
   entity.owner = event.params.owner;
@@ -45,7 +45,7 @@ export function handleWithdrawRequested(event: WithdrawRequested): void {
 }
 
 export function handleWithdrawCancelled(event: WithdrawCancelled): void {
-  const id = `${event.transaction.hash.toHex()}-${event.logIndex.toString()}`;
+  const id = event.params.requestId.toString();
   const entity = ExitTicket.load(id);
   if (entity == null) {
     return;
@@ -57,7 +57,7 @@ export function handleWithdrawCancelled(event: WithdrawCancelled): void {
 }
 
 export function handleWithdrawClaimed(event: WithdrawClaimed): void {
-  const id = `${event.transaction.hash.toHex()}-${event.logIndex.toString()}`;
+  const id = event.params.requestId.toString();
   const entity = ExitTicket.load(id);
   if (entity == null) {
     return;
