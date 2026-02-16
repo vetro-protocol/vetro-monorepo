@@ -5,6 +5,7 @@ import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpd
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { getStakingVaultAddress, stakingVaultAbi } from "@vetro/earn";
 import { requestWithdraw } from "@vetro/earn/actions";
+import { exitTicketsQueryKey } from "pages/earn/hooks/useExitTickets";
 import type { ExitTicket } from "pages/earn/types";
 import { type TransactionReceipt, parseEventLogs } from "viem";
 import { useAccount } from "wagmi";
@@ -100,18 +101,15 @@ export const useStakeWithdraw = function ({
             const { args } = logs[0];
             const ticket: ExitTicket = {
               assets: args.assets.toString(),
-              cancelTxHash: null,
               claimableAt: args.claimableAt.toString(),
-              claimTxHash: null,
               owner: args.owner,
-              receiver: null,
               requestId: args.requestId.toString(),
               requestTxHash: receipt.transactionHash,
               shares: args.shares.toString(),
             };
 
             queryClient.setQueryData(
-              ["exit-tickets", account],
+              exitTicketsQueryKey(account),
               (old: ExitTicket[] | undefined) => [ticket, ...(old ?? [])],
             );
           }
@@ -136,7 +134,7 @@ export const useStakeWithdraw = function ({
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["exit-tickets", account],
+        queryKey: exitTicketsQueryKey(account),
       });
     },
   });

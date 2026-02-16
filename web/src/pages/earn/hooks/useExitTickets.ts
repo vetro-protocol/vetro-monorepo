@@ -7,6 +7,9 @@ import type { ExitTicket } from "../types";
 
 const apiUrl = import.meta.env.VITE_VETRO_API_URL;
 
+export const exitTicketsQueryKey = (address: string | undefined) =>
+  ["exit-tickets", address] as const;
+
 export function useExitTickets() {
   const { address } = useAccount();
 
@@ -17,7 +20,7 @@ export function useExitTickets() {
       fetch(`${apiUrl}/variable-stake/exit-tickets/${address}`) as Promise<
         ExitTicket[]
       >,
-    queryKey: ["exit-tickets", address],
+    queryKey: exitTicketsQueryKey(address),
     refetchInterval: 5 * 60 * 1000,
     retry: 2,
   });

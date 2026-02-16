@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-table";
 import { type ReactNode, useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
+import { screenBreakpoints } from "styles/breakpoints";
 
 import { Column } from "./column";
 import { ColumnHeader } from "./columnHeader";
@@ -20,8 +21,7 @@ const getColumnOrder = function <T>({
   priorityColumnIds?: string[];
   width: number;
 }) {
-  // 768px = md breakpoint
-  if (width >= 768 || priorityColumnIds.length === 0) {
+  if (width >= screenBreakpoints.md || priorityColumnIds.length === 0) {
     return undefined;
   }
   return [

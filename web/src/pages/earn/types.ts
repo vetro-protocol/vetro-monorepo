@@ -2,11 +2,11 @@ import type { Hash } from "viem";
 
 export type ExitTicket = {
   assets: string;
-  cancelTxHash: Hash | null | undefined;
+  cancelTxHash?: Hash;
   claimableAt: string;
-  claimTxHash: Hash | null | undefined;
+  claimTxHash?: Hash;
   owner: string;
-  receiver: string | null | undefined;
+  receiver?: string;
   requestId: string;
   requestTxHash: Hash;
   shares: string;
