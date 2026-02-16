@@ -1,10 +1,12 @@
 import { allowanceQueryKey } from "@hemilabs/react-hooks/useAllowance";
 import { useEnsureConnectedTo } from "@hemilabs/react-hooks/useEnsureConnectedTo";
+import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
 import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpdateNativeBalanceAfterReceipt";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { getGatewayAddress } from "@vetro/gateway";
+import { getGatewayAddress, type RedeemEvents } from "@vetro/gateway";
 import { redeem } from "@vetro/gateway/actions";
+import type { EventEmitter } from "events";
 import type { Address } from "viem";
 import { useAccount } from "wagmi";
 
@@ -18,10 +20,12 @@ import { useVusd } from "./useVusd";
 
 export const useRedeem = function ({
   approveAmount,
+  onEmitter,
   peggedTokenIn,
   tokenOut,
 }: {
   approveAmount?: bigint;
+  onEmitter?: (emitter: EventEmitter<RedeemEvents>) => void;
   peggedTokenIn: bigint;
   tokenOut: Address;
 }) {
@@ -29,6 +33,7 @@ export const useRedeem = function ({
   const { data: walletClient } = useEthereumWalletClient();
   const ensureConnectedTo = useEnsureConnectedTo();
   const ethereumChain = useMainnet();
+  const { queryKey: nativeBalanceKey } = useNativeBalance(ethereumChain.id);
   const gatewayAddress = getGatewayAddress(ethereumChain.id);
   const queryClient = useQueryClient();
 
@@ -79,6 +84,8 @@ export const useRedeem = function ({
         tokenOut,
       });
 
+      onEmitter?.(emitter);
+
       emitter.on("approve-transaction-reverted", function (receipt) {
         queryClient.invalidateQueries({
           queryKey: allowanceKey,
@@ -117,7 +124,9 @@ export const useRedeem = function ({
       queryClient.invalidateQueries({
         queryKey: vusdBalanceQueryKey,
       });
-
+      queryClient.invalidateQueries({
+        queryKey: nativeBalanceKey,
+      });
       queryClient.invalidateQueries({
         queryKey: tokenOutBalanceQueryKey,
       });
