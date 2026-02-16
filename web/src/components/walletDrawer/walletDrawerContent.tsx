@@ -61,7 +61,7 @@ export function WalletDrawerContent() {
     "earn",
     "swap",
   ]);
-  const balanceParts = usd ? splitDecimalParts(usd) : undefined;
+  const balanceParts = usd !== undefined ? splitDecimalParts(usd) : undefined;
 
   return (
     <div className="flex h-full flex-col">
