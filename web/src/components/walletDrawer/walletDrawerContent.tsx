@@ -13,6 +13,7 @@ import tableCellsIcon from "../icons/tableCells.svg";
 
 const PowerIcon = () => (
   <svg
+    aria-hidden="true"
     fill="none"
     height="21"
     viewBox="0 0 21 21"
@@ -71,6 +72,7 @@ export function WalletDrawerContent() {
         </div>
         <h4>{address ? formatEvmAddress(address) : ""}</h4>
         <button
+          aria-label={t("pages.wallet.disconnect-wallet")}
           className="ml-auto flex cursor-pointer items-center justify-center text-gray-500 hover:text-gray-600"
           onClick={() => disconnect()}
           type="button"

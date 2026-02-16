@@ -109,6 +109,7 @@
       }
     },
     "wallet": {
+      "disconnect-wallet": "Disconnect wallet",
       "recent-activity": "Recent activity",
       "view-operations-from": "View operations from:",
       "view-settings": "View settings"

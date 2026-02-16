@@ -109,6 +109,7 @@
       }
     },
     "wallet": {
+      "disconnect-wallet": "Desconectar billetera",
       "recent-activity": "Actividad reciente",
       "view-operations-from": "Ver operaciones de:",
       "view-settings": "Ver ajustes"
