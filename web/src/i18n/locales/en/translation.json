@@ -141,6 +141,12 @@
         "deposit-description": "VUSD is now available in your wallet",
         "deposit-title": "Deposit confirmed"
       }
+    },
+    "wallet": {
+      "disconnect-wallet": "Disconnect wallet",
+      "recent-activity": "Recent activity",
+      "view-operations-from": "View operations from:",
+      "view-settings": "View settings"
     }
   }
 }

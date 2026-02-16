@@ -11,6 +11,7 @@ type FilterOption = {
 type Props = {
   icon?: ReactNode;
   label: string;
+  menuLabel?: string;
   onChange: (selectedValues: string[]) => void;
   options: FilterOption[];
   selectedValues: string[];
@@ -48,6 +49,7 @@ const Checkbox = ({ checked }: { checked: boolean }) => (
 export function FilterMenu({
   icon,
   label,
+  menuLabel,
   onChange,
   options,
   selectedValues,
@@ -63,6 +65,7 @@ export function FilterMenu({
     <Dropdown
       getItemKey={(option) => option.value}
       items={options}
+      menuLabel={menuLabel}
       multiSelect
       onChange={handleChange}
       renderItem={(option, isSelected) => (
