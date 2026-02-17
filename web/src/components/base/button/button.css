@@ -33,6 +33,14 @@
   box-shadow: 0 0 0 4px var(--color-gray-300);
 }
 
+.button-danger {
+  @apply bg-rose-50 text-rose-500 enabled:hover:bg-rose-100;
+}
+
+.button-danger:focus-visible {
+  box-shadow: 0 0 0 4px var(--color-rose-500);
+}
+
 /* Navbar link variants - color/state only */
 .button-nav-secondary {
   @apply bg-transparent text-gray-500 enabled:hover:text-gray-900;

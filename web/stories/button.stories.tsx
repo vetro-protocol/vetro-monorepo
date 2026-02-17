@@ -45,3 +45,11 @@ export const Tertiary: Story = {
     variant: "tertiary",
   },
 };
+
+export const Danger: Story = {
+  args: {
+    children: "Delete",
+    size: "xSmall",
+    variant: "danger",
+  },
+};

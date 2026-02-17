@@ -65,11 +65,15 @@ const getColumns = (
     meta: { width: "136px" },
   },
   {
-    cell: ({ row }) => (
-      <StatusBadge variant={getTicketStatus(row.original)}>
-        {t(statusLabels[getTicketStatus(row.original)])}
-      </StatusBadge>
-    ),
+    cell({ row }) {
+      const status = getTicketStatus(row.original);
+      if (status === "cancelled") {
+        return null;
+      }
+      return (
+        <StatusBadge variant={status}>{t(statusLabels[status])}</StatusBadge>
+      );
+    },
     header: () => <Header text={t("pages.earn.exit-tickets.col-status")} />,
     id: "status",
     meta: { width: "190px" },
