@@ -48,7 +48,7 @@
       }
     },
     {
-      "files": ["api/**/*.ts"],
+      "files": ["api/**/*.ts", "web/scripts/**/*.ts"],
       "rules": {
         "no-console": "off"
       }
