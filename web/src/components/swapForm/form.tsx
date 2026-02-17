@@ -20,7 +20,7 @@ type Props = {
   onSubmit: (e: FormEvent) => void;
   onToggle: VoidFunction;
   outputValue: string;
-  toToken: Token;
+  toBalance?: ReactNode;
   toTokenSelector: ReactNode;
 };
 
@@ -35,7 +35,7 @@ export function Form({
   onSubmit,
   onToggle,
   outputValue,
-  toToken,
+  toBalance,
   toTokenSelector,
 }: Props) {
   const ethereumChain = useMainnet();
@@ -44,12 +44,6 @@ export function Form({
   const { data: fromTokenBalance, isError: isFromTokenBalanceError } =
     useTokenBalance({
       address: fromToken.address,
-      chainId: ethereumChain.id,
-    });
-
-  const { data: toTokenBalance, isError: isToTokenBalanceError } =
-    useTokenBalance({
-      address: toToken.address,
       chainId: ethereumChain.id,
     });
 
@@ -85,16 +79,7 @@ export function Form({
         </div>
         <div className="px-2">
           <TokenInput
-            balance={
-              <Balance
-                label={t("pages.swap.form.balance")}
-                value={formatAmount({
-                  amount: toTokenBalance,
-                  decimals: toToken.decimals,
-                  isError: isToTokenBalanceError,
-                })}
-              />
-            }
+            balance={toBalance}
             disabled
             label={t("pages.swap.form.you-will-receive")}
             tokenSelector={toTokenSelector}

@@ -22,6 +22,7 @@ import { Form } from "./form";
 import { SubmitButton } from "./submitButton";
 import { type DepositFlowStatus, SwapDepositDrawer } from "./swapDepositDrawer";
 import { SwapFees } from "./swapFees";
+import { ToTokenBalance } from "./toTokenBalance";
 import { getSwapErrors } from "./validation";
 
 type Props = {
@@ -185,7 +186,7 @@ export function Deposit({
         onSubmit={handleSubmit}
         onToggle={onToggle}
         outputValue={outputValue}
-        toToken={toToken}
+        toBalance={<ToTokenBalance token={toToken} />}
         toTokenSelector={<TokenSelectorReadOnly {...toToken} />}
       >
         <SubmitButton
