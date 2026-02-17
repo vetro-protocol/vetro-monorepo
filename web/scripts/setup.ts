@@ -1,12 +1,12 @@
 import { parseArgs } from "node:util";
 import {
-  type Address,
   createPublicClient,
   createTestClient,
   erc20Abi,
   encodePacked,
   formatEther,
   http,
+  isAddress,
   keccak256,
   pad,
   parseEther,
@@ -51,13 +51,16 @@ const { values } = parseArgs({
   strict: true,
 });
 
-const address = values.address as Address | undefined;
 const forkUrl = values["fork-url"] ?? "http://127.0.0.1:8545";
 
-if (!address) {
-  console.error("Usage: node web/scripts/setup.ts --address 0xYourAddress");
+if (!values.address || !isAddress(values.address, { strict: false })) {
+  console.error(
+    "Address is invalid. Usage: node web/scripts/setup.ts --address 0xYourAddress",
+  );
   process.exit(1);
 }
+
+const { address } = values;
 
 const transport = http(forkUrl);
 
