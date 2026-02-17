@@ -10,7 +10,6 @@ import { useMainnet } from "hooks/useMainnet";
 import { usePreviewRedeem } from "hooks/usePreviewRedeem";
 import { useRedeemFee } from "hooks/useRedeemFee";
 import { useRequestRedeem } from "hooks/useRequestRedeem";
-import { useSwapFeesDisplay } from "hooks/useSwapFeesDisplay";
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
@@ -91,14 +90,6 @@ export function TwoStepRedeem({
     amount: redeemPreview,
     decimals: toToken.decimals,
     isError: isPreviewError,
-  });
-
-  useSwapFeesDisplay({
-    amountBigInt,
-    approveAmount,
-    fromToken,
-    operationGasEstimation,
-    protocolFee,
   });
 
   const balancesLoaded =
