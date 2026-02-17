@@ -19,6 +19,7 @@ import type { Token } from "types";
 import { formatAmount } from "utils/token";
 
 import { Form } from "./form";
+import { OutputLabel } from "./outputLabel";
 import { SubmitButton } from "./submitButton";
 import { type DepositFlowStatus, SwapDepositDrawer } from "./swapDepositDrawer";
 import { SwapFees } from "./swapFees";
@@ -201,12 +202,17 @@ export function Deposit({
       <SwapFees
         amountBigInt={amountBigInt}
         approveAmount={approveAmount}
-        fromInputValue={fromInputValue}
         fromToken={fromToken}
         operationGasEstimation={operationGasEstimation}
-        outputValue={outputValue}
+        outputLabel={
+          <OutputLabel
+            fromInputValue={fromInputValue}
+            fromToken={fromToken}
+            outputValue={outputValue}
+            toToken={toToken}
+          />
+        }
         protocolFee={protocolFee}
-        toToken={toToken}
       />
       {isDrawerOpen && flowStatus !== "idle" && (
         <SwapDepositDrawer

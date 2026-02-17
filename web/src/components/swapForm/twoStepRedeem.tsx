@@ -158,12 +158,9 @@ export function TwoStepRedeem({
       <SwapFees
         amountBigInt={amountBigInt}
         approveAmount={approveAmount}
-        fromInputValue={fromInputValue}
         fromToken={fromToken}
         operationGasEstimation={operationGasEstimation}
-        outputValue={outputValue}
         protocolFee={protocolFee}
-        toToken={toToken}
       />
       {isDrawerOpen && (
         // TODO add 2-step redeem drawer in next PR
