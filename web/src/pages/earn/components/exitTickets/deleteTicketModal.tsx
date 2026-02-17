@@ -38,6 +38,7 @@ export function DeleteTicketModal({ onClose, onSuccess, ticket }: Props) {
   });
 
   function handleDelete() {
+    setIsDeleting(true);
     mutate();
   }
 

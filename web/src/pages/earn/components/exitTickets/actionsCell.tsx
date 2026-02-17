@@ -34,6 +34,7 @@ export function ActionsCell({ ticket }: Props) {
         )}
         <Tooltip content={t("pages.earn.exit-tickets.delete-tooltip")}>
           <ButtonIcon
+            aria-label={t("pages.earn.exit-tickets.delete-tooltip")}
             onClick={() => setIsModalOpen(true)}
             size="xSmall"
             variant="secondary"
