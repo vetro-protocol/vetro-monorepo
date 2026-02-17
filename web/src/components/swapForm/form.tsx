@@ -1,5 +1,6 @@
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
 import { TokenInput } from "components/tokenInput";
+import { Balance } from "components/tokenInput/balance";
 import { useMainnet } from "hooks/useMainnet";
 import type { FormEvent, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
@@ -60,12 +61,16 @@ export function Form({
       >
         <div className="px-2">
           <TokenInput
-            balanceLabel={t("pages.swap.form.balance")}
-            balanceValue={formatAmount({
-              amount: fromTokenBalance,
-              decimals: fromToken.decimals,
-              isError: isFromTokenBalanceError,
-            })}
+            balance={
+              <Balance
+                label={t("pages.swap.form.balance")}
+                value={formatAmount({
+                  amount: fromTokenBalance,
+                  decimals: fromToken.decimals,
+                  isError: isFromTokenBalanceError,
+                })}
+              />
+            }
             errorKey={errorKey}
             label={t("pages.swap.form.you-are-swapping")}
             maxButton={maxButton}
@@ -80,12 +85,16 @@ export function Form({
         </div>
         <div className="px-2">
           <TokenInput
-            balanceLabel={t("pages.swap.form.balance")}
-            balanceValue={formatAmount({
-              amount: toTokenBalance,
-              decimals: toToken.decimals,
-              isError: isToTokenBalanceError,
-            })}
+            balance={
+              <Balance
+                label={t("pages.swap.form.balance")}
+                value={formatAmount({
+                  amount: toTokenBalance,
+                  decimals: toToken.decimals,
+                  isError: isToTokenBalanceError,
+                })}
+              />
+            }
             disabled
             label={t("pages.swap.form.you-will-receive")}
             tokenSelector={toTokenSelector}

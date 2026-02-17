@@ -1,11 +1,9 @@
 import type { ReactNode } from "react";
 
-import { Balance } from "./balance";
 import { getTextColor } from "./utils";
 
 type Props = {
-  balanceLabel: string;
-  balanceValue: string;
+  balance?: ReactNode;
   disabled?: boolean;
   errorKey?: string;
   label: string;
@@ -16,8 +14,7 @@ type Props = {
 };
 
 export const TokenInput = ({
-  balanceLabel,
-  balanceValue,
+  balance,
   disabled = false,
   errorKey,
   label,
@@ -40,10 +37,12 @@ export const TokenInput = ({
     </div>
     <div className="mt-2 flex items-center justify-between">
       <span className="text-xsm text-gray-500">${value}</span>
-      <div className="text-xsm flex items-center gap-1">
-        <Balance label={balanceLabel} value={balanceValue} />
-        {maxButton}
-      </div>
+      {balance || maxButton ? (
+        <div className="text-xsm flex items-center gap-1">
+          {balance}
+          {maxButton}
+        </div>
+      ) : null}
     </div>
   </div>
 );

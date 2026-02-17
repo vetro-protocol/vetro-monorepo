@@ -5,6 +5,7 @@ import { FeeDetails } from "components/feeDetails";
 import { FeesContainer } from "components/feesContainer";
 import { SetMaxStakedBalance } from "components/setMaxStakedBalance";
 import { TokenInput } from "components/tokenInput";
+import { Balance } from "components/tokenInput/balance";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useMainnet } from "hooks/useMainnet";
 import { useStakedBalance } from "hooks/useStakedBalance";
@@ -156,8 +157,12 @@ export function StakeWithdrawForm({
     <form className="flex flex-1 flex-col" onSubmit={handleSubmit}>
       <div className="p-6">
         <TokenInput
-          balanceLabel={t("pages.earn.stake.available-to-withdraw")}
-          balanceValue={formattedBalance}
+          balance={
+            <Balance
+              label={t("pages.earn.stake.available-to-withdraw")}
+              value={formattedBalance}
+            />
+          }
           errorKey={balancesLoaded ? inputError : undefined}
           label={t("pages.earn.stake.you-will-withdraw")}
           maxButton={
