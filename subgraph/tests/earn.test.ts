@@ -134,7 +134,7 @@ describe("handleWithdrawRequested", function () {
     );
     handleWithdrawRequested(event);
 
-    const id = `${event.transaction.hash.toHex()}-${event.logIndex.toString()}`;
+    const id = requestId.toString();
     assert.entityCount("ExitTicket", 1);
     assert.fieldEquals("ExitTicket", id, "owner", ownerAddress.toHexString());
     assert.fieldEquals("ExitTicket", id, "assets", assets.toString());
@@ -170,7 +170,7 @@ describe("handleWithdrawCancelled", function () {
     );
     handleWithdrawRequested(requestEvent);
 
-    const id = `${requestEvent.transaction.hash.toHex()}-${requestEvent.logIndex.toString()}`;
+    const id = requestId.toString();
     assert.entityCount("ExitTicket", 1);
 
     const cancelEvent = createWithdrawCancelledEvent(
@@ -227,7 +227,7 @@ describe("handleWithdrawClaimed", function () {
     );
     handleWithdrawRequested(requestEvent);
 
-    const id = `${requestEvent.transaction.hash.toHex()}-${requestEvent.logIndex.toString()}`;
+    const id = requestId.toString();
     assert.entityCount("ExitTicket", 1);
 
     const claimEvent = createWithdrawClaimedEvent(
