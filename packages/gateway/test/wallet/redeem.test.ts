@@ -11,11 +11,16 @@ import { allowance, approve } from "viem-erc20/actions";
 import { describe, expect, it, vi } from "vitest";
 
 import { getPeggedToken } from "../../src/actions/public/getPeggedToken";
+import { getWithdrawalDelayEnabled } from "../../src/actions/public/getWithdrawalDelayEnabled";
 import { isInstantRedeemWhitelisted } from "../../src/actions/public/isInstantRedeemWhitelisted";
 import { redeem } from "../../src/actions/wallet/redeem";
 
 vi.mock("../../src/actions/public/getPeggedToken", () => ({
   getPeggedToken: vi.fn(),
+}));
+
+vi.mock("../../src/actions/public/getWithdrawalDelayEnabled", () => ({
+  getWithdrawalDelayEnabled: vi.fn(),
 }));
 
 vi.mock("../../src/actions/public/isInstantRedeemWhitelisted", () => ({
@@ -337,11 +342,12 @@ describe("redeem", function () {
     expect(onSettled).toHaveBeenCalledOnce();
   });
 
-  it("should skip approval if user is not whitelisted and proceed to redeem", async function () {
+  it("should skip approval if user is not whitelisted and delay is enabled, and proceed to redeem", async function () {
     const receipt = {
       status: "success",
     } as TransactionReceipt;
 
+    vi.mocked(getWithdrawalDelayEnabled).mockResolvedValue(true);
     vi.mocked(isInstantRedeemWhitelisted).mockResolvedValue(false);
     vi.mocked(writeContract).mockResolvedValue(zeroHash);
     vi.mocked(waitForTransactionReceipt).mockResolvedValue(receipt);
@@ -375,11 +381,64 @@ describe("redeem", function () {
     expect(onSettled).toHaveBeenCalledOnce();
   });
 
+  it("should require approval if not whitelisted but delay is disabled", async function () {
+    const successReceipt = {
+      status: "success",
+    } as TransactionReceipt;
+
+    vi.mocked(getWithdrawalDelayEnabled).mockResolvedValue(false);
+    vi.mocked(isInstantRedeemWhitelisted).mockResolvedValue(false);
+    vi.mocked(getPeggedToken).mockResolvedValue(mockPeggedTokenAddress);
+    vi.mocked(allowance).mockResolvedValue(
+      validParameters.peggedTokenIn - BigInt(1),
+    );
+    vi.mocked(approve).mockResolvedValue(zeroHash);
+    vi.mocked(writeContract).mockResolvedValue(zeroHash);
+    vi.mocked(waitForTransactionReceipt)
+      .mockResolvedValueOnce(successReceipt)
+      .mockResolvedValueOnce(successReceipt);
+
+    const { emitter, promise } = redeem(mockWalletClient, validParameters);
+
+    const onPreApprove = vi.fn();
+    const onUserSignedApproval = vi.fn();
+    const onApproveTransactionSucceeded = vi.fn();
+    const onPreRedeem = vi.fn();
+    const onUserSignedRedeem = vi.fn();
+    const onRedeemTransactionSucceeded = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("pre-approve", onPreApprove);
+    emitter.on("user-signed-approval", onUserSignedApproval);
+    emitter.on("approve-transaction-succeeded", onApproveTransactionSucceeded);
+    emitter.on("pre-redeem", onPreRedeem);
+    emitter.on("user-signed-redeem", onUserSignedRedeem);
+    emitter.on("redeem-transaction-succeeded", onRedeemTransactionSucceeded);
+    emitter.on("redeem-settled", onSettled);
+
+    await promise;
+
+    expect(onPreApprove).toHaveBeenCalledOnce();
+    expect(onUserSignedApproval).toHaveBeenCalledExactlyOnceWith(zeroHash);
+    expect(onApproveTransactionSucceeded).toHaveBeenCalledExactlyOnceWith(
+      successReceipt,
+    );
+    expect(onPreRedeem).toHaveBeenCalledOnce();
+    expect(onUserSignedRedeem).toHaveBeenCalledExactlyOnceWith(zeroHash);
+    expect(onRedeemTransactionSucceeded).toHaveBeenCalledExactlyOnceWith(
+      successReceipt,
+    );
+    expect(approve).toHaveBeenCalledOnce();
+    expect(writeContract).toHaveBeenCalledOnce();
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
   it("should skip approval if whitelisted and allowance is sufficient", async function () {
     const receipt = {
       status: "success",
     } as TransactionReceipt;
 
+    vi.mocked(getWithdrawalDelayEnabled).mockResolvedValue(true);
     vi.mocked(isInstantRedeemWhitelisted).mockResolvedValue(true);
     vi.mocked(getPeggedToken).mockResolvedValue(mockPeggedTokenAddress);
     vi.mocked(allowance).mockResolvedValue(validParameters.peggedTokenIn);
@@ -427,6 +486,7 @@ describe("redeem", function () {
       status: "success",
     } as TransactionReceipt;
 
+    vi.mocked(getWithdrawalDelayEnabled).mockResolvedValue(true);
     vi.mocked(isInstantRedeemWhitelisted).mockResolvedValue(true);
     vi.mocked(getPeggedToken).mockResolvedValue(mockPeggedTokenAddress);
     vi.mocked(allowance).mockResolvedValue(
@@ -480,6 +540,7 @@ describe("redeem", function () {
 
     const approveAmount = validParameters.peggedTokenIn * BigInt(10);
 
+    vi.mocked(getWithdrawalDelayEnabled).mockResolvedValue(true);
     vi.mocked(isInstantRedeemWhitelisted).mockResolvedValue(true);
     vi.mocked(getPeggedToken).mockResolvedValue(mockPeggedTokenAddress);
     vi.mocked(allowance).mockResolvedValue(
@@ -511,6 +572,7 @@ describe("redeem", function () {
   });
 
   it("should emit 'user-signing-approval-error' when approval signing fails", async function () {
+    vi.mocked(getWithdrawalDelayEnabled).mockResolvedValue(true);
     vi.mocked(isInstantRedeemWhitelisted).mockResolvedValue(true);
     vi.mocked(getPeggedToken).mockResolvedValue(mockPeggedTokenAddress);
     vi.mocked(allowance).mockResolvedValue(
@@ -542,6 +604,7 @@ describe("redeem", function () {
       status: "reverted",
     } as TransactionReceipt;
 
+    vi.mocked(getWithdrawalDelayEnabled).mockResolvedValue(true);
     vi.mocked(isInstantRedeemWhitelisted).mockResolvedValue(true);
     vi.mocked(getPeggedToken).mockResolvedValue(mockPeggedTokenAddress);
     vi.mocked(allowance).mockResolvedValue(
@@ -580,6 +643,7 @@ describe("redeem", function () {
   });
 
   it("should emit 'redeem-failed' when approval receipt fails", async function () {
+    vi.mocked(getWithdrawalDelayEnabled).mockResolvedValue(true);
     vi.mocked(isInstantRedeemWhitelisted).mockResolvedValue(true);
     vi.mocked(getPeggedToken).mockResolvedValue(mockPeggedTokenAddress);
     vi.mocked(allowance).mockResolvedValue(
@@ -611,6 +675,7 @@ describe("redeem", function () {
   });
 
   it("should emit 'user-signing-redeem-error' when redeem signing fails", async function () {
+    vi.mocked(getWithdrawalDelayEnabled).mockResolvedValue(true);
     vi.mocked(isInstantRedeemWhitelisted).mockResolvedValue(false);
     vi.mocked(writeContract).mockRejectedValue(
       new Error("Redeem signing error"),
@@ -636,6 +701,7 @@ describe("redeem", function () {
   });
 
   it("should emit 'redeem-failed' when redeem receipt fails", async function () {
+    vi.mocked(getWithdrawalDelayEnabled).mockResolvedValue(true);
     vi.mocked(isInstantRedeemWhitelisted).mockResolvedValue(false);
     vi.mocked(writeContract).mockResolvedValue(zeroHash);
     vi.mocked(waitForTransactionReceipt).mockRejectedValue(
@@ -667,6 +733,7 @@ describe("redeem", function () {
       status: "reverted",
     } as TransactionReceipt;
 
+    vi.mocked(getWithdrawalDelayEnabled).mockResolvedValue(true);
     vi.mocked(isInstantRedeemWhitelisted).mockResolvedValue(false);
     vi.mocked(writeContract).mockResolvedValue(zeroHash);
     vi.mocked(waitForTransactionReceipt).mockResolvedValue(receipt);
@@ -718,6 +785,7 @@ describe("redeem", function () {
   });
 
   it("should emit 'unexpected-error' when getPeggedToken fails", async function () {
+    vi.mocked(getWithdrawalDelayEnabled).mockResolvedValue(true);
     vi.mocked(isInstantRedeemWhitelisted).mockResolvedValue(true);
     vi.mocked(getPeggedToken).mockRejectedValue(
       new Error("Failed to get pegged token"),

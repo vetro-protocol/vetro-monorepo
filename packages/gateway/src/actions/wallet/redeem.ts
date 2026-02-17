@@ -16,6 +16,7 @@ import { gatewayAbi } from "../../abi/gatewayAbi.js";
 import { getGatewayAddress } from "../../getGatewayAddress.js";
 import type { RedeemEvents } from "../../types.js";
 import { getPeggedToken } from "../public/getPeggedToken.js";
+import { getWithdrawalDelayEnabled } from "../public/getWithdrawalDelayEnabled.js";
 import { isInstantRedeemWhitelisted } from "../public/isInstantRedeemWhitelisted.js";
 
 export type RedeemParams = {
@@ -160,15 +161,19 @@ const runRedeem = (
       const gatewayAddress = getGatewayAddress(walletClient.chain!.id);
 
       // Check if user is whitelisted for instant redeem
-      const isWhitelisted = await isInstantRedeemWhitelisted(walletClient, {
-        account: walletClient.account!.address,
-        address: gatewayAddress,
-      });
+      const [isWhitelisted, delayEnabled] = await Promise.all([
+        isInstantRedeemWhitelisted(walletClient, {
+          account: walletClient.account!.address,
+          address: gatewayAddress,
+        }),
+        getWithdrawalDelayEnabled(walletClient, {
+          address: gatewayAddress,
+        }),
+      ]);
 
-      // Approval is only needed for whitelisted users (instant redeem burns pegged tokens)
-      // and this requires enough allowance. For non-whitelisted users,
-      // the redeem function will just transfer the tokenOut to the user
-      if (isWhitelisted) {
+      // Approval is needed when the user is whitelisted (instant redeem burns pegged tokens)
+      // or when delay is disabled (redeem completes immediately)
+      if (isWhitelisted || !delayEnabled) {
         // Get the pegged token address
         const peggedTokenAddress = await getPeggedToken(walletClient, {
           address: gatewayAddress,
