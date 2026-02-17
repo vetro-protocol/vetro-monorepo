@@ -1,7 +1,8 @@
 import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
 import { type Step, stepStatus } from "components/base/verticalStepper";
-import { Suspense, lazy, useEffect } from "react";
+import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
+import { Suspense, lazy } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 
@@ -75,16 +76,7 @@ export function SwapDepositDrawer({
   toToken,
 }: Props) {
   const { t } = useTranslation();
-  useEffect(
-    function closeDrawerOnSuccess() {
-      if (flowStatus !== "deposited") {
-        return undefined;
-      }
-      const timeoutId = setTimeout(onClose, 3000);
-      return () => clearTimeout(timeoutId);
-    },
-    [flowStatus, onClose],
-  );
+  useCloseOnSuccess({ onClose, success: flowStatus === "deposited" });
 
   const isError =
     flowStatus === "approve-error" || flowStatus === "deposit-error";
