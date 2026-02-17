@@ -7,7 +7,6 @@ import { getStakingVaultAddress } from "@vetro/earn";
 import { cancelWithdraw } from "@vetro/earn/actions";
 import { exitTicketsQueryKey } from "pages/earn/hooks/useExitTickets";
 import type { ExitTicket } from "pages/earn/types";
-import type { TransactionReceipt } from "viem";
 import { useAccount } from "wagmi";
 
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
@@ -18,15 +17,13 @@ type CancelWithdrawStatus = "cancelling" | "completed" | "failed";
 
 type Params = {
   assets: bigint;
-  onStatusChange?: (status: CancelWithdrawStatus) => void;
-  onSuccess?: VoidFunction;
+  onStatusChange: (status: CancelWithdrawStatus) => void;
   requestId: bigint;
 };
 
 export const useCancelWithdraw = function ({
   assets,
   onStatusChange,
-  onSuccess,
   requestId,
 }: Params) {
   const { address: account } = useAccount();
@@ -64,41 +61,34 @@ export const useCancelWithdraw = function ({
       });
 
       emitter.on("user-signed-cancel-withdraw", function () {
-        onStatusChange?.("cancelling");
+        onStatusChange("cancelling");
       });
 
       emitter.on("user-signing-cancel-withdraw-error", function () {
-        onStatusChange?.("failed");
+        onStatusChange("failed");
       });
 
-      emitter.on(
-        "cancel-withdraw-transaction-reverted",
-        function (receipt: TransactionReceipt) {
-          updateNativeBalanceAfterReceipt(receipt);
-          onStatusChange?.("failed");
-        },
-      );
+      emitter.on("cancel-withdraw-transaction-reverted", function (receipt) {
+        updateNativeBalanceAfterReceipt(receipt);
+        onStatusChange("failed");
+      });
 
-      emitter.on(
-        "cancel-withdraw-transaction-succeeded",
-        function (receipt: TransactionReceipt) {
-          updateNativeBalanceAfterReceipt(receipt);
-          onStatusChange?.("completed");
-          onSuccess?.();
+      emitter.on("cancel-withdraw-transaction-succeeded", function (receipt) {
+        updateNativeBalanceAfterReceipt(receipt);
+        onStatusChange("completed");
 
-          // Optimistically remove ticket from cache
-          queryClient.setQueryData(
-            exitTicketsQueryKey(account),
-            (old: ExitTicket[] | undefined) =>
-              (old ?? []).filter((t) => t.requestId !== requestId.toString()),
-          );
+        // Optimistically remove ticket from cache
+        queryClient.setQueryData(
+          exitTicketsQueryKey(account),
+          (old: ExitTicket[] | undefined) =>
+            (old ?? []).filter((t) => t.requestId !== requestId.toString()),
+        );
 
-          // Optimistically add assets back to staked balance
-          queryClient.setQueryData(stakedKey, (old: bigint | undefined) =>
-            old !== undefined ? old + assets : old,
-          );
-        },
-      );
+        // Optimistically add assets back to staked balance
+        queryClient.setQueryData(stakedKey, (old: bigint | undefined) =>
+          old !== undefined ? old + assets : old,
+        );
+      });
 
       return promise;
     },

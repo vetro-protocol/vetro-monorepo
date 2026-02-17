@@ -26,13 +26,13 @@ export function DeleteTicketModal({ onClose, onSuccess, ticket }: Props) {
       if (status === "cancelling") {
         setIsDeleting(true);
       }
+      if (status === "completed") {
+        onClose();
+        onSuccess();
+      }
       if (status === "failed") {
         setIsDeleting(false);
       }
-    },
-    onSuccess() {
-      onClose();
-      onSuccess();
     },
     requestId: BigInt(ticket.requestId),
   });
@@ -49,7 +49,7 @@ export function DeleteTicketModal({ onClose, onSuccess, ticket }: Props) {
           <h4 className="text-base font-semibold tracking-tight text-gray-900">
             {t("pages.earn.exit-tickets.delete-title")}
           </h4>
-          <p className="text-xsm leading-5 font-normal text-gray-500">
+          <p className="text-xsm font-normal text-gray-500">
             {t("pages.earn.exit-tickets.delete-description")}
           </p>
         </div>
