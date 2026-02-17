@@ -6,11 +6,14 @@ import { I18nLink } from "../i18nLink";
 
 import "./button.css";
 
+/* eslint-disable sort-keys */
 const variants = {
   primary: "button-primary",
   secondary: "button-secondary",
   tertiary: "button-tertiary",
+  danger: "button-danger",
 } as const;
+/* eslint-enable sort-keys */
 
 export type ButtonSize = "xSmall" | "small" | "xLarge";
 

@@ -12,4 +12,4 @@ export type ExitTicket = {
   shares: string;
 };
 
-export type ExitTicketStatus = "cooldown" | "ready" | "withdrawn";
+export type ExitTicketStatus = "cancelled" | "cooldown" | "ready" | "withdrawn";
