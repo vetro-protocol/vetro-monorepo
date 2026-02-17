@@ -1,24 +1,9 @@
-import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
-import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
-import { ApproveSection } from "components/approveSection";
-import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
-import { TokenDropdown } from "components/tokenDropdown";
-import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
-import { useEstimateRedeemGas } from "hooks/useEstimateRedeemGas";
-import { useMainnet } from "hooks/useMainnet";
-import { usePreviewRedeem } from "hooks/usePreviewRedeem";
-import { useRedeem } from "hooks/useRedeem";
-import { useRedeemFee } from "hooks/useRedeemFee";
-import { type FormEvent } from "react";
-import { useTranslation } from "react-i18next";
+import { useRedeemDelay } from "hooks/useRedeemDelay";
 import type { Token } from "types";
-import { formatAmount } from "utils/token";
 import { useAccount } from "wagmi";
 
-import { Form } from "./form";
-import { SubmitButton } from "./submitButton";
-import { SwapFees } from "./swapFees";
-import { getSwapErrors } from "./validation";
+import { OneStepRedeem } from "./oneStepRedeem";
+import { TwoStepRedeem } from "./twoStepRedeem";
 
 type Props = {
   amountBigInt: bigint;
@@ -35,123 +20,21 @@ type Props = {
   whitelistedTokens: Token[];
 };
 
-export function Redeem({
-  amountBigInt,
-  approve10x,
-  approveAmount,
-  fromInputValue,
-  fromToken,
-  onInputChange,
-  onMaxClick,
-  onToggle,
-  onToggleApprove10x,
-  onTokenChange,
-  toToken,
-  whitelistedTokens,
-}: Props) {
+export function Redeem(props: Props) {
   const { address } = useAccount();
-  const ethereumChain = useMainnet();
-  const { t } = useTranslation();
+  const { data: redeemDelay, isLoading } = useRedeemDelay();
 
-  const { data: fromTokenBalance } = useTokenBalance({
-    address: fromToken.address,
-    chainId: ethereumChain.id,
-  });
-
-  const { data: nativeBalanceData } = useNativeBalance(ethereumChain.id);
-  const nativeBalance = nativeBalanceData?.value;
-
-  const { data: redeemPreview, isError: isPreviewError } = usePreviewRedeem({
-    peggedTokenIn: amountBigInt,
-    tokenOut: toToken.address,
-  });
-
-  const operationGasEstimation = useEstimateRedeemGas({
-    enabled: amountBigInt > 0n && !!redeemPreview && !!address,
-    minAmountOut: redeemPreview ?? 0n,
-    peggedToken: fromToken,
-    peggedTokenIn: amountBigInt,
-    receiver: address!,
-    tokenOut: toToken.address,
-  });
-
-  const protocolFee = useRedeemFee();
-
-  const redeemMutation = useRedeem({
-    approveAmount,
-    peggedTokenIn: amountBigInt,
-    tokenOut: toToken.address,
-  });
-
-  const inputError = getSwapErrors({
-    amount: amountBigInt,
-    nativeBalance,
-    tokenBalance: fromTokenBalance,
-  });
-
-  const outputValue = formatAmount({
-    amount: redeemPreview,
-    decimals: toToken.decimals,
-    isError: isPreviewError,
-  });
-
-  const balancesLoaded =
-    nativeBalance !== undefined && fromTokenBalance !== undefined;
-
-  function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    if (!inputError) {
-      redeemMutation.mutate();
-    }
+  // If disconnected, show the most common case which is the 2-step redeem
+  if (!address) {
+    return <TwoStepRedeem {...props} />;
   }
 
-  return (
-    <>
-      <Form
-        errorKey={balancesLoaded ? inputError : undefined}
-        fromInputValue={fromInputValue}
-        fromToken={fromToken}
-        fromTokenSelector={
-          <TokenSelectorReadOnly
-            logoURI={fromToken.logoURI}
-            symbol={fromToken.symbol}
-          />
-        }
-        maxButton={
-          <SetMaxErc20Balance onClick={onMaxClick} token={fromToken} />
-        }
-        onInputChange={onInputChange}
-        onSubmit={handleSubmit}
-        onToggle={onToggle}
-        outputValue={outputValue}
-        toToken={toToken}
-        toTokenSelector={
-          <TokenDropdown
-            onChange={onTokenChange}
-            tokens={whitelistedTokens}
-            value={toToken}
-          />
-        }
-      >
-        <SubmitButton
-          actionText={t("pages.swap.form.redeem")}
-          inputError={inputError}
-          isPreviewError={isPreviewError}
-          previewValue={redeemPreview}
-          token={fromToken}
-        />
-      </Form>
-      <ApproveSection active={approve10x} onToggle={onToggleApprove10x} />
-      <SwapFees
-        amountBigInt={amountBigInt}
-        approveAmount={approveAmount}
-        fromInputValue={fromInputValue}
-        fromToken={fromToken}
-        operationGasEstimation={operationGasEstimation}
-        outputValue={outputValue}
-        protocolFee={protocolFee}
-        toToken={toToken}
-      />
-    </>
-  );
+  if (isLoading) {
+    // TODO: proper loading state to be added later
+    return "...";
+  }
+
+  const hasDelay = redeemDelay !== undefined && redeemDelay > 0n;
+
+  return hasDelay ? <TwoStepRedeem {...props} /> : <OneStepRedeem {...props} />;
 }

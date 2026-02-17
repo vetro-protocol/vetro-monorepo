@@ -21,6 +21,7 @@ type Props = {
   onToggle: VoidFunction;
   outputValue: string;
   toBalance?: ReactNode;
+  toLabel?: string;
   toTokenSelector: ReactNode;
 };
 
@@ -36,6 +37,7 @@ export function Form({
   onToggle,
   outputValue,
   toBalance,
+  toLabel,
   toTokenSelector,
 }: Props) {
   const ethereumChain = useMainnet();
@@ -81,7 +83,7 @@ export function Form({
           <TokenInput
             balance={toBalance}
             disabled
-            label={t("pages.swap.form.you-will-receive")}
+            label={toLabel ?? t("pages.swap.form.you-will-receive")}
             tokenSelector={toTokenSelector}
             value={outputValue}
           />

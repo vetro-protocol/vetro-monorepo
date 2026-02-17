@@ -131,8 +131,11 @@
         "insufficient-gas": "Insufficient ETH for gas",
         "preview-error": "Failed to calculate amount to receive",
         "redeem": "Redeem",
+        "redeemable-for_one": "Redeemable for {{symbol}}",
+        "redeemable-for_other": "Redeemable for {{allButLast}} and {{last}}",
         "you-are-swapping": "You are swapping",
-        "you-will-receive": "You will receive"
+        "you-will-receive": "You will receive",
+        "you-will-receive-approximately": "You will receive (approximately)"
       },
       "progress": {
         "approve-description": "This allows the app to use this token for your swap.",
