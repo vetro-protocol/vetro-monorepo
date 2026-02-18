@@ -57,8 +57,13 @@
         "view-settings": "View settings",
         "withdraw": "Withdraw",
         "withdraw-all": "Withdraw all",
+        "withdraw-all-toast-description": "All ready exit tickets have been withdrawn to your wallet.",
+        "withdraw-all-toast-title": "All withdrawals complete",
+        "withdraw-toast-description": "Your funds have been successfully withdrawn to your wallet.",
+        "withdraw-toast-title": "Withdrawal complete",
         "withdrawal-amount": "{{amount}} vUSD",
         "withdrawal-tx": "Withdrawal:",
+        "withdrawing": "Withdrawing...",
         "withdrawn": "Withdrawn"
       },
       "pool-info": {

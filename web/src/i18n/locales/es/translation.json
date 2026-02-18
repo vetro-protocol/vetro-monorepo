@@ -57,8 +57,13 @@
         "view-settings": "Ver configuración",
         "withdraw": "Retirar",
         "withdraw-all": "Retirar todo",
+        "withdraw-all-toast-description": "Todos los tickets de salida listos han sido retirados a su billetera.",
+        "withdraw-all-toast-title": "Todos los retiros completados",
+        "withdraw-toast-description": "Sus fondos han sido retirados exitosamente a su billetera.",
+        "withdraw-toast-title": "Retiro completado",
         "withdrawal-amount": "{{amount}} vUSD",
         "withdrawal-tx": "Retiro:",
+        "withdrawing": "Retirando...",
         "withdrawn": "Retirado"
       },
       "pool-info": {
