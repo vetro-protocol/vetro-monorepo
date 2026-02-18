@@ -122,7 +122,7 @@ export function ExitTickets() {
     "pending",
   ]);
   const [isWithdrawingAll, setIsWithdrawingAll] = useState(false);
-  const [isWithdrawingSingle, setIsWithdrawingSingle] = useState(false);
+  const [withdrawingSingleCount, setWithdrawingSingleCount] = useState(0);
   const [showWithdrawAllToast, setShowWithdrawAllToast] = useState(false);
 
   const readyTickets = useMemo(
@@ -168,7 +168,9 @@ export function ExitTickets() {
         cooldownDuration,
         isWithdrawingAll,
         language: i18n.language,
-        onWithdrawingChange: setIsWithdrawingSingle,
+        onWithdrawingChange(isWithdrawing) {
+          setWithdrawingSingleCount((c) => c + (isWithdrawing ? 1 : -1));
+        },
         t,
       }),
     [cooldownDuration, i18n.language, isWithdrawingAll, t],
@@ -233,7 +235,7 @@ export function ExitTickets() {
               disabled={
                 readyTickets.length === 0 ||
                 isWithdrawingAll ||
-                isWithdrawingSingle
+                withdrawingSingleCount > 0
               }
               onClick={handleWithdrawAll}
               size="xSmall"

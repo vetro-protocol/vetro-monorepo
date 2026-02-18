@@ -37,6 +37,7 @@ export function ActionsCell({
   const { mutate: claimWithdraw } = useClaimWithdraw({
     onStatusChange(claimStatus) {
       if (claimStatus === "completed") {
+        setIsWithdrawing(false);
         setToastType("withdraw");
         onWithdrawingChange?.(false);
       }
