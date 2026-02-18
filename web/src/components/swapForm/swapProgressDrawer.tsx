@@ -19,8 +19,8 @@ type Props = {
   protocolFee: string;
   steps: Step[];
   subtitle?: ReactNode;
-  toToken?: Token;
   totalFees: string;
+  toToken?: Token;
 };
 
 export function SwapProgressDrawer({
