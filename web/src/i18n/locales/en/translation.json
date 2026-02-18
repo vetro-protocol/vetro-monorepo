@@ -150,7 +150,9 @@
       "title": "Swap stablecoins for VUSD and back",
       "toast": {
         "deposit-description": "VUSD is now available in your wallet",
-        "deposit-title": "Deposit confirmed"
+        "deposit-title": "Deposit confirmed",
+        "deposited-to-vault": "{{symbol}} deposited to vault",
+        "your-cooldown-period-has-started": "Your {{blocks}}-block cooldown has started."
       }
     },
     "wallet": {

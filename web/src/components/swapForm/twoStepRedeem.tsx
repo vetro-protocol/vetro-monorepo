@@ -9,12 +9,14 @@ import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useEstimateRequestRedeemGas } from "hooks/useEstimateRequestRedeemGas";
 import { useMainnet } from "hooks/useMainnet";
 import { usePreviewRedeem } from "hooks/usePreviewRedeem";
+import { useRedeemDelay } from "hooks/useRedeemDelay";
 import { useRedeemFee } from "hooks/useRedeemFee";
 import { useRequestRedeem } from "hooks/useRequestRedeem";
 import { useSwapFeesDisplay } from "hooks/useSwapFeesDisplay";
 import { type FormEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
+import { secondsToBlocks } from "utils/blocks";
 import { formatAmount } from "utils/token";
 import { useAccount } from "wagmi";
 
@@ -63,6 +65,8 @@ export function TwoStepRedeem({
   const [flowStatus, setFlowStatus] = useState<RequestRedeemFlowStatus>("idle");
   const [showToast, setShowToast] = useState(false);
   const [startedWithApproval, setStartedWithApproval] = useState(false);
+
+  const { data: blocks } = useRedeemDelay({ select: secondsToBlocks });
 
   const { data: fromTokenBalance } = useTokenBalance({
     address: fromToken.address,
@@ -234,9 +238,13 @@ export function TwoStepRedeem({
       {showToast && (
         <Toast
           closable
-          description={t("pages.swap.toast.deposit-description")}
+          description={t("pages.swap.toast.your-cooldown-period-has-started", {
+            blocks,
+          })}
           onClose={() => setShowToast(false)}
-          title={t("pages.swap.toast.deposit-title")}
+          title={t("pages.swap.toast.deposited-to-vault", {
+            symbol: fromToken.symbol,
+          })}
         />
       )}
     </>

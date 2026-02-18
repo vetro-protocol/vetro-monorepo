@@ -150,7 +150,9 @@
       "title": "Intercambie stablecoins por VUSD y viceversa",
       "toast": {
         "deposit-description": "VUSD disponible en su billetera",
-        "deposit-title": "Depósito confirmado"
+        "deposit-title": "Depósito confirmado",
+        "deposited-to-vault": "{{symbol}} depositado en la bóveda",
+        "your-cooldown-period-has-started": "Su período de espera de {{blocks}} bloques ha comenzado."
       }
     },
     "wallet": {
