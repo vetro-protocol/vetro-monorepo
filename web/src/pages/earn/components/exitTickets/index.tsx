@@ -1,3 +1,4 @@
+import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { type ColumnDef } from "@tanstack/react-table";
 import { Badge } from "components/base/badge";
 import { Button } from "components/base/button";
@@ -5,10 +6,13 @@ import { FilterMenu } from "components/base/filterMenu";
 import { StatusBadge } from "components/base/statusBadge";
 import { Table } from "components/base/table";
 import { Header } from "components/base/table/header";
+import { Toast } from "components/base/toast";
+import { useClaimWithdrawBatch } from "hooks/useClaimWithdrawBatch";
 import { TableCellsIcon } from "pages/earn/icons/tableCellsIcon";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { formatDate } from "utils/date";
+import { useAccount } from "wagmi";
 
 import { useCooldownDuration } from "../../hooks/useCooldownDuration";
 import { useExitTickets } from "../../hooks/useExitTickets";
@@ -27,11 +31,19 @@ const statusLabels = {
   withdrawn: "pages.earn.exit-tickets.withdrawn",
 } as const;
 
-const getColumns = (
-  cooldownDuration: bigint | undefined,
-  language: string,
-  t: ReturnType<typeof useTranslation>["t"],
-): ColumnDef<ExitTicket>[] => [
+const getColumns = ({
+  cooldownDuration,
+  isWithdrawingAll,
+  language,
+  onWithdrawingChange,
+  t,
+}: {
+  cooldownDuration: bigint | undefined;
+  isWithdrawingAll: boolean;
+  language: string;
+  onWithdrawingChange: (isWithdrawing: boolean) => void;
+  t: ReturnType<typeof useTranslation>["t"];
+}): ColumnDef<ExitTicket>[] => [
   {
     cell: ({ row }) => (
       <span className="text-xsm font-normal text-gray-500">
@@ -82,10 +94,17 @@ const getColumns = (
     cell: ({ row }) => <TxsCell ticket={row.original} />,
     header: () => <Header text={t("pages.earn.exit-tickets.col-txs")} />,
     id: "txs",
-    meta: { width: "112px" },
+    meta: { width: "132px" },
   },
   {
-    cell: ({ row }) => <ActionsCell ticket={row.original} />,
+    cell: ({ row }) => (
+      <ActionsCell
+        disabled={isWithdrawingAll}
+        key={row.original.requestId}
+        onWithdrawingChange={onWithdrawingChange}
+        ticket={row.original}
+      />
+    ),
     header: () => <Header text={t("pages.earn.exit-tickets.actions")} />,
     id: "actions",
     meta: { className: "justify-end", width: "150px" },
@@ -96,10 +115,38 @@ export function ExitTickets() {
   const { data: cooldownDuration } = useCooldownDuration();
   const { data, isLoading } = useExitTickets();
   const { i18n, t } = useTranslation();
+  const { isConnected } = useAccount();
+  const { openConnectModal } = useConnectModal();
   const [selectedFilters, setSelectedFilters] = useState([
     "completed",
     "pending",
   ]);
+  const [isWithdrawingAll, setIsWithdrawingAll] = useState(false);
+  const [isWithdrawingSingle, setIsWithdrawingSingle] = useState(false);
+  const [showWithdrawAllToast, setShowWithdrawAllToast] = useState(false);
+
+  const readyTickets = useMemo(
+    () => (data ?? []).filter((ticket) => getTicketStatus(ticket) === "ready"),
+    [data],
+  );
+
+  const readyRequestIds = useMemo(
+    () => readyTickets.map((ticket) => BigInt(ticket.requestId)),
+    [readyTickets],
+  );
+
+  const { mutate: claimWithdrawBatch } = useClaimWithdrawBatch({
+    onStatusChange(status) {
+      if (status === "completed") {
+        setIsWithdrawingAll(false);
+        setShowWithdrawAllToast(true);
+      }
+      if (status === "failed") {
+        setIsWithdrawingAll(false);
+      }
+    },
+    requestIds: readyRequestIds,
+  });
 
   const filterOptions = useMemo(
     () => [
@@ -116,8 +163,15 @@ export function ExitTickets() {
   );
 
   const columns = useMemo(
-    () => getColumns(cooldownDuration, i18n.language, t),
-    [cooldownDuration, i18n.language, t],
+    () =>
+      getColumns({
+        cooldownDuration,
+        isWithdrawingAll,
+        language: i18n.language,
+        onWithdrawingChange: setIsWithdrawingSingle,
+        t,
+      }),
+    [cooldownDuration, i18n.language, isWithdrawingAll, t],
   );
 
   // Filter and sort data based on selected filters and ticket status
@@ -153,12 +207,10 @@ export function ExitTickets() {
     [data, selectedFilters],
   );
 
-  const readyCount = useMemo(
-    () =>
-      (data ?? []).filter((ticket) => getTicketStatus(ticket) === "ready")
-        .length,
-    [data],
-  );
+  function handleWithdrawAll() {
+    setIsWithdrawingAll(true);
+    claimWithdrawBatch();
+  }
 
   return (
     <div>
@@ -176,10 +228,37 @@ export function ExitTickets() {
             selectedValues={selectedFilters}
           />
           <div className="h-3 w-0.5 rounded-full bg-gray-200" />
-          <Button size="xSmall" variant="primary">
-            {t("pages.earn.exit-tickets.withdraw-all")}
-            {readyCount > 0 && <Badge variant="blue">{readyCount}</Badge>}
-          </Button>
+          {isConnected ? (
+            <Button
+              disabled={
+                readyTickets.length === 0 ||
+                isWithdrawingAll ||
+                isWithdrawingSingle
+              }
+              onClick={handleWithdrawAll}
+              size="xSmall"
+              variant="primary"
+            >
+              <span className="invisible flex items-center gap-x-1">
+                {t("pages.earn.exit-tickets.withdraw-all")}
+                {readyTickets.length > 0 && (
+                  <Badge variant="blue">{readyTickets.length}</Badge>
+                )}
+              </span>
+              <span className="absolute flex items-center gap-x-1">
+                {isWithdrawingAll
+                  ? t("pages.earn.exit-tickets.withdrawing")
+                  : t("pages.earn.exit-tickets.withdraw-all")}
+                {!isWithdrawingAll && readyTickets.length > 0 && (
+                  <Badge variant="blue">{readyTickets.length}</Badge>
+                )}
+              </span>
+            </Button>
+          ) : (
+            <Button onClick={openConnectModal} size="xSmall" variant="primary">
+              {t("pages.swap.form.connect-wallet")}
+            </Button>
+          )}
         </div>
       </div>
       {/* Table */}
@@ -191,6 +270,16 @@ export function ExitTickets() {
         placeholder={<EmptyState />}
         priorityColumnIdsOnSmall={["actions"]}
       />
+      {showWithdrawAllToast && (
+        <Toast
+          closable
+          description={t(
+            "pages.earn.exit-tickets.withdraw-all-toast-description",
+          )}
+          onClose={() => setShowWithdrawAllToast(false)}
+          title={t("pages.earn.exit-tickets.withdraw-all-toast-title")}
+        />
+      )}
     </div>
   );
 }
