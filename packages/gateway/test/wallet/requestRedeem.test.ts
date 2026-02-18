@@ -174,6 +174,66 @@ describe("requestRedeem", function () {
     expect(onSettled).toHaveBeenCalledOnce();
   });
 
+  it("should emit 'request-redeem-failed-validation' if approveAmount is less than peggedTokenAmount", async function () {
+    const parameters = {
+      approveAmount: BigInt(999),
+      peggedTokenAmount: BigInt(1000),
+    };
+
+    const { emitter, promise } = requestRedeem(mockWalletClient, parameters);
+
+    const onFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("request-redeem-failed-validation", onFailedValidation);
+    emitter.on("request-redeem-settled", onSettled);
+
+    await promise;
+
+    expect(onFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "Approve amount must be greater than or equal to amount",
+    );
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("should approve with approveAmount when provided and allowance is insufficient", async function () {
+    const successReceipt = {
+      status: "success",
+    } as TransactionReceipt;
+
+    const parameters = {
+      approveAmount: BigInt(10000),
+      peggedTokenAmount: BigInt(1000),
+    };
+
+    vi.mocked(getPeggedToken).mockResolvedValue(mockPeggedTokenAddress);
+    vi.mocked(allowance).mockResolvedValue(BigInt(0));
+    vi.mocked(approve).mockResolvedValue(zeroHash);
+    vi.mocked(writeContract).mockResolvedValue(zeroHash);
+    vi.mocked(waitForTransactionReceipt)
+      .mockResolvedValueOnce(successReceipt)
+      .mockResolvedValueOnce(successReceipt);
+
+    const { emitter, promise } = requestRedeem(mockWalletClient, parameters);
+
+    const onSucceeded = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("request-redeem-transaction-succeeded", onSucceeded);
+    emitter.on("request-redeem-settled", onSettled);
+
+    await promise;
+
+    expect(approve).toHaveBeenCalledWith(
+      mockWalletClient,
+      expect.objectContaining({
+        amount: BigInt(10000),
+      }),
+    );
+    expect(onSucceeded).toHaveBeenCalledExactlyOnceWith(successReceipt);
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
   it("should skip approval if allowance is sufficient and proceed to request redeem", async function () {
     const receipt = {
       status: "success",

@@ -93,6 +93,7 @@ export function TwoStepRedeem({
   const protocolFee = useRedeemFee();
 
   const requestRedeemMutation = useRequestRedeem({
+    approveAmount,
     onEmitter(emitter) {
       emitter.on("user-signed-approval", () => setFlowStatus("approving"));
       emitter.on("approve-transaction-succeeded", () =>

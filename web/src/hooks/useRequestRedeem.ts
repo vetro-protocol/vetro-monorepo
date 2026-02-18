@@ -13,9 +13,11 @@ import { useMainnet } from "./useMainnet";
 import { useVusd } from "./useVusd";
 
 export const useRequestRedeem = function ({
+  approveAmount,
   onEmitter,
   peggedTokenAmount,
 }: {
+  approveAmount?: bigint;
   onEmitter?: (emitter: EventEmitter<RequestRedeemEvents>) => void;
   peggedTokenAmount: bigint;
 }) {
@@ -42,6 +44,7 @@ export const useRequestRedeem = function ({
       await ensureConnectedTo(ethereumChain.id);
 
       const { emitter, promise } = requestRedeem(walletClient!, {
+        approveAmount,
         peggedTokenAmount,
       });
 

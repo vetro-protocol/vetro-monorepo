@@ -14,13 +14,16 @@ import type { RequestRedeemEvents } from "../../types.js";
 import { getPeggedToken } from "../public/getPeggedToken.js";
 
 export type RequestRedeemParams = {
+  approveAmount?: bigint;
   peggedTokenAmount: bigint;
 };
 
 const canRequestRedeem = function ({
+  approveAmount,
   client,
   peggedTokenAmount,
 }: {
+  approveAmount: bigint;
   client: WalletClient;
   peggedTokenAmount: bigint;
 }): {
@@ -59,17 +62,27 @@ const canRequestRedeem = function ({
     };
   }
 
+  // Validate approveAmount
+  if (approveAmount < peggedTokenAmount) {
+    return {
+      canRequestRedeem: false,
+      reason: "Approve amount must be greater than or equal to amount",
+    };
+  }
+
   return { canRequestRedeem: true };
 };
 
 const runRequestRedeem = (
   walletClient: WalletClient,
-  { peggedTokenAmount }: RequestRedeemParams,
+  { approveAmount, peggedTokenAmount }: RequestRedeemParams,
 ) =>
   async function (emitter: EventEmitter<RequestRedeemEvents>) {
+    const resolvedApproveAmount = approveAmount ?? peggedTokenAmount;
     try {
       const { canRequestRedeem: canRequestRedeemFlag, reason } =
         canRequestRedeem({
+          approveAmount: resolvedApproveAmount,
           client: walletClient,
           peggedTokenAmount,
         });
@@ -100,7 +113,7 @@ const runRequestRedeem = (
 
         const approvalHash = await approve(walletClient, {
           address: peggedTokenAddress,
-          amount: peggedTokenAmount,
+          amount: resolvedApproveAmount,
           spender: gatewayAddress,
         }).catch(function (error: Error) {
           emitter.emit("user-signing-approval-error", error);
