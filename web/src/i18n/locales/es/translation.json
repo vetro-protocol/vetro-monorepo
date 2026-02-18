@@ -131,8 +131,11 @@
         "insufficient-gas": "ETH insuficiente para gas",
         "preview-error": "No se pudo calcular el monto a recibir",
         "redeem": "Canjear",
+        "redeemable-for_one": "Intercambiable por {{symbol}}",
+        "redeemable-for_other": "Intercambiable por {{allButLast}} y {{last}}",
         "you-are-swapping": "Vas a intercambiar",
-        "you-will-receive": "Vas a recibir"
+        "you-will-receive": "Vas a recibir",
+        "you-will-receive-approximately": "Vas a recibir (aproximadamente)"
       },
       "progress": {
         "approve-description": "Esto permite que la app use este token para su intercambio.",

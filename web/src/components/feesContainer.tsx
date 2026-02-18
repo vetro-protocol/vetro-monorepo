@@ -8,7 +8,7 @@ import feesSvg from "./icons/fees.svg";
 type Props = {
   children: ReactNode;
   isError?: boolean;
-  label: ReactNode;
+  label?: ReactNode;
   totalFees?: string;
 };
 
@@ -34,8 +34,8 @@ export function FeesContainer({ children, isError, label, totalFees }: Props) {
         role="button"
         tabIndex={0}
       >
-        <span className="font-semibold text-gray-900">{label}</span>
-        <div className="flex items-center gap-2">
+        {label && <span className="font-semibold text-gray-900">{label}</span>}
+        <div className="ml-auto flex items-center gap-2">
           {!isOpen && (
             <>
               <img alt="Fees icon" height="16" src={feesSvg} width="16" />

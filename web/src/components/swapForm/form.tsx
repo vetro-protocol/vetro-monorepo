@@ -1,5 +1,6 @@
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
 import { TokenInput } from "components/tokenInput";
+import { Balance } from "components/tokenInput/balance";
 import { useMainnet } from "hooks/useMainnet";
 import type { FormEvent, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
@@ -19,7 +20,8 @@ type Props = {
   onSubmit: (e: FormEvent) => void;
   onToggle: VoidFunction;
   outputValue: string;
-  toToken: Token;
+  toBalance?: ReactNode;
+  toLabel?: string;
   toTokenSelector: ReactNode;
 };
 
@@ -34,7 +36,8 @@ export function Form({
   onSubmit,
   onToggle,
   outputValue,
-  toToken,
+  toBalance,
+  toLabel,
   toTokenSelector,
 }: Props) {
   const ethereumChain = useMainnet();
@@ -46,12 +49,6 @@ export function Form({
       chainId: ethereumChain.id,
     });
 
-  const { data: toTokenBalance, isError: isToTokenBalanceError } =
-    useTokenBalance({
-      address: toToken.address,
-      chainId: ethereumChain.id,
-    });
-
   return (
     <div className="flex w-full justify-center border-y border-gray-200 bg-gray-100">
       <form
@@ -60,12 +57,16 @@ export function Form({
       >
         <div className="px-2">
           <TokenInput
-            balanceLabel={t("pages.swap.form.balance")}
-            balanceValue={formatAmount({
-              amount: fromTokenBalance,
-              decimals: fromToken.decimals,
-              isError: isFromTokenBalanceError,
-            })}
+            balance={
+              <Balance
+                label={t("pages.swap.form.balance")}
+                value={formatAmount({
+                  amount: fromTokenBalance,
+                  decimals: fromToken.decimals,
+                  isError: isFromTokenBalanceError,
+                })}
+              />
+            }
             errorKey={errorKey}
             label={t("pages.swap.form.you-are-swapping")}
             maxButton={maxButton}
@@ -80,14 +81,9 @@ export function Form({
         </div>
         <div className="px-2">
           <TokenInput
-            balanceLabel={t("pages.swap.form.balance")}
-            balanceValue={formatAmount({
-              amount: toTokenBalance,
-              decimals: toToken.decimals,
-              isError: isToTokenBalanceError,
-            })}
+            balance={toBalance}
             disabled
-            label={t("pages.swap.form.you-will-receive")}
+            label={toLabel ?? t("pages.swap.form.you-will-receive")}
             tokenSelector={toTokenSelector}
             value={outputValue}
           />

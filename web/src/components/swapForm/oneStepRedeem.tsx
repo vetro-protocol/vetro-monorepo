@@ -7,22 +7,23 @@ import { Toast } from "components/base/toast";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenDropdown } from "components/tokenDropdown";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
-import { useDeposit } from "hooks/useDeposit";
-import { useEstimateDepositGas } from "hooks/useEstimateDepositGas";
+import { useEstimateRedeemGas } from "hooks/useEstimateRedeemGas";
 import { useMainnet } from "hooks/useMainnet";
-import { useMintFee } from "hooks/useMintFee";
-import { usePreviewDeposit } from "hooks/usePreviewDeposit";
+import { usePreviewRedeem } from "hooks/usePreviewRedeem";
+import { useRedeem } from "hooks/useRedeem";
+import { useRedeemFee } from "hooks/useRedeemFee";
 import { useSwapFeesDisplay } from "hooks/useSwapFeesDisplay";
 import { type FormEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 import { formatAmount } from "utils/token";
+import { useAccount } from "wagmi";
 
 import { Form } from "./form";
 import { OutputLabel } from "./outputLabel";
 import { SubmitButton } from "./submitButton";
-import { type DepositFlowStatus, SwapDepositDrawer } from "./swapDepositDrawer";
 import { SwapFees } from "./swapFees";
+import { type RedeemFlowStatus, SwapRedeemDrawer } from "./swapRedeemDrawer";
 import { ToTokenBalance } from "./toTokenBalance";
 import { getSwapErrors } from "./validation";
 
@@ -41,7 +42,7 @@ type Props = {
   whitelistedTokens: Token[];
 };
 
-export function Deposit({
+export function OneStepRedeem({
   amountBigInt,
   approve10x,
   approveAmount,
@@ -55,14 +56,13 @@ export function Deposit({
   toToken,
   whitelistedTokens,
 }: Props) {
+  const { address } = useAccount();
   const ethereumChain = useMainnet();
   const { t } = useTranslation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const handleDrawerClose = useCallback(() => setIsDrawerOpen(false), []);
-  const [flowStatus, setFlowStatus] = useState<DepositFlowStatus>("idle");
+  const [flowStatus, setFlowStatus] = useState<RedeemFlowStatus>("idle");
   const [showToast, setShowToast] = useState(false);
-  // Captures whether approval was needed when the flow started, because
-  // useNeedsApproval flips to false after a successful approval tx.
   const [startedWithApproval, setStartedWithApproval] = useState(false);
 
   const { data: fromTokenBalance } = useTokenBalance({
@@ -71,6 +71,7 @@ export function Deposit({
   });
 
   const { data: nativeBalanceData } = useNativeBalance(ethereumChain.id);
+  const nativeBalance = nativeBalanceData?.value;
 
   const { data: needsApproval } = useNeedsApproval({
     amount: amountBigInt,
@@ -78,22 +79,23 @@ export function Deposit({
     token: fromToken,
   });
 
-  const { data: depositPreview, isError: isDepositPreviewError } =
-    usePreviewDeposit({
-      amountIn: amountBigInt,
-      tokenIn: fromToken.address,
-    });
-
-  const protocolFee = useMintFee();
-
-  const operationGasEstimation = useEstimateDepositGas({
-    amountIn: amountBigInt,
-    minPeggedTokenOut: depositPreview,
-    token: fromToken,
+  const { data: redeemPreview, isError: isPreviewError } = usePreviewRedeem({
+    peggedTokenIn: amountBigInt,
+    tokenOut: toToken.address,
   });
 
-  const depositMutation = useDeposit({
-    amountIn: amountBigInt,
+  const operationGasEstimation = useEstimateRedeemGas({
+    enabled: amountBigInt > 0n && !!redeemPreview && !!address,
+    minAmountOut: redeemPreview ?? 0n,
+    peggedToken: fromToken,
+    peggedTokenIn: amountBigInt,
+    receiver: address!,
+    tokenOut: toToken.address,
+  });
+
+  const protocolFee = useRedeemFee();
+
+  const redeemMutation = useRedeem({
     approveAmount,
     onEmitter(emitter) {
       emitter.on("user-signed-approval", () => setFlowStatus("approving"));
@@ -106,27 +108,25 @@ export function Deposit({
       emitter.on("user-signing-approval-error", () =>
         setFlowStatus("approve-error"),
       );
-      emitter.on("pre-deposit", () => setFlowStatus("deposit-ready"));
-      emitter.on("user-signed-deposit", () => setFlowStatus("depositing"));
-      emitter.on("deposit-failed", () => setFlowStatus("deposit-error"));
-      emitter.on("deposit-transaction-succeeded", function () {
-        setFlowStatus("deposited");
+      emitter.on("pre-redeem", () => setFlowStatus("redeem-ready"));
+      emitter.on("user-signed-redeem", () => setFlowStatus("redeeming"));
+      emitter.on("redeem-transaction-succeeded", function () {
+        setFlowStatus("redeemed");
         setShowToast(true);
       });
-      emitter.on("deposit-transaction-reverted", () =>
-        setFlowStatus("deposit-error"),
+      emitter.on("redeem-transaction-reverted", () =>
+        setFlowStatus("redeem-error"),
       );
-      emitter.on("user-signing-deposit-error", () =>
-        setFlowStatus("deposit-error"),
+      emitter.on("user-signing-redeem-error", () =>
+        setFlowStatus("redeem-error"),
       );
-      emitter.on("deposit-failed-validation", () =>
-        setFlowStatus("deposit-error"),
+      emitter.on("redeem-failed-validation", () =>
+        setFlowStatus("redeem-error"),
       );
     },
-    tokenIn: fromToken.address,
+    peggedTokenIn: amountBigInt,
+    tokenOut: toToken.address,
   });
-
-  const nativeBalance = nativeBalanceData?.value;
 
   const inputError = getSwapErrors({
     amount: amountBigInt,
@@ -135,9 +135,9 @@ export function Deposit({
   });
 
   const outputValue = formatAmount({
-    amount: depositPreview,
+    amount: redeemPreview,
     decimals: toToken.decimals,
-    isError: isDepositPreviewError,
+    isError: isPreviewError,
   });
 
   const { networkFeeDisplay, protocolFeeDisplay, totalFeesDisplay } =
@@ -153,16 +153,16 @@ export function Deposit({
     nativeBalance !== undefined && fromTokenBalance !== undefined;
 
   const handleRetry = function () {
-    setFlowStatus(startedWithApproval ? "approving" : "deposit-ready");
-    depositMutation.mutate();
+    setFlowStatus(startedWithApproval ? "approving" : "redeem-ready");
+    redeemMutation.mutate();
   };
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!inputError) {
       setStartedWithApproval(!!needsApproval);
-      setFlowStatus(needsApproval ? "approving" : "deposit-ready");
-      depositMutation.mutate();
+      setFlowStatus(needsApproval ? "approving" : "redeem-ready");
+      redeemMutation.mutate();
       setIsDrawerOpen(true);
     }
   }
@@ -174,10 +174,9 @@ export function Deposit({
         fromInputValue={fromInputValue}
         fromToken={fromToken}
         fromTokenSelector={
-          <TokenDropdown
-            onChange={onTokenChange}
-            tokens={whitelistedTokens}
-            value={fromToken}
+          <TokenSelectorReadOnly
+            logoURI={fromToken.logoURI}
+            symbol={fromToken.symbol}
           />
         }
         maxButton={
@@ -188,13 +187,19 @@ export function Deposit({
         onToggle={onToggle}
         outputValue={outputValue}
         toBalance={<ToTokenBalance token={toToken} />}
-        toTokenSelector={<TokenSelectorReadOnly {...toToken} />}
+        toTokenSelector={
+          <TokenDropdown
+            onChange={onTokenChange}
+            tokens={whitelistedTokens}
+            value={toToken}
+          />
+        }
       >
         <SubmitButton
-          actionText={t("pages.swap.form.deposit")}
+          actionText={t("pages.swap.form.redeem")}
           inputError={inputError}
-          isPreviewError={isDepositPreviewError}
-          previewValue={depositPreview}
+          isPreviewError={isPreviewError}
+          previewValue={redeemPreview}
           token={fromToken}
         />
       </Form>
@@ -215,7 +220,7 @@ export function Deposit({
         protocolFee={protocolFee}
       />
       {isDrawerOpen && flowStatus !== "idle" && (
-        <SwapDepositDrawer
+        <SwapRedeemDrawer
           flowStatus={flowStatus}
           fromAmount={fromInputValue}
           fromToken={fromToken}

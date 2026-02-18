@@ -9,6 +9,7 @@ import { FeeDetails } from "components/feeDetails";
 import { FeesContainer } from "components/feesContainer";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenInput } from "components/tokenInput";
+import { Balance } from "components/tokenInput/balance";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useMainnet } from "hooks/useMainnet";
 import { useStakeDeposit } from "hooks/useStakeDeposit";
@@ -249,8 +250,12 @@ export function StakeDepositForm({
     <form className="flex flex-1 flex-col" onSubmit={handleSubmit}>
       <div className="p-6">
         <TokenInput
-          balanceLabel={t("pages.earn.stake.available-to-deposit")}
-          balanceValue={formattedBalance}
+          balance={
+            <Balance
+              label={t("pages.earn.stake.available-to-deposit")}
+              value={formattedBalance}
+            />
+          }
           errorKey={balancesLoaded ? inputError : undefined}
           label={t("pages.earn.stake.you-will-stake")}
           maxButton={
