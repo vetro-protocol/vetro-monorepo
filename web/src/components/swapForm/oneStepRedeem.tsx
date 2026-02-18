@@ -6,6 +6,7 @@ import { ApproveSection } from "components/approveSection";
 import { Toast } from "components/base/toast";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenDropdown } from "components/tokenDropdown";
+import { TokenInput } from "components/tokenInput";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useEstimateRedeemGas } from "hooks/useEstimateRedeemGas";
 import { useMainnet } from "hooks/useMainnet";
@@ -185,13 +186,19 @@ export function OneStepRedeem({
         onInputChange={onInputChange}
         onSubmit={handleSubmit}
         onToggle={onToggle}
-        outputValue={outputValue}
-        toBalance={<ToTokenBalance token={toToken} />}
-        toTokenSelector={
-          <TokenDropdown
-            onChange={onTokenChange}
-            tokens={whitelistedTokens}
-            value={toToken}
+        toSection={
+          <TokenInput
+            balance={<ToTokenBalance token={toToken} />}
+            disabled
+            label={t("pages.swap.form.you-will-receive")}
+            tokenSelector={
+              <TokenDropdown
+                onChange={onTokenChange}
+                tokens={whitelistedTokens}
+                value={toToken}
+              />
+            }
+            value={outputValue}
           />
         }
       >

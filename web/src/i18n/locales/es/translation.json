@@ -133,6 +133,9 @@
         "redeem": "Canjear",
         "redeemable-for_one": "Intercambiable por {{symbol}}",
         "redeemable-for_other": "Intercambiable por {{allButLast}} y {{last}}",
+        "send-to-vault": "Enviar a la bóveda",
+        "vault-info_one": "{{vusd}} ingresará a una bóveda con un período de espera de {{blocks}} bloques. Una vez completado, podrá canjearlo por {{symbol}}.",
+        "vault-info_other": "{vusd} ingresará a una bóveda con un período de espera de {{blocks}} bloques. Una vez completado, podrá canjearlo por {{allButLast}}, o {{last}}.",
         "you-are-swapping": "Vas a intercambiar",
         "you-will-receive": "Vas a recibir",
         "you-will-receive-approximately": "Vas a recibir (aproximadamente)"

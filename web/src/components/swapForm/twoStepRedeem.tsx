@@ -17,7 +17,6 @@ import { type FormEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 import { secondsToBlocks } from "utils/blocks";
-import { formatAmount } from "utils/token";
 import { useAccount } from "wagmi";
 
 import { Form } from "./form";
@@ -138,12 +137,6 @@ export function TwoStepRedeem({
     tokenBalance: fromTokenBalance,
   });
 
-  const outputValue = formatAmount({
-    amount: redeemPreview,
-    decimals: toToken.decimals,
-    isError: isPreviewError,
-  });
-
   const { networkFeeDisplay, protocolFeeDisplay, totalFeesDisplay } =
     useSwapFeesDisplay({
       amountBigInt,
@@ -164,6 +157,18 @@ export function TwoStepRedeem({
     count: whitelistedTokens.length,
     last: whitelistedTokens.at(-1)!.symbol,
     symbol: whitelistedTokens[0]?.symbol,
+  });
+
+  const vaultInfoText = t("pages.swap.form.vault-info", {
+    allButLast: whitelistedTokens
+      .slice(0, -1)
+      .map((tk) => tk.symbol)
+      .join(", "),
+    blocks,
+    count: whitelistedTokens.length,
+    last: whitelistedTokens.at(-1)!.symbol,
+    symbol: whitelistedTokens[0]?.symbol,
+    vusd: fromToken.symbol,
   });
 
   const handleRetry = function () {
@@ -199,14 +204,16 @@ export function TwoStepRedeem({
         onInputChange={onInputChange}
         onSubmit={handleSubmit}
         onToggle={onToggle}
-        outputValue={outputValue}
-        toLabel={t("pages.swap.form.you-will-receive-approximately")}
-        toTokenSelector={
-          <span className="text-sm font-semibold">{redeemableForText}</span>
+        toSection={
+          <div className="flex h-32 items-center justify-center rounded-lg bg-gray-50 px-12">
+            <p className="text-b-medium text-center text-gray-600">
+              {vaultInfoText}
+            </p>
+          </div>
         }
       >
         <SubmitButton
-          actionText={t("pages.swap.form.redeem")}
+          actionText={t("pages.swap.form.send-to-vault")}
           inputError={inputError}
           isPreviewError={isPreviewError}
           previewValue={redeemPreview}

@@ -19,10 +19,7 @@ type Props = {
   onInputChange: (value: string) => void;
   onSubmit: (e: FormEvent) => void;
   onToggle: VoidFunction;
-  outputValue: string;
-  toBalance?: ReactNode;
-  toLabel?: string;
-  toTokenSelector: ReactNode;
+  toSection: ReactNode;
 };
 
 export function Form({
@@ -35,10 +32,7 @@ export function Form({
   onInputChange,
   onSubmit,
   onToggle,
-  outputValue,
-  toBalance,
-  toLabel,
-  toTokenSelector,
+  toSection,
 }: Props) {
   const ethereumChain = useMainnet();
   const { t } = useTranslation();
@@ -79,15 +73,7 @@ export function Form({
         <div className="relative flex h-0 items-center justify-center">
           <SwapToggleButton onClick={onToggle} />
         </div>
-        <div className="px-2">
-          <TokenInput
-            balance={toBalance}
-            disabled
-            label={toLabel ?? t("pages.swap.form.you-will-receive")}
-            tokenSelector={toTokenSelector}
-            value={outputValue}
-          />
-        </div>
+        <div className="px-2">{toSection}</div>
         {children}
       </form>
     </div>
