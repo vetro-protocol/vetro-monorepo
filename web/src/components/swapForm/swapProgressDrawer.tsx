@@ -4,7 +4,7 @@ import { type Step, VerticalStepper } from "components/base/verticalStepper";
 import { FeeDetails } from "components/feeDetails";
 import { FeesContainer } from "components/feesContainer";
 import { TokenLogo } from "components/tokenLogo";
-import { useEffect, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 
@@ -15,10 +15,11 @@ type Props = {
   fromToken: Token;
   networkFee: string;
   onRetry?: VoidFunction;
-  outputValue: string;
+  outputValue?: string;
   protocolFee: string;
   steps: Step[];
-  toToken: Token;
+  subtitle?: ReactNode;
+  toToken?: Token;
   totalFees: string;
 };
 
@@ -30,6 +31,7 @@ export function SwapProgressDrawer({
   outputValue,
   protocolFee,
   steps,
+  subtitle,
   totalFees,
   toToken,
 }: Props) {
@@ -69,31 +71,40 @@ export function SwapProgressDrawer({
               <TokenLogo {...fromToken} size="large" />
             </div>
             <p className="text-xsm text-gray-500">${fromAmount}</p>
+            {subtitle && (
+              <p className="text-base font-semibold text-gray-500">
+                {subtitle}
+              </p>
+            )}
           </div>
 
-          <div className="flex flex-col gap-2">
-            <p className="text-xsm text-gray-500">
-              {t("pages.swap.form.you-will-receive")}
-            </p>
-            <div className="flex items-center gap-3">
-              <p className="flex items-center gap-x-2 text-4xl leading-10 font-semibold tracking-tight text-gray-900">
-                <span>{outputValue}</span>
-                <span className="text-gray-500">{toToken.symbol}</span>
+          {toToken && outputValue !== undefined && (
+            <div className="flex flex-col gap-2">
+              <p className="text-xsm text-gray-500">
+                {t("pages.swap.form.you-will-receive")}
               </p>
-              <TokenLogo {...toToken} size="large" />
+              <div className="flex items-center gap-3">
+                <p className="flex items-center gap-x-2 text-4xl leading-10 font-semibold tracking-tight text-gray-900">
+                  <span>{outputValue}</span>
+                  <span className="text-gray-500">{toToken.symbol}</span>
+                </p>
+                <TokenLogo {...toToken} size="large" />
+              </div>
+              <p className="text-xsm text-gray-500">${outputValue}</p>
             </div>
-            <p className="text-xsm text-gray-500">${outputValue}</p>
-          </div>
+          )}
         </div>
 
         <FeesContainer
           label={
-            <OutputLabel
-              fromInputValue={fromAmount}
-              fromToken={fromToken}
-              outputValue={outputValue}
-              toToken={toToken}
-            />
+            toToken && outputValue !== undefined ? (
+              <OutputLabel
+                fromInputValue={fromAmount}
+                fromToken={fromToken}
+                outputValue={outputValue}
+                toToken={toToken}
+              />
+            ) : undefined
           }
           totalFees={totalFees}
         >
