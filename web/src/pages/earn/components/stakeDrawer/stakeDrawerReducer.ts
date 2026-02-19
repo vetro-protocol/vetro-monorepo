@@ -11,9 +11,11 @@ export type DepositStep =
 
 export type WithdrawStep =
   | "completed"
+  | "failed"
   | "idle"
   | "request-failed"
-  | "requesting";
+  | "requesting"
+  | "withdrawing";
 
 export type StakeDrawerState = {
   approve10x: boolean;

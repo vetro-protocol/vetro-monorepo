@@ -7,10 +7,12 @@ import { SetMaxStakedBalance } from "components/setMaxStakedBalance";
 import { TokenInput } from "components/tokenInput";
 import { Balance } from "components/tokenInput/balance";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
+import { useInstantWithdraw } from "hooks/useInstantWithdraw";
 import { useMainnet } from "hooks/useMainnet";
 import { useStakedBalance } from "hooks/useStakedBalance";
 import { useStakeWithdraw } from "hooks/useStakeWithdraw";
 import { useVusd } from "hooks/useVusd";
+import { useCanInstantWithdraw } from "pages/earn/hooks/useCanInstantWithdraw";
 import { useWithdrawFees } from "pages/earn/hooks/useWithdrawFees";
 import { type FormEvent, useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -54,13 +56,54 @@ function getRequestStepStatus(withdrawStep: WithdrawStep) {
   if (withdrawStep === "completed") {
     return stepStatus.completed;
   }
-  if (withdrawStep === "requesting") {
+  if (withdrawStep === "requesting" || withdrawStep === "withdrawing") {
     return stepStatus.progress;
   }
-  if (withdrawStep === "request-failed") {
+  if (withdrawStep === "request-failed" || withdrawStep === "failed") {
     return stepStatus.failed;
   }
   return stepStatus.ready;
+}
+
+function getWithdrawSteps({
+  canInstantWithdraw,
+  t,
+  withdrawStep,
+}: {
+  canInstantWithdraw: boolean | undefined;
+  t: ReturnType<typeof useTranslation>["t"];
+  withdrawStep: WithdrawStep;
+}) {
+  const requestStatus = getRequestStepStatus(withdrawStep);
+
+  if (canInstantWithdraw) {
+    return [
+      {
+        description: t("pages.earn.stake.instant-withdraw-step-description"),
+        status: requestStatus,
+        title: t("pages.earn.stake.instant-withdraw-step-title"),
+      },
+    ];
+  }
+
+  return [
+    {
+      description: t("pages.earn.stake.withdraw-step-1-description"),
+      status: requestStatus,
+      title: t("pages.earn.stake.withdraw-step-1-title"),
+    },
+    {
+      description: t("pages.earn.stake.withdraw-step-2-description"),
+      status:
+        withdrawStep === "completed" ? stepStatus.ready : stepStatus.notReady,
+      title: t("pages.earn.stake.withdraw-step-2-title"),
+    },
+    {
+      description: t("pages.earn.stake.withdraw-step-3-description"),
+      status: stepStatus.notReady,
+      title: t("pages.earn.stake.withdraw-step-3-title"),
+    },
+  ];
 }
 
 export function StakeWithdrawForm({
@@ -71,6 +114,7 @@ export function StakeWithdrawForm({
   withdrawStep,
 }: Props) {
   const { address: account, isConnected } = useAccount();
+  const canInstantWithdraw = useCanInstantWithdraw();
   const chain = useMainnet();
   const { openConnectModal } = useConnectModal();
   const { t } = useTranslation();
@@ -84,8 +128,8 @@ export function StakeWithdrawForm({
 
   const amountBigInt = vusd ? parseUnits(inputValue, vusd.decimals) : 0n;
 
-  const handleWithdrawSuccess = useCallback(
-    function handleWithdrawSuccess() {
+  const handleRequestWithdrawSuccess = useCallback(
+    function handleRequestWithdrawSuccess() {
       onSuccess({
         description: t("pages.earn.stake.withdraw-toast-description"),
         title: t("pages.earn.stake.withdraw-toast-title"),
@@ -94,15 +138,36 @@ export function StakeWithdrawForm({
     [onSuccess, t],
   );
 
-  const withdrawMutation = useStakeWithdraw({
+  const handleInstantWithdrawSuccess = useCallback(
+    function handleInstantWithdrawSuccess() {
+      onSuccess({
+        description: t("pages.earn.stake.instant-withdraw-toast-description"),
+        title: t("pages.earn.stake.instant-withdraw-toast-title"),
+      });
+    },
+    [onSuccess, t],
+  );
+
+  const requestWithdrawMutation = useStakeWithdraw({
     assets: amountBigInt,
     onStatusChange: onWithdrawStepChange,
-    onSuccess: handleWithdrawSuccess,
+    onSuccess: handleRequestWithdrawSuccess,
   });
+
+  const instantWithdrawMutation = useInstantWithdraw({
+    assets: amountBigInt,
+    onStatusChange: onWithdrawStepChange,
+    onSuccess: handleInstantWithdrawSuccess,
+  });
+
+  const withdrawMutation = canInstantWithdraw
+    ? instantWithdrawMutation
+    : requestWithdrawMutation;
 
   const { data: networkFee, isError: isFeeError } = useWithdrawFees({
     account,
     amount: amountBigInt,
+    instantWithdraw: canInstantWithdraw ?? false,
     isConnected,
   });
 
@@ -121,26 +186,7 @@ export function StakeWithdrawForm({
   const balancesLoaded =
     nativeBalance !== undefined && stakedBalance !== undefined;
 
-  const requestStatus = getRequestStepStatus(withdrawStep);
-
-  const withdrawSteps = [
-    {
-      description: t("pages.earn.stake.withdraw-step-1-description"),
-      status: requestStatus,
-      title: t("pages.earn.stake.withdraw-step-1-title"),
-    },
-    {
-      description: t("pages.earn.stake.withdraw-step-2-description"),
-      status:
-        withdrawStep === "completed" ? stepStatus.ready : stepStatus.notReady,
-      title: t("pages.earn.stake.withdraw-step-2-title"),
-    },
-    {
-      description: t("pages.earn.stake.withdraw-step-3-description"),
-      status: stepStatus.notReady,
-      title: t("pages.earn.stake.withdraw-step-3-title"),
-    },
-  ];
+  const steps = getWithdrawSteps({ canInstantWithdraw, t, withdrawStep });
 
   function handleMaxClick(maxValue: string) {
     onInputChange(maxValue);
@@ -179,13 +225,21 @@ export function StakeWithdrawForm({
 
       <div className="flex border-y border-gray-200 bg-gray-50 px-6 py-3 *:flex-1">
         <StakeSubmitButton
-          actionText={t("pages.earn.stake.request-withdrawal")}
+          actionText={
+            canInstantWithdraw
+              ? t("pages.earn.stake.instant-withdraw")
+              : t("pages.earn.stake.request-withdrawal")
+          }
           balancesLoaded={balancesLoaded}
           inputError={inputError}
           isConnected={isConnected}
           isPending={withdrawMutation.isPending}
           onConnectWallet={openConnectModal}
-          pendingText={t("pages.earn.stake.requesting")}
+          pendingText={
+            canInstantWithdraw
+              ? t("pages.earn.stake.instant-withdrawing")
+              : t("pages.earn.stake.requesting")
+          }
         />
       </div>
 
@@ -211,7 +265,7 @@ export function StakeWithdrawForm({
           {t("pages.earn.stake.withdrawals-progress")}
         </p>
         <div className="border-t border-gray-200">
-          <VerticalStepper steps={withdrawSteps} />
+          <VerticalStepper steps={steps} />
         </div>
       </div>
     </form>

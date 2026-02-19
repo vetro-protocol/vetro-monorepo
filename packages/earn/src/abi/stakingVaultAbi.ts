@@ -23,6 +23,13 @@ export const stakingVaultAbi = [
   },
   {
     inputs: [{ name: "account_", type: "address" }],
+    name: "instantWithdrawWhitelist",
+    outputs: [{ type: "bool" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [{ name: "account_", type: "address" }],
     name: "getActiveRequestIds",
     outputs: [{ type: "uint256[]" }],
     stateMutability: "view",

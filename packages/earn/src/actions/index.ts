@@ -3,6 +3,7 @@ export * from "./public/getActiveRequestIds.js";
 export * from "./public/getClaimableRequests.js";
 export * from "./public/getCooldownDuration.js";
 export * from "./public/getCooldownEnabled.js";
+export * from "./public/getInstantWithdrawWhitelist.js";
 export * from "./public/getPendingRequests.js";
 export * from "./public/getRequestDetails.js";
 export * from "./public/getTotalAssetsInCooldown.js";

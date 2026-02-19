@@ -5,8 +5,10 @@ import { EarnStats } from "./components/earnStats";
 import { ExitTickets } from "./components/exitTickets";
 import { PoolInfoBar } from "./components/poolInfoBar";
 import { StripedDivider } from "./components/stripedDivider";
+import { useCanInstantWithdraw } from "./hooks/useCanInstantWithdraw";
 
 export function Earn() {
+  const canInstantWithdraw = useCanInstantWithdraw();
   const { t } = useTranslation();
 
   return (
@@ -16,10 +18,14 @@ export function Earn() {
         <EarnStats />
       </div>
       <PoolInfoBar />
-      <div className="border-b border-gray-200 bg-gray-100 p-2">
-        <StripedDivider />
-      </div>
-      <ExitTickets />
+      {!canInstantWithdraw && (
+        <>
+          <div className="border-b border-gray-200 bg-gray-100 p-2">
+            <StripedDivider />
+          </div>
+          <ExitTickets />
+        </>
+      )}
     </>
   );
 }
