@@ -10,6 +10,7 @@ export async function runQuery<R>(
   query: string,
   variables: Record<string, unknown>,
 ): Promise<R> {
+  console.log(`Sending request to ${url}`);
   const response = (await postJson(url, {
     query,
     variables,
