@@ -21,13 +21,13 @@ export const Default: Story = {
 export const Loading: Story = {
   args: {
     isLoading: true,
-    label: "Total deposits",
+    label: "Pool deposits",
   },
 };
 
 export const WithValue: Story = {
   args: {
-    label: "Total deposits",
+    label: "Pool deposits",
     value: "$268.24M",
   },
 };
