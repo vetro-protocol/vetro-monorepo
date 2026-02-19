@@ -6,6 +6,7 @@ import { ApproveSection } from "components/approveSection";
 import { Toast } from "components/base/toast";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenDropdown } from "components/tokenDropdown";
+import { TokenInput } from "components/tokenInput";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useDeposit } from "hooks/useDeposit";
 import { useEstimateDepositGas } from "hooks/useEstimateDepositGas";
@@ -186,9 +187,15 @@ export function Deposit({
         onInputChange={onInputChange}
         onSubmit={handleSubmit}
         onToggle={onToggle}
-        outputValue={outputValue}
-        toBalance={<ToTokenBalance token={toToken} />}
-        toTokenSelector={<TokenSelectorReadOnly {...toToken} />}
+        toSection={
+          <TokenInput
+            balance={<ToTokenBalance token={toToken} />}
+            disabled
+            label={t("pages.swap.form.you-will-receive")}
+            tokenSelector={<TokenSelectorReadOnly {...toToken} />}
+            value={outputValue}
+          />
+        }
       >
         <SubmitButton
           actionText={t("pages.swap.form.deposit")}

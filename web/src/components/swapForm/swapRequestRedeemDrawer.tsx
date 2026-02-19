@@ -2,7 +2,7 @@ import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
 import { type Step, stepStatus } from "components/base/verticalStepper";
 import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
-import { Suspense, lazy } from "react";
+import { type ReactNode, Suspense, lazy } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 
@@ -12,74 +12,72 @@ const SwapProgressDrawer = lazy(() =>
   })),
 );
 
-export type RedeemFlowStatus =
+export type RequestRedeemFlowStatus =
   | "approve-error"
   | "approved"
   | "approving"
   | "idle"
-  | "redeem-error"
-  | "redeem-ready"
-  | "redeemed"
-  | "redeeming";
+  | "request-redeem-error"
+  | "request-redeem-ready"
+  | "request-redeemed"
+  | "request-redeeming";
 
 const approveStepStatuses: Record<
-  Exclude<RedeemFlowStatus, "idle">,
+  Exclude<RequestRedeemFlowStatus, "idle">,
   Step["status"]
 > = {
   "approve-error": stepStatus.failed,
   approved: stepStatus.completed,
   approving: stepStatus.progress,
-  "redeem-error": stepStatus.completed,
-  "redeem-ready": stepStatus.completed,
-  redeemed: stepStatus.completed,
-  redeeming: stepStatus.completed,
+  "request-redeem-error": stepStatus.completed,
+  "request-redeem-ready": stepStatus.completed,
+  "request-redeemed": stepStatus.completed,
+  "request-redeeming": stepStatus.completed,
 };
 
 const confirmStepStatuses: Record<
-  Exclude<RedeemFlowStatus, "idle">,
+  Exclude<RequestRedeemFlowStatus, "idle">,
   Step["status"]
 > = {
   "approve-error": stepStatus.notReady,
   approved: stepStatus.notReady,
   approving: stepStatus.notReady,
-  "redeem-error": stepStatus.failed,
-  "redeem-ready": stepStatus.ready,
-  redeemed: stepStatus.completed,
-  redeeming: stepStatus.progress,
+  "request-redeem-error": stepStatus.failed,
+  "request-redeem-ready": stepStatus.ready,
+  "request-redeemed": stepStatus.completed,
+  "request-redeeming": stepStatus.progress,
 };
 
 type Props = {
-  flowStatus: Exclude<RedeemFlowStatus, "idle">;
+  flowStatus: Exclude<RequestRedeemFlowStatus, "idle">;
   fromAmount: string;
   fromToken: Token;
   networkFee: string;
   onClose: VoidFunction;
   onRetry: VoidFunction;
-  outputValue: string;
   protocolFee: string;
   showApproveStep: boolean;
-  toToken: Token;
+  subtitle: ReactNode;
   totalFees: string;
 };
 
-export function SwapRedeemDrawer({
+export function SwapRequestRedeemDrawer({
   flowStatus,
   fromAmount,
   fromToken,
   networkFee,
   onClose,
   onRetry,
-  outputValue,
   protocolFee,
   showApproveStep,
+  subtitle,
   totalFees,
-  toToken,
 }: Props) {
   const { t } = useTranslation();
-  useCloseOnSuccess({ onClose, success: flowStatus === "redeemed" });
+  useCloseOnSuccess({ onClose, success: flowStatus === "request-redeemed" });
 
   const isError =
-    flowStatus === "approve-error" || flowStatus === "redeem-error";
+    flowStatus === "approve-error" || flowStatus === "request-redeem-error";
 
   const steps: Step[] = [
     {
@@ -105,10 +103,9 @@ export function SwapRedeemDrawer({
           fromToken={fromToken}
           networkFee={networkFee}
           onRetry={isError ? onRetry : undefined}
-          outputValue={outputValue}
           protocolFee={protocolFee}
           steps={steps}
-          toToken={toToken}
+          subtitle={subtitle}
           totalFees={totalFees}
         />
       </Suspense>

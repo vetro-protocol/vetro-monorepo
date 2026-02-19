@@ -138,6 +138,9 @@
         "redeem": "Redeem",
         "redeemable-for_one": "Redeemable for {{symbol}}",
         "redeemable-for_other": "Redeemable for {{allButLast}} and {{last}}",
+        "send-to-vault": "Send to vault",
+        "vault-info_one": "{{vusd}} will enter a vault with a {{blocks}}-block cooldown. Once complete, you can redeem it for {{symbol}}.",
+        "vault-info_other": "{{vusd}} will enter a vault with a {{blocks}}-block cooldown. Once complete, you can redeem it for {{allButLast}} or {{last}}.",
         "you-are-swapping": "You are swapping",
         "you-will-receive": "You will receive",
         "you-will-receive-approximately": "You will receive (approximately)"
@@ -155,7 +158,9 @@
       "title": "Swap stablecoins for VUSD and back",
       "toast": {
         "deposit-description": "VUSD is now available in your wallet",
-        "deposit-title": "Deposit confirmed"
+        "deposit-title": "Deposit confirmed",
+        "deposited-to-vault": "{{symbol}} deposited to vault",
+        "your-cooldown-period-has-started": "Your {{blocks}}-block cooldown has started."
       }
     },
     "wallet": {

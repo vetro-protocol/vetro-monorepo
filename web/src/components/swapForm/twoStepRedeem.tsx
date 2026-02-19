@@ -1,24 +1,31 @@
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
+import { useNeedsApproval } from "@hemilabs/react-hooks/useNeedsApproval";
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
+import { getGatewayAddress } from "@vetro/gateway";
 import { ApproveSection } from "components/approveSection";
-import { Drawer } from "components/base/drawer";
-import { DrawerLoader } from "components/base/drawer/drawerLoader";
+import { Toast } from "components/base/toast";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useEstimateRequestRedeemGas } from "hooks/useEstimateRequestRedeemGas";
 import { useMainnet } from "hooks/useMainnet";
 import { usePreviewRedeem } from "hooks/usePreviewRedeem";
+import { useRedeemDelay } from "hooks/useRedeemDelay";
 import { useRedeemFee } from "hooks/useRedeemFee";
 import { useRequestRedeem } from "hooks/useRequestRedeem";
-import { type FormEvent, useState } from "react";
+import { useSwapFeesDisplay } from "hooks/useSwapFeesDisplay";
+import { type FormEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
-import { formatAmount } from "utils/token";
+import { secondsToBlocks } from "utils/blocks";
 import { useAccount } from "wagmi";
 
 import { Form } from "./form";
 import { SubmitButton } from "./submitButton";
 import { SwapFees } from "./swapFees";
+import {
+  type RequestRedeemFlowStatus,
+  SwapRequestRedeemDrawer,
+} from "./swapRequestRedeemDrawer";
 import { getSwapErrors } from "./validation";
 
 type Props = {
@@ -53,6 +60,12 @@ export function TwoStepRedeem({
   const ethereumChain = useMainnet();
   const { t } = useTranslation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const handleDrawerClose = useCallback(() => setIsDrawerOpen(false), []);
+  const [flowStatus, setFlowStatus] = useState<RequestRedeemFlowStatus>("idle");
+  const [showToast, setShowToast] = useState(false);
+  const [startedWithApproval, setStartedWithApproval] = useState(false);
+
+  const { data: blocks } = useRedeemDelay({ select: secondsToBlocks });
 
   const { data: fromTokenBalance } = useTokenBalance({
     address: fromToken.address,
@@ -61,6 +74,12 @@ export function TwoStepRedeem({
 
   const { data: nativeBalanceData } = useNativeBalance(ethereumChain.id);
   const nativeBalance = nativeBalanceData?.value;
+
+  const { data: needsApproval } = useNeedsApproval({
+    amount: amountBigInt,
+    spender: getGatewayAddress(ethereumChain.id),
+    token: fromToken,
+  });
 
   const { data: redeemPreview, isError: isPreviewError } = usePreviewRedeem({
     peggedTokenIn: amountBigInt,
@@ -77,6 +96,38 @@ export function TwoStepRedeem({
   const protocolFee = useRedeemFee();
 
   const requestRedeemMutation = useRequestRedeem({
+    approveAmount,
+    onEmitter(emitter) {
+      emitter.on("user-signed-approval", () => setFlowStatus("approving"));
+      emitter.on("approve-transaction-succeeded", () =>
+        setFlowStatus("approved"),
+      );
+      emitter.on("approve-transaction-reverted", () =>
+        setFlowStatus("approve-error"),
+      );
+      emitter.on("user-signing-approval-error", () =>
+        setFlowStatus("approve-error"),
+      );
+      emitter.on("pre-request-redeem", () =>
+        setFlowStatus("request-redeem-ready"),
+      );
+      emitter.on("user-signed-request-redeem", () =>
+        setFlowStatus("request-redeeming"),
+      );
+      emitter.on("request-redeem-transaction-succeeded", function () {
+        setFlowStatus("request-redeemed");
+        setShowToast(true);
+      });
+      emitter.on("request-redeem-transaction-reverted", () =>
+        setFlowStatus("request-redeem-error"),
+      );
+      emitter.on("user-signing-request-redeem-error", () =>
+        setFlowStatus("request-redeem-error"),
+      );
+      emitter.on("request-redeem-failed-validation", () =>
+        setFlowStatus("request-redeem-error"),
+      );
+    },
     peggedTokenAmount: amountBigInt,
   });
 
@@ -86,11 +137,14 @@ export function TwoStepRedeem({
     tokenBalance: fromTokenBalance,
   });
 
-  const outputValue = formatAmount({
-    amount: redeemPreview,
-    decimals: toToken.decimals,
-    isError: isPreviewError,
-  });
+  const { networkFeeDisplay, protocolFeeDisplay, totalFeesDisplay } =
+    useSwapFeesDisplay({
+      amountBigInt,
+      approveAmount,
+      fromToken,
+      operationGasEstimation,
+      protocolFee,
+    });
 
   const balancesLoaded =
     nativeBalance !== undefined && fromTokenBalance !== undefined;
@@ -105,9 +159,28 @@ export function TwoStepRedeem({
     symbol: whitelistedTokens[0]?.symbol,
   });
 
+  const vaultInfoText = t("pages.swap.form.vault-info", {
+    allButLast: whitelistedTokens
+      .slice(0, -1)
+      .map((tk) => tk.symbol)
+      .join(", "),
+    blocks,
+    count: whitelistedTokens.length,
+    last: whitelistedTokens.at(-1)!.symbol,
+    symbol: whitelistedTokens[0]?.symbol,
+    vusd: fromToken.symbol,
+  });
+
+  const handleRetry = function () {
+    setFlowStatus(startedWithApproval ? "approving" : "request-redeem-ready");
+    requestRedeemMutation.mutate();
+  };
+
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!inputError) {
+      setStartedWithApproval(!!needsApproval);
+      setFlowStatus(needsApproval ? "approving" : "request-redeem-ready");
       requestRedeemMutation.mutate();
       setIsDrawerOpen(true);
     }
@@ -131,14 +204,16 @@ export function TwoStepRedeem({
         onInputChange={onInputChange}
         onSubmit={handleSubmit}
         onToggle={onToggle}
-        outputValue={outputValue}
-        toLabel={t("pages.swap.form.you-will-receive-approximately")}
-        toTokenSelector={
-          <span className="text-sm font-semibold">{redeemableForText}</span>
+        toSection={
+          <div className="flex h-32 items-center justify-center rounded-lg bg-gray-50 px-12">
+            <p className="text-b-medium text-center text-gray-600">
+              {vaultInfoText}
+            </p>
+          </div>
         }
       >
         <SubmitButton
-          actionText={t("pages.swap.form.redeem")}
+          actionText={t("pages.swap.form.send-to-vault")}
           inputError={inputError}
           isPreviewError={isPreviewError}
           previewValue={redeemPreview}
@@ -153,11 +228,31 @@ export function TwoStepRedeem({
         operationGasEstimation={operationGasEstimation}
         protocolFee={protocolFee}
       />
-      {isDrawerOpen && (
-        // TODO add 2-step redeem drawer in next PR
-        <Drawer onClose={() => setIsDrawerOpen(false)}>
-          <DrawerLoader />
-        </Drawer>
+      {isDrawerOpen && flowStatus !== "idle" && (
+        <SwapRequestRedeemDrawer
+          flowStatus={flowStatus}
+          fromAmount={fromInputValue}
+          fromToken={fromToken}
+          networkFee={networkFeeDisplay}
+          onClose={handleDrawerClose}
+          onRetry={handleRetry}
+          protocolFee={protocolFeeDisplay}
+          showApproveStep={startedWithApproval}
+          subtitle={redeemableForText}
+          totalFees={totalFeesDisplay}
+        />
+      )}
+      {showToast && (
+        <Toast
+          closable
+          description={t("pages.swap.toast.your-cooldown-period-has-started", {
+            blocks,
+          })}
+          onClose={() => setShowToast(false)}
+          title={t("pages.swap.toast.deposited-to-vault", {
+            symbol: fromToken.symbol,
+          })}
+        />
       )}
     </>
   );

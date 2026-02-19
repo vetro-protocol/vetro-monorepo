@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { type UseQueryOptions, useQuery } from "@tanstack/react-query";
 import { getGatewayAddress } from "@vetro/gateway";
 import { fetchRedeemDelay } from "fetchers/fetchRedeemDelay";
 import type { Address, Chain } from "viem";
@@ -17,13 +17,21 @@ export const redeemDelayQueryKey = ({
   gatewayAddress: Address;
 }) => ["redeem-delay", chainId, gatewayAddress, account];
 
-export const useRedeemDelay = function () {
+type RedeemDelayQueryKey = ReturnType<typeof redeemDelayQueryKey>;
+
+export const useRedeemDelay = function <TSelect = bigint>(
+  options?: Omit<
+    UseQueryOptions<bigint, Error, TSelect, RedeemDelayQueryKey>,
+    "enabled" | "queryFn" | "queryKey"
+  >,
+) {
   const { address: account } = useAccount();
   const ethereumChain = useMainnet();
   const client = useEthereumClient();
   const gatewayAddress = getGatewayAddress(ethereumChain.id);
 
   return useQuery({
+    ...options,
     enabled: !!client && !!account,
     queryFn: () =>
       fetchRedeemDelay({
