@@ -60,19 +60,22 @@ export const useRequestRedeem = function ({
           (old: bigint) => old - peggedTokenAmount,
         );
         // event is always emitted
-        const [{ args }] = parseEventLogs({
+        const events = parseEventLogs({
           abi: gatewayAbi,
           eventName: "RedeemRequested",
           logs: receipt.logs,
         });
-        queryClient.setQueryData(
-          redeemRequestQueryKey({
-            address,
-            chainId: ethereumChain.id,
-          }),
-          // event includes the updated amount and claimableAt
-          [args.amount, args.claimableAt] as [bigint, bigint],
-        );
+        if (events?.[0]) {
+          const [{ args }] = events;
+          queryClient.setQueryData(
+            redeemRequestQueryKey({
+              address,
+              chainId: ethereumChain.id,
+            }),
+            // event includes the updated amount and claimableAt
+            [args.amount, args.claimableAt] as [bigint, bigint],
+          );
+        }
       });
 
       onEmitter?.(emitter);
