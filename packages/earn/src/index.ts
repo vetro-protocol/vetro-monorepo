@@ -5,6 +5,7 @@ import {
   getClaimableRequests,
   getCooldownDuration,
   getCooldownEnabled,
+  getInstantWithdrawWhitelist,
   getPendingRequests,
   getRequestDetails,
   getTotalAssetsInCooldown,
@@ -58,6 +59,9 @@ export const earnPublicActions = () => (client: Client) => ({
     getCooldownDuration(client, params),
   getCooldownEnabled: (params: Parameters<typeof getCooldownEnabled>[1]) =>
     getCooldownEnabled(client, params),
+  getInstantWithdrawWhitelist: (
+    params: Parameters<typeof getInstantWithdrawWhitelist>[1],
+  ) => getInstantWithdrawWhitelist(client, params),
   getPendingRequests: (params: Parameters<typeof getPendingRequests>[1]) =>
     getPendingRequests(client, params),
   getRequestDetails: (params: Parameters<typeof getRequestDetails>[1]) =>
