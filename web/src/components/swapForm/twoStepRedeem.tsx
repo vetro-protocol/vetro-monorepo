@@ -17,6 +17,7 @@ import { type FormEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 import { secondsToBlocks } from "utils/blocks";
+import { getTokenListParams } from "utils/tokenList";
 import { useAccount } from "wagmi";
 
 import { Form } from "./form";
@@ -149,25 +150,16 @@ export function TwoStepRedeem({
   const balancesLoaded =
     nativeBalance !== undefined && fromTokenBalance !== undefined;
 
-  const redeemableForText = t("pages.swap.form.redeemable-for", {
-    allButLast: whitelistedTokens
-      .slice(0, -1)
-      .map((tk) => tk.symbol)
-      .join(", "),
-    count: whitelistedTokens.length,
-    last: whitelistedTokens.at(-1)!.symbol,
-    symbol: whitelistedTokens[0]?.symbol,
-  });
+  const tokenListParams = getTokenListParams(whitelistedTokens);
+
+  const redeemableForText = t(
+    "pages.swap.form.redeemable-for",
+    tokenListParams,
+  );
 
   const vaultInfoText = t("pages.swap.form.vault-info", {
-    allButLast: whitelistedTokens
-      .slice(0, -1)
-      .map((tk) => tk.symbol)
-      .join(", "),
+    ...tokenListParams,
     blocks,
-    count: whitelistedTokens.length,
-    last: whitelistedTokens.at(-1)!.symbol,
-    symbol: whitelistedTokens[0]?.symbol,
     vusd: fromToken.symbol,
   });
 
