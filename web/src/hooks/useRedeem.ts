@@ -11,11 +11,13 @@ import type { Address } from "viem";
 import { useAccount } from "wagmi";
 
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
+import { redeemRequestQueryKey } from "./useGetRedeemRequest";
 import { useMainnet } from "./useMainnet";
 import {
   previewRedeemQueryKey,
   previewRedeemTokenOptions,
 } from "./usePreviewRedeem";
+import { useRedeemDelay } from "./useRedeemDelay";
 import { useVusd } from "./useVusd";
 
 export const useRedeem = function ({
@@ -41,7 +43,14 @@ export const useRedeem = function ({
     ethereumChain.id,
   );
 
+  const { data: redeemDelay } = useRedeemDelay();
   const { data: vusd } = useVusd();
+
+  const hasDelay = !!redeemDelay;
+  const requestQueryKey = redeemRequestQueryKey({
+    address: account,
+    chainId: ethereumChain.id,
+  });
 
   const allowanceKey = allowanceQueryKey({
     owner: account,
@@ -86,29 +95,46 @@ export const useRedeem = function ({
 
       onEmitter?.(emitter);
 
-      emitter.on("approve-transaction-reverted", function (receipt) {
-        queryClient.invalidateQueries({
-          queryKey: allowanceKey,
+      if (!hasDelay) {
+        // If the user is redeeming from the Gateway Vault where VUSD is locked
+        // the VUSD is burned from this vault, so no approval step is required.
+        // We don't need these events
+        emitter.on("approve-transaction-reverted", function (receipt) {
+          queryClient.invalidateQueries({
+            queryKey: allowanceKey,
+          });
+          updateNativeBalanceAfterReceipt(receipt);
         });
-        updateNativeBalanceAfterReceipt(receipt);
-      });
-      emitter.on("approve-transaction-succeeded", function (receipt) {
-        queryClient.invalidateQueries({
-          queryKey: allowanceKey,
+        emitter.on("approve-transaction-succeeded", function (receipt) {
+          queryClient.invalidateQueries({
+            queryKey: allowanceKey,
+          });
+          updateNativeBalanceAfterReceipt(receipt);
         });
-        updateNativeBalanceAfterReceipt(receipt);
-      });
+      }
+
       emitter.on("redeem-transaction-reverted", function (receipt) {
         updateNativeBalanceAfterReceipt(receipt);
       });
+
       emitter.on("redeem-transaction-succeeded", function (receipt) {
         updateNativeBalanceAfterReceipt(receipt);
 
-        // optimistically deduce the vusd balance, and increase the token out one
-        queryClient.setQueryData(
-          vusdBalanceQueryKey,
-          (old: bigint) => old - peggedTokenIn,
-        );
+        if (hasDelay) {
+          // if there's a delay, VUSD was burned from the Gateway vault
+          // so the amount to redeem is reduced.
+          queryClient.setQueryData(requestQueryKey, (old: [bigint, bigint]) => [
+            old[0] - peggedTokenIn,
+            old[1],
+          ]);
+        } else {
+          // If there's no delay, the user is burning VUSD from their wallet
+          queryClient.setQueryData(
+            vusdBalanceQueryKey,
+            (old: bigint) => old - peggedTokenIn,
+          );
+        }
+        // In any case, the user ends up receiving the stablecoins converted from VUSD
         queryClient.setQueryData(
           tokenOutBalanceQueryKey,
           (old: bigint) => old + minAmountOut,
@@ -118,12 +144,18 @@ export const useRedeem = function ({
       return promise;
     },
     onSettled() {
-      queryClient.invalidateQueries({
-        queryKey: allowanceKey,
-      });
-      queryClient.invalidateQueries({
-        queryKey: vusdBalanceQueryKey,
-      });
+      if (hasDelay) {
+        queryClient.invalidateQueries({
+          queryKey: requestQueryKey,
+        });
+      } else {
+        queryClient.invalidateQueries({
+          queryKey: allowanceKey,
+        });
+        queryClient.invalidateQueries({
+          queryKey: vusdBalanceQueryKey,
+        });
+      }
       queryClient.invalidateQueries({
         queryKey: nativeBalanceKey,
       });
