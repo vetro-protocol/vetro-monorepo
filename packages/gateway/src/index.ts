@@ -1,9 +1,10 @@
 import type { Client, WalletClient } from "viem";
 
 import {
-  getPeggedToken,
   getMintFee,
+  getPeggedToken,
   getRedeemFee,
+  getRedeemRequest,
   getWithdrawalDelay,
   getWithdrawalDelayEnabled,
   isInstantRedeemWhitelisted,
@@ -38,6 +39,8 @@ export const gatewayPublicActions = () => (client: Client) => ({
     getPeggedToken(client, params),
   getRedeemFee: (params: Parameters<typeof getRedeemFee>[1]) =>
     getRedeemFee(client, params),
+  getRedeemRequest: (params: Parameters<typeof getRedeemRequest>[1]) =>
+    getRedeemRequest(client, params),
   getWithdrawalDelay: (params: Parameters<typeof getWithdrawalDelay>[1]) =>
     getWithdrawalDelay(client, params),
   getWithdrawalDelayEnabled: (
