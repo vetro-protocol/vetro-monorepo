@@ -3,16 +3,27 @@ import { getStakingVaultAddress, stakingVaultAbi } from "@vetro/earn";
 import { useMainnet } from "hooks/useMainnet";
 import { useNetworkFee } from "hooks/useNetworkFee";
 import { useStakedBalance } from "hooks/useStakedBalance";
-import { type Address, encodeFunctionData, zeroAddress } from "viem";
+import {
+  type Address,
+  erc4626Abi,
+  encodeFunctionData,
+  zeroAddress,
+} from "viem";
 import { useEstimateGas } from "wagmi";
 
 type Params = {
   account: Address | undefined;
   amount: bigint;
+  instantWithdraw: boolean;
   isConnected: boolean;
 };
 
-export function useWithdrawFees({ account, amount, isConnected }: Params) {
+export function useWithdrawFees({
+  account,
+  amount,
+  instantWithdraw,
+  isConnected,
+}: Params) {
   const chain = useMainnet();
   const stakingVaultAddress = getStakingVaultAddress(chain.id);
   const { data: stakedBalance } = useStakedBalance();
@@ -22,18 +33,25 @@ export function useWithdrawFees({ account, amount, isConnected }: Params) {
   const canEstimate =
     amount > 0n && isConnected && account !== undefined && hasEnoughBalance;
 
-  // Estimate gas for requestWithdraw
+  const calldata = instantWithdraw
+    ? encodeFunctionData({
+        abi: erc4626Abi,
+        args: [amount, account ?? zeroAddress, account ?? zeroAddress],
+        functionName: "withdraw",
+      })
+    : encodeFunctionData({
+        abi: stakingVaultAbi,
+        args: [amount, account ?? zeroAddress],
+        functionName: "requestWithdraw",
+      });
+
   const {
     data: withdrawGasUnits,
     isEnabled,
     isError: isGasError,
   } = useEstimateGas({
     chainId: chain.id,
-    data: encodeFunctionData({
-      abi: stakingVaultAbi,
-      args: [amount, account ?? zeroAddress],
-      functionName: "requestWithdraw",
-    }),
+    data: calldata,
     query: { enabled: canEstimate },
     to: stakingVaultAddress,
   });

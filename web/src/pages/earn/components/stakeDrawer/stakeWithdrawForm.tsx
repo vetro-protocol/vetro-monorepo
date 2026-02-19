@@ -126,6 +126,7 @@ export function StakeWithdrawForm({
   const { data: networkFee, isError: isFeeError } = useWithdrawFees({
     account,
     amount: amountBigInt,
+    instantWithdraw: canInstantWithdraw,
     isConnected,
   });
 
