@@ -61,7 +61,7 @@ export function VaultTable({
           </StatusBadge>
         )}
       </div>
-      <div className="flex items-center justify-end bg-white py-4 md:px-16">
+      <div className="flex items-center justify-end bg-white px-16 py-4">
         <Button
           disabled={!isReady}
           onClick={onRedeem}
@@ -70,11 +70,13 @@ export function VaultTable({
         >
           {t("pages.swap.redeem-vault.redeem")}
           {!isReady && (
-            <Badge variant="blue">
-              {t("pages.swap.redeem-vault.ready-on", {
-                time: formatCountdown(remainingSeconds),
-              })}
-            </Badge>
+            <span className="w-22.5 *:w-full">
+              <Badge variant="blue">
+                {t("pages.swap.redeem-vault.ready-on", {
+                  time: formatCountdown(remainingSeconds),
+                })}
+              </Badge>
+            </span>
           )}
         </Button>
       </div>
