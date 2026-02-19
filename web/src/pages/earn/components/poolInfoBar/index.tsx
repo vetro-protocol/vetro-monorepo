@@ -29,7 +29,7 @@ export function PoolInfoBar() {
       symbol: reward.token.symbol,
     })) ?? [];
 
-  function formatTotalDeposits() {
+  function formatPoolDeposits() {
     if (poolDeposits !== undefined && vusd) {
       const formatted = Number(formatUnits(poolDeposits, vusd.decimals));
       return formatUsd(formatted);
@@ -54,7 +54,7 @@ export function PoolInfoBar() {
         <PoolInfoItem
           isLoading={isLoadingDeposits}
           label={t("pages.earn.pool-info.pool-deposits")}
-          value={formatTotalDeposits()}
+          value={formatPoolDeposits()}
         />
         <PoolInfoItem label={t("pages.earn.pool-info.potential-rewards")}>
           <TokenIconStack tokens={rewardTokens} />
