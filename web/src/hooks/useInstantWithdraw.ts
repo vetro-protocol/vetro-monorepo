@@ -4,7 +4,6 @@ import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
 import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpdateNativeBalanceAfterReceipt";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { getStakingVaultAddress } from "@vetro/earn";
-import { exitTicketsQueryKey } from "pages/earn/hooks/useExitTickets";
 import { waitForTransactionReceipt } from "viem/actions";
 import { withdraw } from "viem-erc4626/actions";
 import { useAccount } from "wagmi";
@@ -12,6 +11,7 @@ import { useAccount } from "wagmi";
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { useMainnet } from "./useMainnet";
 import { stakedBalanceQueryKey } from "./useStakedBalance";
+import { useVusd } from "./useVusd";
 
 type InstantWithdrawStatus = "completed" | "failed" | "withdrawing";
 
@@ -36,6 +36,9 @@ export const useInstantWithdraw = function ({
   const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
     chain.id,
   );
+  const { data: vusd } = useVusd();
+
+  const vusdBalanceKey = tokenBalanceQueryKey(vusd, account);
 
   const sharesBalanceKey = tokenBalanceQueryKey(
     { address: stakingVaultAddress, chainId: chain.id },
@@ -69,17 +72,19 @@ export const useInstantWithdraw = function ({
         hash,
       });
 
+      updateNativeBalanceAfterReceipt(receipt);
+
       if (receipt.status === "reverted") {
-        updateNativeBalanceAfterReceipt(receipt);
         onStatusChange?.("failed");
         return;
       }
-
-      updateNativeBalanceAfterReceipt(receipt);
       onStatusChange?.("completed");
       onSuccess?.();
 
-      // Optimistically update staked balance
+      // Optimistically update balances
+      queryClient.setQueryData(vusdBalanceKey, (old: bigint | undefined) =>
+        old !== undefined ? old + assets : old,
+      );
       queryClient.setQueryData(stakedKey, (old: bigint | undefined) =>
         old !== undefined ? old - assets : old,
       );
@@ -92,6 +97,10 @@ export const useInstantWithdraw = function ({
         queryKey: nativeBalanceKey,
       });
 
+      queryClient.invalidateQueries({
+        queryKey: vusdBalanceKey,
+      });
+
       // Shares must be refetched before staked balance, because
       // useStakedBalance uses ensureQueryData to read shares from cache
       await queryClient.invalidateQueries({
@@ -100,10 +109,6 @@ export const useInstantWithdraw = function ({
 
       queryClient.invalidateQueries({
         queryKey: stakedKey,
-      });
-
-      queryClient.invalidateQueries({
-        queryKey: exitTicketsQueryKey(account),
       });
     },
   });

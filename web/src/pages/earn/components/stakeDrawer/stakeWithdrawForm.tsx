@@ -65,6 +65,47 @@ function getRequestStepStatus(withdrawStep: WithdrawStep) {
   return stepStatus.ready;
 }
 
+function getWithdrawSteps({
+  canInstantWithdraw,
+  t,
+  withdrawStep,
+}: {
+  canInstantWithdraw: boolean | undefined;
+  t: ReturnType<typeof useTranslation>["t"];
+  withdrawStep: WithdrawStep;
+}) {
+  const requestStatus = getRequestStepStatus(withdrawStep);
+
+  if (canInstantWithdraw) {
+    return [
+      {
+        description: t("pages.earn.stake.instant-withdraw-step-description"),
+        status: requestStatus,
+        title: t("pages.earn.stake.instant-withdraw-step-title"),
+      },
+    ];
+  }
+
+  return [
+    {
+      description: t("pages.earn.stake.withdraw-step-1-description"),
+      status: requestStatus,
+      title: t("pages.earn.stake.withdraw-step-1-title"),
+    },
+    {
+      description: t("pages.earn.stake.withdraw-step-2-description"),
+      status:
+        withdrawStep === "completed" ? stepStatus.ready : stepStatus.notReady,
+      title: t("pages.earn.stake.withdraw-step-2-title"),
+    },
+    {
+      description: t("pages.earn.stake.withdraw-step-3-description"),
+      status: stepStatus.notReady,
+      title: t("pages.earn.stake.withdraw-step-3-title"),
+    },
+  ];
+}
+
 export function StakeWithdrawForm({
   inputValue,
   onInputChange,
@@ -126,7 +167,7 @@ export function StakeWithdrawForm({
   const { data: networkFee, isError: isFeeError } = useWithdrawFees({
     account,
     amount: amountBigInt,
-    instantWithdraw: canInstantWithdraw,
+    instantWithdraw: canInstantWithdraw ?? false,
     isConnected,
   });
 
@@ -145,36 +186,7 @@ export function StakeWithdrawForm({
   const balancesLoaded =
     nativeBalance !== undefined && stakedBalance !== undefined;
 
-  const requestStatus = getRequestStepStatus(withdrawStep);
-
-  const steps = canInstantWithdraw
-    ? [
-        {
-          description: t("pages.earn.stake.instant-withdraw-step-description"),
-          status: requestStatus,
-          title: t("pages.earn.stake.instant-withdraw-step-title"),
-        },
-      ]
-    : [
-        {
-          description: t("pages.earn.stake.withdraw-step-1-description"),
-          status: requestStatus,
-          title: t("pages.earn.stake.withdraw-step-1-title"),
-        },
-        {
-          description: t("pages.earn.stake.withdraw-step-2-description"),
-          status:
-            withdrawStep === "completed"
-              ? stepStatus.ready
-              : stepStatus.notReady,
-          title: t("pages.earn.stake.withdraw-step-2-title"),
-        },
-        {
-          description: t("pages.earn.stake.withdraw-step-3-description"),
-          status: stepStatus.notReady,
-          title: t("pages.earn.stake.withdraw-step-3-title"),
-        },
-      ];
+  const steps = getWithdrawSteps({ canInstantWithdraw, t, withdrawStep });
 
   function handleMaxClick(maxValue: string) {
     onInputChange(maxValue);
