@@ -104,10 +104,6 @@ export const useCancelWithdraw = function ({
       queryClient.invalidateQueries({
         queryKey: stakedKey,
       });
-
-      queryClient.invalidateQueries({
-        queryKey: exitTicketsQueryKey(account),
-      });
     },
   });
 };

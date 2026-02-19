@@ -110,10 +110,6 @@ export const useClaimWithdrawBatch = function ({
       queryClient.invalidateQueries({
         queryKey: stakedKey,
       });
-
-      queryClient.invalidateQueries({
-        queryKey: exitTicketsQueryKey(account),
-      });
     },
   });
 };

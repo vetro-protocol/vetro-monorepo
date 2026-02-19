@@ -1,10 +1,10 @@
 import { PageTitle } from "components/base/pageTitle";
+import { StripedDivider } from "components/stripedDivider";
 import { useTranslation } from "react-i18next";
 
 import { EarnStats } from "./components/earnStats";
 import { ExitTickets } from "./components/exitTickets";
 import { PoolInfoBar } from "./components/poolInfoBar";
-import { StripedDivider } from "./components/stripedDivider";
 import { useCanInstantWithdraw } from "./hooks/useCanInstantWithdraw";
 
 export function Earn() {
