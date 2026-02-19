@@ -70,8 +70,8 @@
         "apy": "TEA de 7 días",
         "deposit": "Depositar",
         "pool-contract": "Contrato del pool",
+        "pool-deposits": "Depósitos del pool",
         "potential-rewards": "Recompensas potenciales",
-        "total-deposits": "Depósitos totales",
         "withdraw": "Retirar"
       },
       "stake": {

@@ -1,7 +1,7 @@
 import { getStakingVaultAddress } from "@vetro/earn";
 import { useApy } from "hooks/useApy";
 import { useMainnet } from "hooks/useMainnet";
-import { useTotalDeposits } from "hooks/useTotalDeposits";
+import { usePoolDeposits } from "hooks/usePoolDeposits";
 import { useUserRewards } from "hooks/useUserRewards";
 import { useVusd } from "hooks/useVusd";
 import { useTranslation } from "react-i18next";
@@ -20,8 +20,8 @@ export function PoolInfoBar() {
   const { data: vusd } = useVusd();
 
   const { data: apy, isLoading: isLoadingApy } = useApy();
-  const { data: totalDeposits, isLoading: isLoadingDeposits } =
-    useTotalDeposits();
+  const { data: poolDeposits, isLoading: isLoadingDeposits } =
+    usePoolDeposits();
   const { data: userRewards } = useUserRewards();
 
   const rewardTokens =
@@ -30,8 +30,8 @@ export function PoolInfoBar() {
     })) ?? [];
 
   function formatTotalDeposits() {
-    if (totalDeposits !== undefined && vusd) {
-      const formatted = Number(formatUnits(totalDeposits, vusd.decimals));
+    if (poolDeposits !== undefined && vusd) {
+      const formatted = Number(formatUnits(poolDeposits, vusd.decimals));
       return formatUsd(formatted);
     }
     return undefined;
@@ -53,7 +53,7 @@ export function PoolInfoBar() {
         />
         <PoolInfoItem
           isLoading={isLoadingDeposits}
-          label={t("pages.earn.pool-info.total-deposits")}
+          label={t("pages.earn.pool-info.pool-deposits")}
           value={formatTotalDeposits()}
         />
         <PoolInfoItem label={t("pages.earn.pool-info.potential-rewards")}>

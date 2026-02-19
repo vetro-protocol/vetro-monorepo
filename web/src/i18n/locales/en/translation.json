@@ -70,8 +70,8 @@
         "apy": "Current 7-Day APY",
         "deposit": "Deposit",
         "pool-contract": "Pool contract",
+        "pool-deposits": "Pool deposits",
         "potential-rewards": "Potential rewards",
-        "total-deposits": "Total deposits",
         "withdraw": "Withdraw"
       },
       "stake": {
