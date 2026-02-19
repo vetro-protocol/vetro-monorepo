@@ -1,5 +1,5 @@
+import type { QueryClient } from "@tanstack/react-query";
 import {
-  getWithdrawalDelay,
   getWithdrawalDelayEnabled,
   isInstantRedeemWhitelisted,
 } from "@vetro/gateway/actions";
@@ -19,18 +19,23 @@ describe("fetchRedeemDelay", function () {
   const mockAccount = "0x1234567890123456789012345678901234567890" as Address;
   const mockGatewayAddress =
     "0x0987654321098765432109876543210987654321" as Address;
-  const mockClient = {} as Client;
+  const mockClient = { chain: { id: 1 } } as unknown as Client;
+
+  const createMockQueryClient = (delay: bigint) =>
+    ({
+      ensureQueryData: vi.fn().mockResolvedValue(delay),
+    }) as unknown as QueryClient;
 
   const defaultParams = {
     account: mockAccount,
     client: mockClient,
     gatewayAddress: mockGatewayAddress,
+    queryClient: createMockQueryClient(100n),
   };
 
   it("should return 0n when delay is not enabled", async function () {
     vi.mocked(getWithdrawalDelayEnabled).mockResolvedValue(false);
     vi.mocked(isInstantRedeemWhitelisted).mockResolvedValue(false);
-    vi.mocked(getWithdrawalDelay).mockResolvedValue(100n);
 
     const result = await fetchRedeemDelay(defaultParams);
 
@@ -40,7 +45,6 @@ describe("fetchRedeemDelay", function () {
   it("should return 0n when user is whitelisted", async function () {
     vi.mocked(getWithdrawalDelayEnabled).mockResolvedValue(true);
     vi.mocked(isInstantRedeemWhitelisted).mockResolvedValue(true);
-    vi.mocked(getWithdrawalDelay).mockResolvedValue(100n);
 
     const result = await fetchRedeemDelay(defaultParams);
 
@@ -50,9 +54,11 @@ describe("fetchRedeemDelay", function () {
   it("should return 0n when delay is 0", async function () {
     vi.mocked(getWithdrawalDelayEnabled).mockResolvedValue(true);
     vi.mocked(isInstantRedeemWhitelisted).mockResolvedValue(false);
-    vi.mocked(getWithdrawalDelay).mockResolvedValue(0n);
 
-    const result = await fetchRedeemDelay(defaultParams);
+    const result = await fetchRedeemDelay({
+      ...defaultParams,
+      queryClient: createMockQueryClient(0n),
+    });
 
     expect(result).toBe(0n);
   });
@@ -62,9 +68,11 @@ describe("fetchRedeemDelay", function () {
 
     vi.mocked(getWithdrawalDelayEnabled).mockResolvedValue(true);
     vi.mocked(isInstantRedeemWhitelisted).mockResolvedValue(false);
-    vi.mocked(getWithdrawalDelay).mockResolvedValue(expectedDelay);
 
-    const result = await fetchRedeemDelay(defaultParams);
+    const result = await fetchRedeemDelay({
+      ...defaultParams,
+      queryClient: createMockQueryClient(expectedDelay),
+    });
 
     expect(result).toBe(expectedDelay);
   });
