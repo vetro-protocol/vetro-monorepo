@@ -1,3 +1,5 @@
+export const unixNowTimestamp = () => Math.floor(Date.now() / 1000);
+
 export const formatDate = (timestamp: number | string, language: string) =>
   new Intl.DateTimeFormat(language, {
     day: "2-digit",

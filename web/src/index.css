@@ -37,6 +37,8 @@
   --shadow-xl:
     0 0 0 1px rgba(0, 0, 0, 0.04), 0 5px 16px -2px rgba(0, 0, 0, 0.06),
     0 15px 35px -5px rgba(0, 0, 0, 0.2);
+
+  --width-22-5: 5.625rem; /* 90px */
 }
 
 @utility h-22 {
@@ -70,6 +72,10 @@ If text-4xl is 2.25 rem => 4, then here 2.5 rem => 4.4 */
 @utility text-4.4xl {
   font-size: 2.5rem;
   line-height: 44px;
+}
+
+@utility w-22.5 {
+  width: var(--width-22-5);
 }
 
 /* Headers styling */

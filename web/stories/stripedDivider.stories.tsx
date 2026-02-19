@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { StripedDivider } from "../src/pages/earn/components/stripedDivider";
+import { StripedDivider } from "../src/components/stripedDivider";
 
 const meta: Meta<typeof StripedDivider> = {
   component: StripedDivider,

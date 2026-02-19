@@ -5,21 +5,24 @@ import { getGatewayAddress } from "@vetro/gateway";
 import { ApproveSection } from "components/approveSection";
 import { Toast } from "components/base/toast";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
+import { StripedDivider } from "components/stripedDivider";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useEstimateRequestRedeemGas } from "hooks/useEstimateRequestRedeemGas";
 import { useMainnet } from "hooks/useMainnet";
 import { usePreviewRedeem } from "hooks/usePreviewRedeem";
-import { useRedeemDelay } from "hooks/useRedeemDelay";
 import { useRedeemFee } from "hooks/useRedeemFee";
 import { useRequestRedeem } from "hooks/useRequestRedeem";
 import { useSwapFeesDisplay } from "hooks/useSwapFeesDisplay";
+import { useWithdrawalDelay } from "hooks/useWithdrawalDelay";
 import { type FormEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 import { secondsToBlocks } from "utils/blocks";
+import { getTokenListParams } from "utils/tokenList";
 import { useAccount } from "wagmi";
 
 import { Form } from "./form";
+import { RedeemVault } from "./redeemVault";
 import { SubmitButton } from "./submitButton";
 import { SwapFees } from "./swapFees";
 import {
@@ -65,8 +68,7 @@ export function TwoStepRedeem({
   const [showToast, setShowToast] = useState(false);
   const [startedWithApproval, setStartedWithApproval] = useState(false);
 
-  const { data: blocks } = useRedeemDelay({ select: secondsToBlocks });
-
+  const { data: blocks } = useWithdrawalDelay({ select: secondsToBlocks });
   const { data: fromTokenBalance } = useTokenBalance({
     address: fromToken.address,
     chainId: ethereumChain.id,
@@ -149,25 +151,16 @@ export function TwoStepRedeem({
   const balancesLoaded =
     nativeBalance !== undefined && fromTokenBalance !== undefined;
 
-  const redeemableForText = t("pages.swap.form.redeemable-for", {
-    allButLast: whitelistedTokens
-      .slice(0, -1)
-      .map((tk) => tk.symbol)
-      .join(", "),
-    count: whitelistedTokens.length,
-    last: whitelistedTokens.at(-1)!.symbol,
-    symbol: whitelistedTokens[0]?.symbol,
-  });
+  const tokenListParams = getTokenListParams(whitelistedTokens);
+
+  const redeemableForText = t(
+    "pages.swap.form.redeemable-for",
+    tokenListParams,
+  );
 
   const vaultInfoText = t("pages.swap.form.vault-info", {
-    allButLast: whitelistedTokens
-      .slice(0, -1)
-      .map((tk) => tk.symbol)
-      .join(", "),
+    ...tokenListParams,
     blocks,
-    count: whitelistedTokens.length,
-    last: whitelistedTokens.at(-1)!.symbol,
-    symbol: whitelistedTokens[0]?.symbol,
     vusd: fromToken.symbol,
   });
 
@@ -228,6 +221,10 @@ export function TwoStepRedeem({
         operationGasEstimation={operationGasEstimation}
         protocolFee={protocolFee}
       />
+      <div className="w-full border-b border-gray-200 bg-gray-100 p-2">
+        <StripedDivider />
+      </div>
+      <RedeemVault whitelistedTokens={whitelistedTokens} />
       {isDrawerOpen && flowStatus !== "idle" && (
         <SwapRequestRedeemDrawer
           flowStatus={flowStatus}

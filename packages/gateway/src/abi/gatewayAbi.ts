@@ -42,6 +42,16 @@ export const gatewayAbi = [
     type: "function",
   },
   {
+    inputs: [{ name: "user_", type: "address" }],
+    name: "getRedeemRequest",
+    outputs: [
+      { name: "amountLocked", type: "uint256" },
+      { name: "claimableAt", type: "uint256" },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [{ name: "account_", type: "address" }],
     name: "isInstantRedeemWhitelisted",
     outputs: [{ type: "bool" }],
@@ -105,5 +115,15 @@ export const gatewayAbi = [
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: "user", type: "address" },
+      { indexed: false, name: "amount", type: "uint256" },
+      { indexed: false, name: "claimableAt", type: "uint256" },
+    ],
+    name: "RedeemRequested",
+    type: "event",
   },
 ] as const;
