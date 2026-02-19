@@ -7,5 +7,5 @@ export const getTokenListParams = (tokens: Token[]) => ({
     .join(", "),
   count: tokens.length,
   firstSymbol: tokens[0]?.symbol,
-  lastSymbol: tokens.at(-1)!.symbol,
+  lastSymbol: tokens.at(-1)?.symbol,
 });
