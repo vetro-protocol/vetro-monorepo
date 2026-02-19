@@ -5,6 +5,7 @@ import { formatEvmAddress } from "utils/format";
 import { useAccount } from "wagmi";
 
 import { Button } from "./base/button";
+import vetroLogoSvg from "./icons/vetroLogo.svg";
 import { NavBarLinks } from "./navBarLinks";
 import { WalletDrawer } from "./walletDrawer";
 
@@ -24,7 +25,7 @@ export function Header() {
 
   return (
     <div className="flex h-16 items-center justify-between px-6">
-      <span>Vetro Logo</span>
+      <img alt="Vetro Logo" src={vetroLogoSvg} />
       <NavBarLinks />
       <ConnectButton.Custom>
         {function ({ account, chain, mounted, openConnectModal }) {
