@@ -197,6 +197,18 @@
         "deposit-title": "Depósito confirmado",
         "deposited-to-vault": "{{symbol}} depositado en la bóveda",
         "your-cooldown-period-has-started": "Su período de espera de {{blocks}} bloques ha comenzado."
+      },
+      "tutorial": {
+        "breadcrumb": "Tutoriales Vetro · Intercambios",
+        "learn-button": "Aprenda cómo canjear {{symbol}} a stables",
+        "step-1-badge": "Paso 1",
+        "step-1-paragraph-1": "Ingrese la cantidad de {{symbol}} que desea intercambiar de vuelta a stables y haga clic en “<strong>Enviar a la bóveda.</strong>”",
+        "step-1-paragraph-2": "Su {{symbol}} se depositará en la bóveda, donde ingresa a un breve período de espera de seguridad de {{blocks}} bloques antes de que sea canjeable.",
+        "step-2-badge": "Paso 2",
+        "step-2-paragraph-1": "Una vez que termine el período de espera, <strong>su saldo aparecerá como listo para canjear en la tabla de la Bóveda.</strong>",
+        "step-2-paragraph-2_one": "Haga clic en Canjear y elija el monto que desea recibir.",
+        "step-2-paragraph-2_other": "Haga clic en Canjear, elija el monto y seleccione la stablecoin ({{allButLast}} o {{lastSymbol}}) que desea recibir.",
+        "title": "Cómo canjear VUSD a stables"
       }
     },
     "wallet": {

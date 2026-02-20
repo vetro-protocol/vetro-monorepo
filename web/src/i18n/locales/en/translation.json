@@ -197,6 +197,18 @@
         "deposit-title": "Deposit confirmed",
         "deposited-to-vault": "{{symbol}} deposited to vault",
         "your-cooldown-period-has-started": "Your {{blocks}}-block cooldown has started."
+      },
+      "tutorial": {
+        "breadcrumb": "Vetro tutorials · Swap",
+        "learn-button": "Learn how to redeem {{symbol}} to stables",
+        "step-1-badge": "Step 1",
+        "step-1-paragraph-1": "Enter the amount of {{symbol}} you want to swap back to stables and click “<strong>Send to Vault.</strong>”",
+        "step-1-paragraph-2": "Your {{symbol}} will be deposited into the vault, where it enters a short {{blocks}}-block security cooldown before it becomes redeemable.",
+        "step-2-badge": "Step 2",
+        "step-2-paragraph-1": "Once the cooldown ends, <strong>your balance will appear as ready to redeem in the Vault table.</strong>",
+        "step-2-paragraph-2_one": "Click Redeem, and choose the amount you want to receive.",
+        "step-2-paragraph-2_other": "Click Redeem, choose the amount, and select the stablecoin ({{allButLast}}, or {{lastSymbol}}) you want to receive.",
+        "title": "How to redeem VUSD to stables"
       }
     },
     "wallet": {
