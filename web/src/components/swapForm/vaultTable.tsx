@@ -83,7 +83,11 @@ export function VaultTable({
           )}
         </Button>
         <Tooltip content={t("pages.swap.redeem-vault.cancel-redeem")}>
-          <ButtonIcon onClick={onCancelRedeem} variant="secondary">
+          <ButtonIcon
+            aria-label={t("pages.swap.redeem-vault.cancel-redeem")}
+            onClick={onCancelRedeem}
+            variant="secondary"
+          >
             <svg
               fill="none"
               height="16"
