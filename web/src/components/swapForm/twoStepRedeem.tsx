@@ -89,7 +89,7 @@ export function TwoStepRedeem({
   });
 
   const operationGasEstimation = useEstimateRequestRedeemGas({
-    enabled: amountBigInt > 0n && !!address,
+    enabled: !!address,
     owner: address,
     peggedToken: fromToken,
     peggedTokenIn: amountBigInt,

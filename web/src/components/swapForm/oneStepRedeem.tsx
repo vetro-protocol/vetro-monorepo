@@ -86,7 +86,7 @@ export function OneStepRedeem({
   });
 
   const operationGasEstimation = useEstimateRedeemGas({
-    enabled: amountBigInt > 0n && !!redeemPreview && !!address,
+    enabled: !!address,
     minAmountOut: redeemPreview ?? 0n,
     peggedToken: fromToken,
     peggedTokenIn: amountBigInt,

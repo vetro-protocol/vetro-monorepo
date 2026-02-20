@@ -47,7 +47,7 @@ export function RedeemVault({ whitelistedTokens }: Props) {
   });
 
   const operationGasEstimation = useEstimateRedeemGas({
-    enabled: amountBigInt > 0n && !!redeemPreview && !!address,
+    enabled: !!address,
     minAmountOut: redeemPreview ?? 0n,
     peggedToken: vusd,
     peggedTokenIn: amountBigInt,
