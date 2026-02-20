@@ -31,7 +31,6 @@ type Props = {
   onClose: VoidFunction;
   onInputChange: (value: string) => void;
   onMaxClick: VoidFunction;
-  onRetry: VoidFunction;
   onSubmit: VoidFunction;
   onTokenChange: (token: Token) => void;
   outputValue: string;
@@ -50,7 +49,6 @@ export function ClaimRedeemDrawer({
   onClose,
   onInputChange,
   onMaxClick,
-  onRetry,
   onSubmit,
   onTokenChange,
   outputValue,
@@ -83,7 +81,7 @@ export function ClaimRedeemDrawer({
           networkFee={networkFee}
           onInputChange={onInputChange}
           onMaxClick={onMaxClick}
-          onRetry={isError ? onRetry : undefined}
+          onRetry={isError ? onSubmit : undefined}
           onSubmit={onSubmit}
           onTokenChange={onTokenChange}
           outputValue={outputValue}

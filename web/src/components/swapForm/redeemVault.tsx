@@ -97,11 +97,6 @@ export function RedeemVault({ whitelistedTokens }: Props) {
   const handleMaxClick = () =>
     setFromInputValue(formatUnits(amountLocked, vusd.decimals));
 
-  const handleRetry = function () {
-    setFlowStatus("redeem-ready");
-    redeemMutation.mutate();
-  };
-
   const handleSubmit = function () {
     setFlowStatus("redeem-ready");
     redeemMutation.mutate();
@@ -138,7 +133,6 @@ export function RedeemVault({ whitelistedTokens }: Props) {
           onClose={handleClose}
           onInputChange={setFromInputValue}
           onMaxClick={handleMaxClick}
-          onRetry={handleRetry}
           onSubmit={handleSubmit}
           onTokenChange={setToToken}
           outputValue={outputValue}
