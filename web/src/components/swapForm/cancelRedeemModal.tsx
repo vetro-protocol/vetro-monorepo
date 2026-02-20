@@ -45,11 +45,6 @@ export function CancelRedeemModal({
     redeemableAmount,
   });
 
-  function handleCancel() {
-    setIsCancelling(true);
-    mutate();
-  }
-
   return (
     <Modal onClose={onClose}>
       <div className="flex w-[448px] flex-col gap-6 rounded-lg bg-white p-6 shadow-xl">
@@ -75,7 +70,7 @@ export function CancelRedeemModal({
           {isConnected ? (
             <Button
               disabled={isCancelling}
-              onClick={handleCancel}
+              onClick={() => mutate()}
               size="xSmall"
               variant="danger"
             >
