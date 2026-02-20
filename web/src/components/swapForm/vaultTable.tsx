@@ -3,6 +3,7 @@ import { Button, ButtonIcon } from "components/base/button";
 import { StatusBadge } from "components/base/statusBadge";
 import { Header } from "components/base/table/header";
 import { TokenLogo } from "components/tokenLogo";
+import { Tooltip } from "components/tooltip";
 import { useCountdown } from "hooks/useCountdown";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
@@ -81,20 +82,22 @@ export function VaultTable({
             </span>
           )}
         </Button>
-        <ButtonIcon onClick={onCancelRedeem} variant="secondary">
-          <svg
-            fill="none"
-            height="16"
-            viewBox="0 0 16 16"
-            width="16"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M4.28 4.28a.75.75 0 0 1 1.06 0L8 6.94l2.66-2.66a.75.75 0 1 1 1.06 1.06L9.06 8l2.66 2.66a.75.75 0 1 1-1.06 1.06L8 9.06l-2.66 2.66a.75.75 0 0 1-1.06-1.06L6.94 8 4.28 5.34a.75.75 0 0 1 0-1.06Z"
-              fill="currentColor"
-            />
-          </svg>
-        </ButtonIcon>
+        <Tooltip content={t("pages.swap.redeem-vault.cancel-redeem")}>
+          <ButtonIcon onClick={onCancelRedeem} variant="secondary">
+            <svg
+              fill="none"
+              height="16"
+              viewBox="0 0 16 16"
+              width="16"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M4.28 4.28a.75.75 0 0 1 1.06 0L8 6.94l2.66-2.66a.75.75 0 1 1 1.06 1.06L9.06 8l2.66 2.66a.75.75 0 1 1-1.06 1.06L8 9.06l-2.66 2.66a.75.75 0 0 1-1.06-1.06L6.94 8 4.28 5.34a.75.75 0 0 1 0-1.06Z"
+                fill="currentColor"
+              />
+            </svg>
+          </ButtonIcon>
+        </Tooltip>
       </div>
     </div>
   );
