@@ -3,6 +3,7 @@ import { useNeedsApproval } from "@hemilabs/react-hooks/useNeedsApproval";
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
 import { getGatewayAddress } from "@vetro/gateway";
 import { ApproveSection } from "components/approveSection";
+import { Button } from "components/base/button";
 import { Toast } from "components/base/toast";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { StripedDivider } from "components/stripedDivider";
@@ -22,6 +23,7 @@ import { getTokenListParams } from "utils/tokenList";
 import { useAccount } from "wagmi";
 
 import { Form } from "./form";
+import { RedeemTutorialModal } from "./redeemTutorialModal";
 import { RedeemVault } from "./redeemVault";
 import { SubmitButton } from "./submitButton";
 import { SwapFees } from "./swapFees";
@@ -63,6 +65,7 @@ export function TwoStepRedeem({
   const ethereumChain = useMainnet();
   const { t } = useTranslation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const handleDrawerClose = useCallback(() => setIsDrawerOpen(false), []);
   const [flowStatus, setFlowStatus] = useState<RequestRedeemFlowStatus>("idle");
   const [showToast, setShowToast] = useState(false);
@@ -212,6 +215,17 @@ export function TwoStepRedeem({
           previewValue={redeemPreview}
           token={fromToken}
         />
+        <div className="border-t border-gray-200 px-2 py-3 *:w-full">
+          <Button
+            onClick={() => setIsTutorialOpen(true)}
+            type="button"
+            variant="tertiary"
+          >
+            {t("pages.swap.tutorial.learn-button", {
+              symbol: fromToken.symbol,
+            })}
+          </Button>
+        </div>
       </Form>
       <ApproveSection active={approve10x} onToggle={onToggleApprove10x} />
       <SwapFees
@@ -225,6 +239,10 @@ export function TwoStepRedeem({
         <StripedDivider />
       </div>
       <RedeemVault whitelistedTokens={whitelistedTokens} />
+
+      {isTutorialOpen && (
+        <RedeemTutorialModal onClose={() => setIsTutorialOpen(false)} />
+      )}
       {isDrawerOpen && flowStatus !== "idle" && (
         <SwapRequestRedeemDrawer
           flowStatus={flowStatus}
