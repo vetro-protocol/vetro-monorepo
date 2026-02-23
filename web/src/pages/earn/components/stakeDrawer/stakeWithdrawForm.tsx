@@ -150,7 +150,7 @@ export function StakeWithdrawForm({
   const handleRequestWithdrawSuccess = function () {
     onSuccess({
       description: t("pages.earn.stake.withdraw-toast-description", {
-        count: cooldownDays ?? 0,
+        count: cooldownDays,
       }),
       title: t("pages.earn.stake.withdraw-toast-title"),
     });
