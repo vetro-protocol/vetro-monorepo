@@ -134,11 +134,7 @@ export function StakeWithdrawForm({
   const { address: account, isConnected } = useAccount();
   const canInstantWithdraw = useCanInstantWithdraw();
   const chain = useMainnet();
-  const { data: cooldownDuration } = useCooldownDuration();
-  const cooldownDays =
-    cooldownDuration !== undefined
-      ? Math.round(Number(cooldownDuration) / 86400)
-      : undefined;
+  const { data: cooldownDays } = useCooldownDuration();
   const { openConnectModal } = useConnectModal();
   const { t } = useTranslation();
   const { data: vusd } = useVusd();

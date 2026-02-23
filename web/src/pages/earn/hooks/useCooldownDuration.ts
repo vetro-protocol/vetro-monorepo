@@ -14,5 +14,6 @@ export function useCooldownDuration() {
     queryFn: () =>
       getCooldownDuration(client!, { address: stakingVaultAddress }),
     queryKey: ["cooldown-duration", chain.id, stakingVaultAddress],
+    select: (data) => Math.round(Number(data) / 86400),
   });
 }

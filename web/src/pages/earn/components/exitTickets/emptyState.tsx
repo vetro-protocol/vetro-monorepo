@@ -7,11 +7,7 @@ import { DownloadIcon } from "../../icons/downloadIcon";
 import { PaymentIcon } from "../../icons/paymentIcon";
 
 export function EmptyState() {
-  const { data: cooldownDuration } = useCooldownDuration();
-  const cooldownDays =
-    cooldownDuration !== undefined
-      ? Math.round(Number(cooldownDuration) / 86400)
-      : undefined;
+  const { data: cooldownDays } = useCooldownDuration();
   const { t } = useTranslation();
 
   const steps = [
