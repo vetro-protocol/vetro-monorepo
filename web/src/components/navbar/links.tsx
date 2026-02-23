@@ -1,8 +1,6 @@
-import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation } from "react-router";
 
-import { ButtonLink } from "../base/button";
+import { I18nLink } from "../base/i18nLink";
 
 import { BorrowIcon } from "./borrowIcon";
 import { BridgeIcon } from "./bridgeIcon";
@@ -16,33 +14,28 @@ export const navLinks = [
   { href: "/borrow", Icon: BorrowIcon, translationKey: "nav.borrow" },
 ] as const;
 
-const ItemLink = ({
-  children,
-  href,
-}: {
-  children: ReactNode;
-  href: string;
-}) => (
-  <li>
-    <ButtonLink href={href}>{children}</ButtonLink>
-  </li>
-);
-
 export const NavBarLinks = function () {
-  const location = useLocation();
   const { t } = useTranslation();
 
   return (
     <ul className="flex items-center gap-x-1.5">
-      {navLinks.map(function ({ href, Icon, translationKey }) {
-        const active = location.pathname.endsWith(href);
-        return (
-          <ItemLink href={href} key={href}>
-            {active && <Icon className="size-4" />}
-            {t(translationKey)}
-          </ItemLink>
-        );
-      })}
+      {navLinks.map(({ href, Icon, translationKey }) => (
+        <li key={href}>
+          <I18nLink
+            className={({ isActive }) =>
+              `button--base button-x-small button-regular ${isActive ? "button-nav-primary" : "button-nav-secondary"}`
+            }
+            to={href}
+          >
+            {({ isActive }) => (
+              <>
+                {isActive && <Icon className="size-4" />}
+                {t(translationKey)}
+              </>
+            )}
+          </I18nLink>
+        </li>
+      ))}
     </ul>
   );
 };
