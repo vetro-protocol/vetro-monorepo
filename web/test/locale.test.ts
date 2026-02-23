@@ -26,6 +26,20 @@ const getFullKeys = function (
   });
 };
 
+// i18next plural suffixes: https://www.i18next.com/translation-function/plurals
+const pluralSuffixes = ["_zero", "_one", "_two", "_few", "_many", "_other"];
+// Remove plural suffixes from keys to compare base keys across locales. This is because
+// they may differ across locales (e.g. some languages may have more plural forms than others).
+const stripPluralSuffix = (key: string) =>
+  pluralSuffixes.reduce(
+    (k, suffix) => (k.endsWith(suffix) ? k.slice(0, -suffix.length) : k),
+    key,
+  );
+
+const getBaseKeys = (keys: string[]) => [
+  ...new Set(keys.map(stripPluralSuffix)),
+];
+
 describe("locale messages", function () {
   describe("All locale resource files should have the same keys in the same order", function () {
     it("should have the same keys in the same order", async function () {
@@ -44,9 +58,10 @@ describe("locale messages", function () {
         }),
       );
 
-      // compare all keys arrays with the first one - by transitivity, all should be equal
-      keysArrays.forEach((keysArray: string[]) =>
-        expect(keysArray).toEqual(keysArrays[0]),
+      // compare base keys (with plural suffixes stripped) across all locales
+      const baseKeysArrays = keysArrays.map(getBaseKeys);
+      baseKeysArrays.forEach((baseKeys: string[]) =>
+        expect(baseKeys).toEqual(baseKeysArrays[0]),
       );
     });
   });
