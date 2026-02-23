@@ -13,6 +13,7 @@ import { formatAmount, parseTokenUnits } from "utils/token";
 import { formatUnits } from "viem";
 import { useAccount } from "wagmi";
 
+import { CancelRedeemModal } from "./cancelRedeemModal";
 import { ClaimRedeemDrawer } from "./claimRedeemDrawer";
 import { type ClaimRedeemFlowStatus } from "./claimRedeemProgressDrawer";
 import { RedeemVaultEmptyState } from "./redeemVaultEmptyState";
@@ -28,8 +29,9 @@ export function RedeemVault({ whitelistedTokens }: Props) {
   const { data: vusd } = useVusd();
   const { data: redeemRequest } = useGetRedeemRequest();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isCancelRedeemModalOpen, setIsCancelRedeemModalOpen] = useState(false);
   const [flowStatus, setFlowStatus] = useState<ClaimRedeemFlowStatus>("idle");
-  const [showToast, setShowToast] = useState(false);
+  const [toastType, setToastType] = useState<"cancel" | "redeem">();
   const [fromInputValue, setFromInputValue] = useState("0");
   const [toToken, setToToken] = useState(whitelistedTokens[0]);
 
@@ -47,7 +49,7 @@ export function RedeemVault({ whitelistedTokens }: Props) {
   });
 
   const operationGasEstimation = useEstimateRedeemGas({
-    enabled: amountBigInt > 0n && !!redeemPreview && !!address,
+    enabled: !!address,
     minAmountOut: redeemPreview ?? 0n,
     peggedToken: vusd,
     peggedTokenIn: amountBigInt,
@@ -72,7 +74,7 @@ export function RedeemVault({ whitelistedTokens }: Props) {
       emitter.on("user-signed-redeem", () => setFlowStatus("redeeming"));
       emitter.on("redeem-transaction-succeeded", function () {
         setFlowStatus("redeemed");
-        setShowToast(true);
+        setToastType("redeem");
       });
       emitter.on("redeem-transaction-reverted", () =>
         setFlowStatus("redeem-error"),
@@ -97,11 +99,6 @@ export function RedeemVault({ whitelistedTokens }: Props) {
   const handleMaxClick = () =>
     setFromInputValue(formatUnits(amountLocked, vusd.decimals));
 
-  const handleRetry = function () {
-    setFlowStatus("redeem-ready");
-    redeemMutation.mutate();
-  };
-
   const handleSubmit = function () {
     setFlowStatus("redeem-ready");
     redeemMutation.mutate();
@@ -122,6 +119,7 @@ export function RedeemVault({ whitelistedTokens }: Props) {
         <VaultTable
           amountLocked={amountLocked}
           claimableAt={claimableAt}
+          onCancelRedeem={() => setIsCancelRedeemModalOpen(true)}
           onRedeem={() => setIsDrawerOpen(true)}
           vusd={vusd}
         />
@@ -138,7 +136,6 @@ export function RedeemVault({ whitelistedTokens }: Props) {
           onClose={handleClose}
           onInputChange={setFromInputValue}
           onMaxClick={handleMaxClick}
-          onRetry={handleRetry}
           onSubmit={handleSubmit}
           onTokenChange={setToToken}
           outputValue={outputValue}
@@ -148,13 +145,31 @@ export function RedeemVault({ whitelistedTokens }: Props) {
           whitelistedTokens={whitelistedTokens}
         />
       )}
-      {showToast && (
+      {isCancelRedeemModalOpen && (
+        <CancelRedeemModal
+          onClose={() => setIsCancelRedeemModalOpen(false)}
+          onSuccess={() => setToastType("cancel")}
+          redeemableAmount={amountLocked}
+        />
+      )}
+      {toastType === "cancel" && (
+        <Toast
+          closable
+          description={t(
+            "pages.swap.redeem-vault.cancel-redeem-toast-description",
+            { symbol: vusd.symbol },
+          )}
+          onClose={() => setToastType(undefined)}
+          title={t("pages.swap.redeem-vault.cancel-redeem-toast-title")}
+        />
+      )}
+      {toastType === "redeem" && (
         <Toast
           closable
           description={t("pages.swap.redeem-vault.swap-confirmed-description", {
             symbol: toToken.symbol,
           })}
-          onClose={() => setShowToast(false)}
+          onClose={() => setToastType(undefined)}
           title={t("pages.swap.redeem-vault.redeem-confirmed")}
         />
       )}

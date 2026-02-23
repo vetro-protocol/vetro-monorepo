@@ -26,6 +26,7 @@ export { gatewayAbi } from "./abi/gatewayAbi.js";
 export { getGatewayAddress } from "./getGatewayAddress.js";
 
 export {
+  type CancelRedeemRequestEvents,
   type DepositEvents,
   type RedeemEvents,
   type RequestRedeemEvents,
