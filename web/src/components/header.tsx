@@ -4,13 +4,24 @@ import { useTranslation } from "react-i18next";
 import { formatEvmAddress } from "utils/format";
 import { useAccount } from "wagmi";
 
-import { Button } from "./base/button";
-import vetroLogoSvg from "./icons/vetroLogo.svg";
-import { NavBarLinks } from "./navBarLinks";
+import { Button, ButtonIcon } from "./base/button";
+import hamburguerIcon from "./icons/hamburguer.svg";
+import vetroLogo from "./icons/vetroLogo.svg";
+import vetroLogoMobile from "./icons/vetroLogoMobile.svg";
+import { MobileNavMenu } from "./mobileNavMenu";
+import { NavBarLinks } from "./navbar/links";
 import { WalletDrawer } from "./walletDrawer";
+
+const VetroLogo = () => (
+  <>
+    <img alt="Vetro Logo" className="mr-auto md:hidden" src={vetroLogoMobile} />
+    <img alt="Vetro Logo" className="mr-auto max-md:hidden" src={vetroLogo} />
+  </>
+);
 
 export function Header() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { t } = useTranslation();
   const { isConnected } = useAccount();
 
@@ -24,26 +35,44 @@ export function Header() {
   );
 
   return (
-    <div className="flex h-16 items-center justify-between px-6">
-      <img alt="Vetro Logo" src={vetroLogoSvg} />
-      <NavBarLinks />
-      <ConnectButton.Custom>
-        {function ({ account, chain, mounted, openConnectModal }) {
-          if (!mounted || !account || !chain) {
+    <>
+      <div className="flex h-16 items-center gap-x-3 border-b border-gray-200 px-6 md:justify-between">
+        <VetroLogo />
+        <div className="hidden flex-1 justify-center xl:flex">
+          <NavBarLinks />
+        </div>
+        <ConnectButton.Custom>
+          {function ({ account, chain, mounted, openConnectModal }) {
+            if (!mounted || !account || !chain) {
+              return (
+                <Button onClick={openConnectModal} size="xSmall">
+                  {t("pages.swap.form.connect-wallet")}
+                </Button>
+              );
+            }
             return (
-              <Button onClick={openConnectModal} size="xSmall">
-                {t("pages.swap.form.connect-wallet")}
+              <Button onClick={() => setIsDrawerOpen(true)} size="xSmall">
+                {formatEvmAddress(account.address as `0x${string}`)}
               </Button>
             );
-          }
-          return (
-            <Button onClick={() => setIsDrawerOpen(true)} size="xSmall">
-              {formatEvmAddress(account.address as `0x${string}`)}
-            </Button>
-          );
-        }}
-      </ConnectButton.Custom>
+          }}
+        </ConnectButton.Custom>
+        <div className="md:hidden">
+          <ButtonIcon
+            onClick={() => setIsMobileMenuOpen(true)}
+            variant="secondary"
+          >
+            <img alt="Hamburguer Icon" src={hamburguerIcon} />
+          </ButtonIcon>
+        </div>
+      </div>
+      <div className="hidden justify-center border-b border-gray-200 py-2 md:flex xl:hidden">
+        <NavBarLinks />
+      </div>
       {isDrawerOpen && <WalletDrawer onClose={() => setIsDrawerOpen(false)} />}
-    </div>
+      {isMobileMenuOpen && (
+        <MobileNavMenu onClose={() => setIsMobileMenuOpen(false)} />
+      )}
+    </>
   );
 }
