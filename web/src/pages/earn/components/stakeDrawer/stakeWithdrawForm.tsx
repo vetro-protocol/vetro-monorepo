@@ -15,7 +15,7 @@ import { useVusd } from "hooks/useVusd";
 import { useCanInstantWithdraw } from "pages/earn/hooks/useCanInstantWithdraw";
 import { useCooldownDuration } from "pages/earn/hooks/useCooldownDuration";
 import { useWithdrawFees } from "pages/earn/hooks/useWithdrawFees";
-import { type FormEvent, useCallback } from "react";
+import { type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import { formatAmount } from "utils/token";
@@ -151,27 +151,21 @@ export function StakeWithdrawForm({
 
   const amountBigInt = vusd ? parseUnits(inputValue, vusd.decimals) : 0n;
 
-  const handleRequestWithdrawSuccess = useCallback(
-    function handleRequestWithdrawSuccess() {
-      onSuccess({
-        description: t("pages.earn.stake.withdraw-toast-description", {
-          count: cooldownDays ?? 0,
-        }),
-        title: t("pages.earn.stake.withdraw-toast-title"),
-      });
-    },
-    [cooldownDays, onSuccess, t],
-  );
+  const handleRequestWithdrawSuccess = function () {
+    onSuccess({
+      description: t("pages.earn.stake.withdraw-toast-description", {
+        count: cooldownDays ?? 0,
+      }),
+      title: t("pages.earn.stake.withdraw-toast-title"),
+    });
+  };
 
-  const handleInstantWithdrawSuccess = useCallback(
-    function handleInstantWithdrawSuccess() {
-      onSuccess({
-        description: t("pages.earn.stake.instant-withdraw-toast-description"),
-        title: t("pages.earn.stake.instant-withdraw-toast-title"),
-      });
-    },
-    [onSuccess, t],
-  );
+  const handleInstantWithdrawSuccess = function () {
+    onSuccess({
+      description: t("pages.earn.stake.instant-withdraw-toast-description"),
+      title: t("pages.earn.stake.instant-withdraw-toast-title"),
+    });
+  };
 
   const requestWithdrawMutation = useStakeWithdraw({
     assets: amountBigInt,
