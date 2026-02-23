@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { MemoryRouter, Route, Routes } from "react-router";
 
 import { ButtonLink } from "../src/components/base/button";
-import borrowSvg from "../src/components/icons/hamburguer.svg";
+import borrowSvg from "../src/components/icons/hamburger.svg";
 
 const meta: Meta<typeof ButtonLink> = {
   argTypes: {

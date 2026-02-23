@@ -5,7 +5,7 @@ import { formatEvmAddress } from "utils/format";
 import { useAccount } from "wagmi";
 
 import { Button, ButtonIcon } from "./base/button";
-import hamburguerIcon from "./icons/hamburguer.svg";
+import hamburgerIcon from "./icons/hamburger.svg";
 import vetroLogo from "./icons/vetroLogo.svg";
 import vetroLogoMobile from "./icons/vetroLogoMobile.svg";
 import { MobileNavMenu } from "./mobileNavMenu";
@@ -62,7 +62,7 @@ export function Header() {
             onClick={() => setIsMobileMenuOpen(true)}
             variant="secondary"
           >
-            <img alt="Hamburguer Icon" src={hamburguerIcon} />
+            <img alt="Hamburger Icon" src={hamburgerIcon} />
           </ButtonIcon>
         </div>
       </div>
