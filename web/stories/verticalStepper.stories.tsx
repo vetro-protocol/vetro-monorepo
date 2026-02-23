@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import Skeleton from "react-loading-skeleton";
 
 import {
   stepStatus,
@@ -291,5 +292,29 @@ export const FirstStepFailed: Story = {
 export const SecondStepFailed: Story = {
   args: {
     steps: swapSteps.secondFailed,
+  },
+};
+
+export const WithLoadingSkeleton: Story = {
+  args: {
+    steps: [
+      {
+        description:
+          "Submit a withdrawal request to begin the exit process. Your funds remain staked at this stage.",
+        status: stepStatus.ready,
+        title: "Request withdrawal",
+      },
+      {
+        description: <Skeleton width={200} />,
+        status: stepStatus.notReady,
+        title: <Skeleton width={140} />,
+      },
+      {
+        description:
+          "Once the cooldown ends, your funds become available to unlock and withdraw.",
+        status: stepStatus.notReady,
+        title: "Withdraw funds",
+      },
+    ],
   },
 };

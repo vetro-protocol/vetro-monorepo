@@ -38,7 +38,7 @@ const getColumns = ({
   onWithdrawingChange,
   t,
 }: {
-  cooldownDuration: bigint | undefined;
+  cooldownDuration: number | undefined;
   isWithdrawingAll: boolean;
   language: string;
   onWithdrawingChange: (isWithdrawing: boolean) => void;
@@ -50,7 +50,7 @@ const getColumns = ({
         {/* Derive creation date by subtracting cooldown duration from claimableAt */}
         {cooldownDuration !== undefined
           ? formatDate(
-              Number(row.original.claimableAt) - Number(cooldownDuration),
+              Number(row.original.claimableAt) - cooldownDuration * 86400,
               language,
             )
           : "-"}

@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 /* eslint-disable sort-keys */
 export const stepStatus = {
   notReady: 0,
@@ -11,9 +13,9 @@ export const stepStatus = {
 type StepStatus = (typeof stepStatus)[keyof typeof stepStatus];
 
 export type Step = {
-  description: string;
+  description: ReactNode;
   status: StepStatus;
-  title: string;
+  title: ReactNode;
 };
 
 type Props = {

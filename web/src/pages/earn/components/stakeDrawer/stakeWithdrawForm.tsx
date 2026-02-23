@@ -13,9 +13,11 @@ import { useStakedBalance } from "hooks/useStakedBalance";
 import { useStakeWithdraw } from "hooks/useStakeWithdraw";
 import { useVusd } from "hooks/useVusd";
 import { useCanInstantWithdraw } from "pages/earn/hooks/useCanInstantWithdraw";
+import { useCooldownDuration } from "pages/earn/hooks/useCooldownDuration";
 import { useWithdrawFees } from "pages/earn/hooks/useWithdrawFees";
-import { type FormEvent, useCallback } from "react";
+import { type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
+import Skeleton from "react-loading-skeleton";
 import { formatAmount } from "utils/token";
 import { parseUnits } from "viem";
 import { useAccount } from "wagmi";
@@ -67,10 +69,12 @@ function getRequestStepStatus(withdrawStep: WithdrawStep) {
 
 function getWithdrawSteps({
   canInstantWithdraw,
+  cooldownDays,
   t,
   withdrawStep,
 }: {
   canInstantWithdraw: boolean | undefined;
+  cooldownDays: number | undefined;
   t: ReturnType<typeof useTranslation>["t"];
   withdrawStep: WithdrawStep;
 }) {
@@ -93,10 +97,24 @@ function getWithdrawSteps({
       title: t("pages.earn.stake.withdraw-step-1-title"),
     },
     {
-      description: t("pages.earn.stake.withdraw-step-2-description"),
+      description:
+        cooldownDays !== undefined ? (
+          t("pages.earn.stake.withdraw-step-2-description", {
+            count: cooldownDays,
+          })
+        ) : (
+          <Skeleton width={200} />
+        ),
       status:
         withdrawStep === "completed" ? stepStatus.ready : stepStatus.notReady,
-      title: t("pages.earn.stake.withdraw-step-2-title"),
+      title:
+        cooldownDays !== undefined ? (
+          t("pages.earn.stake.withdraw-step-2-title", {
+            count: cooldownDays,
+          })
+        ) : (
+          <Skeleton width={140} />
+        ),
     },
     {
       description: t("pages.earn.stake.withdraw-step-3-description"),
@@ -116,6 +134,7 @@ export function StakeWithdrawForm({
   const { address: account, isConnected } = useAccount();
   const canInstantWithdraw = useCanInstantWithdraw();
   const chain = useMainnet();
+  const { data: cooldownDays } = useCooldownDuration();
   const { openConnectModal } = useConnectModal();
   const { t } = useTranslation();
   const { data: vusd } = useVusd();
@@ -128,25 +147,21 @@ export function StakeWithdrawForm({
 
   const amountBigInt = vusd ? parseUnits(inputValue, vusd.decimals) : 0n;
 
-  const handleRequestWithdrawSuccess = useCallback(
-    function handleRequestWithdrawSuccess() {
-      onSuccess({
-        description: t("pages.earn.stake.withdraw-toast-description"),
-        title: t("pages.earn.stake.withdraw-toast-title"),
-      });
-    },
-    [onSuccess, t],
-  );
+  const handleRequestWithdrawSuccess = function () {
+    onSuccess({
+      description: t("pages.earn.stake.withdraw-toast-description", {
+        count: cooldownDays,
+      }),
+      title: t("pages.earn.stake.withdraw-toast-title"),
+    });
+  };
 
-  const handleInstantWithdrawSuccess = useCallback(
-    function handleInstantWithdrawSuccess() {
-      onSuccess({
-        description: t("pages.earn.stake.instant-withdraw-toast-description"),
-        title: t("pages.earn.stake.instant-withdraw-toast-title"),
-      });
-    },
-    [onSuccess, t],
-  );
+  const handleInstantWithdrawSuccess = function () {
+    onSuccess({
+      description: t("pages.earn.stake.instant-withdraw-toast-description"),
+      title: t("pages.earn.stake.instant-withdraw-toast-title"),
+    });
+  };
 
   const requestWithdrawMutation = useStakeWithdraw({
     assets: amountBigInt,
@@ -186,7 +201,12 @@ export function StakeWithdrawForm({
   const balancesLoaded =
     nativeBalance !== undefined && stakedBalance !== undefined;
 
-  const steps = getWithdrawSteps({ canInstantWithdraw, t, withdrawStep });
+  const steps = getWithdrawSteps({
+    canInstantWithdraw,
+    cooldownDays,
+    t,
+    withdrawStep,
+  });
 
   function handleMaxClick(maxValue: string) {
     onInputChange(maxValue);
