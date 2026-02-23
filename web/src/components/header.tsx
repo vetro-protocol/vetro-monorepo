@@ -59,10 +59,11 @@ export function Header() {
         </ConnectButton.Custom>
         <div className="md:hidden">
           <ButtonIcon
+            aria-label={t("nav.open-menu")}
             onClick={() => setIsMobileMenuOpen(true)}
             variant="secondary"
           >
-            <img alt="Hamburger Icon" src={hamburgerIcon} />
+            <img alt="" src={hamburgerIcon} />
           </ButtonIcon>
         </div>
       </div>
