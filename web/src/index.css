@@ -38,7 +38,13 @@
     0 0 0 1px rgba(0, 0, 0, 0.04), 0 5px 16px -2px rgba(0, 0, 0, 0.06),
     0 15px 35px -5px rgba(0, 0, 0, 0.2);
 
+  --spacing-18: 4.5rem; /* 72px */
+
   --width-22-5: 5.625rem; /* 90px */
+}
+
+@utility h-18 {
+  height: var(--spacing-18);
 }
 
 @utility h-22 {
