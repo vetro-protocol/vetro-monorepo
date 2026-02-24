@@ -84,33 +84,55 @@ If text-4xl is 2.25 rem => 4, then here 2.5 rem => 4.4 */
   width: var(--width-22-5);
 }
 
-/* Headers styling */
-h1,
-h2,
-h3,
-h4,
-h5 {
-  @apply font-semibold;
-}
-
-h1 {
+@utility text-h1 {
   @apply text-4.4xl tracking-[-1.6px];
 }
 
-h2 {
+@utility text-h2 {
   @apply text-4xl tracking-[-0.72px];
 }
 
-h3 {
+@utility text-h3 {
   /* override line height from tailwind */
   @apply text-2xl leading-[28px] tracking-[-0.24px];
 }
 
-h4 {
+@utility text-h4 {
   /* override line height from tailwind */
   @apply text-base leading-[22px] tracking-[-0.16px];
 }
 
-h5 {
+@utility text-h5 {
   @apply text-xsm;
+}
+
+/* Header default styling */
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
+    @apply font-semibold;
+  }
+
+  h1 {
+    @apply text-h1;
+  }
+
+  h2 {
+    @apply text-h2;
+  }
+
+  h3 {
+    @apply text-h3;
+  }
+
+  h4 {
+    @apply text-h4;
+  }
+
+  h5 {
+    @apply text-h5;
+  }
 }
