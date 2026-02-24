@@ -13,7 +13,7 @@ export const ApproveSection = function ({ active, onToggle }: Props) {
   const { t } = useTranslation();
 
   return (
-    <div className="w-full max-w-md">
+    <div className="w-full max-w-md border-b border-gray-200 max-md:px-4">
       <div className="text-xsm flex cursor-default items-center gap-x-1 px-2 py-3">
         <span className="font-semibold text-gray-900">
           {t("pages.swap.form.approve-10x")}

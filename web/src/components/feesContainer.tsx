@@ -25,7 +25,7 @@ export function FeesContainer({ children, isError, label, totalFees }: Props) {
     );
 
   return (
-    <div className={`w-full border-b border-gray-200`}>
+    <div className="w-full">
       <div
         aria-controls="fees-list"
         aria-expanded={isOpen}
@@ -35,7 +35,7 @@ export function FeesContainer({ children, isError, label, totalFees }: Props) {
         tabIndex={0}
       >
         {label && <span className="font-semibold text-gray-900">{label}</span>}
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-2 max-md:px-4">
           {!isOpen && (
             <>
               <img alt="Fees icon" height="16" src={feesSvg} width="16" />

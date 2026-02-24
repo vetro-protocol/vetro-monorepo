@@ -112,7 +112,7 @@ export function RedeemVault({ whitelistedTokens }: Props) {
   return (
     <>
       {/* Title */}
-      <div className="flex w-full items-center border-b border-gray-200 bg-gray-100 px-16 py-6">
+      <div className="flex w-full items-center border-b border-gray-200 bg-gray-100 px-6 py-6 lg:px-16">
         <h4 className="text-gray-900">{t("pages.swap.redeem-vault.title")}</h4>
       </div>
       {hasRequest ? (
