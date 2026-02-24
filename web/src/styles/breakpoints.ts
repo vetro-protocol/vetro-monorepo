@@ -2,6 +2,7 @@
 // See https://tailwindcss.com/docs/responsive-design
 export const screenBreakpoints = {
   /* eslint-disable sort-keys */
+  xs: 480,
   sm: 640,
   md: 768,
   lg: 1024,
