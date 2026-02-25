@@ -40,6 +40,7 @@ type Props<TData> = {
   maxBodyHeight?: string;
   placeholder?: ReactNode;
   priorityColumnIdsOnSmall?: string[];
+  skeletonRowCount?: number;
 };
 
 export function Table<TData>({
@@ -49,6 +50,7 @@ export function Table<TData>({
   maxBodyHeight,
   placeholder,
   priorityColumnIdsOnSmall,
+  skeletonRowCount = 4,
 }: Props<TData>) {
   const { width } = useWindowSize();
 
@@ -71,7 +73,10 @@ export function Table<TData>({
     [columns, showSkeleton],
   );
 
-  const skeletonData = useMemo(() => new Array(4).fill(null) as TData[], []);
+  const skeletonData = useMemo(
+    () => new Array(skeletonRowCount).fill(null) as TData[],
+    [skeletonRowCount],
+  );
 
   const columnOrder = getColumnOrder({
     columns: columnsWithSkeleton,
@@ -83,7 +88,7 @@ export function Table<TData>({
     columns: columnsWithSkeleton,
     data: data.length > 0 ? data : showSkeleton ? skeletonData : [],
     getCoreRowModel: getCoreRowModel(),
-    state: { columnOrder: columnOrder ?? undefined },
+    state: { columnOrder },
   });
 
   const isMobileReordered = columnOrder !== undefined;
@@ -103,13 +108,13 @@ export function Table<TData>({
 
   return (
     <div
-      className="max-w-[100vw] overflow-x-auto"
+      className="w-full max-w-[100vw] overflow-x-auto"
       style={{
         scrollbarColor: "#d4d4d4 transparent",
         scrollbarWidth: "thin",
       }}
     >
-      <div className="min-w-max">
+      <div className="w-full min-w-max">
         {/* Header */}
         <div className="border-b border-gray-200 bg-gray-100">
           <table className="w-full border-separate border-spacing-0 whitespace-nowrap">
@@ -142,11 +147,13 @@ export function Table<TData>({
         {/* Body */}
         {!showPlaceholder && (
           <div
-            className="overflow-y-auto border-b border-gray-200"
+            className={`border-b border-gray-200${maxBodyHeight ? "overflow-y-auto" : ""}`}
             style={{
               maxHeight: maxBodyHeight,
-              scrollbarColor: "#d4d4d4 transparent",
-              scrollbarWidth: "thin",
+              ...(maxBodyHeight && {
+                scrollbarColor: "#d4d4d4 transparent",
+                scrollbarWidth: "thin" as const,
+              }),
             }}
           >
             <table className="w-full border-separate border-spacing-0 whitespace-nowrap">
