@@ -115,7 +115,7 @@ export function VaultTable({
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
             <TokenLogo {...vusd} />
-            <span className="text-gray-900">
+            <span className="text-b-medium text-gray-900">
               {formatAmount({
                 amount: row.original.amountLocked,
                 decimals: vusd.decimals,

@@ -147,7 +147,7 @@ export function Table<TData>({
         {/* Body */}
         {!showPlaceholder && (
           <div
-            className={`border-b border-gray-200${maxBodyHeight ? "overflow-y-auto" : ""}`}
+            className={`border-b border-gray-200 ${maxBodyHeight ? "overflow-y-auto" : ""}`}
             style={{
               maxHeight: maxBodyHeight,
               ...(maxBodyHeight && {
