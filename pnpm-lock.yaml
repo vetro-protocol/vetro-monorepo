@@ -67,6 +67,31 @@ importers:
         specifier: 4.65.0
         version: 4.65.0(@cloudflare/workers-types@4.20260212.0)(bufferutil@4.1.0)(utf-8-validate@5.0.10)
 
+  packages/blue-market:
+    dependencies:
+      to-promise-event:
+        specifier: 1.0.0
+        version: 1.0.0
+      viem-erc20:
+        specifier: 2.1.0
+        version: 2.1.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
+    devDependencies:
+      '@tsconfig/node24':
+        specifier: 24.0.4
+        version: 24.0.4
+      '@vitest/coverage-v8':
+        specifier: 4.0.18
+        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.0.9)(jiti@2.6.1)(lightningcss@1.30.2)(yaml@2.8.2))
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+      viem:
+        specifier: 2.44.4
+        version: 2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)
+      vitest:
+        specifier: 4.0.18
+        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.0.9)(jiti@2.6.1)(lightningcss@1.30.2)(yaml@2.8.2)
+
   packages/earn:
     dependencies:
       to-promise-event:
