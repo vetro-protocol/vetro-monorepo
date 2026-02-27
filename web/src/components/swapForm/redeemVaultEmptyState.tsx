@@ -108,14 +108,14 @@ export function RedeemVaultEmptyState({ whitelistedTokens }: Props) {
   ];
 
   return (
-    <div className="flex w-full flex-col gap-10 border-b border-gray-200 bg-white px-8 py-12 md:flex-row md:items-start md:justify-center">
+    <div className="flex w-full flex-col gap-8 border-b border-gray-200 bg-white px-4 py-10 md:flex-row md:items-start md:justify-center md:gap-10 md:px-8 md:py-12">
       {steps.map((step) => (
         <div
-          className="flex flex-col gap-3 md:w-60 md:items-center"
+          className="flex flex-col gap-3 md:w-60 lg:items-center"
           key={step.title}
         >
           {step.icon}
-          <div className="text-b-regular flex flex-col gap-0.5 text-center">
+          <div className="text-b-regular flex flex-col gap-0.5 lg:text-center">
             <span className="font-semibold text-gray-900">{step.title}</span>
             <span className="text-b-regular text-gray-500">
               {step.description}

@@ -38,17 +38,19 @@ export const SwapFees = function ({
     });
 
   return (
-    <div className="w-full max-w-md border-t border-gray-200">
-      <FeesContainer label={outputLabel} totalFees={totalFeesDisplay}>
-        <FeeDetails
-          label={t("pages.swap.fees.network-fee")}
-          value={networkFeeDisplay}
-        />
-        <FeeDetails
-          label={t("pages.swap.fees.fixed-protocol-fee")}
-          value={protocolFeeDisplay}
-        />
-      </FeesContainer>
+    <div className="w-full border-b border-gray-200">
+      <div className="mx-auto w-full max-w-md">
+        <FeesContainer label={outputLabel} totalFees={totalFeesDisplay}>
+          <FeeDetails
+            label={t("pages.swap.fees.network-fee")}
+            value={networkFeeDisplay}
+          />
+          <FeeDetails
+            label={t("pages.swap.fees.fixed-protocol-fee")}
+            value={protocolFeeDisplay}
+          />
+        </FeesContainer>
+      </div>
     </div>
   );
 };

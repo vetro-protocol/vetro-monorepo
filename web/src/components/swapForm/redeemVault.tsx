@@ -27,7 +27,7 @@ export function RedeemVault({ whitelistedTokens }: Props) {
   const { address } = useAccount();
   const { t } = useTranslation();
   const { data: vusd } = useVusd();
-  const { data: redeemRequest } = useGetRedeemRequest();
+  const { data: redeemRequest, isLoading } = useGetRedeemRequest();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isCancelRedeemModalOpen, setIsCancelRedeemModalOpen] = useState(false);
   const [flowStatus, setFlowStatus] = useState<ClaimRedeemFlowStatus>("idle");
@@ -112,20 +112,19 @@ export function RedeemVault({ whitelistedTokens }: Props) {
   return (
     <>
       {/* Title */}
-      <div className="flex w-full items-center border-b border-gray-200 bg-gray-100 px-16 py-6">
+      <div className="flex w-full items-center border-b border-gray-200 bg-gray-100 px-6 py-6 lg:px-16">
         <h4 className="text-gray-900">{t("pages.swap.redeem-vault.title")}</h4>
       </div>
-      {hasRequest ? (
-        <VaultTable
-          amountLocked={amountLocked}
-          claimableAt={claimableAt}
-          onCancelRedeem={() => setIsCancelRedeemModalOpen(true)}
-          onRedeem={() => setIsDrawerOpen(true)}
-          vusd={vusd}
-        />
-      ) : (
-        <RedeemVaultEmptyState whitelistedTokens={whitelistedTokens} />
-      )}
+      <VaultTable
+        data={hasRequest ? [{ amountLocked, claimableAt }] : []}
+        loading={isLoading}
+        onCancelRedeem={() => setIsCancelRedeemModalOpen(true)}
+        onRedeem={() => setIsDrawerOpen(true)}
+        placeholder={
+          <RedeemVaultEmptyState whitelistedTokens={whitelistedTokens} />
+        }
+        vusd={vusd}
+      />
       {isDrawerOpen && (
         <ClaimRedeemDrawer
           amountLocked={amountLocked}
