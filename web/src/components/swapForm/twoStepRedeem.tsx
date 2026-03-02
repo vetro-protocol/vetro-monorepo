@@ -18,7 +18,6 @@ import { useWithdrawalDelay } from "hooks/useWithdrawalDelay";
 import { type FormEvent, useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
-import { secondsToBlocks } from "utils/blocks";
 import { getTokenListParams } from "utils/tokenList";
 import { useAccount } from "wagmi";
 
@@ -72,7 +71,9 @@ export function TwoStepRedeem({
   const [showToast, setShowToast] = useState(false);
   const [startedWithApproval, setStartedWithApproval] = useState(false);
 
-  const { data: blocks } = useWithdrawalDelay({ select: secondsToBlocks });
+  const { data: seconds } = useWithdrawalDelay({
+    select: (data) => Number(data),
+  });
   const { data: fromTokenBalance } = useTokenBalance({
     address: fromToken.address,
     chainId: ethereumChain.id,
@@ -165,7 +166,7 @@ export function TwoStepRedeem({
 
   const vaultInfoText = t("pages.swap.form.vault-info", {
     ...tokenListParams,
-    blocks,
+    seconds,
     vusd: fromToken.symbol,
   });
 
@@ -265,7 +266,8 @@ export function TwoStepRedeem({
         <Toast
           closable
           description={t("pages.swap.toast.your-cooldown-period-has-started", {
-            blocks,
+            count: seconds,
+            seconds,
           })}
           onClose={() => setShowToast(false)}
           title={t("pages.swap.toast.deposited-to-vault", {

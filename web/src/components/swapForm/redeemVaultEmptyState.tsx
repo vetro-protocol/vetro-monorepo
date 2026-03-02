@@ -2,7 +2,6 @@ import { useVusd } from "hooks/useVusd";
 import { useWithdrawalDelay } from "hooks/useWithdrawalDelay";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
-import { secondsToBlocks } from "utils/blocks";
 import { getTokenListParams } from "utils/tokenList";
 
 const StartWithVusdIcon = () => (
@@ -79,7 +78,9 @@ export function RedeemVaultEmptyState({ whitelistedTokens }: Props) {
   const { t } = useTranslation();
   const { data: vusd } = useVusd();
   const { symbol } = vusd;
-  const { data: blocks } = useWithdrawalDelay({ select: secondsToBlocks });
+  const { data: seconds } = useWithdrawalDelay({
+    select: (data) => Number(data),
+  });
 
   const steps = [
     {
@@ -91,7 +92,8 @@ export function RedeemVaultEmptyState({ whitelistedTokens }: Props) {
     },
     {
       description: t("pages.swap.redeem-vault.empty-step-2-description", {
-        blocks,
+        count: seconds,
+        seconds,
         symbol,
       }),
       icon: <CooldownIcon />,

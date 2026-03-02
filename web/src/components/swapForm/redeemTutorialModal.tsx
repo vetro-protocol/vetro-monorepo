@@ -5,7 +5,6 @@ import { useWhitelistedTokens } from "hooks/useWhitelistedTokens";
 import { useWithdrawalDelay } from "hooks/useWithdrawalDelay";
 import type { ReactNode } from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { secondsToBlocks } from "utils/blocks";
 import { getTokenListParams } from "utils/tokenList";
 
 type Props = {
@@ -39,7 +38,9 @@ const StepSection = ({ badge, children, image }: StepSectionProps) => (
 export function RedeemTutorialModal({ onClose }: Props) {
   const { t } = useTranslation();
   const { data: vusd } = useVusd();
-  const { data: blocks } = useWithdrawalDelay({ select: secondsToBlocks });
+  const { data: seconds } = useWithdrawalDelay({
+    select: (data) => Number(data),
+  });
   const { data: whitelistedTokens } = useWhitelistedTokens();
 
   return (
@@ -73,7 +74,8 @@ export function RedeemTutorialModal({ onClose }: Props) {
           </p>
           <p className="text-base font-semibold text-gray-500">
             {t("pages.swap.tutorial.step-1-paragraph-2", {
-              blocks,
+              count: seconds,
+              seconds,
               symbol: vusd.symbol,
             })}
           </p>
