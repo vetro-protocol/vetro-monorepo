@@ -15,7 +15,7 @@ import { useRedeemFee } from "hooks/useRedeemFee";
 import { useRequestRedeem } from "hooks/useRequestRedeem";
 import { useSwapFeesDisplay } from "hooks/useSwapFeesDisplay";
 import { useWithdrawalDelay } from "hooks/useWithdrawalDelay";
-import { type FormEvent, useCallback, useState } from "react";
+import { type FormEvent, useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 import { secondsToBlocks } from "utils/blocks";
@@ -64,6 +64,7 @@ export function TwoStepRedeem({
   const { address } = useAccount();
   const ethereumChain = useMainnet();
   const { t } = useTranslation();
+  const redeemVaultRef = useRef<HTMLDivElement>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const handleDrawerClose = useCallback(() => setIsDrawerOpen(false), []);
@@ -122,6 +123,7 @@ export function TwoStepRedeem({
       emitter.on("request-redeem-transaction-succeeded", function () {
         setFlowStatus("request-redeemed");
         setShowToast(true);
+        redeemVaultRef.current?.scrollIntoView({ behavior: "smooth" });
       });
       emitter.on("request-redeem-transaction-reverted", () =>
         setFlowStatus("request-redeem-error"),
@@ -238,7 +240,9 @@ export function TwoStepRedeem({
       <div className="w-full border-b border-gray-200 bg-gray-100 p-2">
         <StripedDivider />
       </div>
-      <RedeemVault whitelistedTokens={whitelistedTokens} />
+      <div className="w-full" ref={redeemVaultRef}>
+        <RedeemVault whitelistedTokens={whitelistedTokens} />
+      </div>
 
       {isTutorialOpen && (
         <RedeemTutorialModal onClose={() => setIsTutorialOpen(false)} />
