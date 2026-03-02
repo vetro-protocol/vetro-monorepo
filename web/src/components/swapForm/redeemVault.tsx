@@ -1,3 +1,4 @@
+import { TopSection } from "components/base/table/topSection";
 import { Toast } from "components/base/toast";
 import { useEstimateRedeemGas } from "hooks/useEstimateRedeemGas";
 import { useGetRedeemRequest } from "hooks/useGetRedeemRequest";
@@ -111,10 +112,7 @@ export function RedeemVault({ whitelistedTokens }: Props) {
 
   return (
     <>
-      {/* Title */}
-      <div className="flex w-full items-center border-b border-gray-200 bg-gray-100 px-6 py-6 lg:px-16">
-        <h4 className="text-gray-900">{t("pages.swap.redeem-vault.title")}</h4>
-      </div>
+      <TopSection title={t("pages.swap.redeem-vault.title")} />
       <VaultTable
         data={hasRequest ? [{ amountLocked, claimableAt }] : []}
         loading={isLoading}
