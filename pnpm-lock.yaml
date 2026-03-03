@@ -211,6 +211,9 @@ importers:
       react-router:
         specifier: 7.12.0
         version: 7.12.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      smart-round:
+        specifier: 3.0.1
+        version: 3.0.1
       viem:
         specifier: 2.44.4
         version: 2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)
@@ -3409,6 +3412,9 @@ packages:
 
   big.js@6.2.2:
     resolution: {integrity: sha512-y/ie+Faknx7sZA5MfGA2xKlu0GDv8RWrXGsmlteyJQ2lvoKv9GBK/fpRMc2qlSoBAgNxrixICFCBefIq8WCQpQ==}
+
+  big.js@7.0.1:
+    resolution: {integrity: sha512-iFgV784tD8kq4ccF1xtNMZnXeZzVuXWWM+ERFzKQjv+A5G9HC8CY3DuV45vgzFFcW+u2tIvmF95+AzWgs6BjCg==}
 
   binaryen@102.0.0-nightly.20211028:
     resolution: {integrity: sha512-GCJBVB5exbxzzvyt8MGDv/MeUjs6gkXDvf4xOIItRBptYl0Tz5sm1o/uG95YK0L0VeG5ajDu3hRtkBP2kzqC5w==}
@@ -6716,6 +6722,9 @@ packages:
   slice-ansi@7.1.2:
     resolution: {integrity: sha512-iOBWFgUX7caIZiuutICxVgX1SdxwAVFFKwt1EvMYYec/NWO5meOJ6K5uQxhrYBdQJne4KxiqZc+KptFOWFSI9w==}
     engines: {node: '>=18'}
+
+  smart-round@3.0.1:
+    resolution: {integrity: sha512-yF7DT7JvD2OqZEyDFPomHC8ZCRhD27KYfAQE6XwRW2KMe2sGYFGE3c9bJO6Qv72lY/5O/MlJZj5hl2opbuAKJQ==}
 
   smol-toml@1.6.0:
     resolution: {integrity: sha512-4zemZi0HvTnYwLfrpk/CF9LOd9Lt87kAt50GnqhMpyF9U3poDAP2+iukq2bZsO/ufegbYehBkqINbsWxj4l4cw==}
@@ -11806,6 +11815,8 @@ snapshots:
 
   big.js@6.2.2: {}
 
+  big.js@7.0.1: {}
+
   binaryen@102.0.0-nightly.20211028: {}
 
   binaryen@116.0.0-nightly.20240114: {}
@@ -15528,6 +15539,10 @@ snapshots:
     dependencies:
       ansi-styles: 6.2.3
       is-fullwidth-code-point: 5.1.0
+
+  smart-round@3.0.1:
+    dependencies:
+      big.js: 7.0.1
 
   smol-toml@1.6.0: {}
 
