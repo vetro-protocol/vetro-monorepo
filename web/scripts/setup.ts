@@ -34,10 +34,22 @@ const tokens = [
     symbol: "VUSD",
   },
   {
+    address: "0x06ea695B91700071B161A434fED42D1DcbAD9f00",
+    balanceSlot: 5,
+    decimals: 8,
+    symbol: "hemiBTC",
+  },
+  {
     address: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
     balanceSlot: 2,
     decimals: 6,
     symbol: "USDT",
+  },
+  {
+    address: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+    balanceSlot: 0,
+    decimals: 8,
+    symbol: "WBTC",
   },
 ] as const;
 
