@@ -90,6 +90,12 @@ const canRepayAssets = function ({
       reason: "Amount must be greater than 0",
     };
   }
+  if (typeof approveAmount !== "bigint") {
+    return {
+      canRepayAssets: false,
+      reason: "Approve amount must be a bigint",
+    };
+  }
   if (approveAmount < amount) {
     return {
       canRepayAssets: false,

@@ -90,6 +90,12 @@ const canSupplyCollateral = function ({
       reason: "Amount must be greater than 0",
     };
   }
+  if (typeof approveAmount !== "bigint") {
+    return {
+      canSupplyCollateral: false,
+      reason: "Approve amount must be a bigint",
+    };
+  }
   if (approveAmount < amount) {
     return {
       canSupplyCollateral: false,

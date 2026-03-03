@@ -284,6 +284,27 @@ describe("supplyCollateral", function () {
     expect(onSettled).toHaveBeenCalledOnce();
   });
 
+  it("should emit 'supply-collateral-failed-validation' if approveAmount is not a bigint", async function () {
+    const { emitter, promise } = supplyCollateral(mockWalletClient, {
+      ...validParameters,
+      // @ts-expect-error - Testing invalid input
+      approveAmount: 1000,
+    });
+
+    const onFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("supply-collateral-failed-validation", onFailedValidation);
+    emitter.on("supply-collateral-settled", onSettled);
+
+    await promise;
+
+    expect(onFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "Approve amount must be a bigint",
+    );
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
   it("should emit 'supply-collateral-failed-validation' if approveAmount is less than amount", async function () {
     const { emitter, promise } = supplyCollateral(mockWalletClient, {
       ...validParameters,
