@@ -1,4 +1,9 @@
-import { queryOptions, useQuery } from "@tanstack/react-query";
+import {
+  QueryClient,
+  queryOptions,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { getGatewayAddress } from "@vetro/gateway";
 import { fetchVusd } from "fetchers/fetchVusd";
 import type { Token } from "types";
@@ -21,7 +26,13 @@ const initialVusd: Token = {
   symbol: "VUSD",
 };
 
-export const vusdOptions = ({ client }: { client: Client | undefined }) =>
+const vusdOptions = ({
+  client,
+  queryClient,
+}: {
+  client: Client | undefined;
+  queryClient: QueryClient;
+}) =>
   queryOptions({
     enabled: !!client,
     initialData: initialVusd,
@@ -29,11 +40,13 @@ export const vusdOptions = ({ client }: { client: Client | undefined }) =>
       fetchVusd({
         client: client!,
         gatewayAddress: getGatewayAddress(client!.chain!.id),
+        queryClient,
       }),
     queryKey: vusdQueryKey(client?.chain?.id),
   });
 
 export const useVusd = function () {
   const client = useEthereumClient();
-  return useQuery(vusdOptions({ client }));
+  const queryClient = useQueryClient();
+  return useQuery(vusdOptions({ client, queryClient }));
 };
