@@ -6,6 +6,8 @@ export type Token = {
   decimals: number;
   extensions?: {
     allowanceSlot?: bigint;
+    // Use this to map which symbol should be used to map prices
+    priceSymbol?: string;
   };
   logoURI: string;
   name: string;
