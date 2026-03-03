@@ -24,6 +24,7 @@ export const tokenInfoOptions = ({
 }) =>
   queryOptions({
     enabled: !!client && !!address,
+    gcTime: Infinity,
     queryFn: () => fetchTokenInfo({ address: address!, client }),
     queryKey: tokenInfoQueryKey({ address, chainId }),
     // cache indefinitely as the token info is unlikely to change
