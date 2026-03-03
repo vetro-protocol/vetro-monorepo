@@ -6,6 +6,7 @@ import { FilterMenu } from "components/base/filterMenu";
 import { StatusBadge } from "components/base/statusBadge";
 import { Table } from "components/base/table";
 import { Header } from "components/base/table/header";
+import { TopSection } from "components/base/table/topSection";
 import { Toast } from "components/base/toast";
 import { useClaimWithdrawBatch } from "hooks/useClaimWithdrawBatch";
 import { TableCellsIcon } from "pages/earn/icons/tableCellsIcon";
@@ -217,10 +218,7 @@ export function ExitTickets() {
   return (
     <div>
       {/* Title row */}
-      <div className="flex flex-col gap-3 border-b border-gray-200 bg-gray-100 px-4 py-4 md:flex-row md:items-center md:justify-between md:px-16 md:py-5">
-        <h4 className="text-base font-semibold tracking-tight text-gray-900">
-          {t("pages.earn.exit-tickets.title")}
-        </h4>
+      <TopSection title={t("pages.earn.exit-tickets.title")}>
         <div className="flex items-center gap-3">
           <FilterMenu
             icon={<TableCellsIcon />}
@@ -262,7 +260,7 @@ export function ExitTickets() {
             </Button>
           )}
         </div>
-      </div>
+      </TopSection>
       {/* Table */}
       <Table
         columns={columns}

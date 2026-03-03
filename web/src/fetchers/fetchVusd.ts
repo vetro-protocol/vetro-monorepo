@@ -1,29 +1,26 @@
+import type { QueryClient } from "@tanstack/react-query";
 import { getPeggedToken } from "@vetro/gateway/actions";
+import { tokenInfoOptions } from "hooks/useTokenInfo";
 import type { Address, Client } from "viem";
-import { decimals, symbol } from "viem-erc20/actions";
-
-import type { Token } from "../types/index.js";
 
 export const fetchVusd = async function ({
   client,
   gatewayAddress,
+  queryClient,
 }: {
   client: Client;
   gatewayAddress: Address;
+  queryClient: QueryClient;
 }) {
-  const peggedTokenAddress = await getPeggedToken(client, {
+  const address = await getPeggedToken(client, {
     address: gatewayAddress,
   });
 
-  const [tokenSymbol, tokenDecimals] = await Promise.all([
-    symbol(client, { address: peggedTokenAddress }),
-    decimals(client, { address: peggedTokenAddress }),
-  ]);
-
-  return {
-    address: peggedTokenAddress,
-    chainId: client.chain!.id,
-    decimals: tokenDecimals,
-    symbol: tokenSymbol,
-  } as Token;
+  return queryClient.ensureQueryData(
+    tokenInfoOptions({
+      address,
+      chainId: client.chain!.id,
+      client,
+    }),
+  );
 };
