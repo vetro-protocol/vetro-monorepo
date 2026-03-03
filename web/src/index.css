@@ -17,6 +17,7 @@
   --color-blue-950: #0f1957;
 
   --font-geist: "Geist", sans-serif;
+  --font-size-xss: 0.688rem; /* 11px */
   --font-size-xsm: 0.8125rem; /* 13px */
   --font-size-mid: 0.9375rem; /* 15px */
 
@@ -57,6 +58,10 @@
   height: var(--height-50);
 }
 
+@utility text-xss {
+  font-size: var(--font-size-xss);
+}
+
 @utility text-xsm {
   font-size: var(--font-size-xsm);
   line-height: var(--line-height-xsm);
@@ -73,6 +78,10 @@
 
 @utility text-b-medium {
   @apply text-xsm font-medium;
+}
+
+@utility text-caption {
+  @apply text-xss leading-4 font-medium tracking-[0.22px];
 }
 
 /* I'm using "4.4" as proportional from values. 
