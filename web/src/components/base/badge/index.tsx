@@ -12,7 +12,7 @@ type Props = {
 
 export const Badge = ({ children, variant = "gray" }: Props) => (
   <span
-    className={`inline-flex h-4 items-center justify-center rounded-md px-1.5 text-[11px] leading-4 font-medium ${variants[variant]}`}
+    className={`text-caption inline-flex h-4 items-center justify-center rounded-md px-1.5 ${variants[variant]}`}
   >
     {children}
   </span>
