@@ -13,7 +13,7 @@ export function CollateralCell({ marketId, token }: Props) {
   const { data: value, status } = useMarketCollateral(marketId);
 
   return (
-    <div className="items-end-end flex flex-col gap-y-0.5">
+    <div className="flex flex-col gap-y-0.5">
       <span className="text-b-medium text-right text-gray-900">
         <RenderFiatValue queryStatus={status} token={token} value={value} />
       </span>
