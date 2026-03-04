@@ -4,10 +4,16 @@ import { StripedDivider } from "../src/components/stripedDivider";
 
 const meta: Meta<typeof StripedDivider> = {
   component: StripedDivider,
-  title: "Earn/StripedDivider",
+  title: "Components/StripedDivider",
 };
 
 export default meta;
 type Story = StoryObj<typeof StripedDivider>;
 
-export const Default: Story = {};
+export const Medium: Story = {};
+
+export const Small: Story = {
+  args: {
+    variant: "small",
+  },
+};

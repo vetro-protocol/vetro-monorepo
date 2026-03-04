@@ -83,7 +83,7 @@ export function RedeemTutorialModal({ onClose }: Props) {
 
         {/* Striped divider */}
         <div className="px-12">
-          <div className="w-full border-x border-t border-gray-200 bg-gray-50 p-2">
+          <div className="w-full border-x border-t border-gray-200 bg-gray-50">
             <StripedDivider />
           </div>
         </div>

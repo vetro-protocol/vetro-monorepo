@@ -19,7 +19,7 @@ export const Borrow = function () {
     <>
       <PageTitle value={t("pages.borrow.title", { symbol: vusd.symbol })} />
       <MarketsTable marketIds={marketIds} />
-      <div className="w-full border-b border-gray-200 bg-gray-100 p-2">
+      <div className="w-full border-b border-gray-200 bg-gray-100">
         <StripedDivider />
       </div>
     </>
