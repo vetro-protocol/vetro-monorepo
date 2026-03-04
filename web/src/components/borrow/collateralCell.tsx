@@ -15,6 +15,7 @@ export function CollateralCell({ marketId, token }: Props) {
   return (
     <div className="flex flex-col gap-y-0.5">
       <span className="text-b-medium text-right text-gray-900">
+        <span className="mr-1">$</span>
         <RenderFiatValue queryStatus={status} token={token} value={value} />
       </span>
       <span className="text-caption text-gray-500 *:w-full">

@@ -61,6 +61,7 @@ export function MarketsTable({ marketIds }: Props) {
       {
         cell: ({ row }) => (
           <span className="text-b-medium text-gray-900">
+            <span className="mr-1">$</span>
             {/* data is already read at rendering time */}
             <RenderFiatValue
               queryStatus="success"
