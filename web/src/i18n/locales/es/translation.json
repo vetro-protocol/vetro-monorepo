@@ -15,7 +15,7 @@
     },
     "borrow": {
       "available-to-borrow": "Disponible para pedir prestado",
-      "borrow-apr": "TAE de préstamo",
+      "borrow-apr": "TEA de préstamo",
       "collateral": "Colateral",
       "health-factor": "Factor de salud",
       "liquidation-price": "Precio de liquidación",
