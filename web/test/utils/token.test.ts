@@ -1,5 +1,5 @@
 import type { Token } from "types";
-import { formatAmount, parseTokenUnits } from "utils/token";
+import { formatAmount, getTokenPrice, parseTokenUnits } from "utils/token";
 import { parseUnits as viemParseUnits } from "viem";
 import { describe, expect, it } from "vitest";
 
@@ -129,6 +129,33 @@ describe("utils/token", function () {
       });
 
       expect(result).toBe("-");
+    });
+  });
+
+  describe("getTokenPrice", function () {
+    const baseToken = {
+      address: "0x123",
+      chainId: 1,
+      decimals: 18,
+      logoURI: "",
+      name: "Test Token",
+      symbol: "TOKEN",
+    } as Token;
+
+    it("should return the price based in the token symbol", function () {
+      const token = { ...baseToken, symbol: "usdt" };
+      const prices = { USDT: "0.99" };
+      expect(getTokenPrice(token, prices)).toBe("0.99");
+    });
+
+    it("should return the price based in the token priceSymbol if defined", function () {
+      const token = {
+        ...baseToken,
+        extensions: { priceSymbol: "usdt" },
+        symbol: "usdt.e",
+      };
+      const prices = { USDT: "0.99" };
+      expect(getTokenPrice(token, prices)).toBe("0.99");
     });
   });
 

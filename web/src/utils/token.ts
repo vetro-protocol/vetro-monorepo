@@ -1,5 +1,17 @@
 import type { Token } from "types";
 import { formatUnits, parseUnits as viemParseUnits } from "viem";
+
+export const getTokenPrice = function (
+  token: Token,
+  prices: Record<string, string> | undefined,
+) {
+  const priceSymbol = (
+    token.extensions?.priceSymbol ?? token.symbol
+  ).toUpperCase();
+  const price = prices?.[priceSymbol] ?? "0";
+  return price;
+};
+
 /**
  * Parses a token amount string into its raw representation in the smallest unit (e.g., wei for ETH)
  * truncating any excess decimal places beyond the token's defined decimals.
