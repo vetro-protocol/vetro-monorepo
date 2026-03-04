@@ -22,6 +22,7 @@
       "loan": "Loan",
       "ltv": "LTV",
       "manage": "Manage",
+      "market-details": "Market details",
       "markets-title": "Markets",
       "no-positions-description": "Deposit collateral to borrow {{symbol}} and put your assets to work.",
       "no-positions-title": "No active borrow position yet",

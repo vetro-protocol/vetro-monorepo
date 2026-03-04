@@ -97,7 +97,10 @@ export function MarketsTable({ marketIds }: Props) {
       },
       {
         cell: () => (
-          <ButtonIcon variant="secondary">
+          <ButtonIcon
+            aria-label={t("pages.borrow.market-details")}
+            variant="secondary"
+          >
             <svg
               fill="none"
               height="16"

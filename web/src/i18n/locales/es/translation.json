@@ -22,6 +22,7 @@
       "loan": "Préstamo",
       "ltv": "LTV",
       "manage": "Gestionar",
+      "market-details": "Detalles del mercado",
       "markets-title": "Mercados",
       "no-positions-description": "Deposite colateral para pedir prestado {{symbol}} y poner sus activos a trabajar.",
       "no-positions-title": "Aún no hay posiciones de préstamos activos",
