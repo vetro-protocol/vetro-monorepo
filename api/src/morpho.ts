@@ -14,7 +14,7 @@ export async function getLoanAssetAddress({
             address
           }
         }
-      }`.replace(/\s+/g, " ");
+    }`;
   const variables = {
     marketId,
   };
@@ -43,7 +43,7 @@ export async function getHistoricalBorrowApy({
   }[]
 > {
   const query = `
-      query MarketCollateral($marketId: String!, $options: TimeseriesOptions) {
+    query ($marketId: String!, $options: TimeseriesOptions) {
         marketByUniqueKey(uniqueKey: $marketId) {
           historicalState {
             borrowApy(options: $options) {
@@ -52,7 +52,7 @@ export async function getHistoricalBorrowApy({
             }
           }
         }
-      }`.replace(/\s+/g, " ");
+    }`;
   const variables = {
     marketId,
     options: {

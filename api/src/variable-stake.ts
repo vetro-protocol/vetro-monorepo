@@ -13,22 +13,15 @@ const secsPerDay = 86400;
  */
 export async function getApy({ url }: { url: string }) {
   const query = `
-      query(
-        $end: BigInt!,
-        $start: BigInt!, 
+    query ($end: BigInt!, $start: BigInt!) {
+      vaultHistories(
+        orderBy: timestamp
+        where: { timestamp_gte: $start, timestamp_lt: $end }
       ) {
-        vaultHistories(
-          orderBy: timestamp,
-          where: {
-            timestamp_gte: $start,
-            timestamp_lt: $end,
-          }
-        ) {
-          timestamp
-          shareValue
-        }
+        timestamp
+        shareValue
       }
-    `.replace(/\s+/g, " ");
+    }`;
   const end = Math.floor(Date.now() / 1000);
   const start = end - (7 + 1) * secsPerDay + 1; // Window is 8 days to get 7 data points
   const variables = {
@@ -119,27 +112,19 @@ export async function getUserExitTickets({
   url: string;
 }): Promise<ExitTicket[]> {
   const query = `
-      query(
-        $owner: Bytes!, 
-      ) {
-        exitTickets(
-          orderBy: claimableAt,
-          where: {
-            owner: $owner,
-          }
-        ) {
-          assets
-          cancelTxHash
-          claimableAt
-          claimTxHash
-          owner
-          receiver
-          requestId
-          requestTxHash
-          shares
-        }
+    query ($owner: Bytes!) {
+      exitTickets(orderBy: claimableAt, where: { owner: $owner }) {
+        assets
+        cancelTxHash
+        claimableAt
+        claimTxHash
+        owner
+        receiver
+        requestId
+        requestTxHash
+        shares
       }
-    `.replace(/\s+/g, " ");
+    }`;
   const variables = {
     owner: address.toLowerCase(),
   };
