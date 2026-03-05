@@ -2,18 +2,53 @@ import { Hono } from "hono";
 import { cache } from "hono/cache";
 import { cors } from "hono/cors";
 
+import * as borrow from "./borrow.ts";
 import { getSubgraphUrl } from "./env.ts";
-import { validateAddress } from "./param-validators.ts";
+import { validateAddress, validateParam } from "./param-validators.ts";
 import { createOriginFn, parseOrigins } from "./validate-origin.ts";
 import * as variableStake from "./variable-stake.ts";
 
 const app = new Hono<{ Bindings: Env }>();
 
 app.use("*", async function (c, next) {
-  const origins = parseOrigins(c.env.ORIGINS);
+  const origins = parseOrigins(c.env.ORIGINS!);
   const originFn = createOriginFn(origins);
   return cors({ origin: originFn })(c, next);
 });
+
+app.get(
+  "/borrow/:marketId/apr-history/:period",
+  async function (c, next) {
+    try {
+      const marketId = c.req.param("marketId");
+      if (!/^0x[a-f0-9]{64}$/i.test(marketId)) {
+        return c.json({ error: "Malformed market id" }, 400);
+      }
+      const isValid = await borrow.validateMarketId({ marketId });
+      if (!isValid) {
+        return c.json({ error: "Unsupported market" }, 404);
+      }
+      return next();
+    } catch (error) {
+      return c.json({ error: `Invalid market id: ${error.message}` }, 404);
+    }
+  },
+  validateParam("period", borrow.validPeriods),
+  cache({
+    cacheControl: "max-age=3600",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const marketId = c.req.param("marketId");
+      const period = c.req.param("period");
+      const data = await borrow.getAprHistory({ marketId, period });
+      return c.json(data);
+    } catch (error) {
+      throw new Error(`Failed to get APR history: ${error.message}`);
+    }
+  },
+);
 
 app.get(
   "/variable-stake/apy",
