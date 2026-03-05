@@ -20,8 +20,8 @@ app.get(
   "/borrow/:marketId/apr-history/:period",
   async function (c, next) {
     try {
-      const marketId = c.req.param("marketId");
-      if (!/^0x[a-f0-9]{64}$/i.test(marketId)) {
+      const marketId = c.req.param("marketId").toLowerCase();
+      if (!/^0x[a-f0-9]{64}$/.test(marketId)) {
         return c.json({ error: "Malformed market id" }, 400);
       }
       const isValid = await borrow.validateMarketId({ marketId });
@@ -40,8 +40,8 @@ app.get(
   }),
   async function (c) {
     try {
-      const marketId = c.req.param("marketId");
-      const period = c.req.param("period");
+      const marketId = c.req.param("marketId").toLowerCase();
+      const period = c.req.param("period").toLowerCase();
       const data = await borrow.getAprHistory({ marketId, period });
       return c.json(data);
     } catch (error) {
