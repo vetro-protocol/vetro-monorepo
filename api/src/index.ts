@@ -41,7 +41,7 @@ app.get(
   async function (c) {
     try {
       const marketId = c.req.param("marketId").toLowerCase();
-      const period = c.req.param("period").toLowerCase();
+      const period = c.req.param("period");
       const data = await borrow.getAprHistory({ marketId, period });
       return c.json(data);
     } catch (error) {
