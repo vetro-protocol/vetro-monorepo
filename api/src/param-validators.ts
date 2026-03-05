@@ -15,7 +15,10 @@ export async function validateAddress(c: Context, next: Next) {
 }
 
 /**
- * Validates a given parameter against a list of valid options. If the parameter is not valid, returns a 404 response with a message indicating the valid options.
+ * Validates a given parameter against a list of valid options. If the parameter
+ * is not valid, returns a 400 response with a message indicating the valid
+ * options.
+ *
  * @param paramName The name of the parameter to validate (for error messages)
  * @param validOptions An array of valid string options for the parameter
  */
