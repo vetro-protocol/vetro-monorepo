@@ -29,7 +29,7 @@ export const marketDataOptions = ({
   queryClient,
 }: {
   chainId: Chain["id"];
-  client: Client;
+  client: Client | undefined;
   marketId: Hash;
   queryClient: QueryClient;
 }) =>
