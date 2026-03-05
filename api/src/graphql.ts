@@ -15,7 +15,7 @@ export async function runQuery<R>(
     variables,
   })) as GraphQLResponse<R>;
   if (!response) {
-    throw new Error("No response from subgraph");
+    throw new Error("No response from GraphQL endpoint");
   }
   if (response.errors) {
     throw new Error(response.errors.map((e) => e.message).join("; "));
