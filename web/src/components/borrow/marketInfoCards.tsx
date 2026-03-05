@@ -96,8 +96,6 @@ export function MarketInfoCards({
   const { data: collateralAssets, status: collateralStatus } =
     useMarketCollateral(marketId);
 
-  const availableToBorrow = market.totalSupplyAssets - market.totalBorrowAssets;
-
   return (
     <div className="flex flex-col">
       <div className="grid border-b border-gray-200 xl:grid-cols-[1fr_3.5rem_1fr]">
@@ -127,7 +125,7 @@ export function MarketInfoCards({
             badge={
               <RenderCryptoValue
                 token={market.loanToken}
-                value={availableToBorrow}
+                value={market.liquidity}
                 showSymbol
               />
             }
@@ -136,7 +134,7 @@ export function MarketInfoCards({
           >
             <RenderFiatValue
               token={market.loanToken}
-              value={availableToBorrow}
+              value={market.liquidity}
             />
           </InfoCard>
         </div>
