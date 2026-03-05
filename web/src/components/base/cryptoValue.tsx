@@ -9,7 +9,7 @@ export const RenderCryptoValue = function ({
   amountContainer,
   container,
   showSymbol = false,
-  status,
+  status = "success",
   token,
   value,
 }: {
@@ -20,7 +20,7 @@ export const RenderCryptoValue = function ({
     children?: ReactNode;
   }>;
   showSymbol?: boolean;
-  status: QueryStatus;
+  status?: QueryStatus;
   token: Token;
   value: bigint | undefined;
 }) {

@@ -11,12 +11,12 @@ import { ErrorBoundary } from "./errorBoundary";
 
 const RenderFiatValueUnsafe = function ({
   customFormatter = formatFiatNumber,
-  queryStatus,
+  queryStatus = "success",
   token,
   value,
 }: {
   customFormatter?: (amount: string) => string;
-  queryStatus: QueryStatus;
+  queryStatus?: QueryStatus;
   token: Token;
   value: bigint | undefined;
 }) {

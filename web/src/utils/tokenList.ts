@@ -19,6 +19,14 @@ export const knownTokens: Token[] = [
     symbol: "USDC",
   },
   {
+    address: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+    chainId: mainnet.id,
+    decimals: 8,
+    logoURI: "https://hemilabs.github.io/token-list/l1Logos/wbtc.svg",
+    name: "Wrapped BTC",
+    symbol: "WBTC",
+  },
+  {
     address: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
     chainId: mainnet.id,
     decimals: 6,
@@ -28,6 +36,14 @@ export const knownTokens: Token[] = [
   },
   {
     address: "0xB94724aa74A0296447D13a63A35B050b7F137C6d",
+    chainId: mainnet.id,
+    decimals: 18,
+    logoURI: "https://hemilabs.github.io/token-list/l1Logos/vusd.svg",
+    name: "TESTUSD",
+    symbol: "TESTUSD",
+  },
+  {
+    address: "0x677ddbd918637E5F2c79e164D402454dE7dA8619",
     chainId: mainnet.id,
     decimals: 18,
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vusd.svg",

@@ -10,9 +10,14 @@ export const formatEvmHash = (txHash: Hash) =>
 
 const cryptoRounder = smartRound(6, 0, 6);
 const fiatRounder = smartRound(6, 2, 2);
+// Same config as fiatRounder, but I think it reads better to use a different rounder
+const percentageRounder = smartRound(6, 2, 2);
 
 export const formatFiatNumber = (value: number | string) =>
   fiatRounder(value, { shouldFormat: true });
 
 export const formatNumber = (value: number | string) =>
   cryptoRounder(value, { roundingMode: "round-down", shouldFormat: true });
+
+export const formatPercentage = (value: number | string) =>
+  `${percentageRounder(value, { shouldFormat: true })}%`;

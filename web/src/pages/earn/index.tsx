@@ -20,7 +20,7 @@ export function Earn() {
       <PoolInfoBar />
       {!canInstantWithdraw && (
         <>
-          <div className="border-b border-gray-200 bg-gray-100 p-2">
+          <div className="border-b border-gray-200 bg-gray-100">
             <StripedDivider />
           </div>
           <ExitTickets />

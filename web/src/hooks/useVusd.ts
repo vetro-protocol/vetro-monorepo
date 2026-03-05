@@ -6,25 +6,12 @@ import {
 } from "@tanstack/react-query";
 import { getGatewayAddress } from "@vetro/gateway";
 import { fetchVusd } from "fetchers/fetchVusd";
-import type { Token } from "types";
+import { knownTokens } from "utils/tokenList";
 import type { Chain, Client } from "viem";
-import { mainnet } from "viem/chains";
 
 import { useEthereumClient } from "./useEthereumClient";
 
 const vusdQueryKey = (chainId: Chain["id"] | undefined) => ["vusd", chainId];
-
-// TODO these are hardcoded for testing, but will be updated
-// later with final addresses. There isn't a vusd for testing either
-const initialVusd: Token = {
-  // TODO replace with mainnet VUSD address in ethereum once we go live
-  address: "0xB94724aa74A0296447D13a63A35B050b7F137C6d",
-  chainId: mainnet.id,
-  decimals: 18,
-  logoURI: "https://hemilabs.github.io/token-list/l1Logos/vusd.svg",
-  name: "VUSD",
-  symbol: "VUSD",
-};
 
 const vusdOptions = ({
   client,
@@ -35,7 +22,8 @@ const vusdOptions = ({
 }) =>
   queryOptions({
     enabled: !!client,
-    initialData: initialVusd,
+    // TODO Hardcoded for testing until we use the proper VUSD
+    initialData: knownTokens.find((t) => t.symbol === "TESTUSD")!,
     queryFn: () =>
       fetchVusd({
         client: client!,

@@ -4,6 +4,7 @@ import type { Token } from "types";
 const sizeClasses = {
   base: "size-5",
   large: "size-8",
+  xLarge: "size-11",
 };
 
 type Props = Pick<Token, "logoURI" | "symbol"> & {
