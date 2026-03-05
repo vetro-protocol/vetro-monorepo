@@ -1,9 +1,9 @@
 // @ts-expect-error Type declarations are not available for this dependency.
 import linearRegression from "simple-linear-regression";
 
+import * as graphql from "./graphql.ts";
 import * as merkl from "./merkl.ts";
 import parseBigIntStringToFloat from "./parse-bigint-string-to-float.ts";
-import * as subgraph from "./subgraph.ts";
 
 const secsPerDay = 86400;
 
@@ -35,7 +35,7 @@ export async function getApy({ url }: { url: string }) {
     end: end.toString(),
     start: start.toString(),
   };
-  const { vaultHistories } = await subgraph.runQuery<{
+  const { vaultHistories } = await graphql.runQuery<{
     vaultHistories: { timestamp: string; shareValue: string }[];
   }>(url, query, variables);
   if (!Array.isArray(vaultHistories)) {
@@ -143,7 +143,7 @@ export async function getUserExitTickets({
   const variables = {
     owner: address.toLowerCase(),
   };
-  const { exitTickets } = await subgraph.runQuery<{
+  const { exitTickets } = await graphql.runQuery<{
     exitTickets: ExitTicket[];
   }>(url, query, variables);
   if (!Array.isArray(exitTickets)) {
