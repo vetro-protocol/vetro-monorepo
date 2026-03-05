@@ -1,6 +1,6 @@
 import { type ColumnDef } from "@tanstack/react-table";
-import { ButtonIcon } from "components/base/button";
 import { RenderFiatValue } from "components/base/fiatValue";
+import { I18nLink } from "components/base/i18nLink";
 import { Table } from "components/base/table";
 import { Header } from "components/base/table/header";
 import { TopSection } from "components/base/table/topSection";
@@ -97,10 +97,11 @@ export function MarketsTable({ marketIds }: Props) {
         meta: { className: "justify-end", width: "73px" },
       },
       {
-        cell: () => (
-          <ButtonIcon
+        cell: ({ row }) => (
+          <I18nLink
             aria-label={t("pages.borrow.market-details")}
-            variant="secondary"
+            className="button--base button-secondary button-x-small button-icon"
+            to={`/borrow/${row.original.marketId}`}
           >
             <svg
               fill="none"
@@ -114,7 +115,7 @@ export function MarketsTable({ marketIds }: Props) {
                 fill="currentColor"
               />
             </svg>
-          </ButtonIcon>
+          </I18nLink>
         ),
         header: () => <Header text="" />,
         id: "action",
