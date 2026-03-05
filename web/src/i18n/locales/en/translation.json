@@ -14,6 +14,7 @@
       "title": "Hello Analytics"
     },
     "borrow": {
+      "apr": "{{value}} APR",
       "available-to-borrow": "Available to borrow",
       "borrow-apr": "Borrow APR",
       "borrowing-review": "Borrowing review",
