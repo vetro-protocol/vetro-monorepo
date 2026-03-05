@@ -14,6 +14,7 @@
       "title": "Hola Analíticas"
     },
     "borrow": {
+      "apr": "{{value}} TEA",
       "available-to-borrow": "Disponible para pedir prestado",
       "borrow-apr": "TEA de préstamo",
       "borrowing-review": "Resumen del préstamo",
