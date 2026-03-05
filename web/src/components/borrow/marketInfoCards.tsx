@@ -112,6 +112,7 @@ export function MarketInfoCards({
             icon={<SparkleIcon />}
             label={t("pages.borrow.pool-size")}
           >
+            <span className="mr-1">$</span>
             <RenderFiatValue
               queryStatus={collateralStatus}
               token={market.collateralToken}
@@ -132,6 +133,7 @@ export function MarketInfoCards({
             icon={<SparkleIcon />}
             label={t("pages.borrow.available-to-borrow")}
           >
+            <span className="mr-1">$</span>
             <RenderFiatValue
               token={market.loanToken}
               value={market.liquidity}
