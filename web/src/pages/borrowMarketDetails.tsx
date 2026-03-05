@@ -61,6 +61,7 @@ const BorrowMarketDetailsContent = function ({ marketId }: { marketId: Hash }) {
   const { data: market, isLoading } = useMarketData(marketId);
 
   if (isLoading || !market) {
+    // TODO handle errors in https://github.com/vetro-protocol/vetro-monorepo/issues/146
     return (
       <div className="p-8">
         <Skeleton count={3} height={40} />
