@@ -118,7 +118,7 @@ export function BorrowingReview({
         {dailyInterestCost !== null ? (
           <DisplayAmount
             amount={parseUnits(
-              dailyInterestCost.toString(),
+              dailyInterestCost.toFixed(loanToken.decimals),
               loanToken.decimals,
             )}
             token={loanToken}
