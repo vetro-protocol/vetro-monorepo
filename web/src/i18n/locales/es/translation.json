@@ -27,7 +27,7 @@
       "has-position-title": "Ya tiene una posición abierta",
       "health-factor": "Factor de salud",
       "health-factor-tooltip": "Un puntaje que representa qué tan segura es su posición. Por encima de 1.0 significa que está seguro. Si cae a 1.0 o menos, su colateral puede ser liquidado.",
-      "historic-apr": "TAE histórica de préstamo",
+      "historic-apr": "TEA histórica de préstamo",
       "liquidation-price": "Precio de liquidación",
       "liquidation-price-tooltip": "El precio al cual su colateral activaría una liquidación. Si hemiBTC cae a este precio, su posición puede ser liquidada.",
       "loan": "Préstamo",
