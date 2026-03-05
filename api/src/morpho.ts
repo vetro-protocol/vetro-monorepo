@@ -8,12 +8,12 @@ export async function getLoanAssetAddress({
   marketId: string;
 }): Promise<string> {
   const query = `
-      query ($marketId: String!) {
-        marketByUniqueKey(uniqueKey: $marketId) {
-          loanAsset {
-            address
-          }
+    query ($marketId: String!) {
+      marketByUniqueKey(uniqueKey: $marketId) {
+        loanAsset {
+          address
         }
+      }
     }`;
   const variables = {
     marketId,
@@ -44,14 +44,14 @@ export async function getHistoricalBorrowApy({
 > {
   const query = `
     query ($marketId: String!, $options: TimeseriesOptions) {
-        marketByUniqueKey(uniqueKey: $marketId) {
-          historicalState {
-            borrowApy(options: $options) {
-              x
-              y
-            }
+      marketByUniqueKey(uniqueKey: $marketId) {
+        historicalState {
+          borrowApy(options: $options) {
+            x
+            y
           }
         }
+      }
     }`;
   const variables = {
     marketId,
@@ -71,4 +71,30 @@ export async function getHistoricalBorrowApy({
     };
   }>(morphoApiUrl, query, variables);
   return marketByUniqueKey.historicalState.borrowApy;
+}
+
+export async function getCollateralAssets({
+  marketId,
+}: {
+  marketId: string;
+}): Promise<number> {
+  const query = `
+    query ($marketId: String!) {
+      marketByUniqueKey(uniqueKey: $marketId) {
+        state {
+          collateralAssets
+        }
+      }
+    }`;
+  const variables = {
+    marketId,
+  };
+  const { marketByUniqueKey } = await graphql.runQuery<{
+    marketByUniqueKey: {
+      state: {
+        collateralAssets: number;
+      };
+    };
+  }>(morphoApiUrl, query, variables);
+  return marketByUniqueKey.state.collateralAssets;
 }

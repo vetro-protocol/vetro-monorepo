@@ -51,6 +51,38 @@ app.get(
 );
 
 app.get(
+  "/borrow/:marketId/collateral-assets",
+  async function (c, next) {
+    try {
+      const marketId = c.req.param("marketId").toLowerCase();
+      if (!/^0x[a-f0-9]{64}$/.test(marketId)) {
+        return c.json({ error: "Malformed market id" }, 400);
+      }
+      const isValid = await borrow.validateMarketId({ marketId });
+      if (!isValid) {
+        return c.json({ error: "Unsupported market" }, 404);
+      }
+      return next();
+    } catch (error) {
+      return c.json({ error: `Invalid market id: ${error.message}` }, 404);
+    }
+  },
+  cache({
+    cacheControl: "max-age=3600",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const marketId = c.req.param("marketId").toLowerCase();
+      const collateralAssets = await borrow.getCollateralAssets({ marketId });
+      return c.json(collateralAssets);
+    } catch (error) {
+      throw new Error(`Failed to get collateral assets: ${error.message}`);
+    }
+  },
+);
+
+app.get(
   "/variable-stake/apy",
   cache({
     cacheControl: "max-age=3600",

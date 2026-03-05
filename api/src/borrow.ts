@@ -85,3 +85,8 @@ export async function getAprHistory({
     timestamp: x * 1000,
   }));
 }
+
+/**
+ * Gets the amount of collateral assets in a given Morpho market.
+ */
+export const getCollateralAssets = morpho.getCollateralAssets;
