@@ -244,6 +244,15 @@
       }
     },
     "wallet": {
+      "activity": {
+        "borrow-more": "Borrow more {{symbol}}",
+        "deposit": "Deposit",
+        "open-loan": "Open {{symbol}} loan",
+        "redeem": "Redeem",
+        "repay-position": "Repay {{symbol}} position",
+        "supply-position": "Supply {{collateral}} to {{symbol}} position",
+        "withdraw": "Withdraw"
+      },
       "disconnect-wallet": "Disconnect wallet",
       "recent-activity": "Recent activity",
       "view-operations-from": "View operations from:",
