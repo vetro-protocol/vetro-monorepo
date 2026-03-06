@@ -7,8 +7,8 @@ export const whitelistedMarketIds = [
 ];
 
 /**
- * Validates the given market id by checking it is a valid Morpho market and
- * that its loan asset is either VUSD or the market is whitelisted.
+ * Validates the given market id by checking it is a valid market and that its
+ * loan asset is either VUSD or the market is whitelisted.
  */
 export async function validateMarketId({
   marketId,
@@ -57,9 +57,9 @@ const periodsToIntervalMap: Record<
 export const validPeriods = Object.keys(periodsToIntervalMap);
 
 /**
- * Obtains the historical borrow APY for a given market and period by querying
- * the Morpho API, then converting the APY to APR using continuous compounding.
- * Timestamps are returned in milliseconds as it is the standard in JavaScript.
+ * Obtains the historical borrow APY for a given market and period, then
+ * converting the APY to APR using continuous compounding. Timestamps are
+ * returned in milliseconds as it is the standard in JavaScript.
  */
 export async function getAprHistory({
   marketId,
@@ -85,3 +85,8 @@ export async function getAprHistory({
     timestamp: x * 1000,
   }));
 }
+
+/**
+ * Gets the amount of collateral assets in a given Morpho market.
+ */
+export const getCollateralAssets = morpho.getCollateralAssets;

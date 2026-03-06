@@ -11,7 +11,7 @@ export async function runQuery<R>(
   variables: Record<string, unknown>,
 ): Promise<R> {
   const response = (await postJson(url, {
-    query,
+    query: query.replace(/\s+/g, " "),
     variables,
   })) as GraphQLResponse<R>;
   if (!response) {
