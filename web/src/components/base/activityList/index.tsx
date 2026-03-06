@@ -7,8 +7,8 @@ type Props = {
 
 export const ActivityList = ({ items }: Props) => (
   <div className="flex flex-col">
-    {items.map((item, index) => (
-      <ActivityItem key={index} {...item} />
+    {items.map((item) => (
+      <ActivityItem key={item.date} {...item} />
     ))}
   </div>
 );
