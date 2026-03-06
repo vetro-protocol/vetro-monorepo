@@ -101,7 +101,7 @@ export function BorrowForm({
           value={borrowInput}
         />
       </div>
-      <div className="flex items-center justify-center border-t border-b border-gray-200 px-3 py-3 *:w-full">
+      <div className="flex items-center justify-center border-y border-gray-200 p-3 *:w-full">
         <Button size="small" type="button" variant="primary">
           {t("pages.borrow.enter-amount")}
         </Button>
