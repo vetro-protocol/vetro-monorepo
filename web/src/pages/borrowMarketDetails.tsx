@@ -23,7 +23,8 @@ const BorrowMarketDetailsLoaded = function ({
   const [collateralInput, onCollateralChange] = useAmount();
 
   const hasExistingPosition =
-    position !== undefined && position.borrowAssets > 0n;
+    position !== undefined &&
+    (position.collateral > 0n || position.borrowAssets > 0n);
 
   return (
     <div className="flex flex-col">

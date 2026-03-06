@@ -1,5 +1,5 @@
-import { AccrualPosition, type MarketId } from "@morpho-org/blue-sdk";
-import "@morpho-org/blue-sdk-viem/lib/augment/Position";
+import { type MarketId } from "@morpho-org/blue-sdk";
+import { AccrualPosition } from "@morpho-org/blue-sdk-viem/lib/augment/Position";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import type { Address, Chain, Client, Hash } from "viem";
 import { useAccount } from "wagmi";
@@ -7,7 +7,7 @@ import { useAccount } from "wagmi";
 import { useEthereumClient } from "../useEthereumClient";
 import { useMainnet } from "../useMainnet";
 
-const positionInfoQueryKey = ({
+export const positionInfoQueryKey = ({
   account,
   chainId,
   marketId,
