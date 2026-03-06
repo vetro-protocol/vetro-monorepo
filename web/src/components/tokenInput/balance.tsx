@@ -1,7 +1,8 @@
+import type { ReactNode } from "react";
 import { useAccount } from "wagmi";
 type Props = {
   label: string;
-  value: string;
+  value: ReactNode;
 };
 
 export const Balance = function ({ label, value }: Props) {
