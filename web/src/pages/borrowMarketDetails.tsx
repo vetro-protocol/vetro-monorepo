@@ -13,12 +13,10 @@ import { type Hash, isHash } from "viem";
 
 const BorrowMarketDetailsLoaded = function ({
   market,
-  marketId,
 }: {
   market: MarketData;
-  marketId: Hash;
 }) {
-  const { data: position } = usePositionInfo(marketId);
+  const { data: position } = usePositionInfo(market.marketId);
 
   const [borrowInput, onBorrowChange] = useAmount();
   const [collateralInput, onCollateralChange] = useAmount();
@@ -46,7 +44,6 @@ const BorrowMarketDetailsLoaded = function ({
               borrowInput={borrowInput}
               collateralInput={collateralInput}
               market={market}
-              marketId={marketId}
               onBorrowChange={onBorrowChange}
               onCollateralChange={onCollateralChange}
             />
@@ -69,7 +66,7 @@ const BorrowMarketDetailsContent = function ({ marketId }: { marketId: Hash }) {
     );
   }
 
-  return <BorrowMarketDetailsLoaded market={market} marketId={marketId} />;
+  return <BorrowMarketDetailsLoaded market={market} />;
 };
 
 export const BorrowMarketDetails = function () {
