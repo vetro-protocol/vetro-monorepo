@@ -8,6 +8,7 @@ import { usePositionInfo } from "hooks/borrow/usePositionInfo";
 import { useAmount } from "hooks/useAmount";
 import Skeleton from "react-loading-skeleton";
 import { useParams } from "react-router";
+import { hasActivePosition } from "utils/borrowPosition";
 import { type Hash, isHash } from "viem";
 
 const BorrowMarketDetailsLoaded = function ({
@@ -22,9 +23,7 @@ const BorrowMarketDetailsLoaded = function ({
   const [borrowInput, onBorrowChange] = useAmount();
   const [collateralInput, onCollateralChange] = useAmount();
 
-  const hasExistingPosition =
-    position !== undefined &&
-    (position.collateral > 0n || position.borrowAssets > 0n);
+  const hasExistingPosition = hasActivePosition(position);
 
   return (
     <div className="flex flex-col">
