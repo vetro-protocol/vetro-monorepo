@@ -21,6 +21,7 @@
     "@tanstack/react-table": "8.21.3",
     "@vetro/earn": "workspace:*",
     "@vetro/gateway": "workspace:*",
+    "@vetro/morpho-blue-market": "workspace:*",
     "crypto-shortener": "1.2.0",
     "fetch-plus-plus": "1.0.0",
     "i18next": "25.8.0",
