@@ -106,7 +106,7 @@ const canSupplyCollateral = function ({
   return { canSupplyCollateral: true };
 };
 
-const runSupplyCollateral = (
+export const runSupplyCollateralCore = async function (
   walletClient: WalletClient,
   {
     address,
@@ -115,115 +115,125 @@ const runSupplyCollateral = (
     marketId,
     onBehalf,
   }: SupplyCollateralParams,
+  emitter: EventEmitter<SupplyCollateralEvents>,
+): Promise<boolean> {
+  const { canSupplyCollateral: canSupplyCollateralFlag, reason } =
+    canSupplyCollateral({
+      address,
+      amount,
+      approveAmount,
+      client: walletClient,
+      marketId,
+      onBehalf,
+    });
+
+  if (!canSupplyCollateralFlag) {
+    emitter.emit("supply-collateral-failed-validation", reason!);
+    return false;
+  }
+
+  const marketParams = await getMarketParams({
+    address,
+    client: walletClient,
+    marketId,
+  });
+
+  const currentAllowance = await allowance(walletClient, {
+    address: marketParams.collateralToken,
+    owner: walletClient.account!.address,
+    spender: address,
+  });
+
+  if (currentAllowance < amount) {
+    emitter.emit("pre-approve");
+
+    const approvalHash = await approve(walletClient, {
+      address: marketParams.collateralToken,
+      amount: approveAmount,
+      spender: address,
+    }).catch(function (error: Error) {
+      emitter.emit("user-signing-approval-error", error);
+    });
+
+    if (!approvalHash) {
+      return false;
+    }
+
+    emitter.emit("user-signed-approval", approvalHash);
+
+    const approvalReceipt = await waitForTransactionReceipt(walletClient, {
+      hash: approvalHash,
+    }).catch(function (error: Error) {
+      emitter.emit("supply-collateral-failed", error);
+    });
+
+    if (!approvalReceipt) {
+      return false;
+    }
+
+    if (approvalReceipt.status === "reverted") {
+      emitter.emit("approve-transaction-reverted", approvalReceipt);
+      return false;
+    }
+
+    emitter.emit("approve-transaction-succeeded", approvalReceipt);
+  }
+
+  emitter.emit("pre-supply-collateral");
+
+  const supplyCollateralHash = await writeContract(walletClient, {
+    abi: morphoBlueAbi,
+    account: walletClient.account!,
+    address,
+    args: [marketParams, amount, onBehalf, "0x"],
+    chain: walletClient.chain,
+    functionName: "supplyCollateral",
+  }).catch(function (error: Error) {
+    emitter.emit("user-signing-supply-collateral-error", error);
+  });
+
+  if (!supplyCollateralHash) {
+    return false;
+  }
+
+  emitter.emit("user-signed-supply-collateral", supplyCollateralHash);
+
+  const supplyCollateralReceipt = await waitForTransactionReceipt(
+    walletClient,
+    {
+      hash: supplyCollateralHash,
+    },
+  ).catch(function (error: Error) {
+    emitter.emit("supply-collateral-failed", error);
+  });
+
+  if (!supplyCollateralReceipt) {
+    return false;
+  }
+
+  const supplyCollateralEventMap: Record<
+    TransactionReceipt["status"],
+    keyof SupplyCollateralEvents
+  > = {
+    reverted: "supply-collateral-transaction-reverted",
+    success: "supply-collateral-transaction-succeeded",
+  };
+
+  emitter.emit(
+    supplyCollateralEventMap[supplyCollateralReceipt.status],
+    supplyCollateralReceipt,
+  );
+
+  return supplyCollateralReceipt.status === "success";
+};
+
+const runSupplyCollateral = (
+  walletClient: WalletClient,
+  params: SupplyCollateralParams,
 ) =>
   async function (emitter: EventEmitter<SupplyCollateralEvents>) {
     try {
-      const { canSupplyCollateral: canSupplyCollateralFlag, reason } =
-        canSupplyCollateral({
-          address,
-          amount,
-          approveAmount,
-          client: walletClient,
-          marketId,
-          onBehalf,
-        });
-
-      if (!canSupplyCollateralFlag) {
-        emitter.emit("supply-collateral-failed-validation", reason!);
-        return;
-      }
-
-      const marketParams = await getMarketParams({
-        address,
-        client: walletClient,
-        marketId,
-      });
-
-      const currentAllowance = await allowance(walletClient, {
-        address: marketParams.collateralToken,
-        owner: walletClient.account!.address,
-        spender: address,
-      });
-
-      if (currentAllowance < amount) {
-        emitter.emit("pre-approve");
-
-        const approvalHash = await approve(walletClient, {
-          address: marketParams.collateralToken,
-          amount: approveAmount,
-          spender: address,
-        }).catch(function (error: Error) {
-          emitter.emit("user-signing-approval-error", error);
-        });
-
-        if (!approvalHash) {
-          return;
-        }
-
-        emitter.emit("user-signed-approval", approvalHash);
-
-        const approvalReceipt = await waitForTransactionReceipt(walletClient, {
-          hash: approvalHash,
-        }).catch(function (error: Error) {
-          emitter.emit("supply-collateral-failed", error);
-        });
-
-        if (!approvalReceipt) {
-          return;
-        }
-
-        if (approvalReceipt.status === "reverted") {
-          emitter.emit("approve-transaction-reverted", approvalReceipt);
-          return;
-        }
-
-        emitter.emit("approve-transaction-succeeded", approvalReceipt);
-      }
-
-      emitter.emit("pre-supply-collateral");
-
-      const supplyCollateralHash = await writeContract(walletClient, {
-        abi: morphoBlueAbi,
-        account: walletClient.account!,
-        address,
-        args: [marketParams, amount, onBehalf, "0x"],
-        chain: walletClient.chain,
-        functionName: "supplyCollateral",
-      }).catch(function (error: Error) {
-        emitter.emit("user-signing-supply-collateral-error", error);
-      });
-
-      if (!supplyCollateralHash) {
-        return;
-      }
-
-      emitter.emit("user-signed-supply-collateral", supplyCollateralHash);
-
-      const supplyCollateralReceipt = await waitForTransactionReceipt(
-        walletClient,
-        {
-          hash: supplyCollateralHash,
-        },
-      ).catch(function (error: Error) {
-        emitter.emit("supply-collateral-failed", error);
-      });
-
-      if (!supplyCollateralReceipt) {
-        return;
-      }
-
-      const supplyCollateralEventMap: Record<
-        TransactionReceipt["status"],
-        keyof SupplyCollateralEvents
-      > = {
-        reverted: "supply-collateral-transaction-reverted",
-        success: "supply-collateral-transaction-succeeded",
-      };
-
-      emitter.emit(
-        supplyCollateralEventMap[supplyCollateralReceipt.status],
-        supplyCollateralReceipt,
-      );
+      await runSupplyCollateralCore(walletClient, params, emitter);
     } catch (error) {
       emitter.emit("unexpected-error", error as Error);
     } finally {

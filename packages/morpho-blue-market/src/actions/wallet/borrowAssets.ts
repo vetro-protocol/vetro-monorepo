@@ -99,70 +99,80 @@ const canBorrowAssets = function ({
   return { canBorrowAssets: true };
 };
 
-const runBorrowAssets = (
+export const runBorrowAssetsCore = async function (
   walletClient: WalletClient,
   { address, amount, marketId, onBehalf, receiver }: BorrowAssetsParams,
+  emitter: EventEmitter<BorrowAssetsEvents>,
+): Promise<boolean> {
+  const { canBorrowAssets: canBorrowAssetsFlag, reason } = canBorrowAssets({
+    address,
+    amount,
+    client: walletClient,
+    marketId,
+    onBehalf,
+    receiver,
+  });
+
+  if (!canBorrowAssetsFlag) {
+    emitter.emit("borrow-assets-failed-validation", reason!);
+    return false;
+  }
+
+  const marketParams = await getMarketParams({
+    address,
+    client: walletClient,
+    marketId,
+  });
+
+  emitter.emit("pre-borrow-assets");
+
+  const borrowHash = await writeContract(walletClient, {
+    abi: morphoBlueAbi,
+    account: walletClient.account!,
+    address,
+    args: [marketParams, amount, 0n, onBehalf, receiver],
+    chain: walletClient.chain,
+    functionName: "borrow",
+  }).catch(function (error: Error) {
+    emitter.emit("user-signing-borrow-assets-error", error);
+  });
+
+  if (!borrowHash) {
+    return false;
+  }
+
+  emitter.emit("user-signed-borrow-assets", borrowHash);
+
+  const borrowReceipt = await waitForTransactionReceipt(walletClient, {
+    hash: borrowHash,
+  }).catch(function (error: Error) {
+    emitter.emit("borrow-assets-failed", error);
+  });
+
+  if (!borrowReceipt) {
+    return false;
+  }
+
+  const borrowEventMap: Record<
+    TransactionReceipt["status"],
+    keyof BorrowAssetsEvents
+  > = {
+    reverted: "borrow-assets-transaction-reverted",
+    success: "borrow-assets-transaction-succeeded",
+  };
+
+  emitter.emit(borrowEventMap[borrowReceipt.status], borrowReceipt);
+
+  return borrowReceipt.status === "success";
+};
+
+const runBorrowAssets = (
+  walletClient: WalletClient,
+  params: BorrowAssetsParams,
 ) =>
   async function (emitter: EventEmitter<BorrowAssetsEvents>) {
     try {
-      const { canBorrowAssets: canBorrowAssetsFlag, reason } = canBorrowAssets({
-        address,
-        amount,
-        client: walletClient,
-        marketId,
-        onBehalf,
-        receiver,
-      });
-
-      if (!canBorrowAssetsFlag) {
-        emitter.emit("borrow-assets-failed-validation", reason!);
-        return;
-      }
-
-      const marketParams = await getMarketParams({
-        address,
-        client: walletClient,
-        marketId,
-      });
-
-      emitter.emit("pre-borrow-assets");
-
-      const borrowHash = await writeContract(walletClient, {
-        abi: morphoBlueAbi,
-        account: walletClient.account!,
-        address,
-        args: [marketParams, amount, 0n, onBehalf, receiver],
-        chain: walletClient.chain,
-        functionName: "borrow",
-      }).catch(function (error: Error) {
-        emitter.emit("user-signing-borrow-assets-error", error);
-      });
-
-      if (!borrowHash) {
-        return;
-      }
-
-      emitter.emit("user-signed-borrow-assets", borrowHash);
-
-      const borrowReceipt = await waitForTransactionReceipt(walletClient, {
-        hash: borrowHash,
-      }).catch(function (error: Error) {
-        emitter.emit("borrow-assets-failed", error);
-      });
-
-      if (!borrowReceipt) {
-        return;
-      }
-
-      const borrowEventMap: Record<
-        TransactionReceipt["status"],
-        keyof BorrowAssetsEvents
-      > = {
-        reverted: "borrow-assets-transaction-reverted",
-        success: "borrow-assets-transaction-succeeded",
-      };
-
-      emitter.emit(borrowEventMap[borrowReceipt.status], borrowReceipt);
+      await runBorrowAssetsCore(walletClient, params, emitter);
     } catch (error) {
       emitter.emit("unexpected-error", error as Error);
     } finally {
