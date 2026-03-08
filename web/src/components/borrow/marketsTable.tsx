@@ -1,10 +1,10 @@
 import { type ColumnDef } from "@tanstack/react-table";
-import { RenderFiatValue } from "components/base/fiatValue";
 import { I18nLink } from "components/base/i18nLink";
 import { Table } from "components/base/table";
 import { Header } from "components/base/table/header";
 import { TopSection } from "components/base/table/topSection";
 import { CollateralCell } from "components/borrow/collateralCell";
+import { TokenValueCell } from "components/borrow/tokenValueCell";
 import { TokenLogo } from "components/tokenLogo";
 import { type MarketData, useMarketsData } from "hooks/borrow/useMarketsData";
 import { useMemo } from "react";
@@ -60,17 +60,12 @@ export function MarketsTable({ marketIds }: Props) {
       },
       {
         cell: ({ row }) => (
-          <span className="text-b-medium text-gray-900">
-            <span className="mr-1">$</span>
-            {/* data is already read at rendering time */}
-            <RenderFiatValue
-              queryStatus="success"
-              token={row.original.loanToken}
-              value={
-                row.original.totalSupplyAssets - row.original.totalBorrowAssets
-              }
-            />
-          </span>
+          <TokenValueCell
+            token={row.original.loanToken}
+            value={
+              row.original.totalSupplyAssets - row.original.totalBorrowAssets
+            }
+          />
         ),
         header: () => <Header text={t("pages.borrow.available-to-borrow")} />,
         id: "available",
