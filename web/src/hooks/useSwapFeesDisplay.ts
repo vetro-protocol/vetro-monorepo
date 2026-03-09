@@ -77,7 +77,7 @@ export const useSwapFeesDisplay = function ({
     amount: protocolFeeData,
     decimals: ethereumChain.nativeCurrency.decimals,
     isError: isProtocolFeeError,
-    symbol: ethereumChain.nativeCurrency.symbol,
+    symbol: fromToken.symbol,
   });
 
   const totalFeesDisplay = formatAmount({
