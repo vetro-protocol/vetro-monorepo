@@ -28,3 +28,20 @@ Options:
 | ------------ | ----- | --------------------------------- | ----------------------- |
 | `--address`  | `-a`  | Target address to fund (required) | —                       |
 | `--fork-url` | `-f`  | Anvil RPC URL                     | `http://127.0.0.1:8545` |
+
+### Token Balances
+
+Print the ETH and token balances of an address on a local Anvil fork.
+
+**Usage:**
+
+```bash
+node web/scripts/balances.ts --address 0xYourAddress
+```
+
+Options:
+
+| Flag         | Short | Description                 | Default                 |
+| ------------ | ----- | --------------------------- | ----------------------- |
+| `--address`  | `-a`  | Address to check (required) | —                       |
+| `--fork-url` | `-f`  | Anvil RPC URL               | `http://127.0.0.1:8545` |
