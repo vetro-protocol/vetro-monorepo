@@ -6,6 +6,7 @@ import {
   calculateLiquidationPrice,
   calculateLtv,
   descaleOraclePrice,
+  formatLtvAsPercentage,
 } from "utils/borrowReview";
 import { parseUnits } from "viem";
 import { describe, expect, it } from "vitest";
@@ -236,6 +237,34 @@ describe("utils/borrowReview", function () {
       });
 
       expect(result).toBe(0n);
+    });
+  });
+
+  describe("formatLtvAsPercentage", function () {
+    it("converts 50% WAD-scaled LTV to 50", function () {
+      // 0.5 * 10^18
+      const result = formatLtvAsPercentage(parseUnits("0.5", 18));
+
+      expect(result).toBe(50);
+    });
+
+    it("converts 100% WAD-scaled LTV to 100", function () {
+      const result = formatLtvAsPercentage(parseUnits("1", 18));
+
+      expect(result).toBe(100);
+    });
+
+    it("converts 0 to 0", function () {
+      const result = formatLtvAsPercentage(0n);
+
+      expect(result).toBe(0);
+    });
+
+    it("converts a fractional percentage correctly", function () {
+      // 86% = 0.86 * 10^18
+      const result = formatLtvAsPercentage(parseUnits("0.86", 18));
+
+      expect(result).toBe(86);
     });
   });
 

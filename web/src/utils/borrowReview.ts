@@ -93,6 +93,13 @@ export const descaleOraclePrice = function ({
 };
 
 /**
+ * Converts a raw WAD-scaled bigint LTV value to a percentage number
+ * (e.g. 0.5 WAD → 50).
+ */
+export const formatLtvAsPercentage = (value: bigint): number =>
+  Number(formatUnits(value * 100n, wadDecimals));
+
+/**
  * Calculates the loan-to-value ratio for a position as a decimal (e.g. 0.5 = 50%).
  * Returns `null` when the position has no collateral or no debt.
  * @see https://docs.morpho.org/build/borrow/concepts/ltv#how-to-calculate-ltv
