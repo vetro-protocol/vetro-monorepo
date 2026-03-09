@@ -6,6 +6,7 @@ import { StripedDivider } from "components/stripedDivider";
 import { type MarketData, useMarketData } from "hooks/borrow/useMarketData";
 import { usePositionInfo } from "hooks/borrow/usePositionInfo";
 import { useAmount } from "hooks/useAmount";
+import { useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { useParams } from "react-router";
 import { hasActivePosition } from "utils/borrowPosition";
@@ -20,6 +21,7 @@ const BorrowMarketDetailsLoaded = function ({
 
   const [borrowInput, onBorrowChange] = useAmount();
   const [collateralInput, onCollateralChange] = useAmount();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const hasExistingPosition = hasActivePosition(position);
 
@@ -37,15 +39,17 @@ const BorrowMarketDetailsLoaded = function ({
           <StripedDivider />
         </div>
         <div className="flex w-full flex-col md:w-[341px] md:border-b md:border-l md:border-gray-200">
-          {hasExistingPosition ? (
+          {hasExistingPosition && !isDrawerOpen ? (
             <ExistingPositionNotice />
           ) : (
             <BorrowForm
               borrowInput={borrowInput}
               collateralInput={collateralInput}
+              isDrawerOpen={isDrawerOpen}
               market={market}
               onBorrowChange={onBorrowChange}
               onCollateralChange={onCollateralChange}
+              onDrawerOpenChange={setIsDrawerOpen}
             />
           )}
         </div>

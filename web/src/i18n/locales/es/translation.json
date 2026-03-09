@@ -42,7 +42,23 @@
       "no-positions-title": "Aún no hay posiciones de préstamos activos",
       "pool-size": "Tamaño del pool",
       "positions-title": "Sus posiciones de préstamo",
+      "progress": {
+        "approve-description": "Apruebe el gasto del token de colateral",
+        "approve-title": "Aprobar en billetera",
+        "borrow-progress": "Progreso del préstamo",
+        "confirm-description": "Revise los detalles y confirme el préstamo en su billetera.",
+        "confirm-title": "Confirmar préstamo",
+        "retry": "Reintentar",
+        "supply-collateral-description": "Confirme el depósito de colateral para asegurar su posición de préstamo.",
+        "supply-collateral-title": "Depositar colateral",
+        "title": "Préstamo en progreso"
+      },
+      "supply-collateral-and-borrow": "Depositar colateral y pedir prestado",
       "title": "Proporcione BTC o ETH para pedir prestado {{symbol}}",
+      "toast": {
+        "description": "{{amount}} {{symbol}} enviados a su billetera.",
+        "title": "Préstamo exitoso"
+      },
       "view-positions": "Ver posiciones",
       "you-are-borrowing": "Está pidiendo prestado",
       "you-are-depositing": "Está depositando como colateral"
@@ -176,6 +192,7 @@
         "deposit": "Depositar",
         "enter-amount": "Ingrese un monto",
         "insufficient-balance": "Saldo insuficiente",
+        "insufficient-collateral": "Colateral insuficiente",
         "insufficient-gas": "ETH insuficiente para gas",
         "preview-error": "No se pudo calcular el monto a recibir",
         "redeem": "Canjear",

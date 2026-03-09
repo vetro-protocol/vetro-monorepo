@@ -42,7 +42,23 @@
       "no-positions-title": "No active borrow position yet",
       "pool-size": "Pool size",
       "positions-title": "Your borrow positions",
+      "progress": {
+        "approve-description": "Approve the collateral token spending",
+        "approve-title": "Approve in wallet",
+        "borrow-progress": "Borrow progress",
+        "confirm-description": "Review the details and confirm the borrow in your wallet.",
+        "confirm-title": "Confirm borrow",
+        "retry": "Retry",
+        "supply-collateral-description": "Confirm the collateral deposit to secure your borrow position.",
+        "supply-collateral-title": "Supply collateral",
+        "title": "Borrow in progress"
+      },
+      "supply-collateral-and-borrow": "Supply collateral and borrow",
       "title": "Supply BTC or ETH to borrow {{symbol}}",
+      "toast": {
+        "description": "{{amount}} {{symbol}} sent to your wallet.",
+        "title": "Borrow successful"
+      },
       "view-positions": "View positions",
       "you-are-borrowing": "You are borrowing",
       "you-are-depositing": "You are depositing as collateral"
@@ -171,6 +187,7 @@
         "deposit": "Deposit",
         "enter-amount": "Enter an amount",
         "insufficient-balance": "Insufficient balance",
+        "insufficient-collateral": "Insufficient collateral",
         "insufficient-gas": "Insufficient ETH for gas",
         "preview-error": "Failed to calculate amount to receive",
         "redeem": "Redeem",
