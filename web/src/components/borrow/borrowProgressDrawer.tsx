@@ -1,5 +1,6 @@
 import { Button } from "components/base/button";
 import { DrawerTitle } from "components/base/drawer/drawerTitle";
+import { RenderFiatValue } from "components/base/fiatValue";
 import { type Step, VerticalStepper } from "components/base/verticalStepper";
 import { FeeDetails } from "components/feeDetails";
 import { FeesContainer } from "components/feesContainer";
@@ -72,7 +73,13 @@ export function BorrowProgressDrawer({
             </p>
             <TokenLogo {...collateralToken} size="large" />
           </div>
-          <p className="text-xsm text-gray-500">${collateralAmount}</p>
+          <p className="text-xsm text-gray-500">
+            <span className="mr-1">$</span>
+            <RenderFiatValue
+              token={collateralToken}
+              value={parseUnits(collateralAmount, collateralToken.decimals)}
+            />
+          </p>
         </div>
 
         <div className="flex flex-col gap-2">
@@ -86,7 +93,13 @@ export function BorrowProgressDrawer({
             </p>
             <TokenLogo {...borrowToken} size="large" />
           </div>
-          <p className="text-xsm text-gray-500">${borrowAmount}</p>
+          <p className="text-xsm text-gray-500">
+            <span className="mr-1">$</span>
+            <RenderFiatValue
+              token={borrowToken}
+              value={parseUnits(borrowAmount, borrowToken.decimals)}
+            />
+          </p>
         </div>
       </div>
 
