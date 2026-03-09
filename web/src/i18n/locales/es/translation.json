@@ -40,7 +40,7 @@
       "max-available": "Máximo disponible",
       "no-positions-description": "Deposite colateral para pedir prestado {{symbol}} y poner sus activos a trabajar.",
       "no-positions-title": "Aún no hay posiciones de préstamos activos",
-      "pool-size": "Tamaño del pool",
+      "pool-size": "Tamaño del fondo",
       "positions-title": "Sus posiciones de préstamo",
       "title": "Proporcione BTC o ETH para pedir prestado {{symbol}}",
       "view-positions": "Ver posiciones",
@@ -103,8 +103,8 @@
       "pool-info": {
         "apy": "TEA de 7 días",
         "deposit": "Depositar",
-        "pool-contract": "Contrato del pool",
-        "pool-deposits": "Depósitos del pool",
+        "pool-contract": "Contrato del fondo",
+        "pool-deposits": "Depósitos del fondo",
         "potential-rewards": "Recompensas potenciales",
         "withdraw": "Retirar"
       },
