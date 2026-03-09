@@ -103,7 +103,7 @@ export const runBorrowAssetsCore = async function (
   walletClient: WalletClient,
   { address, amount, marketId, onBehalf, receiver }: BorrowAssetsParams,
   emitter: EventEmitter<BorrowAssetsEvents>,
-): Promise<boolean> {
+) {
   const { canBorrowAssets: canBorrowAssetsFlag, reason } = canBorrowAssets({
     address,
     amount,
@@ -115,7 +115,7 @@ export const runBorrowAssetsCore = async function (
 
   if (!canBorrowAssetsFlag) {
     emitter.emit("borrow-assets-failed-validation", reason!);
-    return false;
+    return;
   }
 
   const marketParams = await getMarketParams({
@@ -138,7 +138,7 @@ export const runBorrowAssetsCore = async function (
   });
 
   if (!borrowHash) {
-    return false;
+    return;
   }
 
   emitter.emit("user-signed-borrow-assets", borrowHash);
@@ -150,7 +150,7 @@ export const runBorrowAssetsCore = async function (
   });
 
   if (!borrowReceipt) {
-    return false;
+    return;
   }
 
   const borrowEventMap: Record<
@@ -162,8 +162,6 @@ export const runBorrowAssetsCore = async function (
   };
 
   emitter.emit(borrowEventMap[borrowReceipt.status], borrowReceipt);
-
-  return borrowReceipt.status === "success";
 };
 
 const runBorrowAssets = (
