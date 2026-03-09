@@ -16,7 +16,7 @@
     "borrow": {
       "apr": "{{value}} APR",
       "available-to-borrow": "Available to borrow",
-      "borrow-apr": "Borrow APR",
+      "borrow-apr": "APR",
       "borrowing-review": "Borrowing review",
       "collateral": "Collateral",
       "daily-interest-cost": "Daily interest cost",

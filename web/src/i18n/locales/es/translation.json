@@ -16,7 +16,7 @@
     "borrow": {
       "apr": "{{value}} TEA",
       "available-to-borrow": "Disponible para pedir prestado",
-      "borrow-apr": "TEA de préstamo",
+      "borrow-apr": "TEA",
       "borrowing-review": "Resumen del préstamo",
       "collateral": "Garantía",
       "daily-interest-cost": "Costo de interés diario",
