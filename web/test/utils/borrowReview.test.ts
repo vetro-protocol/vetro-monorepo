@@ -1,9 +1,11 @@
+/* eslint-disable @vitest/expect-expect */
 import { Market } from "@morpho-org/blue-sdk";
 import {
   calculateDailyInterestCost,
   calculateHealthFactor,
   calculateLiquidationPrice,
   calculateLtv,
+  descaleOraclePrice,
 } from "utils/borrowReview";
 import { parseUnits } from "viem";
 import { describe, expect, it } from "vitest";
@@ -186,6 +188,54 @@ describe("utils/borrowReview", function () {
       });
 
       expect(result).toBeNull();
+    });
+  });
+
+  describe("descaleOraclePrice", function () {
+    // Oracle price scale is 10^(36 + loanDecimals - collateralDecimals).
+    // Descaling by 10^(36 - collateralDecimals) should leave loanDecimals.
+    const testDescale = function ({
+      collateralTokenDecimals,
+      loanTokenDecimals,
+    }: {
+      collateralTokenDecimals: number;
+      loanTokenDecimals: number;
+    }) {
+      const oracleScale = 36 + loanTokenDecimals - collateralTokenDecimals;
+      const value = parseUnits("500", oracleScale);
+
+      const result = descaleOraclePrice({ collateralTokenDecimals, value });
+
+      expect(result).toBe(parseUnits("500", loanTokenDecimals));
+    };
+
+    it("descales for 8-decimal collateral and 18-decimal loan", function () {
+      testDescale({ collateralTokenDecimals: 8, loanTokenDecimals: 18 });
+    });
+
+    it("descales for 18-decimal collateral and 18-decimal loan", function () {
+      testDescale({ collateralTokenDecimals: 18, loanTokenDecimals: 18 });
+    });
+
+    it("descales for 6-decimal collateral and 6-decimal loan", function () {
+      testDescale({ collateralTokenDecimals: 6, loanTokenDecimals: 6 });
+    });
+
+    it("descales for 6-decimal collateral and 18-decimal loan", function () {
+      testDescale({ collateralTokenDecimals: 6, loanTokenDecimals: 18 });
+    });
+
+    it("descales for 18-decimal collateral and 6-decimal loan", function () {
+      testDescale({ collateralTokenDecimals: 18, loanTokenDecimals: 6 });
+    });
+
+    it("returns 0n for a zero value", function () {
+      const result = descaleOraclePrice({
+        collateralTokenDecimals: collateralDecimals,
+        value: 0n,
+      });
+
+      expect(result).toBe(0n);
     });
   });
 

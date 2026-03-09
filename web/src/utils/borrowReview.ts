@@ -77,6 +77,22 @@ export const calculateLiquidationPrice = function ({
 };
 
 /**
+ * Converts a raw oracle-scaled bigint to the loan token's native unit bigint.
+ * The raw value is scaled by `10^(36 + loanDecimals - collateralDecimals)`;
+ * dividing by `10^(36 - collateralDecimals)` leaves `10^loanDecimals`.
+ */
+export const descaleOraclePrice = function ({
+  collateralTokenDecimals,
+  value,
+}: {
+  collateralTokenDecimals: number;
+  value: bigint;
+}): bigint {
+  const exponent = oraclePriceDecimals - collateralTokenDecimals;
+  return value / 10n ** BigInt(exponent);
+};
+
+/**
  * Calculates the loan-to-value ratio for a position as a decimal (e.g. 0.5 = 50%).
  * Returns `null` when the position has no collateral or no debt.
  * @see https://docs.morpho.org/build/borrow/concepts/ltv#how-to-calculate-ltv
