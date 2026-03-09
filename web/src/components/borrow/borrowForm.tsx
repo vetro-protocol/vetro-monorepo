@@ -20,8 +20,8 @@ import { useSupplyAndBorrowFees } from "hooks/borrow/useSupplyAndBorrowFees";
 import { useMainnet } from "hooks/useMainnet";
 import {
   type FormEvent,
-  useCallback,
   type SetStateAction,
+  useCallback,
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
