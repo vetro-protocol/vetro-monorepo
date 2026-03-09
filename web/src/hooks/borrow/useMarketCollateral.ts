@@ -1,28 +1,16 @@
-import { queryOptions, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
+import fetch from "fetch-plus-plus";
+import { isValidUrl } from "utils/url";
 import type { Hash } from "viem";
 
-const marketCollateralOptions = (marketId: Hash) =>
-  queryOptions({
-    async queryFn() {
-      const response = await fetch("https://api.morpho.org/graphql", {
-        body: JSON.stringify({
-          query: `query MarketCollateral($marketId: String!) {
-            marketByUniqueKey(uniqueKey: $marketId) {
-              state {
-                collateralAssets
-              }
-            }
-          }`,
-          variables: { marketId },
-        }),
-        headers: { "Content-Type": "application/json" },
-        method: "POST",
-      });
-      const json = await response.json();
-      return BigInt(json.data.marketByUniqueKey.state.collateralAssets);
-    },
-    queryKey: ["market-collateral", marketId],
-  });
+const apiUrl = import.meta.env.VITE_VETRO_API_URL;
 
 export const useMarketCollateral = (marketId: Hash) =>
-  useQuery(marketCollateralOptions(marketId));
+  useQuery({
+    enabled: apiUrl !== undefined && isValidUrl(apiUrl),
+    queryFn: () =>
+      fetch(`${apiUrl}/borrow/${marketId}/collateral-assets`).then(
+        (data: number) => BigInt(data),
+      ),
+    queryKey: ["market-collateral", marketId],
+  });
