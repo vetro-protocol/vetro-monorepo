@@ -101,9 +101,7 @@ export function BorrowDrawer({
   const steps: Step[] = [
     {
       description: t("pages.borrow.progress.supply-collateral-description"),
-      status: showApproveStep
-        ? getSupplyCollateralStepStatus(flowStatus)
-        : getApproveStepStatus(flowStatus),
+      status: getSupplyCollateralStepStatus(flowStatus),
       title: t("pages.borrow.progress.supply-collateral-title"),
     },
     {
