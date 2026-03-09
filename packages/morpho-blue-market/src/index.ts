@@ -14,6 +14,10 @@ import {
   supplyCollateral,
 } from "./actions/wallet/supplyCollateral.js";
 import {
+  type SupplyCollateralAndBorrowParams,
+  supplyCollateralAndBorrow,
+} from "./actions/wallet/supplyCollateralAndBorrow.js";
+import {
   type WithdrawCollateralParams,
   withdrawCollateral,
 } from "./actions/wallet/withdrawCollateral.js";
@@ -26,6 +30,7 @@ export {
   type BorrowAssetsEvents,
   type MarketParams,
   type RepayAssetsEvents,
+  type SupplyCollateralAndBorrowEvents,
   type SupplyCollateralEvents,
   type WithdrawCollateralEvents,
 } from "./types.js";
@@ -40,6 +45,8 @@ export const morphoBlueWalletActions = () => (client: WalletClient) => ({
   repayAssets: (params: RepayAssetsParams) => repayAssets(client, params),
   supplyCollateral: (params: SupplyCollateralParams) =>
     supplyCollateral(client, params),
+  supplyCollateralAndBorrow: (params: SupplyCollateralAndBorrowParams) =>
+    supplyCollateralAndBorrow(client, params),
   withdrawCollateral: (params: WithdrawCollateralParams) =>
     withdrawCollateral(client, params),
 });

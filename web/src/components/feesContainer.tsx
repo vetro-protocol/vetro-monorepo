@@ -44,7 +44,7 @@ export function FeesContainer({ children, isError, label, totalFees }: Props) {
               </span>
             </>
           )}
-          <ButtonIcon variant="tertiary">
+          <ButtonIcon type="button" variant="tertiary">
             <ChevronIcon direction={isOpen ? "up" : "down"} />
           </ButtonIcon>
         </div>

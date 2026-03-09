@@ -6,6 +6,9 @@ export const knownTokens: Token[] = [
     address: "0x06ea695B91700071B161A434fED42D1DcbAD9f00",
     chainId: mainnet.id,
     decimals: 8,
+    extensions: {
+      balanceSlot: 5,
+    },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/hemibtc.svg",
     name: "Hemi Bitcoin",
     symbol: "hemiBTC",
@@ -14,6 +17,10 @@ export const knownTokens: Token[] = [
     address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
     chainId: mainnet.id,
     decimals: 6,
+    extensions: {
+      allowanceSlot: 10n,
+      balanceSlot: 9,
+    },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/usdc.svg",
     name: "USD Coin",
     symbol: "USDC",
@@ -22,6 +29,10 @@ export const knownTokens: Token[] = [
     address: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
     chainId: mainnet.id,
     decimals: 8,
+    extensions: {
+      allowanceSlot: 2n,
+      balanceSlot: 0,
+    },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/wbtc.svg",
     name: "Wrapped BTC",
     symbol: "WBTC",
@@ -30,6 +41,10 @@ export const knownTokens: Token[] = [
     address: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
     chainId: mainnet.id,
     decimals: 6,
+    extensions: {
+      allowanceSlot: 5n,
+      balanceSlot: 2,
+    },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/usdt.svg",
     name: "Tether USD",
     symbol: "USDT",
@@ -38,6 +53,9 @@ export const knownTokens: Token[] = [
     address: "0xB94724aa74A0296447D13a63A35B050b7F137C6d",
     chainId: mainnet.id,
     decimals: 18,
+    extensions: {
+      balanceSlot: 0,
+    },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vusd.svg",
     name: "TESTUSD",
     symbol: "TESTUSD",
@@ -46,6 +64,9 @@ export const knownTokens: Token[] = [
     address: "0x677ddbd918637E5F2c79e164D402454dE7dA8619",
     chainId: mainnet.id,
     decimals: 18,
+    extensions: {
+      balanceSlot: 0,
+    },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vusd.svg",
     name: "VUSD",
     symbol: "VUSD",

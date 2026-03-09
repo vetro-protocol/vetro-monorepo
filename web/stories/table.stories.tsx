@@ -55,7 +55,7 @@ const columns: ColumnDef<ExampleRow>[] = [
   },
   {
     cell: ({ row }) => <Badge>{row.original.txCount} TXs</Badge>,
-    header: () => <Header text="TXs" />,
+    header: () => <Header align="center" text="TXs" />,
     id: "txs",
     meta: { width: "112px" },
   },

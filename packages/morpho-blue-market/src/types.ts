@@ -55,6 +55,14 @@ export type SupplyCollateralEvents = ApprovalEvents &
     "user-signing-supply-collateral-error": [Error];
   };
 
+export type SupplyCollateralAndBorrowEvents = Omit<
+  BorrowAssetsEvents,
+  "borrow-assets-settled"
+> &
+  Omit<SupplyCollateralEvents, "supply-collateral-settled"> & {
+    "supply-collateral-and-borrow-settled": [];
+  };
+
 export type WithdrawCollateralEvents = CommonEvents & {
   "pre-withdraw-collateral": [];
   "user-signed-withdraw-collateral": [Hash];

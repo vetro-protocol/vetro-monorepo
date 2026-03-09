@@ -6,24 +6,24 @@ import { StripedDivider } from "components/stripedDivider";
 import { type MarketData, useMarketData } from "hooks/borrow/useMarketData";
 import { usePositionInfo } from "hooks/borrow/usePositionInfo";
 import { useAmount } from "hooks/useAmount";
+import { useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { useParams } from "react-router";
+import { hasActivePosition } from "utils/borrowPosition";
 import { type Hash, isHash } from "viem";
 
 const BorrowMarketDetailsLoaded = function ({
   market,
-  marketId,
 }: {
   market: MarketData;
-  marketId: Hash;
 }) {
-  const { data: position } = usePositionInfo(marketId);
+  const { data: position } = usePositionInfo(market.marketId);
 
   const [borrowInput, onBorrowChange] = useAmount();
   const [collateralInput, onCollateralChange] = useAmount();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  const hasExistingPosition =
-    position !== undefined && position.borrowAssets > 0n;
+  const hasExistingPosition = hasActivePosition(position);
 
   return (
     <div className="flex flex-col">
@@ -39,16 +39,17 @@ const BorrowMarketDetailsLoaded = function ({
           <StripedDivider />
         </div>
         <div className="flex w-full flex-col md:w-[341px] md:border-b md:border-l md:border-gray-200">
-          {hasExistingPosition ? (
+          {hasExistingPosition && !isDrawerOpen ? (
             <ExistingPositionNotice />
           ) : (
             <BorrowForm
               borrowInput={borrowInput}
               collateralInput={collateralInput}
+              isDrawerOpen={isDrawerOpen}
               market={market}
-              marketId={marketId}
               onBorrowChange={onBorrowChange}
               onCollateralChange={onCollateralChange}
+              onDrawerOpenChange={setIsDrawerOpen}
             />
           )}
         </div>
@@ -69,7 +70,7 @@ const BorrowMarketDetailsContent = function ({ marketId }: { marketId: Hash }) {
     );
   }
 
-  return <BorrowMarketDetailsLoaded market={market} marketId={marketId} />;
+  return <BorrowMarketDetailsLoaded market={market} />;
 };
 
 export const BorrowMarketDetails = function () {

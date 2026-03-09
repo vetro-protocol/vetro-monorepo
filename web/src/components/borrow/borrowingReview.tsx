@@ -7,6 +7,8 @@ import type { Token } from "types";
 import { formatFiatNumber, formatPercentage } from "utils/format";
 import { parseUnits } from "viem";
 
+import { HealthFactor } from "./healthFactor";
+
 type Props = {
   borrowApy: number;
   borrowInput: string;
@@ -32,13 +34,6 @@ const QuestionIcon = () => (
     />
   </svg>
 );
-
-// TODO add health bar https://github.com/vetro-protocol/vetro-monorepo/issues/143
-const getHealthFactorColor = function (value: number) {
-  if (value >= 2) return "text-green-600";
-  if (value >= 1.2) return "text-yellow-600";
-  return "text-red-600";
-};
 
 const ReviewRow = ({
   children,
@@ -89,13 +84,7 @@ export function BorrowingReview({
         label={t("pages.borrow.health-factor")}
         tooltip={t("pages.borrow.health-factor-tooltip")}
       >
-        {healthFactor !== null ? (
-          <span className={getHealthFactorColor(healthFactor)}>
-            {healthFactor.toFixed(2)}
-          </span>
-        ) : (
-          "-"
-        )}
+        <HealthFactor value={healthFactor} />
       </ReviewRow>
       <ReviewRow
         label={t("pages.borrow.ltv")}

@@ -1,10 +1,10 @@
 import { type ColumnDef } from "@tanstack/react-table";
-import { RenderFiatValue } from "components/base/fiatValue";
 import { I18nLink } from "components/base/i18nLink";
 import { Table } from "components/base/table";
 import { Header } from "components/base/table/header";
 import { TopSection } from "components/base/table/topSection";
 import { CollateralCell } from "components/borrow/collateralCell";
+import { TokenValueCell } from "components/borrow/tokenValueCell";
 import { TokenLogo } from "components/tokenLogo";
 import { type MarketData, useMarketsData } from "hooks/borrow/useMarketsData";
 import { useMemo } from "react";
@@ -32,7 +32,7 @@ export function MarketsTable({ marketIds }: Props) {
         ),
         header: () => <Header text={t("pages.borrow.collateral")} />,
         id: "collateral",
-        meta: { width: "143px" },
+        meta: { width: "128px" },
       },
       {
         cell: ({ row }) => (
@@ -45,7 +45,7 @@ export function MarketsTable({ marketIds }: Props) {
         ),
         header: () => <Header text={t("pages.borrow.loan")} />,
         id: "loan",
-        meta: { className: "grow", width: "143px" },
+        meta: { className: "grow", width: "128px" },
       },
       {
         cell: ({ row }) => (
@@ -56,25 +56,20 @@ export function MarketsTable({ marketIds }: Props) {
         ),
         header: () => <Header text={t("pages.borrow.pool-size")} />,
         id: "pool-size",
-        meta: { className: "justify-end mr-4", width: "120px" },
+        meta: { className: "justify-end mr-6", width: "128px" },
       },
       {
         cell: ({ row }) => (
-          <span className="text-b-medium text-gray-900">
-            <span className="mr-1">$</span>
-            {/* data is already read at rendering time */}
-            <RenderFiatValue
-              queryStatus="success"
-              token={row.original.loanToken}
-              value={
-                row.original.totalSupplyAssets - row.original.totalBorrowAssets
-              }
-            />
-          </span>
+          <TokenValueCell
+            token={row.original.loanToken}
+            value={
+              row.original.totalSupplyAssets - row.original.totalBorrowAssets
+            }
+          />
         ),
         header: () => <Header text={t("pages.borrow.available-to-borrow")} />,
         id: "available",
-        meta: { className: "justify-end", width: "120px" },
+        meta: { className: "justify-end mr-6", width: "128px" },
       },
       {
         cell: ({ row }) => (
@@ -82,9 +77,9 @@ export function MarketsTable({ marketIds }: Props) {
             {formatUnits(row.original.lltv * 100n, 18)}%
           </span>
         ),
-        header: () => <Header text={t("pages.borrow.ltv")} />,
+        header: () => <Header align="center" text={t("pages.borrow.ltv")} />,
         id: "ltv",
-        meta: { className: "justify-center", width: "60px" },
+        meta: { className: "justify-center mx-3", width: "48px" },
       },
       {
         cell: ({ row }) => (
@@ -92,9 +87,11 @@ export function MarketsTable({ marketIds }: Props) {
             {(row.original.borrowApy * 100).toFixed(2)}%
           </span>
         ),
-        header: () => <Header text={t("pages.borrow.borrow-apr")} />,
+        header: () => (
+          <Header align="center" text={t("pages.borrow.borrow-apr")} />
+        ),
         id: "borrow-apr",
-        meta: { className: "justify-end", width: "73px" },
+        meta: { className: "justify-center mx-3", width: "48px" },
       },
       {
         cell: ({ row }) => (
@@ -119,7 +116,7 @@ export function MarketsTable({ marketIds }: Props) {
         ),
         header: () => <Header text="" />,
         id: "action",
-        meta: { className: "justify-end", width: "40px" },
+        meta: { className: "justify-end", width: "56px" },
       },
     ],
     [t],

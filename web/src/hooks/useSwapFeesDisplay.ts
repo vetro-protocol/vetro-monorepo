@@ -2,17 +2,10 @@ import { useEstimateApproveErc20Fees } from "@hemilabs/react-hooks/useEstimateAp
 import { useNeedsApproval } from "@hemilabs/react-hooks/useNeedsApproval";
 import { getGatewayAddress } from "@vetro/gateway";
 import type { Token } from "types";
+import { sumFees } from "utils/fees";
 import { formatAmount } from "utils/token";
 
 import { useMainnet } from "./useMainnet";
-
-// only add up fees when all are available
-const sumFees = function (fees: (bigint | undefined)[]) {
-  if (fees.every((fee): fee is bigint => fee !== undefined)) {
-    return fees.reduce((sum, fee) => sum + fee, 0n);
-  }
-  return undefined;
-};
 
 export const useSwapFeesDisplay = function ({
   amountBigInt,

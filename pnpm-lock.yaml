@@ -187,6 +187,9 @@ importers:
       '@vetro/gateway':
         specifier: workspace:*
         version: link:../packages/gateway
+      '@vetro/morpho-blue-market':
+        specifier: workspace:*
+        version: link:../packages/morpho-blue-market
       crypto-shortener:
         specifier: 1.2.0
         version: 1.2.0

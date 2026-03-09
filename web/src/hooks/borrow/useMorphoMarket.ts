@@ -7,6 +7,14 @@ import type { Chain, Client, Hash } from "viem";
 import { useEthereumClient } from "../useEthereumClient";
 import { useMainnet } from "../useMainnet";
 
+export const morphoMarketQueryKey = ({
+  chainId,
+  marketId,
+}: {
+  chainId: Chain["id"];
+  marketId: Hash;
+}) => ["morpho-market", chainId, marketId];
+
 export const morphoMarketOptions = ({
   chainId,
   client,
@@ -22,7 +30,7 @@ export const morphoMarketOptions = ({
       Market.fetch(marketId as MarketId, client!).then((market) =>
         market.accrueInterest(BigInt(unixNowTimestamp())),
       ),
-    queryKey: ["morpho-market", chainId, marketId],
+    queryKey: morphoMarketQueryKey({ chainId, marketId }),
   });
 
 export const useMorphoMarket = function (marketId: Hash) {
