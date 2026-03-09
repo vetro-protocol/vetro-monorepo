@@ -252,15 +252,6 @@
       }
     },
     "wallet": {
-      "activity": {
-        "borrow-more": "Pedir más {{symbol}} prestado",
-        "deposit": "Depósito",
-        "open-loan": "Abrir préstamo {{symbol}}",
-        "redeem": "Canjear",
-        "repay-position": "Pagar posición {{symbol}}",
-        "supply-position": "Aportar {{collateral}} a posición {{symbol}}",
-        "withdraw": "Retiro"
-      },
       "disconnect-wallet": "Desconectar billetera",
       "recent-activity": "Actividad reciente",
       "view-operations-from": "Ver operaciones de:",

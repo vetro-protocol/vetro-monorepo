@@ -7,24 +7,11 @@ const MOCK_DATE = 1719619200; // Jun 29, 2024
 
 const meta = {
   argTypes: {
-    action: {
-      control: "select",
-      options: [
-        "borrowMore",
-        "deposit",
-        "openLoan",
-        "redeem",
-        "repayPosition",
-        "supplyPosition",
-        "withdraw",
-      ],
-    },
-    collateral: { control: "text" },
     date: { control: "number" },
-    label: { control: "text" },
     page: { control: "select", options: ["borrow", "earn", "swap"] },
     status: { control: "select", options: ["concluded", "failed", "pending"] },
-    symbol: { control: "text" },
+    text: { control: "text" },
+    title: { control: "text" },
   },
   component: ActivityItem,
   title: "Components/ActivityList",
@@ -35,11 +22,11 @@ type Story = StoryObj<typeof meta>;
 
 export const ItemPending: Story = {
   args: {
-    action: "deposit",
     date: MOCK_DATE,
-    label: "0.004 USDC staked",
     page: "earn",
     status: "pending",
+    text: "0.004 USDC staked",
+    title: "Earn · Deposit",
   },
 };
 
@@ -59,65 +46,61 @@ export const ItemFailed: Story = {
 
 export const ItemBorrow: Story = {
   args: {
-    action: "openLoan",
     date: MOCK_DATE,
-    label: "100 VUSD borrowed",
     page: "borrow",
     status: "concluded",
-    symbol: "VUSD",
+    text: "100 VUSD borrowed",
+    title: "Borrow · Open VUSD loan",
   },
 };
 
 export const ItemBorrowSupplyPosition: Story = {
   args: {
-    action: "supplyPosition",
-    collateral: "BTC",
     date: MOCK_DATE,
-    label: "1 BTC supplied",
     page: "borrow",
     status: "concluded",
-    symbol: "VUSD",
+    text: "1 BTC supplied",
+    title: "Borrow · Supply BTC to VUSD position",
   },
 };
 
 export const ItemBorrowMore: Story = {
   args: {
-    action: "borrowMore",
     date: MOCK_DATE,
-    label: "1,000 VUSD borrowed",
     page: "borrow",
     status: "concluded",
-    symbol: "VUSD",
+    text: "1,000 VUSD borrowed",
+    title: "Borrow · Borrow more VUSD",
   },
 };
 
 export const ItemBorrowRepayPosition: Story = {
   args: {
-    action: "repayPosition",
     date: MOCK_DATE,
-    label: "1,000 VUSD repaid",
     page: "borrow",
     status: "concluded",
-    symbol: "VUSD",
+    text: "1,000 VUSD repaid",
+    title: "Borrow · Repay VUSD position",
   },
 };
 
 export const ItemPageOnly: Story = {
   args: {
     date: MOCK_DATE,
-    label: "500 USDC swapped",
     page: "swap",
     status: "concluded",
+    text: "500 USDC swapped",
+    title: "Swap",
   },
 };
 
 export const ItemSwapRedeem: Story = {
   args: {
-    action: "redeem",
     date: MOCK_DATE,
-    label: "500 VUSD redeemed for USDC",
     page: "swap",
     status: "concluded",
+    text: "500 VUSD redeemed for USDC",
+    title: "Swap · Redeem",
   },
 };
 
@@ -128,33 +111,32 @@ export const List: Story = {
     <ActivityList
       items={[
         {
-          action: "deposit",
           date: MOCK_DATE,
-          label: "0.004 USDC staked",
           page: "earn",
           status: "pending",
+          text: "0.004 USDC staked",
+          title: "Earn · Deposit",
         },
         {
-          action: "withdraw",
-          date: MOCK_DATE,
-          label: "10.00 USDC withdrawn",
+          date: MOCK_DATE + 1,
           page: "earn",
           status: "concluded",
+          text: "10.00 USDC withdrawn",
+          title: "Earn · Withdraw",
         },
         {
-          action: "redeem",
-          date: MOCK_DATE,
-          label: "500 VUSD redeemed for USDC",
+          date: MOCK_DATE + 2,
           page: "swap",
           status: "failed",
+          text: "500 VUSD redeemed for USDC",
+          title: "Swap · Redeem",
         },
         {
-          action: "openLoan",
-          date: MOCK_DATE,
-          label: "100 VUSD borrowed",
+          date: MOCK_DATE + 3,
           page: "borrow",
           status: "concluded",
-          symbol: "VUSD",
+          text: "100 VUSD borrowed",
+          title: "Borrow · Open VUSD loan",
         },
       ]}
     />
