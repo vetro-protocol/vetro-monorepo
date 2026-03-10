@@ -1,4 +1,3 @@
-/* eslint-disable @vitest/expect-expect */
 import { Market } from "@morpho-org/blue-sdk";
 import {
   calculateDailyInterestCost,
