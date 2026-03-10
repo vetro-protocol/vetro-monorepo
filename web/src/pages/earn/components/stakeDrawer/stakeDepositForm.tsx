@@ -11,6 +11,7 @@ import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenInput } from "components/tokenInput";
 import { Balance } from "components/tokenInput/balance";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
+import { useActivityTracking } from "hooks/useActivityTracking";
 import { useMainnet } from "hooks/useMainnet";
 import { useStakeDeposit } from "hooks/useStakeDeposit";
 import { useVusd } from "hooks/useVusd";
@@ -187,6 +188,30 @@ export function StakeDepositForm({
 
   const approveAmount = approve10x ? amountBigInt * 10n : undefined;
 
+  const { onConcluded, onFailed, onPending, onTransactionHash } =
+    useActivityTracking({
+      account,
+      page: "earn",
+      text: t("pages.earn.activity.deposit-text", {
+        amount: inputValue,
+        symbol: vusd?.symbol,
+      }),
+      title: `${t("nav.earn")} · ${t("pages.earn.stake.deposit")}`,
+    });
+
+  const handleDepositStepChange = useCallback(
+    function handleDepositStepChange(step: DepositStep) {
+      onDepositStepChange(step);
+      const handlers: Partial<Record<DepositStep, () => void>> = {
+        completed: onConcluded,
+        "deposit-failed": onFailed,
+        depositing: onPending,
+      };
+      handlers[step]?.();
+    },
+    [onConcluded, onDepositStepChange, onFailed, onPending],
+  );
+
   const handleDepositSuccess = useCallback(
     function handleDepositSuccess() {
       onSuccess({
@@ -200,8 +225,9 @@ export function StakeDepositForm({
   const depositMutation = useStakeDeposit({
     approveAmount,
     assets: amountBigInt,
-    onStatusChange: onDepositStepChange,
+    onStatusChange: handleDepositStepChange,
     onSuccess: handleDepositSuccess,
+    onTransactionHash,
   });
 
   const { data: networkFee, isError: isFeeError } = useDepositFees({

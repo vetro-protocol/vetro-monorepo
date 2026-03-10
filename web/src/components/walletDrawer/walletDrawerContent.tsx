@@ -7,6 +7,8 @@ import { splitDecimalParts } from "utils/currency";
 import { formatEvmAddress } from "utils/format";
 import { useAccount, useDisconnect } from "wagmi";
 
+import { useActivities } from "../../stores/activityStore";
+import { ActivityList } from "../base/activityList";
 import { FilterMenu } from "../base/filterMenu";
 import profileIcon from "../icons/profile.svg";
 import tableCellsIcon from "../icons/tableCells.svg";
@@ -51,17 +53,32 @@ function useBalanceInUsd() {
 
 export function WalletDrawerContent() {
   const { address } = useAccount();
+  const chain = useMainnet();
   const { isError, usd } = useBalanceInUsd();
   const { disconnect } = useDisconnect();
   const { t } = useTranslation();
-  const filterOptions = [
-    { label: t("nav.earn"), value: "earn" },
-    { label: t("nav.swap"), value: "swap" },
-  ];
   const [selectedFilters, setSelectedFilters] = useState<string[]>([
+    "borrow",
+    "concluded",
     "earn",
+    "failed",
     "swap",
   ]);
+
+  const activities = useActivities(address);
+  const explorerBaseUrl = chain.blockExplorers?.default.url ?? "";
+
+  const filteredActivities = activities.filter(
+    (a) =>
+      selectedFilters.includes(a.page) &&
+      (a.status === "pending" || selectedFilters.includes(a.status)),
+  );
+
+  const itemsWithHref = filteredActivities.map((a) => ({
+    ...a,
+    href: a.txHash ? `${explorerBaseUrl}/tx/${a.txHash}` : undefined,
+  }));
+
   const balanceParts = usd !== undefined ? splitDecimalParts(usd) : undefined;
 
   return (
@@ -101,11 +118,35 @@ export function WalletDrawerContent() {
           <FilterMenu
             icon={<img alt="" height={16} src={tableCellsIcon} width={16} />}
             label={t("pages.wallet.view-settings")}
-            menuLabel={t("pages.wallet.view-operations-from")}
             onChange={setSelectedFilters}
-            options={filterOptions}
+            sections={[
+              {
+                label: t("pages.wallet.view-operations-from"),
+                options: [
+                  { label: t("nav.borrow"), value: "borrow" },
+                  { label: t("nav.earn"), value: "earn" },
+                  { label: t("nav.swap"), value: "swap" },
+                ],
+              },
+              {
+                label: t("pages.wallet.view-status-from"),
+                options: [
+                  {
+                    label: t("pages.wallet.filter-success"),
+                    value: "concluded",
+                  },
+                  { label: t("pages.wallet.filter-error"), value: "failed" },
+                ],
+              },
+            ]}
             selectedValues={selectedFilters}
           />
+        </div>
+        <div className="relative min-h-0 flex-1 overflow-hidden">
+          <div className="absolute inset-0 overflow-y-auto px-4 py-6 md:px-6">
+            <ActivityList items={itemsWithHref} />
+          </div>
+          <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-34 bg-gradient-to-b from-transparent to-gray-50 to-80%" />
         </div>
       </div>
     </div>

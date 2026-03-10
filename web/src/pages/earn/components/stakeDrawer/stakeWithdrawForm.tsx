@@ -7,6 +7,7 @@ import { SetMaxStakedBalance } from "components/setMaxStakedBalance";
 import { TokenInput } from "components/tokenInput";
 import { Balance } from "components/tokenInput/balance";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
+import { useActivityTracking } from "hooks/useActivityTracking";
 import { useInstantWithdraw } from "hooks/useInstantWithdraw";
 import { useMainnet } from "hooks/useMainnet";
 import { useStakedBalance } from "hooks/useStakedBalance";
@@ -15,7 +16,7 @@ import { useVusd } from "hooks/useVusd";
 import { useCanInstantWithdraw } from "pages/earn/hooks/useCanInstantWithdraw";
 import { useCooldownDuration } from "pages/earn/hooks/useCooldownDuration";
 import { useWithdrawFees } from "pages/earn/hooks/useWithdrawFees";
-import { type FormEvent } from "react";
+import { type FormEvent, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import { formatAmount } from "utils/token";
@@ -139,6 +140,28 @@ export function StakeWithdrawForm({
   const { t } = useTranslation();
   const { data: vusd } = useVusd();
 
+  const instantTracking = useActivityTracking({
+    account,
+    page: "earn",
+    text: t("pages.earn.activity.instant-withdraw-text", {
+      amount: inputValue,
+      symbol: vusd?.symbol,
+    }),
+    title: `${t("nav.earn")} · ${t("pages.earn.stake.instant-withdraw")}`,
+  });
+
+  const requestTracking = useActivityTracking({
+    account,
+    page: "earn",
+    text: t("pages.earn.activity.request-withdraw-text", {
+      amount: inputValue,
+      symbol: vusd?.symbol,
+    }),
+    title: `${t("nav.earn")} · ${t("pages.earn.stake.withdraw")}`,
+  });
+
+  const tracking = canInstantWithdraw ? instantTracking : requestTracking;
+
   const { data: stakedBalance, isError: isStakedBalanceError } =
     useStakedBalance();
 
@@ -163,16 +186,33 @@ export function StakeWithdrawForm({
     });
   };
 
+  const handleWithdrawStepChange = useCallback(
+    function handleWithdrawStepChange(step: WithdrawStep) {
+      onWithdrawStepChange(step);
+      const handlers: Partial<Record<WithdrawStep, () => void>> = {
+        completed: tracking.onConcluded,
+        failed: tracking.onFailed,
+        "request-failed": tracking.onFailed,
+        requesting: tracking.onPending,
+        withdrawing: tracking.onPending,
+      };
+      handlers[step]?.();
+    },
+    [onWithdrawStepChange, tracking],
+  );
+
   const requestWithdrawMutation = useStakeWithdraw({
     assets: amountBigInt,
-    onStatusChange: onWithdrawStepChange,
+    onStatusChange: handleWithdrawStepChange,
     onSuccess: handleRequestWithdrawSuccess,
+    onTransactionHash: tracking.onTransactionHash,
   });
 
   const instantWithdrawMutation = useInstantWithdraw({
     assets: amountBigInt,
-    onStatusChange: onWithdrawStepChange,
+    onStatusChange: handleWithdrawStepChange,
     onSuccess: handleInstantWithdrawSuccess,
+    onTransactionHash: tracking.onTransactionHash,
   });
 
   const withdrawMutation = canInstantWithdraw

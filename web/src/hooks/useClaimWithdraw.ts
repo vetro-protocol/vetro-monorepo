@@ -17,11 +17,13 @@ type ClaimWithdrawStatus = "claiming" | "completed" | "failed";
 
 type Params = {
   onStatusChange: (status: ClaimWithdrawStatus) => void;
+  onTransactionHash?: (hash: string) => void;
   requestId: bigint;
 };
 
 export const useClaimWithdraw = function ({
   onStatusChange,
+  onTransactionHash,
   requestId,
 }: Params) {
   const { address: account } = useAccount();
@@ -69,11 +71,13 @@ export const useClaimWithdraw = function ({
 
       emitter.on("claim-withdraw-transaction-reverted", function (receipt) {
         updateNativeBalanceAfterReceipt(receipt);
+        onTransactionHash?.(receipt.transactionHash);
         onStatusChange("failed");
       });
 
       emitter.on("claim-withdraw-transaction-succeeded", function (receipt) {
         updateNativeBalanceAfterReceipt(receipt);
+        onTransactionHash?.(receipt.transactionHash);
         onStatusChange("completed");
 
         // Optimistically mark ticket as withdrawn by setting claimTxHash

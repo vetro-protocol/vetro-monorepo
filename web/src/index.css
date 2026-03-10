@@ -55,6 +55,10 @@
   height: var(--height-22);
 }
 
+@utility h-34 {
+  height: 8.5rem; /* 136px */
+}
+
 @utility h-50 {
   height: var(--height-50);
 }

@@ -18,12 +18,14 @@ type CancelWithdrawStatus = "cancelling" | "completed" | "failed";
 type Params = {
   assets: bigint;
   onStatusChange: (status: CancelWithdrawStatus) => void;
+  onTransactionHash?: (hash: string) => void;
   requestId: bigint;
 };
 
 export const useCancelWithdraw = function ({
   assets,
   onStatusChange,
+  onTransactionHash,
   requestId,
 }: Params) {
   const { address: account } = useAccount();
@@ -70,11 +72,13 @@ export const useCancelWithdraw = function ({
 
       emitter.on("cancel-withdraw-transaction-reverted", function (receipt) {
         updateNativeBalanceAfterReceipt(receipt);
+        onTransactionHash?.(receipt.transactionHash);
         onStatusChange("failed");
       });
 
       emitter.on("cancel-withdraw-transaction-succeeded", function (receipt) {
         updateNativeBalanceAfterReceipt(receipt);
+        onTransactionHash?.(receipt.transactionHash);
         onStatusChange("completed");
 
         // Optimistically remove ticket from cache

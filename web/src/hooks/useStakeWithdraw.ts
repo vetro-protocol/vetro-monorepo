@@ -20,12 +20,14 @@ type Params = {
   assets: bigint;
   onStatusChange?: (status: WithdrawStatus) => void;
   onSuccess?: VoidFunction;
+  onTransactionHash?: (hash: string) => void;
 };
 
 export const useStakeWithdraw = function ({
   assets,
   onStatusChange,
   onSuccess,
+  onTransactionHash,
 }: Params) {
   const { address: account } = useAccount();
   const chain = useMainnet();
@@ -74,6 +76,7 @@ export const useStakeWithdraw = function ({
         "request-withdraw-transaction-reverted",
         function (receipt: TransactionReceipt) {
           updateNativeBalanceAfterReceipt(receipt);
+          onTransactionHash?.(receipt.transactionHash);
           onStatusChange?.("request-failed");
         },
       );
@@ -82,6 +85,7 @@ export const useStakeWithdraw = function ({
         "request-withdraw-transaction-succeeded",
         function (receipt: TransactionReceipt) {
           updateNativeBalanceAfterReceipt(receipt);
+          onTransactionHash?.(receipt.transactionHash);
           onStatusChange?.("completed");
           onSuccess?.();
 

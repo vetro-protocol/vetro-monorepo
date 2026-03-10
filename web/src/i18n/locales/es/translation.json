@@ -67,6 +67,14 @@
       "title": "Hola Bridge"
     },
     "earn": {
+      "activity": {
+        "cancel-withdraw-text": "Exit ticket de {{amount}} {{symbol}} eliminado",
+        "claim-withdraw-batch-text": "Todos los retiros reclamados",
+        "claim-withdraw-text": "{{amount}} {{symbol}} retirado",
+        "deposit-text": "{{amount}} {{symbol}} depositado",
+        "instant-withdraw-text": "{{amount}} {{symbol}} retirado",
+        "request-withdraw-text": "{{amount}} {{symbol}} enviado al exit vault"
+      },
       "exit-tickets": {
         "actions": "Acciones",
         "col-cooldown-left": "Tiempo restante",
@@ -270,9 +278,12 @@
     },
     "wallet": {
       "disconnect-wallet": "Desconectar billetera",
+      "filter-error": "Error",
+      "filter-success": "Éxito",
       "recent-activity": "Actividad reciente",
       "view-operations-from": "Ver operaciones de:",
-      "view-settings": "Ver ajustes"
+      "view-settings": "Ver ajustes",
+      "view-status-from": "Y por estado:"
     }
   }
 }

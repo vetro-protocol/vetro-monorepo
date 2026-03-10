@@ -17,11 +17,13 @@ type ClaimWithdrawBatchStatus = "claiming" | "completed" | "failed";
 
 type Params = {
   onStatusChange: (status: ClaimWithdrawBatchStatus) => void;
+  onTransactionHash?: (hash: string) => void;
   requestIds: bigint[];
 };
 
 export const useClaimWithdrawBatch = function ({
   onStatusChange,
+  onTransactionHash,
   requestIds,
 }: Params) {
   const { address: account } = useAccount();
@@ -73,6 +75,7 @@ export const useClaimWithdrawBatch = function ({
         "claim-withdraw-batch-transaction-reverted",
         function (receipt) {
           updateNativeBalanceAfterReceipt(receipt);
+          onTransactionHash?.(receipt.transactionHash);
           onStatusChange("failed");
         },
       );
@@ -81,6 +84,7 @@ export const useClaimWithdrawBatch = function ({
         "claim-withdraw-batch-transaction-succeeded",
         function (receipt) {
           updateNativeBalanceAfterReceipt(receipt);
+          onTransactionHash?.(receipt.transactionHash);
           onStatusChange("completed");
 
           // Optimistically mark all claimed tickets as withdrawn

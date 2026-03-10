@@ -19,12 +19,14 @@ type Params = {
   assets: bigint;
   onStatusChange?: (status: InstantWithdrawStatus) => void;
   onSuccess?: VoidFunction;
+  onTransactionHash?: (hash: string) => void;
 };
 
 export const useInstantWithdraw = function ({
   assets,
   onStatusChange,
   onSuccess,
+  onTransactionHash,
 }: Params) {
   const { address: account } = useAccount();
   const chain = useMainnet();
@@ -66,6 +68,7 @@ export const useInstantWithdraw = function ({
         receiver: account,
       });
 
+      onTransactionHash?.(hash);
       onStatusChange?.("withdrawing");
 
       const receipt = await waitForTransactionReceipt(walletClient!, {

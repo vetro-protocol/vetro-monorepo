@@ -23,6 +23,7 @@ type Story = StoryObj<typeof meta>;
 export const ItemPending: Story = {
   args: {
     date: MOCK_DATE,
+    id: "1",
     page: "earn",
     status: "pending",
     text: "0.004 USDC staked",
@@ -33,6 +34,7 @@ export const ItemPending: Story = {
 export const ItemConcluded: Story = {
   args: {
     ...ItemPending.args,
+    id: "2",
     status: "concluded",
   },
 };
@@ -40,6 +42,7 @@ export const ItemConcluded: Story = {
 export const ItemFailed: Story = {
   args: {
     ...ItemPending.args,
+    id: "3",
     status: "failed",
   },
 };
@@ -47,6 +50,7 @@ export const ItemFailed: Story = {
 export const ItemBorrow: Story = {
   args: {
     date: MOCK_DATE,
+    id: "4",
     page: "borrow",
     status: "concluded",
     text: "100 VUSD borrowed",
@@ -57,6 +61,7 @@ export const ItemBorrow: Story = {
 export const ItemBorrowSupplyPosition: Story = {
   args: {
     date: MOCK_DATE,
+    id: "5",
     page: "borrow",
     status: "concluded",
     text: "1 BTC supplied",
@@ -67,6 +72,7 @@ export const ItemBorrowSupplyPosition: Story = {
 export const ItemBorrowMore: Story = {
   args: {
     date: MOCK_DATE,
+    id: "6",
     page: "borrow",
     status: "concluded",
     text: "1,000 VUSD borrowed",
@@ -77,6 +83,7 @@ export const ItemBorrowMore: Story = {
 export const ItemBorrowRepayPosition: Story = {
   args: {
     date: MOCK_DATE,
+    id: "7",
     page: "borrow",
     status: "concluded",
     text: "1,000 VUSD repaid",
@@ -87,6 +94,7 @@ export const ItemBorrowRepayPosition: Story = {
 export const ItemPageOnly: Story = {
   args: {
     date: MOCK_DATE,
+    id: "8",
     page: "swap",
     status: "concluded",
     text: "500 USDC swapped",
@@ -97,6 +105,7 @@ export const ItemPageOnly: Story = {
 export const ItemSwapRedeem: Story = {
   args: {
     date: MOCK_DATE,
+    id: "9",
     page: "swap",
     status: "concluded",
     text: "500 VUSD redeemed for USDC",
@@ -112,6 +121,7 @@ export const List: Story = {
       items={[
         {
           date: MOCK_DATE,
+          id: "1",
           page: "earn",
           status: "pending",
           text: "0.004 USDC staked",
@@ -119,6 +129,7 @@ export const List: Story = {
         },
         {
           date: MOCK_DATE + 1,
+          id: "2",
           page: "earn",
           status: "concluded",
           text: "10.00 USDC withdrawn",
@@ -126,6 +137,7 @@ export const List: Story = {
         },
         {
           date: MOCK_DATE + 2,
+          id: "3",
           page: "swap",
           status: "failed",
           text: "500 VUSD redeemed for USDC",
@@ -133,6 +145,7 @@ export const List: Story = {
         },
         {
           date: MOCK_DATE + 3,
+          id: "4",
           page: "borrow",
           status: "concluded",
           text: "100 VUSD borrowed",

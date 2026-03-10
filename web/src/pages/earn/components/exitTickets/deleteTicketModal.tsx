@@ -1,39 +1,67 @@
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { Button } from "components/base/button";
 import { Modal } from "components/base/modal";
+import { useActivityTracking } from "hooks/useActivityTracking";
 import { useCancelWithdraw } from "hooks/useCancelWithdraw";
+import { useVusd } from "hooks/useVusd";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { formatAmount } from "utils/token";
 import { useAccount } from "wagmi";
 
 import type { ExitTicket } from "../../types";
 
 type Props = {
   onClose: VoidFunction;
-  onSuccess: VoidFunction;
+  onSuccess?: VoidFunction;
   ticket: ExitTicket;
 };
 
 export function DeleteTicketModal({ onClose, onSuccess, ticket }: Props) {
   const { t } = useTranslation();
-  const { isConnected } = useAccount();
+  const { address: account, isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
+  const { data: vusd } = useVusd();
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const formattedAmount = formatAmount({
+    amount: BigInt(ticket.assets),
+    decimals: vusd?.decimals ?? 18,
+    isError: false,
+  });
+
+  const { onConcluded, onFailed, onPending, onTransactionHash } =
+    useActivityTracking({
+      account,
+      page: "earn",
+      text: t("pages.earn.activity.cancel-withdraw-text", {
+        amount: formattedAmount,
+        symbol: vusd?.symbol,
+      }),
+      title: `${t("nav.earn")} · ${t("pages.earn.exit-tickets.delete-title")}`,
+    });
 
   const { mutate } = useCancelWithdraw({
     assets: BigInt(ticket.assets),
     onStatusChange(status) {
-      if (status === "cancelling") {
-        setIsDeleting(true);
-      }
-      if (status === "completed") {
-        onClose();
-        onSuccess();
-      }
-      if (status === "failed") {
-        setIsDeleting(false);
-      }
+      const handlers: Partial<Record<typeof status, () => void>> = {
+        cancelling() {
+          onPending();
+          setIsDeleting(true);
+        },
+        completed() {
+          onConcluded();
+          onClose();
+          onSuccess?.();
+        },
+        failed() {
+          onFailed();
+          setIsDeleting(false);
+        },
+      };
+      handlers[status]?.();
     },
+    onTransactionHash,
     requestId: BigInt(ticket.requestId),
   });
 

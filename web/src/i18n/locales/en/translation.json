@@ -67,6 +67,14 @@
       "title": "Hello Bridge"
     },
     "earn": {
+      "activity": {
+        "cancel-withdraw-text": "{{amount}} {{symbol}} exit ticket deleted",
+        "claim-withdraw-batch-text": "All withdrawals claimed",
+        "claim-withdraw-text": "{{amount}} {{symbol}} withdrawn",
+        "deposit-text": "{{amount}} {{symbol}} staked",
+        "instant-withdraw-text": "{{amount}} {{symbol}} withdrawn",
+        "request-withdraw-text": "{{amount}} {{symbol}} sent to exit vault"
+      },
       "exit-tickets": {
         "actions": "Actions",
         "col-cooldown-left": "Cooldown left",
@@ -262,9 +270,12 @@
     },
     "wallet": {
       "disconnect-wallet": "Disconnect wallet",
+      "filter-error": "Error",
+      "filter-success": "Success",
       "recent-activity": "Recent activity",
       "view-operations-from": "View operations from:",
-      "view-settings": "View settings"
+      "view-settings": "View settings",
+      "view-status-from": "And by status:"
     }
   }
 }
