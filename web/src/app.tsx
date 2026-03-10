@@ -10,7 +10,14 @@ import { Bridge } from "pages/bridge";
 import { Earn } from "pages/earn";
 import { Faq } from "pages/faq";
 import { Swap } from "pages/swap";
+import { Suspense, lazy } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
+
+const RedeemReadyNotification = lazy(() =>
+  import("components/swapForm/redeemReadyNotification").then((m) => ({
+    default: m.RedeemReadyNotification,
+  })),
+);
 
 export const App = () => (
   <BrowserRouter>
@@ -41,6 +48,9 @@ export const App = () => (
                     <Route element={<Faq />} path="faq" />
                   </Routes>
                 </AppLayout>
+                <Suspense>
+                  <RedeemReadyNotification />
+                </Suspense>
               </>
             }
             path="/:lang/*"

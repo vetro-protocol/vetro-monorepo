@@ -6,7 +6,7 @@ const meta: Meta<typeof ChevronIcon> = {
   argTypes: {
     direction: {
       control: "select",
-      options: ["down", "up"],
+      options: ["down", "right", "up"],
     },
   },
   component: ChevronIcon,

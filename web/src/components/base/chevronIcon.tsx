@@ -1,10 +1,16 @@
+const rotations = {
+  down: "",
+  right: "-rotate-90",
+  up: "rotate-180",
+} as const;
+
 type Props = {
-  direction?: "down" | "up";
+  direction?: keyof typeof rotations;
 };
 
 export const ChevronIcon = ({ direction = "down" }: Props) => (
   <svg
-    className={`inline-block size-4 shrink-0 ${direction === "up" ? "rotate-180" : ""}`}
+    className={`inline-block size-4 shrink-0 ${rotations[direction]}`}
     fill="currentColor"
     viewBox="0 0 20 20"
   >
