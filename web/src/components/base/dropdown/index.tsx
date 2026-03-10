@@ -10,13 +10,19 @@ import { createPortal } from "react-dom";
 
 import { useMenuPosition } from "../../../hooks/useMenuPosition";
 
+export type DropdownSection<T> = {
+  items: T[];
+  label: string;
+};
+
 type BaseProps<T> = {
   getItemKey: (item: T) => string;
-  items: T[];
+  items?: T[];
   matchTriggerWidth?: boolean;
   menuLabel?: string;
   renderItem: (item: T, isSelected: boolean) => ReactNode;
   renderTrigger: (isOpen: boolean) => ReactNode;
+  sections?: DropdownSection<T>[];
   triggerId: string;
 };
 
@@ -41,13 +47,16 @@ const isMultiSelect = <T,>(
 export function Dropdown<T>(props: DropdownProps<T>) {
   const {
     getItemKey,
-    items,
+    items: itemsProp,
     matchTriggerWidth = false,
     menuLabel,
     renderItem,
     renderTrigger,
+    sections,
     triggerId,
   } = props;
+
+  const items = sections ? sections.flatMap((s) => s.items) : (itemsProp ?? []);
 
   const [isOpen, setIsOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
@@ -179,26 +188,57 @@ export function Dropdown<T>(props: DropdownProps<T>) {
                 {menuLabel}
               </div>
             )}
-            {items.map(function (item, index) {
-              const isSelected = isItemSelected(item);
-              const isFocused = index === focusedIndex;
-
-              return (
-                <div
-                  {...(multi
-                    ? { "aria-checked": isSelected }
-                    : { "aria-selected": isSelected })}
-                  className={`text-xsm flex cursor-pointer items-center rounded px-3 py-2 ${isFocused ? "bg-gray-100" : "hover:bg-gray-50"}`}
-                  key={getItemKey(item)}
-                  onClick={() => handleItemClick(item)}
-                  role={itemRole}
-                >
-                  <div className="flex w-full items-center justify-between gap-2 font-medium text-gray-900">
-                    {renderItem(item, isSelected)}
+            {sections
+              ? sections.map((section) => (
+                  <div key={section.label}>
+                    <div
+                      className="text-xsm px-3 py-2 font-medium text-gray-500"
+                      role="presentation"
+                    >
+                      {section.label}
+                    </div>
+                    {section.items.map(function (item) {
+                      const index = items.indexOf(item);
+                      const isSelected = isItemSelected(item);
+                      const isFocused = index === focusedIndex;
+                      return (
+                        <div
+                          {...(multi
+                            ? { "aria-checked": isSelected }
+                            : { "aria-selected": isSelected })}
+                          className={`text-xsm flex cursor-pointer items-center rounded px-3 py-2 ${isFocused ? "bg-gray-100" : "hover:bg-gray-50"}`}
+                          key={getItemKey(item)}
+                          onClick={() => handleItemClick(item)}
+                          role={itemRole}
+                        >
+                          <div className="flex w-full items-center justify-between gap-2 font-medium text-gray-900">
+                            {renderItem(item, isSelected)}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                </div>
-              );
-            })}
+                ))
+              : items.map(function (item, index) {
+                  const isSelected = isItemSelected(item);
+                  const isFocused = index === focusedIndex;
+
+                  return (
+                    <div
+                      {...(multi
+                        ? { "aria-checked": isSelected }
+                        : { "aria-selected": isSelected })}
+                      className={`text-xsm flex cursor-pointer items-center rounded px-3 py-2 ${isFocused ? "bg-gray-100" : "hover:bg-gray-50"}`}
+                      key={getItemKey(item)}
+                      onClick={() => handleItemClick(item)}
+                      role={itemRole}
+                    >
+                      <div className="flex w-full items-center justify-between gap-2 font-medium text-gray-900">
+                        {renderItem(item, isSelected)}
+                      </div>
+                    </div>
+                  );
+                })}
           </div>,
           document.body,
         )}

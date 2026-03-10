@@ -11,8 +11,9 @@ function notify() {
   subscribers.forEach((cb) => cb());
 }
 
-const storageKey = (address: string) =>
-  `${storageKeyPrefix}${address.toLowerCase()}`;
+const storageKey = (address: string) => `${storageKeyPrefix}${address}`;
+
+const normalize = (address: string) => address.toLowerCase();
 
 function read(address: string) {
   if (cache.has(address)) {
@@ -30,7 +31,11 @@ function read(address: string) {
 
 function write(address: string, activities: Activity[]) {
   cache.set(address, activities);
-  localStorage.setItem(storageKey(address), JSON.stringify(activities));
+  try {
+    localStorage.setItem(storageKey(address), JSON.stringify(activities));
+  } catch {
+    // Ignore persistence errors (e.g., quota exceeded)
+  }
   notify();
 }
 
@@ -38,8 +43,9 @@ export function addActivity(
   address: string,
   activity: Omit<Activity, "id">,
 ): string {
+  const key = normalize(address);
   const id = crypto.randomUUID();
-  write(address, [{ ...activity, id }, ...read(address)]);
+  write(key, [{ ...activity, id }, ...read(key)]);
   return id;
 }
 
@@ -48,9 +54,10 @@ export function updateActivity(
   id: string,
   updates: Partial<Omit<Activity, "id">>,
 ) {
+  const key = normalize(address);
   write(
-    address,
-    read(address).map((a) => (a.id === id ? { ...a, ...updates } : a)),
+    key,
+    read(key).map((a) => (a.id === id ? { ...a, ...updates } : a)),
   );
 }
 
@@ -62,6 +69,6 @@ function subscribe(cb: () => void) {
 export const useActivities = (address: string | undefined): Activity[] =>
   useSyncExternalStore(
     subscribe,
-    () => (address ? read(address) : empty),
+    () => (address ? read(normalize(address)) : empty),
     () => empty,
   );

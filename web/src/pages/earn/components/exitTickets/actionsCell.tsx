@@ -26,7 +26,7 @@ type Props = {
 type WithdrawButtonProps = {
   disabled: boolean;
   isWithdrawing: boolean;
-  onConnectWallet: VoidFunction;
+  onConnectWallet: VoidFunction | undefined;
   onWithdraw: VoidFunction;
 };
 
@@ -134,7 +134,7 @@ export function ActionsCell({
             <WithdrawButton
               disabled={disabled}
               isWithdrawing={isWithdrawing}
-              onConnectWallet={openConnectModal!}
+              onConnectWallet={openConnectModal}
               onWithdraw={handleWithdraw}
             />
           )}
