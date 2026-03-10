@@ -73,7 +73,6 @@ export function ActionsCell({
   ticket,
 }: Props) {
   const { t } = useTranslation();
-  const { address: account } = useAccount();
   const { openConnectModal } = useConnectModal();
   const { data: vusd } = useVusd();
   const status = getTicketStatus(ticket);
@@ -87,9 +86,8 @@ export function ActionsCell({
     isError: false,
   });
 
-  const { onConcluded, onFailed, onPending, onTransactionHash } =
+  const { onCompleted, onFailed, onPending, onTransactionHash } =
     useActivityTracking({
-      account,
       page: "earn",
       text: t("pages.earn.activity.claim-withdraw-text", {
         amount: formattedAmount,
@@ -103,7 +101,7 @@ export function ActionsCell({
       const handlers: Partial<Record<typeof claimStatus, () => void>> = {
         claiming: onPending,
         completed() {
-          onConcluded();
+          onCompleted();
           setIsWithdrawing(false);
           setShowWithdrawToast(true);
           onWithdrawingChange?.(false);

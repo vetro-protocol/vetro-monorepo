@@ -94,7 +94,8 @@ export const useStakeDeposit = function ({
         onStatusChange?.("approved");
       });
 
-      emitter.on("user-signed-deposit", function () {
+      emitter.on("user-signed-deposit", function (hash) {
+        onTransactionHash?.(hash);
         onStatusChange?.("depositing");
       });
 
@@ -128,7 +129,6 @@ export const useStakeDeposit = function ({
         "deposit-transaction-reverted",
         function (receipt: TransactionReceipt) {
           updateNativeBalanceAfterReceipt(receipt);
-          onTransactionHash?.(receipt.transactionHash);
           onStatusChange?.("deposit-failed");
         },
       );
@@ -137,7 +137,6 @@ export const useStakeDeposit = function ({
         "deposit-transaction-succeeded",
         function (receipt: TransactionReceipt) {
           updateNativeBalanceAfterReceipt(receipt);
-          onTransactionHash?.(receipt.transactionHash);
           onStatusChange?.("completed");
           onSuccess?.();
 

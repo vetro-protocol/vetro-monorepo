@@ -120,7 +120,7 @@ export function ExitTickets() {
   const { data: cooldownDuration } = useCooldownDuration();
   const { data, isLoading } = useExitTickets();
   const { i18n, t } = useTranslation();
-  const { address: account, isConnected } = useAccount();
+  const { isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
   const [selectedFilters, setSelectedFilters] = useState([
     "completed",
@@ -141,9 +141,8 @@ export function ExitTickets() {
     [readyTickets],
   );
 
-  const { onConcluded, onFailed, onPending, onTransactionHash } =
+  const { onCompleted, onFailed, onPending, onTransactionHash } =
     useActivityTracking({
-      account,
       page: "earn",
       text: t("pages.earn.activity.claim-withdraw-batch-text"),
       title: `${t("nav.earn")} · ${t("pages.earn.exit-tickets.withdraw-all")}`,
@@ -154,7 +153,7 @@ export function ExitTickets() {
       const handlers: Partial<Record<typeof status, () => void>> = {
         claiming: onPending,
         completed() {
-          onConcluded();
+          onCompleted();
           setIsWithdrawingAll(false);
           setShowWithdrawAllToast(true);
         },

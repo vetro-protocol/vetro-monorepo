@@ -59,14 +59,14 @@ export function WalletDrawerContent() {
   const { t } = useTranslation();
   const [selectedFilters, setSelectedFilters] = useState<string[]>([
     "borrow",
-    "concluded",
+    "completed",
     "earn",
     "failed",
     "swap",
   ]);
 
-  const activities = useActivities(address);
-  const explorerBaseUrl = chain.blockExplorers?.default.url ?? "";
+  const activities = useActivities(address, chain.id);
+  const explorerBaseUrl = chain.blockExplorers!.default.url;
 
   const filteredActivities = activities.filter(
     (a) =>
@@ -133,7 +133,7 @@ export function WalletDrawerContent() {
                 options: [
                   {
                     label: t("pages.wallet.filter-success"),
-                    value: "concluded",
+                    value: "completed",
                   },
                   { label: t("pages.wallet.filter-error"), value: "failed" },
                 ],
@@ -146,7 +146,7 @@ export function WalletDrawerContent() {
           <div className="absolute inset-0 overflow-y-auto px-4 py-6 md:px-6">
             <ActivityList items={itemsWithHref} />
           </div>
-          <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-34 bg-gradient-to-b from-transparent to-gray-50 to-80%" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-34 bg-gradient-to-b from-transparent to-gray-50 to-80%" />
         </div>
       </div>
     </div>

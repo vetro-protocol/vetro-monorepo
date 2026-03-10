@@ -8,7 +8,7 @@ type Props = {
 export const ActivityList = ({ items }: Props) => (
   <div className="flex flex-col">
     {items.map((item) => (
-      <ActivityItem key={item.id} {...item} />
+      <ActivityItem key={item.txHash} {...item} />
     ))}
   </div>
 );

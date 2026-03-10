@@ -93,7 +93,7 @@ export const WithMultipleSections: Story = {
   render: function Component() {
     const [selected, setSelected] = useState([
       "borrow",
-      "concluded",
+      "completed",
       "earn",
       "failed",
       "swap",
@@ -116,7 +116,7 @@ export const WithMultipleSections: Story = {
           {
             label: "And by status:",
             options: [
-              { label: "Success", value: "concluded" },
+              { label: "Success", value: "completed" },
               { label: "Error", value: "failed" },
             ],
           },

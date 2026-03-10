@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import type { Address, Chain } from "viem";
 
 import type { Activity } from "../components/base/activityList/types";
 
@@ -11,28 +12,31 @@ function notify() {
   subscribers.forEach((cb) => cb());
 }
 
-const storageKey = (address: string) => `${storageKeyPrefix}${address}`;
+const normalize = (address: Address) => address.toLowerCase();
 
-const normalize = (address: string) => address.toLowerCase();
+const storageKey = (address: Address, chainId: Chain["id"]) =>
+  `${storageKeyPrefix}${chainId}:${normalize(address)}`;
 
-function read(address: string) {
-  if (cache.has(address)) {
-    return cache.get(address)!;
+function read(address: Address, chainId: Chain["id"]) {
+  const key = storageKey(address, chainId);
+  if (cache.has(key)) {
+    return cache.get(key)!;
   }
   try {
-    const raw = localStorage.getItem(storageKey(address));
+    const raw = localStorage.getItem(key);
     const data = raw ? (JSON.parse(raw) as Activity[]) : empty;
-    cache.set(address, data);
+    cache.set(key, data);
     return data;
   } catch {
     return empty;
   }
 }
 
-function write(address: string, activities: Activity[]) {
-  cache.set(address, activities);
+function write(address: Address, chainId: Chain["id"], activities: Activity[]) {
+  const key = storageKey(address, chainId);
+  cache.set(key, activities);
   try {
-    localStorage.setItem(storageKey(address), JSON.stringify(activities));
+    localStorage.setItem(key, JSON.stringify(activities));
   } catch {
     // Ignore persistence errors (e.g., quota exceeded)
   }
@@ -40,24 +44,25 @@ function write(address: string, activities: Activity[]) {
 }
 
 export function addActivity(
-  address: string,
-  activity: Omit<Activity, "id">,
-): string {
-  const key = normalize(address);
-  const id = crypto.randomUUID();
-  write(key, [{ ...activity, id }, ...read(key)]);
-  return id;
+  address: Address,
+  chainId: Chain["id"],
+  activity: Activity,
+) {
+  write(address, chainId, [activity, ...read(address, chainId)]);
 }
 
 export function updateActivity(
-  address: string,
-  id: string,
-  updates: Partial<Omit<Activity, "id">>,
+  address: Address,
+  chainId: Chain["id"],
+  txHash: string,
+  updates: Partial<Omit<Activity, "txHash">>,
 ) {
-  const key = normalize(address);
   write(
-    key,
-    read(key).map((a) => (a.id === id ? { ...a, ...updates } : a)),
+    address,
+    chainId,
+    read(address, chainId).map((a) =>
+      a.txHash === txHash ? { ...a, ...updates } : a,
+    ),
   );
 }
 
@@ -66,9 +71,12 @@ function subscribe(cb: () => void) {
   return () => subscribers.delete(cb);
 }
 
-export const useActivities = (address: string | undefined): Activity[] =>
+export const useActivities = (
+  address: Address | undefined,
+  chainId: Chain["id"],
+): Activity[] =>
   useSyncExternalStore(
     subscribe,
-    () => (address ? read(normalize(address)) : empty),
+    () => (address ? read(address, chainId) : empty),
     () => empty,
   );

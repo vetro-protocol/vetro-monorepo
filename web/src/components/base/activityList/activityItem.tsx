@@ -6,7 +6,7 @@ import { EarnIcon } from "../../navbar/earnIcon";
 import { SwapIcon } from "../../navbar/swapIcon";
 import { ExternalLink } from "../externalLink";
 
-import { ConcludedBadgeIcon } from "./icons/concludedBadgeIcon";
+import { CompletedBadgeIcon } from "./icons/completedBadgeIcon";
 import { FailedBadgeIcon } from "./icons/failedBadgeIcon";
 import { PendingBadgeIcon } from "./icons/pendingBadgeIcon";
 import type { Activity } from "./types";
@@ -18,7 +18,7 @@ const pageIcons = {
 } as const;
 
 const statusBadgeIcons = {
-  concluded: ConcludedBadgeIcon,
+  completed: CompletedBadgeIcon,
   failed: FailedBadgeIcon,
   pending: PendingBadgeIcon,
 } as const;

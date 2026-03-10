@@ -62,7 +62,8 @@ export const useCancelWithdraw = function ({
         requestId,
       });
 
-      emitter.on("user-signed-cancel-withdraw", function () {
+      emitter.on("user-signed-cancel-withdraw", function (hash) {
+        onTransactionHash?.(hash);
         onStatusChange("cancelling");
       });
 
@@ -72,13 +73,11 @@ export const useCancelWithdraw = function ({
 
       emitter.on("cancel-withdraw-transaction-reverted", function (receipt) {
         updateNativeBalanceAfterReceipt(receipt);
-        onTransactionHash?.(receipt.transactionHash);
         onStatusChange("failed");
       });
 
       emitter.on("cancel-withdraw-transaction-succeeded", function (receipt) {
         updateNativeBalanceAfterReceipt(receipt);
-        onTransactionHash?.(receipt.transactionHash);
         onStatusChange("completed");
 
         // Optimistically remove ticket from cache

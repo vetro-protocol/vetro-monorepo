@@ -63,7 +63,8 @@ export const useClaimWithdrawBatch = function ({
         requestIds,
       });
 
-      emitter.on("user-signed-claim-withdraw-batch", function () {
+      emitter.on("user-signed-claim-withdraw-batch", function (hash) {
+        onTransactionHash?.(hash);
         onStatusChange("claiming");
       });
 
@@ -75,7 +76,6 @@ export const useClaimWithdrawBatch = function ({
         "claim-withdraw-batch-transaction-reverted",
         function (receipt) {
           updateNativeBalanceAfterReceipt(receipt);
-          onTransactionHash?.(receipt.transactionHash);
           onStatusChange("failed");
         },
       );
@@ -84,7 +84,6 @@ export const useClaimWithdrawBatch = function ({
         "claim-withdraw-batch-transaction-succeeded",
         function (receipt) {
           updateNativeBalanceAfterReceipt(receipt);
-          onTransactionHash?.(receipt.transactionHash);
           onStatusChange("completed");
 
           // Optimistically mark all claimed tickets as withdrawn

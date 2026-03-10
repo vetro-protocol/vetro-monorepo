@@ -64,7 +64,8 @@ export const useStakeWithdraw = function ({
         owner: account,
       });
 
-      emitter.on("user-signed-request-withdraw", function () {
+      emitter.on("user-signed-request-withdraw", function (hash) {
+        onTransactionHash?.(hash);
         onStatusChange?.("requesting");
       });
 
@@ -76,7 +77,6 @@ export const useStakeWithdraw = function ({
         "request-withdraw-transaction-reverted",
         function (receipt: TransactionReceipt) {
           updateNativeBalanceAfterReceipt(receipt);
-          onTransactionHash?.(receipt.transactionHash);
           onStatusChange?.("request-failed");
         },
       );
@@ -85,7 +85,6 @@ export const useStakeWithdraw = function ({
         "request-withdraw-transaction-succeeded",
         function (receipt: TransactionReceipt) {
           updateNativeBalanceAfterReceipt(receipt);
-          onTransactionHash?.(receipt.transactionHash);
           onStatusChange?.("completed");
           onSuccess?.();
 

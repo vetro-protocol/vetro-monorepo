@@ -141,7 +141,6 @@ export function StakeWithdrawForm({
   const { data: vusd } = useVusd();
 
   const instantTracking = useActivityTracking({
-    account,
     page: "earn",
     text: t("pages.earn.activity.instant-withdraw-text", {
       amount: inputValue,
@@ -151,7 +150,6 @@ export function StakeWithdrawForm({
   });
 
   const requestTracking = useActivityTracking({
-    account,
     page: "earn",
     text: t("pages.earn.activity.request-withdraw-text", {
       amount: inputValue,
@@ -190,7 +188,7 @@ export function StakeWithdrawForm({
     function handleWithdrawStepChange(step: WithdrawStep) {
       onWithdrawStepChange(step);
       const handlers: Partial<Record<WithdrawStep, () => void>> = {
-        completed: tracking.onConcluded,
+        completed: tracking.onCompleted,
         failed: tracking.onFailed,
         "request-failed": tracking.onFailed,
         requesting: tracking.onPending,

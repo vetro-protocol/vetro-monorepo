@@ -19,7 +19,7 @@ type Props = {
 
 export function DeleteTicketModal({ onClose, onSuccess, ticket }: Props) {
   const { t } = useTranslation();
-  const { address: account, isConnected } = useAccount();
+  const { isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
   const { data: vusd } = useVusd();
   const [isDeleting, setIsDeleting] = useState(false);
@@ -30,9 +30,8 @@ export function DeleteTicketModal({ onClose, onSuccess, ticket }: Props) {
     isError: false,
   });
 
-  const { onConcluded, onFailed, onPending, onTransactionHash } =
+  const { onCompleted, onFailed, onPending, onTransactionHash } =
     useActivityTracking({
-      account,
       page: "earn",
       text: t("pages.earn.activity.cancel-withdraw-text", {
         amount: formattedAmount,
@@ -50,7 +49,7 @@ export function DeleteTicketModal({ onClose, onSuccess, ticket }: Props) {
           setIsDeleting(true);
         },
         completed() {
-          onConcluded();
+          onCompleted();
           onClose();
           onSuccess?.();
         },

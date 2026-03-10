@@ -61,7 +61,8 @@ export const useClaimWithdraw = function ({
         requestId,
       });
 
-      emitter.on("user-signed-claim-withdraw", function () {
+      emitter.on("user-signed-claim-withdraw", function (hash) {
+        onTransactionHash?.(hash);
         onStatusChange("claiming");
       });
 
@@ -71,13 +72,11 @@ export const useClaimWithdraw = function ({
 
       emitter.on("claim-withdraw-transaction-reverted", function (receipt) {
         updateNativeBalanceAfterReceipt(receipt);
-        onTransactionHash?.(receipt.transactionHash);
         onStatusChange("failed");
       });
 
       emitter.on("claim-withdraw-transaction-succeeded", function (receipt) {
         updateNativeBalanceAfterReceipt(receipt);
-        onTransactionHash?.(receipt.transactionHash);
         onStatusChange("completed");
 
         // Optimistically mark ticket as withdrawn by setting claimTxHash

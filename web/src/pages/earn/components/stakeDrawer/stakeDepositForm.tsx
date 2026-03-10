@@ -188,9 +188,8 @@ export function StakeDepositForm({
 
   const approveAmount = approve10x ? amountBigInt * 10n : undefined;
 
-  const { onConcluded, onFailed, onPending, onTransactionHash } =
+  const { onCompleted, onFailed, onPending, onTransactionHash } =
     useActivityTracking({
-      account,
       page: "earn",
       text: t("pages.earn.activity.deposit-text", {
         amount: inputValue,
@@ -203,13 +202,13 @@ export function StakeDepositForm({
     function handleDepositStepChange(step: DepositStep) {
       onDepositStepChange(step);
       const handlers: Partial<Record<DepositStep, () => void>> = {
-        completed: onConcluded,
+        completed: onCompleted,
         "deposit-failed": onFailed,
         depositing: onPending,
       };
       handlers[step]?.();
     },
-    [onConcluded, onDepositStepChange, onFailed, onPending],
+    [onCompleted, onDepositStepChange, onFailed, onPending],
   );
 
   const handleDepositSuccess = useCallback(
