@@ -17,10 +17,13 @@
       "apr": "{{value}} TEA",
       "available-to-borrow": "Disponible para pedir prestado",
       "borrow-apr": "TEA",
+      "borrow-more": "Pedir más prestado",
       "borrowing-review": "Resumen del préstamo",
       "collateral": "Garantía",
       "daily-interest-cost": "Costo de interés diario",
       "daily-interest-cost-tooltip": "Cuánto interés acumula por día basado en su monto prestado y la tasa efectiva. Le da una idea real del costo diario de mantener este préstamo.",
+      "daily-interest-per-day": "${{value}} / día",
+      "drop-from-price": "{{percentage}} desde ${{price}}",
       "effective-interest": "Interés efectivo",
       "effective-interest-tooltip": "La tasa anual real que paga después de descuentos. Es la tasa base menos cualquier reembolso al que califique.",
       "enter-amount": "Ingrese un monto",
@@ -38,6 +41,7 @@
       "market-details": "Detalles del mercado",
       "markets-title": "Mercados",
       "max-available": "Máximo disponible",
+      "max-lltv": "Max {{value}}",
       "no-positions-description": "Deposite garantía para pedir prestado {{symbol}} y poner sus activos a trabajar.",
       "no-positions-title": "Aún no hay posiciones de préstamos activos",
       "pool-size": "Tamaño del fondo",
@@ -53,13 +57,16 @@
         "supply-collateral-title": "Depositar garantía",
         "title": "Préstamo en progreso"
       },
+      "repay-loan": "Pagar préstamo",
       "supply-collateral-and-borrow": "Depositar garantía y pedir prestado",
+      "supply-more-collateral": "Depositar más garantía",
       "title": "Proporcione BTC o ETH para pedir prestado {{symbol}}",
       "toast": {
         "description": "{{amount}} {{symbol}} enviados a su billetera.",
         "title": "Préstamo exitoso"
       },
       "view-positions": "Ver posiciones",
+      "withdraw-collateral": "Retirar garantía",
       "you-are-borrowing": "Está pidiendo prestado",
       "you-are-depositing": "Está depositando como garantía"
     },

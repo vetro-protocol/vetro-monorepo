@@ -14,6 +14,25 @@ const oraclePriceDecimals = 36;
 const wadDecimals = 18;
 
 /**
+ * Converts a raw oracle-scaled bigint to a plain number by fully descaling
+ * using both token decimals. The raw value is scaled by
+ * `10^(36 + loanDecimals - collateralDecimals)`.
+ */
+export const formatOraclePrice = function ({
+  collateralTokenDecimals,
+  loanTokenDecimals,
+  value,
+}: {
+  collateralTokenDecimals: number;
+  loanTokenDecimals: number;
+  value: bigint;
+}): number {
+  const decimalScale =
+    oraclePriceDecimals + loanTokenDecimals - collateralTokenDecimals;
+  return Number(formatUnits(value, decimalScale));
+};
+
+/**
  * Calculates the daily interest cost for a borrow position: (borrowAmount * borrowApy) / 365.
  * @see https://docs.morpho.org/build/borrow/concepts/interest-rates
  */
@@ -71,25 +90,30 @@ export const calculateLiquidationPrice = function ({
   if (raw === null || raw === maxUint256 || loanUsdPrice <= 0) {
     return null;
   }
-  const decimalScale =
-    oraclePriceDecimals + loanTokenDecimals - collateralTokenDecimals;
-  return Number(formatUnits(raw, decimalScale)) * loanUsdPrice;
+  return (
+    formatOraclePrice({
+      collateralTokenDecimals,
+      loanTokenDecimals,
+      value: raw,
+    }) * loanUsdPrice
+  );
 };
 
 /**
- * Converts a raw oracle-scaled bigint to the loan token's native unit bigint.
- * The raw value is scaled by `10^(36 + loanDecimals - collateralDecimals)`;
- * dividing by `10^(36 - collateralDecimals)` leaves `10^loanDecimals`.
+ * Calculates the percentage drop from the current collateral price to the
+ * liquidation price. Returns `null` when `collateralUsd` is not positive.
  */
-export const descaleOraclePrice = function ({
-  collateralTokenDecimals,
-  value,
+export const calculatePriceDropPercentage = function ({
+  collateralUsd,
+  liquidationUsd,
 }: {
-  collateralTokenDecimals: number;
-  value: bigint;
-}): bigint {
-  const exponent = oraclePriceDecimals - collateralTokenDecimals;
-  return value / 10n ** BigInt(exponent);
+  collateralUsd: number;
+  liquidationUsd: number;
+}): number | null {
+  if (collateralUsd <= 0) {
+    return null;
+  }
+  return ((liquidationUsd - collateralUsd) / collateralUsd) * 100;
 };
 
 /**
