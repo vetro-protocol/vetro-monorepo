@@ -1,6 +1,10 @@
 {
   "extends": ["bloq", "prettier"],
-  "ignorePatterns": ["web/dist/**/*", "web/storybook-static/**/*"],
+  "ignorePatterns": [
+    "api/.wrangler/**/*",
+    "web/dist/**/*",
+    "web/storybook-static/**/*"
+  ],
   "overrides": [
     {
       "excludedFiles": ["subgraph/generated/**/*", "web/dist/**/*"],
