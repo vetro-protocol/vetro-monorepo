@@ -1,21 +1,16 @@
-import { useEstimateApproveErc20Fees } from "@hemilabs/react-hooks/useEstimateApproveErc20Fees";
 import { useEstimateFees } from "@hemilabs/react-hooks/useEstimateFees";
-import { useNeedsApproval } from "@hemilabs/react-hooks/useNeedsApproval";
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
 import { getChainAddresses } from "@morpho-org/blue-sdk";
-import {
-  encodeBorrowAssets,
-  encodeSupplyCollateral,
-} from "@vetro/morpho-blue-market/actions";
+import { encodeBorrowAssets } from "@vetro/morpho-blue-market/actions";
 import { useMainnet } from "hooks/useMainnet";
 import { useNetworkFee } from "hooks/useNetworkFee";
 import type { Token } from "types";
-import { createErc20AllowanceStateOverride } from "utils/erc20StateOverride";
 import { sumFees } from "utils/fees";
 import { createMorphoCollateralStateOverride } from "utils/morphoStateOverride";
 import { type Hash } from "viem";
 import { useAccount, useEstimateGas } from "wagmi";
 
+import { useEstimateSupplyCollateralFees } from "./useEstimateSupplyCollateralFees";
 import { useMorphoMarket } from "./useMorphoMarket";
 
 type Params = {
@@ -55,53 +50,16 @@ export function useSupplyAndBorrowFees({
     collateralAmount > 0n,
     !!address,
     hasEnoughBalance,
-    morphoMarket !== undefined,
     withinBorrowLimit,
   ].every(Boolean);
 
-  const { data: needsApproval } = useNeedsApproval({
-    amount: collateralAmount,
-    spender: morphoAddress,
-    token: collateralToken,
-  });
-
-  const { fees: approvalFees, isError: isApprovalError } =
-    useEstimateApproveErc20Fees({
-      amount: collateralAmount,
-      enabled: canEstimate && !!needsApproval,
-      spender: morphoAddress,
-      token: {
-        address: collateralToken.address,
-        chainId: collateralToken.chainId,
-      },
+  const { fees: supplyCollateralFees, isError: isSupplyCollateralError } =
+    useEstimateSupplyCollateralFees({
+      canEstimate,
+      collateralAmount,
+      collateralToken,
+      marketId,
     });
-
-  const allowanceStateOverride = createErc20AllowanceStateOverride({
-    owner: address,
-    spender: morphoAddress,
-    token: collateralToken,
-  });
-
-  const { data: supplyGasUnits, isError: isSupplyGasUnitsError } =
-    useEstimateGas({
-      chainId: ethereumChain.id,
-      data: canEstimate
-        ? encodeSupplyCollateral({
-            amount: collateralAmount,
-            marketParams: morphoMarket!.params,
-            onBehalf: address!,
-          })
-        : undefined,
-      query: { enabled: canEstimate },
-      stateOverride: allowanceStateOverride,
-      to: morphoAddress,
-    });
-
-  const { fees: supplyFees, isError: isSupplyFeeError } = useEstimateFees({
-    chainId: ethereumChain.id,
-    gasUnits: supplyGasUnits,
-    isGasUnitsError: isSupplyGasUnitsError,
-  });
 
   const borrowStateOverride = createMorphoCollateralStateOverride({
     collateralAmount,
@@ -113,15 +71,19 @@ export function useSupplyAndBorrowFees({
   const { data: borrowGasUnits, isError: isBorrowGasUnitsError } =
     useEstimateGas({
       chainId: ethereumChain.id,
-      data: canEstimate
-        ? encodeBorrowAssets({
-            amount: borrowAmount,
-            marketParams: morphoMarket!.params,
-            onBehalf: address!,
-            receiver: address!,
-          })
-        : undefined,
-      query: { enabled: canEstimate, retry: false },
+      data:
+        canEstimate && morphoMarket !== undefined
+          ? encodeBorrowAssets({
+              amount: borrowAmount,
+              marketParams: morphoMarket!.params,
+              onBehalf: address!,
+              receiver: address!,
+            })
+          : undefined,
+      query: {
+        enabled: canEstimate && morphoMarket !== undefined,
+        retry: false,
+      },
       stateOverride: borrowStateOverride,
       to: morphoAddress,
     });
@@ -132,9 +94,7 @@ export function useSupplyAndBorrowFees({
     isGasUnitsError: isBorrowGasUnitsError,
   });
 
-  const totalFees = needsApproval
-    ? sumFees([approvalFees, supplyFees, borrowFees])
-    : sumFees([supplyFees, borrowFees]);
+  const totalFees = sumFees([supplyCollateralFees, borrowFees]);
 
   const hasUserInput =
     borrowAmount > 0n &&
@@ -142,9 +102,8 @@ export function useSupplyAndBorrowFees({
     hasEnoughBalance &&
     withinBorrowLimit;
 
-  const isError = [isApprovalError, isSupplyFeeError, isBorrowFeeError].some(
-    Boolean,
-  );
+  const isError = isSupplyCollateralError || isBorrowFeeError;
+
   return useNetworkFee({
     fees: totalFees,
     isEnabled: hasUserInput,
