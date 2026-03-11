@@ -7,7 +7,7 @@ import type { Token } from "types";
 import { formatFiatNumber, formatPercentage } from "utils/format";
 import { parseUnits } from "viem";
 
-import { HealthFactor } from "./healthFactor";
+import { HealthFactor, HealthFactorBar } from "./healthFactor";
 
 type Props = {
   borrowApy: number;
@@ -65,7 +65,7 @@ export function BorrowingReview({
 }: Props) {
   const { t } = useTranslation();
 
-  const { dailyInterestCost, healthFactor, liquidationPrice, ltv } =
+  const { dailyInterestCost, healthFactor, liquidationPrice, lltv, ltv } =
     useBorrowReview({
       borrowApy,
       borrowInput,
@@ -84,7 +84,19 @@ export function BorrowingReview({
         label={t("pages.borrow.health-factor")}
         tooltip={t("pages.borrow.health-factor-tooltip")}
       >
-        <HealthFactor value={healthFactor} />
+        <div className="mr-auto ml-2">
+          <HealthFactorBar
+            lltv={lltv ?? 0}
+            ltv={ltv !== null ? ltv * 100 : null}
+          />
+        </div>
+        <span className="text-h4">
+          <HealthFactor
+            lltv={lltv ?? 0}
+            ltv={ltv !== null ? ltv * 100 : null}
+            value={healthFactor}
+          />
+        </span>
       </ReviewRow>
       <ReviewRow
         label={t("pages.borrow.ltv")}

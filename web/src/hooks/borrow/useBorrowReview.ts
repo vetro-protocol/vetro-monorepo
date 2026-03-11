@@ -5,6 +5,7 @@ import {
   calculateHealthFactor,
   calculateLiquidationPrice,
   calculateLtv,
+  formatLtvAsPercentage,
 } from "utils/borrowReview";
 import { getTokenPrice } from "utils/token";
 import { parseUnits } from "viem";
@@ -15,6 +16,7 @@ export type ReviewValues = {
   dailyInterestCost: number | null;
   healthFactor: number | null;
   liquidationPrice: number | null;
+  lltv: number | null;
   ltv: number | null;
 };
 
@@ -31,6 +33,7 @@ const nullReview: ReviewValues = {
   dailyInterestCost: null,
   healthFactor: null,
   liquidationPrice: null,
+  lltv: null,
   ltv: null,
 };
 
@@ -80,6 +83,7 @@ export const useBorrowReview = function ({
       morphoMarket,
       position,
     }),
+    lltv: formatLtvAsPercentage(morphoMarket.params.lltv),
     ltv: calculateLtv({ morphoMarket, position }),
   };
 };
