@@ -1,5 +1,6 @@
 import { PageTitle } from "components/base/pageTitle";
 import { MarketsTable } from "components/borrow/marketsTable";
+import { PositionsTable } from "components/borrow/positionsTable";
 import { StripedDivider } from "components/stripedDivider";
 import { useVusd } from "hooks/useVusd";
 import { useTranslation } from "react-i18next";
@@ -22,6 +23,7 @@ export const Borrow = function () {
       <div className="w-full border-b border-gray-200 bg-gray-100">
         <StripedDivider />
       </div>
+      <PositionsTable marketIds={marketIds} />
     </>
   );
 };

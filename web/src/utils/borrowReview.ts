@@ -14,6 +14,25 @@ const oraclePriceDecimals = 36;
 const wadDecimals = 18;
 
 /**
+ * Converts a raw oracle-scaled bigint to a plain number by fully descaling
+ * using both token decimals. The raw value is scaled by
+ * `10^(36 + loanDecimals - collateralDecimals)`.
+ */
+export const formatOraclePrice = function ({
+  collateralTokenDecimals,
+  loanTokenDecimals,
+  value,
+}: {
+  collateralTokenDecimals: number;
+  loanTokenDecimals: number;
+  value: bigint;
+}): number {
+  const decimalScale =
+    oraclePriceDecimals + loanTokenDecimals - collateralTokenDecimals;
+  return Number(formatUnits(value, decimalScale));
+};
+
+/**
  * Calculates the daily interest cost for a borrow position: (borrowAmount * borrowApy) / 365.
  * @see https://docs.morpho.org/build/borrow/concepts/interest-rates
  */
@@ -24,6 +43,19 @@ export const calculateDailyInterestCost = ({
   borrowAmount: number;
   borrowApy: number;
 }): number => (borrowAmount * borrowApy) / 365;
+
+/**
+ * Converts a raw WAD-scaled bigint health factor to a number.
+ * Returns `null` for undefined or MaxUint256 (no debt).
+ */
+export const formatHealthFactor = function (
+  value: bigint | undefined,
+): number | null {
+  if (value === undefined || value === maxUint256) {
+    return null;
+  }
+  return Number(formatUnits(value, wadDecimals));
+};
 
 /**
  * Calculates the health factor for a position. Returns `null` when the position
@@ -38,13 +70,7 @@ export const calculateHealthFactor = function ({
   position: Position;
 }): number | null {
   const raw = morphoMarket.getHealthFactor(position);
-  // The SDK returns undefined when there's no position, and maxUint256 to
-  // represent an infinite health factor (no debt). Both mean "no active borrow,"
-  // so we normalize them to null.
-  if (raw === undefined || raw === maxUint256) {
-    return null;
-  }
-  return Number(formatUnits(raw, wadDecimals));
+  return formatHealthFactor(raw);
 };
 
 /**
@@ -71,10 +97,38 @@ export const calculateLiquidationPrice = function ({
   if (raw === null || raw === maxUint256 || loanUsdPrice <= 0) {
     return null;
   }
-  const decimalScale =
-    oraclePriceDecimals + loanTokenDecimals - collateralTokenDecimals;
-  return Number(formatUnits(raw, decimalScale)) * loanUsdPrice;
+  return (
+    formatOraclePrice({
+      collateralTokenDecimals,
+      loanTokenDecimals,
+      value: raw,
+    }) * loanUsdPrice
+  );
 };
+
+/**
+ * Calculates the percentage drop from the current collateral price to the
+ * liquidation price. Returns `null` when `collateralUsd` is not positive.
+ */
+export const calculatePriceDropPercentage = function ({
+  collateralUsd,
+  liquidationUsd,
+}: {
+  collateralUsd: number;
+  liquidationUsd: number;
+}): number | null {
+  if (collateralUsd <= 0) {
+    return null;
+  }
+  return ((liquidationUsd - collateralUsd) / collateralUsd) * 100;
+};
+
+/**
+ * Converts a raw WAD-scaled bigint LTV value to a percentage number
+ * (e.g. 0.5 WAD → 50).
+ */
+export const formatLtvAsPercentage = (value: bigint): number =>
+  Number(formatUnits(value * 100n, wadDecimals));
 
 /**
  * Calculates the loan-to-value ratio for a position as a decimal (e.g. 0.5 = 50%).

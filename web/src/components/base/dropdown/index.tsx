@@ -15,13 +15,24 @@ export type DropdownSection<T> = {
   label: string;
 };
 
+export type TriggerProps = {
+  "aria-expanded": boolean;
+  "aria-haspopup": "listbox" | "menu";
+  id: string;
+  onClick: () => void;
+  onKeyDown: (event: KeyboardEvent) => void;
+  ref: (node: HTMLElement | null) => void;
+  role: "button";
+  tabIndex: 0;
+};
+
 type BaseProps<T> = {
   getItemKey: (item: T) => string;
   items?: T[];
   matchTriggerWidth?: boolean;
   menuLabel?: string;
   renderItem: (item: T, isSelected: boolean) => ReactNode;
-  renderTrigger: (isOpen: boolean) => ReactNode;
+  renderTrigger: (isOpen: boolean, triggerProps: TriggerProps) => ReactNode;
   sections?: DropdownSection<T>[];
   triggerId: string;
 };
@@ -29,7 +40,7 @@ type BaseProps<T> = {
 type SingleSelectProps<T> = BaseProps<T> & {
   multiSelect?: false;
   onChange: (item: T) => void;
-  value: T;
+  value?: T;
 };
 
 type MultiSelectProps<T> = BaseProps<T> & {
@@ -60,7 +71,7 @@ export function Dropdown<T>(props: DropdownProps<T>) {
 
   const [isOpen, setIsOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
-  const triggerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
   const containerRef = useOnClickOutside<HTMLDivElement>(function (e) {
@@ -94,7 +105,9 @@ export function Dropdown<T>(props: DropdownProps<T>) {
     if (isMultiSelect(props)) {
       return props.selectedValues.includes(getItemKey(item));
     }
-    return getItemKey(item) === getItemKey(props.value);
+    return (
+      props.value !== undefined && getItemKey(item) === getItemKey(props.value)
+    );
   }
 
   const canOpenMenu = items.length > 1;
@@ -153,23 +166,28 @@ export function Dropdown<T>(props: DropdownProps<T>) {
   }
 
   const multi = isMultiSelect(props);
-  const listRole = multi ? "menu" : "listbox";
-  const itemRole = multi ? "menuitemcheckbox" : "option";
+  const hasSelection = !multi && props.value !== undefined;
+  const listRole = hasSelection ? "listbox" : "menu";
+  const itemRole = multi
+    ? "menuitemcheckbox"
+    : hasSelection
+      ? "option"
+      : "menuitem";
 
   return (
     <div className="relative inline-block" ref={containerRef}>
-      <div
-        aria-expanded={isOpen}
-        aria-haspopup={multi ? "true" : "listbox"}
-        id={triggerId}
-        onClick={handleTriggerClick}
-        onKeyDown={handleKeyDown}
-        ref={triggerRef}
-        role="button"
-        tabIndex={0}
-      >
-        {renderTrigger(isOpen)}
-      </div>
+      {renderTrigger(isOpen, {
+        "aria-expanded": isOpen,
+        "aria-haspopup": listRole,
+        id: triggerId,
+        onClick: handleTriggerClick,
+        onKeyDown: handleKeyDown,
+        ref(node: HTMLElement | null) {
+          triggerRef.current = node;
+        },
+        role: "button",
+        tabIndex: 0,
+      })}
 
       {isOpen &&
         createPortal(
@@ -205,7 +223,9 @@ export function Dropdown<T>(props: DropdownProps<T>) {
                         <div
                           {...(multi
                             ? { "aria-checked": isSelected }
-                            : { "aria-selected": isSelected })}
+                            : hasSelection
+                              ? { "aria-selected": isSelected }
+                              : {})}
                           className={`text-xsm flex cursor-pointer items-center rounded px-3 py-2 ${isFocused ? "bg-gray-100" : "hover:bg-gray-50"}`}
                           key={getItemKey(item)}
                           onClick={() => handleItemClick(item)}
@@ -227,8 +247,10 @@ export function Dropdown<T>(props: DropdownProps<T>) {
                     <div
                       {...(multi
                         ? { "aria-checked": isSelected }
-                        : { "aria-selected": isSelected })}
-                      className={`text-xsm flex cursor-pointer items-center rounded px-3 py-2 ${isFocused ? "bg-gray-100" : "hover:bg-gray-50"}`}
+                        : hasSelection
+                          ? { "aria-selected": isSelected }
+                          : {})}
+                      className={`text-xsm group/item flex cursor-pointer items-center rounded px-3 py-2 ${isFocused ? "bg-gray-100" : "hover:bg-gray-50"}`}
                       key={getItemKey(item)}
                       onClick={() => handleItemClick(item)}
                       role={itemRole}

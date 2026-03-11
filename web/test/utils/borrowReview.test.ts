@@ -4,8 +4,12 @@ import {
   calculateHealthFactor,
   calculateLiquidationPrice,
   calculateLtv,
+  calculatePriceDropPercentage,
+  formatHealthFactor,
+  formatLtvAsPercentage,
+  formatOraclePrice,
 } from "utils/borrowReview";
-import { parseUnits } from "viem";
+import { maxUint256, parseUnits } from "viem";
 import { describe, expect, it } from "vitest";
 
 // Collateral uses 8 decimals (like WBTC), loan uses 18 decimals
@@ -45,6 +49,27 @@ const createPosition = function (
 };
 
 describe("utils/borrowReview", function () {
+  describe("formatHealthFactor", function () {
+    it("returns a number for a valid bigint", function () {
+      // 1.5 in WAD scale (1.5 * 10^18)
+      const result = formatHealthFactor(parseUnits("1.5", 18));
+
+      expect(result).toBe(1.5);
+    });
+
+    it("returns null for undefined", function () {
+      const result = formatHealthFactor(undefined);
+
+      expect(result).toBeNull();
+    });
+
+    it("returns null for maxUint256", function () {
+      const result = formatHealthFactor(maxUint256);
+
+      expect(result).toBeNull();
+    });
+  });
+
   describe("calculateHealthFactor", function () {
     it("returns a number for a valid position", function () {
       const morphoMarket = createMarket();
@@ -183,6 +208,119 @@ describe("utils/borrowReview", function () {
         loanUsdPrice: 1,
         morphoMarket,
         position,
+      });
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe("formatOraclePrice", function () {
+    it("descales oracle price to a plain number", function () {
+      const oracleScale = 36 + loanDecimals - collateralDecimals;
+      const value = parseUnits("500", oracleScale);
+
+      const result = formatOraclePrice({
+        collateralTokenDecimals: collateralDecimals,
+        loanTokenDecimals: loanDecimals,
+        value,
+      });
+
+      expect(result).toBe(500);
+    });
+
+    it("handles equal decimals", function () {
+      const oracleScale = 36 + 18 - 18;
+      const value = parseUnits("1234.5", oracleScale);
+
+      const result = formatOraclePrice({
+        collateralTokenDecimals: 18,
+        loanTokenDecimals: 18,
+        value,
+      });
+
+      expect(result).toBe(1234.5);
+    });
+
+    it("returns 0 for a zero value", function () {
+      const result = formatOraclePrice({
+        collateralTokenDecimals: collateralDecimals,
+        loanTokenDecimals: loanDecimals,
+        value: 0n,
+      });
+
+      expect(result).toBe(0);
+    });
+  });
+
+  describe("formatLtvAsPercentage", function () {
+    it("converts 50% WAD-scaled LTV to 50", function () {
+      // 0.5 * 10^18
+      const result = formatLtvAsPercentage(parseUnits("0.5", 18));
+
+      expect(result).toBe(50);
+    });
+
+    it("converts 100% WAD-scaled LTV to 100", function () {
+      const result = formatLtvAsPercentage(parseUnits("1", 18));
+
+      expect(result).toBe(100);
+    });
+
+    it("converts 0 to 0", function () {
+      const result = formatLtvAsPercentage(0n);
+
+      expect(result).toBe(0);
+    });
+
+    it("converts a fractional percentage correctly", function () {
+      // 86% = 0.86 * 10^18
+      const result = formatLtvAsPercentage(parseUnits("0.86", 18));
+
+      expect(result).toBe(86);
+    });
+  });
+
+  describe("calculatePriceDropPercentage", function () {
+    it("returns negative percentage when liquidation price is below collateral price", function () {
+      const result = calculatePriceDropPercentage({
+        collateralUsd: 67857,
+        liquidationUsd: 28238,
+      });
+
+      expect(result).toBeCloseTo(-58.386, 2);
+    });
+
+    it("returns 0 when prices are equal", function () {
+      const result = calculatePriceDropPercentage({
+        collateralUsd: 1000,
+        liquidationUsd: 1000,
+      });
+
+      expect(result).toBe(0);
+    });
+
+    it("returns positive percentage when liquidation price is above collateral price", function () {
+      const result = calculatePriceDropPercentage({
+        collateralUsd: 1000,
+        liquidationUsd: 1500,
+      });
+
+      expect(result).toBe(50);
+    });
+
+    it("returns null when collateral price is 0", function () {
+      const result = calculatePriceDropPercentage({
+        collateralUsd: 0,
+        liquidationUsd: 1000,
+      });
+
+      expect(result).toBeNull();
+    });
+
+    it("returns null when collateral price is negative", function () {
+      const result = calculatePriceDropPercentage({
+        collateralUsd: -1,
+        liquidationUsd: 1000,
       });
 
       expect(result).toBeNull();

@@ -17,10 +17,13 @@
       "apr": "{{value}} APR",
       "available-to-borrow": "Available to borrow",
       "borrow-apr": "APR",
+      "borrow-more": "Borrow more",
       "borrowing-review": "Borrowing review",
       "collateral": "Collateral",
       "daily-interest-cost": "Daily interest cost",
       "daily-interest-cost-tooltip": "How much interest you accrue per day based on your borrowed amount and the effective rate. Gives you a real sense of the daily cost of holding this loan.",
+      "daily-interest-per-day": "${{value}} / day",
+      "drop-from-price": "{{percentage}} from ${{price}}",
       "effective-interest": "Effective Interest",
       "effective-interest-tooltip": "The actual annual rate you pay after discounts. It's the base rate minus any rebates you qualify for.",
       "enter-amount": "Enter amount",
@@ -38,6 +41,7 @@
       "market-details": "Market details",
       "markets-title": "Markets",
       "max-available": "Max available",
+      "max-lltv": "Max {{value}}",
       "no-positions-description": "Deposit collateral to borrow {{symbol}} and put your assets to work.",
       "no-positions-title": "No active borrow position yet",
       "pool-size": "Pool size",
@@ -53,13 +57,16 @@
         "supply-collateral-title": "Supply collateral",
         "title": "Borrow in progress"
       },
+      "repay-loan": "Repay loan",
       "supply-collateral-and-borrow": "Supply collateral and borrow",
+      "supply-more-collateral": "Supply more collateral",
       "title": "Supply BTC or ETH to borrow {{symbol}}",
       "toast": {
         "description": "{{amount}} {{symbol}} sent to your wallet.",
         "title": "Borrow successful"
       },
       "view-positions": "View positions",
+      "withdraw-collateral": "Withdraw collateral",
       "you-are-borrowing": "You are borrowing",
       "you-are-depositing": "You are depositing as collateral"
     },
