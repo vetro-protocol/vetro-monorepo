@@ -33,7 +33,7 @@ const BorrowMarketDetailsLoaded = function ({
       />
       <div className="flex flex-col-reverse md:flex-row">
         <div className="flex-1 bg-gray-100">
-          <MarketInfoCards market={market} marketId={market.marketId} />
+          <MarketInfoCards market={market} />
         </div>
         <div className="bg-gray-100 md:hidden">
           <StripedDivider />
