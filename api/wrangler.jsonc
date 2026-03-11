@@ -22,7 +22,7 @@
       "name": "vetro-api-staging",
       "vars": {
         "MERKL_OPPORTUNITY_ID": "",
-        "ORIGINS": "https://*-vetro-web-staging.hemilabs.workers.dev",
+        "ORIGINS": "https://vetro.letshamsterdance.xyz,https://*-vetro-web-staging.hemilabs.workers.dev",
         "SUBGRAPH_ID": "7vnTMFYNE6Nv7RTeoaog4QgqQ3bwZTFoPUGv2gcmTxJ6",
         "SUBGRAPH_URL_TEMPLATE": "https://gateway.thegraph.com/api/$API_KEY/subgraphs/id/$ID",
       },
