@@ -1,4 +1,4 @@
-export const ConcludedBadgeIcon = () => (
+export const CompletedBadgeIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none">
     <rect width={17} height={17} x={0.5} y={0.5} fill="#fff" rx={8.5} />
     <rect width={17} height={17} x={0.5} y={0.5} stroke="#fff" rx={8.5} />

@@ -8,12 +8,16 @@ type FilterOption = {
   value: string;
 };
 
+type FilterSection = {
+  label: string;
+  options: FilterOption[];
+};
+
 type Props = {
   icon?: ReactNode;
   label: string;
-  menuLabel?: string;
   onChange: (selectedValues: string[]) => void;
-  options: FilterOption[];
+  sections: FilterSection[];
   selectedValues: string[];
 };
 
@@ -49,11 +53,15 @@ const Checkbox = ({ checked }: { checked: boolean }) => (
 export function FilterMenu({
   icon,
   label,
-  menuLabel,
   onChange,
-  options,
+  sections,
   selectedValues,
 }: Props) {
+  const dropdownSections = sections.map((section) => ({
+    items: section.options,
+    label: section.label,
+  }));
+
   function handleChange(option: FilterOption, selected: boolean) {
     const next = selected
       ? [...selectedValues, option.value]
@@ -64,8 +72,6 @@ export function FilterMenu({
   return (
     <Dropdown
       getItemKey={(option) => option.value}
-      items={options}
-      menuLabel={menuLabel}
       multiSelect
       onChange={handleChange}
       renderItem={(option, isSelected) => (
@@ -81,8 +87,9 @@ export function FilterMenu({
           <ChevronIcon direction={isOpen ? "up" : "down"} />
         </div>
       )}
+      sections={dropdownSections}
       selectedValues={selectedValues}
-      triggerId="filter-menu"
+      triggerId={label}
     />
   );
 }

@@ -1,4 +1,5 @@
 import { Badge } from "components/base/badge";
+import { ExternalLink } from "components/base/externalLink";
 import { Tooltip } from "components/tooltip";
 import { useTranslation } from "react-i18next";
 import { formatEvmHash } from "utils/format";
@@ -20,16 +21,14 @@ const ExternalLinkIcon = () => (
 const TxRow = ({ hash, label }: { hash: Hash; label: string }) => (
   <div className="flex items-center justify-between gap-4">
     <span className="text-xsm font-medium text-gray-400">{label}</span>
-    <a
+    <ExternalLink
       className="text-xsm flex items-center gap-1 font-medium text-white [&:hover>svg]:text-white [&>svg]:text-gray-500 [&>svg]:transition-colors"
       href={`https://etherscan.io/tx/${hash}`}
       onClick={(e) => e.stopPropagation()}
-      rel="noopener noreferrer"
-      target="_blank"
     >
       {formatEvmHash(hash)}
       <ExternalLinkIcon />
-    </a>
+    </ExternalLink>
   </div>
 );
 

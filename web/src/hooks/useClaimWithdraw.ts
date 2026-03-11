@@ -17,11 +17,13 @@ type ClaimWithdrawStatus = "claiming" | "completed" | "failed";
 
 type Params = {
   onStatusChange: (status: ClaimWithdrawStatus) => void;
+  onTransactionHash?: (hash: string) => void;
   requestId: bigint;
 };
 
 export const useClaimWithdraw = function ({
   onStatusChange,
+  onTransactionHash,
   requestId,
 }: Params) {
   const { address: account } = useAccount();
@@ -59,7 +61,8 @@ export const useClaimWithdraw = function ({
         requestId,
       });
 
-      emitter.on("user-signed-claim-withdraw", function () {
+      emitter.on("user-signed-claim-withdraw", function (hash) {
+        onTransactionHash?.(hash);
         onStatusChange("claiming");
       });
 

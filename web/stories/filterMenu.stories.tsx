@@ -22,10 +22,13 @@ const meta: Meta<typeof FilterMenu> = {
 export default meta;
 type Story = StoryObj<typeof FilterMenu>;
 
-const withdrawalOptions = [
-  { label: "Pending withdrawals", value: "pending" },
-  { label: "Completed withdrawals", value: "completed" },
-];
+const withdrawalSection = {
+  label: "View operations from:",
+  options: [
+    { label: "Pending withdrawals", value: "pending" },
+    { label: "Completed withdrawals", value: "completed" },
+  ],
+};
 
 export const Default: Story = {
   render: function Component() {
@@ -36,24 +39,7 @@ export const Default: Story = {
         icon={<TableCellsIcon />}
         label="View settings"
         onChange={setSelected}
-        options={withdrawalOptions}
-        selectedValues={selected}
-      />
-    );
-  },
-};
-
-export const WithMenuLabel: Story = {
-  render: function Component() {
-    const [selected, setSelected] = useState(["pending", "completed"]);
-
-    return (
-      <FilterMenu
-        icon={<TableCellsIcon />}
-        label="View settings"
-        menuLabel="View operations from:"
-        onChange={setSelected}
-        options={withdrawalOptions}
+        sections={[withdrawalSection]}
         selectedValues={selected}
       />
     );
@@ -69,7 +55,7 @@ export const NoneSelected: Story = {
         icon={<TableCellsIcon />}
         label="View settings"
         onChange={setSelected}
-        options={withdrawalOptions}
+        sections={[withdrawalSection]}
         selectedValues={selected}
       />
     );
@@ -84,14 +70,56 @@ export const ManyOptions: Story = {
       <FilterMenu
         icon={<TableCellsIcon />}
         label="View settings"
-        menuLabel="View operations from:"
         onChange={setSelected}
-        options={[
-          { label: "Pending withdrawals", value: "pending" },
-          { label: "Completed withdrawals", value: "completed" },
-          { label: "Failed transactions", value: "failed" },
-          { label: "Processing", value: "processing" },
-          { label: "Cancelled", value: "cancelled" },
+        sections={[
+          {
+            label: "View operations from:",
+            options: [
+              { label: "Pending withdrawals", value: "pending" },
+              { label: "Completed withdrawals", value: "completed" },
+              { label: "Failed transactions", value: "failed" },
+              { label: "Processing", value: "processing" },
+              { label: "Cancelled", value: "cancelled" },
+            ],
+          },
+        ]}
+        selectedValues={selected}
+      />
+    );
+  },
+};
+
+export const WithMultipleSections: Story = {
+  render: function Component() {
+    const [selected, setSelected] = useState([
+      "borrow",
+      "completed",
+      "earn",
+      "failed",
+      "swap",
+    ]);
+
+    return (
+      <FilterMenu
+        icon={<TableCellsIcon />}
+        label="View settings"
+        onChange={setSelected}
+        sections={[
+          {
+            label: "View operations from:",
+            options: [
+              { label: "Borrow", value: "borrow" },
+              { label: "Earn", value: "earn" },
+              { label: "Swap", value: "swap" },
+            ],
+          },
+          {
+            label: "And by status:",
+            options: [
+              { label: "Success", value: "completed" },
+              { label: "Error", value: "failed" },
+            ],
+          },
         ]}
         selectedValues={selected}
       />

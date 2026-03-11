@@ -17,11 +17,13 @@ type ClaimWithdrawBatchStatus = "claiming" | "completed" | "failed";
 
 type Params = {
   onStatusChange: (status: ClaimWithdrawBatchStatus) => void;
+  onTransactionHash?: (hash: string) => void;
   requestIds: bigint[];
 };
 
 export const useClaimWithdrawBatch = function ({
   onStatusChange,
+  onTransactionHash,
   requestIds,
 }: Params) {
   const { address: account } = useAccount();
@@ -61,7 +63,8 @@ export const useClaimWithdrawBatch = function ({
         requestIds,
       });
 
-      emitter.on("user-signed-claim-withdraw-batch", function () {
+      emitter.on("user-signed-claim-withdraw-batch", function (hash) {
+        onTransactionHash?.(hash);
         onStatusChange("claiming");
       });
 

@@ -8,6 +8,7 @@ import { Table } from "components/base/table";
 import { Header } from "components/base/table/header";
 import { TopSection } from "components/base/table/topSection";
 import { Toast } from "components/base/toast";
+import { useActivityTracking } from "hooks/useActivityTracking";
 import { useClaimWithdrawBatch } from "hooks/useClaimWithdrawBatch";
 import { TableCellsIcon } from "pages/earn/icons/tableCellsIcon";
 import { useMemo, useState } from "react";
@@ -36,12 +37,14 @@ const getColumns = ({
   cooldownDuration,
   isWithdrawingAll,
   language,
+  onDeleteSuccess,
   onWithdrawingChange,
   t,
 }: {
   cooldownDuration: number | undefined;
   isWithdrawingAll: boolean;
   language: string;
+  onDeleteSuccess: VoidFunction;
   onWithdrawingChange: (isWithdrawing: boolean) => void;
   t: ReturnType<typeof useTranslation>["t"];
 }): ColumnDef<ExitTicket>[] => [
@@ -102,6 +105,7 @@ const getColumns = ({
       <ActionsCell
         disabled={isWithdrawingAll}
         key={row.original.requestId}
+        onDeleteSuccess={onDeleteSuccess}
         onWithdrawingChange={onWithdrawingChange}
         ticket={row.original}
       />
@@ -123,8 +127,9 @@ export function ExitTickets() {
     "pending",
   ]);
   const [isWithdrawingAll, setIsWithdrawingAll] = useState(false);
-  const [withdrawingSingleCount, setWithdrawingSingleCount] = useState(0);
+  const [showDeleteToast, setShowDeleteToast] = useState(false);
   const [showWithdrawAllToast, setShowWithdrawAllToast] = useState(false);
+  const [withdrawingSingleCount, setWithdrawingSingleCount] = useState(0);
 
   const readyTickets = useMemo(
     () => (data ?? []).filter((ticket) => getTicketStatus(ticket) === "ready"),
@@ -136,16 +141,30 @@ export function ExitTickets() {
     [readyTickets],
   );
 
+  const { onCompleted, onFailed, onPending, onTransactionHash } =
+    useActivityTracking({
+      page: "earn",
+      text: t("pages.earn.activity.claim-withdraw-batch-text"),
+      title: `${t("nav.earn")} · ${t("pages.earn.exit-tickets.withdraw-all")}`,
+    });
+
   const { mutate: claimWithdrawBatch } = useClaimWithdrawBatch({
     onStatusChange(status) {
-      if (status === "completed") {
-        setIsWithdrawingAll(false);
-        setShowWithdrawAllToast(true);
-      }
-      if (status === "failed") {
-        setIsWithdrawingAll(false);
-      }
+      const handlers: Partial<Record<typeof status, () => void>> = {
+        claiming: onPending,
+        completed() {
+          onCompleted();
+          setIsWithdrawingAll(false);
+          setShowWithdrawAllToast(true);
+        },
+        failed() {
+          onFailed();
+          setIsWithdrawingAll(false);
+        },
+      };
+      handlers[status]?.();
     },
+    onTransactionHash,
     requestIds: readyRequestIds,
   });
 
@@ -169,6 +188,9 @@ export function ExitTickets() {
         cooldownDuration,
         isWithdrawingAll,
         language: i18n.language,
+        onDeleteSuccess() {
+          setShowDeleteToast(true);
+        },
         onWithdrawingChange(isWithdrawing) {
           setWithdrawingSingleCount((c) => c + (isWithdrawing ? 1 : -1));
         },
@@ -224,7 +246,12 @@ export function ExitTickets() {
             icon={<TableCellsIcon />}
             label={t("pages.earn.exit-tickets.view-settings")}
             onChange={setSelectedFilters}
-            options={filterOptions}
+            sections={[
+              {
+                label: t("pages.earn.exit-tickets.col-status"),
+                options: filterOptions,
+              },
+            ]}
             selectedValues={selectedFilters}
           />
           <div className="h-3 w-0.5 rounded-full bg-gray-200" />
@@ -265,11 +292,20 @@ export function ExitTickets() {
       <Table
         columns={columns}
         data={filteredData}
+        getRowId={(ticket) => ticket.requestId}
         loading={isLoading}
         maxBodyHeight="280px"
         placeholder={<EmptyState />}
         priorityColumnIdsOnSmall={["actions"]}
       />
+      {showDeleteToast && (
+        <Toast
+          closable
+          description={t("pages.earn.exit-tickets.delete-toast-description")}
+          onClose={() => setShowDeleteToast(false)}
+          title={t("pages.earn.exit-tickets.delete-toast-title")}
+        />
+      )}
       {showWithdrawAllToast && (
         <Toast
           closable

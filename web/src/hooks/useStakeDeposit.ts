@@ -27,6 +27,7 @@ type Params = {
   assets: bigint;
   onStatusChange?: (status: DepositStatus) => void;
   onSuccess?: VoidFunction;
+  onTransactionHash?: (hash: string) => void;
 };
 
 export const useStakeDeposit = function ({
@@ -34,6 +35,7 @@ export const useStakeDeposit = function ({
   assets,
   onStatusChange,
   onSuccess,
+  onTransactionHash,
 }: Params) {
   const { address: account } = useAccount();
   const chain = useMainnet();
@@ -92,13 +94,9 @@ export const useStakeDeposit = function ({
         onStatusChange?.("approved");
       });
 
-      emitter.on("user-signed-deposit", function () {
+      emitter.on("user-signed-deposit", function (hash) {
+        onTransactionHash?.(hash);
         onStatusChange?.("depositing");
-      });
-
-      emitter.on("deposit-transaction-succeeded", function () {
-        onStatusChange?.("completed");
-        onSuccess?.();
       });
 
       emitter.on("user-signing-approval-error", function () {
@@ -139,6 +137,8 @@ export const useStakeDeposit = function ({
         "deposit-transaction-succeeded",
         function (receipt: TransactionReceipt) {
           updateNativeBalanceAfterReceipt(receipt);
+          onStatusChange?.("completed");
+          onSuccess?.();
 
           // Optimistically update balances
           queryClient.setQueryData(vusdBalanceKey, (old: bigint | undefined) =>

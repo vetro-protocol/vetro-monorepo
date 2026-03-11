@@ -20,12 +20,14 @@ type Params = {
   assets: bigint;
   onStatusChange?: (status: WithdrawStatus) => void;
   onSuccess?: VoidFunction;
+  onTransactionHash?: (hash: string) => void;
 };
 
 export const useStakeWithdraw = function ({
   assets,
   onStatusChange,
   onSuccess,
+  onTransactionHash,
 }: Params) {
   const { address: account } = useAccount();
   const chain = useMainnet();
@@ -62,7 +64,8 @@ export const useStakeWithdraw = function ({
         owner: account,
       });
 
-      emitter.on("user-signed-request-withdraw", function () {
+      emitter.on("user-signed-request-withdraw", function (hash) {
+        onTransactionHash?.(hash);
         onStatusChange?.("requesting");
       });
 

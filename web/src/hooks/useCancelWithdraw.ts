@@ -18,12 +18,14 @@ type CancelWithdrawStatus = "cancelling" | "completed" | "failed";
 type Params = {
   assets: bigint;
   onStatusChange: (status: CancelWithdrawStatus) => void;
+  onTransactionHash?: (hash: string) => void;
   requestId: bigint;
 };
 
 export const useCancelWithdraw = function ({
   assets,
   onStatusChange,
+  onTransactionHash,
   requestId,
 }: Params) {
   const { address: account } = useAccount();
@@ -60,7 +62,8 @@ export const useCancelWithdraw = function ({
         requestId,
       });
 
-      emitter.on("user-signed-cancel-withdraw", function () {
+      emitter.on("user-signed-cancel-withdraw", function (hash) {
+        onTransactionHash?.(hash);
         onStatusChange("cancelling");
       });
 
