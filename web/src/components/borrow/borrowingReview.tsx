@@ -44,14 +44,14 @@ const ReviewRow = ({
   label: string;
   tooltip: string;
 }) => (
-  <div className="flex items-center justify-between border-t border-gray-200 py-3.5 text-gray-900">
+  <div className="text-b-medium flex items-center justify-between border-t border-gray-200 py-3.5 text-gray-900">
     <div className="flex h-5.5 items-center gap-1.5">
       <Tooltip content={tooltip}>
         <QuestionIcon />
       </Tooltip>
-      <span className="text-b-medium">{label}</span>
+      <span>{label}</span>
     </div>
-    <span className="text-b-medium">{children}</span>
+    <>{children}</>
   </div>
 );
 
@@ -102,37 +102,45 @@ export function BorrowingReview({
         label={t("pages.borrow.ltv")}
         tooltip={t("pages.borrow.ltv-tooltip")}
       >
-        {ltv !== null ? formatPercentage(ltv * 100) : "-"}
+        <span className="text-h4">
+          {ltv !== null ? formatPercentage(ltv * 100) : "-"}
+        </span>
       </ReviewRow>
       <ReviewRow
         label={t("pages.borrow.liquidation-price")}
         tooltip={t("pages.borrow.liquidation-price-tooltip")}
       >
-        {liquidationPrice !== null
-          ? `$${formatFiatNumber(liquidationPrice)}`
-          : "-"}
+        <span className="text-h4">
+          {liquidationPrice !== null
+            ? `$${formatFiatNumber(liquidationPrice)}`
+            : "-"}
+        </span>
       </ReviewRow>
       <ReviewRow
         label={t("pages.borrow.daily-interest-cost")}
         tooltip={t("pages.borrow.daily-interest-cost-tooltip")}
       >
-        {dailyInterestCost !== null ? (
-          <DisplayAmount
-            amount={parseUnits(
-              dailyInterestCost.toFixed(loanToken.decimals),
-              loanToken.decimals,
-            )}
-            token={loanToken}
-          />
-        ) : (
-          "-"
-        )}
+        <span className="text-h4">
+          {dailyInterestCost !== null ? (
+            <DisplayAmount
+              amount={parseUnits(
+                dailyInterestCost.toFixed(loanToken.decimals),
+                loanToken.decimals,
+              )}
+              token={loanToken}
+            />
+          ) : (
+            "-"
+          )}
+        </span>
       </ReviewRow>
       <ReviewRow
         label={t("pages.borrow.effective-interest")}
         tooltip={t("pages.borrow.effective-interest-tooltip")}
       >
-        {t("pages.borrow.apr", { value: formatPercentage(borrowApy * 100) })}
+        <span className="text-h4">
+          {t("pages.borrow.apr", { value: formatPercentage(borrowApy * 100) })}
+        </span>
       </ReviewRow>
     </>
   );
