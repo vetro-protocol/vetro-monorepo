@@ -76,7 +76,7 @@ export function WalletDrawerContent() {
 
   const itemsWithHref = filteredActivities.map((a) => ({
     ...a,
-    href: a.txHash ? `${explorerBaseUrl}/tx/${a.txHash}` : undefined,
+    href: `${explorerBaseUrl}/tx/${a.txHash}`,
   }));
 
   const balanceParts = usd !== undefined ? splitDecimalParts(usd) : undefined;
