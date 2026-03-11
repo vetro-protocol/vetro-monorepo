@@ -15,13 +15,24 @@ export type DropdownSection<T> = {
   label: string;
 };
 
+export type TriggerProps = {
+  "aria-expanded": boolean;
+  "aria-haspopup": "listbox" | "menu";
+  id: string;
+  onClick: () => void;
+  onKeyDown: (event: KeyboardEvent) => void;
+  ref: (node: HTMLElement | null) => void;
+  role: "button";
+  tabIndex: 0;
+};
+
 type BaseProps<T> = {
   getItemKey: (item: T) => string;
   items?: T[];
   matchTriggerWidth?: boolean;
   menuLabel?: string;
   renderItem: (item: T, isSelected: boolean) => ReactNode;
-  renderTrigger: (isOpen: boolean) => ReactNode;
+  renderTrigger: (isOpen: boolean, triggerProps: TriggerProps) => ReactNode;
   sections?: DropdownSection<T>[];
   triggerId: string;
 };
@@ -60,7 +71,7 @@ export function Dropdown<T>(props: DropdownProps<T>) {
 
   const [isOpen, setIsOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
-  const triggerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
   const containerRef = useOnClickOutside<HTMLDivElement>(function (e) {
@@ -165,18 +176,18 @@ export function Dropdown<T>(props: DropdownProps<T>) {
 
   return (
     <div className="relative inline-block" ref={containerRef}>
-      <div
-        aria-expanded={isOpen}
-        aria-haspopup={listRole}
-        id={triggerId}
-        onClick={handleTriggerClick}
-        onKeyDown={handleKeyDown}
-        ref={triggerRef}
-        role="button"
-        tabIndex={0}
-      >
-        {renderTrigger(isOpen)}
-      </div>
+      {renderTrigger(isOpen, {
+        "aria-expanded": isOpen,
+        "aria-haspopup": listRole,
+        id: triggerId,
+        onClick: handleTriggerClick,
+        onKeyDown: handleKeyDown,
+        ref(node: HTMLElement | null) {
+          triggerRef.current = node;
+        },
+        role: "button",
+        tabIndex: 0,
+      })}
 
       {isOpen &&
         createPortal(

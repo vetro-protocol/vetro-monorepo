@@ -80,8 +80,11 @@ export function FilterMenu({
           {option.label}
         </div>
       )}
-      renderTrigger={(isOpen) => (
-        <div className="text-xsm flex cursor-pointer items-center gap-1 rounded-full bg-white px-3 py-1 font-semibold text-gray-900 shadow-sm hover:bg-gray-50">
+      renderTrigger={(isOpen, triggerProps) => (
+        <div
+          {...triggerProps}
+          className="text-xsm flex cursor-pointer items-center gap-1 rounded-full bg-white px-3 py-1 font-semibold text-gray-900 shadow-sm hover:bg-gray-50"
+        >
           {icon}
           {label}
           <ChevronIcon direction={isOpen ? "up" : "down"} />

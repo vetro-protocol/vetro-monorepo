@@ -97,8 +97,8 @@ export function ManageButton({ marketId, onAction }: Props) {
           {item.label}
         </div>
       )}
-      renderTrigger={(isOpen) => (
-        <Button size="xSmall" variant="primary">
+      renderTrigger={(isOpen, triggerProps) => (
+        <Button {...triggerProps} size="xSmall" variant="primary">
           {t("pages.borrow.manage")}
           <ChevronIcon direction={isOpen ? "up" : "down"} />
         </Button>
