@@ -5,10 +5,11 @@ import {
   calculateLiquidationPrice,
   calculateLtv,
   calculatePriceDropPercentage,
+  formatHealthFactor,
   formatLtvAsPercentage,
   formatOraclePrice,
 } from "utils/borrowReview";
-import { parseUnits } from "viem";
+import { maxUint256, parseUnits } from "viem";
 import { describe, expect, it } from "vitest";
 
 // Collateral uses 8 decimals (like WBTC), loan uses 18 decimals
@@ -48,6 +49,27 @@ const createPosition = function (
 };
 
 describe("utils/borrowReview", function () {
+  describe("formatHealthFactor", function () {
+    it("returns a number for a valid bigint", function () {
+      // 1.5 in WAD scale (1.5 * 10^18)
+      const result = formatHealthFactor(parseUnits("1.5", 18));
+
+      expect(result).toBe(1.5);
+    });
+
+    it("returns null for undefined", function () {
+      const result = formatHealthFactor(undefined);
+
+      expect(result).toBeNull();
+    });
+
+    it("returns null for maxUint256", function () {
+      const result = formatHealthFactor(maxUint256);
+
+      expect(result).toBeNull();
+    });
+  });
+
   describe("calculateHealthFactor", function () {
     it("returns a number for a valid position", function () {
       const morphoMarket = createMarket();

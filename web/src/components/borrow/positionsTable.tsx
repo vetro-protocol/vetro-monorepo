@@ -12,6 +12,7 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import {
   calculateDailyInterestCost,
+  formatHealthFactor,
   formatLtvAsPercentage,
 } from "utils/borrowReview";
 import { formatFiatNumber, formatPercentage } from "utils/format";
@@ -82,11 +83,7 @@ export function PositionsTable({ marketIds }: Props) {
         cell: ({ row }) => (
           <span className="text-b-medium">
             <HealthFactor
-              value={
-                row.original.healthFactor !== undefined
-                  ? Number(formatUnits(row.original.healthFactor, 18))
-                  : null
-              }
+              value={formatHealthFactor(row.original.healthFactor)}
             />
           </span>
         ),

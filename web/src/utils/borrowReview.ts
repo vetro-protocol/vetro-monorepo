@@ -45,6 +45,19 @@ export const calculateDailyInterestCost = ({
 }): number => (borrowAmount * borrowApy) / 365;
 
 /**
+ * Converts a raw WAD-scaled bigint health factor to a number.
+ * Returns `null` for undefined or MaxUint256 (no debt).
+ */
+export const formatHealthFactor = function (
+  value: bigint | undefined,
+): number | null {
+  if (value === undefined || value === maxUint256) {
+    return null;
+  }
+  return Number(formatUnits(value, wadDecimals));
+};
+
+/**
  * Calculates the health factor for a position. Returns `null` when the position
  * has no debt (undefined or MaxUint256 from the SDK).
  * @see https://docs.morpho.org/build/borrow/concepts/ltv#health-factor
@@ -57,13 +70,7 @@ export const calculateHealthFactor = function ({
   position: Position;
 }): number | null {
   const raw = morphoMarket.getHealthFactor(position);
-  // The SDK returns undefined when there's no position, and maxUint256 to
-  // represent an infinite health factor (no debt). Both mean "no active borrow,"
-  // so we normalize them to null.
-  if (raw === undefined || raw === maxUint256) {
-    return null;
-  }
-  return Number(formatUnits(raw, wadDecimals));
+  return formatHealthFactor(raw);
 };
 
 /**
