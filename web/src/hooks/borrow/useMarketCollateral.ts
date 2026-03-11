@@ -5,6 +5,11 @@ import type { Hash } from "viem";
 
 const apiUrl = import.meta.env.VITE_VETRO_API_URL;
 
+export const marketCollateralQueryKey = (marketId: Hash) => [
+  "market-collateral",
+  marketId,
+];
+
 export const useMarketCollateral = (marketId: Hash) =>
   useQuery({
     enabled: apiUrl !== undefined && isValidUrl(apiUrl),
@@ -12,5 +17,5 @@ export const useMarketCollateral = (marketId: Hash) =>
       fetch(`${apiUrl}/borrow/${marketId}/collateral-assets`).then(
         (data: number) => BigInt(data),
       ),
-    queryKey: ["market-collateral", marketId],
+    queryKey: marketCollateralQueryKey(marketId),
   });

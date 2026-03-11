@@ -22,6 +22,14 @@ export type MarketData = {
   totalSupplyAssets: bigint;
 };
 
+export const marketDataQueryKey = ({
+  chainId,
+  marketId,
+}: {
+  chainId: Chain["id"];
+  marketId: Hash;
+}) => ["market-data", chainId, marketId];
+
 export const marketDataOptions = ({
   chainId,
   client,
@@ -37,7 +45,7 @@ export const marketDataOptions = ({
     enabled: !!client,
     queryFn: () =>
       fetchMarketData({ chainId, client: client!, marketId, queryClient }),
-    queryKey: ["market-data", chainId, marketId],
+    queryKey: marketDataQueryKey({ chainId, marketId }),
   });
 
 export const useMarketData = function (marketId: Hash) {

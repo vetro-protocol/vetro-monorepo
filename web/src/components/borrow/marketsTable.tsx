@@ -62,9 +62,7 @@ export function MarketsTable({ marketIds }: Props) {
         cell: ({ row }) => (
           <TokenValueCell
             token={row.original.loanToken}
-            value={
-              row.original.totalSupplyAssets - row.original.totalBorrowAssets
-            }
+            value={row.original.liquidity}
           />
         ),
         header: () => <Header text={t("pages.borrow.available-to-borrow")} />,

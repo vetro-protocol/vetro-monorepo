@@ -17,6 +17,8 @@ import { useAccount } from "wagmi";
 import { useEthereumWalletClient } from "../useEthereumWalletClient";
 import { useMainnet } from "../useMainnet";
 
+import { marketCollateralQueryKey } from "./useMarketCollateral";
+import { type MarketData, marketDataQueryKey } from "./useMarketData";
 import { morphoMarketOptions, morphoMarketQueryKey } from "./useMorphoMarket";
 import { positionInfoQueryKey } from "./usePositionInfo";
 
@@ -110,6 +112,11 @@ export const useSupplyAndBorrow = function ({
           collateralBalanceKey,
           (old: bigint) => old - collateralAmount,
         );
+        // Update market's total collateral
+        queryClient.setQueryData(
+          marketCollateralQueryKey(marketId),
+          (old: bigint) => old + collateralAmount,
+        );
       });
       emitter.on("borrow-assets-transaction-reverted", function (receipt) {
         updateNativeBalanceAfterReceipt(receipt);
@@ -131,7 +138,7 @@ export const useSupplyAndBorrow = function ({
           logs: receipt.logs,
         });
         if (events.length > 0) {
-          const { assets, shares } = events[0].args;
+          const { assets } = events[0].args;
           const loanBalanceKey = tokenBalanceQueryKey(
             { address: market.params.loanToken, chainId: ethereumChain.id },
             account,
@@ -139,20 +146,36 @@ export const useSupplyAndBorrow = function ({
           // update balance adding borrowed assets in the wallet
           queryClient.setQueryData(
             loanBalanceKey,
-            (old: bigint) => old + assets,
+            (old: bigint) => (old ?? 0n) + assets,
           );
           // and in the position
           queryClient.setQueryData(
             positionInfoKey,
             (old: AccrualPosition | undefined) =>
-              old?.borrow(assets, shares).position,
+              // 0n is required by morpho sdk
+              old?.borrow(assets, 0n).position,
+          );
+          // Update market's liquidity and total borrow
+          queryClient.setQueryData(
+            marketDataQueryKey({
+              chainId: ethereumChain.id,
+              marketId,
+            }),
+            (old: MarketData | undefined) =>
+              old
+                ? {
+                    ...old,
+                    liquidity: old.liquidity - assets,
+                    totalBorrowAssets: old.totalBorrowAssets + assets,
+                  }
+                : old,
           );
         }
       });
 
       return promise;
     },
-    onSettled() {
+    async onSettled() {
       const marketOptions = morphoMarketOptions({
         chainId: ethereumChain.id,
         client: walletClient,
@@ -162,6 +185,10 @@ export const useSupplyAndBorrow = function ({
       const market = queryClient.getQueryData(marketOptions.queryKey);
 
       if (market) {
+        // first invalidate the market data itself. Wait for invalidation, as useMarketData depends on it
+        await queryClient.invalidateQueries({
+          queryKey: marketOptions.queryKey,
+        });
         queryClient.invalidateQueries({
           queryKey: allowanceQueryKey({
             owner: account,
@@ -194,6 +221,15 @@ export const useSupplyAndBorrow = function ({
       queryClient.invalidateQueries({
         queryKey: positionInfoQueryKey({
           account,
+          chainId: ethereumChain.id,
+          marketId,
+        }),
+      });
+      queryClient.invalidateQueries({
+        queryKey: marketCollateralQueryKey(marketId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: marketDataQueryKey({
           chainId: ethereumChain.id,
           marketId,
         }),
