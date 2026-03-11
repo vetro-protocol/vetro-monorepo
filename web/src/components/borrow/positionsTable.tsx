@@ -19,7 +19,7 @@ import { formatFiatNumber, formatPercentage } from "utils/format";
 import { getTokenPrice } from "utils/token";
 import { type Hash, formatUnits } from "viem";
 
-import { HealthFactor } from "./healthFactor";
+import { HealthFactor, HealthFactorBar } from "./healthFactor";
 import { LiquidationPriceCell } from "./liquidationPriceCell";
 import { ManageButton } from "./manageButton";
 import { PositionsEmptyState } from "./positionsEmptyState";
@@ -80,13 +80,22 @@ export function PositionsTable({ marketIds }: Props) {
         meta: { className: "justify-start mx-3", width: "120px" },
       },
       {
-        cell: ({ row }) => (
-          <span className="text-b-medium">
-            <HealthFactor
-              value={formatHealthFactor(row.original.healthFactor)}
-            />
-          </span>
-        ),
+        cell({ row }) {
+          const lltv = formatLtvAsPercentage(row.original.lltv);
+          const ltv =
+            row.original.ltv != null
+              ? formatLtvAsPercentage(row.original.ltv)
+              : null;
+          const value = formatHealthFactor(row.original.healthFactor);
+          return (
+            <div className="flex flex-col gap-y-1">
+              <span className="text-b-medium">
+                <HealthFactor lltv={lltv} ltv={ltv} value={value} />
+              </span>
+              <HealthFactorBar lltv={lltv} ltv={ltv} />
+            </div>
+          );
+        },
         header: () => <Header text={t("pages.borrow.health-factor")} />,
         id: "health-factor",
         meta: { className: "justify-start mx-3", width: "96px" },
