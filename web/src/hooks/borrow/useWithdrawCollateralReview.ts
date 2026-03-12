@@ -5,15 +5,15 @@ import { usePositionReview } from "./usePositionReview";
 
 type Params = {
   borrowApy: number;
-  borrowInput: string;
+  collateralInput: string;
   collateralToken: Token;
   loanToken: Token;
   position: AccrualPosition | undefined;
 };
 
-export const useBorrowMoreReview = ({
+export const useWithdrawCollateralReview = ({
   borrowApy,
-  borrowInput,
+  collateralInput,
   collateralToken,
   loanToken,
   position,
@@ -22,13 +22,11 @@ export const useBorrowMoreReview = ({
     borrowApy,
     collateralToken,
     getUpdatedPosition: (pos, amount) => ({
-      borrowShares: pos.market.toBorrowShares(
-        pos.market.toBorrowAssets(pos.borrowShares) + amount,
-      ),
-      collateral: pos.collateral,
+      borrowShares: pos.borrowShares,
+      collateral: pos.collateral - amount,
     }),
-    input: borrowInput,
-    inputDecimals: loanToken.decimals,
+    input: collateralInput,
+    inputDecimals: collateralToken.decimals,
     loanToken,
     position,
   });
