@@ -188,6 +188,12 @@
       "title": "Hello Faq"
     },
     "swap": {
+      "activity": {
+        "cancel-redeem-text": "{{amount}} {{symbol}} sent back to wallet",
+        "claim-redeem-text": "{{fromAmount}} {{fromSymbol}} redeemed for {{toAmount}} {{toSymbol}}",
+        "request-redeem-text": "{{amount}} {{symbol}} sent to redeem vault",
+        "swap-text": "{{fromAmount}} {{fromSymbol}} to {{toAmount}} {{toSymbol}}"
+      },
       "fees": {
         "fixed-protocol-fee": "Fixed Protocol Fee",
         "network-fee": "Network Fee",

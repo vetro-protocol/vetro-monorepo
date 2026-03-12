@@ -8,6 +8,7 @@ import { Toast } from "components/base/toast";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { StripedDivider } from "components/stripedDivider";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
+import { useActivityTracking } from "hooks/useActivityTracking";
 import { useEstimateRequestRedeemGas } from "hooks/useEstimateRequestRedeemGas";
 import { useMainnet } from "hooks/useMainnet";
 import { usePreviewRedeem } from "hooks/usePreviewRedeem";
@@ -112,6 +113,16 @@ export function TwoStepRedeem({
     tokenOut: toToken.address,
   });
 
+  const { onCompleted, onFailed, onPending, onTransactionHash } =
+    useActivityTracking({
+      page: "swap",
+      text: t("pages.swap.activity.request-redeem-text", {
+        amount: fromInputValue,
+        symbol: fromToken.symbol,
+      }),
+      title: t("nav.swap"),
+    });
+
   const operationGasEstimation = useEstimateRequestRedeemGas({
     enabled: !!address,
     owner: address,
@@ -137,23 +148,29 @@ export function TwoStepRedeem({
       emitter.on("pre-request-redeem", () =>
         setFlowStatus("request-redeem-ready"),
       );
-      emitter.on("user-signed-request-redeem", () =>
-        setFlowStatus("request-redeeming"),
-      );
+      emitter.on("user-signed-request-redeem", function (hash) {
+        onTransactionHash(hash);
+        onPending();
+        setFlowStatus("request-redeeming");
+      });
       emitter.on("request-redeem-transaction-succeeded", function () {
+        onCompleted();
         setFlowStatus("request-redeemed");
         setShowToast(true);
         redeemVaultRef.current?.scrollIntoView({ behavior: "smooth" });
       });
-      emitter.on("request-redeem-transaction-reverted", () =>
-        setFlowStatus("request-redeem-error"),
-      );
-      emitter.on("user-signing-request-redeem-error", () =>
-        setFlowStatus("request-redeem-error"),
-      );
-      emitter.on("request-redeem-failed-validation", () =>
-        setFlowStatus("request-redeem-error"),
-      );
+      emitter.on("request-redeem-transaction-reverted", function () {
+        onFailed();
+        setFlowStatus("request-redeem-error");
+      });
+      emitter.on("user-signing-request-redeem-error", function () {
+        onFailed();
+        setFlowStatus("request-redeem-error");
+      });
+      emitter.on("request-redeem-failed-validation", function () {
+        onFailed();
+        setFlowStatus("request-redeem-error");
+      });
     },
     peggedTokenAmount: amountBigInt,
   });
