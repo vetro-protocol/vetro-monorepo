@@ -8,6 +8,7 @@ import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenDropdown } from "components/tokenDropdown";
 import { TokenInput } from "components/tokenInput";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
+import { useActivityTracking } from "hooks/useActivityTracking";
 import { useEstimateRedeemGas } from "hooks/useEstimateRedeemGas";
 import { useMainnet } from "hooks/useMainnet";
 import { usePreviewRedeem } from "hooks/usePreviewRedeem";
@@ -85,6 +86,24 @@ export function OneStepRedeem({
     tokenOut: toToken.address,
   });
 
+  const outputValue = formatAmount({
+    amount: redeemPreview,
+    decimals: toToken.decimals,
+    isError: isPreviewError,
+  });
+
+  const { onCompleted, onFailed, onPending, onTransactionHash } =
+    useActivityTracking({
+      page: "swap",
+      text: t("pages.swap.activity.swap-text", {
+        fromAmount: fromInputValue,
+        fromSymbol: fromToken.symbol,
+        toAmount: outputValue,
+        toSymbol: toToken.symbol,
+      }),
+      title: t("nav.swap"),
+    });
+
   const operationGasEstimation = useEstimateRedeemGas({
     enabled: !!address,
     minAmountOut: redeemPreview ?? 0n,
@@ -110,20 +129,28 @@ export function OneStepRedeem({
         setFlowStatus("approve-error"),
       );
       emitter.on("pre-redeem", () => setFlowStatus("redeem-ready"));
-      emitter.on("user-signed-redeem", () => setFlowStatus("redeeming"));
+      emitter.on("user-signed-redeem", function (hash) {
+        onTransactionHash(hash);
+        onPending();
+        setFlowStatus("redeeming");
+      });
       emitter.on("redeem-transaction-succeeded", function () {
+        onCompleted();
         setFlowStatus("redeemed");
         setShowToast(true);
       });
-      emitter.on("redeem-transaction-reverted", () =>
-        setFlowStatus("redeem-error"),
-      );
-      emitter.on("user-signing-redeem-error", () =>
-        setFlowStatus("redeem-error"),
-      );
-      emitter.on("redeem-failed-validation", () =>
-        setFlowStatus("redeem-error"),
-      );
+      emitter.on("redeem-transaction-reverted", function () {
+        onFailed();
+        setFlowStatus("redeem-error");
+      });
+      emitter.on("user-signing-redeem-error", function () {
+        onFailed();
+        setFlowStatus("redeem-error");
+      });
+      emitter.on("redeem-failed-validation", function () {
+        onFailed();
+        setFlowStatus("redeem-error");
+      });
     },
     peggedTokenIn: amountBigInt,
     tokenOut: toToken.address,
@@ -133,12 +160,6 @@ export function OneStepRedeem({
     amount: amountBigInt,
     nativeBalance,
     tokenBalance: fromTokenBalance,
-  });
-
-  const outputValue = formatAmount({
-    amount: redeemPreview,
-    decimals: toToken.decimals,
-    isError: isPreviewError,
   });
 
   const { networkFeeDisplay, protocolFeeDisplay, totalFeesDisplay } =

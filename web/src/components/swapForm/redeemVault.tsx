@@ -1,5 +1,6 @@
 import { TopSection } from "components/base/table/topSection";
 import { Toast } from "components/base/toast";
+import { useActivityTracking } from "hooks/useActivityTracking";
 import { useEstimateRedeemGas } from "hooks/useEstimateRedeemGas";
 import { useGetRedeemRequest } from "hooks/useGetRedeemRequest";
 import { usePreviewRedeem } from "hooks/usePreviewRedeem";
@@ -49,6 +50,24 @@ export function RedeemVault({ whitelistedTokens }: Props) {
     tokenOut: toToken.address,
   });
 
+  const outputValue = formatAmount({
+    amount: redeemPreview,
+    decimals: toToken.decimals,
+    isError: isPreviewError,
+  });
+
+  const { onCompleted, onFailed, onPending, onTransactionHash } =
+    useActivityTracking({
+      page: "swap",
+      text: t("pages.swap.activity.claim-redeem-text", {
+        fromAmount: fromInputValue,
+        fromSymbol: vusd.symbol,
+        toAmount: outputValue,
+        toSymbol: toToken.symbol,
+      }),
+      title: `${t("nav.swap")} · ${t("pages.swap.redeem-vault.redeem")}`,
+    });
+
   const operationGasEstimation = useEstimateRedeemGas({
     enabled: !!address,
     minAmountOut: redeemPreview ?? 0n,
@@ -72,29 +91,31 @@ export function RedeemVault({ whitelistedTokens }: Props) {
   const redeemMutation = useRedeem({
     onEmitter(emitter) {
       emitter.on("pre-redeem", () => setFlowStatus("redeem-ready"));
-      emitter.on("user-signed-redeem", () => setFlowStatus("redeeming"));
+      emitter.on("user-signed-redeem", function (hash) {
+        onTransactionHash(hash);
+        onPending();
+        setFlowStatus("redeeming");
+      });
       emitter.on("redeem-transaction-succeeded", function () {
+        onCompleted();
         setFlowStatus("redeemed");
         setToastType("redeem");
       });
-      emitter.on("redeem-transaction-reverted", () =>
-        setFlowStatus("redeem-error"),
-      );
-      emitter.on("user-signing-redeem-error", () =>
-        setFlowStatus("redeem-error"),
-      );
-      emitter.on("redeem-failed-validation", () =>
-        setFlowStatus("redeem-error"),
-      );
+      emitter.on("redeem-transaction-reverted", function () {
+        onFailed();
+        setFlowStatus("redeem-error");
+      });
+      emitter.on("user-signing-redeem-error", function () {
+        onFailed();
+        setFlowStatus("redeem-error");
+      });
+      emitter.on("redeem-failed-validation", function () {
+        onFailed();
+        setFlowStatus("redeem-error");
+      });
     },
     peggedTokenIn: amountBigInt,
     tokenOut: toToken.address,
-  });
-
-  const outputValue = formatAmount({
-    amount: redeemPreview,
-    decimals: toToken.decimals,
-    isError: isPreviewError,
   });
 
   const handleMaxClick = () =>

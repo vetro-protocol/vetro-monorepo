@@ -186,6 +186,12 @@
       "title": "Hola FAQ"
     },
     "swap": {
+      "activity": {
+        "cancel-redeem-text": "{{amount}} {{symbol}} devuelto a la billetera",
+        "claim-redeem-text": "{{fromAmount}} {{fromSymbol}} canjeado por {{toAmount}} {{toSymbol}}",
+        "request-redeem-text": "{{amount}} {{symbol}} enviado al vault de canje",
+        "swap-text": "{{fromAmount}} {{fromSymbol}} a {{toAmount}} {{toSymbol}}"
+      },
       "fees": {
         "fixed-protocol-fee": "Tarifa de Protocolo Fija",
         "network-fee": "Tarifa de Red",

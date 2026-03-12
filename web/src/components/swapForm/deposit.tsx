@@ -8,6 +8,7 @@ import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenDropdown } from "components/tokenDropdown";
 import { TokenInput } from "components/tokenInput";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
+import { useActivityTracking } from "hooks/useActivityTracking";
 import { useDeposit } from "hooks/useDeposit";
 import { useEstimateDepositGas } from "hooks/useEstimateDepositGas";
 import { useMainnet } from "hooks/useMainnet";
@@ -85,6 +86,24 @@ export function Deposit({
       tokenIn: fromToken.address,
     });
 
+  const outputValue = formatAmount({
+    amount: depositPreview,
+    decimals: toToken.decimals,
+    isError: isDepositPreviewError,
+  });
+
+  const { onCompleted, onFailed, onPending, onTransactionHash } =
+    useActivityTracking({
+      page: "swap",
+      text: t("pages.swap.activity.swap-text", {
+        fromAmount: fromInputValue,
+        fromSymbol: fromToken.symbol,
+        toAmount: outputValue,
+        toSymbol: toToken.symbol,
+      }),
+      title: t("nav.swap"),
+    });
+
   const protocolFee = useMintFee();
 
   const operationGasEstimation = useEstimateDepositGas({
@@ -108,21 +127,32 @@ export function Deposit({
         setFlowStatus("approve-error"),
       );
       emitter.on("pre-deposit", () => setFlowStatus("deposit-ready"));
-      emitter.on("user-signed-deposit", () => setFlowStatus("depositing"));
-      emitter.on("deposit-failed", () => setFlowStatus("deposit-error"));
+      emitter.on("user-signed-deposit", function (hash) {
+        onTransactionHash(hash);
+        onPending();
+        setFlowStatus("depositing");
+      });
+      emitter.on("deposit-failed", function () {
+        onFailed();
+        setFlowStatus("deposit-error");
+      });
       emitter.on("deposit-transaction-succeeded", function () {
+        onCompleted();
         setFlowStatus("deposited");
         setShowToast(true);
       });
-      emitter.on("deposit-transaction-reverted", () =>
-        setFlowStatus("deposit-error"),
-      );
-      emitter.on("user-signing-deposit-error", () =>
-        setFlowStatus("deposit-error"),
-      );
-      emitter.on("deposit-failed-validation", () =>
-        setFlowStatus("deposit-error"),
-      );
+      emitter.on("deposit-transaction-reverted", function () {
+        onFailed();
+        setFlowStatus("deposit-error");
+      });
+      emitter.on("user-signing-deposit-error", function () {
+        onFailed();
+        setFlowStatus("deposit-error");
+      });
+      emitter.on("deposit-failed-validation", function () {
+        onFailed();
+        setFlowStatus("deposit-error");
+      });
     },
     tokenIn: fromToken.address,
   });
@@ -133,12 +163,6 @@ export function Deposit({
     amount: amountBigInt,
     nativeBalance,
     tokenBalance: fromTokenBalance,
-  });
-
-  const outputValue = formatAmount({
-    amount: depositPreview,
-    decimals: toToken.decimals,
-    isError: isDepositPreviewError,
   });
 
   const { networkFeeDisplay, protocolFeeDisplay, totalFeesDisplay } =

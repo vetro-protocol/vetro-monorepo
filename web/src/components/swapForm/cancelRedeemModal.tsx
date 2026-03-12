@@ -1,10 +1,12 @@
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { Button } from "components/base/button";
 import { Modal } from "components/base/modal";
+import { useActivityTracking } from "hooks/useActivityTracking";
 import { useCancelRedeemRequest } from "hooks/useCancelRedeemRequest";
 import { useVusd } from "hooks/useVusd";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { formatUnits } from "viem";
 import { useAccount } from "wagmi";
 
 type Props = {
@@ -24,23 +26,44 @@ export function CancelRedeemModal({
   const { t } = useTranslation();
   const { data: vusd } = useVusd();
 
+  const { onCompleted, onFailed, onPending, onTransactionHash } =
+    useActivityTracking({
+      page: "swap",
+      text: t("pages.swap.activity.cancel-redeem-text", {
+        amount: formatUnits(redeemableAmount, vusd.decimals),
+        symbol: vusd.symbol,
+      }),
+      title: `${t("nav.swap")} · ${t("pages.swap.redeem-vault.cancel-redeem")}`,
+    });
+
   const { mutate } = useCancelRedeemRequest({
     onEmitter(emitter) {
       emitter.on("pre-cancel-redeem-request", () => setIsCancelling(true));
+      emitter.on("user-signed-cancel-redeem-request", function (hash) {
+        onTransactionHash(hash);
+        onPending();
+      });
       emitter.on("cancel-redeem-request-transaction-succeeded", function () {
+        onCompleted();
         onClose();
         onSuccess();
       });
-      emitter.on("cancel-redeem-request-failed", () => setIsCancelling(false));
-      emitter.on("cancel-redeem-request-failed-validation", () =>
-        setIsCancelling(false),
-      );
-      emitter.on("cancel-redeem-request-transaction-reverted", () =>
-        setIsCancelling(false),
-      );
-      emitter.on("user-signing-cancel-redeem-request-error", () =>
-        setIsCancelling(false),
-      );
+      emitter.on("cancel-redeem-request-failed", function () {
+        onFailed();
+        setIsCancelling(false);
+      });
+      emitter.on("cancel-redeem-request-failed-validation", function () {
+        onFailed();
+        setIsCancelling(false);
+      });
+      emitter.on("cancel-redeem-request-transaction-reverted", function () {
+        onFailed();
+        setIsCancelling(false);
+      });
+      emitter.on("user-signing-cancel-redeem-request-error", function () {
+        onFailed();
+        setIsCancelling(false);
+      });
     },
     redeemableAmount,
   });
