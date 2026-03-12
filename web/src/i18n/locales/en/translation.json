@@ -18,6 +18,14 @@
       "available-to-borrow": "Available to borrow",
       "borrow-apr": "APR",
       "borrow-more": "Borrow more",
+      "borrow-more-progress": {
+        "borrow-description": "Confirm the borrow in your wallet.",
+        "borrow-progress": "Borrow progress",
+        "borrow-title": "Borrow assets",
+        "retry": "Retry",
+        "submit": "Borrow",
+        "you-will-borrow": "You will borrow"
+      },
       "borrowing-review": "Borrowing review",
       "collateral": "Collateral",
       "current": "Current",

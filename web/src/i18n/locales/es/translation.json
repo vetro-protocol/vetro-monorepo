@@ -18,6 +18,14 @@
       "available-to-borrow": "Disponible para pedir prestado",
       "borrow-apr": "TEA",
       "borrow-more": "Pedir más prestado",
+      "borrow-more-progress": {
+        "borrow-description": "Confirme el préstamo en su billetera.",
+        "borrow-progress": "Progreso del préstamo",
+        "borrow-title": "Pedir prestado activos",
+        "retry": "Reintentar",
+        "submit": "Pedir prestado",
+        "you-will-borrow": "Pedirá prestado"
+      },
       "borrowing-review": "Resumen del préstamo",
       "collateral": "Garantía",
       "current": "Actual",

@@ -26,6 +26,12 @@ import { ManageButton } from "./manageButton";
 import { PositionsEmptyState } from "./positionsEmptyState";
 import { TokenValueCell } from "./tokenValueCell";
 
+const BorrowMoreDrawerForm = lazy(() =>
+  import("./borrowMoreDrawerForm").then((m) => ({
+    default: m.BorrowMoreDrawerForm,
+  })),
+);
+
 const SupplyCollateralDrawerForm = lazy(() =>
   import("./supplyCollateralDrawerForm").then((m) => ({
     default: m.SupplyCollateralDrawerForm,
@@ -216,6 +222,14 @@ export function PositionsTable({ marketIds }: Props) {
         loading={isMarketsLoading || isPositionsLoading}
         placeholder={<PositionsEmptyState />}
       />
+      {borrowAction === "borrow-more" && activeMarket && (
+        <Suspense>
+          <BorrowMoreDrawerForm
+            market={activeMarket}
+            onClose={clearBorrowAction}
+          />
+        </Suspense>
+      )}
       {borrowAction === "supply-collateral" && activeMarket && (
         <Suspense>
           <SupplyCollateralDrawerForm
