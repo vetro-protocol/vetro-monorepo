@@ -18,7 +18,6 @@ import { Balance } from "components/tokenInput/balance";
 import type { InputError } from "components/tokenInput/utils";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import type { MarketData } from "hooks/borrow/useMarketData";
-import { useMorphoMarket } from "hooks/borrow/useMorphoMarket";
 import { usePositionInfo } from "hooks/borrow/usePositionInfo";
 import { useSupplyCollateral } from "hooks/borrow/useSupplyCollateral";
 import { useSupplyCollateralFees } from "hooks/borrow/useSupplyCollateralFees";
@@ -234,7 +233,6 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
     token: collateralToken,
   });
 
-  const { data: morphoMarket } = useMorphoMarket(marketId);
   const { data: positionInfo } = usePositionInfo(marketId);
 
   const networkFee = useSupplyCollateralFees({
@@ -292,12 +290,10 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
 
   const { current, updated } = useSupplyCollateralReview({
     borrowApy: market.borrowApy,
-    borrowShares: positionInfo?.borrowShares ?? 0n,
     collateralInput,
     collateralToken,
-    currentCollateral: positionInfo?.collateral ?? 0n,
     loanToken,
-    morphoMarket,
+    position: positionInfo,
   });
 
   const handleRetry = function () {
