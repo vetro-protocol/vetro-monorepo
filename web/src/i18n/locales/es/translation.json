@@ -290,7 +290,8 @@
       }
     },
     "wallet": {
-      "activity-empty-description": "Intenta ajustar sus filtros o vuelve después de su primera transacción.",
+      "activity-empty-description-filtered": "Intenta ajustar sus filtros.",
+      "activity-empty-description-no-transactions": "Vuelve después de su primera transacción.",
       "activity-empty-reset-filters": "Restablecer ajustes",
       "activity-empty-start-swapping": "Empezar a intercambiar",
       "activity-empty-title": "No hay actividad aquí",

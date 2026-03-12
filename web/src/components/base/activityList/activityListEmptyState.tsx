@@ -6,10 +6,14 @@ import { useNavigate, useParams } from "react-router";
 import { ActivityEmptyIcon } from "./icons/activityEmptyIcon";
 
 type Props = {
+  hasTransactions: boolean;
   onResetFilters: VoidFunction;
 };
 
-export function ActivityListEmptyState({ onResetFilters }: Props) {
+export function ActivityListEmptyState({
+  hasTransactions,
+  onResetFilters,
+}: Props) {
   const { lang } = useParams();
   const navigate = useNavigate();
   const { close } = useWalletDrawer();
@@ -25,11 +29,15 @@ export function ActivityListEmptyState({ onResetFilters }: Props) {
       <div className="flex w-60 flex-col items-center gap-3">
         <ActivityEmptyIcon />
         <div className="flex flex-col items-center gap-0.5 text-center">
-          <p className="text-xsm font-semibold text-gray-900">
+          <h5 className="text-gray-900">
             {t("pages.wallet.activity-empty-title")}
-          </p>
-          <p className="text-xsm text-gray-500">
-            {t("pages.wallet.activity-empty-description")}
+          </h5>
+          <p className="text-b-regular text-gray-500">
+            {t(
+              hasTransactions
+                ? "pages.wallet.activity-empty-description-filtered"
+                : "pages.wallet.activity-empty-description-no-transactions",
+            )}
           </p>
         </div>
       </div>

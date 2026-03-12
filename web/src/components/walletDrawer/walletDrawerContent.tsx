@@ -51,14 +51,17 @@ function useBalanceInUsd() {
   return { isLoading: true };
 }
 
+const allFilters = ["borrow", "completed", "earn", "failed", "swap"] as const;
+
 export function WalletDrawerContent() {
   const { address } = useAccount();
   const chain = useMainnet();
   const { isError, usd } = useBalanceInUsd();
   const { disconnect } = useDisconnect();
   const { t } = useTranslation();
-  const allFilters = ["borrow", "completed", "earn", "failed", "swap"];
-  const [selectedFilters, setSelectedFilters] = useState<string[]>(allFilters);
+  const [selectedFilters, setSelectedFilters] = useState<string[]>([
+    ...allFilters,
+  ]);
 
   const activities = useActivities(address, chain.id);
   const explorerBaseUrl = chain.blockExplorers!.default.url;
@@ -140,8 +143,9 @@ export function WalletDrawerContent() {
         <div className="relative min-h-0 flex-1 overflow-hidden">
           <div className="absolute inset-0 overflow-y-auto px-4 py-6 md:px-6">
             <ActivityList
+              hasTransactions={activities.length > 0}
               items={itemsWithHref}
-              onResetFilters={() => setSelectedFilters(allFilters)}
+              onResetFilters={() => setSelectedFilters([...allFilters])}
             />
           </div>
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-34 bg-gradient-to-b from-transparent to-gray-50 to-80%" />

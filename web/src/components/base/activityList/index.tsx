@@ -3,11 +3,16 @@ import { ActivityListEmptyState } from "./activityListEmptyState";
 import type { Activity } from "./types";
 
 type Props = {
+  hasTransactions: boolean;
   items: (Activity & { href?: string })[];
   onResetFilters: VoidFunction;
 };
 
-export const ActivityList = ({ items, onResetFilters }: Props) =>
+export const ActivityList = ({
+  hasTransactions,
+  items,
+  onResetFilters,
+}: Props) =>
   items.length > 0 ? (
     <div className="flex flex-col">
       {items.map((item) => (
@@ -15,5 +20,8 @@ export const ActivityList = ({ items, onResetFilters }: Props) =>
       ))}
     </div>
   ) : (
-    <ActivityListEmptyState onResetFilters={onResetFilters} />
+    <ActivityListEmptyState
+      hasTransactions={hasTransactions}
+      onResetFilters={onResetFilters}
+    />
   );
