@@ -1,0 +1,420 @@
+import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
+import { useNeedsApproval } from "@hemilabs/react-hooks/useNeedsApproval";
+import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
+import { getChainAddresses } from "@morpho-org/blue-sdk";
+import { Button } from "components/base/button";
+import { RenderCryptoValue } from "components/base/cryptoValue";
+import { Toast } from "components/base/toast";
+import {
+  type Step,
+  VerticalStepper,
+  stepStatus,
+} from "components/base/verticalStepper";
+import { FeeDetails } from "components/feeDetails";
+import { FeesContainer } from "components/feesContainer";
+import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
+import { TokenInput } from "components/tokenInput";
+import { Balance } from "components/tokenInput/balance";
+import type { InputError } from "components/tokenInput/utils";
+import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
+import type { MarketData } from "hooks/borrow/useMarketData";
+import { useMorphoMarket } from "hooks/borrow/useMorphoMarket";
+import { usePositionInfo } from "hooks/borrow/usePositionInfo";
+import { useSupplyCollateral } from "hooks/borrow/useSupplyCollateral";
+import { useSupplyCollateralFees } from "hooks/borrow/useSupplyCollateralFees";
+import { useSupplyCollateralReview } from "hooks/borrow/useSupplyCollateralReview";
+import { useAnimatedVisibility } from "hooks/useAnimatedVisibility";
+import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
+import { useMainnet } from "hooks/useMainnet";
+import { type FormEvent, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { formatLtvAsPercentage } from "utils/borrowReview";
+import { parseUnits } from "viem";
+import { useAccount } from "wagmi";
+
+import { PositionReview } from "./positionReview";
+
+type SupplyCollateralFlowStatus =
+  | "approve-error"
+  | "approved"
+  | "approving"
+  | "idle"
+  | "supply-collateral-error"
+  | "supply-collateral-ready"
+  | "supplied-collateral"
+  | "supplying-collateral";
+
+const getApproveStepStatus = function (
+  status: Exclude<SupplyCollateralFlowStatus, "idle">,
+): Step["status"] {
+  const exceptions: Partial<
+    Record<Exclude<SupplyCollateralFlowStatus, "idle">, Step["status"]>
+  > = {
+    "approve-error": stepStatus.failed,
+    approving: stepStatus.progress,
+  };
+  return exceptions[status] ?? stepStatus.completed;
+};
+
+const getSupplyStepStatus = function (
+  status: Exclude<SupplyCollateralFlowStatus, "idle">,
+): Step["status"] {
+  const exceptions: Partial<
+    Record<Exclude<SupplyCollateralFlowStatus, "idle">, Step["status"]>
+  > = {
+    "approve-error": stepStatus.notReady,
+    approved: stepStatus.notReady,
+    approving: stepStatus.notReady,
+    "supply-collateral-error": stepStatus.failed,
+    "supply-collateral-ready": stepStatus.ready,
+    "supplying-collateral": stepStatus.progress,
+  };
+  return exceptions[status] ?? stepStatus.completed;
+};
+
+type SubmitButtonProps = {
+  address: string | undefined;
+  balancesLoaded: boolean;
+  inputError: InputError | undefined;
+};
+
+function SubmitButton({
+  address,
+  balancesLoaded,
+  inputError,
+}: SubmitButtonProps) {
+  const { t } = useTranslation();
+
+  if (!address) {
+    return (
+      <Button disabled size="small" type="button" variant="primary">
+        {t("pages.swap.form.connect-wallet")}
+      </Button>
+    );
+  }
+  if (balancesLoaded && inputError) {
+    return (
+      <Button disabled size="small" type="button" variant="primary">
+        {t(`pages.swap.form.${inputError}`)}
+      </Button>
+    );
+  }
+  return (
+    <Button size="small" type="submit" variant="primary">
+      {t("pages.borrow.supply-collateral-progress.submit")}
+    </Button>
+  );
+}
+
+function getInputError({
+  collateralAmount,
+  collateralBalance,
+  nativeBalance,
+}: {
+  collateralAmount: bigint;
+  collateralBalance: bigint | undefined;
+  nativeBalance: bigint | undefined;
+}) {
+  if (collateralAmount === 0n) {
+    return "enter-amount" as const;
+  }
+  if (collateralBalance !== undefined && collateralAmount > collateralBalance) {
+    return "insufficient-balance" as const;
+  }
+  if (nativeBalance !== undefined && nativeBalance === 0n) {
+    return "insufficient-gas" as const;
+  }
+  return undefined;
+}
+
+type StepperOverlayProps = {
+  isError: boolean;
+  onDismiss: VoidFunction;
+  onRetry: VoidFunction;
+  showStepper: boolean;
+  steps: Step[];
+};
+
+function StepperOverlay({
+  isError,
+  onDismiss,
+  onRetry,
+  showStepper,
+  steps,
+}: StepperOverlayProps) {
+  const { t } = useTranslation();
+  const { render: renderRetry, show: showRetry } =
+    useAnimatedVisibility(isError);
+
+  return (
+    <>
+      <div
+        className={`absolute inset-0 bg-gray-900/10 transition-opacity duration-300 ${
+          showStepper ? "opacity-100" : "opacity-0"
+        }`}
+        onClick={isError ? onDismiss : undefined}
+      />
+      <div
+        className={`absolute inset-x-0 bottom-0 z-10 rounded-t-lg rounded-bl-lg bg-white shadow-md transition-transform duration-300 ease-out ${
+          showStepper ? "translate-y-0" : "translate-y-full"
+        }`}
+      >
+        <div className="flex flex-col gap-2 px-6 pt-4 pb-6">
+          <p className="text-caption text-gray-500">
+            {t("pages.borrow.supply-collateral-progress.supply-progress")}
+          </p>
+          <div className="border-t border-gray-200">
+            <VerticalStepper steps={steps} />
+          </div>
+        </div>
+        {renderRetry && (
+          <div
+            className={`grid transition-[grid-template-rows] duration-300 ease-out ${
+              showRetry ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+            }`}
+          >
+            <div className="overflow-hidden">
+              <div className="border-t border-gray-200 bg-gray-50 px-6 py-3 *:w-full">
+                <Button onClick={onRetry} size="small" variant="primary">
+                  {t("pages.borrow.supply-collateral-progress.retry")}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+type Props = {
+  market: MarketData;
+  onClose: VoidFunction;
+};
+
+export function SupplyCollateralForm({ market, onClose }: Props) {
+  const { t } = useTranslation();
+  const ethereumChain = useMainnet();
+  const { address } = useAccount();
+
+  const [collateralInput, setCollateralInput] = useState("");
+  const [flowStatus, setFlowStatus] =
+    useState<SupplyCollateralFlowStatus>("idle");
+  const [showToast, setShowToast] = useState(false);
+  const [startedWithApproval, setStartedWithApproval] = useState(false);
+
+  const isActive = flowStatus !== "idle";
+  const isError =
+    flowStatus === "approve-error" || flowStatus === "supply-collateral-error";
+  const { render: renderStepper, show: showStepper } =
+    useAnimatedVisibility(isActive);
+
+  useCloseOnSuccess({
+    onClose,
+    success: flowStatus === "supplied-collateral",
+  });
+
+  const { collateralToken, loanToken, marketId } = market;
+
+  const collateralAmountBigInt = parseUnits(
+    collateralInput,
+    collateralToken.decimals,
+  );
+
+  const { data: collateralBalance, status: balanceStatus } = useTokenBalance({
+    address: collateralToken.address,
+    chainId: collateralToken.chainId,
+  });
+
+  const { data: nativeBalanceData } = useNativeBalance(ethereumChain.id);
+
+  const { data: needsApproval } = useNeedsApproval({
+    amount: collateralAmountBigInt,
+    spender: getChainAddresses(ethereumChain.id).morpho,
+    token: collateralToken,
+  });
+
+  const { data: morphoMarket } = useMorphoMarket(marketId);
+  const { data: positionInfo } = usePositionInfo(marketId);
+
+  const networkFee = useSupplyCollateralFees({
+    collateralAmount: collateralAmountBigInt,
+    collateralToken,
+    marketId,
+  });
+
+  const supplyMutation = useSupplyCollateral({
+    collateralAmount: collateralAmountBigInt,
+    marketId,
+    onEmitter(emitter) {
+      emitter.on("user-signed-approval", () => setFlowStatus("approving"));
+      emitter.on("approve-transaction-succeeded", () =>
+        setFlowStatus("approved"),
+      );
+      emitter.on("approve-transaction-reverted", () =>
+        setFlowStatus("approve-error"),
+      );
+      emitter.on("user-signing-approval-error", () =>
+        setFlowStatus("approve-error"),
+      );
+      emitter.on("pre-supply-collateral", () =>
+        setFlowStatus("supply-collateral-ready"),
+      );
+      emitter.on("user-signed-supply-collateral", () =>
+        setFlowStatus("supplying-collateral"),
+      );
+      emitter.on("supply-collateral-transaction-succeeded", function () {
+        setFlowStatus("supplied-collateral");
+        setShowToast(true);
+      });
+      emitter.on("supply-collateral-transaction-reverted", () =>
+        setFlowStatus("supply-collateral-error"),
+      );
+      emitter.on("supply-collateral-failed", () =>
+        setFlowStatus("supply-collateral-error"),
+      );
+      emitter.on("supply-collateral-failed-validation", () =>
+        setFlowStatus("supply-collateral-error"),
+      );
+      emitter.on("user-signing-supply-collateral-error", () =>
+        setFlowStatus("supply-collateral-error"),
+      );
+    },
+  });
+
+  const nativeBalance = nativeBalanceData?.value;
+
+  const inputError = getInputError({
+    collateralAmount: collateralAmountBigInt,
+    collateralBalance,
+    nativeBalance,
+  });
+
+  const { current, updated } = useSupplyCollateralReview({
+    borrowApy: market.borrowApy,
+    borrowShares: positionInfo?.borrowShares ?? 0n,
+    collateralInput,
+    collateralToken,
+    currentCollateral: positionInfo?.collateral ?? 0n,
+    loanToken,
+    morphoMarket,
+  });
+
+  const handleRetry = function () {
+    setFlowStatus(
+      startedWithApproval ? "approving" : "supply-collateral-ready",
+    );
+    supplyMutation.mutate();
+  };
+
+  const steps: Step[] = [];
+  if (flowStatus !== "idle") {
+    if (startedWithApproval) {
+      steps.push({
+        description: t(
+          "pages.borrow.supply-collateral-progress.approve-description",
+        ),
+        status: getApproveStepStatus(flowStatus),
+        title: t("pages.borrow.supply-collateral-progress.approve-title"),
+      });
+    }
+    steps.push({
+      description: t(
+        "pages.borrow.supply-collateral-progress.supply-description",
+      ),
+      status: getSupplyStepStatus(flowStatus),
+      title: t("pages.borrow.supply-collateral-progress.supply-title"),
+    });
+  }
+
+  function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (!inputError) {
+      setStartedWithApproval(!!needsApproval);
+      setFlowStatus(needsApproval ? "approving" : "supply-collateral-ready");
+      supplyMutation.mutate();
+    }
+  }
+
+  return (
+    <div className="relative flex flex-1 flex-col overflow-hidden">
+      <form className="flex flex-col bg-white" onSubmit={handleSubmit}>
+        <div className="flex flex-col gap-1 border-t border-gray-200 p-6">
+          <TokenInput
+            balance={
+              <Balance
+                label={t("pages.swap.form.balance")}
+                value={
+                  <RenderCryptoValue
+                    status={balanceStatus}
+                    token={collateralToken}
+                    value={collateralBalance}
+                  />
+                }
+              />
+            }
+            label={t("pages.borrow.supply-collateral-progress.you-will-supply")}
+            maxButton={
+              <SetMaxErc20Balance
+                onClick={setCollateralInput}
+                token={collateralToken}
+              />
+            }
+            onChange={setCollateralInput}
+            tokenSelector={<TokenSelectorReadOnly {...collateralToken} />}
+            value={collateralInput}
+          />
+        </div>
+        <div className="border-y border-gray-200 bg-gray-50 px-6 py-3 *:w-full">
+          <SubmitButton
+            address={address}
+            balancesLoaded={
+              nativeBalance !== undefined && collateralBalance !== undefined
+            }
+            inputError={inputError}
+          />
+        </div>
+        <FeesContainer isError={networkFee.isError} totalFees={networkFee.data}>
+          <FeeDetails
+            isError={networkFee.isError}
+            label={t("pages.swap.fees.network-fee")}
+            value={networkFee.data}
+          />
+        </FeesContainer>
+        <div className="border-t border-gray-200 px-6 py-2">
+          <PositionReview
+            borrowApy={market.borrowApy}
+            collateralToken={collateralToken}
+            current={current}
+            lltv={formatLtvAsPercentage(market.lltv)}
+            loanToken={loanToken}
+            updated={updated}
+          />
+        </div>
+      </form>
+      {renderStepper && (
+        <StepperOverlay
+          isError={isError}
+          onDismiss={() => setFlowStatus("idle")}
+          onRetry={handleRetry}
+          showStepper={showStepper}
+          steps={steps}
+        />
+      )}
+      {showToast && (
+        <Toast
+          closable
+          description={t(
+            "pages.borrow.supply-collateral-progress.toast-description",
+            {
+              amount: collateralInput,
+              symbol: collateralToken.symbol,
+            },
+          )}
+          onClose={() => setShowToast(false)}
+          title={t("pages.borrow.supply-collateral-progress.toast-title")}
+        />
+      )}
+    </div>
+  );
+}
