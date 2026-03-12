@@ -148,13 +148,13 @@ function StepperOverlay({
   return (
     <>
       <div
-        className={`absolute inset-0 bg-gray-900/10 transition-opacity duration-300 ${
-          showStepper ? "opacity-100" : "opacity-0"
+        className={`fixed inset-0 z-20 bg-gray-900/10 transition-opacity duration-300 ${
+          showStepper ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={isError ? onDismiss : undefined}
       />
       <div
-        className={`absolute inset-x-0 bottom-0 z-10 rounded-t-lg rounded-bl-lg bg-white shadow-md transition-transform duration-300 ease-out ${
+        className={`fixed right-0 bottom-0 z-30 w-full rounded-t-lg rounded-bl-lg bg-white shadow-md transition-transform duration-300 ease-out md:w-md ${
           showStepper ? "translate-y-0" : "translate-y-full"
         }`}
       >
@@ -205,8 +205,7 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
   const isActive = flowStatus !== "idle";
   const isError =
     flowStatus === "approve-error" || flowStatus === "supply-collateral-error";
-  const { render: renderStepper, show: showStepper } =
-    useAnimatedVisibility(isActive);
+  const { show: showStepper } = useAnimatedVisibility(isActive);
 
   useCloseOnSuccess({
     onClose,
@@ -333,7 +332,7 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
   }
 
   return (
-    <div className="relative flex flex-1 flex-col overflow-hidden">
+    <div className="flex flex-1 flex-col overflow-y-auto">
       <form className="flex flex-col bg-white" onSubmit={handleSubmit}>
         <div className="flex flex-col gap-1 border-t border-gray-200 p-6">
           <TokenInput
@@ -388,15 +387,13 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
           />
         </div>
       </form>
-      {renderStepper && (
-        <StepperOverlay
-          isError={isError}
-          onDismiss={() => setFlowStatus("idle")}
-          onRetry={handleRetry}
-          showStepper={showStepper}
-          steps={steps}
-        />
-      )}
+      <StepperOverlay
+        isError={isError}
+        onDismiss={() => setFlowStatus("idle")}
+        onRetry={handleRetry}
+        showStepper={showStepper}
+        steps={steps}
+      />
       {showToast && (
         <Toast
           closable
