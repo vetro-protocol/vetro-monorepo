@@ -2,7 +2,7 @@ import { useEstimateFees } from "@hemilabs/react-hooks/useEstimateFees";
 import { getChainAddresses } from "@morpho-org/blue-sdk";
 import { encodeBorrowAssets } from "@vetro/morpho-blue-market/actions";
 import { useMainnet } from "hooks/useMainnet";
-import type { createMorphoCollateralStateOverride } from "utils/morphoStateOverride";
+import { createMorphoCollateralStateOverride } from "utils/morphoStateOverride";
 import type { Hash } from "viem";
 import { useAccount, useEstimateGas } from "wagmi";
 
