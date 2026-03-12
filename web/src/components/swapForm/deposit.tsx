@@ -222,7 +222,7 @@ export function Deposit({
         }
       >
         <SubmitButton
-          actionText={t("pages.swap.form.deposit")}
+          actionText={t("pages.swap.form.swap")}
           inputError={inputError}
           isPreviewError={isDepositPreviewError}
           previewValue={depositPreview}
