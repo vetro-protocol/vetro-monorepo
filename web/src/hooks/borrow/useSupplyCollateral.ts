@@ -99,9 +99,8 @@ export const useSupplyCollateral = function ({
       emitter.on("supply-collateral-transaction-succeeded", function (receipt) {
         updateNativeBalanceAfterReceipt(receipt);
         // Remove collateral token from user's wallet
-        queryClient.setQueryData(
-          collateralBalanceKey,
-          (old: bigint) => old - collateralAmount,
+        queryClient.setQueryData(collateralBalanceKey, (old?: bigint) =>
+          old !== undefined ? old - collateralAmount : old,
         );
         // Update position's collateral
         queryClient.setQueryData(
@@ -112,7 +111,7 @@ export const useSupplyCollateral = function ({
         // Update market's total collateral
         queryClient.setQueryData(
           marketCollateralQueryKey(marketId),
-          (old: bigint) => old + collateralAmount,
+          (old?: bigint) => (old !== undefined ? old + collateralAmount : old),
         );
       });
 

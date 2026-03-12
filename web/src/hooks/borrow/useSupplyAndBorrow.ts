@@ -108,14 +108,13 @@ export const useSupplyAndBorrow = function ({
         updateNativeBalanceAfterReceipt(receipt);
         // Remove collateral token from user's wallet.
         // For updating the collateral position, see after borrowing is completed
-        queryClient.setQueryData(
-          collateralBalanceKey,
-          (old: bigint) => old - collateralAmount,
+        queryClient.setQueryData(collateralBalanceKey, (old?: bigint) =>
+          old !== undefined ? old - collateralAmount : old,
         );
         // Update market's total collateral
         queryClient.setQueryData(
           marketCollateralQueryKey(marketId),
-          (old: bigint) => old + collateralAmount,
+          (old?: bigint) => (old !== undefined ? old + collateralAmount : old),
         );
       });
       emitter.on("borrow-assets-transaction-reverted", function (receipt) {
