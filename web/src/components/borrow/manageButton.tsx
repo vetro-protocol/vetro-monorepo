@@ -1,6 +1,7 @@
 import { Button } from "components/base/button";
 import { ChevronIcon } from "components/base/chevronIcon";
 import { Dropdown } from "components/base/dropdown";
+import type { BorrowAction } from "hooks/borrow/useBorrowAction";
 import { useTranslation } from "react-i18next";
 import { type Hash } from "viem";
 
@@ -58,7 +59,7 @@ const WithdrawIcon = () => (
 
 type Props = {
   marketId: Hash;
-  onAction: (action: string) => void;
+  onAction: (action: BorrowAction) => void;
 };
 
 export function ManageButton({ marketId, onAction }: Props) {
@@ -66,22 +67,22 @@ export function ManageButton({ marketId, onAction }: Props) {
   const items = [
     {
       icon: <PlusCircleIcon />,
-      key: "supply-collateral",
+      key: "supply-collateral" as BorrowAction,
       label: t("pages.borrow.supply-more-collateral"),
     },
     {
       icon: <WithdrawIcon />,
-      key: "withdraw-collateral",
+      key: "withdraw-collateral" as BorrowAction,
       label: t("pages.borrow.withdraw-collateral"),
     },
     {
       icon: <PlusCircleIcon />,
-      key: "borrow-more",
+      key: "borrow-more" as BorrowAction,
       label: t("pages.borrow.borrow-more"),
     },
     {
       icon: <RepayIcon />,
-      key: "repay-loan",
+      key: "repay-loan" as BorrowAction,
       label: t("pages.borrow.repay-loan"),
     },
   ];
