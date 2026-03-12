@@ -89,11 +89,11 @@ const PositionReviewRow = ({
       <span className="text-b-medium">{label}</span>
     </div>
     <div className="flex items-center gap-3">
-      <span className={`text-h4 w-[104px] ${hasChanges ? "opacity-50" : ""}`}>
+      <span className={`text-h4 w-26 ${hasChanges ? "opacity-50" : ""}`}>
         {children}
       </span>
       <ArrowIcon />
-      <span className="text-h4 w-[104px] text-right">
+      <span className="text-h4 w-26 text-right">
         {hasChanges ? updatedChildren : "-"}
       </span>
     </div>
@@ -141,11 +141,11 @@ export function PositionReview({
           {t("pages.borrow.position-review")}
         </span>
         <div className="flex items-center gap-3">
-          <span className="text-b-medium w-[104px] text-gray-500">
+          <span className="text-b-medium w-26 text-gray-500">
             {t("pages.borrow.current")}
           </span>
           <span className="size-4" />
-          <span className="text-b-medium w-[104px] text-right text-gray-500">
+          <span className="text-b-medium w-26 text-right text-gray-500">
             {t("pages.borrow.updated")}
           </span>
         </div>
