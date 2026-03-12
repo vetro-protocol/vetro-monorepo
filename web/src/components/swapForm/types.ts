@@ -6,10 +6,3 @@ export type SwapFormState = {
   fromToken: Token;
   toToken: Token;
 };
-
-export type InputError =
-  | "enter-amount"
-  | "insufficient-balance"
-  | "insufficient-gas"
-  // valid state
-  | undefined;

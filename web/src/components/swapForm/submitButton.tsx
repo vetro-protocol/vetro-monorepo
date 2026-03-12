@@ -3,13 +3,12 @@ import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { getGatewayAddress } from "@vetro/gateway";
 import { Button } from "components/base/button";
 import { Spinner } from "components/base/spinner";
+import type { InputError } from "components/tokenInput/utils";
 import { useMainnet } from "hooks/useMainnet";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 import { useAccount } from "wagmi";
-
-import type { InputError } from "./types";
 
 const Container = ({ children }: { children: ReactNode }) => (
   <div className="mt-2 flex w-full flex-col border-t border-gray-200 px-2 py-3">
@@ -19,7 +18,7 @@ const Container = ({ children }: { children: ReactNode }) => (
 
 type Props = {
   actionText: string;
-  inputError: InputError;
+  inputError: InputError | undefined;
   isPreviewError: boolean;
   previewValue: bigint | undefined;
   token: Token;
