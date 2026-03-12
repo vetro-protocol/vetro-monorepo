@@ -93,7 +93,7 @@ export const useBorrowMoreAssets = function ({
           // Add borrowed assets to loan token balance
           queryClient.setQueryData(
             loanBalanceKey,
-            (old: bigint) => (old ?? 0n) + assets,
+            (old?: bigint) => (old ?? 0n) + assets,
           );
           // Update position's borrow
           queryClient.setQueryData(
