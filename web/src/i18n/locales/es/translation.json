@@ -290,6 +290,10 @@
       }
     },
     "wallet": {
+      "activity-empty-description": "Intenta ajustar sus filtros o vuelve después de su primera transacción.",
+      "activity-empty-reset-filters": "Restablecer ajustes",
+      "activity-empty-start-swapping": "Empezar a intercambiar",
+      "activity-empty-title": "No hay actividad aquí",
       "disconnect-wallet": "Desconectar billetera",
       "filter-error": "Error",
       "filter-success": "Éxito",

@@ -12,6 +12,7 @@ const meta = {
     status: { control: "select", options: ["completed", "failed", "pending"] },
     text: { control: "text" },
     title: { control: "text" },
+    txHash: { control: "text" },
   },
   component: ActivityItem,
   title: "Components/ActivityList",
@@ -23,93 +24,102 @@ type Story = StoryObj<typeof meta>;
 export const ItemPending: Story = {
   args: {
     date: MOCK_DATE,
-    id: "1",
     page: "earn",
     status: "pending",
     text: "0.004 USDC staked",
     title: "Earn · Deposit",
+    txHash:
+      "0x1111111111111111111111111111111111111111111111111111111111111111",
   },
 };
 
 export const ItemConcluded: Story = {
   args: {
     ...ItemPending.args,
-    id: "2",
     status: "completed",
+    txHash:
+      "0x2222222222222222222222222222222222222222222222222222222222222222",
   },
 };
 
 export const ItemFailed: Story = {
   args: {
     ...ItemPending.args,
-    id: "3",
     status: "failed",
+    txHash:
+      "0x3333333333333333333333333333333333333333333333333333333333333333",
   },
 };
 
 export const ItemBorrow: Story = {
   args: {
     date: MOCK_DATE,
-    id: "4",
     page: "borrow",
     status: "completed",
     text: "100 VUSD borrowed",
     title: "Borrow · Open VUSD loan",
+    txHash:
+      "0x4444444444444444444444444444444444444444444444444444444444444444",
   },
 };
 
 export const ItemBorrowSupplyPosition: Story = {
   args: {
     date: MOCK_DATE,
-    id: "5",
     page: "borrow",
     status: "completed",
     text: "1 BTC supplied",
     title: "Borrow · Supply BTC to VUSD position",
+    txHash:
+      "0x5555555555555555555555555555555555555555555555555555555555555555",
   },
 };
 
 export const ItemBorrowMore: Story = {
   args: {
     date: MOCK_DATE,
-    id: "6",
     page: "borrow",
     status: "completed",
     text: "1,000 VUSD borrowed",
     title: "Borrow · Borrow more VUSD",
+    txHash:
+      "0x6666666666666666666666666666666666666666666666666666666666666666",
   },
 };
 
 export const ItemBorrowRepayPosition: Story = {
   args: {
     date: MOCK_DATE,
-    id: "7",
     page: "borrow",
     status: "completed",
     text: "1,000 VUSD repaid",
     title: "Borrow · Repay VUSD position",
+    txHash:
+      "0x7777777777777777777777777777777777777777777777777777777777777777",
   },
 };
 
 export const ItemPageOnly: Story = {
   args: {
     date: MOCK_DATE,
-    id: "8",
     page: "swap",
     status: "completed",
     text: "500 USDC swapped",
     title: "Swap",
+    txHash:
+      "0x8888888888888888888888888888888888888888888888888888888888888888",
   },
 };
 
 export const ItemSwapRedeem: Story = {
   args: {
     date: MOCK_DATE,
-    id: "9",
     page: "swap",
     status: "completed",
     text: "500 VUSD redeemed for USDC",
     title: "Swap · Redeem",
+    txHash:
+      "0x9999999999999999999999999999999999999999999999999999999999999999",
   },
 };
 
@@ -121,37 +131,42 @@ export const List: Story = {
       items={[
         {
           date: MOCK_DATE,
-          id: "1",
           page: "earn",
           status: "pending",
           text: "0.004 USDC staked",
           title: "Earn · Deposit",
+          txHash:
+            "0x1111111111111111111111111111111111111111111111111111111111111111",
         },
         {
           date: MOCK_DATE + 1,
-          id: "2",
           page: "earn",
           status: "completed",
           text: "10.00 USDC withdrawn",
           title: "Earn · Withdraw",
+          txHash:
+            "0x2222222222222222222222222222222222222222222222222222222222222222",
         },
         {
           date: MOCK_DATE + 2,
-          id: "3",
           page: "swap",
           status: "failed",
           text: "500 VUSD redeemed for USDC",
           title: "Swap · Redeem",
+          txHash:
+            "0x3333333333333333333333333333333333333333333333333333333333333333",
         },
         {
           date: MOCK_DATE + 3,
-          id: "4",
           page: "borrow",
           status: "completed",
           text: "100 VUSD borrowed",
           title: "Borrow · Open VUSD loan",
+          txHash:
+            "0x4444444444444444444444444444444444444444444444444444444444444444",
         },
       ]}
+      onResetFilters={() => undefined}
     />
   ),
 };
