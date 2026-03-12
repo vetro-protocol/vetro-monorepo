@@ -99,7 +99,7 @@ function getInputError({
     return "enter-amount" as const;
   }
   if (maxBorrowable !== undefined && borrowAmount > maxBorrowable) {
-    return "insufficient-balance" as const;
+    return "insufficient-collateral" as const;
   }
   if (nativeBalance !== undefined && nativeBalance === 0n) {
     return "insufficient-gas" as const;
