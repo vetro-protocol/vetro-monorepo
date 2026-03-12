@@ -211,10 +211,15 @@ export function BorrowMoreForm({ market, onClose }: Props) {
       ? morphoMarket.getMaxBorrowAssets(positionInfo.collateral)
       : undefined;
 
-  const maxBorrowable =
-    maxBorrowFromCollateral !== undefined
-      ? maxBorrowFromCollateral - (currentBorrowAssets ?? 0n)
-      : undefined;
+  const getMaxBorrowable = function () {
+    if (maxBorrowFromCollateral === undefined) {
+      return undefined;
+    }
+    const remaining = maxBorrowFromCollateral - (currentBorrowAssets ?? 0n);
+    return remaining > 0n ? remaining : 0n;
+  };
+
+  const maxBorrowable = getMaxBorrowable();
 
   const networkFee = useBorrowMoreFees({
     borrowAmount: borrowAmountBigInt,
