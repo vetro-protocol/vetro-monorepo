@@ -22,6 +22,7 @@ import { usePositionInfo } from "hooks/borrow/usePositionInfo";
 import { useSupplyCollateral } from "hooks/borrow/useSupplyCollateral";
 import { useSupplyCollateralFees } from "hooks/borrow/useSupplyCollateralFees";
 import { useSupplyCollateralReview } from "hooks/borrow/useSupplyCollateralReview";
+import { useAmount } from "hooks/useAmount";
 import { useAnimatedVisibility } from "hooks/useAnimatedVisibility";
 import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
 import { useMainnet } from "hooks/useMainnet";
@@ -196,7 +197,7 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
   const ethereumChain = useMainnet();
   const { address } = useAccount();
 
-  const [collateralInput, setCollateralInput] = useState("");
+  const [collateralInput, onCollateralChange] = useAmount();
   const [flowStatus, setFlowStatus] =
     useState<SupplyCollateralFlowStatus>("idle");
   const [showToast, setShowToast] = useState(false);
@@ -351,11 +352,11 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
             label={t("pages.borrow.supply-collateral-progress.you-will-supply")}
             maxButton={
               <SetMaxErc20Balance
-                onClick={setCollateralInput}
+                onClick={onCollateralChange}
                 token={collateralToken}
               />
             }
-            onChange={setCollateralInput}
+            onChange={onCollateralChange}
             tokenSelector={<TokenSelectorReadOnly {...collateralToken} />}
             value={collateralInput}
           />
