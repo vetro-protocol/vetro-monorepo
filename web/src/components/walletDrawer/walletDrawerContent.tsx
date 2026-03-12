@@ -51,7 +51,7 @@ function useBalanceInUsd() {
   return { isLoading: true };
 }
 
-const allFilters = ["borrow", "completed", "earn", "failed", "swap"] as const;
+const allFilters = ["borrow", "completed", "earn", "failed", "swap"];
 
 export function WalletDrawerContent() {
   const { address } = useAccount();
@@ -59,9 +59,7 @@ export function WalletDrawerContent() {
   const { isError, usd } = useBalanceInUsd();
   const { disconnect } = useDisconnect();
   const { t } = useTranslation();
-  const [selectedFilters, setSelectedFilters] = useState<string[]>([
-    ...allFilters,
-  ]);
+  const [selectedFilters, setSelectedFilters] = useState(allFilters);
 
   const activities = useActivities(address, chain.id);
   const explorerBaseUrl = chain.blockExplorers!.default.url;
@@ -145,7 +143,7 @@ export function WalletDrawerContent() {
             <ActivityList
               hasTransactions={activities.length > 0}
               items={itemsWithHref}
-              onResetFilters={() => setSelectedFilters([...allFilters])}
+              onResetFilters={() => setSelectedFilters(allFilters)}
             />
           </div>
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-34 bg-gradient-to-b from-transparent to-gray-50 to-80%" />
