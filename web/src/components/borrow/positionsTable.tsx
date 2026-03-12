@@ -38,6 +38,12 @@ const SupplyCollateralDrawerForm = lazy(() =>
   })),
 );
 
+const WithdrawCollateralDrawerForm = lazy(() =>
+  import("./withdrawCollateralDrawerForm").then((m) => ({
+    default: m.WithdrawCollateralDrawerForm,
+  })),
+);
+
 type PositionRow = MarketData & PositionData;
 
 type Props = {
@@ -233,6 +239,14 @@ export function PositionsTable({ marketIds }: Props) {
       {borrowAction === "supply-collateral" && activeMarket && (
         <Suspense>
           <SupplyCollateralDrawerForm
+            market={activeMarket}
+            onClose={clearBorrowAction}
+          />
+        </Suspense>
+      )}
+      {borrowAction === "withdraw-collateral" && activeMarket && (
+        <Suspense>
+          <WithdrawCollateralDrawerForm
             market={activeMarket}
             onClose={clearBorrowAction}
           />

@@ -92,6 +92,16 @@
       "updated": "Updated",
       "view-positions": "View positions",
       "withdraw-collateral": "Withdraw collateral",
+      "withdraw-collateral-progress": {
+        "retry": "Retry",
+        "submit": "Withdraw",
+        "toast-description": "{{amount}} {{symbol}} withdrawn from collateral.",
+        "toast-title": "Collateral withdrawn",
+        "withdraw-description": "Confirm the withdrawal in your wallet.",
+        "withdraw-progress": "Withdraw progress",
+        "withdraw-title": "Withdraw collateral",
+        "you-will-withdraw": "You will withdraw"
+      },
       "you-are-borrowing": "You are borrowing",
       "you-are-depositing": "You are depositing as collateral"
     },
