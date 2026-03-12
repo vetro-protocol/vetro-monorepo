@@ -1,7 +1,8 @@
 export const inputErrors = [
-  "enter-an-amount",
+  "enter-amount",
   "insufficient-balance",
-  "less-than-min-value",
+  "insufficient-collateral",
+  "insufficient-gas",
 ] as const;
 
 export type InputError = (typeof inputErrors)[number];

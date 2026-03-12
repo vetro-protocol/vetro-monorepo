@@ -113,8 +113,8 @@ export const morphoBlueAbi = [
     inputs: [
       { indexed: true, name: "id", type: "bytes32" },
       { indexed: false, name: "caller", type: "address" },
-      { indexed: false, name: "onBehalf", type: "address" },
-      { indexed: false, name: "receiver", type: "address" },
+      { indexed: true, name: "onBehalf", type: "address" },
+      { indexed: true, name: "receiver", type: "address" },
       { indexed: false, name: "assets", type: "uint256" },
       { indexed: false, name: "shares", type: "uint256" },
     ],
@@ -125,8 +125,8 @@ export const morphoBlueAbi = [
     anonymous: false,
     inputs: [
       { indexed: true, name: "id", type: "bytes32" },
-      { indexed: false, name: "caller", type: "address" },
-      { indexed: false, name: "onBehalf", type: "address" },
+      { indexed: true, name: "caller", type: "address" },
+      { indexed: true, name: "onBehalf", type: "address" },
       { indexed: false, name: "assets", type: "uint256" },
       { indexed: false, name: "shares", type: "uint256" },
     ],
@@ -137,8 +137,8 @@ export const morphoBlueAbi = [
     anonymous: false,
     inputs: [
       { indexed: true, name: "id", type: "bytes32" },
-      { indexed: false, name: "caller", type: "address" },
-      { indexed: false, name: "onBehalf", type: "address" },
+      { indexed: true, name: "caller", type: "address" },
+      { indexed: true, name: "onBehalf", type: "address" },
       { indexed: false, name: "assets", type: "uint256" },
     ],
     name: "SupplyCollateral",
@@ -149,8 +149,8 @@ export const morphoBlueAbi = [
     inputs: [
       { indexed: true, name: "id", type: "bytes32" },
       { indexed: false, name: "caller", type: "address" },
-      { indexed: false, name: "onBehalf", type: "address" },
-      { indexed: false, name: "receiver", type: "address" },
+      { indexed: true, name: "onBehalf", type: "address" },
+      { indexed: true, name: "receiver", type: "address" },
       { indexed: false, name: "assets", type: "uint256" },
     ],
     name: "WithdrawCollateral",

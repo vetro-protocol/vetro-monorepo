@@ -2,13 +2,14 @@ import { type ColumnDef } from "@tanstack/react-table";
 import { Table } from "components/base/table";
 import { Header } from "components/base/table/header";
 import { TopSection } from "components/base/table/topSection";
+import { useBorrowAction } from "hooks/borrow/useBorrowAction";
 import { type MarketData, useMarketsData } from "hooks/borrow/useMarketsData";
 import {
   type PositionData,
   usePositionsData,
 } from "hooks/borrow/usePositionsData";
 import { useTokenPrices } from "hooks/useTokenPrices";
-import { useMemo } from "react";
+import { lazy, Suspense, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import {
   calculateDailyInterestCost,
@@ -25,6 +26,12 @@ import { ManageButton } from "./manageButton";
 import { PositionsEmptyState } from "./positionsEmptyState";
 import { TokenValueCell } from "./tokenValueCell";
 
+const SupplyCollateralDrawerForm = lazy(() =>
+  import("./supplyCollateralDrawerForm").then((m) => ({
+    default: m.SupplyCollateralDrawerForm,
+  })),
+);
+
 type PositionRow = MarketData & PositionData;
 
 type Props = {
@@ -38,6 +45,16 @@ export function PositionsTable({ marketIds }: Props) {
   const { data: positionsData, isLoading: isPositionsLoading } =
     usePositionsData(marketIds);
   const { data: prices } = useTokenPrices();
+  const [{ borrowAction, marketId: actionMarketId }, setBorrowAction] =
+    useBorrowAction();
+
+  const clearBorrowAction = () =>
+    setBorrowAction({ borrowAction: null, marketId: null });
+
+  const activeMarket =
+    actionMarketId !== null
+      ? marketsData.find((m) => m.marketId === actionMarketId)
+      : undefined;
 
   const data = useMemo(
     (): PositionRow[] =>
@@ -174,9 +191,12 @@ export function PositionsTable({ marketIds }: Props) {
         cell: ({ row }) => (
           <ManageButton
             marketId={row.original.marketId}
-            onAction={function () {
-              /* drawers in future PR */
-            }}
+            onAction={(action) =>
+              setBorrowAction({
+                borrowAction: action,
+                marketId: row.original.marketId,
+              })
+            }
           />
         ),
         header: () => <Header text="" />,
@@ -184,7 +204,7 @@ export function PositionsTable({ marketIds }: Props) {
         meta: { className: "justify-end", width: "100px" },
       },
     ],
-    [prices, t],
+    [prices, setBorrowAction, t],
   );
 
   return (
@@ -196,6 +216,14 @@ export function PositionsTable({ marketIds }: Props) {
         loading={isMarketsLoading || isPositionsLoading}
         placeholder={<PositionsEmptyState />}
       />
+      {borrowAction === "supply-collateral" && activeMarket && (
+        <Suspense>
+          <SupplyCollateralDrawerForm
+            market={activeMarket}
+            onClose={clearBorrowAction}
+          />
+        </Suspense>
+      )}
     </>
   );
 }

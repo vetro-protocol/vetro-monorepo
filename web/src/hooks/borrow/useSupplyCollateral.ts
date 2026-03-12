@@ -5,35 +5,29 @@ import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpd
 import { getChainAddresses } from "@morpho-org/blue-sdk";
 import type { AccrualPosition } from "@morpho-org/blue-sdk-viem/lib/augment/Position";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  morphoBlueAbi,
-  type SupplyCollateralAndBorrowEvents,
-} from "@vetro/morpho-blue-market";
-import { supplyCollateralAndBorrow } from "@vetro/morpho-blue-market/actions";
+import type { SupplyCollateralEvents } from "@vetro/morpho-blue-market";
+import { supplyCollateral } from "@vetro/morpho-blue-market/actions";
 import type { EventEmitter } from "events";
-import { parseEventLogs, type Hash } from "viem";
+import type { Hash } from "viem";
 import { useAccount } from "wagmi";
 
 import { useEthereumWalletClient } from "../useEthereumWalletClient";
 import { useMainnet } from "../useMainnet";
 
 import { marketCollateralQueryKey } from "./useMarketCollateral";
-import { type MarketData, marketDataQueryKey } from "./useMarketData";
-import { morphoMarketOptions, morphoMarketQueryKey } from "./useMorphoMarket";
+import { morphoMarketOptions } from "./useMorphoMarket";
 import { positionInfoQueryKey } from "./usePositionInfo";
 
-export const useSupplyAndBorrow = function ({
+export const useSupplyCollateral = function ({
   approveAmount,
-  borrowAmount,
   collateralAmount,
   marketId,
   onEmitter,
 }: {
   approveAmount?: bigint;
-  borrowAmount: bigint;
   collateralAmount: bigint;
   marketId: Hash;
-  onEmitter?: (emitter: EventEmitter<SupplyCollateralAndBorrowEvents>) => void;
+  onEmitter?: (emitter: EventEmitter<SupplyCollateralEvents>) => void;
 }) {
   const { address: account } = useAccount();
   const { data: walletClient } = useEthereumWalletClient();
@@ -73,14 +67,12 @@ export const useSupplyAndBorrow = function ({
         marketId,
       });
 
-      const { emitter, promise } = supplyCollateralAndBorrow(walletClient!, {
+      const { emitter, promise } = supplyCollateral(walletClient!, {
         address: morphoAddress,
+        amount: collateralAmount,
         approveAmount,
-        borrowAmount,
-        collateralAmount,
         marketId,
         onBehalf: account,
-        receiver: account,
       });
 
       onEmitter?.(emitter);
@@ -106,10 +98,15 @@ export const useSupplyAndBorrow = function ({
       });
       emitter.on("supply-collateral-transaction-succeeded", function (receipt) {
         updateNativeBalanceAfterReceipt(receipt);
-        // Remove collateral token from user's wallet.
-        // For updating the collateral position, see after borrowing is completed
+        // Remove collateral token from user's wallet
         queryClient.setQueryData(collateralBalanceKey, (old?: bigint) =>
           old !== undefined ? old - collateralAmount : old,
+        );
+        // Update position's collateral
+        queryClient.setQueryData(
+          positionInfoKey,
+          (old: AccrualPosition | undefined) =>
+            old?.supplyCollateral(collateralAmount),
         );
         // Update market's total collateral
         queryClient.setQueryData(
@@ -117,64 +114,10 @@ export const useSupplyAndBorrow = function ({
           (old?: bigint) => (old !== undefined ? old + collateralAmount : old),
         );
       });
-      emitter.on("borrow-assets-transaction-reverted", function (receipt) {
-        updateNativeBalanceAfterReceipt(receipt);
-      });
-      emitter.on("borrow-assets-transaction-succeeded", function (receipt) {
-        updateNativeBalanceAfterReceipt(receipt);
-        // Update the collateral position here (After borrowing has succeeded) instead of after supplying collateral
-        // as once the position is created, the Form would show "You already have a position". If we don't do it this way
-        // the form would disappear mid-flow
-        queryClient.setQueryData(
-          positionInfoKey,
-          (old: AccrualPosition | undefined) =>
-            old?.supplyCollateral(collateralAmount),
-        );
-
-        const events = parseEventLogs({
-          abi: morphoBlueAbi,
-          eventName: "Borrow",
-          logs: receipt.logs,
-        });
-        if (events.length > 0) {
-          const { assets } = events[0].args;
-          const loanBalanceKey = tokenBalanceQueryKey(
-            { address: market.params.loanToken, chainId: ethereumChain.id },
-            account,
-          );
-          // update balance adding borrowed assets in the wallet
-          queryClient.setQueryData(
-            loanBalanceKey,
-            (old: bigint) => (old ?? 0n) + assets,
-          );
-          // and in the position
-          queryClient.setQueryData(
-            positionInfoKey,
-            (old: AccrualPosition | undefined) =>
-              // 0n is required by morpho sdk
-              old?.borrow(assets, 0n).position,
-          );
-          // Update market's liquidity and total borrow
-          queryClient.setQueryData(
-            marketDataQueryKey({
-              chainId: ethereumChain.id,
-              marketId,
-            }),
-            (old: MarketData | undefined) =>
-              old
-                ? {
-                    ...old,
-                    liquidity: old.liquidity - assets,
-                    totalBorrowAssets: old.totalBorrowAssets + assets,
-                  }
-                : old,
-          );
-        }
-      });
 
       return promise;
     },
-    async onSettled() {
+    onSettled() {
       const marketOptions = morphoMarketOptions({
         chainId: ethereumChain.id,
         client: walletClient,
@@ -184,14 +127,12 @@ export const useSupplyAndBorrow = function ({
       const market = queryClient.getQueryData(marketOptions.queryKey);
 
       if (market) {
-        // first invalidate the market data itself. Wait for invalidation, as useMarketData depends on it
-        await queryClient.invalidateQueries({
-          queryKey: marketOptions.queryKey,
-        });
+        const morphoAddress = getChainAddresses(ethereumChain.id).morpho;
+
         queryClient.invalidateQueries({
           queryKey: allowanceQueryKey({
             owner: account,
-            spender: getChainAddresses(ethereumChain.id).morpho,
+            spender: morphoAddress,
             token: {
               address: market.params.collateralToken,
               chainId: ethereumChain.id,
@@ -208,13 +149,6 @@ export const useSupplyAndBorrow = function ({
             account,
           ),
         });
-
-        queryClient.invalidateQueries({
-          queryKey: tokenBalanceQueryKey(
-            { address: market.params.loanToken, chainId: ethereumChain.id },
-            account,
-          ),
-        });
       }
 
       queryClient.invalidateQueries({
@@ -224,20 +158,9 @@ export const useSupplyAndBorrow = function ({
           marketId,
         }),
       });
+
       queryClient.invalidateQueries({
         queryKey: marketCollateralQueryKey(marketId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: marketDataQueryKey({
-          chainId: ethereumChain.id,
-          marketId,
-        }),
-      });
-      queryClient.invalidateQueries({
-        queryKey: morphoMarketQueryKey({
-          chainId: ethereumChain.id,
-          marketId,
-        }),
       });
     },
   });

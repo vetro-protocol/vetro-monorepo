@@ -6,7 +6,7 @@ import { FeeDetails } from "components/feeDetails";
 import { FeesContainer } from "components/feesContainer";
 import { TokenLogo } from "components/tokenLogo";
 import { useSupplyAndBorrowFees } from "hooks/borrow/useSupplyAndBorrowFees";
-import { useEffect, useState } from "react";
+import { useAnimatedVisibility } from "hooks/useAnimatedVisibility";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 import { type Hash, parseUnits } from "viem";
@@ -40,22 +40,8 @@ export function BorrowProgressDrawer({
     maxBorrowable: undefined,
   });
 
-  const [renderRetry, setRenderRetry] = useState(false);
-  const [showRetry, setShowRetry] = useState(false);
-
-  useEffect(
-    function animateRetryButton() {
-      if (onRetry) {
-        setRenderRetry(true);
-        const frameId = requestAnimationFrame(() => setShowRetry(true));
-        return () => cancelAnimationFrame(frameId);
-      }
-      setShowRetry(false);
-      const timeoutId = setTimeout(() => setRenderRetry(false), 300);
-      return () => clearTimeout(timeoutId);
-    },
-    [onRetry],
-  );
+  const { render: renderRetry, show: showRetry } =
+    useAnimatedVisibility(!!onRetry);
 
   return (
     <div className="flex h-full flex-col">

@@ -1,4 +1,4 @@
-import type { InputError } from "./types";
+import type { InputError } from "components/tokenInput/utils";
 
 export function getSwapErrors({
   amount,
@@ -8,7 +8,7 @@ export function getSwapErrors({
   amount: bigint;
   nativeBalance: bigint | undefined;
   tokenBalance: bigint | undefined;
-}): InputError {
+}): InputError | undefined {
   if (amount === 0n) {
     return "enter-amount";
   }

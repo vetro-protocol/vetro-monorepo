@@ -7,7 +7,7 @@ import { type MarketData } from "hooks/borrow/useMarketData";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { formatPercentage } from "utils/format";
-import { type Hash, formatUnits } from "viem";
+import { formatUnits } from "viem";
 
 import { HistoricApr } from "./historicApr";
 
@@ -85,16 +85,10 @@ const InfoCard = ({
   </div>
 );
 
-export function MarketInfoCards({
-  market,
-  marketId,
-}: {
-  market: MarketData;
-  marketId: Hash;
-}) {
+export function MarketInfoCards({ market }: { market: MarketData }) {
   const { t } = useTranslation();
   const { data: collateralAssets, status: collateralStatus } =
-    useMarketCollateral(marketId);
+    useMarketCollateral(market.marketId);
 
   return (
     <div className="flex flex-col">

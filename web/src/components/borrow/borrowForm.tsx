@@ -12,6 +12,7 @@ import { FeesContainer } from "components/feesContainer";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenInput } from "components/tokenInput";
 import { Balance } from "components/tokenInput/balance";
+import type { InputError } from "components/tokenInput/utils";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import type { MarketData } from "hooks/borrow/useMarketData";
 import { useMorphoMarket } from "hooks/borrow/useMorphoMarket";
@@ -34,12 +35,7 @@ import { BorrowingReview } from "./borrowingReview";
 type SubmitButtonProps = {
   address: Address | undefined;
   balancesLoaded: boolean;
-  inputError:
-    | "enter-amount"
-    | "insufficient-balance"
-    | "insufficient-collateral"
-    | "insufficient-gas"
-    | undefined;
+  inputError: InputError | undefined;
   openConnectModal: (() => void) | undefined;
 };
 

@@ -4,7 +4,8 @@ import { type Step, VerticalStepper } from "components/base/verticalStepper";
 import { FeeDetails } from "components/feeDetails";
 import { FeesContainer } from "components/feesContainer";
 import { TokenLogo } from "components/tokenLogo";
-import { type ReactNode, useEffect, useState } from "react";
+import { useAnimatedVisibility } from "hooks/useAnimatedVisibility";
+import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 
@@ -36,22 +37,8 @@ export function SwapProgressDrawer({
   toToken,
 }: Props) {
   const { t } = useTranslation();
-  const [renderRetry, setRenderRetry] = useState(false);
-  const [showRetry, setShowRetry] = useState(false);
-
-  useEffect(
-    function animateRetryButton() {
-      if (onRetry) {
-        setRenderRetry(true);
-        const frameId = requestAnimationFrame(() => setShowRetry(true));
-        return () => cancelAnimationFrame(frameId);
-      }
-      setShowRetry(false);
-      const timeoutId = setTimeout(() => setRenderRetry(false), 300);
-      return () => clearTimeout(timeoutId);
-    },
-    [onRetry],
-  );
+  const { render: renderRetry, show: showRetry } =
+    useAnimatedVisibility(!!onRetry);
 
   return (
     <>
