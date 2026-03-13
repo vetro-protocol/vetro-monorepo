@@ -12,6 +12,7 @@
     "graph:auth": "graph auth",
     "postinstall": "npm run codegen",
     "remove-local": "graph remove --node http://localhost:8020/ $npm_package_name",
+    "tag": "git tag -s -m \"\" $npm_package_name@$npm_package_version && git push --tags",
     "pretest": "npm run codegen",
     "test": "graph test"
   },

@@ -63,4 +63,5 @@ Sample response:
 
 The first deployment has to be done manually by @jcvernaleo.
 
-Then, to trigger a new deployment, tag the repository with `vetro-app-subgraph@[version]` and push the tag. Once the subgraph is deployed and indexed, ask @jcvernaleo for publishing.
+Then, to trigger a new deployment, apply and push a `vetro-app-subgraph@[version]` tag by running `npm run tag`.
+Once the subgraph is deployed and indexed, ask @jcvernaleo for publishing.
