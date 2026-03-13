@@ -1,5 +1,6 @@
 export const inputErrors = [
   "enter-amount",
+  "exceeds-debt",
   "insufficient-balance",
   "insufficient-collateral",
   "insufficient-gas",
