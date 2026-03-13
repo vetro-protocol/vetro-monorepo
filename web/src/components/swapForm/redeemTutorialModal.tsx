@@ -1,14 +1,15 @@
 import { Modal } from "components/base/modal";
 import { StripedDivider } from "components/stripedDivider";
 import { useVusd } from "hooks/useVusd";
-import { useWhitelistedTokens } from "hooks/useWhitelistedTokens";
 import { useWithdrawalDelay } from "hooks/useWithdrawalDelay";
 import type { ReactNode } from "react";
 import { Trans, useTranslation } from "react-i18next";
+import type { Token } from "types";
 import { getTokenListParams } from "utils/tokenList";
 
 type Props = {
   onClose: VoidFunction;
+  whitelistedTokens: Token[];
 };
 
 type StepSectionProps = {
@@ -35,13 +36,12 @@ const StepSection = ({ badge, children, image }: StepSectionProps) => (
   </div>
 );
 
-export function RedeemTutorialModal({ onClose }: Props) {
+export function RedeemTutorialModal({ onClose, whitelistedTokens }: Props) {
   const { t } = useTranslation();
   const { data: vusd } = useVusd();
   const { data: seconds } = useWithdrawalDelay({
     select: (data) => Number(data),
   });
-  const { data: whitelistedTokens } = useWhitelistedTokens();
 
   return (
     <Modal onClose={onClose}>
