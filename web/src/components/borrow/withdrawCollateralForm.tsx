@@ -1,9 +1,7 @@
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
-import { useNeedsApproval } from "@hemilabs/react-hooks/useNeedsApproval";
-import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
-import { getChainAddresses } from "@morpho-org/blue-sdk";
 import { Button } from "components/base/button";
 import { RenderCryptoValue } from "components/base/cryptoValue";
+import { MaxButton } from "components/base/maxButton";
 import { Toast } from "components/base/toast";
 import {
   type Step,
@@ -12,16 +10,15 @@ import {
 } from "components/base/verticalStepper";
 import { FeeDetails } from "components/feeDetails";
 import { FeesContainer } from "components/feesContainer";
-import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenInput } from "components/tokenInput";
 import { Balance } from "components/tokenInput/balance";
 import type { InputError } from "components/tokenInput/utils";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import type { MarketData } from "hooks/borrow/useMarketData";
 import { usePositionInfo } from "hooks/borrow/usePositionInfo";
-import { useSupplyCollateral } from "hooks/borrow/useSupplyCollateral";
-import { useSupplyCollateralFees } from "hooks/borrow/useSupplyCollateralFees";
-import { useSupplyCollateralReview } from "hooks/borrow/useSupplyCollateralReview";
+import { useWithdrawCollateral } from "hooks/borrow/useWithdrawCollateral";
+import { useWithdrawCollateralFees } from "hooks/borrow/useWithdrawCollateralFees";
+import { useWithdrawCollateralReview } from "hooks/borrow/useWithdrawCollateralReview";
 import { useAmount } from "hooks/useAmount";
 import { useAnimatedVisibility } from "hooks/useAnimatedVisibility";
 import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
@@ -30,44 +27,27 @@ import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { formatLtvAsPercentage } from "utils/borrowReview";
 import { parseTokenUnits } from "utils/token";
+import { formatUnits } from "viem";
 import { useAccount } from "wagmi";
 
 import { PositionReview } from "./positionReview";
 
-type SupplyCollateralFlowStatus =
-  | "approve-error"
-  | "approved"
-  | "approving"
+type WithdrawCollateralFlowStatus =
   | "idle"
-  | "supply-collateral-error"
-  | "supply-collateral-ready"
-  | "supplied-collateral"
-  | "supplying-collateral";
+  | "withdraw-error"
+  | "withdraw-ready"
+  | "withdrawing"
+  | "withdrawn";
 
-const getApproveStepStatus = function (
-  status: Exclude<SupplyCollateralFlowStatus, "idle">,
+const getWithdrawStepStatus = function (
+  status: Exclude<WithdrawCollateralFlowStatus, "idle">,
 ): Step["status"] {
   const exceptions: Partial<
-    Record<Exclude<SupplyCollateralFlowStatus, "idle">, Step["status"]>
+    Record<Exclude<WithdrawCollateralFlowStatus, "idle">, Step["status"]>
   > = {
-    "approve-error": stepStatus.failed,
-    approving: stepStatus.progress,
-  };
-  return exceptions[status] ?? stepStatus.completed;
-};
-
-const getSupplyStepStatus = function (
-  status: Exclude<SupplyCollateralFlowStatus, "idle">,
-): Step["status"] {
-  const exceptions: Partial<
-    Record<Exclude<SupplyCollateralFlowStatus, "idle">, Step["status"]>
-  > = {
-    "approve-error": stepStatus.notReady,
-    approved: stepStatus.notReady,
-    approving: stepStatus.notReady,
-    "supply-collateral-error": stepStatus.failed,
-    "supply-collateral-ready": stepStatus.ready,
-    "supplying-collateral": stepStatus.progress,
+    "withdraw-error": stepStatus.failed,
+    "withdraw-ready": stepStatus.ready,
+    withdrawing: stepStatus.progress,
   };
   return exceptions[status] ?? stepStatus.completed;
 };
@@ -101,24 +81,24 @@ function SubmitButton({
   }
   return (
     <Button size="small" type="submit" variant="primary">
-      {t("pages.borrow.supply-collateral-progress.submit")}
+      {t("pages.borrow.withdraw-collateral-progress.submit")}
     </Button>
   );
 }
 
 function getInputError({
   collateralAmount,
-  collateralBalance,
+  maxWithdrawable,
   nativeBalance,
 }: {
   collateralAmount: bigint;
-  collateralBalance: bigint | undefined;
+  maxWithdrawable: bigint | undefined;
   nativeBalance: bigint | undefined;
 }) {
   if (collateralAmount === 0n) {
     return "enter-amount" as const;
   }
-  if (collateralBalance !== undefined && collateralAmount > collateralBalance) {
+  if (maxWithdrawable !== undefined && collateralAmount > maxWithdrawable) {
     return "insufficient-balance" as const;
   }
   if (nativeBalance !== undefined && nativeBalance === 0n) {
@@ -161,7 +141,7 @@ function StepperOverlay({
       >
         <div className="flex flex-col gap-2 px-6 pt-4 pb-6">
           <p className="text-caption text-gray-500">
-            {t("pages.borrow.supply-collateral-progress.supply-progress")}
+            {t("pages.borrow.withdraw-collateral-progress.withdraw-progress")}
           </p>
           <div className="border-t border-gray-200">
             <VerticalStepper steps={steps} />
@@ -176,7 +156,7 @@ function StepperOverlay({
             <div className="overflow-hidden">
               <div className="border-t border-gray-200 bg-gray-50 px-6 py-3 *:w-full">
                 <Button onClick={onRetry} size="small" variant="primary">
-                  {t("pages.borrow.supply-collateral-progress.retry")}
+                  {t("pages.borrow.withdraw-collateral-progress.retry")}
                 </Button>
               </div>
             </div>
@@ -192,25 +172,23 @@ type Props = {
   onClose: VoidFunction;
 };
 
-export function SupplyCollateralForm({ market, onClose }: Props) {
+export function WithdrawCollateralForm({ market, onClose }: Props) {
   const { t } = useTranslation();
   const ethereumChain = useMainnet();
   const { address } = useAccount();
 
   const [collateralInput, onCollateralChange] = useAmount();
   const [flowStatus, setFlowStatus] =
-    useState<SupplyCollateralFlowStatus>("idle");
+    useState<WithdrawCollateralFlowStatus>("idle");
   const [showToast, setShowToast] = useState(false);
-  const [startedWithApproval, setStartedWithApproval] = useState(false);
 
   const isActive = flowStatus !== "idle";
-  const isError =
-    flowStatus === "approve-error" || flowStatus === "supply-collateral-error";
+  const isError = flowStatus === "withdraw-error";
   const { show: showStepper } = useAnimatedVisibility(isActive);
 
   useCloseOnSuccess({
     onClose,
-    success: flowStatus === "supplied-collateral",
+    success: flowStatus === "withdrawn",
   });
 
   const { collateralToken, loanToken, marketId } = market;
@@ -220,62 +198,44 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
     collateralToken,
   );
 
-  const { data: collateralBalance, status: balanceStatus } = useTokenBalance({
-    address: collateralToken.address,
-    chainId: collateralToken.chainId,
-  });
-
   const { data: nativeBalanceData } = useNativeBalance(ethereumChain.id);
 
-  const { data: needsApproval } = useNeedsApproval({
-    amount: collateralAmountBigInt,
-    spender: getChainAddresses(ethereumChain.id).morpho,
-    token: collateralToken,
-  });
+  const { data: positionInfo, status: positionInfoStatus } =
+    usePositionInfo(marketId);
 
-  const { data: positionInfo } = usePositionInfo(marketId);
+  const maxWithdrawable = positionInfo?.withdrawableCollateral;
 
-  const networkFee = useSupplyCollateralFees({
+  const networkFee = useWithdrawCollateralFees({
     collateralAmount: collateralAmountBigInt,
-    collateralToken,
     marketId,
+    maxWithdrawable,
   });
 
-  const supplyMutation = useSupplyCollateral({
+  const withdrawMutation = useWithdrawCollateral({
     collateralAmount: collateralAmountBigInt,
     marketId,
     onEmitter(emitter) {
-      emitter.on("user-signed-approval", () => setFlowStatus("approving"));
-      emitter.on("approve-transaction-succeeded", () =>
-        setFlowStatus("approved"),
+      emitter.on("pre-withdraw-collateral", () =>
+        setFlowStatus("withdraw-ready"),
       );
-      emitter.on("approve-transaction-reverted", () =>
-        setFlowStatus("approve-error"),
+      emitter.on("user-signed-withdraw-collateral", () =>
+        setFlowStatus("withdrawing"),
       );
-      emitter.on("user-signing-approval-error", () =>
-        setFlowStatus("approve-error"),
-      );
-      emitter.on("pre-supply-collateral", () =>
-        setFlowStatus("supply-collateral-ready"),
-      );
-      emitter.on("user-signed-supply-collateral", () =>
-        setFlowStatus("supplying-collateral"),
-      );
-      emitter.on("supply-collateral-transaction-succeeded", function () {
-        setFlowStatus("supplied-collateral");
+      emitter.on("withdraw-collateral-transaction-succeeded", function () {
+        setFlowStatus("withdrawn");
         setShowToast(true);
       });
-      emitter.on("supply-collateral-transaction-reverted", () =>
-        setFlowStatus("supply-collateral-error"),
+      emitter.on("withdraw-collateral-transaction-reverted", () =>
+        setFlowStatus("withdraw-error"),
       );
-      emitter.on("supply-collateral-failed", () =>
-        setFlowStatus("supply-collateral-error"),
+      emitter.on("withdraw-collateral-failed", () =>
+        setFlowStatus("withdraw-error"),
       );
-      emitter.on("supply-collateral-failed-validation", () =>
-        setFlowStatus("supply-collateral-error"),
+      emitter.on("withdraw-collateral-failed-validation", () =>
+        setFlowStatus("withdraw-error"),
       );
-      emitter.on("user-signing-supply-collateral-error", () =>
-        setFlowStatus("supply-collateral-error"),
+      emitter.on("user-signing-withdraw-collateral-error", () =>
+        setFlowStatus("withdraw-error"),
       );
     },
   });
@@ -284,11 +244,11 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
 
   const inputError = getInputError({
     collateralAmount: collateralAmountBigInt,
-    collateralBalance,
+    maxWithdrawable,
     nativeBalance,
   });
 
-  const { current, updated } = useSupplyCollateralReview({
+  const { current, updated } = useWithdrawCollateralReview({
     borrowApy: market.borrowApy,
     collateralInput,
     collateralToken,
@@ -297,38 +257,26 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
   });
 
   const handleRetry = function () {
-    setFlowStatus(
-      startedWithApproval ? "approving" : "supply-collateral-ready",
-    );
-    supplyMutation.mutate();
+    setFlowStatus("withdraw-ready");
+    withdrawMutation.mutate();
   };
 
   const steps: Step[] = [];
   if (flowStatus !== "idle") {
-    if (startedWithApproval) {
-      steps.push({
-        description: t(
-          "pages.borrow.supply-collateral-progress.approve-description",
-        ),
-        status: getApproveStepStatus(flowStatus),
-        title: t("pages.borrow.supply-collateral-progress.approve-title"),
-      });
-    }
     steps.push({
       description: t(
-        "pages.borrow.supply-collateral-progress.supply-description",
+        "pages.borrow.withdraw-collateral-progress.withdraw-description",
       ),
-      status: getSupplyStepStatus(flowStatus),
-      title: t("pages.borrow.supply-collateral-progress.supply-title"),
+      status: getWithdrawStepStatus(flowStatus),
+      title: t("pages.borrow.withdraw-collateral-progress.withdraw-title"),
     });
   }
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!inputError) {
-      setStartedWithApproval(!!needsApproval);
-      setFlowStatus(needsApproval ? "approving" : "supply-collateral-ready");
-      supplyMutation.mutate();
+      setFlowStatus("withdraw-ready");
+      withdrawMutation.mutate();
     }
   }
 
@@ -339,21 +287,27 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
           <TokenInput
             balance={
               <Balance
-                label={t("pages.swap.form.balance")}
+                label={t("pages.borrow.max-available")}
                 value={
                   <RenderCryptoValue
-                    status={balanceStatus}
+                    status={positionInfoStatus}
                     token={collateralToken}
-                    value={collateralBalance}
+                    value={maxWithdrawable}
                   />
                 }
               />
             }
-            label={t("pages.borrow.supply-collateral-progress.you-will-supply")}
+            label={t(
+              "pages.borrow.withdraw-collateral-progress.you-will-withdraw",
+            )}
             maxButton={
-              <SetMaxErc20Balance
-                onClick={onCollateralChange}
-                token={collateralToken}
+              <MaxButton
+                disabled={maxWithdrawable === undefined}
+                onClick={() =>
+                  onCollateralChange(
+                    formatUnits(maxWithdrawable!, collateralToken.decimals),
+                  )
+                }
               />
             }
             onChange={onCollateralChange}
@@ -364,9 +318,7 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
         <div className="border-y border-gray-200 bg-gray-50 px-6 py-3 *:w-full">
           <SubmitButton
             address={address}
-            balancesLoaded={
-              nativeBalance !== undefined && collateralBalance !== undefined
-            }
+            balancesLoaded={nativeBalance !== undefined}
             inputError={inputError}
           />
         </div>
@@ -399,14 +351,14 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
         <Toast
           closable
           description={t(
-            "pages.borrow.supply-collateral-progress.toast-description",
+            "pages.borrow.withdraw-collateral-progress.toast-description",
             {
               amount: collateralInput,
               symbol: collateralToken.symbol,
             },
           )}
           onClose={() => setShowToast(false)}
-          title={t("pages.borrow.supply-collateral-progress.toast-title")}
+          title={t("pages.borrow.withdraw-collateral-progress.toast-title")}
         />
       )}
     </div>

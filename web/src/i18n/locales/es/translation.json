@@ -92,6 +92,16 @@
       "updated": "Actualizado",
       "view-positions": "Ver posiciones",
       "withdraw-collateral": "Retirar garantía",
+      "withdraw-collateral-progress": {
+        "retry": "Reintentar",
+        "submit": "Retirar",
+        "toast-description": "{{amount}} {{symbol}} retirados de la garantía.",
+        "toast-title": "Garantía retirada",
+        "withdraw-description": "Confirme el retiro en su billetera.",
+        "withdraw-progress": "Progreso del retiro",
+        "withdraw-title": "Retirar garantía",
+        "you-will-withdraw": "Retirará"
+      },
       "you-are-borrowing": "Está pidiendo prestado",
       "you-are-depositing": "Está depositando como garantía"
     },
