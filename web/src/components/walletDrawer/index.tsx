@@ -1,6 +1,8 @@
 import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useState } from "react";
+
+import { WalletDrawerContext } from "./walletDrawerContext";
 
 const WalletDrawerContent = lazy(() =>
   import("./walletDrawerContent").then((m) => ({
@@ -12,10 +14,20 @@ type Props = {
   onClose: VoidFunction;
 };
 
-export const WalletDrawer = ({ onClose }: Props) => (
-  <Drawer onClose={onClose}>
-    <Suspense fallback={<DrawerLoader />}>
-      <WalletDrawerContent />
-    </Suspense>
-  </Drawer>
-);
+export function WalletDrawer({ onClose }: Props) {
+  const [requestClose, setRequestClose] = useState(false);
+
+  function close() {
+    setRequestClose(true);
+  }
+
+  return (
+    <WalletDrawerContext.Provider value={{ close }}>
+      <Drawer onClose={onClose} requestClose={requestClose}>
+        <Suspense fallback={<DrawerLoader />}>
+          <WalletDrawerContent />
+        </Suspense>
+      </Drawer>
+    </WalletDrawerContext.Provider>
+  );
+}

@@ -299,6 +299,11 @@
       }
     },
     "wallet": {
+      "activity-empty-description-filtered": "Try adjusting your filters.",
+      "activity-empty-description-no-transactions": "Check back after your first transaction.",
+      "activity-empty-reset-filters": "Reset view settings",
+      "activity-empty-start-swapping": "Start swapping",
+      "activity-empty-title": "No activity here",
       "disconnect-wallet": "Disconnect wallet",
       "filter-error": "Error",
       "filter-success": "Success",
