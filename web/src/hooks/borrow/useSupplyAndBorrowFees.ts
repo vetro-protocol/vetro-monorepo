@@ -1,17 +1,15 @@
-import { useEstimateFees } from "@hemilabs/react-hooks/useEstimateFees";
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
 import { getChainAddresses } from "@morpho-org/blue-sdk";
-import { encodeBorrowAssets } from "@vetro/morpho-blue-market/actions";
 import { useMainnet } from "hooks/useMainnet";
 import { useNetworkFee } from "hooks/useNetworkFee";
 import type { Token } from "types";
 import { sumFees } from "utils/fees";
 import { createMorphoCollateralStateOverride } from "utils/morphoStateOverride";
 import { type Hash } from "viem";
-import { useAccount, useEstimateGas } from "wagmi";
+import { useAccount } from "wagmi";
 
+import { useEstimateBorrowFees } from "./useEstimateBorrowFees";
 import { useEstimateSupplyCollateralFees } from "./useEstimateSupplyCollateralFees";
-import { useMorphoMarket } from "./useMorphoMarket";
 
 type Params = {
   borrowAmount: bigint;
@@ -36,8 +34,6 @@ export function useSupplyAndBorrowFees({
     address: collateralToken.address,
     chainId: collateralToken.chainId,
   });
-
-  const { data: morphoMarket } = useMorphoMarket(marketId);
 
   const hasEnoughBalance =
     collateralBalance !== undefined && collateralBalance >= collateralAmount;
@@ -68,31 +64,14 @@ export function useSupplyAndBorrowFees({
     user: address,
   });
 
-  const { data: borrowGasUnits, isError: isBorrowGasUnitsError } =
-    useEstimateGas({
-      chainId: ethereumChain.id,
-      data:
-        canEstimate && morphoMarket !== undefined
-          ? encodeBorrowAssets({
-              amount: borrowAmount,
-              marketParams: morphoMarket!.params,
-              onBehalf: address!,
-              receiver: address!,
-            })
-          : undefined,
-      query: {
-        enabled: canEstimate && morphoMarket !== undefined,
-        retry: false,
-      },
+  const { fees: borrowFees, isError: isBorrowFeeError } = useEstimateBorrowFees(
+    {
+      borrowAmount,
+      canEstimate,
+      marketId,
       stateOverride: borrowStateOverride,
-      to: morphoAddress,
-    });
-
-  const { fees: borrowFees, isError: isBorrowFeeError } = useEstimateFees({
-    chainId: ethereumChain.id,
-    gasUnits: borrowGasUnits,
-    isGasUnitsError: isBorrowGasUnitsError,
-  });
+    },
+  );
 
   const totalFees = sumFees([supplyCollateralFees, borrowFees]);
 
