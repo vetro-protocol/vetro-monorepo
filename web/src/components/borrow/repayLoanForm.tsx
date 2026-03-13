@@ -222,10 +222,12 @@ export function RepayLoanForm({ market, onClose }: Props) {
 
   const repayAmountBigInt = parseTokenUnits(repayInput, loanToken);
 
-  const { data: loanBalance } = useTokenBalance({
-    address: loanToken.address,
-    chainId: loanToken.chainId,
-  });
+  const { data: loanBalance, status: loanTokenBalanceStatus } = useTokenBalance(
+    {
+      address: loanToken.address,
+      chainId: loanToken.chainId,
+    },
+  );
 
   const { data: nativeBalanceData } = useNativeBalance(ethereumChain.id);
 
@@ -361,7 +363,11 @@ export function RepayLoanForm({ market, onClose }: Props) {
               <Balance
                 label={t("pages.swap.form.balance")}
                 value={
-                  <RenderCryptoValue token={loanToken} value={loanBalance} />
+                  <RenderCryptoValue
+                    status={loanTokenBalanceStatus}
+                    token={loanToken}
+                    value={loanBalance}
+                  />
                 }
               />
             }
