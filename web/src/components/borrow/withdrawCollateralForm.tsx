@@ -26,7 +26,8 @@ import { useMainnet } from "hooks/useMainnet";
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { formatLtvAsPercentage } from "utils/borrowReview";
-import { formatUnits, parseUnits } from "viem";
+import { parseTokenUnits } from "utils/token";
+import { formatUnits } from "viem";
 import { useAccount } from "wagmi";
 
 import { PositionReview } from "./positionReview";
@@ -192,9 +193,9 @@ export function WithdrawCollateralForm({ market, onClose }: Props) {
 
   const { collateralToken, loanToken, marketId } = market;
 
-  const collateralAmountBigInt = parseUnits(
+  const collateralAmountBigInt = parseTokenUnits(
     collateralInput,
-    collateralToken.decimals,
+    collateralToken,
   );
 
   const { data: nativeBalanceData } = useNativeBalance(ethereumChain.id);

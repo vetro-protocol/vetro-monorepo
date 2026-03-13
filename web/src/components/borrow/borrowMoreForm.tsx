@@ -27,7 +27,8 @@ import { useMainnet } from "hooks/useMainnet";
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { formatLtvAsPercentage } from "utils/borrowReview";
-import { formatUnits, parseUnits } from "viem";
+import { parseTokenUnits } from "utils/token";
+import { formatUnits } from "viem";
 import { useAccount } from "wagmi";
 
 import { PositionReview } from "./positionReview";
@@ -192,7 +193,7 @@ export function BorrowMoreForm({ market, onClose }: Props) {
 
   const { collateralToken, loanToken, marketId } = market;
 
-  const borrowAmountBigInt = parseUnits(borrowInput, loanToken.decimals);
+  const borrowAmountBigInt = parseTokenUnits(borrowInput, loanToken);
 
   const { data: nativeBalanceData } = useNativeBalance(ethereumChain.id);
 

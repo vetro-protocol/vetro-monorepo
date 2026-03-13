@@ -6,8 +6,8 @@ import {
   calculateLiquidationPrice,
   calculateLtv,
 } from "utils/borrowReview";
-import { getTokenPrice } from "utils/token";
-import { formatUnits, parseUnits } from "viem";
+import { getTokenPrice, parseTokenUnits } from "utils/token";
+import { formatUnits } from "viem";
 
 import { useTokenPrices } from "../useTokenPrices";
 
@@ -72,7 +72,7 @@ type Params = {
   collateralToken: Token;
   getUpdatedPosition: (position: AccrualPosition, amount: bigint) => Position;
   input: string;
-  inputDecimals: number;
+  inputToken: Token;
   loanToken: Token;
   position: AccrualPosition | undefined;
 };
@@ -82,7 +82,7 @@ export const usePositionReview = function ({
   collateralToken,
   getUpdatedPosition,
   input,
-  inputDecimals,
+  inputToken,
   loanToken,
   position,
 }: Params): { current: PositionMetrics; updated: PositionMetrics | null } {
@@ -117,7 +117,7 @@ export const usePositionReview = function ({
     return { current, updated: null };
   }
 
-  const amount = parseUnits(input, inputDecimals);
+  const amount = parseTokenUnits(input, inputToken);
   const updatedPosition = getUpdatedPosition(position, amount);
 
   const updated = buildMetrics({

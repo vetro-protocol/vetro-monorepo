@@ -28,7 +28,7 @@ export const useBorrowMoreReview = ({
       collateral: pos.collateral,
     }),
     input: borrowInput,
-    inputDecimals: loanToken.decimals,
+    inputToken: loanToken,
     loanToken,
     position,
   });

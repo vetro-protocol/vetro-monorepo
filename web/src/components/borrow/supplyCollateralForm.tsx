@@ -29,7 +29,7 @@ import { useMainnet } from "hooks/useMainnet";
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { formatLtvAsPercentage } from "utils/borrowReview";
-import { parseUnits } from "viem";
+import { parseTokenUnits } from "utils/token";
 import { useAccount } from "wagmi";
 
 import { PositionReview } from "./positionReview";
@@ -215,9 +215,9 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
 
   const { collateralToken, loanToken, marketId } = market;
 
-  const collateralAmountBigInt = parseUnits(
+  const collateralAmountBigInt = parseTokenUnits(
     collateralInput,
-    collateralToken.decimals,
+    collateralToken,
   );
 
   const { data: collateralBalance, status: balanceStatus } = useTokenBalance({

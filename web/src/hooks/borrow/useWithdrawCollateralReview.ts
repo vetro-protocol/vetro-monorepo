@@ -26,7 +26,7 @@ export const useWithdrawCollateralReview = ({
       collateral: pos.collateral - amount,
     }),
     input: collateralInput,
-    inputDecimals: collateralToken.decimals,
+    inputToken: collateralToken,
     loanToken,
     position,
   });
