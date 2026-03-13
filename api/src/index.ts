@@ -2,7 +2,9 @@ import { Hono } from "hono";
 import { cache } from "hono/cache";
 import { cors } from "hono/cors";
 
+import * as analytics from "./analytics.ts";
 import * as borrow from "./borrow.ts";
+import { convertBigIntsToString } from "./convert-bigints-to-string.ts";
 import { getSubgraphUrl } from "./env.ts";
 import { validateAddress, validateParam } from "./param-validators.ts";
 import { createOriginFn, parseOrigins } from "./validate-origin.ts";
@@ -14,6 +16,26 @@ app.use("*", async function (c, next) {
   const origins = parseOrigins(c.env.ORIGINS!);
   const originFn = createOriginFn(origins);
   return cors({ origin: originFn })(c, next);
+});
+
+app.get("/analytics/totals", async function (c) {
+  try {
+    const url = c.env.CUSTOM_RPC_URL_MAINNET;
+    const data = await analytics.getTotals({ url });
+    return c.json(convertBigIntsToString(data));
+  } catch (error) {
+    throw new Error(`Failed to get totals: ${error.message}`);
+  }
+});
+
+app.get("/analytics/treasury", async function (c) {
+  try {
+    const url = c.env.CUSTOM_RPC_URL_MAINNET;
+    const data = await analytics.getTreasuryComposition({ url });
+    return c.json(convertBigIntsToString(data));
+  } catch (error) {
+    throw new Error(`Failed to get treasury composition: ${error.message}`);
+  }
 });
 
 app.get(
