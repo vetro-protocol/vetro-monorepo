@@ -21,12 +21,16 @@ export const useRepayReview = ({
   usePositionReview({
     borrowApy,
     collateralToken,
-    getUpdatedPosition: (pos, amount) => ({
-      borrowShares: pos.market.toBorrowShares(
-        pos.market.toBorrowAssets(pos.borrowShares) - amount,
-      ),
-      collateral: pos.collateral,
-    }),
+    getUpdatedPosition(pos, amount) {
+      const updatedBorrowAssets =
+        pos.market.toBorrowAssets(pos.borrowShares) - amount;
+      return {
+        borrowShares: pos.market.toBorrowShares(
+          updatedBorrowAssets < 0n ? 0n : updatedBorrowAssets,
+        ),
+        collateral: pos.collateral,
+      };
+    },
     input: repayInput,
     inputToken: loanToken,
     loanToken,
