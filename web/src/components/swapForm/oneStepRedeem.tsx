@@ -27,6 +27,7 @@ import { SubmitButton } from "./submitButton";
 import { SwapFees } from "./swapFees";
 import { type RedeemFlowStatus, SwapRedeemDrawer } from "./swapRedeemDrawer";
 import { ToTokenBalance } from "./toTokenBalance";
+import { TreasuryReserves } from "./treasuryReserves";
 import { getSwapErrors } from "./validation";
 
 type Props = {
@@ -232,6 +233,7 @@ export function OneStepRedeem({
         />
       </Form>
       <ApproveSection active={approve10x} onToggle={onToggleApprove10x} />
+      <TreasuryReserves />
       <SwapFees
         amountBigInt={amountBigInt}
         approveAmount={approveAmount}

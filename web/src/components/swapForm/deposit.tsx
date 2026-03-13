@@ -26,6 +26,7 @@ import { SubmitButton } from "./submitButton";
 import { type DepositFlowStatus, SwapDepositDrawer } from "./swapDepositDrawer";
 import { SwapFees } from "./swapFees";
 import { ToTokenBalance } from "./toTokenBalance";
+import { TreasuryReserves } from "./treasuryReserves";
 import { getSwapErrors } from "./validation";
 
 type Props = {
@@ -230,6 +231,7 @@ export function Deposit({
         />
       </Form>
       <ApproveSection active={approve10x} onToggle={onToggleApprove10x} />
+      <TreasuryReserves />
       <SwapFees
         amountBigInt={amountBigInt}
         approveAmount={approveAmount}

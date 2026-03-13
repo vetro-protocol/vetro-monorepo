@@ -14,6 +14,7 @@ import { formatAmount } from "utils/token";
 
 import { OutputLabel } from "./outputLabel";
 import { ToTokenBalance } from "./toTokenBalance";
+import { TreasuryReserves } from "./treasuryReserves";
 
 export type ClaimRedeemFlowStatus =
   | "idle"
@@ -117,6 +118,9 @@ export function ClaimRedeemProgressDrawer({
             ? t("pages.swap.progress.retry")
             : t("pages.swap.redeem-vault.redeem")}
         </Button>
+      </div>
+      <div className="*:px-4">
+        <TreasuryReserves />
       </div>
       <FeesContainer
         label={

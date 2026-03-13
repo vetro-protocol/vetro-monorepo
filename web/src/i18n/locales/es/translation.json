@@ -310,6 +310,7 @@
         "your-cooldown-period-has-started_one": "Su período de espera de {{seconds}} segundo ha comenzado.",
         "your-cooldown-period-has-started_other": "Su período de espera de {{seconds}} segundos ha comenzado."
       },
+      "treasury-reserves": "Reservas del tesoro",
       "tutorial": {
         "breadcrumb": "Tutoriales Vetro · Intercambios",
         "learn-button": "Aprenda cómo canjear {{symbol}} a stables",
