@@ -2,7 +2,7 @@ import { type Address, zeroAddress } from "viem";
 import { mainnet, sepolia } from "viem/chains";
 
 const GATEWAY_ADDRESSES: Record<number, Address> = {
-  [mainnet.id]: "0x3B677f95A3B340A655Cd39a13FC056F625bB9492",
+  [mainnet.id]: "0xDaD503f8B9d42bb7af3AfC588358D30163e4416F",
   [sepolia.id]: zeroAddress,
 };
 

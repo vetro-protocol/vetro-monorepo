@@ -50,25 +50,14 @@ export const knownTokens: Token[] = [
     symbol: "USDT",
   },
   {
-    address: "0xB94724aa74A0296447D13a63A35B050b7F137C6d",
+    address: "0xCa83DDE9c22254f58e771bE5E157773212AcBAc3",
     chainId: mainnet.id,
     decimals: 18,
     extensions: {
       balanceSlot: 0,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vusd.svg",
-    name: "TESTUSD",
-    symbol: "TESTUSD",
-  },
-  {
-    address: "0x677ddbd918637E5F2c79e164D402454dE7dA8619",
-    chainId: mainnet.id,
-    decimals: 18,
-    extensions: {
-      balanceSlot: 0,
-    },
-    logoURI: "https://hemilabs.github.io/token-list/l1Logos/vusd.svg",
-    name: "VUSD",
+    name: "Vetro USD",
     symbol: "VUSD",
   },
 ];

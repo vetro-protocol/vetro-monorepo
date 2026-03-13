@@ -22,8 +22,7 @@ const vusdOptions = ({
 }) =>
   queryOptions({
     enabled: !!client,
-    // TODO Hardcoded for testing until we use the proper VUSD
-    initialData: knownTokens.find((t) => t.symbol === "TESTUSD")!,
+    initialData: knownTokens.find((t) => t.symbol === "VUSD")!,
     queryFn: () =>
       fetchVusd({
         client: client!,
