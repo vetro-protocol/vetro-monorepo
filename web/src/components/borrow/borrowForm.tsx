@@ -18,6 +18,7 @@ import type { MarketData } from "hooks/borrow/useMarketData";
 import { useMorphoMarket } from "hooks/borrow/useMorphoMarket";
 import { useSupplyAndBorrow } from "hooks/borrow/useSupplyAndBorrow";
 import { useSupplyAndBorrowFees } from "hooks/borrow/useSupplyAndBorrowFees";
+import { useActivityTracking } from "hooks/useActivityTracking";
 import { useMainnet } from "hooks/useMainnet";
 import {
   type FormEvent,
@@ -169,6 +170,16 @@ export function BorrowForm({
     maxBorrowable,
   });
 
+  const { onCompleted, onFailed, onPending, onTransactionHash } =
+    useActivityTracking({
+      page: "borrow",
+      text: t("pages.borrow.activity.open-position-text", {
+        amount: borrowInput,
+        symbol: loanToken.symbol,
+      }),
+      title: `${t("nav.borrow")} · ${t("pages.borrow.activity.open-position-title", { symbol: loanToken.symbol })}`,
+    });
+
   const borrowMutation = useSupplyAndBorrow({
     borrowAmount: borrowAmountBigInt,
     collateralAmount: collateralAmountBigInt,
@@ -206,21 +217,32 @@ export function BorrowForm({
         setFlowStatus("supply-collateral-error"),
       );
       emitter.on("pre-borrow-assets", () => setFlowStatus("borrowing"));
-      emitter.on("user-signed-borrow-assets", () => setFlowStatus("borrowing"));
+      emitter.on("user-signed-borrow-assets", function (hash) {
+        onTransactionHash(hash);
+        onPending();
+        setFlowStatus("borrowing");
+      });
       emitter.on("borrow-assets-transaction-succeeded", function () {
+        onCompleted();
         setFlowStatus("borrowed");
         setShowToast(true);
       });
-      emitter.on("borrow-assets-transaction-reverted", () =>
-        setFlowStatus("borrow-error"),
-      );
-      emitter.on("borrow-assets-failed", () => setFlowStatus("borrow-error"));
-      emitter.on("borrow-assets-failed-validation", () =>
-        setFlowStatus("borrow-error"),
-      );
-      emitter.on("user-signing-borrow-assets-error", () =>
-        setFlowStatus("borrow-error"),
-      );
+      emitter.on("borrow-assets-transaction-reverted", function () {
+        onFailed();
+        setFlowStatus("borrow-error");
+      });
+      emitter.on("borrow-assets-failed", function () {
+        onFailed();
+        setFlowStatus("borrow-error");
+      });
+      emitter.on("borrow-assets-failed-validation", function () {
+        onFailed();
+        setFlowStatus("borrow-error");
+      });
+      emitter.on("user-signing-borrow-assets-error", function () {
+        onFailed();
+        setFlowStatus("borrow-error");
+      });
     },
   });
 

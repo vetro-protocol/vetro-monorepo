@@ -14,6 +14,14 @@
       "title": "Hello Analytics"
     },
     "borrow": {
+      "activity": {
+        "borrow-more-text": "{{amount}} {{symbol}} borrowed",
+        "borrow-more-title": "Borrow more {{symbol}}",
+        "open-position-text": "{{amount}} {{symbol}} borrowed",
+        "open-position-title": "Open {{symbol}} loan",
+        "supply-text": "{{amount}} {{symbol}} supplied",
+        "supply-title": "Supply {{collateralSymbol}} to {{loanSymbol}} Position"
+      },
       "apr": "{{value}} APR",
       "available-to-borrow": "Available to borrow",
       "borrow-apr": "APR",

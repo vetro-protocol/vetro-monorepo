@@ -14,6 +14,14 @@
       "title": "Hola Analíticas"
     },
     "borrow": {
+      "activity": {
+        "borrow-more-text": "{{amount}} {{symbol}} prestados",
+        "borrow-more-title": "Pedir más {{symbol}} prestados",
+        "open-position-text": "{{amount}} {{symbol}} prestados",
+        "open-position-title": "Abrir préstamo {{symbol}}",
+        "supply-text": "{{amount}} {{symbol}} depositados",
+        "supply-title": "Depositar {{collateralSymbol}} en posición {{loanSymbol}}"
+      },
       "apr": "{{value}} TEA",
       "available-to-borrow": "Disponible para pedir prestado",
       "borrow-apr": "TEA",

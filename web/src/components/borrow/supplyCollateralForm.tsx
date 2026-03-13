@@ -22,6 +22,7 @@ import { usePositionInfo } from "hooks/borrow/usePositionInfo";
 import { useSupplyCollateral } from "hooks/borrow/useSupplyCollateral";
 import { useSupplyCollateralFees } from "hooks/borrow/useSupplyCollateralFees";
 import { useSupplyCollateralReview } from "hooks/borrow/useSupplyCollateralReview";
+import { useActivityTracking } from "hooks/useActivityTracking";
 import { useAmount } from "hooks/useAmount";
 import { useAnimatedVisibility } from "hooks/useAnimatedVisibility";
 import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
@@ -241,6 +242,16 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
     marketId,
   });
 
+  const { onCompleted, onFailed, onPending, onTransactionHash } =
+    useActivityTracking({
+      page: "borrow",
+      text: t("pages.borrow.activity.supply-text", {
+        amount: collateralInput,
+        symbol: collateralToken.symbol,
+      }),
+      title: `${t("nav.borrow")} · ${t("pages.borrow.activity.supply-title", { collateralSymbol: collateralToken.symbol, loanSymbol: loanToken.symbol })}`,
+    });
+
   const supplyMutation = useSupplyCollateral({
     collateralAmount: collateralAmountBigInt,
     marketId,
@@ -258,25 +269,32 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
       emitter.on("pre-supply-collateral", () =>
         setFlowStatus("supply-collateral-ready"),
       );
-      emitter.on("user-signed-supply-collateral", () =>
-        setFlowStatus("supplying-collateral"),
-      );
+      emitter.on("user-signed-supply-collateral", function (hash) {
+        onTransactionHash(hash);
+        onPending();
+        setFlowStatus("supplying-collateral");
+      });
       emitter.on("supply-collateral-transaction-succeeded", function () {
+        onCompleted();
         setFlowStatus("supplied-collateral");
         setShowToast(true);
       });
-      emitter.on("supply-collateral-transaction-reverted", () =>
-        setFlowStatus("supply-collateral-error"),
-      );
-      emitter.on("supply-collateral-failed", () =>
-        setFlowStatus("supply-collateral-error"),
-      );
-      emitter.on("supply-collateral-failed-validation", () =>
-        setFlowStatus("supply-collateral-error"),
-      );
-      emitter.on("user-signing-supply-collateral-error", () =>
-        setFlowStatus("supply-collateral-error"),
-      );
+      emitter.on("supply-collateral-transaction-reverted", function () {
+        onFailed();
+        setFlowStatus("supply-collateral-error");
+      });
+      emitter.on("supply-collateral-failed", function () {
+        onFailed();
+        setFlowStatus("supply-collateral-error");
+      });
+      emitter.on("supply-collateral-failed-validation", function () {
+        onFailed();
+        setFlowStatus("supply-collateral-error");
+      });
+      emitter.on("user-signing-supply-collateral-error", function () {
+        onFailed();
+        setFlowStatus("supply-collateral-error");
+      });
     },
   });
 
