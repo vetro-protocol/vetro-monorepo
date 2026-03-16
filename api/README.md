@@ -8,7 +8,7 @@ Service that provides data to the Vetro web application.
 
 Get the total VUSD minted and staked to calculate the TVL in the protocol.
 
-#### Response
+#### Sample Response
 
 ```json
 {
@@ -21,7 +21,7 @@ Get the total VUSD minted and staked to calculate the TVL in the protocol.
 
 Get the composition of the treasury by whitelisted token.
 
-#### Response
+#### Sample Response
 
 ```json
 [
@@ -52,11 +52,48 @@ Get the composition of the treasury by whitelisted token.
 ]
 ```
 
+### `GET /borrow/:marketId/apr-history/:period`
+
+Returns the historical borrow APR for a given market and period.
+Valid periods are: "1w", "1m", "3m" and "1y".
+
+#### Sample Response for "1m"
+
+```jsonc
+[
+  {
+    "apr": 0.030876974516304074,
+    "timestamp": 1773670127000,
+  },
+  {
+    "apr": 0.030186349361423972,
+    "timestamp": 1773619200000,
+  },
+  // ...more records...
+  {
+    "apr": 0.03401449317460798,
+    "timestamp": 1771113600000,
+  },
+]
+```
+
+### `GET /borrow/:marketId/collateral-assets`
+
+Gets the amount of collateral assets in a given Morpho market.
+
+#### Sample Response
+
+```json
+{
+  "collateralAssets": 219819281899
+}
+```
+
 ### `GET /variable-stake/apy`
 
 Returns the APY of the Vetro vault calculated using the share value variations over the last 7 days.
 
-#### Response
+#### Sample Response
 
 ```jsonc
 {
@@ -68,7 +105,7 @@ Returns the APY of the Vetro vault calculated using the share value variations o
 
 Returns all user's rewards from the Merkl campaigns related to Vetro.
 
-#### Response
+#### Sample Response
 
 ```jsonc
 [
@@ -98,7 +135,7 @@ Returns all user's rewards from the Merkl campaigns related to Vetro.
 
 Returns all user's variable stake exit tickets to i.e. allow claiming the withdrawn VUSD.
 
-#### Response
+#### Sample Response
 
 ```jsonc
 [
