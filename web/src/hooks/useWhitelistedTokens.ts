@@ -1,16 +1,21 @@
-import { useQuery } from "@tanstack/react-query";
-import { knownTokens } from "utils/tokenList";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getGatewayAddress } from "@vetro/gateway";
+import { fetchWhitelistedTokens } from "fetchers/fetchWhitelistedTokens";
 
-const whitelistedSymbols = ["USDC", "USDT"];
-const whitelistedTokens = knownTokens.filter((t) =>
-  whitelistedSymbols.includes(t.symbol),
-);
+import { useEthereumClient } from "./useEthereumClient";
 
-export const useWhitelistedTokens = () =>
-  useQuery({
-    initialData: whitelistedTokens,
-    // TODO validate token list from treasury - see https://github.com/vetro-protocol/vetro-monorepo/issues/34
-    queryFn: () => whitelistedTokens,
-    queryKey: ["whitelisted-tokens"],
+export const useWhitelistedTokens = function () {
+  const client = useEthereumClient();
+  const queryClient = useQueryClient();
+  return useQuery({
+    enabled: !!client,
+    queryFn: () =>
+      fetchWhitelistedTokens({
+        client: client!,
+        gatewayAddress: getGatewayAddress(client!.chain!.id),
+        queryClient,
+      }),
+    queryKey: ["whitelisted-tokens", client?.chain?.id],
     staleTime: Infinity,
   });
+};

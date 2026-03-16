@@ -282,7 +282,10 @@ export function TwoStepRedeem({
       </div>
 
       {isTutorialOpen && (
-        <RedeemTutorialModal onClose={() => setIsTutorialOpen(false)} />
+        <RedeemTutorialModal
+          onClose={() => setIsTutorialOpen(false)}
+          whitelistedTokens={whitelistedTokens}
+        />
       )}
       {isDrawerOpen && flowStatus !== "idle" && (
         <SwapRequestRedeemDrawer

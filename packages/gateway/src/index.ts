@@ -5,6 +5,8 @@ import {
   getPeggedToken,
   getRedeemFee,
   getRedeemRequest,
+  getTreasury,
+  getWhitelistedTokens,
   getWithdrawalDelay,
   getWithdrawalDelayEnabled,
   isInstantRedeemWhitelisted,
@@ -21,6 +23,7 @@ import {
 
 // Export ABI
 export { gatewayAbi } from "./abi/gatewayAbi.js";
+export { treasuryAbi } from "./abi/treasuryAbi.js";
 
 // Export gateway address utility
 export { getGatewayAddress } from "./getGatewayAddress.js";
@@ -42,6 +45,10 @@ export const gatewayPublicActions = () => (client: Client) => ({
     getRedeemFee(client, params),
   getRedeemRequest: (params: Parameters<typeof getRedeemRequest>[1]) =>
     getRedeemRequest(client, params),
+  getTreasury: (params: Parameters<typeof getTreasury>[1]) =>
+    getTreasury(client, params),
+  getWhitelistedTokens: (params: Parameters<typeof getWhitelistedTokens>[1]) =>
+    getWhitelistedTokens(client, params),
   getWithdrawalDelay: (params: Parameters<typeof getWithdrawalDelay>[1]) =>
     getWithdrawalDelay(client, params),
   getWithdrawalDelayEnabled: (

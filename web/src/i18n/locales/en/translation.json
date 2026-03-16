@@ -19,6 +19,8 @@
         "borrow-more-title": "Borrow more {{symbol}}",
         "open-position-text": "{{amount}} {{symbol}} borrowed",
         "open-position-title": "Open {{symbol}} loan",
+        "repay-text": "{{amount}} {{symbol}} repaid",
+        "repay-title": "Repay {{symbol}} loan",
         "supply-text": "{{amount}} {{symbol}} supplied",
         "supply-title": "Supply {{collateralSymbol}} to {{loanSymbol}} Position"
       },
@@ -77,6 +79,20 @@
         "title": "Borrow in progress"
       },
       "repay-loan": "Repay loan",
+      "repay-loan-progress": {
+        "approve-description": "Approve the loan token spending",
+        "approve-title": "Approve in wallet",
+        "repay-description": "Confirm the repayment in your wallet.",
+        "repay-progress": "Repay progress",
+        "repay-title": "Repay loan",
+        "retry": "Retry",
+        "submit": "Repay",
+        "title": "Repay loan",
+        "toast-description": "{{amount}} {{symbol}} repaid.",
+        "toast-title": "Loan repaid",
+        "total-loan": "Total loan",
+        "you-will-repay": "You will repay"
+      },
       "supply-collateral-and-borrow": "Supply collateral and borrow",
       "supply-collateral-progress": {
         "approve-description": "Approve the collateral token spending",
@@ -249,6 +265,7 @@
         "balance": "Balance",
         "connect-wallet": "Connect wallet",
         "enter-amount": "Enter an amount",
+        "exceeds-debt": "Amount exceeds debt",
         "insufficient-balance": "Insufficient balance",
         "insufficient-collateral": "Insufficient collateral",
         "insufficient-gas": "Insufficient ETH for gas",

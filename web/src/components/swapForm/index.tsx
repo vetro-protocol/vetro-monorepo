@@ -3,6 +3,7 @@ import { useSwapMode } from "hooks/useSwapMode";
 import { useVusd } from "hooks/useVusd";
 import { useWhitelistedTokens } from "hooks/useWhitelistedTokens";
 import { useReducer } from "react";
+import type { Token } from "types";
 import { parseTokenUnits } from "utils/token";
 
 import { Deposit } from "./deposit";
@@ -10,11 +11,19 @@ import { Redeem } from "./redeem";
 import { swapFormReducer } from "./swapFormReducer";
 import type { SwapFormState } from "./types";
 
-export function SwapForm() {
-  const [mode, setMode] = useSwapMode();
-  const { data: vusd } = useVusd();
-  const { data: whitelistedTokens = [] } = useWhitelistedTokens();
+type SwapFormContentProps = {
+  mode: "deposit" | "redeem";
+  setMode: (mode: "deposit" | "redeem") => void;
+  vusd: Token;
+  whitelistedTokens: Token[];
+};
 
+function SwapFormContent({
+  mode,
+  setMode,
+  vusd,
+  whitelistedTokens,
+}: SwapFormContentProps) {
   const firstStablecoin = whitelistedTokens[0];
 
   const initialState: SwapFormState = {
@@ -76,6 +85,26 @@ export function SwapForm() {
       onTokenChange={(token) =>
         dispatch({ payload: token, type: "SET_TO_TOKEN" })
       }
+    />
+  );
+}
+
+export function SwapForm() {
+  const [mode, setMode] = useSwapMode();
+  const { data: vusd } = useVusd();
+  const { data: whitelistedTokens } = useWhitelistedTokens();
+
+  if (vusd === undefined || whitelistedTokens === undefined) {
+    // TODO improve loading state https://github.com/vetro-protocol/vetro-monorepo/issues/111
+    return "...";
+  }
+
+  return (
+    <SwapFormContent
+      mode={mode}
+      setMode={setMode}
+      vusd={vusd}
+      whitelistedTokens={whitelistedTokens}
     />
   );
 }

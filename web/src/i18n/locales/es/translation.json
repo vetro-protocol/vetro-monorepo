@@ -19,6 +19,8 @@
         "borrow-more-title": "Pedir más {{symbol}} prestados",
         "open-position-text": "{{amount}} {{symbol}} prestados",
         "open-position-title": "Abrir préstamo {{symbol}}",
+        "repay-text": "{{amount}} {{symbol}} reembolsados",
+        "repay-title": "Reembolsar préstamo {{symbol}}",
         "supply-text": "{{amount}} {{symbol}} depositados",
         "supply-title": "Depositar {{collateralSymbol}} en posición {{loanSymbol}}"
       },
@@ -77,6 +79,20 @@
         "title": "Préstamo en progreso"
       },
       "repay-loan": "Pagar préstamo",
+      "repay-loan-progress": {
+        "approve-description": "Apruebe el gasto del token de préstamo",
+        "approve-title": "Aprobar en la billetera",
+        "repay-description": "Confirme el pago en su billetera.",
+        "repay-progress": "Progreso del pago",
+        "repay-title": "Pagar préstamo",
+        "retry": "Reintentar",
+        "submit": "Pagar",
+        "title": "Pagar préstamo",
+        "toast-description": "{{amount}} {{symbol}} pagados.",
+        "toast-title": "Préstamo pagado",
+        "total-loan": "Préstamo total",
+        "you-will-repay": "Pagará"
+      },
       "supply-collateral-and-borrow": "Depositar garantía y pedir prestado",
       "supply-collateral-progress": {
         "approve-description": "Apruebe el gasto del token de garantía",
@@ -254,6 +270,7 @@
         "balance": "Saldo",
         "connect-wallet": "Conectar billetera",
         "enter-amount": "Ingrese un monto",
+        "exceeds-debt": "El monto excede la deuda",
         "insufficient-balance": "Saldo insuficiente",
         "insufficient-collateral": "Garantía insuficiente",
         "insufficient-gas": "ETH insuficiente para gas",

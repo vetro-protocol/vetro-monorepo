@@ -38,6 +38,12 @@ const SupplyCollateralDrawerForm = lazy(() =>
   })),
 );
 
+const RepayLoanDrawerForm = lazy(() =>
+  import("./repayLoanDrawerForm").then((m) => ({
+    default: m.RepayLoanDrawerForm,
+  })),
+);
+
 const WithdrawCollateralDrawerForm = lazy(() =>
   import("./withdrawCollateralDrawerForm").then((m) => ({
     default: m.WithdrawCollateralDrawerForm,
@@ -228,29 +234,41 @@ export function PositionsTable({ marketIds }: Props) {
         loading={isMarketsLoading || isPositionsLoading}
         placeholder={<PositionsEmptyState />}
       />
-      {borrowAction === "borrow-more" && activeMarket && (
-        <Suspense>
-          <BorrowMoreDrawerForm
-            market={activeMarket}
-            onClose={clearBorrowAction}
-          />
-        </Suspense>
-      )}
-      {borrowAction === "supply-collateral" && activeMarket && (
-        <Suspense>
-          <SupplyCollateralDrawerForm
-            market={activeMarket}
-            onClose={clearBorrowAction}
-          />
-        </Suspense>
-      )}
-      {borrowAction === "withdraw-collateral" && activeMarket && (
-        <Suspense>
-          <WithdrawCollateralDrawerForm
-            market={activeMarket}
-            onClose={clearBorrowAction}
-          />
-        </Suspense>
+      {activeMarket && (
+        <>
+          {borrowAction === "borrow-more" && (
+            <Suspense>
+              <BorrowMoreDrawerForm
+                market={activeMarket}
+                onClose={clearBorrowAction}
+              />
+            </Suspense>
+          )}
+          {borrowAction === "supply-collateral" && (
+            <Suspense>
+              <SupplyCollateralDrawerForm
+                market={activeMarket}
+                onClose={clearBorrowAction}
+              />
+            </Suspense>
+          )}
+          {borrowAction === "repay-loan" && (
+            <Suspense>
+              <RepayLoanDrawerForm
+                market={activeMarket}
+                onClose={clearBorrowAction}
+              />
+            </Suspense>
+          )}
+          {borrowAction === "withdraw-collateral" && (
+            <Suspense>
+              <WithdrawCollateralDrawerForm
+                market={activeMarket}
+                onClose={clearBorrowAction}
+              />
+            </Suspense>
+          )}
+        </>
       )}
     </>
   );
