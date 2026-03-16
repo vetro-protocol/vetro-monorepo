@@ -22,7 +22,7 @@ description: Add, modify, or validate translations in the project's locale files
    { "days": "{{count}} Day", "days_other": "{{count}} Days" }
    ```
 
-6. These terms stay in English in the other locales: **bridge**, **earn**, **pool**, **stablecoins**, **stake**, **staked**, **staking**.
+6. These terms stay in English in the other locales: **bridge**, **earn**, **stablecoins**, **stake**, **staked**, **staking**.
 
 ## Workflow
 
