@@ -57,7 +57,7 @@
       "loan": "Loan",
       "loan-tooltip": "The amount of {{symbol}} you borrow against your collateral. As long as your Health Factor stays above 1.0, your position remains open.",
       "ltv": "LTV",
-      "ltv-tooltip": "The ratio between your debt and your collateral value. If you deposit $10,000 worth of collateral and borrow $6,000 of {{symbol}}, your LTV is 60%",
+      "ltv-tooltip": "The ratio between your debt and your collateral value. If you deposit $10,000 worth of collateral and borrow $6,000 of {{symbol}}, your LTV is 60%.",
       "manage": "Manage",
       "market-details": "Market details",
       "markets-title": "Markets",
