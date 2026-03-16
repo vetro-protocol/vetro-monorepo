@@ -15,7 +15,8 @@ export const useMarketCollateral = (marketId: Hash) =>
     enabled: apiUrl !== undefined && isValidUrl(apiUrl),
     queryFn: () =>
       fetch(`${apiUrl}/borrow/${marketId}/collateral-assets`).then(
-        (data: number) => BigInt(data),
+        ({ collateralAssets }: { collateralAssets: number }) =>
+          BigInt(collateralAssets),
       ),
     queryKey: marketCollateralQueryKey(marketId),
   });
