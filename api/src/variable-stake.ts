@@ -3,7 +3,7 @@ import linearRegression from "simple-linear-regression";
 
 import * as graphql from "./graphql.ts";
 import * as merkl from "./merkl.ts";
-import parseBigIntStringToFloat from "./parse-bigint-string-to-float.ts";
+import parseBigIntStringToNumber from "./parse-bigint-string-to-number.ts";
 
 const secsPerDay = 86400;
 
@@ -44,7 +44,7 @@ export async function getApy({ url }: { url: string }) {
     Math.floor(Number.parseInt(h.timestamp) / secsPerDay),
   );
   const values = vaultHistories.map((h) =>
-    parseBigIntStringToFloat(h.shareValue, 18),
+    parseBigIntStringToNumber(h.shareValue, 18),
   );
   const delta = linearRegression(days, values).a;
   if (Number.isNaN(delta)) {

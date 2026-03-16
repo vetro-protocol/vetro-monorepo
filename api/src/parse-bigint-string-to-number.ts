@@ -1,11 +1,12 @@
 /**
- * Parse a string representing a big integer into a float, assuming a certain number of decimals.
+ * Parse a string representing a big integer into a number, assuming a certain
+ * amount of decimals.
  *
  * @param string - The string representing the big integer.
  * @param decimals - The number of decimal places.
- * @returns The parsed float.
+ * @returns The parsed number.
  */
-export default function parseBigIntStringToFloat(
+export default function parseBigIntStringToNumber(
   string: string,
   decimals: number = 0,
 ): number {
