@@ -6,7 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type DepositEvents, getGatewayAddress } from "@vetro/gateway";
 import { deposit } from "@vetro/gateway/actions";
 import type { EventEmitter } from "events";
-import type { Address } from "viem";
+import { type Address, isAddressEqual } from "viem";
 import { useAccount } from "wagmi";
 
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
@@ -15,6 +15,7 @@ import {
   previewDepositQueryKey,
   previewDepositTokenOptions,
 } from "./usePreviewDeposit";
+import { treasuryReservesQueryKey } from "./useTreasuryReserves";
 import { useVusd } from "./useVusd";
 
 export const useDeposit = function ({
@@ -52,6 +53,11 @@ export const useDeposit = function ({
     },
     account,
   );
+
+  const treasuryReservesKey = treasuryReservesQueryKey({
+    chainId: ethereumChain.id,
+    gatewayAddress,
+  });
 
   const vusdBalanceQueryKey = tokenBalanceQueryKey(vusd, account);
 
@@ -110,6 +116,16 @@ export const useDeposit = function ({
           vusdBalanceQueryKey,
           (old: bigint) => old + minPeggedTokenOut,
         );
+        // optimistically increase treasury reserve for the deposited token
+        queryClient.setQueryData(
+          treasuryReservesKey,
+          (old: { amount: bigint; token: { address: Address } }[]) =>
+            old?.map((reserve) =>
+              isAddressEqual(reserve.token.address, tokenIn)
+                ? { ...reserve, amount: reserve.amount + amountIn }
+                : reserve,
+            ),
+        );
       });
 
       return promise;
@@ -125,6 +141,10 @@ export const useDeposit = function ({
 
       queryClient.invalidateQueries({
         queryKey: vusdBalanceQueryKey,
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: treasuryReservesKey,
       });
 
       // Let's clear this query, as once the user inputs an amount

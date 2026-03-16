@@ -269,6 +269,7 @@
         "insufficient-balance": "Insufficient balance",
         "insufficient-collateral": "Insufficient collateral",
         "insufficient-gas": "Insufficient ETH for gas",
+        "insufficient-treasury": "Not enough balance in treasury",
         "preview-error": "Failed to calculate amount to receive",
         "redeem": "Redeem",
         "redeemable-for_one": "Redeemable for {{firstSymbol}}",
@@ -328,6 +329,7 @@
         "deposited-to-vault": "{{symbol}} deposited to vault",
         "your-cooldown-period-has-started": "Your {{seconds}}-second cooldown has started."
       },
+      "treasury-reserves": "Treasury reserves",
       "tutorial": {
         "breadcrumb": "Vetro tutorials · Swap",
         "learn-button": "Learn how to redeem {{symbol}} to stables",

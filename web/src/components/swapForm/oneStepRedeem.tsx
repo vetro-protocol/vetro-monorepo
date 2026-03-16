@@ -11,6 +11,7 @@ import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useEstimateRedeemGas } from "hooks/useEstimateRedeemGas";
 import { useMainnet } from "hooks/useMainnet";
+import { useMaxWithdraw } from "hooks/useMaxWithdraw";
 import { usePreviewRedeem } from "hooks/usePreviewRedeem";
 import { useRedeem } from "hooks/useRedeem";
 import { useRedeemFee } from "hooks/useRedeemFee";
@@ -27,6 +28,7 @@ import { SubmitButton } from "./submitButton";
 import { SwapFees } from "./swapFees";
 import { type RedeemFlowStatus, SwapRedeemDrawer } from "./swapRedeemDrawer";
 import { ToTokenBalance } from "./toTokenBalance";
+import { TreasuryReserves } from "./treasuryReserves";
 import { getSwapErrors } from "./validation";
 
 type Props = {
@@ -80,6 +82,8 @@ export function OneStepRedeem({
     spender: getGatewayAddress(ethereumChain.id),
     token: fromToken,
   });
+
+  const { data: maxWithdraw } = useMaxWithdraw(toToken.address);
 
   const { data: redeemPreview, isError: isPreviewError } = usePreviewRedeem({
     peggedTokenIn: amountBigInt,
@@ -158,7 +162,9 @@ export function OneStepRedeem({
 
   const inputError = getSwapErrors({
     amount: amountBigInt,
+    maxWithdraw,
     nativeBalance,
+    redeemPreview,
     tokenBalance: fromTokenBalance,
   });
 
@@ -232,6 +238,7 @@ export function OneStepRedeem({
         />
       </Form>
       <ApproveSection active={approve10x} onToggle={onToggleApprove10x} />
+      <TreasuryReserves />
       <SwapFees
         amountBigInt={amountBigInt}
         approveAmount={approveAmount}

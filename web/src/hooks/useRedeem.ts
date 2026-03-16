@@ -7,17 +7,19 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { getGatewayAddress, type RedeemEvents } from "@vetro/gateway";
 import { redeem } from "@vetro/gateway/actions";
 import type { EventEmitter } from "events";
-import type { Address } from "viem";
+import { type Address, erc20Abi, isAddressEqual, parseEventLogs } from "viem";
 import { useAccount } from "wagmi";
 
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { redeemRequestQueryKey } from "./useGetRedeemRequest";
 import { useMainnet } from "./useMainnet";
+import { maxWithdrawQueryKey } from "./useMaxWithdraw";
 import {
   previewRedeemQueryKey,
   previewRedeemTokenOptions,
 } from "./usePreviewRedeem";
 import { useRedeemDelay } from "./useRedeemDelay";
+import { treasuryReservesQueryKey } from "./useTreasuryReserves";
 import { useVusd } from "./useVusd";
 
 export const useRedeem = function ({
@@ -60,6 +62,11 @@ export const useRedeem = function ({
 
   const vusdBalanceQueryKey = tokenBalanceQueryKey(vusd, account);
 
+  const treasuryReservesKey = treasuryReservesQueryKey({
+    chainId: ethereumChain.id,
+    gatewayAddress,
+  });
+
   const tokenOutBalanceQueryKey = tokenBalanceQueryKey(
     {
       address: tokenOut,
@@ -67,6 +74,12 @@ export const useRedeem = function ({
     },
     account,
   );
+
+  const maxWithdrawKey = maxWithdrawQueryKey({
+    chainId: ethereumChain.id,
+    gatewayAddress,
+    tokenOut,
+  });
 
   return useMutation({
     async mutationFn() {
@@ -120,6 +133,17 @@ export const useRedeem = function ({
       emitter.on("redeem-transaction-succeeded", function (receipt) {
         updateNativeBalanceAfterReceipt(receipt);
 
+        // Parse the actual redeemed amount from the Transfer event
+        const transferLogs = parseEventLogs({
+          abi: erc20Abi,
+          eventName: "Transfer",
+          logs: receipt.logs,
+        });
+        const actualAmount =
+          transferLogs.find((log) =>
+            isAddressEqual(log.args.from, gatewayAddress),
+          )?.args.value ?? minAmountOut;
+
         if (hasDelay) {
           // if there's a delay, VUSD was burned from the Gateway vault
           // so the amount to redeem is reduced.
@@ -137,7 +161,22 @@ export const useRedeem = function ({
         // In any case, the user ends up receiving the stablecoins converted from VUSD
         queryClient.setQueryData(
           tokenOutBalanceQueryKey,
-          (old: bigint) => old + minAmountOut,
+          (old: bigint) => old + actualAmount,
+        );
+        // optimistically decrease treasury reserve for the redeemed token
+        queryClient.setQueryData(
+          treasuryReservesKey,
+          (old: { amount: bigint; token: { address: Address } }[]) =>
+            old?.map((reserve) =>
+              isAddressEqual(reserve.token.address, tokenOut)
+                ? { ...reserve, amount: reserve.amount - actualAmount }
+                : reserve,
+            ),
+        );
+        // optimistically decrease max withdraw for the redeemed token
+        queryClient.setQueryData(
+          maxWithdrawKey,
+          (old: bigint) => old - actualAmount,
         );
       });
 
@@ -161,6 +200,13 @@ export const useRedeem = function ({
       });
       queryClient.invalidateQueries({
         queryKey: tokenOutBalanceQueryKey,
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: treasuryReservesKey,
+      });
+      queryClient.invalidateQueries({
+        queryKey: maxWithdrawKey,
       });
 
       // Let's clear this query, as once the user inputs an amount

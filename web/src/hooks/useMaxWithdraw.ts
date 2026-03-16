@@ -1,0 +1,53 @@
+import { queryOptions, useQuery } from "@tanstack/react-query";
+import { getGatewayAddress } from "@vetro/gateway";
+import { getMaxWithdraw } from "@vetro/gateway/actions";
+import type { Address, Chain, Client } from "viem";
+
+import { useEthereumClient } from "./useEthereumClient";
+import { useMainnet } from "./useMainnet";
+
+export const maxWithdrawQueryKey = ({
+  chainId,
+  gatewayAddress,
+  tokenOut,
+}: {
+  chainId: Chain["id"];
+  gatewayAddress: Address;
+  tokenOut: Address;
+}) => ["max-withdraw", chainId, gatewayAddress, tokenOut];
+
+export const maxWithdrawOptions = ({
+  chainId,
+  client,
+  gatewayAddress,
+  tokenOut,
+}: {
+  chainId: Chain["id"];
+  client: Client | undefined;
+  gatewayAddress: Address;
+  tokenOut: Address;
+}) =>
+  queryOptions({
+    enabled: !!client,
+    queryFn: () =>
+      getMaxWithdraw(client!, { address: gatewayAddress, tokenOut }),
+    queryKey: maxWithdrawQueryKey({
+      chainId,
+      gatewayAddress,
+      tokenOut,
+    }),
+  });
+
+export const useMaxWithdraw = function (tokenOut: Address) {
+  const client = useEthereumClient();
+  const ethereumChain = useMainnet();
+
+  return useQuery(
+    maxWithdrawOptions({
+      chainId: ethereumChain.id,
+      client,
+      gatewayAddress: getGatewayAddress(ethereumChain.id),
+      tokenOut,
+    }),
+  );
+};

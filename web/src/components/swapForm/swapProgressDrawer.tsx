@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 
 import { OutputLabel } from "./outputLabel";
+import { TreasuryReserves } from "./treasuryReserves";
 
 type Props = {
   fromAmount: string;
@@ -81,7 +82,9 @@ export function SwapProgressDrawer({
             </div>
           )}
         </div>
-
+        <div className="*:px-4">
+          <TreasuryReserves />
+        </div>
         <FeesContainer
           label={
             toToken && outputValue !== undefined ? (

@@ -1,4 +1,5 @@
 // Export all public actions
+export * from "./public/getMaxWithdraw.js";
 export * from "./public/getPeggedToken.js";
 export * from "./public/getMintFee.js";
 export * from "./public/getRedeemFee.js";

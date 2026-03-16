@@ -92,4 +92,59 @@ describe("getSwapErrors", function () {
     });
     expect(result).toBe("insufficient-gas");
   });
+
+  it("returns 'insufficient-treasury' when redeemPreview exceeds maxWithdraw", function () {
+    const result = getSwapErrors({
+      amount: 500n,
+      maxWithdraw: 100n,
+      nativeBalance: 100n,
+      redeemPreview: 200n,
+      tokenBalance: 1000n,
+    });
+    expect(result).toBe("insufficient-treasury");
+  });
+
+  it("returns undefined when redeemPreview does not exceed maxWithdraw", function () {
+    const result = getSwapErrors({
+      amount: 500n,
+      maxWithdraw: 300n,
+      nativeBalance: 100n,
+      redeemPreview: 200n,
+      tokenBalance: 1000n,
+    });
+    expect(result).toBeUndefined();
+  });
+
+  it("returns undefined when maxWithdraw is undefined", function () {
+    const result = getSwapErrors({
+      amount: 500n,
+      maxWithdraw: undefined,
+      nativeBalance: 100n,
+      redeemPreview: 200n,
+      tokenBalance: 1000n,
+    });
+    expect(result).toBeUndefined();
+  });
+
+  it("returns undefined when redeemPreview is undefined", function () {
+    const result = getSwapErrors({
+      amount: 500n,
+      maxWithdraw: 100n,
+      nativeBalance: 100n,
+      redeemPreview: undefined,
+      tokenBalance: 1000n,
+    });
+    expect(result).toBeUndefined();
+  });
+
+  it("returns 'insufficient-balance' before 'insufficient-treasury' when both apply", function () {
+    const result = getSwapErrors({
+      amount: 2000n,
+      maxWithdraw: 100n,
+      nativeBalance: 100n,
+      redeemPreview: 200n,
+      tokenBalance: 1000n,
+    });
+    expect(result).toBe("insufficient-balance");
+  });
 });

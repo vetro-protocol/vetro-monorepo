@@ -8,12 +8,17 @@ import {
 import { waitForTransactionReceipt, writeContract } from "viem/actions";
 import { sepolia } from "viem/chains";
 import { allowance, approve } from "viem-erc20/actions";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { getMaxWithdraw } from "../../src/actions/public/getMaxWithdraw";
 import { getPeggedToken } from "../../src/actions/public/getPeggedToken";
 import { getWithdrawalDelayEnabled } from "../../src/actions/public/getWithdrawalDelayEnabled";
 import { isInstantRedeemWhitelisted } from "../../src/actions/public/isInstantRedeemWhitelisted";
 import { redeem } from "../../src/actions/wallet/redeem";
+
+vi.mock("../../src/actions/public/getMaxWithdraw", () => ({
+  getMaxWithdraw: vi.fn(),
+}));
 
 vi.mock("../../src/actions/public/getPeggedToken", () => ({
   getPeggedToken: vi.fn(),
@@ -56,6 +61,11 @@ const validParameters = {
 };
 
 describe("redeem", function () {
+  beforeEach(function () {
+    // Default: treasury has enough balance for all tests
+    vi.mocked(getMaxWithdraw).mockResolvedValue(BigInt(1_000_000));
+  });
+
   it("should emit 'redeem-failed-validation' if client is not defined", async function () {
     const { emitter, promise } = redeem(
       // @ts-expect-error - Testing invalid input
@@ -338,6 +348,25 @@ describe("redeem", function () {
 
     expect(onRedeemFailedValidation).toHaveBeenCalledExactlyOnceWith(
       "Minimum output cannot be negative",
+    );
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("should emit 'redeem-failed-validation' if treasury has insufficient balance", async function () {
+    vi.mocked(getMaxWithdraw).mockResolvedValue(BigInt(100));
+
+    const { emitter, promise } = redeem(mockWalletClient, validParameters);
+
+    const onRedeemFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("redeem-failed-validation", onRedeemFailedValidation);
+    emitter.on("redeem-settled", onSettled);
+
+    await promise;
+
+    expect(onRedeemFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "Not enough balance in treasury",
     );
     expect(onSettled).toHaveBeenCalledOnce();
   });

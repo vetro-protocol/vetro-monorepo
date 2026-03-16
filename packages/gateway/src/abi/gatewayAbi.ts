@@ -59,6 +59,13 @@ export const gatewayAbi = [
     type: "function",
   },
   {
+    inputs: [{ name: "tokenOut_", type: "address" }],
+    name: "maxWithdraw",
+    outputs: [{ type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       { name: "tokenIn_", type: "address" },
       { name: "amountIn_", type: "uint256" },

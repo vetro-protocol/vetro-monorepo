@@ -37,6 +37,7 @@ import {
   type RequestRedeemFlowStatus,
   SwapRequestRedeemDrawer,
 } from "./swapRequestRedeemDrawer";
+import { TreasuryReserves } from "./treasuryReserves";
 import { getSwapErrors } from "./validation";
 
 type Props = {
@@ -267,6 +268,7 @@ export function TwoStepRedeem({
         </div>
       </Form>
       <ApproveSection active={approve10x} onToggle={onToggleApprove10x} />
+      <TreasuryReserves />
       <SwapFees
         amountBigInt={amountBigInt}
         approveAmount={approveAmount}

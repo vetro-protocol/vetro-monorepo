@@ -4,6 +4,7 @@ export const inputErrors = [
   "insufficient-balance",
   "insufficient-collateral",
   "insufficient-gas",
+  "insufficient-treasury",
 ] as const;
 
 export type InputError = (typeof inputErrors)[number];
