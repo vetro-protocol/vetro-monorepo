@@ -1,6 +1,7 @@
 import { DisplayAmount } from "components/base/displayAmount";
 import { TokenLogo } from "components/tokenLogo";
 import { Tooltip } from "components/tooltip";
+import { useVusd } from "hooks/useVusd";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 import { formatFiatNumber, formatPercentage } from "utils/format";
@@ -109,6 +110,7 @@ export function PositionReview({
   updated,
 }: Props) {
   const { t } = useTranslation();
+  const { data: vusd } = useVusd();
 
   const hasChanges = updated !== null;
   const perDay = t("pages.borrow.per-day");
@@ -153,7 +155,7 @@ export function PositionReview({
       <PositionReviewRow
         hasChanges={hasChanges}
         label={t("pages.borrow.collateral")}
-        tooltip={t("pages.borrow.ltv-tooltip")}
+        tooltip={t("pages.borrow.collateral-tooltip")}
         updatedChildren={
           updated && (
             <span className="*:w-full">
@@ -177,7 +179,7 @@ export function PositionReview({
       <PositionReviewRow
         hasChanges={hasChanges}
         label={t("pages.borrow.loan")}
-        tooltip={t("pages.borrow.ltv-tooltip")}
+        tooltip={t("pages.borrow.loan-tooltip", { symbol: vusd.symbol })}
         updatedChildren={
           updated && (
             <span className="*:w-full">
@@ -221,7 +223,7 @@ export function PositionReview({
       <PositionReviewRow
         hasChanges={hasChanges}
         label={t("pages.borrow.ltv")}
-        tooltip={t("pages.borrow.ltv-tooltip")}
+        tooltip={t("pages.borrow.ltv-tooltip", { symbol: loanToken.symbol })}
         updatedChildren={updated ? formatLtvValue(updated.ltv) : "-"}
       >
         {formatLtvValue(current.ltv)}
