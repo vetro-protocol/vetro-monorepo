@@ -7,6 +7,7 @@ import { FeesContainer } from "components/feesContainer";
 import { TokenDropdown } from "components/tokenDropdown";
 import { TokenInput } from "components/tokenInput";
 import { Balance } from "components/tokenInput/balance";
+import type { InputError } from "components/tokenInput/utils";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
@@ -28,6 +29,7 @@ type Props = {
   flowStatus: ClaimRedeemFlowStatus;
   fromAmount: string;
   fromToken: Token;
+  inputError: InputError | undefined;
   networkFee: string;
   onInputChange: (value: string) => void;
   onMaxClick: VoidFunction;
@@ -47,6 +49,7 @@ export function ClaimRedeemProgressDrawer({
   flowStatus,
   fromAmount,
   fromToken,
+  inputError,
   networkFee,
   onInputChange,
   onMaxClick,
@@ -64,9 +67,10 @@ export function ClaimRedeemProgressDrawer({
 
   const renderRetry = flowStatus === "redeem-error";
   const isDisabled =
-    flowStatus !== "idle" &&
-    flowStatus !== "redeem-ready" &&
-    flowStatus !== "redeem-error";
+    !!inputError ||
+    (flowStatus !== "idle" &&
+      flowStatus !== "redeem-ready" &&
+      flowStatus !== "redeem-error");
 
   return (
     <div className="flex h-full flex-col">
@@ -114,9 +118,11 @@ export function ClaimRedeemProgressDrawer({
           size="small"
           variant="primary"
         >
-          {renderRetry
-            ? t("pages.swap.progress.retry")
-            : t("pages.swap.redeem-vault.redeem")}
+          {inputError
+            ? t(`pages.swap.form.${inputError}`)
+            : renderRetry
+              ? t("pages.swap.progress.retry")
+              : t("pages.swap.redeem-vault.redeem")}
         </Button>
       </div>
       <div className="*:px-4">

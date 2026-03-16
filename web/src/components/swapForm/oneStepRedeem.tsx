@@ -11,6 +11,7 @@ import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useEstimateRedeemGas } from "hooks/useEstimateRedeemGas";
 import { useMainnet } from "hooks/useMainnet";
+import { useMaxWithdraw } from "hooks/useMaxWithdraw";
 import { usePreviewRedeem } from "hooks/usePreviewRedeem";
 import { useRedeem } from "hooks/useRedeem";
 import { useRedeemFee } from "hooks/useRedeemFee";
@@ -81,6 +82,8 @@ export function OneStepRedeem({
     spender: getGatewayAddress(ethereumChain.id),
     token: fromToken,
   });
+
+  const { data: maxWithdraw } = useMaxWithdraw(toToken.address);
 
   const { data: redeemPreview, isError: isPreviewError } = usePreviewRedeem({
     peggedTokenIn: amountBigInt,
@@ -159,7 +162,9 @@ export function OneStepRedeem({
 
   const inputError = getSwapErrors({
     amount: amountBigInt,
+    maxWithdraw,
     nativeBalance,
+    redeemPreview,
     tokenBalance: fromTokenBalance,
   });
 

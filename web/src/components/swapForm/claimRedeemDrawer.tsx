@@ -1,6 +1,7 @@
 import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
 import { type Step, stepStatus } from "components/base/verticalStepper";
+import type { InputError } from "components/tokenInput/utils";
 import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
 import { Suspense, lazy } from "react";
 import { useTranslation } from "react-i18next";
@@ -36,6 +37,7 @@ type Props = {
   outputValue: string;
   protocolFee: string;
   toToken: Token;
+  inputError: InputError | undefined;
   totalFees: string;
   whitelistedTokens: Token[];
 };
@@ -45,6 +47,7 @@ export function ClaimRedeemDrawer({
   flowStatus,
   fromAmount,
   fromToken,
+  inputError,
   networkFee,
   onClose,
   onInputChange,
@@ -89,6 +92,7 @@ export function ClaimRedeemDrawer({
           steps={steps}
           toToken={toToken}
           totalFees={totalFees}
+          inputError={inputError}
           whitelistedTokens={whitelistedTokens}
         />
       </Suspense>

@@ -1,8 +1,10 @@
+import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { TopSection } from "components/base/table/topSection";
-import { Toast } from "components/base/toast";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useEstimateRedeemGas } from "hooks/useEstimateRedeemGas";
 import { useGetRedeemRequest } from "hooks/useGetRedeemRequest";
+import { useMainnet } from "hooks/useMainnet";
+import { useMaxWithdraw } from "hooks/useMaxWithdraw";
 import { usePreviewRedeem } from "hooks/usePreviewRedeem";
 import { useRedeem } from "hooks/useRedeem";
 import { useRedeemFee } from "hooks/useRedeemFee";
@@ -19,6 +21,8 @@ import { CancelRedeemModal } from "./cancelRedeemModal";
 import { ClaimRedeemDrawer } from "./claimRedeemDrawer";
 import { type ClaimRedeemFlowStatus } from "./claimRedeemProgressDrawer";
 import { RedeemVaultEmptyState } from "./redeemVaultEmptyState";
+import { RedeemVaultToasts } from "./redeemVaultToasts";
+import { getSwapErrors } from "./validation";
 import { VaultTable } from "./vaultTable";
 
 type Props = {
@@ -27,8 +31,11 @@ type Props = {
 
 export function RedeemVault({ whitelistedTokens }: Props) {
   const { address } = useAccount();
+  const ethereumChain = useMainnet();
   const { t } = useTranslation();
   const { data: vusd } = useVusd();
+  const { data: nativeBalanceData } = useNativeBalance(ethereumChain.id);
+  const nativeBalance = nativeBalanceData?.value;
   const { data: redeemRequest, isLoading } = useGetRedeemRequest();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isCancelRedeemModalOpen, setIsCancelRedeemModalOpen] = useState(false);
@@ -45,6 +52,8 @@ export function RedeemVault({ whitelistedTokens }: Props) {
     ? parseTokenUnits(fromInputValue, vusd)
     : 0n;
 
+  const { data: maxWithdraw } = useMaxWithdraw(toToken.address);
+
   const { data: redeemPreview, isError: isPreviewError } = usePreviewRedeem({
     peggedTokenIn: amountBigInt,
     tokenOut: toToken.address,
@@ -54,6 +63,14 @@ export function RedeemVault({ whitelistedTokens }: Props) {
     amount: redeemPreview,
     decimals: toToken.decimals,
     isError: isPreviewError,
+  });
+
+  const inputError = getSwapErrors({
+    amount: amountBigInt,
+    maxWithdraw,
+    nativeBalance,
+    redeemPreview,
+    tokenBalance: amountLocked,
   });
 
   const { onCompleted, onFailed, onPending, onTransactionHash } =
@@ -160,6 +177,7 @@ export function RedeemVault({ whitelistedTokens }: Props) {
           protocolFee={protocolFeeDisplay}
           toToken={toToken}
           totalFees={totalFeesDisplay}
+          inputError={inputError}
           whitelistedTokens={whitelistedTokens}
         />
       )}
@@ -170,27 +188,12 @@ export function RedeemVault({ whitelistedTokens }: Props) {
           redeemableAmount={amountLocked}
         />
       )}
-      {toastType === "cancel" && (
-        <Toast
-          closable
-          description={t(
-            "pages.swap.redeem-vault.cancel-redeem-toast-description",
-            { symbol: vusd.symbol },
-          )}
-          onClose={() => setToastType(undefined)}
-          title={t("pages.swap.redeem-vault.cancel-redeem-toast-title")}
-        />
-      )}
-      {toastType === "redeem" && (
-        <Toast
-          closable
-          description={t("pages.swap.redeem-vault.swap-confirmed-description", {
-            symbol: toToken.symbol,
-          })}
-          onClose={() => setToastType(undefined)}
-          title={t("pages.swap.redeem-vault.redeem-confirmed")}
-        />
-      )}
+      <RedeemVaultToasts
+        onClose={() => setToastType(undefined)}
+        toastType={toastType}
+        toToken={toToken}
+        vusd={vusd}
+      />
     </>
   );
 }

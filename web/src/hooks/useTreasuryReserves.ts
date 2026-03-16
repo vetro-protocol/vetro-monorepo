@@ -1,9 +1,18 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getGatewayAddress } from "@vetro/gateway";
 import { fetchTreasuryReserves } from "fetchers/fetchTreasuryReserves";
+import type { Address, Chain } from "viem";
 
 import { useEthereumClient } from "./useEthereumClient";
 import { useMainnet } from "./useMainnet";
+
+export const treasuryReservesQueryKey = ({
+  chainId,
+  gatewayAddress,
+}: {
+  chainId: Chain["id"];
+  gatewayAddress: Address;
+}) => ["treasury-reserves", chainId, gatewayAddress];
 
 export const useTreasuryReserves = function () {
   const ethereumChain = useMainnet();
@@ -19,6 +28,9 @@ export const useTreasuryReserves = function () {
         gatewayAddress,
         queryClient,
       }),
-    queryKey: ["treasury-reserves", ethereumChain.id, gatewayAddress],
+    queryKey: treasuryReservesQueryKey({
+      chainId: ethereumChain.id,
+      gatewayAddress,
+    }),
   });
 };

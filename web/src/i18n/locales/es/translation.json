@@ -249,6 +249,7 @@
         "insufficient-balance": "Saldo insuficiente",
         "insufficient-collateral": "Garantía insuficiente",
         "insufficient-gas": "ETH insuficiente para gas",
+        "insufficient-treasury": "Saldo insuficiente en la tesorería",
         "preview-error": "No se pudo calcular el monto a recibir",
         "redeem": "Canjear",
         "redeemable-for_one": "Intercambiable por {{firstSymbol}}",
