@@ -24,6 +24,7 @@ import { useAccount } from "wagmi";
 
 import { Form } from "./form";
 import { OutputLabel } from "./outputLabel";
+import { RedeemVaultSection } from "./redeemVaultSection";
 import { SubmitButton } from "./submitButton";
 import { SwapFees } from "./swapFees";
 import { type RedeemFlowStatus, SwapRedeemDrawer } from "./swapRedeemDrawer";
@@ -254,6 +255,7 @@ export function OneStepRedeem({
         }
         protocolFee={protocolFee}
       />
+      <RedeemVaultSection whitelistedTokens={whitelistedTokens} />
       {isDrawerOpen && flowStatus !== "idle" && (
         <SwapRedeemDrawer
           flowStatus={flowStatus}

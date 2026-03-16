@@ -36,7 +36,7 @@ export function RedeemReadyNotification() {
       // if we're already on the swap page, scroll to the redeem vault section
       el.scrollIntoView({ behavior: "smooth" });
     } else {
-      navigate(`/${lang}/swap?mode=redeem#redeem-vault`);
+      navigate(`/${lang}/swap#redeem-vault`);
     }
   }
 
