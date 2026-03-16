@@ -21,7 +21,7 @@ export const useTreasuryReserves = function () {
   const queryClient = useQueryClient();
 
   return useQuery({
-    enabled: !!client,
+    enabled: !!client?.chain,
     queryFn: () =>
       fetchTreasuryReserves({
         client: client!,
