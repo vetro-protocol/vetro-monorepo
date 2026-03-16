@@ -6,7 +6,6 @@ import { ApproveSection } from "components/approveSection";
 import { Button } from "components/base/button";
 import { Toast } from "components/base/toast";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
-import { StripedDivider } from "components/stripedDivider";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useEstimateRequestRedeemGas } from "hooks/useEstimateRequestRedeemGas";
@@ -16,13 +15,7 @@ import { useRedeemFee } from "hooks/useRedeemFee";
 import { useRequestRedeem } from "hooks/useRequestRedeem";
 import { useSwapFeesDisplay } from "hooks/useSwapFeesDisplay";
 import { useWithdrawalDelay } from "hooks/useWithdrawalDelay";
-import {
-  type FormEvent,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { type FormEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 import { getTokenListParams } from "utils/tokenList";
@@ -30,7 +23,7 @@ import { useAccount } from "wagmi";
 
 import { Form } from "./form";
 import { RedeemTutorialModal } from "./redeemTutorialModal";
-import { RedeemVault } from "./redeemVault";
+import { RedeemVaultSection } from "./redeemVaultSection";
 import { SubmitButton } from "./submitButton";
 import { SwapFees } from "./swapFees";
 import {
@@ -71,19 +64,6 @@ export function TwoStepRedeem({
   const { address } = useAccount();
   const ethereumChain = useMainnet();
   const { t } = useTranslation();
-  const redeemVaultRef = useRef<HTMLDivElement>(null);
-
-  useEffect(function scrollIntoVault() {
-    if (window.location.hash === "#redeem-vault") {
-      redeemVaultRef.current?.scrollIntoView({ behavior: "smooth" });
-      // remove hash from the url keeping it clean
-      history.replaceState(
-        null,
-        "",
-        window.location.pathname + window.location.search,
-      );
-    }
-  }, []);
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
@@ -158,7 +138,9 @@ export function TwoStepRedeem({
         onCompleted();
         setFlowStatus("request-redeemed");
         setShowToast(true);
-        redeemVaultRef.current?.scrollIntoView({ behavior: "smooth" });
+        document
+          .getElementById("redeem-vault")
+          ?.scrollIntoView({ behavior: "smooth" });
       });
       emitter.on("request-redeem-transaction-reverted", function () {
         onFailed();
@@ -276,13 +258,7 @@ export function TwoStepRedeem({
         operationGasEstimation={operationGasEstimation}
         protocolFee={protocolFee}
       />
-      <div className="w-full border-b border-gray-200 bg-gray-100">
-        <StripedDivider />
-      </div>
-      <div className="w-full" id="redeem-vault" ref={redeemVaultRef}>
-        <RedeemVault whitelistedTokens={whitelistedTokens} />
-      </div>
-
+      <RedeemVaultSection whitelistedTokens={whitelistedTokens} />
       {isTutorialOpen && (
         <RedeemTutorialModal
           onClose={() => setIsTutorialOpen(false)}

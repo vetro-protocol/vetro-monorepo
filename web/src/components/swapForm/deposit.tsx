@@ -22,6 +22,7 @@ import { formatAmount } from "utils/token";
 
 import { Form } from "./form";
 import { OutputLabel } from "./outputLabel";
+import { RedeemVaultSection } from "./redeemVaultSection";
 import { SubmitButton } from "./submitButton";
 import { type DepositFlowStatus, SwapDepositDrawer } from "./swapDepositDrawer";
 import { SwapFees } from "./swapFees";
@@ -247,6 +248,7 @@ export function Deposit({
         }
         protocolFee={protocolFee}
       />
+      <RedeemVaultSection whitelistedTokens={whitelistedTokens} />
       {isDrawerOpen && flowStatus !== "idle" && (
         <SwapDepositDrawer
           flowStatus={flowStatus}
