@@ -15,6 +15,7 @@ import { allowance, approve } from "viem-erc20/actions";
 import { gatewayAbi } from "../../abi/gatewayAbi.js";
 import { getGatewayAddress } from "../../getGatewayAddress.js";
 import type { RedeemEvents } from "../../types.js";
+import { getMaxWithdraw } from "../public/getMaxWithdraw.js";
 import { getPeggedToken } from "../public/getPeggedToken.js";
 import { getWithdrawalDelayEnabled } from "../public/getWithdrawalDelayEnabled.js";
 import { isInstantRedeemWhitelisted } from "../public/isInstantRedeemWhitelisted.js";
@@ -27,7 +28,7 @@ export type RedeemParams = {
   tokenOut: Address;
 };
 
-const canRedeem = function ({
+const canRedeem = async function ({
   approveAmount,
   client,
   minAmountOut,
@@ -41,10 +42,10 @@ const canRedeem = function ({
   peggedTokenIn: bigint;
   receiver: Address;
   tokenOut: Address;
-}): {
+}): Promise<{
   canRedeem: boolean;
   reason?: string;
-} {
+}> {
   // Validate client
   if (!client) {
     return {
@@ -128,6 +129,20 @@ const canRedeem = function ({
     };
   }
 
+  // Check treasury has enough balance for the requested token
+  const gatewayAddress = getGatewayAddress(client.chain.id);
+  const maxWithdrawable = await getMaxWithdraw(client, {
+    address: gatewayAddress,
+    tokenOut,
+  });
+
+  if (minAmountOut > maxWithdrawable) {
+    return {
+      canRedeem: false,
+      reason: "Not enough balance in treasury",
+    };
+  }
+
   return { canRedeem: true };
 };
 
@@ -143,7 +158,7 @@ const runRedeem = (
 ) =>
   async function (emitter: EventEmitter<RedeemEvents>) {
     try {
-      const { canRedeem: canRedeemFlag, reason } = canRedeem({
+      const { canRedeem: canRedeemFlag, reason } = await canRedeem({
         approveAmount,
         client: walletClient,
         minAmountOut,
