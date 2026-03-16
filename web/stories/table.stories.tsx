@@ -146,3 +146,22 @@ export const Empty: Story = {
     />
   ),
 };
+
+export const WithRenderAfterRow: Story = {
+  render: () => (
+    <Table
+      columns={columns}
+      data={sampleData}
+      renderAfterRow={(row) =>
+        row.status === "ready" ? (
+          <tr className="flex w-full bg-rose-100 px-4 py-3">
+            <td className="text-caption text-rose-500">
+              Warning: This row has a &quot;ready&quot; status banner rendered
+              below it.
+            </td>
+          </tr>
+        ) : null
+      }
+    />
+  ),
+};

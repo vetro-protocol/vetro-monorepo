@@ -6,7 +6,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { type ReactNode, useMemo } from "react";
+import { Fragment, type ReactNode, useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
 import { screenBreakpoints } from "styles/breakpoints";
 
@@ -42,6 +42,7 @@ type Props<TData> = {
   maxBodyHeight?: string;
   placeholder?: ReactNode;
   priorityColumnIdsOnSmall?: string[];
+  renderAfterRow?: (row: TData) => ReactNode;
   skeletonRowCount?: number;
 };
 
@@ -84,12 +85,14 @@ const TableHeader = <TData,>({
 type TableBodyProps<TData> = {
   getColumnClassName: (columnId: string, meta?: string) => string;
   maxBodyHeight?: string;
+  renderAfterRow?: (row: TData) => ReactNode;
   table: TanStackTable<TData>;
 };
 
 const TableBody = <TData,>({
   getColumnClassName,
   maxBodyHeight,
+  renderAfterRow,
   table,
 }: TableBodyProps<TData>) => (
   <div
@@ -105,23 +108,23 @@ const TableBody = <TData,>({
     <table className="w-full border-separate border-spacing-0 whitespace-nowrap">
       <tbody>
         {table.getRowModel().rows.map((row) => (
-          <tr
-            className="flex w-full items-center border-b border-gray-200 px-16"
-            key={row.id}
-          >
-            {row.getVisibleCells().map((cell) => (
-              <Column
-                className={getColumnClassName(
-                  cell.column.id,
-                  cell.column.columnDef.meta?.className,
-                )}
-                key={cell.id}
-                style={{ width: cell.column.columnDef.meta?.width }}
-              >
-                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-              </Column>
-            ))}
-          </tr>
+          <Fragment key={row.id}>
+            <tr className="flex w-full items-center border-b border-gray-200 px-16">
+              {row.getVisibleCells().map((cell) => (
+                <Column
+                  className={getColumnClassName(
+                    cell.column.id,
+                    cell.column.columnDef.meta?.className,
+                  )}
+                  key={cell.id}
+                  style={{ width: cell.column.columnDef.meta?.width }}
+                >
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </Column>
+              ))}
+            </tr>
+            {renderAfterRow?.(row.original)}
+          </Fragment>
         ))}
       </tbody>
     </table>
@@ -136,6 +139,7 @@ export function Table<TData>({
   maxBodyHeight,
   placeholder,
   priorityColumnIdsOnSmall,
+  renderAfterRow,
   skeletonRowCount = 4,
 }: Props<TData>) {
   const { width } = useWindowSize();
@@ -207,6 +211,7 @@ export function Table<TData>({
           <TableBody
             getColumnClassName={getColumnClassName}
             maxBodyHeight={maxBodyHeight}
+            renderAfterRow={renderAfterRow}
             table={table}
           />
         )}
