@@ -18,25 +18,39 @@ app.use("*", async function (c, next) {
   return cors({ origin: originFn })(c, next);
 });
 
-app.get("/analytics/totals", async function (c) {
-  try {
-    const url = c.env.CUSTOM_RPC_URL_MAINNET;
-    const data = await analytics.getTotals({ url });
-    return c.json(convertBigIntsToString(data));
-  } catch (error) {
-    throw new Error(`Failed to get totals: ${error.message}`);
-  }
-});
+app.get(
+  "/analytics/totals",
+  cache({
+    cacheControl: "max-age=15, stale-while-revalidate=45",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const url = c.env.CUSTOM_RPC_URL_MAINNET;
+      const data = await analytics.getTotals({ url });
+      return c.json(convertBigIntsToString(data));
+    } catch (error) {
+      throw new Error(`Failed to get totals: ${error.message}`);
+    }
+  },
+);
 
-app.get("/analytics/treasury", async function (c) {
-  try {
-    const url = c.env.CUSTOM_RPC_URL_MAINNET;
-    const data = await analytics.getTreasuryComposition({ url });
-    return c.json(convertBigIntsToString(data));
-  } catch (error) {
-    throw new Error(`Failed to get treasury composition: ${error.message}`);
-  }
-});
+app.get(
+  "/analytics/treasury",
+  cache({
+    cacheControl: "max-age=15, stale-while-revalidate=45",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const url = c.env.CUSTOM_RPC_URL_MAINNET;
+      const data = await analytics.getTreasuryComposition({ url });
+      return c.json(convertBigIntsToString(data));
+    } catch (error) {
+      throw new Error(`Failed to get treasury composition: ${error.message}`);
+    }
+  },
+);
 
 app.get(
   "/borrow/:marketId/apr-history/:period",
