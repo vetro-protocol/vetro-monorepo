@@ -27,6 +27,7 @@ import {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
+import { minBigInt } from "utils/bigint";
 import { type Address, formatUnits, parseUnits } from "viem";
 import { useAccount } from "wagmi";
 
@@ -78,12 +79,14 @@ function getInputError({
   borrowAmount,
   collateralAmount,
   collateralBalance,
+  liquidity,
   maxBorrowable,
   nativeBalance,
 }: {
   borrowAmount: bigint;
   collateralAmount: bigint;
   collateralBalance: bigint | undefined;
+  liquidity: bigint;
   maxBorrowable: bigint | undefined;
   nativeBalance: bigint | undefined;
 }) {
@@ -92,6 +95,9 @@ function getInputError({
   }
   if (collateralBalance !== undefined && collateralAmount > collateralBalance) {
     return "insufficient-balance" as const;
+  }
+  if (borrowAmount > liquidity) {
+    return "insufficient-liquidity" as const;
   }
   if (maxBorrowable !== undefined && borrowAmount > maxBorrowable) {
     return "insufficient-collateral" as const;
@@ -158,9 +164,13 @@ export function BorrowForm({
   const { data: morphoMarket, status: morphoMarketStatus } =
     useMorphoMarket(marketId);
 
-  const maxBorrowable = morphoMarket?.getMaxBorrowAssets(
+  const maxBorrowFromCollateral = morphoMarket?.getMaxBorrowAssets(
     collateralAmountBigInt,
   );
+  const maxBorrowable =
+    maxBorrowFromCollateral !== undefined
+      ? minBigInt(maxBorrowFromCollateral, market.liquidity)
+      : undefined;
 
   const networkFee = useSupplyAndBorrowFees({
     borrowAmount: borrowAmountBigInt,
@@ -252,6 +262,7 @@ export function BorrowForm({
     borrowAmount: borrowAmountBigInt,
     collateralAmount: collateralAmountBigInt,
     collateralBalance,
+    liquidity: market.liquidity,
     maxBorrowable,
     nativeBalance,
   });

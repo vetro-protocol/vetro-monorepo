@@ -272,6 +272,7 @@
         "insufficient-balance": "Insufficient balance",
         "insufficient-collateral": "Insufficient collateral",
         "insufficient-gas": "Insufficient ETH for gas",
+        "insufficient-liquidity": "Insufficient liquidity",
         "insufficient-treasury": "Not enough balance in treasury",
         "preview-error": "Failed to calculate amount to receive",
         "redeem": "Redeem",

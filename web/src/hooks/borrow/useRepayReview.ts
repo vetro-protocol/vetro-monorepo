@@ -1,5 +1,6 @@
 import type { AccrualPosition } from "@morpho-org/blue-sdk";
 import type { Token } from "types";
+import { maxBigInt } from "utils/bigint";
 
 import { usePositionReview } from "./usePositionReview";
 
@@ -26,7 +27,7 @@ export const useRepayReview = ({
         pos.market.toBorrowAssets(pos.borrowShares) - amount;
       return {
         borrowShares: pos.market.toBorrowShares(
-          updatedBorrowAssets < 0n ? 0n : updatedBorrowAssets,
+          maxBigInt(updatedBorrowAssets, 0n),
         ),
         collateral: pos.collateral,
       };

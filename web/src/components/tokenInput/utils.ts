@@ -4,6 +4,7 @@ export const inputErrors = [
   "insufficient-balance",
   "insufficient-collateral",
   "insufficient-gas",
+  "insufficient-liquidity",
   "insufficient-treasury",
 ] as const;
 

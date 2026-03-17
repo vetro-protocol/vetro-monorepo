@@ -27,6 +27,7 @@ import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
 import { useMainnet } from "hooks/useMainnet";
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { maxBigInt, minBigInt } from "utils/bigint";
 import { formatLtvAsPercentage } from "utils/borrowReview";
 import { parseTokenUnits } from "utils/token";
 import { formatUnits } from "viem";
@@ -90,15 +91,20 @@ function SubmitButton({
 
 function getInputError({
   borrowAmount,
+  liquidity,
   maxBorrowable,
   nativeBalance,
 }: {
   borrowAmount: bigint;
+  liquidity: bigint;
   maxBorrowable: bigint | undefined;
   nativeBalance: bigint | undefined;
 }) {
   if (borrowAmount === 0n) {
     return "enter-amount" as const;
+  }
+  if (borrowAmount > liquidity) {
+    return "insufficient-liquidity" as const;
   }
   if (maxBorrowable !== undefined && borrowAmount > maxBorrowable) {
     return "insufficient-collateral" as const;
@@ -217,8 +223,11 @@ export function BorrowMoreForm({ market, onClose }: Props) {
     if (maxBorrowFromCollateral === undefined) {
       return undefined;
     }
-    const remaining = maxBorrowFromCollateral - (currentBorrowAssets ?? 0n);
-    return remaining > 0n ? remaining : 0n;
+    const remaining = maxBigInt(
+      maxBorrowFromCollateral - (currentBorrowAssets ?? 0n),
+      0n,
+    );
+    return minBigInt(remaining, market.liquidity);
   };
 
   const maxBorrowable = getMaxBorrowable();
@@ -277,6 +286,7 @@ export function BorrowMoreForm({ market, onClose }: Props) {
 
   const inputError = getInputError({
     borrowAmount: borrowAmountBigInt,
+    liquidity: market.liquidity,
     maxBorrowable,
     nativeBalance,
   });
