@@ -28,7 +28,8 @@ export const AllocationCard = function ({
   const renderValue = function () {
     if (value) return value;
     if (isError) return "-";
-    return <Skeleton height={28} width={120} />;
+    if (isLoading) return <Skeleton height={28} width={120} />;
+    return "-";
   };
 
   return (

@@ -14,7 +14,9 @@
     "analytics": {
       "title": "Monitorear analíticas del protocolo",
       "tvl-label": "Valor Total Bloqueado (TVL)",
-      "yield-label": "Asignación de yield"
+      "yield-label": "Asignación de yield",
+      "yield-value": "{{count}} protocolo",
+      "yield-value_other": "{{count}} protocolos"
     },
     "borrow": {
       "activity": {

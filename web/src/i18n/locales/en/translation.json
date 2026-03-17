@@ -14,7 +14,9 @@
     "analytics": {
       "title": "Monitor protocol analytics",
       "tvl-label": "Total Value Locked (TVL)",
-      "yield-label": "Yield allocation"
+      "yield-label": "Yield allocation",
+      "yield-value": "{{count}} protocol",
+      "yield-value_other": "{{count}} protocols"
     },
     "borrow": {
       "activity": {
