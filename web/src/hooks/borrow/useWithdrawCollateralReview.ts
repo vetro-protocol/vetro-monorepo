@@ -1,5 +1,6 @@
 import type { AccrualPosition } from "@morpho-org/blue-sdk";
 import type { Token } from "types";
+import { maxBigInt } from "utils/bigint";
 
 import { usePositionReview } from "./usePositionReview";
 
@@ -21,10 +22,13 @@ export const useWithdrawCollateralReview = ({
   usePositionReview({
     borrowApy,
     collateralToken,
-    getUpdatedPosition: (pos, amount) => ({
-      borrowShares: pos.borrowShares,
-      collateral: pos.collateral - amount,
-    }),
+    getUpdatedPosition(pos, amount) {
+      const updatedCollateral = pos.collateral - amount;
+      return {
+        borrowShares: pos.borrowShares,
+        collateral: maxBigInt(updatedCollateral, 0n),
+      };
+    },
     input: collateralInput,
     inputToken: collateralToken,
     loanToken,

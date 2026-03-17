@@ -27,6 +27,7 @@ import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
 import { useMainnet } from "hooks/useMainnet";
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { maxBigInt, minBigInt } from "utils/bigint";
 import { formatLtvAsPercentage } from "utils/borrowReview";
 import { parseTokenUnits } from "utils/token";
 import { formatUnits } from "viem";
@@ -217,8 +218,11 @@ export function BorrowMoreForm({ market, onClose }: Props) {
     if (maxBorrowFromCollateral === undefined) {
       return undefined;
     }
-    const remaining = maxBorrowFromCollateral - (currentBorrowAssets ?? 0n);
-    return remaining > 0n ? remaining : 0n;
+    const remaining = maxBigInt(
+      maxBorrowFromCollateral - (currentBorrowAssets ?? 0n),
+      0n,
+    );
+    return minBigInt(remaining, market.liquidity);
   };
 
   const maxBorrowable = getMaxBorrowable();
