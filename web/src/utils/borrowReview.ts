@@ -1,4 +1,4 @@
-import { type Market } from "@morpho-org/blue-sdk";
+import { type Market, MarketUtils } from "@morpho-org/blue-sdk";
 import { formatUnits, maxUint256 } from "viem";
 
 type Position = {
@@ -43,6 +43,16 @@ export const calculateDailyInterestCost = ({
   borrowAmount: number;
   borrowApy: number;
 }): number => (borrowAmount * borrowApy) / 365;
+
+/**
+ * Computes the liquidation penalty percentage from a market's LLTV.
+ * Uses the SDK's liquidation incentive factor formula.
+ * Returns a number like 4.38 for a 4.38% penalty.
+ */
+export const formatLiquidationPenalty = function (lltv: bigint): number {
+  const lif = MarketUtils.getLiquidationIncentiveFactor({ lltv });
+  return (Number(formatUnits(lif, wadDecimals)) - 1) * 100;
+};
 
 /**
  * Converts a raw WAD-scaled bigint health factor to a number.

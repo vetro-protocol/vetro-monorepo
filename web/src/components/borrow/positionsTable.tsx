@@ -22,6 +22,7 @@ import { type Hash, formatUnits } from "viem";
 
 import { HealthFactor, HealthFactorBar } from "./healthFactor";
 import { LiquidationPriceCell } from "./liquidationPriceCell";
+import { LiquidationWarning } from "./liquidationWarning";
 import { ManageButton } from "./manageButton";
 import { PositionsEmptyState } from "./positionsEmptyState";
 import { TokenValueCell } from "./tokenValueCell";
@@ -49,6 +50,8 @@ const WithdrawCollateralDrawerForm = lazy(() =>
     default: m.WithdrawCollateralDrawerForm,
   })),
 );
+
+const LIQUIDATION_WARNING_THRESHOLD = 1.1;
 
 type PositionRow = MarketData & PositionData;
 
@@ -225,6 +228,23 @@ export function PositionsTable({ marketIds }: Props) {
     [prices, setBorrowAction, t],
   );
 
+  const renderAfterRow = function (row: PositionRow | null) {
+    if (!row) {
+      return null;
+    }
+    const hf = formatHealthFactor(row.healthFactor);
+    if (hf === null || hf > LIQUIDATION_WARNING_THRESHOLD) {
+      return null;
+    }
+    return (
+      <LiquidationWarning
+        healthFactor={hf}
+        lltv={row.lltv}
+        marketId={row.marketId}
+      />
+    );
+  };
+
   return (
     <>
       <TopSection title={t("pages.borrow.positions-title")} />
@@ -233,6 +253,7 @@ export function PositionsTable({ marketIds }: Props) {
         data={data}
         loading={isMarketsLoading || isPositionsLoading}
         placeholder={<PositionsEmptyState />}
+        renderAfterRow={renderAfterRow}
       />
       {activeMarket && (
         <>

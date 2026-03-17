@@ -54,6 +54,7 @@
       "historic-apr": "Historic borrow APR",
       "liquidation-price": "Liquidation price",
       "liquidation-price-tooltip": "The price at which your collateral would trigger a liquidation. If hemiBTC drops to this price, your position can be liquidated.",
+      "liquidation-warning": "Position at risk. Your Health Factor is {{healthFactor}}. At 1.0, your collateral will be sold to repay your debt and a {{penalty}} penalty will be charged to pay liquidators. <addCollateral>Add collateral</addCollateral> or <repay>repay now</repay> to avoid liquidation.",
       "loan": "Loan",
       "loan-tooltip": "The amount of {{symbol}} you borrow against your collateral. As long as your Health Factor stays above 1.0, your position remains open.",
       "ltv": "LTV",

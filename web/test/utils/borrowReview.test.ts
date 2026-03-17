@@ -6,6 +6,7 @@ import {
   calculateLtv,
   calculatePriceDropPercentage,
   formatHealthFactor,
+  formatLiquidationPenalty,
   formatLtvAsPercentage,
   formatOraclePrice,
 } from "utils/borrowReview";
@@ -324,6 +325,26 @@ describe("utils/borrowReview", function () {
       });
 
       expect(result).toBeNull();
+    });
+  });
+
+  describe("formatLiquidationPenalty", function () {
+    it("returns ~4.38% for 86% LLTV", function () {
+      const result = formatLiquidationPenalty(860000000000000000n);
+
+      expect(result).toBeCloseTo(4.38, 1);
+    });
+
+    it("returns ~3.09% for 90% LLTV", function () {
+      const result = formatLiquidationPenalty(900000000000000000n);
+
+      expect(result).toBeCloseTo(3.09, 1);
+    });
+
+    it("returns ~15% for 50% LLTV", function () {
+      const result = formatLiquidationPenalty(500000000000000000n);
+
+      expect(result).toBeCloseTo(15, 1);
     });
   });
 

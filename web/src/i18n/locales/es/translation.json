@@ -54,6 +54,7 @@
       "historic-apr": "TEA histórica de préstamo",
       "liquidation-price": "Precio de liquidación",
       "liquidation-price-tooltip": "El precio al cual su garantía activaría una liquidación. Si hemiBTC cae a este precio, su posición puede ser liquidada.",
+      "liquidation-warning": "Posición en riesgo. Su Factor de Salud es {{healthFactor}}. A 1.0, su garantía será vendida para pagar su deuda y se cobrará una penalización del {{penalty}} para pagar a los liquidadores. <addCollateral>Agregar garantía</addCollateral> o <repay>pagar ahora</repay> para evitar la liquidación.",
       "loan": "Préstamo",
       "loan-tooltip": "La cantidad de {{symbol}} que pide prestado contra su garantía. Mientras su Factor de Salud se mantenga por encima de 1.0, su posición permanece abierta.",
       "ltv": "LTV",
