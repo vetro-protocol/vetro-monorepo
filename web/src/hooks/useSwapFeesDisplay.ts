@@ -2,7 +2,7 @@ import { useEstimateApproveErc20Fees } from "@hemilabs/react-hooks/useEstimateAp
 import { useNeedsApproval } from "@hemilabs/react-hooks/useNeedsApproval";
 import { getGatewayAddress } from "@vetro/gateway";
 import type { Token } from "types";
-import { sumFees } from "utils/fees";
+import { applyBps, sumFees } from "utils/fees";
 import { formatAmount } from "utils/token";
 
 import { useMainnet } from "./useMainnet";
@@ -47,7 +47,12 @@ export const useSwapFeesDisplay = function ({
     isError: isOperationFeeError,
   } = operationGasEstimation;
 
-  const { data: protocolFeeData, isError: isProtocolFeeError } = protocolFee;
+  const { data: protocolFeeBps, isError: isProtocolFeeError } = protocolFee;
+
+  const protocolFeeAmount =
+    protocolFeeBps !== undefined
+      ? applyBps(amountBigInt, protocolFeeBps)
+      : undefined;
 
   const networkFeeWei = needsApproval
     ? sumFees([approvalFee, operationFee])
@@ -57,7 +62,7 @@ export const useSwapFeesDisplay = function ({
     ? isApprovalFeeError || isOperationFeeError
     : isOperationFeeError;
 
-  const totalFeesWei = sumFees([networkFeeWei, protocolFeeData]);
+  const totalFeesWei = sumFees([networkFeeWei, protocolFeeAmount]);
 
   const networkFeeDisplay = formatAmount({
     amount: networkFeeWei,
@@ -67,7 +72,7 @@ export const useSwapFeesDisplay = function ({
   });
 
   const protocolFeeDisplay = formatAmount({
-    amount: protocolFeeData,
+    amount: protocolFeeAmount,
     decimals: fromToken.decimals,
     isError: isProtocolFeeError,
     symbol: fromToken.symbol,
