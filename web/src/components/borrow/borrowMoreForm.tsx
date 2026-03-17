@@ -91,15 +91,20 @@ function SubmitButton({
 
 function getInputError({
   borrowAmount,
+  liquidity,
   maxBorrowable,
   nativeBalance,
 }: {
   borrowAmount: bigint;
+  liquidity: bigint;
   maxBorrowable: bigint | undefined;
   nativeBalance: bigint | undefined;
 }) {
   if (borrowAmount === 0n) {
     return "enter-amount" as const;
+  }
+  if (borrowAmount > liquidity) {
+    return "insufficient-liquidity" as const;
   }
   if (maxBorrowable !== undefined && borrowAmount > maxBorrowable) {
     return "insufficient-collateral" as const;
@@ -281,6 +286,7 @@ export function BorrowMoreForm({ market, onClose }: Props) {
 
   const inputError = getInputError({
     borrowAmount: borrowAmountBigInt,
+    liquidity: market.liquidity,
     maxBorrowable,
     nativeBalance,
   });

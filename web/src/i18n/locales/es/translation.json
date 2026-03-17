@@ -277,6 +277,7 @@
         "insufficient-balance": "Saldo insuficiente",
         "insufficient-collateral": "Garantía insuficiente",
         "insufficient-gas": "ETH insuficiente para gas",
+        "insufficient-liquidity": "Liquidez insuficiente",
         "insufficient-treasury": "Saldo insuficiente en la tesorería",
         "preview-error": "No se pudo calcular el monto a recibir",
         "redeem": "Canjear",

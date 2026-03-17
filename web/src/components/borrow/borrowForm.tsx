@@ -79,12 +79,14 @@ function getInputError({
   borrowAmount,
   collateralAmount,
   collateralBalance,
+  liquidity,
   maxBorrowable,
   nativeBalance,
 }: {
   borrowAmount: bigint;
   collateralAmount: bigint;
   collateralBalance: bigint | undefined;
+  liquidity: bigint;
   maxBorrowable: bigint | undefined;
   nativeBalance: bigint | undefined;
 }) {
@@ -93,6 +95,9 @@ function getInputError({
   }
   if (collateralBalance !== undefined && collateralAmount > collateralBalance) {
     return "insufficient-balance" as const;
+  }
+  if (borrowAmount > liquidity) {
+    return "insufficient-liquidity" as const;
   }
   if (maxBorrowable !== undefined && borrowAmount > maxBorrowable) {
     return "insufficient-collateral" as const;
@@ -257,6 +262,7 @@ export function BorrowForm({
     borrowAmount: borrowAmountBigInt,
     collateralAmount: collateralAmountBigInt,
     collateralBalance,
+    liquidity: market.liquidity,
     maxBorrowable,
     nativeBalance,
   });
