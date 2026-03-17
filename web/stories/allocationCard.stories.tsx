@@ -16,6 +16,8 @@ type Story = StoryObj<typeof meta>;
 export const TVL: Story = {
   args: {
     icon: <DatabaseIcon />,
+    isError: false,
+    isLoading: false,
     items: [
       { amount: 37_500_000, color: "bg-blue-400", label: "USDT" },
       { amount: 37_500_000, color: "bg-emerald-400", label: "USDC" },
@@ -27,9 +29,33 @@ export const TVL: Story = {
   },
 };
 
+export const TVLLoading: Story = {
+  args: {
+    icon: <DatabaseIcon />,
+    isError: false,
+    isLoading: true,
+    items: [],
+    label: "Total Value Locked (TVL)",
+    value: "",
+  },
+};
+
+export const TVLError: Story = {
+  args: {
+    icon: <DatabaseIcon />,
+    isError: true,
+    isLoading: false,
+    items: [],
+    label: "Total Value Locked (TVL)",
+    value: "",
+  },
+};
+
 export const YieldAllocation: Story = {
   args: {
     icon: <PieChartIcon />,
+    isError: false,
+    isLoading: false,
     items: [
       { amount: 147, color: "bg-emerald-400", label: "Morpho" },
       { amount: 80, color: "bg-blue-400", label: "Aave" },

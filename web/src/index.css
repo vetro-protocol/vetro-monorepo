@@ -27,7 +27,7 @@
   --line-height-xsm: 1.25rem; /* 20px */
   --line-height-mid: 1.375rem; /* 22px */
 
-  --radius-xs: 1px;
+  --radius-px: 1px;
 
   --shadow-bs: 0 0 0 1px rgba(0, 0, 0, 0.04);
   --shadow-sm:

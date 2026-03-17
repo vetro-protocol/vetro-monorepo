@@ -1,4 +1,5 @@
 import { type ReactNode, useState } from "react";
+import Skeleton from "react-loading-skeleton";
 
 import type { AllocationItem } from "../../types";
 
@@ -7,13 +8,28 @@ import { AllocationLegend } from "./allocationLegend";
 
 type Props = {
   icon: ReactNode;
+  isError: boolean;
+  isLoading: boolean;
   items: AllocationItem[];
   label: string;
   value: string;
 };
 
-export const AllocationCard = function ({ icon, items, label, value }: Props) {
+export const AllocationCard = function ({
+  icon,
+  isError,
+  isLoading,
+  items,
+  label,
+  value,
+}: Props) {
   const [hoveredLabel, setHoveredLabel] = useState<string | null>(null);
+
+  const renderValue = function () {
+    if (value) return value;
+    if (isError) return "-";
+    return <Skeleton height={28} width={120} />;
+  };
 
   return (
     <div className="flex flex-1 flex-col">
@@ -23,16 +39,22 @@ export const AllocationCard = function ({ icon, items, label, value }: Props) {
             <span className="text-b-medium text-gray-900">{label}</span>
             <div className="size-4">{icon}</div>
           </div>
-          <h3 className="text-h3 font-semibold text-gray-900">{value}</h3>
+          <h3 className="text-h3 font-semibold text-gray-900">
+            {renderValue()}
+          </h3>
         </div>
       </div>
       <AllocationChart
         hoveredLabel={hoveredLabel}
+        isError={isError}
+        isLoading={isLoading}
         items={items}
         onHover={setHoveredLabel}
       />
       <AllocationLegend
         hoveredLabel={hoveredLabel}
+        isError={isError}
+        isLoading={isLoading}
         items={items}
         onHover={setHoveredLabel}
       />
