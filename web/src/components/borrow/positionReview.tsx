@@ -153,7 +153,7 @@ export function PositionReview({
       <PositionReviewRow
         hasChanges={hasChanges}
         label={t("pages.borrow.collateral")}
-        tooltip={t("pages.borrow.ltv-tooltip")}
+        tooltip={t("pages.borrow.collateral-tooltip")}
         updatedChildren={
           updated && (
             <span className="*:w-full">
@@ -177,7 +177,7 @@ export function PositionReview({
       <PositionReviewRow
         hasChanges={hasChanges}
         label={t("pages.borrow.loan")}
-        tooltip={t("pages.borrow.ltv-tooltip")}
+        tooltip={t("pages.borrow.loan-tooltip", { symbol: loanToken.symbol })}
         updatedChildren={
           updated && (
             <span className="*:w-full">
@@ -221,7 +221,7 @@ export function PositionReview({
       <PositionReviewRow
         hasChanges={hasChanges}
         label={t("pages.borrow.ltv")}
-        tooltip={t("pages.borrow.ltv-tooltip")}
+        tooltip={t("pages.borrow.ltv-tooltip", { symbol: loanToken.symbol })}
         updatedChildren={updated ? formatLtvValue(updated.ltv) : "-"}
       >
         {formatLtvValue(current.ltv)}

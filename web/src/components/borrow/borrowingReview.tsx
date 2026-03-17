@@ -100,7 +100,7 @@ export function BorrowingReview({
       </ReviewRow>
       <ReviewRow
         label={t("pages.borrow.ltv")}
-        tooltip={t("pages.borrow.ltv-tooltip")}
+        tooltip={t("pages.borrow.ltv-tooltip", { symbol: loanToken.symbol })}
       >
         <span className="text-h4">
           {ltv !== null ? formatPercentage(ltv * 100) : "-"}
