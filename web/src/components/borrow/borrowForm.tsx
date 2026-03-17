@@ -27,6 +27,7 @@ import {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
+import { minBigInt } from "utils/bigint";
 import { type Address, formatUnits, parseUnits } from "viem";
 import { useAccount } from "wagmi";
 
@@ -158,9 +159,13 @@ export function BorrowForm({
   const { data: morphoMarket, status: morphoMarketStatus } =
     useMorphoMarket(marketId);
 
-  const maxBorrowable = morphoMarket?.getMaxBorrowAssets(
+  const maxBorrowFromCollateral = morphoMarket?.getMaxBorrowAssets(
     collateralAmountBigInt,
   );
+  const maxBorrowable =
+    maxBorrowFromCollateral !== undefined
+      ? minBigInt(maxBorrowFromCollateral, market.liquidity)
+      : undefined;
 
   const networkFee = useSupplyAndBorrowFees({
     borrowAmount: borrowAmountBigInt,
