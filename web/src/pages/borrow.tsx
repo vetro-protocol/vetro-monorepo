@@ -7,10 +7,10 @@ import { useTranslation } from "react-i18next";
 import type { Hash } from "viem";
 
 const marketIds: Hash[] = [
-  // hemiBTC / TestVUSD, used for testing purposes
-  "0xcbd8d55bce36e05c4bbdf93ad867329dd541a594243f9510b5379d04bd9c4c6f",
-  // WBTC / USDC, used for testing purposes
-  "0x3a85e619751152991742810df6ec69ce473daef99e28a64ab2340d7b7ccfee49",
+  // hemiBTC / VUSD
+  "0x55609be688a4d96e715bfe39969133bd4e7f83db4f77bb06216109189a11f2e5",
+  // WETH / VUSD
+  "0x7d1306d23f9f1e419697b8275001db9ea74b3c75190a7db8f5d81fed2fb94561",
 ];
 
 export const Borrow = function () {

@@ -2,9 +2,7 @@ import * as morpho from "./morpho.ts";
 import { vusdAddress } from "./vusd.ts";
 
 // List of whitelisted Morpho market ids, mostly for testing purposes.
-export const whitelistedMarketIds = [
-  "0x3a85e619751152991742810df6ec69ce473daef99e28a64ab2340d7b7ccfee49", // WBTC/USDC
-];
+export const whitelistedMarketIds: string[] = [];
 
 /**
  * Validates the given market id by checking it is a valid market and that its

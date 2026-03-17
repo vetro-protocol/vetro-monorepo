@@ -16,7 +16,7 @@ import { mainnet } from "viem/chains";
 
 import { knownTokens } from "../src/utils/tokenList.ts";
 
-const setupSymbols = ["hemiBTC", "TESTUSD", "USDC", "USDT", "VUSD", "WBTC"];
+const setupSymbols = ["hemiBTC", "USDC", "USDT", "VUSD", "WBTC", "WETH"];
 
 const tokens = knownTokens
   .filter((t) => setupSymbols.includes(t.symbol))

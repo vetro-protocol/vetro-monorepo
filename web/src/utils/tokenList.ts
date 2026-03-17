@@ -60,6 +60,18 @@ export const knownTokens: Token[] = [
     name: "Vetro USD",
     symbol: "VUSD",
   },
+  {
+    address: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+    chainId: mainnet.id,
+    decimals: 18,
+    extensions: {
+      allowanceSlot: 4n,
+      balanceSlot: 3,
+    },
+    logoURI: "https://hemilabs.github.io/token-list/l1Logos/weth.svg",
+    name: "Wrapped Ether",
+    symbol: "WETH",
+  },
 ];
 
 export const getTokenListParams = (tokens: Token[]) => ({
