@@ -94,7 +94,7 @@ export function RedeemVault({ whitelistedTokens }: Props) {
     tokenOut: toToken.address,
   });
 
-  const protocolFee = useRedeemFee();
+  const protocolFee = useRedeemFee(toToken.address);
 
   const { networkFeeDisplay, protocolFeeDisplay, totalFeesDisplay } =
     useSwapFeesDisplay({

@@ -118,7 +118,7 @@ export function OneStepRedeem({
     tokenOut: toToken.address,
   });
 
-  const protocolFee = useRedeemFee();
+  const protocolFee = useRedeemFee(toToken.address);
 
   const redeemMutation = useRedeem({
     approveAmount,

@@ -111,7 +111,7 @@ export function TwoStepRedeem({
     peggedTokenIn: amountBigInt,
   });
 
-  const protocolFee = useRedeemFee();
+  const protocolFee = useRedeemFee(toToken.address);
 
   const requestRedeemMutation = useRequestRedeem({
     approveAmount,

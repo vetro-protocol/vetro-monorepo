@@ -9,19 +9,25 @@ import { useMainnet } from "./useMainnet";
 const mintFeeQueryKey = ({
   chainId,
   gatewayAddress,
+  token,
 }: {
   chainId: Chain["id"];
   gatewayAddress: Address;
-}) => ["mint-fee", chainId, gatewayAddress];
+  token: Address;
+}) => ["mint-fee", chainId, gatewayAddress, token];
 
-export const useMintFee = function () {
+export const useMintFee = function (token: Address) {
   const ethereumChain = useMainnet();
   const client = useEthereumClient();
   const gatewayAddress = getGatewayAddress(ethereumChain.id);
 
   return useQuery({
     enabled: !!client,
-    queryFn: () => getMintFee(client!, { address: gatewayAddress }),
-    queryKey: mintFeeQueryKey({ chainId: ethereumChain.id, gatewayAddress }),
+    queryFn: () => getMintFee(client!, { address: gatewayAddress, token }),
+    queryKey: mintFeeQueryKey({
+      chainId: ethereumChain.id,
+      gatewayAddress,
+      token,
+    }),
   });
 };

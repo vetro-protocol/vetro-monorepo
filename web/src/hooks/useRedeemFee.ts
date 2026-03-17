@@ -9,19 +9,25 @@ import { useMainnet } from "./useMainnet";
 const redeemFeeQueryKey = ({
   chainId,
   gatewayAddress,
+  token,
 }: {
   chainId: Chain["id"];
   gatewayAddress: Address;
-}) => ["redeem-fee", chainId, gatewayAddress];
+  token: Address;
+}) => ["redeem-fee", chainId, gatewayAddress, token];
 
-export const useRedeemFee = function () {
+export const useRedeemFee = function (token: Address) {
   const ethereumChain = useMainnet();
   const client = useEthereumClient();
   const gatewayAddress = getGatewayAddress(ethereumChain.id);
 
   return useQuery({
     enabled: !!client,
-    queryFn: () => getRedeemFee(client!, { address: gatewayAddress }),
-    queryKey: redeemFeeQueryKey({ chainId: ethereumChain.id, gatewayAddress }),
+    queryFn: () => getRedeemFee(client!, { address: gatewayAddress, token }),
+    queryKey: redeemFeeQueryKey({
+      chainId: ethereumChain.id,
+      gatewayAddress,
+      token,
+    }),
   });
 };

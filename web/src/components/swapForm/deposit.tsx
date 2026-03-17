@@ -106,7 +106,7 @@ export function Deposit({
       title: t("nav.swap"),
     });
 
-  const protocolFee = useMintFee();
+  const protocolFee = useMintFee(fromToken.address);
 
   const operationGasEstimation = useEstimateDepositGas({
     amountIn: amountBigInt,
