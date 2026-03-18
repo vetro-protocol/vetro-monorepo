@@ -15,8 +15,9 @@ export function splitDecimalParts(value: number) {
   }).format(value);
 
   const dotIndex = formatted.lastIndexOf(".");
+  const decimal = formatted.slice(dotIndex);
   return {
-    decimal: formatted.slice(dotIndex),
+    decimal: decimal === ".00" ? "" : decimal,
     integer: formatted.slice(0, dotIndex),
   };
 }
