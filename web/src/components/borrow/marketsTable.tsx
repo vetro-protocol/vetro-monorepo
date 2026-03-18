@@ -9,6 +9,7 @@ import { TokenLogo } from "components/tokenLogo";
 import { type MarketData, useMarketsData } from "hooks/borrow/useMarketsData";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate, useParams } from "react-router";
 import { type Hash, formatUnits } from "viem";
 
 type Props = {
@@ -16,8 +17,13 @@ type Props = {
 };
 
 export function MarketsTable({ marketIds }: Props) {
+  const { lang } = useParams();
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const { data, isLoading } = useMarketsData(marketIds);
+
+  const handleRowClick = (row: MarketData) =>
+    navigate(`/${lang}/borrow/${row.marketId}`);
 
   const columns = useMemo(
     (): ColumnDef<MarketData>[] => [
@@ -123,7 +129,12 @@ export function MarketsTable({ marketIds }: Props) {
   return (
     <>
       <TopSection title={t("pages.borrow.markets-title")} />
-      <Table columns={columns} data={data} loading={isLoading} />
+      <Table
+        columns={columns}
+        data={data}
+        loading={isLoading}
+        onRowClick={handleRowClick}
+      />
     </>
   );
 }
