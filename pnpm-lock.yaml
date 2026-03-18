@@ -164,8 +164,8 @@ importers:
   web:
     dependencies:
       '@hemilabs/react-hooks':
-        specifier: 1.3.0
-        version: 1.3.0(@hemilabs/wallet-watch-asset@1.0.2)(@tanstack/react-query@5.90.19(react@19.2.3))(react@19.2.3)(viem-erc20@2.1.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)))(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))(wagmi@2.19.5(@tanstack/query-core@5.90.19)(@tanstack/react-query@5.90.19(react@19.2.3))(@types/react@19.2.9)(bufferutil@4.1.0)(encoding@0.1.13)(react@19.2.3)(typescript@5.9.3)(utf-8-validate@5.0.10)(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))(zod@4.3.5))
+        specifier: 1.4.0
+        version: 1.4.0(@hemilabs/wallet-watch-asset@1.0.2)(@tanstack/react-query@5.90.19(react@19.2.3))(react@19.2.3)(viem-erc20@2.1.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)))(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))(wagmi@2.19.5(@tanstack/query-core@5.90.19)(@tanstack/react-query@5.90.19(react@19.2.3))(@types/react@19.2.9)(bufferutil@4.1.0)(encoding@0.1.13)(react@19.2.3)(typescript@5.9.3)(utf-8-validate@5.0.10)(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))(zod@4.3.5))
       '@hemilabs/wallet-watch-asset':
         specifier: 1.0.2
         version: 1.0.2
@@ -1122,8 +1122,8 @@ packages:
   '@graphprotocol/graph-ts@0.38.2':
     resolution: {integrity: sha512-87KIFSFs2+Te+mnmb7Y+M57oqzlLy20cIyPIRbn9qJfpZFSZHTKtBLT6KQmcsK0YkoWis9Ur3c3M2c9mmaaEHQ==}
 
-  '@hemilabs/react-hooks@1.3.0':
-    resolution: {integrity: sha512-jsVdUZzOuTeEV8zvqariboi6/EF2FvFzfPgLaZV4LMyY5Ati4+viHQkHjVvzEAn/rSzlK4NSixRDXMptp3iBcQ==}
+  '@hemilabs/react-hooks@1.4.0':
+    resolution: {integrity: sha512-8aQNgANlSTggFRWiOyoku7mk3D2gdRdepslj0/sTAM1Tbfleil6kWOE7MGemYGiUdtMwmcIrWaKuN5gJ433+Vg==}
     peerDependencies:
       '@hemilabs/wallet-watch-asset': ^1
       '@tanstack/react-query': ^5
@@ -8838,7 +8838,7 @@ snapshots:
     dependencies:
       assemblyscript: 0.27.31
 
-  '@hemilabs/react-hooks@1.3.0(@hemilabs/wallet-watch-asset@1.0.2)(@tanstack/react-query@5.90.19(react@19.2.3))(react@19.2.3)(viem-erc20@2.1.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)))(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))(wagmi@2.19.5(@tanstack/query-core@5.90.19)(@tanstack/react-query@5.90.19(react@19.2.3))(@types/react@19.2.9)(bufferutil@4.1.0)(encoding@0.1.13)(react@19.2.3)(typescript@5.9.3)(utf-8-validate@5.0.10)(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))(zod@4.3.5))':
+  '@hemilabs/react-hooks@1.4.0(@hemilabs/wallet-watch-asset@1.0.2)(@tanstack/react-query@5.90.19(react@19.2.3))(react@19.2.3)(viem-erc20@2.1.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)))(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))(wagmi@2.19.5(@tanstack/query-core@5.90.19)(@tanstack/react-query@5.90.19(react@19.2.3))(@types/react@19.2.9)(bufferutil@4.1.0)(encoding@0.1.13)(react@19.2.3)(typescript@5.9.3)(utf-8-validate@5.0.10)(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))(zod@4.3.5))':
     dependencies:
       '@hemilabs/wallet-watch-asset': 1.0.2
       '@tanstack/react-query': 5.90.19(react@19.2.3)
