@@ -40,19 +40,19 @@ export const toTvlItems = ({
   treasuryTokens: TreasuryToken[];
   whitelistedTokens: Token[];
 }) =>
-  treasuryTokens.map(({ latestPrice, tokenAddress, withdrawable }, index) => ({
-    amount:
-      Number(
-        formatUnits(
-          BigInt(withdrawable),
-          findToken(tokenAddress, whitelistedTokens)?.decimals ?? 18,
-        ),
-      ) * Number(formatUnits(BigInt(latestPrice), priceDecimals)),
-    color: assignColor(index),
-    label:
-      findToken(tokenAddress, whitelistedTokens)?.symbol ??
-      tokenAddress.slice(0, 6),
-  }));
+  treasuryTokens.map(function (
+    { latestPrice, tokenAddress, withdrawable },
+    index,
+  ) {
+    const token = findToken(tokenAddress, whitelistedTokens);
+    return {
+      amount:
+        Number(formatUnits(BigInt(withdrawable), token?.decimals ?? 18)) *
+        Number(formatUnits(BigInt(latestPrice), priceDecimals)),
+      color: assignColor(index),
+      label: token?.symbol ?? tokenAddress.slice(0, 6),
+    };
+  });
 
 // Transforms /analytics/treasury response into yield allocation items,
 // grouping active strategies by protocol across all tokens.
@@ -83,9 +83,11 @@ export const toYieldItems = function ({
     }
   }
 
-  return Array.from(protocolMap.entries()).map(([protocol, amount], index) => ({
-    amount,
-    color: assignColor(index),
-    label: protocol,
-  }));
+  return Array.from(protocolMap.entries())
+    .filter(([, amount]) => amount > 0)
+    .map(([protocol, amount], index) => ({
+      amount,
+      color: assignColor(index),
+      label: protocol,
+    }));
 };
