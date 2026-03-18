@@ -103,6 +103,12 @@ If text-4xl is 2.25 rem => 4, then here 2.5 rem => 4.4 */
   animation: page-fade-in 200ms ease-out;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .animate-page-in {
+    animation: none;
+  }
+}
+
 @keyframes page-fade-in {
   from {
     opacity: 0;
