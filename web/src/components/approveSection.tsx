@@ -5,6 +5,7 @@ import { Tooltip } from "./tooltip";
 
 const InfoIcon = () => (
   <svg
+    aria-hidden="true"
     className="text-gray-500 transition-colors hover:text-gray-900"
     fill="none"
     height="16"

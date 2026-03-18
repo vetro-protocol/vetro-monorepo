@@ -1,5 +1,6 @@
 export const QuestionIcon = () => (
   <svg
+    aria-hidden="true"
     className="text-gray-400 transition-colors hover:text-gray-900"
     fill="none"
     height="16"
