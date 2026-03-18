@@ -12,7 +12,7 @@
     },
   },
   "vars": {
-    "CUSTOM_RPC_URL_MAINNET": "",
+    "CUSTOM_RPC_URL_MAINNET": "https://eth.drpc.org",
     "MERKL_OPPORTUNITY_ID": "",
     "ORIGINS": "http://localhost:5173",
     "SUBGRAPH_ID": "",
