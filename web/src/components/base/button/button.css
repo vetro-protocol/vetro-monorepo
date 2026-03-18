@@ -1,7 +1,7 @@
 @reference "../../../index.css";
 
 .button--base {
-  @apply relative box-border inline-flex cursor-pointer items-center justify-center overflow-hidden rounded-full font-medium focus-visible:outline-0 disabled:opacity-65;
+  @apply relative box-border inline-flex cursor-pointer items-center justify-center overflow-hidden rounded-full font-medium transition-colors duration-150 ease-in-out focus-visible:outline-0 disabled:opacity-65;
 }
 
 /* Button Variants */
