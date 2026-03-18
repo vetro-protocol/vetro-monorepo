@@ -99,6 +99,21 @@ If text-4xl is 2.25 rem => 4, then here 2.5 rem => 4.4 */
   line-height: 44px;
 }
 
+@utility animate-page-in {
+  animation: page-fade-in 200ms ease-out;
+}
+
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @utility w-22.5 {
   width: var(--width-22-5);
 }
