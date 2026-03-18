@@ -6,7 +6,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Fragment, type ReactNode, useMemo } from "react";
+import { type MouseEvent, Fragment, type ReactNode, useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
 import { screenBreakpoints } from "styles/breakpoints";
 
@@ -114,7 +114,20 @@ const TableBody = <TData,>({
           <Fragment key={row.id}>
             <tr
               className={`flex w-full items-center border-b border-gray-200 bg-white px-16 ${onRowClick ? "cursor-pointer hover:bg-gray-50" : ""}`}
-              onClick={onRowClick ? () => onRowClick(row.original) : undefined}
+              onClick={
+                onRowClick
+                  ? function (e: MouseEvent<HTMLTableRowElement>) {
+                      if (
+                        (e.target as HTMLElement).closest(
+                          "a, button, input, select, textarea, [role='button']",
+                        )
+                      ) {
+                        return;
+                      }
+                      onRowClick(row.original);
+                    }
+                  : undefined
+              }
               role={onRowClick ? "link" : undefined}
             >
               {row.getVisibleCells().map((cell) => (
