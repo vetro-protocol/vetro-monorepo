@@ -6,7 +6,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Fragment, type ReactNode, useMemo } from "react";
+import { type MouseEvent, Fragment, type ReactNode, useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
 import { screenBreakpoints } from "styles/breakpoints";
 
@@ -40,6 +40,7 @@ type Props<TData> = {
   getRowId?: (row: TData) => string;
   loading?: boolean;
   maxBodyHeight?: string;
+  onRowClick?: (row: TData) => void;
   placeholder?: ReactNode;
   priorityColumnIdsOnSmall?: string[];
   renderAfterRow?: (row: TData) => ReactNode;
@@ -85,6 +86,7 @@ const TableHeader = <TData,>({
 type TableBodyProps<TData> = {
   getColumnClassName: (columnId: string, meta?: string) => string;
   maxBodyHeight?: string;
+  onRowClick?: (row: TData) => void;
   renderAfterRow?: (row: TData) => ReactNode;
   table: TanStackTable<TData>;
 };
@@ -92,6 +94,7 @@ type TableBodyProps<TData> = {
 const TableBody = <TData,>({
   getColumnClassName,
   maxBodyHeight,
+  onRowClick,
   renderAfterRow,
   table,
 }: TableBodyProps<TData>) => (
@@ -109,7 +112,24 @@ const TableBody = <TData,>({
       <tbody>
         {table.getRowModel().rows.map((row) => (
           <Fragment key={row.id}>
-            <tr className="flex w-full items-center border-b border-gray-200 px-16">
+            <tr
+              className={`flex w-full items-center border-b border-gray-200 bg-white px-16 ${onRowClick ? "cursor-pointer hover:bg-gray-50" : ""}`}
+              onClick={
+                onRowClick
+                  ? function (e: MouseEvent<HTMLTableRowElement>) {
+                      if (
+                        (e.target as HTMLElement).closest(
+                          "a, button, input, select, textarea, [role='button']",
+                        )
+                      ) {
+                        return;
+                      }
+                      onRowClick(row.original);
+                    }
+                  : undefined
+              }
+              role={onRowClick ? "link" : undefined}
+            >
               {row.getVisibleCells().map((cell) => (
                 <Column
                   className={getColumnClassName(
@@ -137,6 +157,7 @@ export function Table<TData>({
   getRowId,
   loading = false,
   maxBodyHeight,
+  onRowClick,
   placeholder,
   priorityColumnIdsOnSmall,
   renderAfterRow,
@@ -211,6 +232,7 @@ export function Table<TData>({
           <TableBody
             getColumnClassName={getColumnClassName}
             maxBodyHeight={maxBodyHeight}
+            onRowClick={onRowClick}
             renderAfterRow={renderAfterRow}
             table={table}
           />

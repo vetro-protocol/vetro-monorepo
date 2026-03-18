@@ -147,6 +147,16 @@ export const Empty: Story = {
   ),
 };
 
+export const ClickableRows: Story = {
+  render: () => (
+    <Table
+      columns={columns}
+      data={sampleData}
+      onRowClick={(row) => alert(`Clicked row id: ${row.id}`)}
+    />
+  ),
+};
+
 export const WithRenderAfterRow: Story = {
   render: () => (
     <Table
