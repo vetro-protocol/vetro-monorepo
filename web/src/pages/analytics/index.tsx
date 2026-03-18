@@ -2,6 +2,7 @@ import { PageTitle } from "components/base/pageTitle";
 import { useAnalyticsTotals } from "hooks/useAnalyticsTotals";
 import { useAnalyticsTreasury } from "hooks/useAnalyticsTreasury";
 import { useVusd } from "hooks/useVusd";
+import { useWhitelistedTokens } from "hooks/useWhitelistedTokens";
 import { useTranslation } from "react-i18next";
 import { formatUsd } from "utils/currency";
 import { formatUnits } from "viem";
@@ -24,12 +25,16 @@ export const Analytics = function () {
     isLoading: isTotalsLoading,
   } = useAnalyticsTotals();
   const { data: vusd } = useVusd();
+  const { data: whitelistedTokens } = useWhitelistedTokens();
 
   const tvlValue = totals
     ? formatUsd(Number(formatUnits(BigInt(totals.vusdMinted), vusd.decimals)))
     : "";
 
-  const yieldItems = toYieldItems(treasury ?? []);
+  const yieldItems = toYieldItems({
+    treasuryTokens: treasury ?? [],
+    whitelistedTokens: whitelistedTokens ?? [],
+  });
   const yieldValue = treasury
     ? t("pages.analytics.yield-value", { count: yieldItems.length })
     : "";
@@ -42,7 +47,10 @@ export const Analytics = function () {
           icon={<DatabaseIcon />}
           isError={isTreasuryError || isTotalsError}
           isLoading={isTreasuryLoading || isTotalsLoading}
-          items={toTvlItems(treasury ?? [])}
+          items={toTvlItems({
+            treasuryTokens: treasury ?? [],
+            whitelistedTokens: whitelistedTokens ?? [],
+          })}
           label={t("pages.analytics.tvl-label")}
           value={tvlValue}
         />
