@@ -25,7 +25,7 @@ export const NavBarLinks = function () {
         <li key={href}>
           <I18nLink
             className={({ isActive }) =>
-              `button--base button-x-small button-regular ${isActive ? "button-nav-primary" : "button-nav-secondary"} px-2!`
+              `button--base button-x-small button-regular ${isActive ? "button-nav-primary pl-2!" : "button-nav-secondary"} `
             }
             to={href}
           >
