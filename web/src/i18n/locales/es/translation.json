@@ -3,6 +3,7 @@
     "switch-to": "Cambiar a Inglés"
   },
   "nav": {
+    "analytics": "Analíticas",
     "borrow": "Préstamos",
     "bridge": "Bridge",
     "earn": "Earn",
@@ -11,7 +12,11 @@
   },
   "pages": {
     "analytics": {
-      "title": "Hola Analíticas"
+      "title": "Monitorear analíticas del protocolo",
+      "tvl-label": "Valor Total Bloqueado (TVL)",
+      "yield-label": "Asignación de yield",
+      "yield-value": "{{count}} protocolo",
+      "yield-value_other": "{{count}} protocolos"
     },
     "borrow": {
       "activity": {

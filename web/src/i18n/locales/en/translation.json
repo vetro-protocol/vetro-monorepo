@@ -3,6 +3,7 @@
     "switch-to": "Switch to Spanish"
   },
   "nav": {
+    "analytics": "Analytics",
     "borrow": "Borrow",
     "bridge": "Bridge",
     "earn": "Earn",
@@ -11,7 +12,11 @@
   },
   "pages": {
     "analytics": {
-      "title": "Hello Analytics"
+      "title": "Monitor protocol analytics",
+      "tvl-label": "Total Value Locked (TVL)",
+      "yield-label": "Yield allocation",
+      "yield-value": "{{count}} protocol",
+      "yield-value_other": "{{count}} protocols"
     },
     "borrow": {
       "activity": {
