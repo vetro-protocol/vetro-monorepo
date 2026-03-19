@@ -18,11 +18,6 @@ const colorPalette = [
 const assignColor = (index: number) =>
   colorPalette[index % colorPalette.length] ?? "bg-gray-400";
 
-// Extracts the protocol name from a strategy name.
-// e.g. "Morpho SkyMoney USDT Savings" → "Morpho"
-const extractProtocol = (strategyName: string) =>
-  strategyName.split(" ")[0] ?? strategyName;
-
 const priceDecimals = 8;
 
 const findToken = (tokenAddress: string, whitelistedTokens: Token[]) =>
@@ -60,8 +55,8 @@ export const toTvlItems = ({
   });
 
 // Transforms /analytics/treasury response into yield allocation items,
-// grouping active strategies by protocol across all tokens.
-// amount: sum of USD value per strategy within each protocol.
+// one item per active strategy across all tokens.
+// amount: USD value = (totalDebt / 10^decimals) × (latestPrice / 10^8)
 export const toYieldItems = function ({
   treasuryTokens = [],
   whitelistedTokens = [],
@@ -69,7 +64,7 @@ export const toYieldItems = function ({
   treasuryTokens?: TreasuryToken[];
   whitelistedTokens?: Token[];
 }) {
-  const protocolMap = new Map<string, number>();
+  const items: { amount: number; color: string; label: string }[] = [];
 
   for (const {
     activeStrategies,
@@ -81,18 +76,12 @@ export const toYieldItems = function ({
     const price = Number(formatUnits(BigInt(latestPrice), priceDecimals));
 
     for (const { name, totalDebt } of activeStrategies) {
-      const protocol = extractProtocol(name);
-      const usdAmount =
-        Number(formatUnits(BigInt(totalDebt), decimals)) * price;
-      protocolMap.set(protocol, (protocolMap.get(protocol) ?? 0) + usdAmount);
+      const amount = Number(formatUnits(BigInt(totalDebt), decimals)) * price;
+      if (amount > 0) {
+        items.push({ amount, color: assignColor(items.length), label: name });
+      }
     }
   }
 
-  return Array.from(protocolMap.entries())
-    .filter(([, amount]) => amount > 0)
-    .map(([protocol, amount], index) => ({
-      amount,
-      color: assignColor(index),
-      label: protocol,
-    }));
+  return items;
 };
