@@ -32,7 +32,7 @@ export const AllocationLegend = ({
         >
           <div className="flex items-center gap-3">
             <div className={`rounded-px size-1.5 shrink-0 ${color}`} />
-            <span className="text-b-medium text-gray-900">{label}:</span>
+            <span className="text-b-medium text-gray-900">{label}</span>
           </div>
           <span className="text-b-medium text-right text-gray-900">
             {formatUsd(amount)}
