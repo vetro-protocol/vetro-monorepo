@@ -35,7 +35,7 @@ export const ThreeOptions: Story = {
     const [value, setValue] = useState<"day" | "month" | "week">("week");
 
     return (
-      <div className="w-[400px]">
+      <div className="w-[400px] border-y border-gray-200 bg-gray-50 px-6 py-3">
         <SegmentedControl
           onChange={setValue}
           options={[
@@ -45,6 +45,43 @@ export const ThreeOptions: Story = {
           ]}
           value={value}
         />
+      </div>
+    );
+  },
+};
+
+export const SizeXs: Story = {
+  render: function Component() {
+    const [bar, setBar] = useState<"deposit" | "withdraw">("deposit");
+    const [pill, setPill] = useState<"1m" | "1w" | "1y" | "3m">("1w");
+
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="w-[400px] border-y border-gray-200 bg-gray-50 px-6 py-3">
+          <SegmentedControl
+            onChange={setBar}
+            options={[
+              { label: "Deposit", value: "deposit" },
+              { label: "Withdraw", value: "withdraw" },
+            ]}
+            size="xs"
+            value={bar}
+          />
+        </div>
+        <div className="w-[400px]">
+          <SegmentedControl
+            onChange={setPill}
+            options={[
+              { label: "1W", value: "1w" },
+              { label: "1M", value: "1m" },
+              { label: "3M", value: "3m" },
+              { label: "1Y", value: "1y" },
+            ]}
+            size="xs"
+            value={pill}
+            variant="pill"
+          />
+        </div>
       </div>
     );
   },
