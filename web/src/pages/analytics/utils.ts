@@ -1,4 +1,5 @@
 import type { Token } from "types";
+import { formatNumber } from "utils/format";
 import { formatUnits } from "viem";
 
 import type { TreasuryToken } from "./types";
@@ -34,23 +35,27 @@ const findToken = (tokenAddress: string, whitelistedTokens: Token[]) =>
 // withdrawable includes idle funds + deployed strategies (vs totalDebt = strategies only).
 // tokenDecimals sourced from whitelistedTokens; falls back to 18 for unknown tokens.
 export const toTvlItems = ({
-  treasuryTokens,
-  whitelistedTokens,
+  treasuryTokens = [],
+  whitelistedTokens = [],
 }: {
-  treasuryTokens: TreasuryToken[];
-  whitelistedTokens: Token[];
+  treasuryTokens?: TreasuryToken[];
+  whitelistedTokens?: Token[];
 }) =>
   treasuryTokens.map(function (
     { latestPrice, tokenAddress, withdrawable },
     index,
   ) {
     const token = findToken(tokenAddress, whitelistedTokens);
+    const decimals = token?.decimals ?? 18;
+    const symbol = token?.symbol ?? tokenAddress.slice(0, 6);
     return {
       amount:
-        Number(formatUnits(BigInt(withdrawable), token?.decimals ?? 18)) *
+        Number(formatUnits(BigInt(withdrawable), decimals)) *
         Number(formatUnits(BigInt(latestPrice), priceDecimals)),
       color: assignColor(index),
-      label: token?.symbol ?? tokenAddress.slice(0, 6),
+      label: symbol,
+      logoURI: token?.logoURI,
+      tooltip: `${formatNumber(formatUnits(BigInt(withdrawable), decimals))} ${symbol}`,
     };
   });
 
@@ -58,11 +63,11 @@ export const toTvlItems = ({
 // grouping active strategies by protocol across all tokens.
 // amount: sum of USD value per strategy within each protocol.
 export const toYieldItems = function ({
-  treasuryTokens,
-  whitelistedTokens,
+  treasuryTokens = [],
+  whitelistedTokens = [],
 }: {
-  treasuryTokens: TreasuryToken[];
-  whitelistedTokens: Token[];
+  treasuryTokens?: TreasuryToken[];
+  whitelistedTokens?: Token[];
 }) {
   const protocolMap = new Map<string, number>();
 

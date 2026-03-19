@@ -5,6 +5,8 @@ export type AllocationItem = {
   amount: number;
   color: string;
   label: string;
+  logoURI?: string;
+  tooltip?: string;
 };
 
 // Raw response shape from GET /analytics/treasury.

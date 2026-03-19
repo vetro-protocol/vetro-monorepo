@@ -25,16 +25,21 @@ export const Analytics = function () {
     isLoading: isTotalsLoading,
   } = useAnalyticsTotals();
   const { data: vusd } = useVusd();
-  const { data: whitelistedTokens } = useWhitelistedTokens();
+  const {
+    data: whitelistedTokens,
+    isError: isWhitelistedTokensError,
+    isLoading: isWhitelistedTokensLoading,
+  } = useWhitelistedTokens();
+
+  const isTokensLoading = isTreasuryLoading || isWhitelistedTokensLoading;
+  const isTokensError = isTreasuryError || isWhitelistedTokensError;
+  const tokens = { treasuryTokens: treasury, whitelistedTokens };
 
   const tvlValue = totals
     ? formatUsd(Number(formatUnits(BigInt(totals.vusdMinted), vusd.decimals)))
     : "";
 
-  const yieldItems = toYieldItems({
-    treasuryTokens: treasury ?? [],
-    whitelistedTokens: whitelistedTokens ?? [],
-  });
+  const yieldItems = toYieldItems(tokens);
   const yieldValue = treasury
     ? t("pages.analytics.yield-value", { count: yieldItems.length })
     : "";
@@ -45,19 +50,16 @@ export const Analytics = function () {
       <div className="flex flex-col border-t border-gray-200 md:flex-row md:divide-x md:divide-gray-200">
         <AllocationCard
           icon={<DatabaseIcon />}
-          isError={isTreasuryError || isTotalsError}
-          isLoading={isTreasuryLoading || isTotalsLoading}
-          items={toTvlItems({
-            treasuryTokens: treasury ?? [],
-            whitelistedTokens: whitelistedTokens ?? [],
-          })}
+          isError={isTokensError || isTotalsError}
+          isLoading={isTokensLoading || isTotalsLoading}
+          items={toTvlItems(tokens)}
           label={t("pages.analytics.tvl-label")}
           value={tvlValue}
         />
         <AllocationCard
           icon={<PieChartIcon />}
-          isError={isTreasuryError}
-          isLoading={isTreasuryLoading}
+          isError={isTokensError}
+          isLoading={isTokensLoading}
           items={yieldItems}
           label={t("pages.analytics.yield-label")}
           value={yieldValue}

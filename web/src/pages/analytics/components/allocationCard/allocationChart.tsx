@@ -1,3 +1,6 @@
+import { TokenLogo } from "components/tokenLogo";
+import { Tooltip } from "components/tooltip";
+
 import type { AllocationItem } from "../../types";
 
 const skeletonBars = 4;
@@ -21,15 +24,35 @@ export const AllocationChart = ({
     <div className="mx-6 flex h-full gap-1 border-x border-gray-200 bg-white p-1 md:mx-14">
       {!isLoading &&
         !isError &&
-        items.map(({ amount, color, label }) => (
-          <div
-            className={`h-full cursor-pointer rounded-sm transition-opacity ${color} ${hoveredLabel && hoveredLabel !== label ? "opacity-20" : ""}`}
-            key={label}
-            onMouseEnter={() => onHover(label)}
-            onMouseLeave={() => onHover(null)}
-            style={{ flex: amount }}
-          />
-        ))}
+        items.map(function ({ amount, color, label, logoURI, tooltip }) {
+          const barClass = `h-full cursor-pointer rounded-sm transition-opacity ${color} ${hoveredLabel && hoveredLabel !== label ? "opacity-20" : ""}`;
+          const bar = (
+            <div
+              className={barClass}
+              onMouseEnter={() => onHover(label)}
+              onMouseLeave={() => onHover(null)}
+            />
+          );
+          return (
+            <div key={label} className="h-full" style={{ flex: amount }}>
+              {tooltip ? (
+                <Tooltip
+                  content={
+                    <div className="flex items-center gap-1.5">
+                      <TokenLogo logoURI={logoURI ?? ""} symbol={label} />
+                      {tooltip}
+                    </div>
+                  }
+                  stretch
+                >
+                  {bar}
+                </Tooltip>
+              ) : (
+                bar
+              )}
+            </div>
+          );
+        })}
       {isError && <div className="h-full flex-1 rounded-sm bg-gray-200" />}
       {isLoading &&
         Array.from({ length: skeletonBars }).map((_, i) => (
