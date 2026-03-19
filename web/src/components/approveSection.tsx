@@ -22,17 +22,29 @@ const InfoIcon = () => (
   </svg>
 );
 
+const contentPaddingClasses = {
+  compact: "px-2",
+  wide: "md:px-8 px-4",
+} as const;
+
 type Props = {
   active: boolean;
+  contentPadding?: keyof typeof contentPaddingClasses;
   onToggle: VoidFunction;
 };
 
-export const ApproveSection = function ({ active, onToggle }: Props) {
+export const ApproveSection = function ({
+  active,
+  contentPadding = "compact",
+  onToggle,
+}: Props) {
   const { t } = useTranslation();
 
   return (
     <div className="w-full max-w-md border-b border-gray-200 max-md:px-4">
-      <div className="text-xsm flex cursor-default items-center gap-x-1 px-2 py-3">
+      <div
+        className={`text-xsm flex cursor-default items-center gap-x-1 py-3 ${contentPaddingClasses[contentPadding]}`}
+      >
         <span className="font-semibold text-gray-900">
           {t("pages.swap.form.approve-10x")}
         </span>
