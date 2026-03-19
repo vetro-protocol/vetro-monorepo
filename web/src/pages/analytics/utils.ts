@@ -1,6 +1,8 @@
-import { knownTokens } from "utils/tokenList";
+import type { Token } from "types";
+import { formatNumber } from "utils/format";
+import { formatUnits } from "viem";
 
-import type { AllocationItem, TreasuryToken } from "./types";
+import type { TreasuryToken } from "./types";
 
 const colorPalette = [
   "bg-blue-400",
@@ -21,38 +23,76 @@ const assignColor = (index: number) =>
 const extractProtocol = (strategyName: string) =>
   strategyName.split(" ")[0] ?? strategyName;
 
+const priceDecimals = 8;
+
+const findToken = (tokenAddress: string, whitelistedTokens: Token[]) =>
+  whitelistedTokens.find(
+    (t) => t.address.toLowerCase() === tokenAddress.toLowerCase(),
+  );
+
 // Transforms /analytics/treasury response into TVL allocation items.
-// amount is a placeholder proportional to totalDebt — real USD computation
-// (using tokenDecimals × latestPrice) will be added when integrating the live API.
-export const toTvlItems = (tokens: TreasuryToken[]): AllocationItem[] =>
-  tokens.map(({ tokenAddress, totalDebt }, index) => ({
-    amount: Number(totalDebt),
-    color: assignColor(index),
-    label:
-      knownTokens.find(
-        (t) => t.address.toLowerCase() === tokenAddress.toLowerCase(),
-      )?.symbol ?? tokenAddress.slice(0, 6),
-  }));
+// amount: USD value = (withdrawable / 10^decimals) × (latestPrice / 10^8)
+// withdrawable includes idle funds + deployed strategies (vs totalDebt = strategies only).
+// tokenDecimals sourced from whitelistedTokens; falls back to 18 for unknown tokens.
+export const toTvlItems = ({
+  treasuryTokens = [],
+  whitelistedTokens = [],
+}: {
+  treasuryTokens?: TreasuryToken[];
+  whitelistedTokens?: Token[];
+}) =>
+  treasuryTokens.map(function (
+    { latestPrice, tokenAddress, withdrawable },
+    index,
+  ) {
+    const token = findToken(tokenAddress, whitelistedTokens);
+    const decimals = token?.decimals ?? 18;
+    const symbol = token?.symbol ?? tokenAddress.slice(0, 6);
+    return {
+      amount:
+        Number(formatUnits(BigInt(withdrawable), decimals)) *
+        Number(formatUnits(BigInt(latestPrice), priceDecimals)),
+      color: assignColor(index),
+      label: symbol,
+      logoURI: token?.logoURI,
+      tooltip: `${formatNumber(formatUnits(BigInt(withdrawable), decimals))} ${symbol}`,
+    };
+  });
 
 // Transforms /analytics/treasury response into yield allocation items,
 // grouping active strategies by protocol across all tokens.
-// amount is a placeholder proportional to strategy count — real USD computation
-// will be added when integrating the live API.
-export const toYieldItems = function (
-  tokens: TreasuryToken[],
-): AllocationItem[] {
+// amount: sum of USD value per strategy within each protocol.
+export const toYieldItems = function ({
+  treasuryTokens = [],
+  whitelistedTokens = [],
+}: {
+  treasuryTokens?: TreasuryToken[];
+  whitelistedTokens?: Token[];
+}) {
   const protocolMap = new Map<string, number>();
 
-  for (const { activeStrategies } of tokens) {
-    for (const { name } of activeStrategies) {
+  for (const {
+    activeStrategies,
+    latestPrice,
+    tokenAddress,
+  } of treasuryTokens) {
+    const token = findToken(tokenAddress, whitelistedTokens);
+    const decimals = token?.decimals ?? 18;
+    const price = Number(formatUnits(BigInt(latestPrice), priceDecimals));
+
+    for (const { name, totalDebt } of activeStrategies) {
       const protocol = extractProtocol(name);
-      protocolMap.set(protocol, (protocolMap.get(protocol) ?? 0) + 1);
+      const usdAmount =
+        Number(formatUnits(BigInt(totalDebt), decimals)) * price;
+      protocolMap.set(protocol, (protocolMap.get(protocol) ?? 0) + usdAmount);
     }
   }
 
-  return Array.from(protocolMap.entries()).map(([protocol, count], index) => ({
-    amount: count,
-    color: assignColor(index),
-    label: protocol,
-  }));
+  return Array.from(protocolMap.entries())
+    .filter(([, amount]) => amount > 0)
+    .map(([protocol, amount], index) => ({
+      amount,
+      color: assignColor(index),
+      label: protocol,
+    }));
 };

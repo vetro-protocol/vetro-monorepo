@@ -2,6 +2,7 @@ import { PageTitle } from "components/base/pageTitle";
 import { useAnalyticsTotals } from "hooks/useAnalyticsTotals";
 import { useAnalyticsTreasury } from "hooks/useAnalyticsTreasury";
 import { useVusd } from "hooks/useVusd";
+import { useWhitelistedTokens } from "hooks/useWhitelistedTokens";
 import { useTranslation } from "react-i18next";
 import { formatUsd } from "utils/currency";
 import { formatUnits } from "viem";
@@ -24,12 +25,21 @@ export const Analytics = function () {
     isLoading: isTotalsLoading,
   } = useAnalyticsTotals();
   const { data: vusd } = useVusd();
+  const {
+    data: whitelistedTokens,
+    isError: isWhitelistedTokensError,
+    isLoading: isWhitelistedTokensLoading,
+  } = useWhitelistedTokens();
+
+  const isTokensLoading = isTreasuryLoading || isWhitelistedTokensLoading;
+  const isTokensError = isTreasuryError || isWhitelistedTokensError;
+  const tokens = { treasuryTokens: treasury, whitelistedTokens };
 
   const tvlValue = totals
     ? formatUsd(Number(formatUnits(BigInt(totals.vusdMinted), vusd.decimals)))
     : "";
 
-  const yieldItems = toYieldItems(treasury ?? []);
+  const yieldItems = toYieldItems(tokens);
   const yieldValue = treasury
     ? t("pages.analytics.yield-value", { count: yieldItems.length })
     : "";
@@ -40,16 +50,16 @@ export const Analytics = function () {
       <div className="flex flex-col border-t border-gray-200 md:flex-row md:divide-x md:divide-gray-200">
         <AllocationCard
           icon={<DatabaseIcon />}
-          isError={isTreasuryError || isTotalsError}
-          isLoading={isTreasuryLoading || isTotalsLoading}
-          items={toTvlItems(treasury ?? [])}
+          isError={isTokensError || isTotalsError}
+          isLoading={isTokensLoading || isTotalsLoading}
+          items={toTvlItems(tokens)}
           label={t("pages.analytics.tvl-label")}
           value={tvlValue}
         />
         <AllocationCard
           icon={<PieChartIcon />}
-          isError={isTreasuryError}
-          isLoading={isTreasuryLoading}
+          isError={isTokensError}
+          isLoading={isTokensLoading}
           items={yieldItems}
           label={t("pages.analytics.yield-label")}
           value={yieldValue}
