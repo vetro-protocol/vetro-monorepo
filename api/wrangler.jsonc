@@ -12,16 +12,14 @@
     },
   },
   "vars": {
-    "CUSTOM_RPC_URL_MAINNET": "https://eth.drpc.org",
-    "MERKL_OPPORTUNITY_ID": "",
     "ORIGINS": "http://localhost:5173",
-    "SUBGRAPH_ID": "",
     "SUBGRAPH_URL_TEMPLATE": "http://localhost:8000/subgraphs/name/vetro-app-subgraph",
   },
   "env": {
     "staging": {
       "name": "vetro-api-staging",
       "vars": {
+        "CUSTOM_RPC_URL_MAINNET": "https://eth.drpc.org",
         "ORIGINS": "https://vetro.letshamsterdance.xyz,https://*-vetro-web-staging.hemilabs.workers.dev",
         "SUBGRAPH_ID": "7vnTMFYNE6Nv7RTeoaog4QgqQ3bwZTFoPUGv2gcmTxJ6",
         "SUBGRAPH_URL_TEMPLATE": "https://gateway.thegraph.com/api/$API_KEY/subgraphs/id/$ID",
@@ -38,6 +36,7 @@
         },
       },
       "vars": {
+        "CUSTOM_RPC_URL_MAINNET": "https://eth.drpc.org",
         "ORIGINS": "https://app.vetro.com",
         "SUBGRAPH_ID": "7vnTMFYNE6Nv7RTeoaog4QgqQ3bwZTFoPUGv2gcmTxJ6",
         "SUBGRAPH_URL_TEMPLATE": "https://gateway.thegraph.com/api/$API_KEY/subgraphs/id/$ID",
