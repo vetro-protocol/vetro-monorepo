@@ -50,8 +50,8 @@ const periodLabelKeys = {
   "3m": "pages.borrow.period-3-month",
 } as const;
 
-const formatTooltipDate = (timestamp: number) =>
-  new Date(timestamp).toLocaleDateString("en-US", {
+const formatTooltipDate = (locale: string, timestamp: number) =>
+  new Date(timestamp).toLocaleDateString(locale, {
     day: "numeric",
     month: "numeric",
     year: "numeric",
@@ -78,10 +78,12 @@ const ClockRevertIcon = () => (
 
 function ChartTooltipLabel({
   datum,
+  locale,
   x,
   y,
 }: {
   datum?: { x: number; y: number };
+  locale: string;
   x?: number;
   y?: number;
 }) {
@@ -89,7 +91,7 @@ function ChartTooltipLabel({
     return null;
   }
 
-  const dateText = formatTooltipDate(datum.x);
+  const dateText = formatTooltipDate(locale, datum.x);
   const aprText = formatPercentage(datum.y);
 
   return (
@@ -109,7 +111,7 @@ function ChartTooltipLabel({
 }
 
 export function HistoricApr({ marketId }: Props) {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
   const [period, setPeriod] = useState<AprHistoryPeriod>("1w");
   // TODO add error state https://github.com/vetro-protocol/vetro-monorepo/issues/241
   const { data: chartData } = useAprHistory(marketId, period);
@@ -157,13 +159,15 @@ export function HistoricApr({ marketId }: Props) {
                       fill: "white",
                       stroke: "#E5E7EB",
                     }}
-                    labelComponent={<ChartTooltipLabel />}
+                    labelComponent={
+                      <ChartTooltipLabel locale={i18n.language} />
+                    }
                     pointerLength={0}
                     style={{ fontSize: 11 }}
                   />
                 }
                 labels={({ datum }: { datum: { x: number; y: number } }) =>
-                  `${formatTooltipDate(datum.x)}  ${formatPercentage(datum.y)}`
+                  `${formatTooltipDate(i18n.language, datum.x)}  ${formatPercentage(datum.y)}`
                 }
                 voronoiBlacklist={["area"]}
               />
@@ -181,7 +185,7 @@ export function HistoricApr({ marketId }: Props) {
               }}
               tickCount={4}
               tickFormat={(tick: number) =>
-                new Date(tick).toLocaleDateString("en-US", {
+                new Date(tick).toLocaleDateString(i18n.language, {
                   day: "numeric",
                   weekday: "short",
                 })
