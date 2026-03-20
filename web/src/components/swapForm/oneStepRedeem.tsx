@@ -1,6 +1,7 @@
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { useNeedsApproval } from "@hemilabs/react-hooks/useNeedsApproval";
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
+import type { QueryStatus } from "@tanstack/react-query";
 import { getGatewayAddress } from "@vetro/gateway";
 import { ApproveSection } from "components/approveSection";
 import { Toast } from "components/base/toast";
@@ -9,18 +10,18 @@ import { TokenDropdown } from "components/tokenDropdown";
 import { TokenInput } from "components/tokenInput";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useActivityTracking } from "hooks/useActivityTracking";
-import { useEstimateRedeemGas } from "hooks/useEstimateRedeemGas";
 import { useMainnet } from "hooks/useMainnet";
 import { useMaxWithdraw } from "hooks/useMaxWithdraw";
 import { usePreviewRedeem } from "hooks/usePreviewRedeem";
 import { useRedeem } from "hooks/useRedeem";
 import { useRedeemFee } from "hooks/useRedeemFee";
-import { useSwapFeesDisplay } from "hooks/useSwapFeesDisplay";
+import { useSwapRedeemFees } from "hooks/useSwapRedeemFees";
+import { useTotalRedeemFees } from "hooks/useTotalRedeemFees";
 import { type FormEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
+import { applyBps } from "utils/fees";
 import { formatAmount } from "utils/token";
-import { useAccount } from "wagmi";
 
 import { Form } from "./form";
 import { OutputLabel } from "./outputLabel";
@@ -61,7 +62,6 @@ export function OneStepRedeem({
   toToken,
   whitelistedTokens,
 }: Props) {
-  const { address } = useAccount();
   const ethereumChain = useMainnet();
   const { t } = useTranslation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -108,17 +108,6 @@ export function OneStepRedeem({
       }),
       title: t("nav.swap"),
     });
-
-  const operationGasEstimation = useEstimateRedeemGas({
-    enabled: !!address,
-    minAmountOut: redeemPreview ?? 0n,
-    peggedToken: fromToken,
-    peggedTokenIn: amountBigInt,
-    receiver: address!,
-    tokenOut: toToken.address,
-  });
-
-  const protocolFee = useRedeemFee(toToken.address);
 
   const redeemMutation = useRedeem({
     approveAmount,
@@ -169,14 +158,31 @@ export function OneStepRedeem({
     tokenBalance: fromTokenBalance,
   });
 
-  const { networkFeeDisplay, protocolFeeDisplay, totalFeesDisplay } =
-    useSwapFeesDisplay({
-      amountBigInt,
-      approveAmount,
-      fromToken,
-      operationGasEstimation,
-      protocolFee,
-    });
+  const networkFeeQueryData = useSwapRedeemFees({
+    amount: amountBigInt,
+    approveAmount,
+    fromToken,
+    minAmountOut: redeemPreview,
+    tokenOut: toToken.address,
+  });
+
+  const protocolFeeQueryData = useRedeemFee(fromToken.address, {
+    select: (fee) => applyBps(amountBigInt, fee),
+  });
+
+  const totalRedeemFeesQueryData = useTotalRedeemFees({
+    amount: amountBigInt,
+    // no approval is needed when redeeming from the vault
+    approveAmount: undefined,
+    fromToken,
+    minAmountOut: redeemPreview,
+    tokenOut: toToken.address,
+  });
+
+  const networkFee = {
+    data: networkFeeQueryData.fees,
+    status: (networkFeeQueryData.isError ? "error" : "pending") as QueryStatus,
+  };
 
   const balancesLoaded =
     nativeBalance !== undefined && fromTokenBalance !== undefined;
@@ -241,10 +247,8 @@ export function OneStepRedeem({
       <ApproveSection active={approve10x} onToggle={onToggleApprove10x} />
       <TreasuryReserves />
       <SwapFees
-        amountBigInt={amountBigInt}
-        approveAmount={approveAmount}
         fromToken={fromToken}
-        operationGasEstimation={operationGasEstimation}
+        networkFee={networkFee}
         outputLabel={
           <OutputLabel
             fromInputValue={fromInputValue}
@@ -253,7 +257,8 @@ export function OneStepRedeem({
             toToken={toToken}
           />
         }
-        protocolFee={protocolFee}
+        protocolFee={protocolFeeQueryData}
+        totalFees={totalRedeemFeesQueryData}
       />
       <RedeemVaultSection whitelistedTokens={whitelistedTokens} />
       {isDrawerOpen && flowStatus !== "idle" && (
@@ -261,14 +266,13 @@ export function OneStepRedeem({
           flowStatus={flowStatus}
           fromAmount={fromInputValue}
           fromToken={fromToken}
-          networkFee={networkFeeDisplay}
+          networkFee={networkFee}
           onClose={handleDrawerClose}
           onRetry={handleRetry}
           outputValue={outputValue}
-          protocolFee={protocolFeeDisplay}
+          protocolFee={protocolFeeQueryData}
           showApproveStep={startedWithApproval}
           toToken={toToken}
-          totalFees={totalFeesDisplay}
         />
       )}
       {showToast && (

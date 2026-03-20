@@ -1,29 +1,28 @@
 import { Button } from "components/base/button";
 import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { type Step, VerticalStepper } from "components/base/verticalStepper";
-import { FeeDetails } from "components/feeDetails";
-import { FeesContainer } from "components/feesContainer";
 import { TokenLogo } from "components/tokenLogo";
 import { useAnimatedVisibility } from "hooks/useAnimatedVisibility";
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 
 import { OutputLabel } from "./outputLabel";
+import { SwapFees } from "./swapFees";
 import { TreasuryReserves } from "./treasuryReserves";
 
 type Props = {
   fromAmount: string;
   fromToken: Token;
-  networkFee: string;
   onRetry?: VoidFunction;
   outputValue?: string;
-  protocolFee: string;
   steps: Step[];
   subtitle?: ReactNode;
-  totalFees: string;
   toToken?: Token;
-};
+} & Pick<
+  ComponentProps<typeof SwapFees>,
+  "networkFee" | "protocolFee" | "totalFees"
+>;
 
 export function SwapProgressDrawer({
   fromAmount,
@@ -85,31 +84,23 @@ export function SwapProgressDrawer({
         <div className="*:px-4">
           <TreasuryReserves />
         </div>
-        <FeesContainer
-          label={
-            toToken && outputValue !== undefined ? (
+        <SwapFees
+          fromToken={fromToken}
+          networkFee={networkFee}
+          outputLabel={
+            toToken !== undefined && outputValue !== undefined ? (
               <OutputLabel
                 fromInputValue={fromAmount}
                 fromToken={fromToken}
                 outputValue={outputValue}
                 toToken={toToken}
               />
-            ) : undefined
+            ) : null
           }
+          protocolFee={protocolFee}
           totalFees={totalFees}
-        >
-          <FeeDetails
-            label={t("pages.swap.fees.network-fee")}
-            value={networkFee}
-          />
-          <FeeDetails
-            label={t("pages.swap.fees.fixed-protocol-fee")}
-            value={protocolFee}
-          />
-        </FeesContainer>
-
+        />
         <div className="flex-1" />
-
         {steps.length > 0 && (
           <div className="flex flex-col gap-2 px-6 pb-6">
             <p className="text-[11px] leading-4 font-medium tracking-wide text-gray-500">

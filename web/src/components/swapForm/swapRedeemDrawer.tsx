@@ -2,9 +2,11 @@ import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
 import { type Step, stepStatus } from "components/base/verticalStepper";
 import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
-import { Suspense, lazy } from "react";
+import { type ComponentProps, Suspense, lazy } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
+
+import type { SwapFees } from "./swapFees";
 
 const SwapProgressDrawer = lazy(() =>
   import("./swapProgressDrawer").then((m) => ({
@@ -52,15 +54,15 @@ type Props = {
   flowStatus: Exclude<RedeemFlowStatus, "idle">;
   fromAmount: string;
   fromToken: Token;
-  networkFee: string;
   onClose: VoidFunction;
   onRetry: VoidFunction;
   outputValue: string;
-  protocolFee: string;
   showApproveStep: boolean;
   toToken: Token;
-  totalFees: string;
-};
+} & Pick<
+  ComponentProps<typeof SwapFees>,
+  "networkFee" | "protocolFee" | "totalFees"
+>;
 
 export function SwapRedeemDrawer({
   flowStatus,
@@ -108,8 +110,8 @@ export function SwapRedeemDrawer({
           outputValue={outputValue}
           protocolFee={protocolFee}
           steps={steps}
-          toToken={toToken}
           totalFees={totalFees}
+          toToken={toToken}
         />
       </Suspense>
     </Drawer>

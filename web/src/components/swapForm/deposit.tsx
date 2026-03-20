@@ -1,6 +1,7 @@
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { useNeedsApproval } from "@hemilabs/react-hooks/useNeedsApproval";
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
+import type { QueryStatus } from "@tanstack/react-query";
 import { getGatewayAddress } from "@vetro/gateway";
 import { ApproveSection } from "components/approveSection";
 import { Toast } from "components/base/toast";
@@ -10,14 +11,15 @@ import { TokenInput } from "components/tokenInput";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useDeposit } from "hooks/useDeposit";
-import { useEstimateDepositGas } from "hooks/useEstimateDepositGas";
 import { useMainnet } from "hooks/useMainnet";
 import { useMintFee } from "hooks/useMintFee";
 import { usePreviewDeposit } from "hooks/usePreviewDeposit";
-import { useSwapFeesDisplay } from "hooks/useSwapFeesDisplay";
+import { useSwapMintFees } from "hooks/useSwapMintFees";
+import { useTotalMintFees } from "hooks/useTotalMintFees";
 import { type FormEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
+import { applyBps } from "utils/fees";
 import { formatAmount } from "utils/token";
 
 import { Form } from "./form";
@@ -106,14 +108,6 @@ export function Deposit({
       title: t("nav.swap"),
     });
 
-  const protocolFee = useMintFee(fromToken.address);
-
-  const operationGasEstimation = useEstimateDepositGas({
-    amountIn: amountBigInt,
-    minPeggedTokenOut: depositPreview,
-    token: fromToken,
-  });
-
   const depositMutation = useDeposit({
     amountIn: amountBigInt,
     approveAmount,
@@ -167,14 +161,26 @@ export function Deposit({
     tokenBalance: fromTokenBalance,
   });
 
-  const { networkFeeDisplay, protocolFeeDisplay, totalFeesDisplay } =
-    useSwapFeesDisplay({
-      amountBigInt,
-      approveAmount,
-      fromToken,
-      operationGasEstimation,
-      protocolFee,
-    });
+  // This is measured in ETH - paid to the network for operating
+  const networkFeeQueryData = useSwapMintFees({
+    amount: amountBigInt,
+    approveAmount,
+    fromToken,
+    minPeggedTokenOut: depositPreview,
+  });
+
+  // This is measured in {token} units - paid to the Vetro contracts
+  const protocolFeeQueryData = useMintFee(fromToken.address, {
+    select: (fee) => applyBps(amountBigInt, fee),
+  });
+
+  // Total fees converted to USD (network + protocol)
+  const totalMintFeesQueryData = useTotalMintFees({
+    amount: amountBigInt,
+    approveAmount,
+    fromToken,
+    minPeggedTokenOut: depositPreview,
+  });
 
   const balancesLoaded =
     nativeBalance !== undefined && fromTokenBalance !== undefined;
@@ -193,6 +199,11 @@ export function Deposit({
       setIsDrawerOpen(true);
     }
   }
+
+  const networkFee = {
+    data: networkFeeQueryData.fees,
+    status: (networkFeeQueryData.isError ? "error" : "pending") as QueryStatus,
+  };
 
   return (
     <>
@@ -234,10 +245,8 @@ export function Deposit({
       <ApproveSection active={approve10x} onToggle={onToggleApprove10x} />
       <TreasuryReserves />
       <SwapFees
-        amountBigInt={amountBigInt}
-        approveAmount={approveAmount}
         fromToken={fromToken}
-        operationGasEstimation={operationGasEstimation}
+        networkFee={networkFee}
         outputLabel={
           <OutputLabel
             fromInputValue={fromInputValue}
@@ -246,7 +255,8 @@ export function Deposit({
             toToken={toToken}
           />
         }
-        protocolFee={protocolFee}
+        protocolFee={protocolFeeQueryData}
+        totalFees={totalMintFeesQueryData}
       />
       <RedeemVaultSection whitelistedTokens={whitelistedTokens} />
       {isDrawerOpen && flowStatus !== "idle" && (
@@ -254,14 +264,14 @@ export function Deposit({
           flowStatus={flowStatus}
           fromAmount={fromInputValue}
           fromToken={fromToken}
-          networkFee={networkFeeDisplay}
+          networkFee={networkFee}
           onClose={handleDrawerClose}
           onRetry={handleRetry}
           outputValue={outputValue}
-          protocolFee={protocolFeeDisplay}
+          protocolFee={protocolFeeQueryData}
           showApproveStep={startedWithApproval}
           toToken={toToken}
-          totalFees={totalFeesDisplay}
+          totalFees={totalMintFeesQueryData}
         />
       )}
       {showToast && (
