@@ -8,6 +8,7 @@ import {
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
+import { formatDate, formatShortDate } from "utils/date";
 import { formatPercentage } from "utils/format";
 import {
   VictoryArea,
@@ -50,13 +51,6 @@ const periodLabelKeys = {
   "3m": "pages.borrow.period-3-month",
 } as const;
 
-const formatTooltipDate = (locale: string, timestamp: number) =>
-  new Date(timestamp).toLocaleDateString(locale, {
-    day: "numeric",
-    month: "numeric",
-    year: "numeric",
-  });
-
 const ClockRevertIcon = () => (
   <svg
     fill="none"
@@ -91,7 +85,7 @@ function ChartTooltipLabel({
     return null;
   }
 
-  const dateText = formatTooltipDate(locale, datum.x);
+  const dateText = formatDate(datum.x / 1000, locale);
   const aprText = formatPercentage(datum.y);
 
   return (
@@ -167,7 +161,7 @@ export function HistoricApr({ marketId }: Props) {
                   />
                 }
                 labels={({ datum }: { datum: { x: number; y: number } }) =>
-                  `${formatTooltipDate(i18n.language, datum.x)}  ${formatPercentage(datum.y)}`
+                  `${formatDate(datum.x / 1000, i18n.language)}  ${formatPercentage(datum.y)}`
                 }
                 voronoiBlacklist={["area"]}
               />
@@ -185,10 +179,7 @@ export function HistoricApr({ marketId }: Props) {
               }}
               tickCount={4}
               tickFormat={(tick: number) =>
-                new Date(tick).toLocaleDateString(i18n.language, {
-                  day: "numeric",
-                  weekday: "short",
-                })
+                formatShortDate(tick / 1000, i18n.language)
               }
             />
             <VictoryAxis
