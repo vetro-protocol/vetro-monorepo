@@ -10,7 +10,7 @@ export const inputErrors = [
 
 export type InputError = (typeof inputErrors)[number];
 
-export const isInputError = (error: string): error is InputError =>
+const isInputError = (error: string): error is InputError =>
   inputErrors.includes(error as InputError);
 
 export function getTextColor({

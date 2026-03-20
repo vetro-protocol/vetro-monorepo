@@ -41,7 +41,7 @@ const textClasses = {
   withdrawn: "text-gray-500",
 } as const;
 
-export type StatusBadgeVariant = keyof typeof icons;
+type StatusBadgeVariant = keyof typeof icons;
 
 type Props = {
   children: ReactNode;

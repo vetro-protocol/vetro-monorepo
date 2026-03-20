@@ -10,7 +10,7 @@ import type { Address, Chain, Client } from "viem";
 import { useEthereumClient } from "./useEthereumClient";
 import { useMainnet } from "./useMainnet";
 
-export const withdrawalDelayQueryKey = ({
+const withdrawalDelayQueryKey = ({
   chainId,
 }: {
   chainId: Chain["id"] | undefined;

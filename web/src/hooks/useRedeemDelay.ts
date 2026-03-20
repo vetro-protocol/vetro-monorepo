@@ -7,7 +7,7 @@ import { useAccount } from "wagmi";
 import { useEthereumClient } from "./useEthereumClient";
 import { useMainnet } from "./useMainnet";
 
-export const redeemDelayQueryKey = ({
+const redeemDelayQueryKey = ({
   account,
   chainId,
   gatewayAddress,

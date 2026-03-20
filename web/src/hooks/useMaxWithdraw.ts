@@ -16,7 +16,7 @@ export const maxWithdrawQueryKey = ({
   tokenOut: Address;
 }) => ["max-withdraw", chainId, gatewayAddress, tokenOut];
 
-export const maxWithdrawOptions = ({
+const maxWithdrawOptions = ({
   chainId,
   client,
   gatewayAddress,

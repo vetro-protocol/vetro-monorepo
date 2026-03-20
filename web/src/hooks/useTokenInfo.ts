@@ -1,11 +1,8 @@
-import { queryOptions, useQuery } from "@tanstack/react-query";
+import { queryOptions } from "@tanstack/react-query";
 import { fetchTokenInfo } from "fetchers/fetchTokenInfo";
 import type { Address, Chain, Client } from "viem";
 
-import { useEthereumClient } from "./useEthereumClient";
-import { useMainnet } from "./useMainnet";
-
-export const tokenInfoQueryKey = ({
+const tokenInfoQueryKey = ({
   address,
   chainId,
 }: {
@@ -30,16 +27,3 @@ export const tokenInfoOptions = ({
     // cache indefinitely as the token info is unlikely to change
     staleTime: Infinity,
   });
-
-export const useTokenInfo = function ({ address }: { address: Address }) {
-  const ethereumChain = useMainnet();
-  const client = useEthereumClient();
-
-  return useQuery(
-    tokenInfoOptions({
-      address,
-      chainId: ethereumChain.id,
-      client: client!,
-    }),
-  );
-};

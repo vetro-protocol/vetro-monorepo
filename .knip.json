@@ -1,0 +1,10 @@
+{
+  "ignore": ["web/scripts/*"],
+  "ignoreDependencies": ["eslint-config-prettier"],
+  "workspaces": {
+    "subgraph": {
+      "entry": ["src/earn.ts", "tests/*.test.ts"],
+      "ignoreDependencies": ["assemblyscript"]
+    }
+  }
+}

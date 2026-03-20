@@ -6,7 +6,7 @@ import type { Address, Chain } from "viem";
 import { useEthereumClient } from "./useEthereumClient";
 import { useMainnet } from "./useMainnet";
 
-export const mintFeeQueryKey = ({
+const mintFeeQueryKey = ({
   chainId,
   gatewayAddress,
 }: {
