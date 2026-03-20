@@ -304,8 +304,12 @@ export function StakeDepositForm({
         />
       </div>
 
-      <div className="px-6">
-        <ApproveSection active={approve10x} onToggle={onApprove10xToggle} />
+      <ApproveSection
+        active={approve10x}
+        contentPadding="wide"
+        onToggle={onApprove10xToggle}
+      />
+      <div className="border-b border-gray-200 px-6">
         <FeesContainer
           isError={isFeeError}
           label={t("pages.earn.stake.fees-label", {

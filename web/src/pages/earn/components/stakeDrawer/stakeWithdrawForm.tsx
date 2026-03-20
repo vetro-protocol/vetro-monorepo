@@ -301,7 +301,7 @@ export function StakeWithdrawForm({
         />
       </div>
 
-      <div className="px-6">
+      <div className="border-b border-gray-200 px-6">
         <FeesContainer
           isError={isFeeError}
           label={t("pages.earn.stake.withdrawing-fees-label", {
