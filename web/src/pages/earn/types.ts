@@ -11,5 +11,3 @@ export type ExitTicket = {
   requestTxHash: Hash;
   shares: string;
 };
-
-export type ExitTicketStatus = "cancelled" | "cooldown" | "ready" | "withdrawn";
