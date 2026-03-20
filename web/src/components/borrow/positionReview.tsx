@@ -1,21 +1,13 @@
 import { DisplayAmount } from "components/base/displayAmount";
 import { TokenLogo } from "components/tokenLogo";
 import { Tooltip } from "components/tooltip";
+import { type PositionMetrics } from "hooks/borrow/usePositionReview";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 import { formatFiatNumber, formatPercentage } from "utils/format";
 
 import { HealthFactor } from "./healthFactor";
 import { QuestionIcon } from "./questionIcon";
-
-type PositionMetrics = {
-  borrowAssets: bigint;
-  collateral: bigint;
-  dailyInterestCost: number | null;
-  healthFactor: number | null;
-  liquidationPrice: number | null;
-  ltv: number | null;
-};
 
 type Props = {
   borrowApy: number;
