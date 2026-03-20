@@ -40,6 +40,7 @@ describe("fetchRedeemDelay", function () {
     const result = await fetchRedeemDelay(defaultParams);
 
     expect(result).toBe(0n);
+    expect(defaultParams.queryClient.ensureQueryData).not.toHaveBeenCalled();
   });
 
   it("should return 0n when user is whitelisted", async function () {
@@ -49,21 +50,10 @@ describe("fetchRedeemDelay", function () {
     const result = await fetchRedeemDelay(defaultParams);
 
     expect(result).toBe(0n);
+    expect(defaultParams.queryClient.ensureQueryData).not.toHaveBeenCalled();
   });
 
-  it("should return 0n when delay is 0", async function () {
-    vi.mocked(getWithdrawalDelayEnabled).mockResolvedValue(true);
-    vi.mocked(isInstantRedeemWhitelisted).mockResolvedValue(false);
-
-    const result = await fetchRedeemDelay({
-      ...defaultParams,
-      queryClient: createMockQueryClient(0n),
-    });
-
-    expect(result).toBe(0n);
-  });
-
-  it("should return the delay when enabled, not whitelisted, and delay > 0", async function () {
+  it("should return the delay when enabled and not whitelisted", async function () {
     const expectedDelay = 3600n;
 
     vi.mocked(getWithdrawalDelayEnabled).mockResolvedValue(true);

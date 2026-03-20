@@ -18,7 +18,7 @@ import {
   previewRedeemQueryKey,
   previewRedeemTokenOptions,
 } from "./usePreviewRedeem";
-import { useRedeemDelay } from "./useRedeemDelay";
+import { redeemDelayOptions } from "./useRedeemDelay";
 import { treasuryReservesQueryKey } from "./useTreasuryReserves";
 import { useVusd } from "./useVusd";
 
@@ -45,10 +45,8 @@ export const useRedeem = function ({
     ethereumChain.id,
   );
 
-  const { data: redeemDelay } = useRedeemDelay();
   const { data: vusd } = useVusd();
 
-  const hasDelay = !!redeemDelay;
   const requestQueryKey = redeemRequestQueryKey({
     address: account,
     chainId: ethereumChain.id,
@@ -88,15 +86,26 @@ export const useRedeem = function ({
       }
       await ensureConnectedTo(ethereumChain.id);
 
-      const minAmountOut = await queryClient.ensureQueryData(
-        previewRedeemTokenOptions({
-          chainId: ethereumChain.id,
-          client: walletClient!,
-          gatewayAddress,
-          peggedTokenIn,
-          tokenOut,
-        }),
-      );
+      const [minAmountOut, hasDelay] = await Promise.all([
+        queryClient.ensureQueryData(
+          previewRedeemTokenOptions({
+            chainId: ethereumChain.id,
+            client: walletClient!,
+            gatewayAddress,
+            peggedTokenIn,
+            tokenOut,
+          }),
+        ),
+        queryClient.ensureQueryData(
+          redeemDelayOptions({
+            account,
+            chainId: ethereumChain.id,
+            client: walletClient,
+            gatewayAddress,
+            queryClient,
+          }),
+        ),
+      ]);
 
       const { emitter, promise } = redeem(walletClient!, {
         approveAmount,
@@ -182,7 +191,16 @@ export const useRedeem = function ({
 
       return promise;
     },
-    onSettled() {
+    async onSettled() {
+      const hasDelay = await queryClient.ensureQueryData(
+        redeemDelayOptions({
+          account,
+          chainId: ethereumChain.id,
+          client: walletClient,
+          gatewayAddress,
+          queryClient,
+        }),
+      );
       if (hasDelay) {
         queryClient.invalidateQueries({
           queryKey: requestQueryKey,
