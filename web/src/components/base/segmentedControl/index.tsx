@@ -6,18 +6,32 @@ type SegmentOption<T extends string> = {
 type Props<T extends string> = {
   onChange: (value: T) => void;
   options: SegmentOption<T>[];
+  size?: "s" | "xs";
   value: T;
+  variant?: "bar" | "pill";
+};
+
+const sizeClasses = {
+  s: "h-8 px-3 text-sm",
+  xs: "h-7 px-2.5 text-xsm",
+};
+
+const variantClasses = {
+  bar: "flex-1",
+  pill: "w-fit",
 };
 
 export const SegmentedControl = <T extends string>({
   onChange,
   options,
+  size = "s",
   value,
+  variant = "bar",
 }: Props<T>) => (
-  <div className="flex w-full gap-2 border-y border-gray-200 bg-gray-50 px-6 py-3">
+  <div className="flex gap-2">
     {options.map((option) => (
       <button
-        className={`h-8 flex-1 cursor-pointer rounded-full px-3 text-sm font-semibold transition-all ${
+        className={`${sizeClasses[size]} ${variantClasses[variant]} cursor-pointer rounded-full font-semibold transition-all ${
           value === option.value
             ? "bg-white text-gray-900 shadow-sm"
             : "text-gray-500 hover:text-gray-700"

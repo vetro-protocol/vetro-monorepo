@@ -50,14 +50,16 @@ export function StakeDrawerContent({ mode, onModeChange, onSuccess }: Props) {
   return (
     <div className="flex h-full flex-col">
       <DrawerTitle>{t("pages.earn.stake.manage-position")}</DrawerTitle>
-      <SegmentedControl
-        onChange={onModeChange}
-        options={[
-          { label: t("pages.earn.stake.deposit"), value: "deposit" },
-          { label: t("pages.earn.stake.withdraw"), value: "withdraw" },
-        ]}
-        value={mode}
-      />
+      <div className="border-y border-gray-200 bg-gray-50 px-6 py-3">
+        <SegmentedControl
+          onChange={onModeChange}
+          options={[
+            { label: t("pages.earn.stake.deposit"), value: "deposit" },
+            { label: t("pages.earn.stake.withdraw"), value: "withdraw" },
+          ]}
+          value={mode}
+        />
+      </div>
 
       {mode === "deposit" ? (
         <StakeDepositForm

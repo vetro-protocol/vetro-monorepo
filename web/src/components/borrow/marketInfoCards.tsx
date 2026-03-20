@@ -149,7 +149,7 @@ export function MarketInfoCards({ market }: { market: MarketData }) {
       <div className="w-full border-b border-gray-200 max-lg:hidden">
         <StripedDivider variant="small" />
       </div>
-      <HistoricApr />
+      <HistoricApr marketId={market.marketId} />
     </div>
   );
 }

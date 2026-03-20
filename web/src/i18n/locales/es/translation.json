@@ -31,6 +31,7 @@
       },
       "apr": "{{value}} TEA",
       "available-to-borrow": "Disponible para pedir prestado",
+      "avg": "Prom {{percentage}}",
       "borrow-apr": "TEA",
       "borrow-more": "Pedir más prestado",
       "borrow-more-progress": {
@@ -72,6 +73,10 @@
       "no-positions-description": "Deposite garantía para pedir prestado {{symbol}} y poner sus activos a trabajar.",
       "no-positions-title": "Aún no hay posiciones de préstamos activos",
       "per-day": "/ día",
+      "period-1-month": "1 mes",
+      "period-1-week": "1 semana",
+      "period-1-year": "1 año",
+      "period-3-month": "3 meses",
       "pool-size": "Tamaño del fondo",
       "position-review": "Revisión de posición",
       "positions-title": "Sus posiciones de préstamo",
