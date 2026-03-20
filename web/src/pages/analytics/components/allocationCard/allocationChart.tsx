@@ -34,7 +34,11 @@ export const AllocationChart = ({
             />
           );
           return (
-            <div key={label} className="h-full" style={{ flex: amount }}>
+            <div
+              key={label}
+              className="h-full min-w-2.5"
+              style={{ flex: amount }}
+            >
               {tooltip ? (
                 <Tooltip
                   content={
