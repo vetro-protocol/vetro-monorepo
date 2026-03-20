@@ -24,18 +24,6 @@ export type DepositEvents = ApprovalEvents &
     "user-signing-deposit-error": [Error];
   };
 
-export type MintEvents = ApprovalEvents &
-  CommonEvents & {
-    "mint-failed": [Error];
-    "mint-failed-validation": [string];
-    "mint-settled": [];
-    "mint-transaction-reverted": [TransactionReceipt];
-    "mint-transaction-succeeded": [TransactionReceipt];
-    "pre-mint": [];
-    "user-signed-mint": [Hash];
-    "user-signing-mint-error": [Error];
-  };
-
 export type CancelRedeemRequestEvents = CommonEvents & {
   "cancel-redeem-request-failed": [Error];
   "cancel-redeem-request-failed-validation": [string];
@@ -69,16 +57,4 @@ export type RequestRedeemEvents = ApprovalEvents &
     "request-redeem-transaction-succeeded": [TransactionReceipt];
     "user-signed-request-redeem": [Hash];
     "user-signing-request-redeem-error": [Error];
-  };
-
-export type WithdrawEvents = ApprovalEvents &
-  CommonEvents & {
-    "pre-withdraw": [];
-    "user-signed-withdraw": [Hash];
-    "user-signing-withdraw-error": [Error];
-    "withdraw-failed": [Error];
-    "withdraw-failed-validation": [string];
-    "withdraw-settled": [];
-    "withdraw-transaction-reverted": [TransactionReceipt];
-    "withdraw-transaction-succeeded": [TransactionReceipt];
   };
