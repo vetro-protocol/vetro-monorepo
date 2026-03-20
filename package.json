@@ -2,6 +2,7 @@
   "name": "vetro-monorepo",
   "version": "1.0.0",
   "scripts": {
+    "deps:check": "knip",
     "format:check": "prettier --check .",
     "format:write": "prettier --write .",
     "lint": "eslint --cache .",
