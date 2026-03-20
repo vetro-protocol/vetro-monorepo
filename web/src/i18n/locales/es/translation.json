@@ -5,7 +5,6 @@
   "nav": {
     "analytics": "Analíticas",
     "borrow": "Préstamos",
-    "bridge": "Bridge",
     "earn": "Earn",
     "open-menu": "Abrir menú de navegación",
     "swap": "Intercambios"
@@ -141,9 +140,6 @@
       },
       "you-are-borrowing": "Está pidiendo prestado",
       "you-are-depositing": "Está depositando como garantía"
-    },
-    "bridge": {
-      "title": "Hola Bridge"
     },
     "earn": {
       "activity": {

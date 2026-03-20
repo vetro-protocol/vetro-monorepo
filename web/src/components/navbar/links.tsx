@@ -4,13 +4,11 @@ import { I18nLink } from "../base/i18nLink";
 
 import { AnalyticsIcon } from "./analyticsIcon";
 import { BorrowIcon } from "./borrowIcon";
-import { BridgeIcon } from "./bridgeIcon";
 import { EarnIcon } from "./earnIcon";
 import { SwapIcon } from "./swapIcon";
 
 export const navLinks = [
   { href: "/swap", Icon: SwapIcon, translationKey: "nav.swap" },
-  { href: "/bridge", Icon: BridgeIcon, translationKey: "nav.bridge" },
   { href: "/earn", Icon: EarnIcon, translationKey: "nav.earn" },
   { href: "/borrow", Icon: BorrowIcon, translationKey: "nav.borrow" },
   { href: "/analytics", Icon: AnalyticsIcon, translationKey: "nav.analytics" },
