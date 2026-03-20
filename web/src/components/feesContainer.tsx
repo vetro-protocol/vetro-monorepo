@@ -9,7 +9,7 @@ type Props = {
   children: ReactNode;
   isError?: boolean;
   label?: ReactNode;
-  totalFees?: string;
+  totalFees?: ReactNode;
 };
 
 export function FeesContainer({ children, isError, label, totalFees }: Props) {
