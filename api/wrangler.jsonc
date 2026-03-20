@@ -12,6 +12,7 @@
     },
   },
   "vars": {
+    "MERKL_OPPORTUNITY_ID": "",
     "ORIGINS": "http://localhost:5173",
     "SUBGRAPH_URL_TEMPLATE": "http://localhost:8000/subgraphs/name/vetro-app-subgraph",
   },
