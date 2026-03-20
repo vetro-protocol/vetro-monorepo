@@ -100,7 +100,7 @@ If text-4xl is 2.25 rem => 4, then here 2.5 rem => 4.4 */
 }
 
 @utility animate-page-in {
-  animation: page-fade-in 200ms ease-out;
+  animation: page-fade-in 300ms ease-out;
 }
 
 @media (prefers-reduced-motion: reduce) {
