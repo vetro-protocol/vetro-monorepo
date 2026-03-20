@@ -6,7 +6,6 @@ import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
 import { Analytics } from "pages/analytics";
 import { Borrow } from "pages/borrow";
 import { BorrowMarketDetails } from "pages/borrowMarketDetails";
-import { Bridge } from "pages/bridge";
 import { Earn } from "pages/earn";
 import { Faq } from "pages/faq";
 import { Swap } from "pages/swap";
@@ -43,7 +42,6 @@ export const App = () => (
                       element={<BorrowMarketDetails />}
                       path="borrow/:marketId"
                     />
-                    <Route element={<Bridge />} path="bridge" />
                     <Route element={<Analytics />} path="analytics" />
                     <Route element={<Faq />} path="faq" />
                   </Routes>
