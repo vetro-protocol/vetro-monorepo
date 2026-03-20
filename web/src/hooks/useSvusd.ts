@@ -7,7 +7,7 @@ import type { Client } from "viem";
 
 const svusdQueryKey = (chainId: number | undefined) => ["svusd", chainId];
 
-export const svusdOptions = ({
+const svusdOptions = ({
   chainId,
   client,
 }: {

@@ -5,7 +5,7 @@ import type { Address, Chain, Client } from "viem";
 import { useEthereumClient } from "./useEthereumClient";
 import { useMainnet } from "./useMainnet";
 
-export const tokenInfoQueryKey = ({
+const tokenInfoQueryKey = ({
   address,
   chainId,
 }: {
