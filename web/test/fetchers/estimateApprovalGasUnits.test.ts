@@ -22,6 +22,7 @@ describe("estimateApprovalGasUnits", function () {
   const mockOwner = zeroAddress;
   const mockSpender = zeroAddress;
   const client = { chain: { id: 1 } } as Client;
+  // @ts-expect-error - Only the address are needed for the tests
   const token = { address: zeroAddress } as Token;
 
   it("returns 0n when allowance > amount", async function () {
