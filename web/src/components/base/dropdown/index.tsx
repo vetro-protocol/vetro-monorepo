@@ -10,12 +10,12 @@ import { createPortal } from "react-dom";
 
 import { useMenuPosition } from "../../../hooks/useMenuPosition";
 
-export type DropdownSection<T> = {
+type DropdownSection<T> = {
   items: T[];
   label: string;
 };
 
-export type TriggerProps = {
+type TriggerProps = {
   "aria-expanded": boolean;
   "aria-haspopup": "listbox" | "menu";
   id: string;

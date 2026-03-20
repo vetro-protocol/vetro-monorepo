@@ -12,7 +12,7 @@ import { parseUnits } from "viem";
 
 import { useTokenPrices } from "../useTokenPrices";
 
-export type ReviewValues = {
+type ReviewValues = {
   dailyInterestCost: number | null;
   healthFactor: number | null;
   liquidationPrice: number | null;

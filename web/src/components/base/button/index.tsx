@@ -15,7 +15,7 @@ const variants = {
 } as const;
 /* eslint-enable sort-keys */
 
-export type ButtonSize = "xSmall" | "small" | "xLarge";
+type ButtonSize = "xSmall" | "small" | "xLarge";
 
 /* eslint-disable sort-keys */
 const buttonSizePresets = {

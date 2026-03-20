@@ -1,6 +1,6 @@
 import { parseAsStringEnum, useQueryState } from "nuqs";
 
-export type SwapMode = "deposit" | "redeem";
+type SwapMode = "deposit" | "redeem";
 
 const swapModeParser = parseAsStringEnum<SwapMode>([
   "deposit",
