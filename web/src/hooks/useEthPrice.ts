@@ -1,6 +1,6 @@
 import { useTokenPrices } from "./useTokenPrices";
 
-function parseEthPrice(prices: Record<string, string> | undefined) {
+export function parseEthPrice(prices: Record<string, string> | undefined) {
   const ethPriceRaw = prices?.ETH;
   const ethPrice =
     typeof ethPriceRaw === "string" ? parseFloat(ethPriceRaw) : NaN;
