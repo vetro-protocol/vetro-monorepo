@@ -1,6 +1,7 @@
 import type { QueryClient } from "@tanstack/react-query";
 import type { Token } from "types";
 import { zeroAddress, type Client } from "viem";
+import { estimateGas } from "viem/actions";
 import { describe, expect, it, vi } from "vitest";
 
 import { estimateApprovalGasUnits } from "../../src/fetchers/estimateApprovalGasUnits";
@@ -14,10 +15,16 @@ vi.mock("@vetro/gateway", () => ({
   getGatewayAddress: vi.fn().mockReturnValue(zeroAddress),
 }));
 
-vi.mock("hooks/useEstimateDepositGas", () => ({
-  depositGasUnitsOptions: vi.fn().mockReturnValue({
-    queryFn: () => 120000n,
-  }),
+vi.mock("@vetro/gateway/actions", () => ({
+  encodeDeposit: vi.fn().mockReturnValue("0x"),
+}));
+
+vi.mock("viem/actions", () => ({
+  estimateGas: vi.fn(),
+}));
+
+vi.mock("utils/erc20StateOverride", () => ({
+  createErc20AllowanceStateOverride: vi.fn(),
 }));
 
 describe("fetchMintGasUnits", function () {
@@ -28,16 +35,14 @@ describe("fetchMintGasUnits", function () {
     address: zeroAddress,
   } as Token;
 
-  const mockQueryClient = {
-    ensureQueryData: vi.fn(),
-  } as unknown as QueryClient;
+  const mockQueryClient = {} as unknown as QueryClient;
 
   it("returns sum of approval and mint gas", async function () {
     const approvalGas = 46000n;
     const mintGas = 120000n;
 
     vi.mocked(estimateApprovalGasUnits).mockResolvedValue(approvalGas);
-    vi.mocked(mockQueryClient.ensureQueryData).mockResolvedValue(mintGas);
+    vi.mocked(estimateGas).mockResolvedValue(mintGas);
 
     const result = await fetchMintGasUnits({
       amount: 100n,
@@ -56,7 +61,7 @@ describe("fetchMintGasUnits", function () {
     const mintGas = 120000n;
 
     vi.mocked(estimateApprovalGasUnits).mockResolvedValue(0n);
-    vi.mocked(mockQueryClient.ensureQueryData).mockResolvedValue(mintGas);
+    vi.mocked(estimateGas).mockResolvedValue(mintGas);
 
     const result = await fetchMintGasUnits({
       amount: 100n,

@@ -1,8 +1,10 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { getGatewayAddress } from "@vetro/gateway";
-import { depositGasUnitsOptions } from "hooks/useEstimateDepositGas";
+import { encodeDeposit } from "@vetro/gateway/actions";
 import type { Token } from "types";
+import { createErc20AllowanceStateOverride } from "utils/erc20StateOverride";
 import type { Address, Client } from "viem";
+import { estimateGas } from "viem/actions";
 
 import { estimateApprovalGasUnits } from "./estimateApprovalGasUnits";
 
@@ -40,16 +42,21 @@ export const fetchMintGasUnits = async function ({
       spender: gatewayAddress,
       token,
     }),
-    queryClient.ensureQueryData(
-      depositGasUnitsOptions({
+    estimateGas(client, {
+      account: owner,
+      data: encodeDeposit({
         amountIn: amount,
-        chainId: client.chain!.id,
-        client,
         minPeggedTokenOut,
+        receiver: owner,
+        tokenIn: token.address,
+      }),
+      stateOverride: createErc20AllowanceStateOverride({
         owner,
+        spender: gatewayAddress,
         token,
       }),
-    ),
+      to: gatewayAddress,
+    }),
   ]);
 
   return approvalGas + mintGas;
