@@ -13,6 +13,7 @@ import { useMainnet } from "hooks/useMainnet";
 import { usePreviewRedeem } from "hooks/usePreviewRedeem";
 import { useRequestRedeem } from "hooks/useRequestRedeem";
 import { useSwapRequestRedeemFees } from "hooks/useSwapRequestRedeemFees";
+import { useTotalRequestRedeemFees } from "hooks/useTotalRequestRedeemFees";
 import { useWithdrawalDelay } from "hooks/useWithdrawalDelay";
 import { type FormEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -158,6 +159,12 @@ export function TwoStepRedeem({
     fromToken,
   });
 
+  const totalFeesQueryData = useTotalRequestRedeemFees({
+    amount: amountBigInt,
+    approveAmount,
+    fromToken,
+  });
+
   const networkFee = {
     data: networkFeeQueryData.fees,
     status: (networkFeeQueryData.isError ? "error" : "pending") as QueryStatus,
@@ -241,7 +248,11 @@ export function TwoStepRedeem({
       </Form>
       <ApproveSection active={approve10x} onToggle={onToggleApprove10x} />
       <TreasuryReserves />
-      <SwapFees fromToken={fromToken} networkFee={networkFee} />
+      <SwapFees
+        fromToken={fromToken}
+        networkFee={networkFee}
+        totalFees={totalFeesQueryData}
+      />
       <RedeemVaultSection whitelistedTokens={whitelistedTokens} />
       {isTutorialOpen && (
         <RedeemTutorialModal
@@ -257,6 +268,7 @@ export function TwoStepRedeem({
           networkFee={networkFee}
           onClose={handleDrawerClose}
           onRetry={handleRetry}
+          totalFees={totalFeesQueryData}
           showApproveStep={startedWithApproval}
           subtitle={redeemableForText}
         />

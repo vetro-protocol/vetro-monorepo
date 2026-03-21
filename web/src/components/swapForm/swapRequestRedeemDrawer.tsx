@@ -58,7 +58,10 @@ type Props = {
   onRetry: VoidFunction;
   showApproveStep: boolean;
   subtitle: ReactNode;
-} & Pick<ComponentProps<typeof SwapFees>, "networkFee" | "protocolFee">;
+} & Pick<
+  ComponentProps<typeof SwapFees>,
+  "networkFee" | "protocolFee" | "totalFees"
+>;
 
 export function SwapRequestRedeemDrawer({
   flowStatus,
@@ -70,6 +73,7 @@ export function SwapRequestRedeemDrawer({
   protocolFee,
   showApproveStep,
   subtitle,
+  totalFees,
 }: Props) {
   const { t } = useTranslation();
   useCloseOnSuccess({ onClose, success: flowStatus === "request-redeemed" });
@@ -104,6 +108,7 @@ export function SwapRequestRedeemDrawer({
           protocolFee={protocolFee}
           steps={steps}
           subtitle={subtitle}
+          totalFees={totalFees}
         />
       </Suspense>
     </Drawer>
