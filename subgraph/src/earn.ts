@@ -1,12 +1,26 @@
 import { BigInt, dataSource, ethereum } from "@graphprotocol/graph-ts";
 
-import { ExitTicket, VaultHistory } from "../generated/schema";
+import {
+  ExitTicket,
+  ExitTicketQueueSummary,
+  VaultHistory,
+} from "../generated/schema";
 import {
   StakingVault,
   WithdrawCancelled,
   WithdrawClaimed,
   WithdrawRequested,
 } from "../generated/StakingVault/StakingVault";
+
+function loadOrCreateQueueSummary(): ExitTicketQueueSummary {
+  let summary = ExitTicketQueueSummary.load("singleton");
+  if (summary == null) {
+    summary = new ExitTicketQueueSummary("singleton");
+    summary.shares = BigInt.fromI32(0);
+    summary.openTickets = 0;
+  }
+  return summary;
+}
 
 export function handleBlock(block: ethereum.Block): void {
   const daySeconds = BigInt.fromI32(86400);
@@ -42,6 +56,13 @@ export function handleWithdrawRequested(event: WithdrawRequested): void {
   entity.requestTxHash = event.transaction.hash;
 
   entity.save();
+
+  const summary = loadOrCreateQueueSummary();
+
+  summary.shares = summary.shares.plus(event.params.shares);
+  summary.openTickets = summary.openTickets + 1;
+
+  summary.save();
 }
 
 export function handleWithdrawCancelled(event: WithdrawCancelled): void {
@@ -54,6 +75,13 @@ export function handleWithdrawCancelled(event: WithdrawCancelled): void {
   entity.cancelTxHash = event.transaction.hash;
 
   entity.save();
+
+  const summary = loadOrCreateQueueSummary();
+
+  summary.shares = summary.shares.minus(entity.shares);
+  summary.openTickets = summary.openTickets - 1;
+
+  summary.save();
 }
 
 export function handleWithdrawClaimed(event: WithdrawClaimed): void {
@@ -66,4 +94,11 @@ export function handleWithdrawClaimed(event: WithdrawClaimed): void {
   entity.claimTxHash = event.transaction.hash;
 
   entity.save();
+
+  const summary = loadOrCreateQueueSummary();
+
+  summary.shares = summary.shares.minus(entity.shares);
+  summary.openTickets = summary.openTickets - 1;
+
+  summary.save();
 }

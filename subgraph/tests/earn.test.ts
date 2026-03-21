@@ -147,6 +147,18 @@ describe("handleWithdrawRequested", function () {
       "requestTxHash",
       event.transaction.hash.toHexString(),
     );
+    assert.fieldEquals(
+      "ExitTicketQueueSummary",
+      "singleton",
+      "openTickets",
+      "1",
+    );
+    assert.fieldEquals(
+      "ExitTicketQueueSummary",
+      "singleton",
+      "shares",
+      shares.toString(),
+    );
   });
 });
 
@@ -188,6 +200,13 @@ describe("handleWithdrawCancelled", function () {
       "cancelTxHash",
       cancelEvent.transaction.hash.toHexString(),
     );
+    assert.fieldEquals(
+      "ExitTicketQueueSummary",
+      "singleton",
+      "openTickets",
+      "0",
+    );
+    assert.fieldEquals("ExitTicketQueueSummary", "singleton", "shares", "0");
   });
 
   test("ignores missing ExitTicket on cancel", function () {
@@ -245,6 +264,13 @@ describe("handleWithdrawClaimed", function () {
       "claimTxHash",
       claimEvent.transaction.hash.toHexString(),
     );
+    assert.fieldEquals(
+      "ExitTicketQueueSummary",
+      "singleton",
+      "openTickets",
+      "0",
+    );
+    assert.fieldEquals("ExitTicketQueueSummary", "singleton", "shares", "0");
   });
 
   test("ignores missing ExitTicket on claim", function () {
