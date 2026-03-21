@@ -91,6 +91,7 @@ type ExitTicket = {
   cancelTxHash?: `0x${string}`;
   claimableAt: number;
   claimTxHash?: `0x${string}`;
+  id: string;
   owner: `0x${string}`;
   receiver?: `0x${string}`;
   requestId: string;
@@ -140,4 +141,31 @@ export async function getUserExitTickets({
     );
   }
   return exitTickets;
+}
+
+/**
+ * Queries the subgraph for the precomputed queue summary singleton and returns
+ * the total number of open exit tickets and their combined shares.
+ */
+export async function getExitTicketQueueSize({ url }: { url: string }) {
+  const query = `
+    {
+      exitTicketQueueSummary(id: "singleton") {
+        shares
+        openTickets
+      }
+    }`;
+  const { exitTicketQueueSummary } = await graphql.runQuery<{
+    exitTicketQueueSummary: { shares: string; openTickets: number } | null;
+  }>(url, query);
+  if (!exitTicketQueueSummary) {
+    return {
+      shares: 0n,
+      tickets: 0,
+    };
+  }
+  return {
+    openTickets: exitTicketQueueSummary.openTickets,
+    shares: BigInt(exitTicketQueueSummary.shares),
+  };
 }

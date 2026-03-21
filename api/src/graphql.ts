@@ -8,11 +8,11 @@ type GraphQLResponse<T> = {
 export async function runQuery<R>(
   url: string,
   query: string,
-  variables: Record<string, unknown>,
+  variables?: Record<string, unknown>,
 ): Promise<R> {
   const response = (await postJson(url, {
     query: query.replace(/\s+/g, " "),
-    variables,
+    ...(variables ? { variables } : {}),
   })) as GraphQLResponse<R>;
   if (!response) {
     throw new Error("No response from GraphQL endpoint");

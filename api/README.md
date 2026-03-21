@@ -131,6 +131,19 @@ Returns all user's rewards from the Merkl campaigns related to Vetro.
 ]
 ```
 
+### `GET /variable-stake/exit-queue`
+
+Returns a summary of the exit tickets queue: the total number of open exit tickets and their combined shares.
+
+#### Sample Response
+
+```jsonc
+{
+  "openTickets": 1,
+  "shares": "4000000000000000000", // VUSD
+}
+```
+
 ### `GET /variable-stake/exit-tickets/:address`
 
 Returns all user's variable stake exit tickets to i.e. allow claiming the withdrawn VUSD.
