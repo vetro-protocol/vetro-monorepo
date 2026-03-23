@@ -29,6 +29,10 @@ type Props = {
   totalFees?: TotalFeesData;
 };
 
+const Container = ({ children }: { children: ReactNode }) => (
+  <div className="flex items-center gap-x-1">{children}</div>
+);
+
 export const SwapFees = function ({
   fromToken,
   networkFee,
@@ -45,33 +49,33 @@ export const SwapFees = function ({
   } as Token;
 
   const networkFeeValue = (
-    <>
+    <Container>
       <DollarSign />
       <RenderFiatValue
         queryStatus={networkFee.status}
         token={ethToken}
         value={networkFee.data}
       />
-    </>
+    </Container>
   );
 
   const protocolFeeValue = protocolFee ? (
-    <>
+    <Container>
       <DollarSign />
       <RenderFiatValue
         queryStatus={protocolFee.status}
         token={fromToken}
         value={protocolFee.data}
       />
-    </>
+    </Container>
   ) : null;
 
   const totalFeesValue = totalFees ? (
     totalFees.data !== undefined ? (
-      <>
+      <Container>
         <DollarSign />
         {formatFiatNumber(totalFees.data.toFixed(2))}
-      </>
+      </Container>
     ) : totalFees.status === "error" ? (
       <>-</>
     ) : (
