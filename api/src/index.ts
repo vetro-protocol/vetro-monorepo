@@ -158,6 +158,24 @@ app.get(
 );
 
 app.get(
+  "/variable-stake/exit-queue",
+  cache({
+    cacheControl: "max-age=300",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const url = getSubgraphUrl(c.env);
+      const data = await variableStake.getExitTicketQueueSize({ url });
+      return c.json(convertBigIntsToString(data));
+    } catch (error) {
+      console.log(error.stack);
+      throw new Error(`Failed to get exit queue data: ${error.message}`);
+    }
+  },
+);
+
+app.get(
   "/variable-stake/exit-tickets/:address",
   validateAddress,
   cache({

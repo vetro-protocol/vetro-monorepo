@@ -16,3 +16,9 @@ type ExitTicket @entity(immutable: false) {
   requestTxHash: Bytes!
   shares: BigInt!
 }
+
+type ExitTicketQueueSummary @entity(immutable: false) {
+  id: ID!
+  openTickets: Int!
+  shares: BigInt!
+}
