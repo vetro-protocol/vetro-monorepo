@@ -1,0 +1,57 @@
+import { ApproveSection } from "components/approveSection";
+import { Button } from "components/base/button";
+import { TokenInput } from "components/tokenInput";
+import { Balance } from "components/tokenInput/balance";
+import { TokenSelectorSkeleton } from "components/tokenSelectorSkeleton";
+import { useTranslation } from "react-i18next";
+
+import { SwapToggleButton } from "./swapToggleButton";
+import { TreasuryReserves } from "./treasuryReserves";
+
+export function SwapFormSkeleton() {
+  const { t } = useTranslation();
+
+  return (
+    <>
+      <div className="flex w-full justify-center border-y border-gray-200 bg-gray-100">
+        <div className="xs:border-x flex w-full max-w-md flex-col gap-0.5 border-gray-200 bg-white pt-2">
+          <div className="md:px-2">
+            <TokenInput
+              balance={
+                <Balance label={t("pages.swap.form.balance")} value="-" />
+              }
+              disabled
+              label={t("pages.swap.form.you-are-swapping")}
+              tokenSelector={<TokenSelectorSkeleton />}
+              value="0"
+            />
+          </div>
+
+          <div className="relative flex h-0 items-center justify-center">
+            <SwapToggleButton />
+          </div>
+
+          <div className="md:px-2">
+            <TokenInput
+              balance={
+                <Balance label={t("pages.swap.form.balance")} value="-" />
+              }
+              disabled
+              label={t("pages.swap.form.you-will-receive")}
+              tokenSelector={<TokenSelectorSkeleton />}
+              value="0"
+            />
+          </div>
+
+          <div className="mt-2 flex w-full flex-col border-t border-gray-200 px-2 py-3">
+            <Button disabled size="xLarge" type="button">
+              {t("pages.swap.form.connect-wallet")}
+            </Button>
+          </div>
+        </div>
+      </div>
+      <ApproveSection active={false} />
+      <TreasuryReserves />
+    </>
+  );
+}

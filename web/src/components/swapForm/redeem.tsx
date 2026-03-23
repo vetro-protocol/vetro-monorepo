@@ -3,6 +3,7 @@ import type { Token } from "types";
 import { useAccount } from "wagmi";
 
 import { OneStepRedeem } from "./oneStepRedeem";
+import { RedeemSkeleton } from "./redeemSkeleton";
 import { TwoStepRedeem } from "./twoStepRedeem";
 
 type Props = {
@@ -30,8 +31,7 @@ export function Redeem(props: Props) {
   }
 
   if (isLoading) {
-    // TODO: proper loading state to be added later
-    return "...";
+    return <RedeemSkeleton fromToken={props.fromToken} />;
   }
 
   const hasDelay = redeemDelay !== undefined && redeemDelay > 0n;

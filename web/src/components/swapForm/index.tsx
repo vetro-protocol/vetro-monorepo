@@ -9,6 +9,7 @@ import { parseTokenUnits } from "utils/token";
 import { Deposit } from "./deposit";
 import { Redeem } from "./redeem";
 import { swapFormReducer } from "./swapFormReducer";
+import { SwapFormSkeleton } from "./swapFormSkeleton";
 import type { SwapFormState } from "./types";
 
 type SwapFormContentProps = {
@@ -95,8 +96,7 @@ export function SwapForm() {
   const { data: whitelistedTokens } = useWhitelistedTokens();
 
   if (vusd === undefined || whitelistedTokens === undefined) {
-    // TODO improve loading state https://github.com/vetro-protocol/vetro-monorepo/issues/111
-    return "...";
+    return <SwapFormSkeleton />;
   }
 
   return (
