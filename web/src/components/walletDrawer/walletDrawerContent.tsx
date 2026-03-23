@@ -141,6 +141,7 @@ export function WalletDrawerContent() {
         <div className="relative min-h-0 flex-1 overflow-hidden">
           <div className="absolute inset-0 overflow-y-auto px-4 pt-6 md:px-6">
             <ActivityList
+              className="pb-6"
               hasTransactions={activities.length > 0}
               items={itemsWithHref}
               onResetFilters={() => setSelectedFilters(allFilters)}
