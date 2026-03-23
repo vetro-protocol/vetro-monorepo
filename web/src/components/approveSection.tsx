@@ -30,7 +30,7 @@ const contentPaddingClasses = {
 type Props = {
   active: boolean;
   contentPadding?: keyof typeof contentPaddingClasses;
-  onToggle: VoidFunction;
+  onToggle?: VoidFunction;
 };
 
 export const ApproveSection = function ({

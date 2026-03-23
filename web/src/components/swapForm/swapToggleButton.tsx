@@ -1,7 +1,7 @@
 import swapToggle from "components/icons/swapToggle.svg";
 
 type Props = {
-  onClick: VoidFunction;
+  onClick?: VoidFunction;
 };
 
 export const SwapToggleButton = ({ onClick }: Props) => (

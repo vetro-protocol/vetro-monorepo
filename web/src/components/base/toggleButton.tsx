@@ -1,6 +1,6 @@
 type Props = {
   active: boolean;
-  onClick: VoidFunction;
+  onClick?: VoidFunction;
 };
 
 export const ToggleButton = ({ active, onClick }: Props) => (
