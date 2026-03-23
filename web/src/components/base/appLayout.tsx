@@ -8,7 +8,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex h-full flex-col overflow-y-auto *:mx-auto *:w-[calc(100%-2rem)] md:*:w-[calc(100%-6rem)] xl:*:w-5xl">
       <main
-        className="motion-safe:animate-page-in border-x border-gray-200"
+        className="motion-safe:animate-page-in grow border-x border-gray-200"
         key={pathname}
       >
         {children}
