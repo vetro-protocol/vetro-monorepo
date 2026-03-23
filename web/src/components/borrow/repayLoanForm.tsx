@@ -4,6 +4,7 @@ import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
 import { getChainAddresses } from "@morpho-org/blue-sdk";
 import { Button } from "components/base/button";
 import { RenderCryptoValue } from "components/base/cryptoValue";
+import { RenderFiatValue } from "components/base/fiatValue";
 import { Toast } from "components/base/toast";
 import {
   type Step,
@@ -370,6 +371,9 @@ export function RepayLoanForm({ market, onClose }: Props) {
                   />
                 }
               />
+            }
+            fiatValue={
+              <RenderFiatValue token={loanToken} value={repayAmountBigInt} />
             }
             label={t("pages.borrow.repay-loan-progress.you-will-repay")}
             onChange={onRepayChange}

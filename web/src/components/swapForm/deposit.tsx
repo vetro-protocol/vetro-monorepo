@@ -4,6 +4,7 @@ import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
 import type { QueryStatus } from "@tanstack/react-query";
 import { getGatewayAddress } from "@vetro/gateway";
 import { ApproveSection } from "components/approveSection";
+import { RenderFiatValue } from "components/base/fiatValue";
 import { Toast } from "components/base/toast";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenDropdown } from "components/tokenDropdown";
@@ -208,6 +209,7 @@ export function Deposit({
   return (
     <>
       <Form
+        amountBigInt={amountBigInt}
         errorKey={balancesLoaded ? inputError : undefined}
         fromInputValue={fromInputValue}
         fromToken={fromToken}
@@ -228,6 +230,9 @@ export function Deposit({
           <TokenInput
             balance={<ToTokenBalance token={toToken} />}
             disabled
+            fiatValue={
+              <RenderFiatValue token={toToken} value={depositPreview} />
+            }
             label={t("pages.swap.form.you-will-receive")}
             tokenSelector={<TokenSelectorReadOnly {...toToken} />}
             value={outputValue}

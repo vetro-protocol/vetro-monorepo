@@ -1,6 +1,7 @@
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { Button } from "components/base/button";
 import { RenderCryptoValue } from "components/base/cryptoValue";
+import { RenderFiatValue } from "components/base/fiatValue";
 import { MaxButton } from "components/base/maxButton";
 import { Toast } from "components/base/toast";
 import {
@@ -337,6 +338,9 @@ export function BorrowMoreForm({ market, onClose }: Props) {
                   />
                 }
               />
+            }
+            fiatValue={
+              <RenderFiatValue token={loanToken} value={borrowAmountBigInt} />
             }
             label={t("pages.borrow.borrow-more-progress.you-will-borrow")}
             maxButton={

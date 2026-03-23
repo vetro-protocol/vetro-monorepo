@@ -1,6 +1,7 @@
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { Button } from "components/base/button";
 import { RenderCryptoValue } from "components/base/cryptoValue";
+import { RenderFiatValue } from "components/base/fiatValue";
 import { MaxButton } from "components/base/maxButton";
 import { Toast } from "components/base/toast";
 import {
@@ -295,6 +296,12 @@ export function WithdrawCollateralForm({ market, onClose }: Props) {
                     value={maxWithdrawable}
                   />
                 }
+              />
+            }
+            fiatValue={
+              <RenderFiatValue
+                token={collateralToken}
+                value={collateralAmountBigInt}
               />
             }
             label={t(

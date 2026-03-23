@@ -25,6 +25,7 @@ const confirmStepStatuses: Record<ClaimRedeemFlowStatus, Step["status"]> = {
 };
 
 type Props = {
+  amountBigInt: bigint;
   amountLocked: bigint;
   flowStatus: ClaimRedeemFlowStatus;
   fromAmount: string;
@@ -34,6 +35,7 @@ type Props = {
   onMaxClick: VoidFunction;
   onSubmit: VoidFunction;
   onTokenChange: (token: Token) => void;
+  outputBigInt: bigint | undefined;
   outputValue: string;
   toToken: Token;
   inputError: InputError | undefined;
@@ -44,6 +46,7 @@ type Props = {
 >;
 
 export function ClaimRedeemDrawer({
+  amountBigInt,
   amountLocked,
   flowStatus,
   fromAmount,
@@ -55,6 +58,7 @@ export function ClaimRedeemDrawer({
   onMaxClick,
   onSubmit,
   onTokenChange,
+  outputBigInt,
   outputValue,
   protocolFee,
   totalFees,
@@ -78,22 +82,24 @@ export function ClaimRedeemDrawer({
     <Drawer onClose={onClose}>
       <Suspense fallback={<DrawerLoader />}>
         <ClaimRedeemProgressDrawer
+          amountBigInt={amountBigInt}
           amountLocked={amountLocked}
           flowStatus={flowStatus}
           fromAmount={fromAmount}
           fromToken={fromToken}
+          inputError={inputError}
           networkFee={networkFee}
           onInputChange={onInputChange}
           onMaxClick={onMaxClick}
           onRetry={isError ? onSubmit : undefined}
           onSubmit={onSubmit}
           onTokenChange={onTokenChange}
+          outputBigInt={outputBigInt}
           outputValue={outputValue}
           protocolFee={protocolFee}
           steps={steps}
           toToken={toToken}
           totalFees={totalFees}
-          inputError={inputError}
           whitelistedTokens={whitelistedTokens}
         />
       </Suspense>

@@ -204,6 +204,7 @@ export function TwoStepRedeem({
   return (
     <>
       <Form
+        amountBigInt={amountBigInt}
         errorKey={balancesLoaded ? inputError : undefined}
         fromInputValue={fromInputValue}
         fromToken={fromToken}

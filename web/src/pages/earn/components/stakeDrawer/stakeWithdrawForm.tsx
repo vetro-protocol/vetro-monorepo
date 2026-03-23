@@ -1,5 +1,6 @@
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { RenderFiatValue } from "components/base/fiatValue";
 import { VerticalStepper, stepStatus } from "components/base/verticalStepper";
 import { FeeDetails } from "components/feeDetails";
 import { FeesContainer } from "components/feesContainer";
@@ -268,6 +269,7 @@ export function StakeWithdrawForm({
             />
           }
           errorKey={balancesLoaded ? inputError : undefined}
+          fiatValue={<RenderFiatValue token={vusd} value={amountBigInt} />}
           label={t("pages.earn.stake.you-will-withdraw")}
           maxButton={
             <SetMaxStakedBalance

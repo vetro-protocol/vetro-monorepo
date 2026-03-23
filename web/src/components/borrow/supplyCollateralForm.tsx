@@ -4,6 +4,7 @@ import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
 import { getChainAddresses } from "@morpho-org/blue-sdk";
 import { Button } from "components/base/button";
 import { RenderCryptoValue } from "components/base/cryptoValue";
+import { RenderFiatValue } from "components/base/fiatValue";
 import { Toast } from "components/base/toast";
 import {
   type Step,
@@ -365,6 +366,12 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
                     value={collateralBalance}
                   />
                 }
+              />
+            }
+            fiatValue={
+              <RenderFiatValue
+                token={collateralToken}
+                value={collateralAmountBigInt}
               />
             }
             label={t("pages.borrow.supply-collateral-progress.you-will-supply")}

@@ -4,6 +4,7 @@ import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { getStakingVaultAddress } from "@vetro/earn";
 import { ApproveSection } from "components/approveSection";
+import { RenderFiatValue } from "components/base/fiatValue";
 import { VerticalStepper, stepStatus } from "components/base/verticalStepper";
 import { FeeDetails } from "components/feeDetails";
 import { FeesContainer } from "components/feesContainer";
@@ -282,6 +283,7 @@ export function StakeDepositForm({
             />
           }
           errorKey={balancesLoaded ? inputError : undefined}
+          fiatValue={<RenderFiatValue token={vusd} value={amountBigInt} />}
           label={t("pages.earn.stake.you-will-stake")}
           maxButton={
             <SetMaxErc20Balance onClick={handleMaxClick} token={vusd!} />
