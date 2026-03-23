@@ -72,14 +72,21 @@ export const fetchTotalMintFees = async function ({
   ]);
 
   const ethPrice = parseEthPrice(prices);
-  const networkFeeUsd =
-    parseFloat(
-      formatUnits(networkFeeWei ?? 0n, chain.nativeCurrency.decimals),
-    ) * ethPrice;
+  const networkFeeUsd = parseFloat(
+    (
+      parseFloat(
+        formatUnits(networkFeeWei ?? 0n, chain.nativeCurrency.decimals),
+      ) * ethPrice
+    ).toFixed(2),
+  );
 
   const tokenPrice = parseFloat(getTokenPrice(fromToken, prices));
-  const protocolFeeUsd =
-    parseFloat(formatUnits(protocolFeeAmount, fromToken.decimals)) * tokenPrice;
+  const protocolFeeUsd = parseFloat(
+    (
+      parseFloat(formatUnits(protocolFeeAmount, fromToken.decimals)) *
+      tokenPrice
+    ).toFixed(2),
+  );
 
   return networkFeeUsd + protocolFeeUsd;
 };

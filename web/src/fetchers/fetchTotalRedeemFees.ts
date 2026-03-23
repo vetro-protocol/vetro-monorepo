@@ -5,18 +5,11 @@ import { parseEthPrice } from "hooks/useEthPrice";
 import { redeemFeeOptions } from "hooks/useRedeemFee";
 import { redeemGasUnitsOptions } from "hooks/useSwapRedeemFees";
 import { tokenPricesOptions } from "hooks/useTokenPrices";
-import { whitelistedTokensOptions } from "hooks/useWhitelistedTokens";
 import { config } from "providers/web3Provider";
 import type { Token } from "types";
 import { applyBps } from "utils/fees";
 import { getTokenPrice } from "utils/token";
-import {
-  type Address,
-  type Chain,
-  type Client,
-  formatUnits,
-  isAddressEqual,
-} from "viem";
+import { type Address, type Chain, type Client, formatUnits } from "viem";
 
 /**
  * Calculates the total fees in USD for redeeming. Includes both network fees
@@ -59,54 +52,46 @@ export const fetchTotalRedeemFees = async function ({
     }),
   );
 
-  const [networkFeeWei, protocolFeeAmount, prices, toToken] = await Promise.all(
-    [
-      gasUnitsPromise.then((gasUnits) =>
-        queryClient.ensureQueryData(
-          estimateFeesQueryOptions({
-            chainId: chain.id,
-            config,
-            gasUnits,
-            queryClient,
-          }),
-        ),
+  const [networkFeeWei, protocolFeeAmount, prices] = await Promise.all([
+    gasUnitsPromise.then((gasUnits) =>
+      queryClient.ensureQueryData(
+        estimateFeesQueryOptions({
+          chainId: chain.id,
+          config,
+          gasUnits,
+          queryClient,
+        }),
       ),
-      queryClient
-        .ensureQueryData(
-          redeemFeeOptions({
-            chainId: chain.id,
-            client,
-            gatewayAddress,
-            token: tokenOut,
-          }),
-        )
-        .then((protocolFeeBps) => applyBps(amount, protocolFeeBps)),
-      queryClient.ensureQueryData(tokenPricesOptions()),
-      queryClient
-        .ensureQueryData(
-          whitelistedTokensOptions({
-            client,
-            queryClient,
-          }),
-        )
-        .then(
-          (whitelistedTokens) =>
-            whitelistedTokens.find((token) =>
-              isAddressEqual(token.address, tokenOut),
-            )!,
-        ),
-    ],
-  );
+    ),
+    queryClient
+      .ensureQueryData(
+        redeemFeeOptions({
+          chainId: chain.id,
+          client,
+          gatewayAddress,
+          token: tokenOut,
+        }),
+      )
+      .then((protocolFeeBps) => applyBps(amount, protocolFeeBps)),
+    queryClient.ensureQueryData(tokenPricesOptions()),
+  ]);
 
   const ethPrice = parseEthPrice(prices);
-  const networkFeeUsd =
-    parseFloat(
-      formatUnits(networkFeeWei ?? 0n, chain.nativeCurrency.decimals),
-    ) * ethPrice;
+  const networkFeeUsd = parseFloat(
+    (
+      parseFloat(
+        formatUnits(networkFeeWei ?? 0n, chain.nativeCurrency.decimals),
+      ) * ethPrice
+    ).toFixed(2),
+  );
 
-  const tokenPrice = parseFloat(getTokenPrice(toToken, prices));
-  const protocolFeeUsd =
-    parseFloat(formatUnits(protocolFeeAmount, fromToken.decimals)) * tokenPrice;
+  const tokenPrice = parseFloat(getTokenPrice(fromToken, prices));
+  const protocolFeeUsd = parseFloat(
+    (
+      parseFloat(formatUnits(protocolFeeAmount, fromToken.decimals)) *
+      tokenPrice
+    ).toFixed(2),
+  );
 
   return networkFeeUsd + protocolFeeUsd;
 };
