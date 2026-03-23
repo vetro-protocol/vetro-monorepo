@@ -96,15 +96,17 @@ export const useRedeem = function ({
             tokenOut,
           }),
         ),
-        queryClient.ensureQueryData(
-          redeemDelayOptions({
-            account,
-            chainId: ethereumChain.id,
-            client: walletClient,
-            gatewayAddress,
-            queryClient,
-          }),
-        ),
+        queryClient
+          .ensureQueryData(
+            redeemDelayOptions({
+              account,
+              chainId: ethereumChain.id,
+              client: walletClient,
+              gatewayAddress,
+              queryClient,
+            }),
+          )
+          .then((redeemDelay) => redeemDelay > 0n),
       ]);
 
       const { emitter, promise } = redeem(walletClient!, {
