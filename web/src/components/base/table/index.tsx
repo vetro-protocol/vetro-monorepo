@@ -99,7 +99,7 @@ const TableBody = <TData,>({
   table,
 }: TableBodyProps<TData>) => (
   <div
-    className={`border-b border-gray-200 ${maxBodyHeight ? "overflow-y-auto" : ""}`}
+    className={maxBodyHeight ? "overflow-y-auto" : undefined}
     style={{
       maxHeight: maxBodyHeight,
       ...(maxBodyHeight && {
