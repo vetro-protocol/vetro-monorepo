@@ -170,7 +170,7 @@ app.get(
       return c.json(convertBigIntsToString(data));
     } catch (error) {
       console.log(error.stack);
-      throw new Error(`Failed to get exit tickets: ${error.message}`);
+      throw new Error(`Failed to get exit queue data: ${error.message}`);
     }
   },
 );

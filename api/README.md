@@ -140,7 +140,7 @@ Returns a summary of the exit tickets queue: the total number of open exit ticke
 ```jsonc
 {
   "openTickets": 1,
-  "shares": "4000000000000000000", // VUSD
+  "shares": "4000000000000000000", // sVUSD
 }
 ```
 

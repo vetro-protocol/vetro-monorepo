@@ -160,8 +160,8 @@ export async function getExitTicketQueueSize({ url }: { url: string }) {
   }>(url, query);
   if (!exitTicketQueueSummary) {
     return {
+      openTickets: 0,
       shares: 0n,
-      tickets: 0,
     };
   }
   return {
