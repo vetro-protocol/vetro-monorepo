@@ -166,14 +166,13 @@ export function OneStepRedeem({
     tokenOut: toToken.address,
   });
 
-  const protocolFeeQueryData = useRedeemFee(fromToken.address, {
+  const protocolFeeQueryData = useRedeemFee(toToken.address, {
     select: (fee) => applyBps(amountBigInt, fee),
   });
 
   const totalRedeemFeesQueryData = useTotalRedeemFees({
     amount: amountBigInt,
-    // no approval is needed when redeeming from the vault
-    approveAmount: undefined,
+    approveAmount,
     fromToken,
     minAmountOut: redeemPreview,
     tokenOut: toToken.address,
