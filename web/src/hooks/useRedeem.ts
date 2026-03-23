@@ -194,6 +194,9 @@ export const useRedeem = function ({
       return promise;
     },
     async onSettled() {
+      if (!account || !walletClient) {
+        return;
+      }
       const hasDelay = await queryClient.ensureQueryData(
         redeemDelayOptions({
           account,
