@@ -34,6 +34,12 @@ vi.mock("hooks/useTokenPrices", () => ({
   }),
 }));
 
+vi.mock("hooks/useWhitelistedTokens", () => ({
+  whitelistedTokensOptions: vi.fn().mockReturnValue({
+    queryFn: () => [],
+  }),
+}));
+
 vi.mock("providers/web3Provider", () => ({
   config: {},
 }));
@@ -69,6 +75,8 @@ describe("fetchTotalRedeemFees", function () {
       .mockResolvedValueOnce(protocolFeeBps)
       // tokenPricesOptions
       .mockResolvedValueOnce({ ETH: "2000", USDC: "1" })
+      // whitelistedTokensOptions
+      .mockResolvedValueOnce([mockToken])
       // estimateFeesQueryOptions (chained after gasUnits resolves)
       .mockResolvedValueOnce(networkFeeWei);
 
@@ -98,6 +106,8 @@ describe("fetchTotalRedeemFees", function () {
       .mockResolvedValueOnce(0n)
       // tokenPricesOptions
       .mockResolvedValueOnce({ ETH: "2000", USDC: "1" })
+      // whitelistedTokensOptions
+      .mockResolvedValueOnce([mockToken])
       // estimateFeesQueryOptions
       .mockResolvedValueOnce(0n);
 
@@ -128,6 +138,8 @@ describe("fetchTotalRedeemFees", function () {
       .mockResolvedValueOnce(protocolFeeBps)
       // tokenPricesOptions
       .mockResolvedValueOnce({ ETH: "2000", USDC: "1" })
+      // whitelistedTokensOptions
+      .mockResolvedValueOnce([mockToken])
       // estimateFeesQueryOptions
       .mockResolvedValueOnce(undefined);
 
