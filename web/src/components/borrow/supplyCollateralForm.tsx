@@ -402,7 +402,7 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
             current={current}
             lltv={formatLtvAsPercentage(market.lltv)}
             loanToken={loanToken}
-            updated={updated}
+            updated={inputError ? null : updated}
           />
         </div>
       </form>
