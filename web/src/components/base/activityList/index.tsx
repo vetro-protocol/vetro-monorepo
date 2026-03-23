@@ -14,7 +14,7 @@ export const ActivityList = ({
   onResetFilters,
 }: Props) =>
   items.length > 0 ? (
-    <div className="flex flex-col">
+    <div className="flex flex-col pb-6">
       {items.map((item) => (
         <ActivityItem key={item.txHash} {...item} />
       ))}
