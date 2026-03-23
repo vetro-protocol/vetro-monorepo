@@ -13,27 +13,6 @@ import { useAccount } from "wagmi";
 import { useEthereumClient } from "./useEthereumClient";
 import { useMainnet } from "./useMainnet";
 
-export const mintGasUnitsQueryKey = ({
-  amount,
-  chainId,
-  minPeggedTokenOut,
-  owner,
-  token,
-}: {
-  amount: bigint;
-  chainId: Chain["id"];
-  minPeggedTokenOut: bigint | undefined;
-  owner: Address;
-  token: Address;
-}) => [
-  "swap-mint-gas-units",
-  chainId,
-  token,
-  owner,
-  amount.toString(),
-  minPeggedTokenOut?.toString(),
-];
-
 export const mintGasUnitsOptions = ({
   amount,
   approveAmount,
@@ -70,13 +49,14 @@ export const mintGasUnitsOptions = ({
         queryClient,
         token: fromToken,
       }),
-    queryKey: mintGasUnitsQueryKey({
-      amount,
+    queryKey: [
+      "swap-mint-gas-units",
       chainId,
-      minPeggedTokenOut: minPeggedTokenOut!,
-      owner: owner!,
-      token: fromToken.address,
-    }),
+      fromToken.address,
+      owner,
+      amount.toString(),
+      minPeggedTokenOut?.toString(),
+    ],
   });
 
 export const useSwapMintFees = function ({
