@@ -1,5 +1,6 @@
 import { Button } from "components/base/button";
 import { DrawerTitle } from "components/base/drawer/drawerTitle";
+import { RenderFiatValue } from "components/base/fiatValue";
 import { MaxButton } from "components/base/maxButton";
 import { type Step, VerticalStepper } from "components/base/verticalStepper";
 import { TokenDropdown } from "components/tokenDropdown";
@@ -25,6 +26,7 @@ export type ClaimRedeemFlowStatus =
   | "redeeming";
 
 type Props = {
+  amountBigInt: bigint;
   amountLocked: bigint;
   flowStatus: ClaimRedeemFlowStatus;
   fromAmount: string;
@@ -35,6 +37,7 @@ type Props = {
   onRetry?: VoidFunction;
   onSubmit: VoidFunction;
   onTokenChange: (token: Token) => void;
+  outputBigInt: bigint | undefined;
   outputValue: string;
   steps: Step[];
   toToken: Token;
@@ -45,6 +48,7 @@ type Props = {
 >;
 
 export function ClaimRedeemProgressDrawer({
+  amountBigInt,
   amountLocked,
   flowStatus,
   fromAmount,
@@ -56,6 +60,7 @@ export function ClaimRedeemProgressDrawer({
   onRetry,
   onSubmit,
   onTokenChange,
+  outputBigInt,
   outputValue,
   protocolFee,
   steps,
@@ -91,6 +96,7 @@ export function ClaimRedeemProgressDrawer({
               })}
             />
           }
+          fiatValue={<RenderFiatValue token={fromToken} value={amountBigInt} />}
           label={t("pages.swap.redeem-vault.enter-amount-to-redeem")}
           maxButton={<MaxButton onClick={onMaxClick} />}
           onChange={onInputChange}
@@ -100,6 +106,7 @@ export function ClaimRedeemProgressDrawer({
         <TokenInput
           balance={<ToTokenBalance token={toToken} />}
           disabled
+          fiatValue={<RenderFiatValue token={toToken} value={outputBigInt} />}
           label={t("pages.swap.form.you-will-receive")}
           tokenSelector={
             <TokenDropdown

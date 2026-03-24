@@ -169,21 +169,23 @@ export function RedeemVault({ whitelistedTokens }: Props) {
       />
       {isDrawerOpen && (
         <ClaimRedeemDrawer
+          amountBigInt={amountBigInt}
           amountLocked={amountLocked}
           flowStatus={flowStatus}
           fromAmount={fromInputValue}
           fromToken={vusd}
+          inputError={inputError}
           networkFee={networkFee}
           onClose={handleClose}
           onInputChange={setFromInputValue}
           onMaxClick={handleMaxClick}
           onSubmit={handleSubmit}
           onTokenChange={setToToken}
+          outputBigInt={redeemPreview}
           outputValue={outputValue}
           protocolFee={protocolFeeQueryData}
           toToken={toToken}
           totalFees={totalRedeemFeesQueryData}
-          inputError={inputError}
           whitelistedTokens={whitelistedTokens}
         />
       )}

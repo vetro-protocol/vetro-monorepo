@@ -4,6 +4,7 @@ import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
 import type { QueryStatus } from "@tanstack/react-query";
 import { getGatewayAddress } from "@vetro/gateway";
 import { ApproveSection } from "components/approveSection";
+import { RenderFiatValue } from "components/base/fiatValue";
 import { Toast } from "components/base/toast";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenDropdown } from "components/tokenDropdown";
@@ -204,6 +205,7 @@ export function OneStepRedeem({
   return (
     <>
       <Form
+        amountBigInt={amountBigInt}
         errorKey={balancesLoaded ? inputError : undefined}
         fromInputValue={fromInputValue}
         fromToken={fromToken}
@@ -223,6 +225,9 @@ export function OneStepRedeem({
           <TokenInput
             balance={<ToTokenBalance token={toToken} />}
             disabled
+            fiatValue={
+              <RenderFiatValue token={toToken} value={redeemPreview} />
+            }
             label={t("pages.swap.form.you-will-receive")}
             tokenSelector={
               <TokenDropdown

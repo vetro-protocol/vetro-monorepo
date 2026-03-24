@@ -23,8 +23,13 @@ const tokens = knownTokens.filter((t) => storyTokens.includes(t.symbol));
 
 export const SwitchToken: Story = {
   args: {
-    balanceLabel: "Balance",
-    balanceValue: "2",
+    balance: (
+      <>
+        <span className="text-gray-500">Balance:</span>
+        <span className="mr-1 text-gray-900">2</span>
+      </>
+    ),
+    fiatValue: "0.00",
     label: "You are swapping",
     maxButton: <MaxButton onClick={() => alert("max clicked")} />,
     onChange: () => ({}),
@@ -60,8 +65,13 @@ export const SwitchToken: Story = {
 
 export const ReadOnlyToken: Story = {
   args: {
-    balanceLabel: "Available to withdraw",
-    balanceValue: "200",
+    balance: (
+      <>
+        <span className="text-gray-500">Available to withdraw:</span>
+        <span className="mr-1 text-gray-900">200</span>
+      </>
+    ),
+    fiatValue: "0.00",
     label: "You will withdraw",
     maxButton: <MaxButton onClick={() => alert("max clicked")} />,
     onChange: () => ({}),
@@ -86,9 +96,14 @@ export const ReadOnlyToken: Story = {
 
 export const WithError: Story = {
   args: {
-    balanceLabel: "Balance",
-    balanceValue: "2",
+    balance: (
+      <>
+        <span className="text-gray-500">Balance:</span>
+        <span className="mr-1 text-gray-900">2</span>
+      </>
+    ),
     errorKey: "insufficient-balance",
+    fiatValue: "100.00",
     label: "You are swapping",
     maxButton: <MaxButton onClick={() => alert("max clicked")} />,
     onChange: () => ({}),

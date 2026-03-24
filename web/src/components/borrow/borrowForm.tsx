@@ -5,6 +5,7 @@ import { getChainAddresses } from "@morpho-org/blue-sdk";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { Button } from "components/base/button";
 import { RenderCryptoValue } from "components/base/cryptoValue";
+import { RenderFiatValue } from "components/base/fiatValue";
 import { MaxButton } from "components/base/maxButton";
 import { Toast } from "components/base/toast";
 import { FeeDetails } from "components/feeDetails";
@@ -304,6 +305,12 @@ export function BorrowForm({
                 }
               />
             }
+            fiatValue={
+              <RenderFiatValue
+                token={collateralToken}
+                value={collateralAmountBigInt}
+              />
+            }
             label={t("pages.borrow.you-are-depositing")}
             maxButton={
               <SetMaxErc20Balance
@@ -327,6 +334,9 @@ export function BorrowForm({
                   />
                 }
               />
+            }
+            fiatValue={
+              <RenderFiatValue token={loanToken} value={borrowAmountBigInt} />
             }
             label={t("pages.borrow.you-are-borrowing")}
             maxButton={

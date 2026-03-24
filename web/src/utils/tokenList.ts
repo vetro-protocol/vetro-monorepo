@@ -8,6 +8,7 @@ export const knownTokens: Token[] = [
     decimals: 8,
     extensions: {
       balanceSlot: 5,
+      priceSymbol: "BTC",
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/hemibtc.svg",
     name: "Hemi Bitcoin",

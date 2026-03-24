@@ -6,6 +6,7 @@ type Props = {
   balance?: ReactNode;
   disabled?: boolean;
   errorKey?: string;
+  fiatValue: ReactNode;
   label: string;
   maxButton?: ReactNode;
   onChange?: (value: string) => void;
@@ -17,6 +18,7 @@ export const TokenInput = ({
   balance,
   disabled = false,
   errorKey,
+  fiatValue,
   label,
   maxButton,
   onChange,
@@ -36,7 +38,7 @@ export const TokenInput = ({
       <div className="shrink-0">{tokenSelector}</div>
     </div>
     <div className="mt-2 flex items-center justify-between">
-      <span className="text-xsm text-gray-500">${value}</span>
+      <span className="text-xsm text-gray-500">${fiatValue}</span>
       {balance || maxButton ? (
         <div className="text-xsm flex items-center gap-1">
           {balance}

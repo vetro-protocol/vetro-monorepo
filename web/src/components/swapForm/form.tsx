@@ -1,4 +1,5 @@
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
+import { RenderFiatValue } from "components/base/fiatValue";
 import { TokenInput } from "components/tokenInput";
 import { Balance } from "components/tokenInput/balance";
 import { useMainnet } from "hooks/useMainnet";
@@ -10,6 +11,7 @@ import { formatAmount } from "utils/token";
 import { SwapToggleButton } from "./swapToggleButton";
 
 type Props = {
+  amountBigInt: bigint;
   children: ReactNode;
   errorKey?: string;
   fromInputValue: string;
@@ -23,6 +25,7 @@ type Props = {
 };
 
 export function Form({
+  amountBigInt,
   children,
   errorKey,
   fromInputValue,
@@ -62,6 +65,9 @@ export function Form({
               />
             }
             errorKey={errorKey}
+            fiatValue={
+              <RenderFiatValue token={fromToken} value={amountBigInt} />
+            }
             label={t("pages.swap.form.you-are-swapping")}
             maxButton={maxButton}
             onChange={onInputChange}
