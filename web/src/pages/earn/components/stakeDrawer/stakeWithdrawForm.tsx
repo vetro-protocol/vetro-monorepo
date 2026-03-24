@@ -2,8 +2,6 @@ import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { VerticalStepper, stepStatus } from "components/base/verticalStepper";
-import { FeeDetails } from "components/feeDetails";
-import { FeesContainer } from "components/feesContainer";
 import { SetMaxStakedBalance } from "components/setMaxStakedBalance";
 import { TokenInput } from "components/tokenInput";
 import { Balance } from "components/tokenInput/balance";
@@ -14,9 +12,10 @@ import { useMainnet } from "hooks/useMainnet";
 import { useStakedBalance } from "hooks/useStakedBalance";
 import { useStakeWithdraw } from "hooks/useStakeWithdraw";
 import { useVusd } from "hooks/useVusd";
+import { EarnFees } from "pages/earn/components/earnFees";
 import { useCanInstantWithdraw } from "pages/earn/hooks/useCanInstantWithdraw";
 import { useCooldownDuration } from "pages/earn/hooks/useCooldownDuration";
-import { useWithdrawFees } from "pages/earn/hooks/useWithdrawFees";
+import { useTotalWithdrawFees } from "pages/earn/hooks/useTotalWithdrawFees";
 import { type FormEvent, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
@@ -133,8 +132,8 @@ export function StakeWithdrawForm({
   onWithdrawStepChange,
   withdrawStep,
 }: Props) {
-  const { address: account, isConnected } = useAccount();
-  const canInstantWithdraw = useCanInstantWithdraw();
+  const { isConnected } = useAccount();
+  const { data: canInstantWithdraw } = useCanInstantWithdraw();
   const chain = useMainnet();
   const { data: cooldownDays } = useCooldownDuration();
   const { openConnectModal } = useConnectModal();
@@ -218,11 +217,8 @@ export function StakeWithdrawForm({
     ? instantWithdrawMutation
     : requestWithdrawMutation;
 
-  const { data: networkFee, isError: isFeeError } = useWithdrawFees({
-    account,
+  const withdrawFeesQuery = useTotalWithdrawFees({
     amount: amountBigInt,
-    instantWithdraw: canInstantWithdraw ?? false,
-    isConnected,
   });
 
   const inputError = getWithdrawErrors({
@@ -304,20 +300,13 @@ export function StakeWithdrawForm({
       </div>
 
       <div className="border-b border-gray-200 px-6">
-        <FeesContainer
-          isError={isFeeError}
+        <EarnFees
           label={t("pages.earn.stake.withdrawing-fees-label", {
             amount: inputValue,
             token: vusd.symbol,
           })}
-          totalFees={networkFee}
-        >
-          <FeeDetails
-            isError={isFeeError}
-            label={t("pages.swap.fees.network-fee")}
-            value={networkFee}
-          />
-        </FeesContainer>
+          networkFee={withdrawFeesQuery}
+        />
       </div>
 
       <div className="mt-auto flex flex-col gap-2 px-6">

@@ -1,42 +1,37 @@
 import { estimateFeesQueryOptions } from "@hemilabs/react-hooks/useEstimateFees";
 import type { QueryClient } from "@tanstack/react-query";
 import { parseEthPrice } from "hooks/useEthPrice";
-import { requestRedeemGasUnitsOptions } from "hooks/useSwapRequestRedeemFees";
 import { tokenPricesOptions } from "hooks/useTokenPrices";
+import { withdrawGasUnitsOptions } from "pages/earn/hooks/useWithdrawFees";
 import { config } from "providers/web3Provider";
-import type { Token } from "types";
 import { weiToUsd } from "utils/fees";
 import { type Address, type Chain, type Client } from "viem";
 
 /**
- * Calculates the total fees in USD for requesting a redeem. Does not include
- * protocol fees, as requesting a redeem only incurs network fees.
+ * Calculates the total fees in USD for an earn withdraw.
+ * Network fees only (no protocol fees).
  */
-export const fetchTotalRequestRedeemFees = async function ({
+export const fetchTotalWithdrawFees = async function ({
   amount,
-  approveAmount,
   chain,
   client,
-  fromToken,
   owner,
   queryClient,
 }: {
   amount: bigint;
-  approveAmount: bigint | undefined;
   chain: Chain;
   client: Client;
-  fromToken: Token;
   owner: Address;
   queryClient: QueryClient;
 }) {
+  const pricesPromise = queryClient.ensureQueryData(tokenPricesOptions());
+
   const gasUnits = await queryClient.ensureQueryData(
-    requestRedeemGasUnitsOptions({
+    withdrawGasUnitsOptions({
+      account: owner,
       amount,
-      approveAmount,
       chainId: chain.id,
       client,
-      fromToken,
-      owner,
       queryClient,
     }),
   );
@@ -50,7 +45,7 @@ export const fetchTotalRequestRedeemFees = async function ({
         queryClient,
       }),
     ),
-    queryClient.ensureQueryData(tokenPricesOptions()),
+    pricesPromise,
   ]);
 
   return weiToUsd({ ethPrice: parseEthPrice(prices), wei: networkFeeWei });
