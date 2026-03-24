@@ -10,6 +10,7 @@ import {
   VerticalStepper,
   stepStatus,
 } from "components/base/verticalStepper";
+import { hasSufficientGas } from "components/borrow/utils";
 import { FeeDetails } from "components/feeDetails";
 import { FeesContainer } from "components/feesContainer";
 import { TokenInput } from "components/tokenInput";
@@ -77,12 +78,14 @@ type SubmitButtonProps = {
   address: string | undefined;
   balancesLoaded: boolean;
   inputError: InputError | undefined;
+  sufficientGas: boolean;
 };
 
 function SubmitButton({
   address,
   balancesLoaded,
   inputError,
+  sufficientGas,
 }: SubmitButtonProps) {
   const { t } = useTranslation();
 
@@ -90,6 +93,13 @@ function SubmitButton({
     return (
       <Button disabled size="small" type="button" variant="primary">
         {t("pages.swap.form.connect-wallet")}
+      </Button>
+    );
+  }
+  if (balancesLoaded && !sufficientGas) {
+    return (
+      <Button disabled size="small" type="button" variant="primary">
+        {t("pages.swap.form.insufficient-gas")}
       </Button>
     );
   }
@@ -110,12 +120,10 @@ function SubmitButton({
 function getInputError({
   currentBorrowAssets,
   loanBalance,
-  nativeBalance,
   repayAmount,
 }: {
   currentBorrowAssets: bigint | undefined;
   loanBalance: bigint | undefined;
-  nativeBalance: bigint | undefined;
   repayAmount: bigint;
 }) {
   if (repayAmount === 0n) {
@@ -126,9 +134,6 @@ function getInputError({
   }
   if (loanBalance !== undefined && repayAmount > loanBalance) {
     return "insufficient-balance" as const;
-  }
-  if (nativeBalance !== undefined && nativeBalance === 0n) {
-    return "insufficient-gas" as const;
   }
   return undefined;
 }
@@ -309,10 +314,11 @@ export function RepayLoanForm({ market, onClose }: Props) {
 
   const nativeBalance = nativeBalanceData?.value;
 
+  const sufficientGas = hasSufficientGas(nativeBalance);
+
   const inputError = getInputError({
     currentBorrowAssets,
     loanBalance,
-    nativeBalance,
     repayAmount: repayAmountBigInt,
   });
 
@@ -347,7 +353,7 @@ export function RepayLoanForm({ market, onClose }: Props) {
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!inputError) {
+    if (!inputError && sufficientGas) {
       setStartedWithApproval(!!needsApproval);
       setFlowStatus(needsApproval ? "approving" : "repay-ready");
       repayMutation.mutate();
@@ -384,6 +390,7 @@ export function RepayLoanForm({ market, onClose }: Props) {
               nativeBalance !== undefined && loanBalance !== undefined
             }
             inputError={inputError}
+            sufficientGas={sufficientGas}
           />
         </div>
         <FeesContainer isError={networkFee.isError} totalFees={networkFee.data}>

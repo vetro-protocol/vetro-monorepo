@@ -10,6 +10,7 @@ import {
   VerticalStepper,
   stepStatus,
 } from "components/base/verticalStepper";
+import { hasSufficientGas } from "components/borrow/utils";
 import { FeeDetails } from "components/feeDetails";
 import { FeesContainer } from "components/feesContainer";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
@@ -77,12 +78,14 @@ type SubmitButtonProps = {
   address: string | undefined;
   balancesLoaded: boolean;
   inputError: InputError | undefined;
+  sufficientGas: boolean;
 };
 
 function SubmitButton({
   address,
   balancesLoaded,
   inputError,
+  sufficientGas,
 }: SubmitButtonProps) {
   const { t } = useTranslation();
 
@@ -90,6 +93,13 @@ function SubmitButton({
     return (
       <Button disabled size="small" type="button" variant="primary">
         {t("pages.swap.form.connect-wallet")}
+      </Button>
+    );
+  }
+  if (balancesLoaded && !sufficientGas) {
+    return (
+      <Button disabled size="small" type="button" variant="primary">
+        {t("pages.swap.form.insufficient-gas")}
       </Button>
     );
   }
@@ -110,20 +120,15 @@ function SubmitButton({
 function getInputError({
   collateralAmount,
   collateralBalance,
-  nativeBalance,
 }: {
   collateralAmount: bigint;
   collateralBalance: bigint | undefined;
-  nativeBalance: bigint | undefined;
 }) {
   if (collateralAmount === 0n) {
     return "enter-amount" as const;
   }
   if (collateralBalance !== undefined && collateralAmount > collateralBalance) {
     return "insufficient-balance" as const;
-  }
-  if (nativeBalance !== undefined && nativeBalance === 0n) {
-    return "insufficient-gas" as const;
   }
   return undefined;
 }
@@ -300,10 +305,11 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
 
   const nativeBalance = nativeBalanceData?.value;
 
+  const sufficientGas = hasSufficientGas(nativeBalance);
+
   const inputError = getInputError({
     collateralAmount: collateralAmountBigInt,
     collateralBalance,
-    nativeBalance,
   });
 
   const { current, updated } = useSupplyCollateralReview({
@@ -343,7 +349,7 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!inputError) {
+    if (!inputError && sufficientGas) {
       setStartedWithApproval(!!needsApproval);
       setFlowStatus(needsApproval ? "approving" : "supply-collateral-ready");
       supplyMutation.mutate();
@@ -386,6 +392,7 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
               nativeBalance !== undefined && collateralBalance !== undefined
             }
             inputError={inputError}
+            sufficientGas={sufficientGas}
           />
         </div>
         <FeesContainer isError={networkFee.isError} totalFees={networkFee.data}>
