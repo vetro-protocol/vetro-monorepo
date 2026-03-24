@@ -86,9 +86,8 @@ export const toYieldItems = function ({
   return items;
 };
 
-// Returns the reserve buffer amount and label, or null if the buffer is zero or negative.
-// The buffer is the idle amount not deployed to any strategy, used for instant withdrawal liquidity.
-// Color is intentionally omitted — callers assign it based on their rendering context.
+// Returns the reserve buffer amount in USD (idle funds not deployed to any strategy).
+// Returns 0 when there is no buffer. Color is intentionally omitted — callers assign it.
 export const toReserveBufferAmount = function ({
   treasuryTokens = [],
   whitelistedTokens = [],
@@ -114,5 +113,5 @@ export const toReserveBufferAmount = function ({
       price;
   }
 
-  return amount > 0 ? amount : null;
+  return Math.max(0, amount);
 };

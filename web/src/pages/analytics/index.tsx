@@ -46,13 +46,14 @@ export const Analytics = function () {
 
   const yieldItems = toYieldItems(tokens);
   const bufferAmount = toReserveBufferAmount(tokens);
-  const bufferItem = bufferAmount
-    ? {
-        amount: bufferAmount,
-        color: assignColor(yieldItems.length),
-        label: t("pages.analytics.reserve-buffer-label"),
-      }
-    : null;
+  const bufferItem =
+    bufferAmount > 0
+      ? {
+          amount: bufferAmount,
+          color: assignColor(yieldItems.length),
+          label: t("pages.analytics.reserve-buffer-label"),
+        }
+      : null;
   const yieldValue = treasury
     ? t("pages.analytics.yield-value", { count: yieldItems.length })
     : "";

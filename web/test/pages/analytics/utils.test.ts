@@ -46,11 +46,11 @@ describe("pages/analytics/utils", function () {
   });
 
   describe("toReserveBufferAmount", function () {
-    it("returns null when treasuryTokens is empty", function () {
-      expect(toReserveBufferAmount({})).toBeNull();
+    it("returns 0 when treasuryTokens is empty", function () {
+      expect(toReserveBufferAmount({})).toBe(0);
     });
 
-    it("returns null when withdrawable equals totalDebt", function () {
+    it("returns 0 when withdrawable equals totalDebt", function () {
       const result = toReserveBufferAmount({
         treasuryTokens: [
           {
@@ -64,10 +64,10 @@ describe("pages/analytics/utils", function () {
         whitelistedTokens: [usdtToken],
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(0);
     });
 
-    it("returns null when buffer is negative", function () {
+    it("returns 0 when buffer is negative", function () {
       const result = toReserveBufferAmount({
         treasuryTokens: [
           {
@@ -81,7 +81,7 @@ describe("pages/analytics/utils", function () {
         whitelistedTokens: [usdtToken],
       });
 
-      expect(result).toBeNull();
+      expect(result).toBe(0);
     });
 
     it("computes correct amount for a single token", function () {
