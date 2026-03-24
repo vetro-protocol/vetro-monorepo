@@ -9,6 +9,7 @@ import {
   VerticalStepper,
   stepStatus,
 } from "components/base/verticalStepper";
+import { hasSufficientGas } from "components/borrow/utils";
 import { FeeDetails } from "components/feeDetails";
 import { FeesContainer } from "components/feesContainer";
 import { TokenInput } from "components/tokenInput";
@@ -60,12 +61,14 @@ type SubmitButtonProps = {
   address: string | undefined;
   balancesLoaded: boolean;
   inputError: InputError | undefined;
+  sufficientGas: boolean;
 };
 
 function SubmitButton({
   address,
   balancesLoaded,
   inputError,
+  sufficientGas,
 }: SubmitButtonProps) {
   const { t } = useTranslation();
 
@@ -73,6 +76,13 @@ function SubmitButton({
     return (
       <Button disabled size="small" type="button" variant="primary">
         {t("pages.swap.form.connect-wallet")}
+      </Button>
+    );
+  }
+  if (balancesLoaded && !sufficientGas) {
+    return (
+      <Button disabled size="small" type="button" variant="primary">
+        {t("pages.swap.form.insufficient-gas")}
       </Button>
     );
   }
@@ -94,12 +104,10 @@ function getInputError({
   borrowAmount,
   liquidity,
   maxBorrowable,
-  nativeBalance,
 }: {
   borrowAmount: bigint;
   liquidity: bigint;
   maxBorrowable: bigint | undefined;
-  nativeBalance: bigint | undefined;
 }) {
   if (borrowAmount === 0n) {
     return "enter-amount" as const;
@@ -109,9 +117,6 @@ function getInputError({
   }
   if (maxBorrowable !== undefined && borrowAmount > maxBorrowable) {
     return "insufficient-collateral" as const;
-  }
-  if (nativeBalance !== undefined && nativeBalance === 0n) {
-    return "insufficient-gas" as const;
   }
   return undefined;
 }
@@ -285,11 +290,12 @@ export function BorrowMoreForm({ market, onClose }: Props) {
 
   const nativeBalance = nativeBalanceData?.value;
 
+  const sufficientGas = hasSufficientGas(nativeBalance);
+
   const inputError = getInputError({
     borrowAmount: borrowAmountBigInt,
     liquidity: market.liquidity,
     maxBorrowable,
-    nativeBalance,
   });
 
   const { current, updated } = useBorrowMoreReview({
@@ -316,7 +322,7 @@ export function BorrowMoreForm({ market, onClose }: Props) {
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!inputError) {
+    if (!inputError && sufficientGas) {
       setFlowStatus("borrow-ready");
       borrowMutation.mutate();
     }
@@ -363,6 +369,7 @@ export function BorrowMoreForm({ market, onClose }: Props) {
             address={address}
             balancesLoaded={nativeBalance !== undefined}
             inputError={inputError}
+            sufficientGas={sufficientGas}
           />
         </div>
         <FeesContainer isError={networkFee.isError} totalFees={networkFee.data}>
@@ -379,7 +386,7 @@ export function BorrowMoreForm({ market, onClose }: Props) {
             current={current}
             lltv={formatLtvAsPercentage(market.lltv)}
             loanToken={loanToken}
-            updated={updated}
+            updated={inputError ? null : updated}
           />
         </div>
       </form>
