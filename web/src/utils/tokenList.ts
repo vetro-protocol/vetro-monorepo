@@ -55,6 +55,7 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       balanceSlot: 0,
+      priceSymbol: "USDT",
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vusd.svg",
     name: "Vetro USD",

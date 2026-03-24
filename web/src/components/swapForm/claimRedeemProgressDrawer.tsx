@@ -2,18 +2,18 @@ import { Button } from "components/base/button";
 import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { MaxButton } from "components/base/maxButton";
 import { type Step, VerticalStepper } from "components/base/verticalStepper";
-import { FeeDetails } from "components/feeDetails";
-import { FeesContainer } from "components/feesContainer";
 import { TokenDropdown } from "components/tokenDropdown";
 import { TokenInput } from "components/tokenInput";
 import { Balance } from "components/tokenInput/balance";
 import type { InputError } from "components/tokenInput/utils";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
+import type { ComponentProps } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 import { formatAmount } from "utils/token";
 
 import { OutputLabel } from "./outputLabel";
+import { SwapFees } from "./swapFees";
 import { ToTokenBalance } from "./toTokenBalance";
 import { TreasuryReserves } from "./treasuryReserves";
 
@@ -30,19 +30,19 @@ type Props = {
   fromAmount: string;
   fromToken: Token;
   inputError: InputError | undefined;
-  networkFee: string;
   onInputChange: (value: string) => void;
   onMaxClick: VoidFunction;
   onRetry?: VoidFunction;
   onSubmit: VoidFunction;
   onTokenChange: (token: Token) => void;
   outputValue: string;
-  protocolFee: string;
   steps: Step[];
   toToken: Token;
-  totalFees: string;
   whitelistedTokens: Token[];
-};
+} & Pick<
+  ComponentProps<typeof SwapFees>,
+  "networkFee" | "protocolFee" | "totalFees"
+>;
 
 export function ClaimRedeemProgressDrawer({
   amountLocked,
@@ -128,28 +128,20 @@ export function ClaimRedeemProgressDrawer({
       <div className="*:px-4">
         <TreasuryReserves />
       </div>
-      <FeesContainer
-        label={
-          outputValue !== undefined ? (
-            <OutputLabel
-              fromInputValue={fromAmount}
-              fromToken={fromToken}
-              outputValue={outputValue}
-              toToken={toToken}
-            />
-          ) : undefined
+      <SwapFees
+        fromToken={fromToken}
+        networkFee={networkFee}
+        outputLabel={
+          <OutputLabel
+            fromInputValue={fromAmount}
+            fromToken={fromToken}
+            outputValue={outputValue}
+            toToken={toToken}
+          />
         }
+        protocolFee={protocolFee}
         totalFees={totalFees}
-      >
-        <FeeDetails
-          label={t("pages.swap.fees.network-fee")}
-          value={networkFee}
-        />
-        <FeeDetails
-          label={t("pages.swap.fees.fixed-protocol-fee")}
-          value={protocolFee}
-        />
-      </FeesContainer>
+      />
       {steps.length > 0 && (
         <div className="mt-auto flex flex-col gap-2 px-6 pb-6">
           <p className="text-[11px] leading-4 font-medium tracking-wide text-gray-500">

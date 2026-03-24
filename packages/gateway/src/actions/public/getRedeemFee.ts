@@ -8,6 +8,7 @@ export async function getRedeemFee(
   client: Client,
   parameters: {
     address: Address;
+    token: Address;
   },
 ) {
   // Validate client
@@ -25,9 +26,15 @@ export async function getRedeemFee(
     throw new Error("Gateway is invalid");
   }
 
+  // Validate token address
+  if (!isAddressValid(parameters.token)) {
+    throw new Error("Token is invalid");
+  }
+
   return readContract(client, {
     abi: gatewayAbi,
     address: parameters.address,
+    args: [parameters.token],
     functionName: "redeemFee",
   });
 }

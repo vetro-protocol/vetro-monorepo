@@ -1,7 +1,12 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  type QueryClient,
+  queryOptions,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { getGatewayAddress } from "@vetro/gateway";
 import { fetchRedeemDelay } from "fetchers/fetchRedeemDelay";
-import type { Address, Chain } from "viem";
+import type { Address, Chain, Client } from "viem";
 import { useAccount } from "wagmi";
 
 import { useEthereumClient } from "./useEthereumClient";
@@ -17,15 +22,21 @@ const redeemDelayQueryKey = ({
   gatewayAddress: Address;
 }) => ["redeem-delay", chainId, gatewayAddress, account];
 
-export const useRedeemDelay = function () {
-  const { address: account } = useAccount();
-  const ethereumChain = useMainnet();
-  const client = useEthereumClient();
-  const gatewayAddress = getGatewayAddress(ethereumChain.id);
-  const queryClient = useQueryClient();
-
-  return useQuery({
-    enabled: !!client && !!account,
+export const redeemDelayOptions = ({
+  account,
+  chainId,
+  client,
+  gatewayAddress,
+  queryClient,
+}: {
+  account: Address | undefined;
+  chainId: Chain["id"];
+  client: Client | undefined;
+  gatewayAddress: Address;
+  queryClient: QueryClient;
+}) =>
+  queryOptions({
+    enabled: !!account && !!client,
     queryFn: () =>
       fetchRedeemDelay({
         account: account!,
@@ -35,8 +46,25 @@ export const useRedeemDelay = function () {
       }),
     queryKey: redeemDelayQueryKey({
       account,
-      chainId: client?.chain.id,
+      chainId,
       gatewayAddress,
     }),
   });
+
+export const useRedeemDelay = function () {
+  const { address: account } = useAccount();
+  const ethereumChain = useMainnet();
+  const client = useEthereumClient();
+  const gatewayAddress = getGatewayAddress(ethereumChain.id);
+  const queryClient = useQueryClient();
+
+  return useQuery(
+    redeemDelayOptions({
+      account,
+      chainId: ethereumChain.id,
+      client,
+      gatewayAddress,
+      queryClient,
+    }),
+  );
 };

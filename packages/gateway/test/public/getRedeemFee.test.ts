@@ -10,6 +10,7 @@ vi.mock("viem/actions", () => ({
 
 const validParameters = {
   address: "0x1234567890123456789012345678901234567890" as Address,
+  token: "0xabcdef0123456789abcdef0123456789abcdef01" as Address,
 };
 
 // @ts-expect-error - We only create an empty client for testing purposes
@@ -52,11 +53,44 @@ describe("getRedeemFee", function () {
 
   it("should throw an error if the address is zero address", async function () {
     const parameters = {
+      ...validParameters,
       address: zeroAddress,
     };
 
     await expect(getRedeemFee(client, parameters)).rejects.toThrow(
       "Gateway is invalid",
+    );
+  });
+
+  it("should throw an error if the token is not valid", async function () {
+    const parameters = {
+      ...validParameters,
+      token: "invalid_token",
+    };
+    // @ts-expect-error - Testing invalid input
+    await expect(getRedeemFee(client, parameters)).rejects.toThrow(
+      "Token is invalid",
+    );
+  });
+
+  it("should throw an error if the token is not provided", async function () {
+    const parameters = {
+      address: validParameters.address,
+    };
+    // @ts-expect-error - Testing invalid input
+    await expect(getRedeemFee(client, parameters)).rejects.toThrow(
+      "Token is invalid",
+    );
+  });
+
+  it("should throw an error if the token is zero address", async function () {
+    const parameters = {
+      ...validParameters,
+      token: zeroAddress,
+    };
+
+    await expect(getRedeemFee(client, parameters)).rejects.toThrow(
+      "Token is invalid",
     );
   });
 
@@ -70,6 +104,7 @@ describe("getRedeemFee", function () {
     expect(readContract).toHaveBeenCalledWith(client, {
       abi: expect.anything(),
       address: validParameters.address,
+      args: [validParameters.token],
       functionName: "redeemFee",
     });
     expect(result).toBe(redeemFee);

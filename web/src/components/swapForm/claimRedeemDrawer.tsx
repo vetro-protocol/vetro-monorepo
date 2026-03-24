@@ -3,11 +3,12 @@ import { DrawerLoader } from "components/base/drawer/drawerLoader";
 import { type Step, stepStatus } from "components/base/verticalStepper";
 import type { InputError } from "components/tokenInput/utils";
 import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
-import { Suspense, lazy } from "react";
+import { type ComponentProps, Suspense, lazy } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 
 import { type ClaimRedeemFlowStatus } from "./claimRedeemProgressDrawer";
+import type { SwapFees } from "./swapFees";
 
 const ClaimRedeemProgressDrawer = lazy(() =>
   import("./claimRedeemProgressDrawer").then((m) => ({
@@ -28,19 +29,19 @@ type Props = {
   flowStatus: ClaimRedeemFlowStatus;
   fromAmount: string;
   fromToken: Token;
-  networkFee: string;
   onClose: VoidFunction;
   onInputChange: (value: string) => void;
   onMaxClick: VoidFunction;
   onSubmit: VoidFunction;
   onTokenChange: (token: Token) => void;
   outputValue: string;
-  protocolFee: string;
   toToken: Token;
   inputError: InputError | undefined;
-  totalFees: string;
   whitelistedTokens: Token[];
-};
+} & Pick<
+  ComponentProps<typeof SwapFees>,
+  "networkFee" | "protocolFee" | "totalFees"
+>;
 
 export function ClaimRedeemDrawer({
   amountLocked,

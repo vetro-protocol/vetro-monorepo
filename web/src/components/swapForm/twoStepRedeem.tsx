@@ -1,6 +1,7 @@
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { useNeedsApproval } from "@hemilabs/react-hooks/useNeedsApproval";
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
+import type { QueryStatus } from "@tanstack/react-query";
 import { getGatewayAddress } from "@vetro/gateway";
 import { ApproveSection } from "components/approveSection";
 import { Button } from "components/base/button";
@@ -8,18 +9,16 @@ import { Toast } from "components/base/toast";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useActivityTracking } from "hooks/useActivityTracking";
-import { useEstimateRequestRedeemGas } from "hooks/useEstimateRequestRedeemGas";
 import { useMainnet } from "hooks/useMainnet";
 import { usePreviewRedeem } from "hooks/usePreviewRedeem";
-import { useRedeemFee } from "hooks/useRedeemFee";
 import { useRequestRedeem } from "hooks/useRequestRedeem";
-import { useSwapFeesDisplay } from "hooks/useSwapFeesDisplay";
+import { useSwapRequestRedeemFees } from "hooks/useSwapRequestRedeemFees";
+import { useTotalRequestRedeemFees } from "hooks/useTotalRequestRedeemFees";
 import { useWithdrawalDelay } from "hooks/useWithdrawalDelay";
 import { type FormEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 import { getTokenListParams } from "utils/tokenList";
-import { useAccount } from "wagmi";
 
 import { Form } from "./form";
 import { RedeemTutorialModal } from "./redeemTutorialModal";
@@ -61,7 +60,6 @@ export function TwoStepRedeem({
   toToken,
   whitelistedTokens,
 }: Props) {
-  const { address } = useAccount();
   const ethereumChain = useMainnet();
   const { t } = useTranslation();
 
@@ -103,15 +101,6 @@ export function TwoStepRedeem({
       }),
       title: t("nav.swap"),
     });
-
-  const operationGasEstimation = useEstimateRequestRedeemGas({
-    enabled: !!address,
-    owner: address,
-    peggedToken: fromToken,
-    peggedTokenIn: amountBigInt,
-  });
-
-  const protocolFee = useRedeemFee();
 
   const requestRedeemMutation = useRequestRedeem({
     approveAmount,
@@ -164,14 +153,22 @@ export function TwoStepRedeem({
     tokenBalance: fromTokenBalance,
   });
 
-  const { networkFeeDisplay, protocolFeeDisplay, totalFeesDisplay } =
-    useSwapFeesDisplay({
-      amountBigInt,
-      approveAmount,
-      fromToken,
-      operationGasEstimation,
-      protocolFee,
-    });
+  const networkFeeQueryData = useSwapRequestRedeemFees({
+    amount: amountBigInt,
+    approveAmount,
+    fromToken,
+  });
+
+  const totalFeesQueryData = useTotalRequestRedeemFees({
+    amount: amountBigInt,
+    approveAmount,
+    fromToken,
+  });
+
+  const networkFee = {
+    data: networkFeeQueryData.fees,
+    status: (networkFeeQueryData.isError ? "error" : "pending") as QueryStatus,
+  };
 
   const balancesLoaded =
     nativeBalance !== undefined && fromTokenBalance !== undefined;
@@ -252,11 +249,9 @@ export function TwoStepRedeem({
       <ApproveSection active={approve10x} onToggle={onToggleApprove10x} />
       <TreasuryReserves />
       <SwapFees
-        amountBigInt={amountBigInt}
-        approveAmount={approveAmount}
         fromToken={fromToken}
-        operationGasEstimation={operationGasEstimation}
-        protocolFee={protocolFee}
+        networkFee={networkFee}
+        totalFees={totalFeesQueryData}
       />
       <RedeemVaultSection whitelistedTokens={whitelistedTokens} />
       {isTutorialOpen && (
@@ -270,13 +265,12 @@ export function TwoStepRedeem({
           flowStatus={flowStatus}
           fromAmount={fromInputValue}
           fromToken={fromToken}
-          networkFee={networkFeeDisplay}
+          networkFee={networkFee}
           onClose={handleDrawerClose}
           onRetry={handleRetry}
-          protocolFee={protocolFeeDisplay}
+          totalFees={totalFeesQueryData}
           showApproveStep={startedWithApproval}
           subtitle={redeemableForText}
-          totalFees={totalFeesDisplay}
         />
       )}
       {showToast && (

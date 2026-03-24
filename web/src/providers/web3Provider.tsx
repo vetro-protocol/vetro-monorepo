@@ -4,7 +4,7 @@ import { http, WagmiProvider } from "wagmi";
 
 import { mainnet, sepolia } from "../networks";
 
-const config = getDefaultConfig({
+export const config = getDefaultConfig({
   appName: "Vetro",
   chains: [mainnet, sepolia],
   // TODO add project id for wallet connect

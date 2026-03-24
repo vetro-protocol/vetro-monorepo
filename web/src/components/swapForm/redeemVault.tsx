@@ -1,21 +1,22 @@
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
+import type { QueryStatus } from "@tanstack/react-query";
 import { TopSection } from "components/base/table/topSection";
 import { useActivityTracking } from "hooks/useActivityTracking";
-import { useEstimateRedeemGas } from "hooks/useEstimateRedeemGas";
 import { useGetRedeemRequest } from "hooks/useGetRedeemRequest";
 import { useMainnet } from "hooks/useMainnet";
 import { useMaxWithdraw } from "hooks/useMaxWithdraw";
 import { usePreviewRedeem } from "hooks/usePreviewRedeem";
 import { useRedeem } from "hooks/useRedeem";
 import { useRedeemFee } from "hooks/useRedeemFee";
-import { useSwapFeesDisplay } from "hooks/useSwapFeesDisplay";
+import { useSwapRedeemFees } from "hooks/useSwapRedeemFees";
+import { useTotalRedeemFees } from "hooks/useTotalRedeemFees";
 import { useVusd } from "hooks/useVusd";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
+import { applyBps } from "utils/fees";
 import { formatAmount, parseTokenUnits } from "utils/token";
 import { formatUnits } from "viem";
-import { useAccount } from "wagmi";
 
 import { CancelRedeemModal } from "./cancelRedeemModal";
 import { ClaimRedeemDrawer } from "./claimRedeemDrawer";
@@ -30,7 +31,6 @@ type Props = {
 };
 
 export function RedeemVault({ whitelistedTokens }: Props) {
-  const { address } = useAccount();
   const ethereumChain = useMainnet();
   const { t } = useTranslation();
   const { data: vusd } = useVusd();
@@ -85,25 +85,31 @@ export function RedeemVault({ whitelistedTokens }: Props) {
       title: `${t("nav.swap")} · ${t("pages.swap.redeem-vault.redeem")}`,
     });
 
-  const operationGasEstimation = useEstimateRedeemGas({
-    enabled: !!address,
-    minAmountOut: redeemPreview ?? 0n,
-    peggedToken: vusd,
-    peggedTokenIn: amountBigInt,
-    receiver: address,
+  const networkFeeQueryData = useSwapRedeemFees({
+    amount: amountBigInt,
+    approveAmount: undefined,
+    fromToken: vusd,
+    minAmountOut: redeemPreview,
     tokenOut: toToken.address,
   });
 
-  const protocolFee = useRedeemFee();
+  const networkFee = {
+    data: networkFeeQueryData.fees,
+    status: (networkFeeQueryData.isError ? "error" : "pending") as QueryStatus,
+  };
 
-  const { networkFeeDisplay, protocolFeeDisplay, totalFeesDisplay } =
-    useSwapFeesDisplay({
-      amountBigInt,
-      approveAmount: undefined,
-      fromToken: vusd,
-      operationGasEstimation,
-      protocolFee,
-    });
+  const protocolFeeQueryData = useRedeemFee(toToken.address, {
+    select: (fee) => applyBps(amountBigInt, fee),
+  });
+
+  const totalRedeemFeesQueryData = useTotalRedeemFees({
+    amount: amountBigInt,
+    // no approval is needed when redeeming from the vault
+    approveAmount: undefined,
+    fromToken: vusd,
+    minAmountOut: redeemPreview,
+    tokenOut: toToken.address,
+  });
 
   const redeemMutation = useRedeem({
     onEmitter(emitter) {
@@ -167,16 +173,16 @@ export function RedeemVault({ whitelistedTokens }: Props) {
           flowStatus={flowStatus}
           fromAmount={fromInputValue}
           fromToken={vusd}
-          networkFee={networkFeeDisplay}
+          networkFee={networkFee}
           onClose={handleClose}
           onInputChange={setFromInputValue}
           onMaxClick={handleMaxClick}
           onSubmit={handleSubmit}
           onTokenChange={setToToken}
           outputValue={outputValue}
-          protocolFee={protocolFeeDisplay}
+          protocolFee={protocolFeeQueryData}
           toToken={toToken}
-          totalFees={totalFeesDisplay}
+          totalFees={totalRedeemFeesQueryData}
           inputError={inputError}
           whitelistedTokens={whitelistedTokens}
         />

@@ -17,24 +17,24 @@ export const fetchRedeemDelay = async function ({
   gatewayAddress: Address;
   queryClient: QueryClient;
 }) {
-  const [delayEnabled, isWhitelisted, delay] = await Promise.all([
+  const [delayEnabled, isWhitelisted] = await Promise.all([
     getWithdrawalDelayEnabled(client, { address: gatewayAddress }),
     isInstantRedeemWhitelisted(client, {
       account,
       address: gatewayAddress,
     }),
-    queryClient.ensureQueryData(
-      withdrawalDelayOptions({
-        chainId: client.chain!.id,
-        client,
-        gatewayAddress,
-      }),
-    ),
   ]);
 
-  if (!delayEnabled || isWhitelisted || delay === 0n) {
+  if (!delayEnabled || isWhitelisted) {
     return 0n;
   }
 
-  return delay;
+  // Per the contract, delay can't be zero when enabled
+  return queryClient.ensureQueryData(
+    withdrawalDelayOptions({
+      chainId: client.chain!.id,
+      client,
+      gatewayAddress,
+    }),
+  );
 };

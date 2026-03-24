@@ -7,14 +7,14 @@ export const gatewayAbi = [
     type: "function",
   },
   {
-    inputs: [],
+    inputs: [{ name: "token_", type: "address" }],
     name: "mintFee",
     outputs: [{ type: "uint256" }],
     stateMutability: "view",
     type: "function",
   },
   {
-    inputs: [],
+    inputs: [{ name: "token_", type: "address" }],
     name: "redeemFee",
     outputs: [{ type: "uint256" }],
     stateMutability: "view",

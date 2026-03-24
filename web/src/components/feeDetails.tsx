@@ -1,9 +1,10 @@
+import type { ReactNode } from "react";
 import Skeleton from "react-loading-skeleton";
 
 type Props = {
   isError?: boolean;
   label: string;
-  value?: string;
+  value?: ReactNode;
 };
 
 export function FeeDetails({ isError, label, value }: Props) {
