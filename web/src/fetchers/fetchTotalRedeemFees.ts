@@ -7,7 +7,7 @@ import { redeemGasUnitsOptions } from "hooks/useSwapRedeemFees";
 import { tokenPricesOptions } from "hooks/useTokenPrices";
 import { config } from "providers/web3Provider";
 import type { Token } from "types";
-import { applyBps } from "utils/fees";
+import { applyBps, weiToUsd } from "utils/fees";
 import { getTokenPrice } from "utils/token";
 import { type Address, type Chain, type Client, formatUnits } from "viem";
 
@@ -77,13 +77,7 @@ export const fetchTotalRedeemFees = async function ({
   ]);
 
   const ethPrice = parseEthPrice(prices);
-  const networkFeeUsd = parseFloat(
-    (
-      parseFloat(
-        formatUnits(networkFeeWei ?? 0n, chain.nativeCurrency.decimals),
-      ) * ethPrice
-    ).toFixed(2),
-  );
+  const networkFeeUsd = weiToUsd({ ethPrice, wei: networkFeeWei });
 
   const tokenPrice = parseFloat(getTokenPrice(fromToken, prices));
   const protocolFeeUsd = parseFloat(

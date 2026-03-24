@@ -5,7 +5,8 @@ import { requestRedeemGasUnitsOptions } from "hooks/useSwapRequestRedeemFees";
 import { tokenPricesOptions } from "hooks/useTokenPrices";
 import { config } from "providers/web3Provider";
 import type { Token } from "types";
-import { type Address, type Chain, type Client, formatUnits } from "viem";
+import { weiToUsd } from "utils/fees";
+import { type Address, type Chain, type Client } from "viem";
 
 /**
  * Calculates the total fees in USD for requesting a redeem. Does not include
@@ -52,11 +53,5 @@ export const fetchTotalRequestRedeemFees = async function ({
     queryClient.ensureQueryData(tokenPricesOptions()),
   ]);
 
-  const ethPrice = parseEthPrice(prices);
-  const networkFeeUsd =
-    parseFloat(
-      formatUnits(networkFeeWei ?? 0n, chain.nativeCurrency.decimals),
-    ) * ethPrice;
-
-  return networkFeeUsd;
+  return weiToUsd({ ethPrice: parseEthPrice(prices), wei: networkFeeWei });
 };
