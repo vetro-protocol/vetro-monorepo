@@ -1,12 +1,16 @@
-import { type ReactNode, useState } from "react";
+import { Children, type ReactElement, type ReactNode, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 
 import { ButtonIcon } from "./base/button";
 import { ChevronIcon } from "./base/chevronIcon";
+import type { FeeDetailsProps } from "./feeDetails";
 import feesSvg from "./icons/fees.svg";
+import gasSvg from "./icons/gas.svg";
+
+type FeeChild = ReactElement<FeeDetailsProps> | false | null | undefined;
 
 type Props = {
-  children: ReactNode;
+  children: FeeChild | FeeChild[];
   isError?: boolean;
   label?: ReactNode;
   totalFees?: ReactNode;
@@ -14,6 +18,9 @@ type Props = {
 
 export function FeesContainer({ children, isError, label, totalFees }: Props) {
   const [isOpen, setIsOpen] = useState(false);
+
+  // the network fee is unavoidable. So if it's the only one, we can use the "gas" icon
+  const icon = Children.toArray(children).length === 1 ? gasSvg : feesSvg;
 
   const renderedTotalFees =
     totalFees !== undefined ? (
@@ -38,7 +45,12 @@ export function FeesContainer({ children, isError, label, totalFees }: Props) {
         <div className="ml-auto flex items-center gap-2 max-md:px-4">
           {!isOpen && (
             <>
-              <img alt="Fees icon" height="16" src={feesSvg} width="16" />
+              <img
+                alt="Fees icon"
+                height="16"
+                src={icon}
+                width={icon === feesSvg ? 28 : 16}
+              />
               <span className="font-semibold text-gray-500">
                 {renderedTotalFees}
               </span>

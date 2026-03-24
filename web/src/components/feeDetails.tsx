@@ -1,13 +1,13 @@
 import type { ReactNode } from "react";
 import Skeleton from "react-loading-skeleton";
 
-type Props = {
+export type FeeDetailsProps = {
   isError?: boolean;
   label: string;
   value?: ReactNode;
 };
 
-export function FeeDetails({ isError, label, value }: Props) {
+export function FeeDetails({ isError, label, value }: FeeDetailsProps) {
   const renderedValue =
     value !== undefined ? value : isError ? "-" : <Skeleton width={50} />;
 
