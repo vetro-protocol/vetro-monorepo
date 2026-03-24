@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 const variants = {
   blue: "bg-blue-500 text-white",
   gray: "bg-gray-50 text-gray-600 shadow-bs",
+  red: "bg-rose-500 text-white",
 } as const;
 
 type Props = {
