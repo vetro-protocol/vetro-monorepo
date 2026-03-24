@@ -5,6 +5,7 @@ import { Balance } from "components/tokenInput/balance";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { TokenSelectorSkeleton } from "components/tokenSelectorSkeleton";
 import { useTranslation } from "react-i18next";
+import Skeleton from "react-loading-skeleton";
 import type { Token } from "types";
 
 import { SwapToggleButton } from "./swapToggleButton";
@@ -27,6 +28,7 @@ export function RedeemSkeleton({ fromToken }: Props) {
                 <Balance label={t("pages.swap.form.balance")} value="-" />
               }
               disabled
+              fiatValue={<Skeleton className="ml-2" height={14} width={32} />}
               label={t("pages.swap.form.you-are-swapping")}
               tokenSelector={<TokenSelectorReadOnly {...fromToken} />}
               value="0"
@@ -43,6 +45,7 @@ export function RedeemSkeleton({ fromToken }: Props) {
                 <Balance label={t("pages.swap.form.balance")} value="-" />
               }
               disabled
+              fiatValue={<Skeleton className="ml-2" height={14} width={32} />}
               label={t("pages.swap.form.you-will-receive")}
               tokenSelector={<TokenSelectorSkeleton />}
               value="0"
