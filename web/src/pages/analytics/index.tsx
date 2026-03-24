@@ -10,7 +10,7 @@ import { formatUnits } from "viem";
 import { AllocationCard } from "./components/allocationCard";
 import { DatabaseIcon } from "./icons/databaseIcon";
 import { PieChartIcon } from "./icons/pieChartIcon";
-import { toTvlItems, toYieldItems } from "./utils";
+import { toReserveBufferItem, toTvlItems, toYieldItems } from "./utils";
 
 export const Analytics = function () {
   const { t } = useTranslation();
@@ -40,6 +40,10 @@ export const Analytics = function () {
     : "";
 
   const yieldItems = toYieldItems(tokens);
+  const bufferItem = toReserveBufferItem({
+    ...tokens,
+    label: t("pages.analytics.reserve-buffer-label"),
+  });
   const yieldValue = treasury
     ? t("pages.analytics.yield-value", { count: yieldItems.length })
     : "";
@@ -60,7 +64,7 @@ export const Analytics = function () {
           icon={<PieChartIcon />}
           isError={isTokensError}
           isLoading={isTokensLoading}
-          items={yieldItems}
+          items={bufferItem ? [...yieldItems, bufferItem] : yieldItems}
           label={t("pages.analytics.yield-label")}
           value={yieldValue}
         />
