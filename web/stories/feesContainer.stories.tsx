@@ -27,13 +27,11 @@ type Story = StoryObj<typeof FeesContainer>;
 
 export const Default: Story = {
   args: {
-    children: (
-      <>
-        <FeeDetails label="Network Fee" value="$0.0001" />
-        <FeeDetails label="Percentage Fee" value="0.003%" />
-        <FeeDetails label="ETH fee" value="0.0001 ETH" />
-      </>
-    ),
+    children: [
+      <FeeDetails key="network" label="Network Fee" value="$0.0001" />,
+      <FeeDetails key="percentage" label="Percentage Fee" value="0.003%" />,
+      <FeeDetails key="eth" label="ETH fee" value="0.0001 ETH" />,
+    ],
     label: "1000 USDC = 999 VUSD",
     totalFees: "$0.40",
   },
@@ -44,14 +42,25 @@ export const Default: Story = {
   ),
 };
 
+export const SingleFee: Story = {
+  args: {
+    children: <FeeDetails label="Network Fee" value="$0.0001" />,
+    label: "1000 USDC = 999 VUSD",
+    totalFees: "$0.0001",
+  },
+  render: (args) => (
+    <div className="w-md">
+      <FeesContainer {...args} />
+    </div>
+  ),
+};
+
 export const Loading: Story = {
   args: {
-    children: (
-      <>
-        <FeeDetails label="Network Fee" />
-        <FeeDetails label="Percentage Fee" />
-      </>
-    ),
+    children: [
+      <FeeDetails key="network" label="Network Fee" />,
+      <FeeDetails key="percentage" label="Percentage Fee" />,
+    ],
     label: "1000 USDC = 999 VUSD",
   },
   render: (args) => (
@@ -63,12 +72,10 @@ export const Loading: Story = {
 
 export const Error: Story = {
   args: {
-    children: (
-      <>
-        <FeeDetails isError label="Network Fee" />
-        <FeeDetails isError label="Percentage Fee" />
-      </>
-    ),
+    children: [
+      <FeeDetails isError key="network" label="Network Fee" />,
+      <FeeDetails isError key="percentage" label="Percentage Fee" />,
+    ],
     isError: true,
     label: "1000 USDC = 999 VUSD",
   },
