@@ -14,6 +14,13 @@ export const gatewayAbi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "owner",
+    outputs: [{ type: "address" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [{ name: "token_", type: "address" }],
     name: "redeemFee",
     outputs: [{ type: "uint256" }],
@@ -119,6 +126,26 @@ export const gatewayAbi = [
   {
     inputs: [{ name: "peggedTokenAmount_", type: "uint256" }],
     name: "requestRedeem",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "token_", type: "address" },
+      { name: "newMintFee_", type: "uint256" },
+    ],
+    name: "updateMintFee",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "token_", type: "address" },
+      { name: "newRedeemFee_", type: "uint256" },
+    ],
+    name: "updateRedeemFee",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
