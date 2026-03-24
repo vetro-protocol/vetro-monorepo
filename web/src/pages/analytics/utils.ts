@@ -15,7 +15,7 @@ const colorPalette = [
   "bg-pink-400",
 ];
 
-const assignColor = (index: number) =>
+export const assignColor = (index: number) =>
   colorPalette[index % colorPalette.length] ?? "bg-gray-400";
 
 const priceDecimals = 8;
@@ -84,4 +84,34 @@ export const toYieldItems = function ({
   }
 
   return items;
+};
+
+// Returns the reserve buffer amount in USD (idle funds not deployed to any strategy).
+// Returns 0 when there is no buffer. Color is intentionally omitted — callers assign it.
+export const toReserveBufferAmount = function ({
+  treasuryTokens = [],
+  whitelistedTokens = [],
+}: {
+  treasuryTokens?: TreasuryToken[];
+  whitelistedTokens?: Token[];
+}) {
+  let amount = 0;
+
+  for (const {
+    latestPrice,
+    tokenAddress,
+    totalDebt,
+    withdrawable,
+  } of treasuryTokens) {
+    const token = findToken(tokenAddress, whitelistedTokens);
+    const decimals = token?.decimals ?? 18;
+    const price = Number(formatUnits(BigInt(latestPrice), priceDecimals));
+
+    amount +=
+      (Number(formatUnits(BigInt(withdrawable), decimals)) -
+        Number(formatUnits(BigInt(totalDebt), decimals))) *
+      price;
+  }
+
+  return Math.max(0, amount);
 };

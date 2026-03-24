@@ -20,7 +20,7 @@ export const AllocationLegend = ({
   items,
   onHover,
 }: Props) => (
-  <div className="flex flex-col border-b border-gray-200 px-7 md:px-15">
+  <div className="flex flex-1 flex-col border-b border-gray-200 px-7 md:px-15">
     {!isLoading &&
       !isError &&
       items.map(({ amount, color, label }) => (

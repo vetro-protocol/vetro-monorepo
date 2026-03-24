@@ -11,6 +11,7 @@
   },
   "pages": {
     "analytics": {
+      "reserve-buffer-label": "Reserva de liquidez",
       "title": "Monitorear analíticas del protocolo",
       "tvl-label": "Valor Total Bloqueado (TVL)",
       "yield-label": "Asignación de yield",

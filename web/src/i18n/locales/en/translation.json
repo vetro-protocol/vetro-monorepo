@@ -11,6 +11,7 @@
   },
   "pages": {
     "analytics": {
+      "reserve-buffer-label": "Reserve buffer",
       "title": "Monitor protocol analytics",
       "tvl-label": "Total Value Locked (TVL)",
       "yield-label": "Yield allocation",
