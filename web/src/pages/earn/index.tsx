@@ -8,7 +8,7 @@ import { PoolInfoBar } from "./components/poolInfoBar";
 import { useCanInstantWithdraw } from "./hooks/useCanInstantWithdraw";
 
 export function Earn() {
-  const canInstantWithdraw = useCanInstantWithdraw();
+  const { data: canInstantWithdraw } = useCanInstantWithdraw();
   const { t } = useTranslation();
 
   return (
