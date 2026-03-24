@@ -6,23 +6,29 @@ import {
   toYieldItems,
 } from "../../../src/pages/analytics/utils";
 
-const USDT_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
-const USDC_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
+const USDT_ADDRESS =
+  "0xdAC17F958D2ee523a2206206994597C13D831ec7" as `0x${string}`;
+const USDC_ADDRESS =
+  "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" as `0x${string}`;
 
 // $1.00 expressed with 8 decimals
 const ONE_USD_PRICE = "100000000";
 
 const usdtToken = {
   address: USDT_ADDRESS,
+  chainId: 1,
   decimals: 6,
-  logoURI: undefined,
+  logoURI: "",
+  name: "Tether USD",
   symbol: "USDT",
 };
 
 const usdcToken = {
   address: USDC_ADDRESS,
+  chainId: 1,
   decimals: 6,
-  logoURI: undefined,
+  logoURI: "",
+  name: "USD Coin",
   symbol: "USDC",
 };
 
@@ -126,7 +132,7 @@ describe("pages/analytics/utils", function () {
             withdrawable: "1000000000000000000",
           },
         ],
-        whitelistedTokens: [{ ...usdtToken, decimals: 18 }],
+        whitelistedTokens: [{ ...usdtToken, decimals: 18 as const }],
       });
 
       expect(result?.amount).toBeCloseTo(1);
