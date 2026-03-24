@@ -2,7 +2,6 @@ import { parseArgs } from "node:util";
 import {
   createPublicClient,
   createTestClient,
-  erc20Abi,
   encodePacked,
   formatEther,
   http,
@@ -12,7 +11,9 @@ import {
   parseEther,
   toHex,
 } from "viem";
+import { getBalance, setBalance, setStorageAt } from "viem/actions";
 import { mainnet } from "viem/chains";
+import { balanceOf } from "viem-erc20/actions";
 
 import { knownTokens } from "../src/utils/tokenList.ts";
 
@@ -62,19 +63,17 @@ const testClient = createTestClient({
 });
 
 // Fund 1 ETH for gas
-const ethBalanceBefore = await publicClient.getBalance({ address });
-await testClient.setBalance({ address, value: parseEther("1") });
-const ethBalanceAfter = await publicClient.getBalance({ address });
+const ethBalanceBefore = await getBalance(publicClient, { address });
+await setBalance(testClient, { address, value: parseEther("1") });
+const ethBalanceAfter = await getBalance(publicClient, { address });
 console.log(
   `ETH: ${formatEther(ethBalanceBefore)} -> ${formatEther(ethBalanceAfter)}`,
 );
 
 for (const token of tokens) {
-  const balanceBefore = await publicClient.readContract({
-    abi: erc20Abi,
+  const balanceBefore = await balanceOf(publicClient, {
+    account: address,
     address: token.address,
-    args: [address],
-    functionName: "balanceOf",
   });
 
   const value = amount * 10n ** BigInt(token.decimals);
@@ -87,17 +86,15 @@ for (const token of tokens) {
     ),
   );
 
-  await testClient.setStorageAt({
+  await setStorageAt(testClient, {
     address: token.address,
     index: storageKey,
     value: pad(toHex(value)),
   });
 
-  const balanceAfter = await publicClient.readContract({
-    abi: erc20Abi,
+  const balanceAfter = await balanceOf(publicClient, {
+    account: address,
     address: token.address,
-    args: [address],
-    functionName: "balanceOf",
   });
 
   console.log(
