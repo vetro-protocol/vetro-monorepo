@@ -15,7 +15,7 @@ const colorPalette = [
   "bg-pink-400",
 ];
 
-const assignColor = (index: number) =>
+export const assignColor = (index: number) =>
   colorPalette[index % colorPalette.length] ?? "bg-gray-400";
 
 const priceDecimals = 8;
@@ -86,23 +86,19 @@ export const toYieldItems = function ({
   return items;
 };
 
-// Returns the reserve buffer as an AllocationItem, or null if the buffer is zero or negative.
+// Returns the reserve buffer amount and label, or null if the buffer is zero or negative.
 // The buffer is the idle amount not deployed to any strategy, used for instant withdrawal liquidity.
-// Color is assigned after all strategy items, keeping the palette consistent.
-export const toReserveBufferItem = function ({
-  label,
+// Color is intentionally omitted — callers assign it based on their rendering context.
+export const toReserveBufferAmount = function ({
   treasuryTokens = [],
   whitelistedTokens = [],
 }: {
-  label: string;
   treasuryTokens?: TreasuryToken[];
   whitelistedTokens?: Token[];
 }) {
   let amount = 0;
-  let strategyCount = 0;
 
   for (const {
-    activeStrategies,
     latestPrice,
     tokenAddress,
     totalDebt,
@@ -112,19 +108,11 @@ export const toReserveBufferItem = function ({
     const decimals = token?.decimals ?? 18;
     const price = Number(formatUnits(BigInt(latestPrice), priceDecimals));
 
-    for (const { totalDebt: stratDebt } of activeStrategies) {
-      if (Number(formatUnits(BigInt(stratDebt), decimals)) * price > 0) {
-        strategyCount++;
-      }
-    }
-
     amount +=
       (Number(formatUnits(BigInt(withdrawable), decimals)) -
         Number(formatUnits(BigInt(totalDebt), decimals))) *
       price;
   }
 
-  if (amount <= 0) return null;
-
-  return { amount, color: assignColor(strategyCount), label };
+  return amount > 0 ? amount : null;
 };

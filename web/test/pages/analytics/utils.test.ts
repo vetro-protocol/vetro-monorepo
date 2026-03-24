@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  toReserveBufferItem,
+  assignColor,
+  toReserveBufferAmount,
   toTvlItems,
   toYieldItems,
 } from "../../../src/pages/analytics/utils";
@@ -33,14 +34,24 @@ const usdcToken = {
 };
 
 describe("pages/analytics/utils", function () {
-  describe("toReserveBufferItem", function () {
+  describe("assignColor", function () {
+    it("returns the color at the given index", function () {
+      expect(assignColor(0)).toBe("bg-blue-400");
+      expect(assignColor(1)).toBe("bg-emerald-400");
+    });
+
+    it("wraps around when index exceeds palette length", function () {
+      expect(assignColor(8)).toBe("bg-blue-400");
+    });
+  });
+
+  describe("toReserveBufferAmount", function () {
     it("returns null when treasuryTokens is empty", function () {
-      expect(toReserveBufferItem({ label: "Reserve buffer" })).toBeNull();
+      expect(toReserveBufferAmount({})).toBeNull();
     });
 
     it("returns null when withdrawable equals totalDebt", function () {
-      const result = toReserveBufferItem({
-        label: "Reserve buffer",
+      const result = toReserveBufferAmount({
         treasuryTokens: [
           {
             activeStrategies: [],
@@ -57,8 +68,7 @@ describe("pages/analytics/utils", function () {
     });
 
     it("returns null when buffer is negative", function () {
-      const result = toReserveBufferItem({
-        label: "Reserve buffer",
+      const result = toReserveBufferAmount({
         treasuryTokens: [
           {
             activeStrategies: [],
@@ -76,8 +86,7 @@ describe("pages/analytics/utils", function () {
 
     it("computes correct amount for a single token", function () {
       // withdrawable: 1000 USDT, totalDebt: 900 USDT → buffer: 100 USDT @ $1 = $100
-      const result = toReserveBufferItem({
-        label: "Reserve buffer",
+      const result = toReserveBufferAmount({
         treasuryTokens: [
           {
             activeStrategies: [],
@@ -90,13 +99,12 @@ describe("pages/analytics/utils", function () {
         whitelistedTokens: [usdtToken],
       });
 
-      expect(result?.amount).toBeCloseTo(100);
+      expect(result).toBeCloseTo(100);
     });
 
     it("sums buffer across multiple tokens", function () {
       // USDT buffer: $100, USDC buffer: $50 → total: $150
-      const result = toReserveBufferItem({
-        label: "Reserve buffer",
+      const result = toReserveBufferAmount({
         treasuryTokens: [
           {
             activeStrategies: [],
@@ -116,13 +124,12 @@ describe("pages/analytics/utils", function () {
         whitelistedTokens: [usdtToken, usdcToken],
       });
 
-      expect(result?.amount).toBeCloseTo(150);
+      expect(result).toBeCloseTo(150);
     });
 
     it("uses decimals from whitelistedTokens", function () {
       // 1 token with 18 decimals @ $1 → buffer: $1
-      const result = toReserveBufferItem({
-        label: "Reserve buffer",
+      const result = toReserveBufferAmount({
         treasuryTokens: [
           {
             activeStrategies: [],
@@ -135,12 +142,11 @@ describe("pages/analytics/utils", function () {
         whitelistedTokens: [{ ...usdtToken, decimals: 18 as const }],
       });
 
-      expect(result?.amount).toBeCloseTo(1);
+      expect(result).toBeCloseTo(1);
     });
 
     it("falls back to 18 decimals for unknown tokens", function () {
-      const result = toReserveBufferItem({
-        label: "Reserve buffer",
+      const result = toReserveBufferAmount({
         treasuryTokens: [
           {
             activeStrategies: [],
@@ -153,61 +159,7 @@ describe("pages/analytics/utils", function () {
         whitelistedTokens: [],
       });
 
-      expect(result?.amount).toBeCloseTo(1);
-    });
-
-    it("returns the provided label", function () {
-      const result = toReserveBufferItem({
-        label: "Reserve buffer",
-        treasuryTokens: [
-          {
-            activeStrategies: [],
-            latestPrice: ONE_USD_PRICE,
-            tokenAddress: USDT_ADDRESS,
-            totalDebt: "0",
-            withdrawable: "1000000000",
-          },
-        ],
-        whitelistedTokens: [usdtToken],
-      });
-
-      expect(result?.label).toBe("Reserve buffer");
-    });
-
-    it("assigns color based on active strategy count", function () {
-      // 0 active strategies → index 0 → bg-blue-400
-      const noStrategies = toReserveBufferItem({
-        label: "Buffer",
-        treasuryTokens: [
-          {
-            activeStrategies: [],
-            latestPrice: ONE_USD_PRICE,
-            tokenAddress: USDT_ADDRESS,
-            totalDebt: "0",
-            withdrawable: "1000000000",
-          },
-        ],
-        whitelistedTokens: [usdtToken],
-      });
-
-      expect(noStrategies?.color).toBe("bg-blue-400");
-
-      // 1 active strategy → index 1 → bg-emerald-400
-      const oneStrategy = toReserveBufferItem({
-        label: "Buffer",
-        treasuryTokens: [
-          {
-            activeStrategies: [{ name: "Strategy A", totalDebt: "500000000" }],
-            latestPrice: ONE_USD_PRICE,
-            tokenAddress: USDT_ADDRESS,
-            totalDebt: "500000000",
-            withdrawable: "1000000000",
-          },
-        ],
-        whitelistedTokens: [usdtToken],
-      });
-
-      expect(oneStrategy?.color).toBe("bg-emerald-400");
+      expect(result).toBeCloseTo(1);
     });
   });
 
