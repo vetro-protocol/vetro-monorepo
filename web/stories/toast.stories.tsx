@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { useCallback, useRef, useState } from "react";
 
+import { Button } from "../src/components/base/button";
 import { Toast, type ToastData, Toaster } from "../src/components/base/toast";
 
 const meta: Meta<typeof Toast> = {
@@ -65,12 +66,9 @@ function MultipleToastsDemo() {
 
   return (
     <div className="flex flex-col items-start gap-4 p-8">
-      <button
-        className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        onClick={handleAdd}
-      >
+      <Button onClick={handleAdd} type="button" variant="primary">
         Add toast
-      </button>
+      </Button>
       <p className="text-sm text-gray-500">
         Active toasts: {toasts.length}. Hover over the stack to expand.
       </p>
