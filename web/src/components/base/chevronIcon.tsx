@@ -11,7 +11,7 @@ type Props = {
 export const ChevronIcon = ({ direction = "down" }: Props) => (
   <svg
     className={`inline-block size-4 shrink-0 ${rotations[direction]}`}
-    fill="#currentColor"
+    fill="currentColor"
     viewBox="0 0 16 16"
   >
     <path
