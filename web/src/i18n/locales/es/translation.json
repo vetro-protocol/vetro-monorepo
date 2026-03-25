@@ -1,7 +1,7 @@
 {
   "common": {
     "approve-10x": "Aprobar 10x",
-    "approve-10x-tooltip": "Aprueba hasta 10× el monto de su transacción, reduciendo futuros pasos de aprobación. Puede revocarlo en cualquier momento."
+    "approve-10x-tooltip": "Apruebe hasta 10× el monto de su transacción, reduciendo futuros pasos de aprobación. Puede revocarlo en cualquier momento."
   },
   "language": {
     "switch-to": "Cambiar a Inglés"
