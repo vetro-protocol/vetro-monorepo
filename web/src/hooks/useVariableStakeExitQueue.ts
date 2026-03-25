@@ -42,5 +42,6 @@ export function useVariableStakeExitQueue() {
     queryKey: exitQueueQueryKey({ chainId: chain.id, stakingVaultAddress }),
     refetchInterval: 5 * 60 * 1000, // 5 minutes
     retry: 2,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
