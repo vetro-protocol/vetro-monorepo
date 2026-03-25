@@ -42,6 +42,7 @@ export const fetchMarketData = async function ({
     lltv: market.params.lltv,
     loanToken,
     marketId,
+    oracle: market.params.oracle,
     totalBorrowAssets: market.totalBorrowAssets,
     totalSupplyAssets: market.totalSupplyAssets,
   };

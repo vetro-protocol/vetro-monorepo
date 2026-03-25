@@ -140,12 +140,7 @@ export function PositionsTable({ marketIds }: Props) {
       },
       {
         cell: ({ row }) => (
-          <LiquidationPriceCell
-            collateralToken={row.original.collateralToken}
-            liquidationPrice={row.original.liquidationPrice}
-            loanToken={row.original.loanToken}
-            prices={prices}
-          />
+          <LiquidationPriceCell {...row.original} prices={prices} />
         ),
         header: () => <Header text={t("pages.borrow.liquidation-price")} />,
         id: "liq-price",
