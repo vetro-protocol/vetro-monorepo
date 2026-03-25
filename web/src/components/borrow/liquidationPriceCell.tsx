@@ -46,23 +46,21 @@ export function LiquidationPriceCell({
   });
 
   return (
-    <div className="flex items-center gap-1">
-      <div className="flex flex-col items-start">
-        <div className="flex items-center gap-x-1.5">
-          <span className="text-b-medium text-gray-900">
-            ${formatFiatNumber(liqPriceUsd)}
-          </span>
-          <OracleTooltip oracle={oracle} />
-        </div>
-        {drop !== null && (
-          <span className="text-caption text-gray-500">
-            {t("pages.borrow.drop-from-price", {
-              percentage: formatPercentage(drop),
-              price: formatFiatNumber(collateralUsd),
-            })}
-          </span>
-        )}
+    <div className="flex flex-col items-start">
+      <div className="flex items-center gap-x-1.5">
+        <span className="text-b-medium text-gray-900">
+          ${formatFiatNumber(liqPriceUsd)}
+        </span>
+        <OracleTooltip oracle={oracle} />
       </div>
+      {drop !== null && (
+        <span className="text-caption text-gray-500">
+          {t("pages.borrow.drop-from-price", {
+            percentage: formatPercentage(drop),
+            price: formatFiatNumber(collateralUsd),
+          })}
+        </span>
+      )}
     </div>
   );
 }
