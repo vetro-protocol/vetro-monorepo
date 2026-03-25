@@ -50,6 +50,10 @@
   box-shadow: 0 0 0 4px var(--color-gray-300);
 }
 
+.button-nav-secondary:hover {
+  @apply text-gray-900;
+}
+
 .button-nav-primary {
   @apply bg-blue-50 text-blue-500;
 }
