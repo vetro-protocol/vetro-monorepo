@@ -1,16 +1,12 @@
-import { estimateFeesQueryOptions } from "@hemilabs/react-hooks/useEstimateFees";
 import type { QueryClient } from "@tanstack/react-query";
-import { parseEthPrice } from "hooks/useEthPrice";
-import { tokenPricesOptions } from "hooks/useTokenPrices";
 import { depositGasUnitsOptions } from "pages/earn/hooks/useDepositFees";
-import { config } from "providers/web3Provider";
 import type { Token } from "types";
-import { weiToUsd } from "utils/fees";
 import { type Address, type Chain, type Client } from "viem";
+
+import { fetchTotalNetworkFees } from "./fetchTotalNetworkFees";
 
 /**
  * Calculates the total fees in USD for an earn deposit.
- * Network fees only (no protocol fees).
  */
 export const fetchTotalDepositFees = async function ({
   amount,
@@ -29,8 +25,6 @@ export const fetchTotalDepositFees = async function ({
   queryClient: QueryClient;
   token: Token;
 }) {
-  const pricesPromise = queryClient.ensureQueryData(tokenPricesOptions());
-
   const gasUnits = await queryClient.ensureQueryData(
     depositGasUnitsOptions({
       amount,
@@ -43,17 +37,5 @@ export const fetchTotalDepositFees = async function ({
     }),
   );
 
-  const [networkFeeWei, prices] = await Promise.all([
-    queryClient.ensureQueryData(
-      estimateFeesQueryOptions({
-        chainId: chain.id,
-        config,
-        gasUnits,
-        queryClient,
-      }),
-    ),
-    pricesPromise,
-  ]);
-
-  return weiToUsd({ ethPrice: parseEthPrice(prices), wei: networkFeeWei });
+  return fetchTotalNetworkFees({ chain, gasUnits, queryClient });
 };
