@@ -43,15 +43,11 @@
 
 /* Navbar link variants - color/state only */
 .button-nav-secondary {
-  @apply bg-transparent text-gray-500 enabled:hover:text-gray-900;
+  @apply bg-transparent text-gray-500 hover:text-gray-900;
 }
 
 .button-nav-secondary:focus-visible {
   box-shadow: 0 0 0 4px var(--color-gray-300);
-}
-
-.button-nav-secondary:hover {
-  @apply text-gray-900;
 }
 
 .button-nav-primary {
