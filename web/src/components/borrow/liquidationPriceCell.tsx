@@ -6,11 +6,15 @@ import {
 } from "utils/borrowReview";
 import { formatFiatNumber, formatPercentage } from "utils/format";
 import { getTokenPrice } from "utils/token";
+import type { Address } from "viem";
+
+import { OracleTooltip } from "./oracleTooltip";
 
 type Props = {
   collateralToken: Token;
   liquidationPrice: bigint | null;
   loanToken: Token;
+  oracle: Address;
   prices: Record<string, string> | undefined;
 };
 
@@ -18,6 +22,7 @@ export function LiquidationPriceCell({
   collateralToken,
   liquidationPrice,
   loanToken,
+  oracle,
   prices,
 }: Props) {
   const { t } = useTranslation();
@@ -42,9 +47,12 @@ export function LiquidationPriceCell({
 
   return (
     <div className="flex flex-col items-start">
-      <span className="text-b-medium text-gray-900">
-        ${formatFiatNumber(liqPriceUsd)}
-      </span>
+      <div className="flex items-center gap-x-1.5">
+        <span className="text-b-medium text-gray-900">
+          ${formatFiatNumber(liqPriceUsd)}
+        </span>
+        <OracleTooltip oracle={oracle} />
+      </div>
       {drop !== null && (
         <span className="text-caption text-gray-500">
           {t("pages.borrow.drop-from-price", {

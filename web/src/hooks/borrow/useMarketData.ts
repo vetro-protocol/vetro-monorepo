@@ -6,7 +6,7 @@ import {
 } from "@tanstack/react-query";
 import { fetchMarketData } from "fetchers/fetchMarketData";
 import type { Token } from "types";
-import type { Chain, Client, Hash } from "viem";
+import type { Address, Chain, Client, Hash } from "viem";
 
 import { useEthereumClient } from "../useEthereumClient";
 import { useMainnet } from "../useMainnet";
@@ -18,6 +18,7 @@ export type MarketData = {
   lltv: bigint;
   loanToken: Token;
   marketId: Hash;
+  oracle: Address;
   totalBorrowAssets: bigint;
   totalSupplyAssets: bigint;
 };
