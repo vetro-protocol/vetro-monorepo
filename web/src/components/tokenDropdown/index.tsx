@@ -35,7 +35,7 @@ export const TokenDropdown = function ({ onChange, tokens, value }: Props) {
       renderTrigger={(isOpen, triggerProps) => (
         <div
           {...triggerProps}
-          className={`flex ${tokens.length > 1 ? "cursor-pointer hover:bg-gray-50" : ""} items-center gap-1.5 rounded-full bg-white/5 py-1.5 pr-3 pl-1.5 shadow-sm`}
+          className={`button-secondary flex ${tokens.length > 1 ? "cursor-pointer" : ""} items-center gap-1.5 rounded-full py-1.5 pr-2 pl-1.5`}
         >
           <TokenDisplay logoURI={value.logoURI} symbol={value.symbol} />
           {tokens.length > 1 && (
