@@ -52,7 +52,7 @@ export function Form({
         className="xs:border-x flex w-full max-w-md flex-col gap-0.5 border-gray-200 bg-white pt-2"
         onSubmit={onSubmit}
       >
-        <div className="md:px-2">
+        <div className="px-2">
           <TokenInput
             balance={
               <Balance
@@ -79,7 +79,7 @@ export function Form({
         <div className="relative flex h-0 items-center justify-center">
           <SwapToggleButton onClick={onToggle} />
         </div>
-        <div className="md:px-2">{toSection}</div>
+        <div className="px-2">{toSection}</div>
         {children}
       </form>
     </div>
