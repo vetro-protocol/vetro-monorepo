@@ -6,6 +6,7 @@ import { getStakingVaultAddress } from "@vetro/earn";
 import { ApproveSection } from "components/approveSection";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { VerticalStepper, stepStatus } from "components/base/verticalStepper";
+import { NetworkFees } from "components/networkFees";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenInput } from "components/tokenInput";
 import { Balance } from "components/tokenInput/balance";
@@ -14,7 +15,6 @@ import { useActivityTracking } from "hooks/useActivityTracking";
 import { useMainnet } from "hooks/useMainnet";
 import { useStakeDeposit } from "hooks/useStakeDeposit";
 import { useVusd } from "hooks/useVusd";
-import { EarnFees } from "pages/earn/components/earnFees";
 import { useTotalDepositFees } from "pages/earn/hooks/useTotalDepositFees";
 import { type FormEvent, useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -310,7 +310,7 @@ export function StakeDepositForm({
         onToggle={onApprove10xToggle}
       />
       <div className="border-b border-gray-200 px-6">
-        <EarnFees
+        <NetworkFees
           label={t("pages.earn.stake.fees-label", {
             amount: inputValue,
             token: vusd.symbol,

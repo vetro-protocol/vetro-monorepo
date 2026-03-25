@@ -2,6 +2,7 @@ import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { VerticalStepper, stepStatus } from "components/base/verticalStepper";
+import { NetworkFees } from "components/networkFees";
 import { SetMaxStakedBalance } from "components/setMaxStakedBalance";
 import { TokenInput } from "components/tokenInput";
 import { Balance } from "components/tokenInput/balance";
@@ -12,7 +13,6 @@ import { useMainnet } from "hooks/useMainnet";
 import { useStakedBalance } from "hooks/useStakedBalance";
 import { useStakeWithdraw } from "hooks/useStakeWithdraw";
 import { useVusd } from "hooks/useVusd";
-import { EarnFees } from "pages/earn/components/earnFees";
 import { useCanInstantWithdraw } from "pages/earn/hooks/useCanInstantWithdraw";
 import { useCooldownDuration } from "pages/earn/hooks/useCooldownDuration";
 import { useTotalWithdrawFees } from "pages/earn/hooks/useTotalWithdrawFees";
@@ -300,7 +300,7 @@ export function StakeWithdrawForm({
       </div>
 
       <div className="border-b border-gray-200 px-6">
-        <EarnFees
+        <NetworkFees
           label={t("pages.earn.stake.withdrawing-fees-label", {
             amount: inputValue,
             token: vusd.symbol,

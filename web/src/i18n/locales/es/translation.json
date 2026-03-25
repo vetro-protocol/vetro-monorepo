@@ -1,7 +1,8 @@
 {
   "common": {
     "approve-10x": "Aprobar 10x",
-    "approve-10x-tooltip": "Apruebe hasta 10× el monto de su transacción, reduciendo futuros pasos de aprobación. Puede revocarlo en cualquier momento."
+    "approve-10x-tooltip": "Apruebe hasta 10× el monto de su transacción, reduciendo futuros pasos de aprobación. Puede revocarlo en cualquier momento.",
+    "network-fee": "Tarifa de Red"
   },
   "language": {
     "switch-to": "Cambiar a Inglés"
@@ -276,7 +277,6 @@
       },
       "fees": {
         "fixed-protocol-fee": "Tarifa de Protocolo Fija",
-        "network-fee": "Tarifa de Red",
         "oracle-deviation-fee": "Tarifa de Desviación del Oráculo"
       },
       "form": {

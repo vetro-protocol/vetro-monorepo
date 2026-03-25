@@ -87,10 +87,7 @@ export const SwapFees = function ({
     <div className="w-full border-b border-gray-200">
       <div className="mx-auto w-full max-w-md">
         <FeesContainer label={outputLabel} totalFees={totalFeesValue}>
-          <FeeDetails
-            label={t("pages.swap.fees.network-fee")}
-            value={networkFeeValue}
-          />
+          <FeeDetails label={t("common.network-fee")} value={networkFeeValue} />
           {protocolFeeValue ? (
             <FeeDetails
               label={t("pages.swap.fees.fixed-protocol-fee")}

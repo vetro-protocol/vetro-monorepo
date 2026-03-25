@@ -7,14 +7,14 @@ import Skeleton from "react-loading-skeleton";
 import { formatFiatNumber } from "utils/format";
 
 type Props = {
-  label: ReactNode;
+  label?: ReactNode;
   networkFee: {
     data: number | undefined;
     status: QueryStatus;
   };
 };
 
-export const EarnFees = function ({ label, networkFee }: Props) {
+export const NetworkFees = function ({ label, networkFee }: Props) {
   const { t } = useTranslation();
 
   const formattedFee =
@@ -22,7 +22,7 @@ export const EarnFees = function ({ label, networkFee }: Props) {
       ? `$${formatFiatNumber(networkFee.data.toFixed(2))}`
       : undefined;
 
-  const isError = formattedFee === undefined && networkFee.status !== "success";
+  const isError = networkFee.status === "error";
 
   const totalFees =
     formattedFee !== undefined ? (
@@ -35,7 +35,7 @@ export const EarnFees = function ({ label, networkFee }: Props) {
     <FeesContainer isError={isError} label={label} totalFees={totalFees}>
       <FeeDetails
         isError={isError}
-        label={t("pages.swap.fees.network-fee")}
+        label={t("common.network-fee")}
         value={formattedFee}
       />
     </FeesContainer>
