@@ -11,7 +11,9 @@
   },
   "pages": {
     "analytics": {
+      "exit-queue-label": "Total VUSD en período de espera de retiro",
       "reserve-buffer-label": "Reserva de liquidez",
+      "staked-label": "Total VUSD depositado",
       "title": "Monitorear analíticas del protocolo",
       "tvl-label": "Valor Total Bloqueado (TVL)",
       "yield-label": "Asignación de yield",

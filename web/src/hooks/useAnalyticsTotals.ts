@@ -6,6 +6,7 @@ const apiUrl = import.meta.env.VITE_VETRO_API_URL;
 
 type AnalyticsTotals = {
   vusdMinted: string;
+  vusdStaked: string;
 };
 
 export const useAnalyticsTotals = () =>

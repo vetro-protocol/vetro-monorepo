@@ -1,6 +1,8 @@
 import { PageTitle } from "components/base/pageTitle";
+import { StripedDivider } from "components/stripedDivider";
 import { useAnalyticsTotals } from "hooks/useAnalyticsTotals";
 import { useAnalyticsTreasury } from "hooks/useAnalyticsTreasury";
+import { useVariableStakeExitQueue } from "hooks/useVariableStakeExitQueue";
 import { useVusd } from "hooks/useVusd";
 import { useWhitelistedTokens } from "hooks/useWhitelistedTokens";
 import { useTranslation } from "react-i18next";
@@ -9,7 +11,9 @@ import { formatUnits } from "viem";
 
 import { AllocationCard } from "./components/allocationCard";
 import { DatabaseIcon } from "./icons/databaseIcon";
+import { ExitQueueIcon } from "./icons/exitQueueIcon";
 import { PieChartIcon } from "./icons/pieChartIcon";
+import { StakingIcon } from "./icons/stakingIcon";
 import {
   assignColor,
   toReserveBufferAmount,
@@ -29,6 +33,11 @@ export const Analytics = function () {
     isError: isTotalsError,
     isLoading: isTotalsLoading,
   } = useAnalyticsTotals();
+  const {
+    data: exitQueue,
+    isError: isExitQueueError,
+    isLoading: isExitQueueLoading,
+  } = useVariableStakeExitQueue();
   const { data: vusd } = useVusd();
   const {
     data: whitelistedTokens,
@@ -40,8 +49,19 @@ export const Analytics = function () {
   const isTokensError = isTreasuryError || isWhitelistedTokensError;
   const tokens = { treasuryTokens: treasury, whitelistedTokens };
 
-  const tvlValue = totals
-    ? formatUsd(Number(formatUnits(BigInt(totals.vusdMinted), vusd.decimals)))
+  const [tvlValue, stakedValue] = totals
+    ? [
+        formatUsd(
+          Number(formatUnits(BigInt(totals.vusdMinted), vusd.decimals)),
+        ),
+        formatUsd(
+          Number(formatUnits(BigInt(totals.vusdStaked), vusd.decimals)),
+        ),
+      ]
+    : ["", ""];
+
+  const exitQueueValue = exitQueue
+    ? formatUsd(Number(formatUnits(exitQueue.vusdInCooldown, vusd.decimals)))
     : "";
 
   const yieldItems = toYieldItems(tokens);
@@ -61,7 +81,7 @@ export const Analytics = function () {
   return (
     <div className="flex flex-col">
       <PageTitle value={t("pages.analytics.title")} />
-      <div className="flex flex-col border-t border-gray-200 md:flex-row md:divide-x md:divide-gray-200">
+      <div className="flex flex-col border-t border-gray-200 bg-gray-100 md:flex-row md:divide-x md:divide-gray-200">
         <AllocationCard
           icon={<DatabaseIcon />}
           isError={isTokensError || isTotalsError}
@@ -77,6 +97,25 @@ export const Analytics = function () {
           items={bufferItem ? [...yieldItems, bufferItem] : yieldItems}
           label={t("pages.analytics.yield-label")}
           value={yieldValue}
+        />
+      </div>
+      <div className="bg-gray-100">
+        <StripedDivider />
+      </div>
+      <div className="flex flex-col border-y border-gray-200 bg-gray-100 md:flex-row md:divide-x md:divide-gray-200">
+        <AllocationCard
+          icon={<StakingIcon />}
+          isError={isTotalsError}
+          isLoading={isTotalsLoading}
+          label={t("pages.analytics.staked-label")}
+          value={stakedValue}
+        />
+        <AllocationCard
+          icon={<ExitQueueIcon />}
+          isError={isExitQueueError}
+          isLoading={isExitQueueLoading}
+          label={t("pages.analytics.exit-queue-label")}
+          value={exitQueueValue}
         />
       </div>
     </div>
