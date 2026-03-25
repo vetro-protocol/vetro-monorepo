@@ -1,4 +1,8 @@
 {
+  "common": {
+    "approve-10x": "Approve 10x",
+    "approve-10x-tooltip": "Approves up to 10× your transaction amount, reducing future approval steps. You can revoke it anytime."
+  },
   "language": {
     "switch-to": "Switch to Spanish"
   },
@@ -270,8 +274,6 @@
       },
       "form": {
         "allowance-error": "Error loading allowance",
-        "approve-10x": "Approve 10x",
-        "approve-10x-tooltip": "Approves up to 10× your swap amount, reducing future approval steps. You can revoke it anytime.",
         "balance": "Balance",
         "connect-wallet": "Connect wallet",
         "enter-amount": "Enter an amount",

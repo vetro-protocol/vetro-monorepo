@@ -46,12 +46,12 @@ export const ApproveSection = function ({
         className={`text-xsm flex cursor-default items-center gap-x-1 py-3 ${contentPaddingClasses[contentPadding]}`}
       >
         <span className="font-semibold text-gray-900">
-          {t("pages.swap.form.approve-10x")}
+          {t("common.approve-10x")}
         </span>
         <Tooltip
           content={
             <span className="block max-w-64">
-              {t("pages.swap.form.approve-10x-tooltip")}
+              {t("common.approve-10x-tooltip")}
             </span>
           }
         >
