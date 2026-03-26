@@ -12,8 +12,7 @@ import {
   stepStatus,
 } from "components/base/verticalStepper";
 import { hasSufficientGas } from "components/borrow/utils";
-import { FeeDetails } from "components/feeDetails";
-import { FeesContainer } from "components/feesContainer";
+import { NetworkFees } from "components/networkFees";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenInput } from "components/tokenInput";
 import { Balance } from "components/tokenInput/balance";
@@ -22,7 +21,7 @@ import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import type { MarketData } from "hooks/borrow/useMarketData";
 import { usePositionInfo } from "hooks/borrow/usePositionInfo";
 import { useSupplyCollateral } from "hooks/borrow/useSupplyCollateral";
-import { useSupplyCollateralFees } from "hooks/borrow/useSupplyCollateralFees";
+import { useTotalSupplyCollateralFees } from "hooks/borrow/useSupplyCollateralFees";
 import { useSupplyCollateralReview } from "hooks/borrow/useSupplyCollateralReview";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useAmount } from "hooks/useAmount";
@@ -242,10 +241,11 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
 
   const { data: positionInfo } = usePositionInfo(marketId);
 
-  const networkFee = useSupplyCollateralFees({
-    collateralAmount: collateralAmountBigInt,
-    collateralToken,
+  const networkFee = useTotalSupplyCollateralFees({
+    amount: collateralAmountBigInt,
+    approveAmount: undefined,
     marketId,
+    token: collateralToken,
   });
 
   const { onCompleted, onFailed, onPending, onTransactionHash } =
@@ -402,13 +402,7 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
             sufficientGas={sufficientGas}
           />
         </div>
-        <FeesContainer isError={networkFee.isError} totalFees={networkFee.data}>
-          <FeeDetails
-            isError={networkFee.isError}
-            label={t("pages.swap.fees.network-fee")}
-            value={networkFee.data}
-          />
-        </FeesContainer>
+        <NetworkFees networkFee={networkFee} />
         <div className="border-t border-gray-200 px-6 py-2">
           <PositionReview
             borrowApy={market.borrowApy}
