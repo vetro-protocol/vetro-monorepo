@@ -1,5 +1,5 @@
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
-import type { QueryStatus } from "@tanstack/react-query";
+import type { FetchStatus, QueryStatus } from "@tanstack/react-query";
 import { TopSection } from "components/base/table/topSection";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useGetRedeemRequest } from "hooks/useGetRedeemRequest";
@@ -95,6 +95,7 @@ export function RedeemVault({ whitelistedTokens }: Props) {
 
   const networkFee = {
     data: networkFeeQueryData.fees,
+    fetchStatus: (amountBigInt > 0n ? "fetching" : "idle") as FetchStatus,
     status: (networkFeeQueryData.isError ? "error" : "pending") as QueryStatus,
   };
 
