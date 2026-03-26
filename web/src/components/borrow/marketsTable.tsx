@@ -127,7 +127,7 @@ export function MarketsTable({ marketIds }: Props) {
   );
 
   return (
-    <>
+    <div className="border-t border-gray-200">
       <TopSection title={t("pages.borrow.markets-title")} />
       <Table
         columns={columns}
@@ -135,6 +135,6 @@ export function MarketsTable({ marketIds }: Props) {
         loading={isLoading}
         onRowClick={handleRowClick}
       />
-    </>
+    </div>
   );
 }
