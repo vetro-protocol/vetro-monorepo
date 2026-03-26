@@ -14,4 +14,4 @@ git show --no-patch --pretty=fuller "$MERGE_HASH"
 
 SUBGRAPH_NAME=${npm_package_name:-$(jq -r '.name' <package.json)}
 SUBGRAPH_VERSION=${npm_package_version:-$(jq -r '.version' <package.json)}
-echo git tag -s -m "" "$SUBGRAPH_NAME@$SUBGRAPH_VERSION" "$MERGE_HASH"
+git tag -s -m "" "$SUBGRAPH_NAME@$SUBGRAPH_VERSION" "$MERGE_HASH"
