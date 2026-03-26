@@ -16,7 +16,7 @@ export function SwapFormSkeleton() {
     <>
       <div className="flex w-full justify-center border-y border-gray-200 bg-gray-100">
         <div className="xs:border-x flex w-full max-w-md flex-col gap-0.5 border-gray-200 bg-white pt-2">
-          <div className="md:px-2">
+          <div className="px-2">
             <TokenInput
               balance={
                 <Balance label={t("pages.swap.form.balance")} value="-" />
@@ -33,7 +33,7 @@ export function SwapFormSkeleton() {
             <SwapToggleButton />
           </div>
 
-          <div className="md:px-2">
+          <div className="px-2">
             <TokenInput
               balance={
                 <Balance label={t("pages.swap.form.balance")} value="-" />
