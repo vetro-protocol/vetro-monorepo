@@ -14,9 +14,9 @@ import { NavBarLinks } from "./navbar/links";
 import { WalletDrawer } from "./walletDrawer";
 
 const VetroLogo = () => (
-  <I18nLink to="/swap">
-    <img alt="Vetro Logo" className="mr-auto md:hidden" src={vetroLogoMobile} />
-    <img alt="Vetro Logo" className="mr-auto max-md:hidden" src={vetroLogo} />
+  <I18nLink className="mr-auto flex items-center" to="/swap">
+    <img alt="Vetro Logo" className="md:hidden" src={vetroLogoMobile} />
+    <img alt="Vetro Logo" className="max-md:hidden" src={vetroLogo} />
   </I18nLink>
 );
 
