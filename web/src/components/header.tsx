@@ -5,6 +5,7 @@ import { formatEvmAddress } from "utils/format";
 import { useAccount } from "wagmi";
 
 import { Button, ButtonIcon } from "./base/button";
+import { I18nLink } from "./base/i18nLink";
 import hamburgerIcon from "./icons/hamburger.svg";
 import vetroLogo from "./icons/vetroLogo.svg";
 import vetroLogoMobile from "./icons/vetroLogoMobile.svg";
@@ -13,10 +14,10 @@ import { NavBarLinks } from "./navbar/links";
 import { WalletDrawer } from "./walletDrawer";
 
 const VetroLogo = () => (
-  <>
+  <I18nLink to="/swap">
     <img alt="Vetro Logo" className="mr-auto md:hidden" src={vetroLogoMobile} />
     <img alt="Vetro Logo" className="mr-auto max-md:hidden" src={vetroLogo} />
-  </>
+  </I18nLink>
 );
 
 export function Header() {
