@@ -15,6 +15,8 @@ type QueryOptions<TSelect = Prices> = Omit<
   "queryKey" | "queryFn"
 >;
 
+const tokenPricesQueryKey = () => ["token-price"] as const;
+
 export const tokenPricesOptions = <TSelect = Prices>(
   options: QueryOptions<TSelect> = {} as QueryOptions<TSelect>,
 ) =>
@@ -22,7 +24,7 @@ export const tokenPricesOptions = <TSelect = Prices>(
     enabled: apiUrl !== undefined && isValidUrl(apiUrl),
     queryFn: () =>
       fetch(`${apiUrl}/prices`).then(({ prices }) => prices as Prices),
-    queryKey: ["token-price"] as const,
+    queryKey: tokenPricesQueryKey(),
     refetchInterval: 60 * 1000, // 1 minute
     retry: 2,
     staleTime: 30 * 1000, // 30 seconds

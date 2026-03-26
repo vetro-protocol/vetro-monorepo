@@ -1,91 +1,193 @@
-import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
-import { getChainAddresses } from "@morpho-org/blue-sdk";
+import {
+  type QueryClient,
+  queryOptions,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { fetchSupplyAndBorrowGasUnits } from "fetchers/fetchSupplyAndBorrowGasUnits";
+import { fetchTotalSupplyAndBorrowFees } from "fetchers/fetchTotalSupplyAndBorrowFees";
+import { useEthereumClient } from "hooks/useEthereumClient";
 import { useMainnet } from "hooks/useMainnet";
-import { useNetworkFee } from "hooks/useNetworkFee";
 import type { Token } from "types";
-import { sumFees } from "utils/fees";
-import { createMorphoCollateralStateOverride } from "utils/morphoStateOverride";
-import { type Hash } from "viem";
+import { type Address, type Chain, type Client, type Hash } from "viem";
 import { useAccount } from "wagmi";
 
-import { useEstimateBorrowFees } from "./useEstimateBorrowFees";
-import { useEstimateSupplyCollateralFees } from "./useEstimateSupplyCollateralFees";
-
-type Params = {
+const supplyAndBorrowGasUnitsQueryKey = ({
+  borrowAmount,
+  chainId,
+  collateralAmount,
+  collateralToken,
+  marketId,
+  owner,
+}: {
   borrowAmount: bigint;
+  chainId: Chain["id"];
   collateralAmount: bigint;
-  collateralToken: Token;
+  collateralToken: Token | undefined;
   marketId: Hash;
-  maxBorrowable: bigint | undefined;
-};
+  owner: Address | undefined;
+}) => [
+  "borrow-supply-and-borrow-gas-units",
+  chainId,
+  marketId,
+  collateralToken?.address,
+  owner,
+  borrowAmount.toString(),
+  collateralAmount.toString(),
+];
 
-export function useSupplyAndBorrowFees({
+export const supplyAndBorrowGasUnitsOptions = ({
+  approveAmount,
+  borrowAmount,
+  chainId,
+  client,
+  collateralAmount,
+  collateralToken,
+  marketId,
+  owner,
+  queryClient,
+}: {
+  approveAmount: bigint | undefined;
+  borrowAmount: bigint;
+  chainId: Chain["id"];
+  client: Client | undefined;
+  collateralAmount: bigint;
+  collateralToken: Token | undefined;
+  marketId: Hash;
+  owner: Address | undefined;
+  queryClient: QueryClient;
+}) =>
+  queryOptions({
+    enabled:
+      !!client &&
+      !!owner &&
+      !!collateralToken &&
+      borrowAmount > 0n &&
+      collateralAmount > 0n,
+    queryFn: () =>
+      fetchSupplyAndBorrowGasUnits({
+        approveAmount,
+        borrowAmount,
+        client: client!,
+        collateralAmount,
+        collateralToken: collateralToken!,
+        marketId,
+        owner: owner!,
+        queryClient,
+      }),
+    queryKey: supplyAndBorrowGasUnitsQueryKey({
+      borrowAmount,
+      chainId,
+      collateralAmount,
+      collateralToken,
+      marketId,
+      owner,
+    }),
+  });
+
+const totalSupplyAndBorrowFeesQueryKey = ({
+  borrowAmount,
+  chainId,
+  collateralAmount,
+  collateralToken,
+  marketId,
+  owner,
+}: {
+  borrowAmount: bigint;
+  chainId: Chain["id"];
+  collateralAmount: bigint;
+  collateralToken: Token | undefined;
+  marketId: Hash;
+  owner: Address | undefined;
+}) => [
+  "total-supply-and-borrow-fees",
+  chainId,
+  marketId,
+  collateralToken?.address,
+  owner,
+  borrowAmount.toString(),
+  collateralAmount.toString(),
+];
+
+const totalSupplyAndBorrowFeesOptions = ({
+  approveAmount,
+  borrowAmount,
+  chain,
+  client,
+  collateralAmount,
+  collateralToken,
+  marketId,
+  owner,
+  queryClient,
+}: {
+  approveAmount: bigint | undefined;
+  borrowAmount: bigint;
+  chain: Chain;
+  client: Client | undefined;
+  collateralAmount: bigint;
+  collateralToken: Token | undefined;
+  marketId: Hash;
+  owner: Address | undefined;
+  queryClient: QueryClient;
+}) =>
+  queryOptions({
+    enabled:
+      !!client &&
+      !!owner &&
+      !!collateralToken &&
+      borrowAmount > 0n &&
+      collateralAmount > 0n,
+    queryFn: () =>
+      fetchTotalSupplyAndBorrowFees({
+        approveAmount,
+        borrowAmount,
+        chain,
+        client: client!,
+        collateralAmount,
+        collateralToken: collateralToken!,
+        marketId,
+        owner: owner!,
+        queryClient,
+      }),
+    queryKey: totalSupplyAndBorrowFeesQueryKey({
+      borrowAmount,
+      chainId: chain.id,
+      collateralAmount,
+      collateralToken,
+      marketId,
+      owner,
+    }),
+  });
+
+export const useTotalSupplyAndBorrowFees = function ({
+  approveAmount,
   borrowAmount,
   collateralAmount,
   collateralToken,
   marketId,
-  maxBorrowable,
-}: Params) {
+}: {
+  approveAmount: bigint | undefined;
+  borrowAmount: bigint;
+  collateralAmount: bigint;
+  collateralToken: Token | undefined;
+  marketId: Hash;
+}) {
+  const { address: owner } = useAccount();
+  const client = useEthereumClient();
   const ethereumChain = useMainnet();
-  const { address } = useAccount();
-  const morphoAddress = getChainAddresses(ethereumChain.id).morpho;
+  const queryClient = useQueryClient();
 
-  const { data: collateralBalance } = useTokenBalance({
-    address: collateralToken.address,
-    chainId: collateralToken.chainId,
-  });
-
-  const hasEnoughBalance =
-    collateralBalance !== undefined && collateralBalance >= collateralAmount;
-
-  const withinBorrowLimit =
-    maxBorrowable === undefined || borrowAmount <= maxBorrowable;
-
-  const canEstimate = [
-    borrowAmount > 0n,
-    collateralAmount > 0n,
-    !!address,
-    hasEnoughBalance,
-    withinBorrowLimit,
-  ].every(Boolean);
-
-  const { fees: supplyCollateralFees, isError: isSupplyCollateralError } =
-    useEstimateSupplyCollateralFees({
-      canEstimate,
+  return useQuery(
+    totalSupplyAndBorrowFeesOptions({
+      approveAmount,
+      borrowAmount,
+      chain: ethereumChain,
+      client,
       collateralAmount,
       collateralToken,
       marketId,
-    });
-
-  const borrowStateOverride = createMorphoCollateralStateOverride({
-    collateralAmount,
-    marketId,
-    morphoAddress,
-    user: address,
-  });
-
-  const { fees: borrowFees, isError: isBorrowFeeError } = useEstimateBorrowFees(
-    {
-      borrowAmount,
-      canEstimate,
-      marketId,
-      stateOverride: borrowStateOverride,
-    },
+      owner,
+      queryClient,
+    }),
   );
-
-  const totalFees = sumFees([supplyCollateralFees, borrowFees]);
-
-  const hasUserInput =
-    borrowAmount > 0n &&
-    collateralAmount > 0n &&
-    hasEnoughBalance &&
-    withinBorrowLimit;
-
-  const isError = isSupplyCollateralError || isBorrowFeeError;
-
-  return useNetworkFee({
-    fees: totalFees,
-    isEnabled: hasUserInput,
-    isError,
-  });
-}
+};

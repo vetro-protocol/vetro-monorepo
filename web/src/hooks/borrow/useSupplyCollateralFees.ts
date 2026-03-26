@@ -1,46 +1,166 @@
-import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
-import { useNetworkFee } from "hooks/useNetworkFee";
+import {
+  type QueryClient,
+  queryOptions,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { fetchSupplyCollateralGasUnits } from "fetchers/fetchSupplyCollateralGasUnits";
+import { fetchTotalSupplyCollateralFees } from "fetchers/fetchTotalSupplyCollateralFees";
+import { useEthereumClient } from "hooks/useEthereumClient";
+import { useMainnet } from "hooks/useMainnet";
 import type { Token } from "types";
-import type { Hash } from "viem";
+import { type Address, type Chain, type Client, type Hash } from "viem";
 import { useAccount } from "wagmi";
 
-import { useEstimateSupplyCollateralFees } from "./useEstimateSupplyCollateralFees";
-
-type Params = {
-  collateralAmount: bigint;
-  collateralToken: Token;
-  marketId: Hash;
-};
-
-export function useSupplyCollateralFees({
-  collateralAmount,
-  collateralToken,
+const supplyCollateralGasUnitsQueryKey = ({
+  amount,
+  chainId,
   marketId,
-}: Params) {
-  const { address } = useAccount();
+  owner,
+  token,
+}: {
+  amount: bigint;
+  chainId: Chain["id"];
+  marketId: Hash;
+  owner: Address | undefined;
+  token: Token | undefined;
+}) => [
+  "borrow-supply-collateral-gas-units",
+  chainId,
+  marketId,
+  token?.address,
+  owner,
+  amount.toString(),
+];
 
-  const { data: collateralBalance } = useTokenBalance({
-    address: collateralToken.address,
-    chainId: collateralToken.chainId,
+export const supplyCollateralGasUnitsOptions = ({
+  amount,
+  approveAmount,
+  chainId,
+  client,
+  marketId,
+  owner,
+  queryClient,
+  token,
+}: {
+  amount: bigint;
+  approveAmount: bigint | undefined;
+  chainId: Chain["id"];
+  client: Client | undefined;
+  marketId: Hash;
+  owner: Address | undefined;
+  queryClient: QueryClient;
+  token: Token | undefined;
+}) =>
+  queryOptions({
+    enabled: !!client && !!owner && !!token && amount > 0n,
+    queryFn: () =>
+      fetchSupplyCollateralGasUnits({
+        amount,
+        approveAmount,
+        client: client!,
+        marketId,
+        owner: owner!,
+        queryClient,
+        token: token!,
+      }),
+    queryKey: supplyCollateralGasUnitsQueryKey({
+      amount,
+      chainId,
+      marketId,
+      owner,
+      token,
+    }),
   });
 
-  const hasUserInput = collateralAmount > 0n;
+const totalSupplyCollateralFeesQueryKey = ({
+  amount,
+  chainId,
+  marketId,
+  owner,
+  token,
+}: {
+  amount: bigint;
+  chainId: Chain["id"];
+  marketId: Hash;
+  owner: Address | undefined;
+  token: Token | undefined;
+}) => [
+  "total-supply-collateral-fees",
+  chainId,
+  marketId,
+  token?.address,
+  owner,
+  amount.toString(),
+];
 
-  const hasEnoughBalance =
-    collateralBalance !== undefined && collateralBalance >= collateralAmount;
-
-  const canEstimate = hasUserInput && !!address && hasEnoughBalance;
-
-  const { fees, isError } = useEstimateSupplyCollateralFees({
-    canEstimate,
-    collateralAmount,
-    collateralToken,
-    marketId,
+const totalSupplyCollateralFeesOptions = ({
+  amount,
+  approveAmount,
+  chain,
+  client,
+  marketId,
+  owner,
+  queryClient,
+  token,
+}: {
+  amount: bigint;
+  approveAmount: bigint | undefined;
+  chain: Chain;
+  client: Client | undefined;
+  marketId: Hash;
+  owner: Address | undefined;
+  queryClient: QueryClient;
+  token: Token | undefined;
+}) =>
+  queryOptions({
+    enabled: !!client && !!owner && !!token && amount > 0n,
+    queryFn: () =>
+      fetchTotalSupplyCollateralFees({
+        amount,
+        approveAmount,
+        chain,
+        client: client!,
+        marketId,
+        owner: owner!,
+        queryClient,
+        token: token!,
+      }),
+    queryKey: totalSupplyCollateralFeesQueryKey({
+      amount,
+      chainId: chain.id,
+      marketId,
+      owner,
+      token,
+    }),
   });
 
-  return useNetworkFee({
-    fees,
-    isEnabled: hasUserInput && hasEnoughBalance,
-    isError,
-  });
-}
+export const useTotalSupplyCollateralFees = function ({
+  amount,
+  approveAmount,
+  marketId,
+  token,
+}: {
+  amount: bigint;
+  approveAmount: bigint | undefined;
+  marketId: Hash;
+  token: Token | undefined;
+}) {
+  const { address: owner } = useAccount();
+  const client = useEthereumClient();
+  const ethereumChain = useMainnet();
+  const queryClient = useQueryClient();
+
+  return useQuery(
+    totalSupplyCollateralFeesOptions({
+      amount,
+      approveAmount,
+      chain: ethereumChain,
+      client,
+      marketId,
+      owner,
+      queryClient,
+      token,
+    }),
+  );
+};
