@@ -4,6 +4,7 @@
   "workspaces": {
     "subgraph": {
       "entry": ["src/earn.ts", "tests/*.test.ts"],
+      "ignoreBinaries": ["scripts/tag-subgraph.sh"],
       "ignoreDependencies": ["assemblyscript"]
     }
   }
