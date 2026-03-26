@@ -15,7 +15,9 @@
   },
   "pages": {
     "analytics": {
+      "exit-queue-label": "Total VUSD on withdrawn cooldown",
       "reserve-buffer-label": "Reserve buffer",
+      "staked-label": "Total VUSD staked",
       "title": "Monitor protocol analytics",
       "tvl-label": "Total Value Locked (TVL)",
       "yield-label": "Yield allocation",

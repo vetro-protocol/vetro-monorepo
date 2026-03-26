@@ -10,7 +10,7 @@ type Props = {
   icon: ReactNode;
   isError: boolean;
   isLoading: boolean;
-  items: AllocationItem[];
+  items?: AllocationItem[];
   label: string;
   value: string;
 };
@@ -43,20 +43,24 @@ export const AllocationCard = function ({
           <h3 className="text-h3 text-gray-900">{renderValue()}</h3>
         </div>
       </div>
-      <AllocationChart
-        hoveredLabel={hoveredLabel}
-        isError={isError}
-        isLoading={isLoading}
-        items={items}
-        onHover={setHoveredLabel}
-      />
-      <AllocationLegend
-        hoveredLabel={hoveredLabel}
-        isError={isError}
-        isLoading={isLoading}
-        items={items}
-        onHover={setHoveredLabel}
-      />
+      {items !== undefined && (
+        <>
+          <AllocationChart
+            hoveredLabel={hoveredLabel}
+            isError={isError}
+            isLoading={isLoading}
+            items={items}
+            onHover={setHoveredLabel}
+          />
+          <AllocationLegend
+            hoveredLabel={hoveredLabel}
+            isError={isError}
+            isLoading={isLoading}
+            items={items}
+            onHover={setHoveredLabel}
+          />
+        </>
+      )}
     </div>
   );
 };
