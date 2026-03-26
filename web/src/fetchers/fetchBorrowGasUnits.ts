@@ -14,6 +14,7 @@ import { estimateGas } from "viem/actions";
 export const fetchBorrowGasUnits = async function ({
   amount,
   client,
+  collateralInput = 0n,
   marketId,
   owner,
   queryClient,
@@ -21,6 +22,7 @@ export const fetchBorrowGasUnits = async function ({
 }: {
   amount: bigint;
   client: Client;
+  collateralInput?: bigint;
   marketId: Hash;
   owner: Address;
   queryClient: QueryClient;
@@ -40,7 +42,7 @@ export const fetchBorrowGasUnits = async function ({
 
   const maxBorrowableAmount = getMaxBorrowable({
     borrowShares: position.borrowShares,
-    collateral: position.collateral,
+    collateral: position.collateral + collateralInput,
     market: morphoMarket,
   });
 

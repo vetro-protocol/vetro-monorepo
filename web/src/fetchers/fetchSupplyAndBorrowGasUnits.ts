@@ -43,6 +43,7 @@ export const fetchSupplyAndBorrowGasUnits = async function ({
     fetchBorrowGasUnits({
       amount: borrowAmount,
       client,
+      collateralInput: collateralAmount,
       marketId,
       owner,
       queryClient,

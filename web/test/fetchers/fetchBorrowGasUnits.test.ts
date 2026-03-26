@@ -73,6 +73,26 @@ describe("fetchBorrowGasUnits", function () {
     expect(result).toBe(borrowGas);
   });
 
+  it("includes collateralInput in borrow limit check", async function () {
+    const borrowGas = 150000n;
+    const queryClient = createPrepopulatedQueryClient({
+      position: { borrowShares: 0n, collateral: 0n },
+    });
+
+    vi.mocked(estimateGas).mockResolvedValue(borrowGas);
+
+    const result = await fetchBorrowGasUnits({
+      amount: 100n,
+      client: mockClient,
+      collateralInput: 1000000n,
+      marketId: zeroHash,
+      owner: mockOwner,
+      queryClient,
+    });
+
+    expect(result).toBe(borrowGas);
+  });
+
   it("throws when amount exceeds borrow limit", async function () {
     const queryClient = createPrepopulatedQueryClient({
       morphoMarket: createMockMorphoMarket({ maxBorrow: 50n }),

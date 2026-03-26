@@ -51,6 +51,9 @@ describe("fetchSupplyAndBorrowGasUnits", function () {
     });
 
     expect(result).toBe(supplyGas + borrowGas);
+    expect(fetchBorrowGasUnits).toHaveBeenCalledWith(
+      expect.objectContaining({ collateralInput: 100n }),
+    );
   });
 
   it("handles zero supply gas", async function () {
