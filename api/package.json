@@ -8,6 +8,8 @@
     "types:check": "pnpm types && tsc"
   },
   "dependencies": {
+    "@vetro/gateway": "workspace:*",
+    "@vetro/treasury": "workspace:*",
     "hono": "4.11.9",
     "simple-linear-regression": "1.0.3",
     "tiny-fetch-json": "2.0.1",

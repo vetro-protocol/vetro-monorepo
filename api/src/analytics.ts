@@ -1,3 +1,11 @@
+import { getGatewayAddress } from "@vetro/gateway";
+import { getTreasury } from "@vetro/gateway/actions";
+import {
+  getPrice,
+  getTokenConfig,
+  getWhitelistedTokens,
+  getWithdrawable,
+} from "@vetro/treasury/actions";
 import { createPublicClient, http } from "viem";
 import { mainnet } from "viem/chains";
 
@@ -8,15 +16,7 @@ import {
   getTotalDebt,
   getVaultName,
 } from "./vesper.ts";
-import {
-  getPrice,
-  getTokenConfig,
-  getTreasury,
-  getWhitelistedTokens,
-  getWithdrawable,
-  sVusdAddress,
-  vusdAddress,
-} from "./vusd.ts";
+import { sVusdAddress, vusdAddress } from "./vusd.ts";
 
 /**
  * Get the total VUSD minted and staked to calculate the TVL in the protocol.
@@ -51,14 +51,25 @@ export async function getTreasuryComposition({
     chain: mainnet,
     transport: http(url),
   });
-  const treasuryAddress = await getTreasury(client);
-  const whitelistedTokens = await getWhitelistedTokens(client, treasuryAddress);
+  const gatewayAddress = getGatewayAddress(mainnet.id);
+  const treasuryAddress = await getTreasury(client, {
+    address: gatewayAddress,
+  });
+  const whitelistedTokens = await getWhitelistedTokens(client, {
+    address: treasuryAddress,
+  });
   return Promise.all(
     whitelistedTokens.map(async function (tokenAddress) {
       const [[vaultAddress], withdrawable, [latestPrice]] = await Promise.all([
-        getTokenConfig(client, treasuryAddress, tokenAddress),
-        getWithdrawable(client, treasuryAddress, tokenAddress),
-        getPrice(client, treasuryAddress, tokenAddress),
+        getTokenConfig(client, {
+          address: treasuryAddress,
+          token: tokenAddress,
+        }),
+        getWithdrawable(client, {
+          address: treasuryAddress,
+          token: tokenAddress,
+        }),
+        getPrice(client, { address: treasuryAddress, token: tokenAddress }),
       ]);
       const [strategies, totalDebt] = await Promise.all([
         getStrategies(client, vaultAddress),

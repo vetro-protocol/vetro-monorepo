@@ -44,6 +44,12 @@ importers:
 
   api:
     dependencies:
+      '@vetro/gateway':
+        specifier: workspace:*
+        version: link:../packages/gateway
+      '@vetro/treasury':
+        specifier: workspace:*
+        version: link:../packages/treasury
       hono:
         specifier: 4.11.9
         version: 4.11.9
