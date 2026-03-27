@@ -9,8 +9,11 @@ type Props = {
   stretch?: boolean;
 };
 
+const getTooltipContainer = (node: HTMLElement) => node.parentElement!;
+
 export const Tooltip = ({ children, content, stretch = false }: Props) => (
   <RcTooltip
+    getTooltipContainer={getTooltipContainer}
     overlay={
       <div className="text-b-medium max-w-xs rounded-md bg-gray-900 px-1.5 py-1 text-white">
         {content}
