@@ -44,6 +44,12 @@ importers:
 
   api:
     dependencies:
+      '@vetro/gateway':
+        specifier: workspace:*
+        version: link:../packages/gateway
+      '@vetro/treasury':
+        specifier: workspace:*
+        version: link:../packages/treasury
       hono:
         specifier: 4.11.9
         version: 4.11.9
@@ -145,6 +151,24 @@ importers:
         specifier: 4.0.18
         version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.0.9)(jiti@2.6.1)(lightningcss@1.30.2)(yaml@2.8.2)
 
+  packages/treasury:
+    devDependencies:
+      '@tsconfig/node24':
+        specifier: 24.0.4
+        version: 24.0.4
+      '@vitest/coverage-v8':
+        specifier: 4.0.18
+        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.0.9)(jiti@2.6.1)(lightningcss@1.30.2)(yaml@2.8.2))
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+      viem:
+        specifier: 2.44.4
+        version: 2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)
+      vitest:
+        specifier: 4.0.18
+        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.0.9)(jiti@2.6.1)(lightningcss@1.30.2)(yaml@2.8.2)
+
   subgraph:
     dependencies:
       '@graphprotocol/graph-cli':
@@ -193,6 +217,9 @@ importers:
       '@vetro/morpho-blue-market':
         specifier: workspace:*
         version: link:../packages/morpho-blue-market
+      '@vetro/treasury':
+        specifier: workspace:*
+        version: link:../packages/treasury
       crypto-shortener:
         specifier: 1.2.0
         version: 1.2.0
