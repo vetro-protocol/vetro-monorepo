@@ -16,6 +16,7 @@ import { useAccount } from "wagmi";
 import { useEthereumWalletClient } from "../useEthereumWalletClient";
 import { useMainnet } from "../useMainnet";
 
+import { atRiskPositionsQueryKey } from "./useAtRiskPositions";
 import { type MarketData, marketDataQueryKey } from "./useMarketData";
 import { morphoMarketOptions, morphoMarketQueryKey } from "./useMorphoMarket";
 import { positionInfoQueryKey } from "./usePositionInfo";
@@ -157,6 +158,13 @@ export const useBorrowMoreAssets = function ({
         queryKey: marketDataQueryKey({
           chainId: ethereumChain.id,
           marketId,
+        }),
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: atRiskPositionsQueryKey({
+          account,
+          chainId: ethereumChain.id,
         }),
       });
     },
