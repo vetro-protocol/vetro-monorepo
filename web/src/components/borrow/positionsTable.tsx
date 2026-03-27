@@ -8,9 +8,11 @@ import {
   type PositionData,
   usePositionsData,
 } from "hooks/borrow/usePositionsData";
+import { useScrollToHash } from "hooks/useScrollToHash";
 import { useTokenPrices } from "hooks/useTokenPrices";
 import { lazy, Suspense, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { isPositionAtRisk } from "utils/borrowPosition";
 import {
   calculateDailyInterestCost,
   formatHealthFactor,
@@ -51,8 +53,6 @@ const WithdrawCollateralDrawerForm = lazy(() =>
   })),
 );
 
-const LIQUIDATION_WARNING_THRESHOLD = 1.1;
-
 type PositionRow = MarketData & PositionData;
 
 type Props = {
@@ -60,6 +60,7 @@ type Props = {
 };
 
 export function PositionsTable({ marketIds }: Props) {
+  const ref = useScrollToHash("borrow-positions");
   const { t } = useTranslation();
   const { data: marketsData, isLoading: isMarketsLoading } =
     useMarketsData(marketIds);
@@ -227,13 +228,12 @@ export function PositionsTable({ marketIds }: Props) {
     if (!row) {
       return null;
     }
-    const hf = formatHealthFactor(row.healthFactor);
-    if (hf === null || hf > LIQUIDATION_WARNING_THRESHOLD) {
+    if (!isPositionAtRisk(row.healthFactor)) {
       return null;
     }
     return (
       <LiquidationWarning
-        healthFactor={hf}
+        healthFactor={formatHealthFactor(row.healthFactor)!}
         lltv={row.lltv}
         marketId={row.marketId}
       />
@@ -241,7 +241,7 @@ export function PositionsTable({ marketIds }: Props) {
   };
 
   return (
-    <>
+    <div id="borrow-positions" ref={ref}>
       <TopSection title={t("pages.borrow.positions-title")} />
       <Table
         columns={columns}
@@ -286,6 +286,6 @@ export function PositionsTable({ marketIds }: Props) {
           )}
         </>
       )}
-    </>
+    </div>
   );
 }
