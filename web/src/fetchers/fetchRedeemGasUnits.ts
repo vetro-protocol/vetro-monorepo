@@ -1,7 +1,9 @@
+import { tokenBalanceQueryOptions } from "@hemilabs/react-hooks/useTokenBalance";
 import type { QueryClient } from "@tanstack/react-query";
 import { getGatewayAddress } from "@vetro/gateway";
 import { encodeRedeem } from "@vetro/gateway/actions";
 import { redeemDelayOptions } from "hooks/useRedeemDelay";
+import { treasuryReservesOptions } from "hooks/useTreasuryReserves";
 import type { Token } from "types";
 import { createErc20AllowanceStateOverride } from "utils/erc20StateOverride";
 import type { Address, Client } from "viem";
@@ -14,6 +16,8 @@ import { estimateApprovalGasUnits } from "./estimateApprovalGasUnits";
  * need an ERC-20 approval because tokens are sent directly to the gateway.
  * Two-step redeemers (redeemDelay > 0) skip the approval because their
  * tokens are already locked in the vault.
+ * Throws if the amount exceeds the user's token balance (instant redeem) or
+ * the treasury reserves for the output token (two-step redeem).
  */
 export const fetchRedeemGasUnits = async function ({
   amount,
@@ -34,17 +38,43 @@ export const fetchRedeemGasUnits = async function ({
   token: Token;
   tokenOut: Address;
 }) {
-  const gatewayAddress = getGatewayAddress(client.chain!.id);
+  const chainId = client.chain!.id;
+  const gatewayAddress = getGatewayAddress(chainId);
 
   const redeemDelay = await queryClient.ensureQueryData(
     redeemDelayOptions({
       account: owner,
-      chainId: client.chain!.id,
+      chainId,
       client,
       gatewayAddress,
       queryClient,
     }),
   );
+
+  // For instant redeems (redeemDelay === 0), tokens come from the user's
+  // wallet, so check the balance. For vault redeems (redeemDelay > 0),
+  // tokens are already locked in the contract.
+  if (redeemDelay === 0n) {
+    const balance = await queryClient.ensureQueryData(
+      tokenBalanceQueryOptions({
+        account: owner,
+        client,
+        token: { address: token.address, chainId },
+      }),
+    );
+
+    if (amount > balance) {
+      throw new Error("Insufficient token balance");
+    }
+  } else {
+    const reserves = await queryClient.ensureQueryData(
+      treasuryReservesOptions({ chainId, client, gatewayAddress, queryClient }),
+    );
+    const reserve = reserves.find((r) => r.token.address === tokenOut);
+    if (reserve && minAmountOut > reserve.amount) {
+      throw new Error("Insufficient treasury reserves");
+    }
+  }
 
   const operationGasPromise = estimateGas(client, {
     account: owner,

@@ -1,7 +1,12 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  queryOptions,
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from "@tanstack/react-query";
 import { getGatewayAddress } from "@vetro/gateway";
 import { fetchTreasuryReserves } from "fetchers/fetchTreasuryReserves";
-import type { Address, Chain } from "viem";
+import type { Address, Chain, Client } from "viem";
 
 import { useEthereumClient } from "./useEthereumClient";
 import { useMainnet } from "./useMainnet";
@@ -14,23 +19,36 @@ export const treasuryReservesQueryKey = ({
   gatewayAddress: Address;
 }) => ["treasury-reserves", chainId, gatewayAddress];
 
+export const treasuryReservesOptions = ({
+  chainId,
+  client,
+  gatewayAddress,
+  queryClient,
+}: {
+  chainId: Chain["id"];
+  client: Client;
+  gatewayAddress: Address;
+  queryClient: QueryClient;
+}) =>
+  queryOptions({
+    enabled: !!client?.chain,
+    queryFn: () =>
+      fetchTreasuryReserves({ client, gatewayAddress, queryClient }),
+    queryKey: treasuryReservesQueryKey({ chainId, gatewayAddress }),
+  });
+
 export const useTreasuryReserves = function () {
   const ethereumChain = useMainnet();
   const client = useEthereumClient();
   const gatewayAddress = getGatewayAddress(ethereumChain.id);
   const queryClient = useQueryClient();
 
-  return useQuery({
-    enabled: !!client?.chain,
-    queryFn: () =>
-      fetchTreasuryReserves({
-        client: client!,
-        gatewayAddress,
-        queryClient,
-      }),
-    queryKey: treasuryReservesQueryKey({
+  return useQuery(
+    treasuryReservesOptions({
       chainId: ethereumChain.id,
+      client: client!,
       gatewayAddress,
+      queryClient,
     }),
-  });
+  );
 };

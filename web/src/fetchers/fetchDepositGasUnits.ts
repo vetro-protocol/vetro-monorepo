@@ -1,3 +1,4 @@
+import { tokenBalanceQueryOptions } from "@hemilabs/react-hooks/useTokenBalance";
 import type { QueryClient } from "@tanstack/react-query";
 import { getStakingVaultAddress, stakingVaultAbi } from "@vetro/earn";
 import type { Token } from "types";
@@ -10,6 +11,7 @@ import { estimateApprovalGasUnits } from "./estimateApprovalGasUnits";
 /**
  * Estimates gas units for an earn deposit. Returns the total gas units
  * for the whole flow (approval + deposit).
+ * Throws if the amount exceeds the user's token balance.
  */
 export const fetchDepositGasUnits = async function ({
   amount,
@@ -26,7 +28,20 @@ export const fetchDepositGasUnits = async function ({
   queryClient: QueryClient;
   token: Token;
 }) {
-  const stakingVaultAddress = getStakingVaultAddress(client.chain!.id);
+  const chainId = client.chain!.id;
+  const stakingVaultAddress = getStakingVaultAddress(chainId);
+
+  const balance = await queryClient.ensureQueryData(
+    tokenBalanceQueryOptions({
+      account: owner,
+      client,
+      token,
+    }),
+  );
+
+  if (amount > balance) {
+    throw new Error("Insufficient token balance");
+  }
 
   const [approvalGas, depositGas] = await Promise.all([
     estimateApprovalGasUnits({

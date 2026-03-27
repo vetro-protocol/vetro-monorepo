@@ -1,3 +1,4 @@
+import { tokenBalanceQueryOptions } from "@hemilabs/react-hooks/useTokenBalance";
 import type { QueryClient } from "@tanstack/react-query";
 import { getGatewayAddress } from "@vetro/gateway";
 import { encodeDeposit } from "@vetro/gateway/actions";
@@ -12,6 +13,7 @@ import { estimateApprovalGasUnits } from "./estimateApprovalGasUnits";
  * Estimates gas units for minting. Minting always requires approving the
  * tokens sent to the gateway. Returns the total gas units for the whole flow
  * (approval + deposit).
+ * Throws if the amount exceeds the user's token balance.
  */
 export const fetchMintGasUnits = async function ({
   amount,
@@ -30,7 +32,20 @@ export const fetchMintGasUnits = async function ({
   queryClient: QueryClient;
   token: Token;
 }) {
-  const gatewayAddress = getGatewayAddress(client.chain!.id);
+  const chainId = client.chain!.id;
+  const gatewayAddress = getGatewayAddress(chainId);
+
+  const balance = await queryClient.ensureQueryData(
+    tokenBalanceQueryOptions({
+      account: owner,
+      client,
+      token,
+    }),
+  );
+
+  if (amount > balance) {
+    throw new Error("Insufficient token balance");
+  }
 
   const [approvalGas, mintGas] = await Promise.all([
     estimateApprovalGasUnits({
