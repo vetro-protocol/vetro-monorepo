@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 import type { Address } from "viem";
 
-import { OutputLabel } from "./outputLabel";
+import { OutputLabel, type UnitPreview } from "./outputLabel";
 import { SwapFees } from "./swapFees";
 import { TreasuryReserves } from "./treasuryReserves";
 
@@ -21,6 +21,7 @@ type Props = {
   steps: Step[];
   subtitle?: ReactNode;
   toToken?: Token;
+  unitPreview?: UnitPreview;
 } & Pick<
   ComponentProps<typeof SwapFees>,
   "networkFee" | "protocolFee" | "totalFees"
@@ -38,6 +39,7 @@ export function SwapProgressDrawer({
   subtitle,
   totalFees,
   toToken,
+  unitPreview,
 }: Props) {
   const { t } = useTranslation();
   const { render: renderRetry, show: showRetry } =
@@ -91,11 +93,14 @@ export function SwapProgressDrawer({
           fromToken={fromToken}
           networkFee={networkFee}
           outputLabel={
-            toToken !== undefined && oracleToken !== undefined ? (
+            toToken !== undefined &&
+            oracleToken !== undefined &&
+            unitPreview !== undefined ? (
               <OutputLabel
                 fromToken={fromToken}
                 oracleToken={oracleToken}
                 toToken={toToken}
+                unitPreview={unitPreview}
               />
             ) : null
           }

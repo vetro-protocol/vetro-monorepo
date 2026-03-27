@@ -9,6 +9,7 @@ import type { Token } from "types";
 import type { Address } from "viem";
 
 import { type ClaimRedeemFlowStatus } from "./claimRedeemProgressDrawer";
+import type { UnitPreview } from "./outputLabel";
 import type { SwapFees } from "./swapFees";
 
 const ClaimRedeemProgressDrawer = lazy(() =>
@@ -41,6 +42,7 @@ type Props = {
   outputValue: string;
   toToken: Token;
   inputError: InputError | undefined;
+  unitPreview: UnitPreview;
   whitelistedTokens: Token[];
 } & Pick<
   ComponentProps<typeof SwapFees>,
@@ -66,6 +68,7 @@ export function ClaimRedeemDrawer({
   protocolFee,
   totalFees,
   toToken,
+  unitPreview,
   whitelistedTokens,
 }: Props) {
   const { t } = useTranslation();
@@ -99,6 +102,7 @@ export function ClaimRedeemDrawer({
           onTokenChange={onTokenChange}
           oracleToken={oracleToken}
           outputBigInt={outputBigInt}
+          unitPreview={unitPreview}
           outputValue={outputValue}
           protocolFee={protocolFee}
           steps={steps}

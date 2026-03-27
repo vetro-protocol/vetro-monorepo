@@ -23,6 +23,7 @@ import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 import { applyBps } from "utils/fees";
 import { formatAmount } from "utils/token";
+import { parseUnits } from "viem";
 
 import { Form } from "./form";
 import { OutputLabel } from "./outputLabel";
@@ -89,6 +90,11 @@ export function OneStepRedeem({
 
   const { data: redeemPreview, isError: isPreviewError } = usePreviewRedeem({
     peggedTokenIn: amountBigInt,
+    tokenOut: toToken.address,
+  });
+
+  const unitRedeemPreview = usePreviewRedeem({
+    peggedTokenIn: parseUnits("1", fromToken.decimals),
     tokenOut: toToken.address,
   });
 
@@ -259,6 +265,7 @@ export function OneStepRedeem({
             fromToken={fromToken}
             oracleToken={toToken.address}
             toToken={toToken}
+            unitPreview={unitRedeemPreview}
           />
         }
         protocolFee={protocolFeeQueryData}
@@ -279,6 +286,7 @@ export function OneStepRedeem({
           showApproveStep={startedWithApproval}
           toToken={toToken}
           totalFees={totalRedeemFeesQueryData}
+          unitPreview={unitRedeemPreview}
         />
       )}
       {showToast && (

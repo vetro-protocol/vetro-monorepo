@@ -16,7 +16,7 @@ import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 import { applyBps } from "utils/fees";
 import { formatAmount, parseTokenUnits } from "utils/token";
-import { formatUnits } from "viem";
+import { formatUnits, parseUnits } from "viem";
 
 import { CancelRedeemModal } from "./cancelRedeemModal";
 import { ClaimRedeemDrawer } from "./claimRedeemDrawer";
@@ -56,6 +56,11 @@ export function RedeemVault({ whitelistedTokens }: Props) {
 
   const { data: redeemPreview, isError: isPreviewError } = usePreviewRedeem({
     peggedTokenIn: amountBigInt,
+    tokenOut: toToken.address,
+  });
+
+  const unitRedeemPreview = usePreviewRedeem({
+    peggedTokenIn: parseUnits("1", vusd.decimals),
     tokenOut: toToken.address,
   });
 
@@ -184,6 +189,7 @@ export function RedeemVault({ whitelistedTokens }: Props) {
           onTokenChange={setToToken}
           oracleToken={toToken.address}
           outputBigInt={redeemPreview}
+          unitPreview={unitRedeemPreview}
           outputValue={outputValue}
           protocolFee={protocolFeeQueryData}
           toToken={toToken}

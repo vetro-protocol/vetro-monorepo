@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 import type { Address } from "viem";
 
+import type { UnitPreview } from "./outputLabel";
 import type { SwapFees } from "./swapFees";
 
 const SwapProgressDrawer = lazy(() =>
@@ -61,6 +62,7 @@ type Props = {
   outputValue: string;
   showApproveStep: boolean;
   toToken: Token;
+  unitPreview: UnitPreview;
 } & Pick<
   ComponentProps<typeof SwapFees>,
   "networkFee" | "protocolFee" | "totalFees"
@@ -79,6 +81,7 @@ export function SwapDepositDrawer({
   showApproveStep,
   totalFees,
   toToken,
+  unitPreview,
 }: Props) {
   const { t } = useTranslation();
   useCloseOnSuccess({ onClose, success: flowStatus === "deposited" });
@@ -116,6 +119,7 @@ export function SwapDepositDrawer({
           steps={steps}
           toToken={toToken}
           totalFees={totalFees}
+          unitPreview={unitPreview}
         />
       </Suspense>
     </Drawer>

@@ -1,32 +1,30 @@
+import type { UseQueryResult } from "@tanstack/react-query";
 import { OracleTooltip } from "components/oracleTooltip";
-import { useOraclePrice } from "hooks/useOraclePrice";
 import { useTokenConfig } from "hooks/useTokenConfig";
 import Skeleton from "react-loading-skeleton";
 import type { Token } from "types";
 import { type Address, formatUnits, isAddressEqual, zeroAddress } from "viem";
 
+export type UnitPreview = Pick<
+  UseQueryResult<bigint>,
+  "data" | "fetchStatus" | "status"
+>;
+
 type Props = {
   fromToken: Token;
   oracleToken: Address;
   toToken: Token;
+  unitPreview: UnitPreview;
 };
 
 export const OutputLabel = function ({
   fromToken,
   oracleToken,
   toToken,
+  unitPreview,
 }: Props) {
   const { data: tokenConfig, isError: isTokenConfigError } =
     useTokenConfig(oracleToken);
-  const { data: oraclePriceData, isError: isOraclePriceError } =
-    useOraclePrice(oracleToken);
-  const isError = isTokenConfigError || isOraclePriceError;
-
-  // unitPrice from Treasury.getPrice() is 10^oracle.decimals(), so counting
-  // its digits minus 1 gives the Chainlink oracle's decimal count.
-  const oraclePrice = oraclePriceData
-    ? formatUnits(oraclePriceData[0], oraclePriceData[1].toString().length - 1)
-    : undefined;
 
   if (!tokenConfig?.oracle || isAddressEqual(tokenConfig.oracle, zeroAddress)) {
     return null;
@@ -34,10 +32,10 @@ export const OutputLabel = function ({
 
   return (
     <span className="flex items-center gap-x-1">
-      {isError ? (
+      {isTokenConfigError || unitPreview.status === "error" ? (
         "-"
-      ) : oraclePrice ? (
-        `1 ${fromToken.symbol} = ${oraclePrice} ${toToken.symbol}`
+      ) : unitPreview.data !== undefined ? (
+        `1 ${fromToken.symbol} = ${formatUnits(unitPreview.data, toToken.decimals)} ${toToken.symbol}`
       ) : (
         <Skeleton className="h-full" containerClassName="w-24" />
       )}
