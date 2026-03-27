@@ -16,11 +16,20 @@ function useLiquidationItems(): StackItem[] {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
+  function handleClick() {
+    const el = document.getElementById("borrow-positions");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    } else {
+      navigate(`/${lang}/borrow#borrow-positions`);
+    }
+  }
+
   return positions.map((p) => ({
     content: (
       <div className="mx-auto w-fit *:w-2xs *:border-2 *:border-rose-500">
         <Button
-          onClick={() => navigate(`/${lang}/borrow`)}
+          onClick={handleClick}
           size="xLarge"
           type="button"
           variant="danger"

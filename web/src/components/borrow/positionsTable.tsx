@@ -8,6 +8,7 @@ import {
   type PositionData,
   usePositionsData,
 } from "hooks/borrow/usePositionsData";
+import { useScrollToHash } from "hooks/useScrollToHash";
 import { useTokenPrices } from "hooks/useTokenPrices";
 import { lazy, Suspense, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -59,6 +60,7 @@ type Props = {
 };
 
 export function PositionsTable({ marketIds }: Props) {
+  const ref = useScrollToHash("borrow-positions");
   const { t } = useTranslation();
   const { data: marketsData, isLoading: isMarketsLoading } =
     useMarketsData(marketIds);
@@ -239,7 +241,7 @@ export function PositionsTable({ marketIds }: Props) {
   };
 
   return (
-    <>
+    <div id="borrow-positions" ref={ref}>
       <TopSection title={t("pages.borrow.positions-title")} />
       <Table
         columns={columns}
@@ -284,6 +286,6 @@ export function PositionsTable({ marketIds }: Props) {
           )}
         </>
       )}
-    </>
+    </div>
   );
 }
