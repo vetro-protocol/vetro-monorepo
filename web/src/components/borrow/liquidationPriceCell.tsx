@@ -1,3 +1,4 @@
+import { OracleTooltip } from "components/oracleTooltip";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 import {
@@ -7,8 +8,6 @@ import {
 import { formatFiatNumber, formatPercentage } from "utils/format";
 import { getTokenPrice } from "utils/token";
 import type { Address } from "viem";
-
-import { OracleTooltip } from "./oracleTooltip";
 
 type Props = {
   collateralToken: Token;
