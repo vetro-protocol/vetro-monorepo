@@ -59,16 +59,22 @@ const variantConfig = {
 
 type Props = {
   oracle: Address;
+  useParentContainer?: boolean;
   variant?: keyof typeof variantConfig;
 };
 
-export function OracleTooltip({ oracle, variant = "chainlink" }: Props) {
+export function OracleTooltip({
+  oracle,
+  useParentContainer = false,
+  variant = "chainlink",
+}: Props) {
   const chain = useMainnet();
   const explorerBaseUrl = chain.blockExplorers!.default.url;
   const { label, logo } = variantConfig[variant];
 
   return (
     <Tooltip
+      useParentContainer={useParentContainer}
       content={
         <ExternalLink
           className="group flex items-center gap-x-1 text-white"

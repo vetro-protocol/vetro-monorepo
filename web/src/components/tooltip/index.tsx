@@ -7,13 +7,19 @@ type Props = {
   children: ReactNode;
   content: ReactNode;
   stretch?: boolean;
+  useParentContainer?: boolean;
 };
 
 const getTooltipContainer = (node: HTMLElement) => node.parentElement!;
 
-export const Tooltip = ({ children, content, stretch = false }: Props) => (
+export const Tooltip = ({
+  children,
+  content,
+  stretch = false,
+  useParentContainer = false,
+}: Props) => (
   <RcTooltip
-    getTooltipContainer={getTooltipContainer}
+    getTooltipContainer={useParentContainer ? getTooltipContainer : undefined}
     overlay={
       <div className="text-b-medium max-w-xs rounded-md bg-gray-900 px-1.5 py-1 text-white">
         {content}

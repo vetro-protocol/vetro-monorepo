@@ -39,7 +39,11 @@ export const OutputLabel = function ({
       ) : (
         <Skeleton className="h-full" containerClassName="w-24" />
       )}
-      <OracleTooltip oracle={tokenConfig.oracle} variant="oracle" />
+      <OracleTooltip
+        oracle={tokenConfig.oracle}
+        useParentContainer
+        variant="oracle"
+      />
     </span>
   );
 };
