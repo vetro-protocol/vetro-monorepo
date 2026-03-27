@@ -241,7 +241,7 @@
         "requesting": "Solicitando...",
         "withdraw": "Retirar",
         "withdraw-coming-soon": "Retiro próximamente",
-        "withdraw-progress": "Progreso de retiro",
+        "withdraw-progress": "Progreso del retiro",
         "withdraw-step-1-description": "Inicie el proceso de retiro. Sus fondos estarán bloqueados en un período de espera y ya no generarán rendimiento.",
         "withdraw-step-1-title": "Solicitar retiro",
         "withdraw-step-2-description_one": "Comienza un período de espera de {{count}} día. Durante este tiempo, sus fondos están bloqueados y no se generan rendimientos.",
