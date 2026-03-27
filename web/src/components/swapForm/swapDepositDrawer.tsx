@@ -5,6 +5,7 @@ import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
 import { type ComponentProps, Suspense, lazy } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
+import type { Address } from "viem";
 
 import type { SwapFees } from "./swapFees";
 
@@ -56,6 +57,7 @@ type Props = {
   fromToken: Token;
   onClose: VoidFunction;
   onRetry: VoidFunction;
+  oracleToken: Address;
   outputValue: string;
   showApproveStep: boolean;
   toToken: Token;
@@ -71,6 +73,7 @@ export function SwapDepositDrawer({
   networkFee,
   onClose,
   onRetry,
+  oracleToken,
   outputValue,
   protocolFee,
   showApproveStep,
@@ -107,6 +110,7 @@ export function SwapDepositDrawer({
           fromToken={fromToken}
           networkFee={networkFee}
           onRetry={isError ? onRetry : undefined}
+          oracleToken={oracleToken}
           outputValue={outputValue}
           protocolFee={protocolFee}
           steps={steps}

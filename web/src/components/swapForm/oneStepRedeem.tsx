@@ -256,9 +256,8 @@ export function OneStepRedeem({
         networkFee={networkFee}
         outputLabel={
           <OutputLabel
-            fromInputValue={fromInputValue}
             fromToken={fromToken}
-            outputValue={outputValue}
+            oracleToken={toToken.address}
             toToken={toToken}
           />
         }
@@ -274,6 +273,7 @@ export function OneStepRedeem({
           networkFee={networkFee}
           onClose={handleDrawerClose}
           onRetry={handleRetry}
+          oracleToken={toToken.address}
           outputValue={outputValue}
           protocolFee={protocolFeeQueryData}
           showApproveStep={startedWithApproval}

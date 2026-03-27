@@ -182,6 +182,7 @@ export function RedeemVault({ whitelistedTokens }: Props) {
           onMaxClick={handleMaxClick}
           onSubmit={handleSubmit}
           onTokenChange={setToToken}
+          oracleToken={toToken.address}
           outputBigInt={redeemPreview}
           outputValue={outputValue}
           protocolFee={protocolFeeQueryData}

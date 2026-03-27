@@ -255,9 +255,8 @@ export function Deposit({
         networkFee={networkFee}
         outputLabel={
           <OutputLabel
-            fromInputValue={fromInputValue}
             fromToken={fromToken}
-            outputValue={outputValue}
+            oracleToken={fromToken.address}
             toToken={toToken}
           />
         }
@@ -273,6 +272,7 @@ export function Deposit({
           networkFee={networkFee}
           onClose={handleDrawerClose}
           onRetry={handleRetry}
+          oracleToken={fromToken.address}
           outputValue={outputValue}
           protocolFee={protocolFeeQueryData}
           showApproveStep={startedWithApproval}

@@ -6,6 +6,7 @@ import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
 import { type ComponentProps, Suspense, lazy } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
+import type { Address } from "viem";
 
 import { type ClaimRedeemFlowStatus } from "./claimRedeemProgressDrawer";
 import type { SwapFees } from "./swapFees";
@@ -35,6 +36,7 @@ type Props = {
   onMaxClick: VoidFunction;
   onSubmit: VoidFunction;
   onTokenChange: (token: Token) => void;
+  oracleToken: Address;
   outputBigInt: bigint | undefined;
   outputValue: string;
   toToken: Token;
@@ -58,6 +60,7 @@ export function ClaimRedeemDrawer({
   onMaxClick,
   onSubmit,
   onTokenChange,
+  oracleToken,
   outputBigInt,
   outputValue,
   protocolFee,
@@ -94,6 +97,7 @@ export function ClaimRedeemDrawer({
           onRetry={isError ? onSubmit : undefined}
           onSubmit={onSubmit}
           onTokenChange={onTokenChange}
+          oracleToken={oracleToken}
           outputBigInt={outputBigInt}
           outputValue={outputValue}
           protocolFee={protocolFee}
