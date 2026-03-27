@@ -6,7 +6,7 @@ import { redeemDelayOptions } from "hooks/useRedeemDelay";
 import { treasuryReservesOptions } from "hooks/useTreasuryReserves";
 import type { Token } from "types";
 import { createErc20AllowanceStateOverride } from "utils/erc20StateOverride";
-import type { Address, Client } from "viem";
+import { type Address, type Client, isAddressEqual } from "viem";
 import { estimateGas } from "viem/actions";
 
 import { estimateApprovalGasUnits } from "./estimateApprovalGasUnits";
@@ -70,8 +70,13 @@ export const fetchRedeemGasUnits = async function ({
     const reserves = await queryClient.ensureQueryData(
       treasuryReservesOptions({ chainId, client, gatewayAddress, queryClient }),
     );
-    const reserve = reserves.find((r) => r.token.address === tokenOut);
-    if (reserve && minAmountOut > reserve.amount) {
+    const reserve = reserves.find((r) =>
+      isAddressEqual(r.token.address, tokenOut),
+    );
+    if (!reserve) {
+      throw new Error("Unknown output token");
+    }
+    if (minAmountOut > reserve.amount) {
       throw new Error("Insufficient treasury reserves");
     }
   }
