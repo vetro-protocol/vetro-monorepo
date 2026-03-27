@@ -32,9 +32,6 @@ describe("hasActivePosition", function () {
 });
 
 describe("isPositionAtRisk", function () {
-  const parseEther = (value: string) =>
-    BigInt(Math.round(Number(value) * 1e18));
-
   it("returns false for undefined", function () {
     expect(isPositionAtRisk(undefined)).toBe(false);
   });
@@ -46,14 +43,14 @@ describe("isPositionAtRisk", function () {
   });
 
   it("returns false when health factor is above threshold", function () {
-    expect(isPositionAtRisk(parseEther("2.0"))).toBe(false);
+    expect(isPositionAtRisk(2_000_000_000_000_000_000n)).toBe(false);
   });
 
   it("returns true when health factor is at threshold", function () {
-    expect(isPositionAtRisk(parseEther("1.1"))).toBe(true);
+    expect(isPositionAtRisk(1_100_000_000_000_000_000n)).toBe(true);
   });
 
   it("returns true when health factor is below threshold", function () {
-    expect(isPositionAtRisk(parseEther("1.05"))).toBe(true);
+    expect(isPositionAtRisk(1_050_000_000_000_000_000n)).toBe(true);
   });
 });
