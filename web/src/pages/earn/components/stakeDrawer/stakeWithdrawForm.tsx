@@ -311,7 +311,7 @@ export function StakeWithdrawForm({
 
       <div className="mt-auto flex flex-col gap-2 px-6">
         <p className="text-xs font-medium tracking-wide text-gray-500">
-          {t("pages.earn.stake.withdrawals-progress")}
+          {t("pages.earn.stake.withdraw-progress")}
         </p>
         <div className="border-t border-gray-200">
           <VerticalStepper steps={steps} />

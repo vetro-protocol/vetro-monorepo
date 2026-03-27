@@ -239,7 +239,8 @@
         "requesting": "Requesting...",
         "withdraw": "Withdraw",
         "withdraw-coming-soon": "Withdraw coming soon",
-        "withdraw-step-1-description": "Submit a withdrawal request to begin the exit process. Your funds remain staked at this stage.",
+        "withdraw-progress": "Withdraw progress",
+        "withdraw-step-1-description": "Start the withdrawal process. Your funds will be locked in a cooldown and will no longer earn yield.",
         "withdraw-step-1-title": "Request withdrawal",
         "withdraw-step-2-description": "A {{count}}-day cooldown period begins. During this time, your funds are locked and no yield is earned.",
         "withdraw-step-2-title": "Start {{count}}-day cooldown",
@@ -247,7 +248,6 @@
         "withdraw-step-3-title": "Withdraw funds",
         "withdraw-toast-description": "Your {{count}}-day cooldown has started.",
         "withdraw-toast-title": "Withdrawal request confirmed",
-        "withdrawals-progress": "Withdrawals progress",
         "withdrawing-fees-label": "Withdrawing {{amount}} {{token}}",
         "you-will-stake": "You will stake",
         "you-will-withdraw": "You will withdraw"
