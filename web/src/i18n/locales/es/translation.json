@@ -243,7 +243,8 @@
         "requesting": "Solicitando...",
         "withdraw": "Retirar",
         "withdraw-coming-soon": "Retiro próximamente",
-        "withdraw-step-1-description": "Envíe una solicitud de retiro para iniciar el proceso de salida. Sus fondos permanecen en stake en esta etapa.",
+        "withdraw-progress": "Progreso del retiro",
+        "withdraw-step-1-description": "Inicie el proceso de retiro. Sus fondos estarán bloqueados en un período de espera y ya no generarán rendimiento.",
         "withdraw-step-1-title": "Solicitar retiro",
         "withdraw-step-2-description_one": "Comienza un período de espera de {{count}} día. Durante este tiempo, sus fondos están bloqueados y no se generan rendimientos.",
         "withdraw-step-2-description_other": "Comienza un período de espera de {{count}} días. Durante este tiempo, sus fondos están bloqueados y no se generan rendimientos.",
@@ -254,7 +255,6 @@
         "withdraw-toast-description_one": "Su período de espera de {{count}} día ha comenzado.",
         "withdraw-toast-description_other": "Su período de espera de {{count}} días ha comenzado.",
         "withdraw-toast-title": "Solicitud de retiro confirmada",
-        "withdrawals-progress": "Progreso de retiros",
         "withdrawing-fees-label": "Retirando {{amount}} {{token}}",
         "you-will-stake": "Usted va a hacer stake de",
         "you-will-withdraw": "Usted va a retirar"
