@@ -12,9 +12,9 @@ import { Swap } from "pages/swap";
 import { Suspense, lazy } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 
-const RedeemReadyNotification = lazy(() =>
-  import("components/swapForm/redeemReadyNotification").then((m) => ({
-    default: m.RedeemReadyNotification,
+const AppNotifications = lazy(() =>
+  import("components/appNotifications").then((m) => ({
+    default: m.AppNotifications,
   })),
 );
 
@@ -47,7 +47,7 @@ export const App = () => (
                   </Routes>
                 </AppLayout>
                 <Suspense>
-                  <RedeemReadyNotification />
+                  <AppNotifications />
                 </Suspense>
               </>
             }
