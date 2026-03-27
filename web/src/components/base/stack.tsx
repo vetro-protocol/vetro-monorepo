@@ -113,7 +113,9 @@ export function Stack({
 }: Props) {
   const [hovered, setHovered] = useState(false);
   const heightsRef = useRef<Record<string, number>>({});
-  const leaveTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
   const [, forceRender] = useState(0);
 
   const handleHeightChange = useCallback(function handleHeightChange(
