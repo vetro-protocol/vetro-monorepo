@@ -12,8 +12,7 @@ import {
   stepStatus,
 } from "components/base/verticalStepper";
 import { hasSufficientGas } from "components/borrow/utils";
-import { FeeDetails } from "components/feeDetails";
-import { FeesContainer } from "components/feesContainer";
+import { NetworkFees } from "components/networkFees";
 import { TokenInput } from "components/tokenInput";
 import { Balance } from "components/tokenInput/balance";
 import type { InputError } from "components/tokenInput/utils";
@@ -22,7 +21,7 @@ import type { MarketData } from "hooks/borrow/useMarketData";
 import { useMorphoMarket } from "hooks/borrow/useMorphoMarket";
 import { usePositionInfo } from "hooks/borrow/usePositionInfo";
 import { useRepayAssets } from "hooks/borrow/useRepayAssets";
-import { useRepayFees } from "hooks/borrow/useRepayFees";
+import { useTotalRepayFees } from "hooks/borrow/useRepayFees";
 import { useRepayReview } from "hooks/borrow/useRepayReview";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useAmount } from "hooks/useAmount";
@@ -252,11 +251,11 @@ export function RepayLoanForm({ market, onClose }: Props) {
       ? morphoMarket.toBorrowAssets(positionInfo.borrowShares)
       : undefined;
 
-  const networkFee = useRepayFees({
-    currentBorrowAssets,
-    loanToken,
+  const networkFee = useTotalRepayFees({
+    amount: repayAmountBigInt,
+    approveAmount: undefined,
     marketId,
-    repayAmount: repayAmountBigInt,
+    token: loanToken,
   });
 
   const { onCompleted, onFailed, onPending, onTransactionHash } =
@@ -397,13 +396,7 @@ export function RepayLoanForm({ market, onClose }: Props) {
             sufficientGas={sufficientGas}
           />
         </div>
-        <FeesContainer isError={networkFee.isError} totalFees={networkFee.data}>
-          <FeeDetails
-            isError={networkFee.isError}
-            label={t("pages.swap.fees.network-fee")}
-            value={networkFee.data}
-          />
-        </FeesContainer>
+        <NetworkFees networkFee={networkFee} />
         <div className="border-t border-gray-200 px-6 py-2">
           <PositionReview
             borrowApy={market.borrowApy}

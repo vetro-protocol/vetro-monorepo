@@ -1,7 +1,8 @@
 {
   "common": {
     "approve-10x": "Approve 10x",
-    "approve-10x-tooltip": "Approves up to 10× your transaction amount, reducing future approval steps. You can revoke it anytime."
+    "approve-10x-tooltip": "Approves up to 10× your transaction amount, reducing future approval steps. You can revoke it anytime.",
+    "network-fee": "Network Fee"
   },
   "language": {
     "switch-to": "Switch to Spanish"
@@ -271,7 +272,6 @@
       },
       "fees": {
         "fixed-protocol-fee": "Fixed Protocol Fee",
-        "network-fee": "Network Fee",
         "oracle-deviation-fee": "Oracle Deviation Fee"
       },
       "form": {

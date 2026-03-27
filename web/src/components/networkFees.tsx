@@ -1,20 +1,20 @@
-import type { QueryStatus } from "@tanstack/react-query";
+import type { FetchStatus, QueryStatus } from "@tanstack/react-query";
 import { FeeDetails } from "components/feeDetails";
 import { FeesContainer } from "components/feesContainer";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import Skeleton from "react-loading-skeleton";
 import { formatFiatNumber } from "utils/format";
 
 type Props = {
-  label: ReactNode;
+  label?: ReactNode;
   networkFee: {
     data: number | undefined;
+    fetchStatus: FetchStatus;
     status: QueryStatus;
   };
 };
 
-export const EarnFees = function ({ label, networkFee }: Props) {
+export const NetworkFees = function ({ label, networkFee }: Props) {
   const { t } = useTranslation();
 
   const formattedFee =
@@ -22,20 +22,20 @@ export const EarnFees = function ({ label, networkFee }: Props) {
       ? `$${formatFiatNumber(networkFee.data.toFixed(2))}`
       : undefined;
 
-  const isError = formattedFee === undefined && networkFee.status !== "success";
-
-  const totalFees =
-    formattedFee !== undefined ? (
-      formattedFee
-    ) : isError ? undefined : (
-      <Skeleton width={50} />
-    );
+  const isError = networkFee.status === "error";
+  const isIdle = networkFee.fetchStatus === "idle";
 
   return (
-    <FeesContainer isError={isError} label={label} totalFees={totalFees}>
+    <FeesContainer
+      isError={isError}
+      isIdle={isIdle}
+      label={label}
+      totalFees={formattedFee}
+    >
       <FeeDetails
         isError={isError}
-        label={t("pages.swap.fees.network-fee")}
+        isIdle={isIdle}
+        label={t("common.network-fee")}
         value={formattedFee}
       />
     </FeesContainer>

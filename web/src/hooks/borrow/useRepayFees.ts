@@ -1,50 +1,166 @@
-import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
-import { useNetworkFee } from "hooks/useNetworkFee";
+import {
+  type QueryClient,
+  queryOptions,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { fetchRepayGasUnits } from "fetchers/fetchRepayGasUnits";
+import { fetchTotalRepayFees } from "fetchers/fetchTotalRepayFees";
+import { useEthereumClient } from "hooks/useEthereumClient";
+import { useMainnet } from "hooks/useMainnet";
 import type { Token } from "types";
-import type { Hash } from "viem";
+import { type Address, type Chain, type Client, type Hash } from "viem";
 import { useAccount } from "wagmi";
 
-import { useEstimateRepayFees } from "./useEstimateRepayFees";
-
-type Params = {
-  currentBorrowAssets: bigint | undefined;
-  loanToken: Token;
-  marketId: Hash;
-  repayAmount: bigint;
-};
-
-export function useRepayFees({
-  currentBorrowAssets,
-  loanToken,
+const repayGasUnitsQueryKey = ({
+  amount,
+  chainId,
   marketId,
-  repayAmount,
-}: Params) {
-  const { address } = useAccount();
+  owner,
+  token,
+}: {
+  amount: bigint;
+  chainId: Chain["id"];
+  marketId: Hash;
+  owner: Address | undefined;
+  token: Token | undefined;
+}) => [
+  "borrow-repay-gas-units",
+  chainId,
+  marketId,
+  token?.address,
+  owner,
+  amount.toString(),
+];
 
-  const { data: loanBalance } = useTokenBalance({
-    address: loanToken.address,
-    chainId: loanToken.chainId,
+export const repayGasUnitsOptions = ({
+  amount,
+  approveAmount,
+  chainId,
+  client,
+  marketId,
+  owner,
+  queryClient,
+  token,
+}: {
+  amount: bigint;
+  approveAmount: bigint | undefined;
+  chainId: Chain["id"];
+  client: Client | undefined;
+  marketId: Hash;
+  owner: Address | undefined;
+  queryClient: QueryClient;
+  token: Token | undefined;
+}) =>
+  queryOptions({
+    enabled: !!client && !!owner && !!token && amount > 0n,
+    queryFn: () =>
+      fetchRepayGasUnits({
+        amount,
+        approveAmount,
+        client: client!,
+        marketId,
+        owner: owner!,
+        queryClient,
+        token: token!,
+      }),
+    queryKey: repayGasUnitsQueryKey({
+      amount,
+      chainId,
+      marketId,
+      owner,
+      token,
+    }),
   });
 
-  const withinRepayLimit =
-    currentBorrowAssets === undefined || repayAmount <= currentBorrowAssets;
+const totalRepayFeesQueryKey = ({
+  amount,
+  chainId,
+  marketId,
+  owner,
+  token,
+}: {
+  amount: bigint;
+  chainId: Chain["id"];
+  marketId: Hash;
+  owner: Address | undefined;
+  token: Token | undefined;
+}) => [
+  "total-repay-fees",
+  chainId,
+  marketId,
+  token?.address,
+  owner,
+  amount.toString(),
+];
 
-  const hasEnoughBalance =
-    loanBalance !== undefined && loanBalance >= repayAmount;
-
-  const canEstimate =
-    repayAmount > 0n && !!address && withinRepayLimit && hasEnoughBalance;
-
-  const { fees, isError } = useEstimateRepayFees({
-    canEstimate,
-    loanToken,
-    marketId,
-    repayAmount,
+const totalRepayFeesOptions = ({
+  amount,
+  approveAmount,
+  chain,
+  client,
+  marketId,
+  owner,
+  queryClient,
+  token,
+}: {
+  amount: bigint;
+  approveAmount: bigint | undefined;
+  chain: Chain;
+  client: Client | undefined;
+  marketId: Hash;
+  owner: Address | undefined;
+  queryClient: QueryClient;
+  token: Token | undefined;
+}) =>
+  queryOptions({
+    enabled: !!client && !!owner && !!token && amount > 0n,
+    queryFn: () =>
+      fetchTotalRepayFees({
+        amount,
+        approveAmount,
+        chain,
+        client: client!,
+        marketId,
+        owner: owner!,
+        queryClient,
+        token: token!,
+      }),
+    queryKey: totalRepayFeesQueryKey({
+      amount,
+      chainId: chain.id,
+      marketId,
+      owner,
+      token,
+    }),
   });
 
-  return useNetworkFee({
-    fees,
-    isEnabled: repayAmount > 0n && withinRepayLimit && hasEnoughBalance,
-    isError,
-  });
-}
+export const useTotalRepayFees = function ({
+  amount,
+  approveAmount,
+  marketId,
+  token,
+}: {
+  amount: bigint;
+  approveAmount: bigint | undefined;
+  marketId: Hash;
+  token: Token | undefined;
+}) {
+  const { address: owner } = useAccount();
+  const client = useEthereumClient();
+  const ethereumChain = useMainnet();
+  const queryClient = useQueryClient();
+
+  return useQuery(
+    totalRepayFeesOptions({
+      amount,
+      approveAmount,
+      chain: ethereumChain,
+      client,
+      marketId,
+      owner,
+      queryClient,
+      token,
+    }),
+  );
+};

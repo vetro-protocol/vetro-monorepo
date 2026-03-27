@@ -2,10 +2,9 @@ import { Button } from "components/base/button";
 import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { type Step, VerticalStepper } from "components/base/verticalStepper";
-import { FeeDetails } from "components/feeDetails";
-import { FeesContainer } from "components/feesContainer";
+import { NetworkFees } from "components/networkFees";
 import { TokenLogo } from "components/tokenLogo";
-import { useSupplyAndBorrowFees } from "hooks/borrow/useSupplyAndBorrowFees";
+import { useTotalSupplyAndBorrowFees } from "hooks/borrow/useSupplyAndBorrowFees";
 import { useAnimatedVisibility } from "hooks/useAnimatedVisibility";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
@@ -32,12 +31,12 @@ export function BorrowProgressDrawer({
 }: Props) {
   const { t } = useTranslation();
 
-  const networkFee = useSupplyAndBorrowFees({
+  const networkFee = useTotalSupplyAndBorrowFees({
+    approveAmount: undefined,
     borrowAmount: parseUnits(borrowAmount, borrowToken.decimals),
     collateralAmount: parseUnits(collateralAmount, collateralToken.decimals),
     collateralToken,
     marketId,
-    maxBorrowable: undefined,
   });
 
   const { render: renderRetry, show: showRetry } =
@@ -89,13 +88,7 @@ export function BorrowProgressDrawer({
         </div>
       </div>
 
-      <FeesContainer totalFees={networkFee.data}>
-        <FeeDetails
-          isError={networkFee.isError}
-          label={t("pages.swap.fees.network-fee")}
-          value={networkFee.data}
-        />
-      </FeesContainer>
+      <NetworkFees networkFee={networkFee} />
 
       <div className="flex-1" />
 

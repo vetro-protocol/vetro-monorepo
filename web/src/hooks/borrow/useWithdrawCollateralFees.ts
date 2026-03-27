@@ -1,66 +1,139 @@
-import { useEstimateFees } from "@hemilabs/react-hooks/useEstimateFees";
-import { getChainAddresses } from "@morpho-org/blue-sdk";
-import { encodeWithdrawCollateral } from "@vetro/morpho-blue-market/actions";
+import {
+  type QueryClient,
+  queryOptions,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { fetchTotalWithdrawCollateralFees } from "fetchers/fetchTotalWithdrawCollateralFees";
+import { fetchWithdrawCollateralGasUnits } from "fetchers/fetchWithdrawCollateralGasUnits";
+import { useEthereumClient } from "hooks/useEthereumClient";
 import { useMainnet } from "hooks/useMainnet";
-import { useNetworkFee } from "hooks/useNetworkFee";
-import type { Hash } from "viem";
-import { useAccount, useEstimateGas } from "wagmi";
+import { type Address, type Chain, type Client, type Hash } from "viem";
+import { useAccount } from "wagmi";
 
-import { useMorphoMarket } from "./useMorphoMarket";
-
-type Params = {
-  collateralAmount: bigint;
-  marketId: Hash;
-  maxWithdrawable: bigint | undefined;
-};
-
-export function useWithdrawCollateralFees({
-  collateralAmount,
+const withdrawCollateralGasUnitsQueryKey = ({
+  amount,
+  chainId,
   marketId,
-  maxWithdrawable,
-}: Params) {
+  owner,
+}: {
+  amount: bigint;
+  chainId: Chain["id"];
+  marketId: Hash;
+  owner: Address | undefined;
+}) => [
+  "borrow-withdraw-collateral-gas-units",
+  chainId,
+  marketId,
+  owner,
+  amount.toString(),
+];
+
+export const withdrawCollateralGasUnitsOptions = ({
+  amount,
+  chainId,
+  client,
+  marketId,
+  owner,
+  queryClient,
+}: {
+  amount: bigint;
+  chainId: Chain["id"];
+  client: Client | undefined;
+  marketId: Hash;
+  owner: Address | undefined;
+  queryClient: QueryClient;
+}) =>
+  queryOptions({
+    enabled: !!client && !!owner && amount > 0n,
+    queryFn: () =>
+      fetchWithdrawCollateralGasUnits({
+        amount,
+        client: client!,
+        marketId,
+        owner: owner!,
+        queryClient,
+      }),
+    queryKey: withdrawCollateralGasUnitsQueryKey({
+      amount,
+      chainId,
+      marketId,
+      owner,
+    }),
+  });
+
+const totalWithdrawCollateralFeesQueryKey = ({
+  amount,
+  chainId,
+  marketId,
+  owner,
+}: {
+  amount: bigint;
+  chainId: Chain["id"];
+  marketId: Hash;
+  owner: Address | undefined;
+}) => [
+  "total-withdraw-collateral-fees",
+  chainId,
+  marketId,
+  owner,
+  amount.toString(),
+];
+
+const totalWithdrawCollateralFeesOptions = ({
+  amount,
+  chain,
+  client,
+  marketId,
+  owner,
+  queryClient,
+}: {
+  amount: bigint;
+  chain: Chain;
+  client: Client | undefined;
+  marketId: Hash;
+  owner: Address | undefined;
+  queryClient: QueryClient;
+}) =>
+  queryOptions({
+    enabled: !!client && !!owner && amount > 0n,
+    queryFn: () =>
+      fetchTotalWithdrawCollateralFees({
+        amount,
+        chain,
+        client: client!,
+        marketId,
+        owner: owner!,
+        queryClient,
+      }),
+    queryKey: totalWithdrawCollateralFeesQueryKey({
+      amount,
+      chainId: chain.id,
+      marketId,
+      owner,
+    }),
+  });
+
+export const useTotalWithdrawCollateralFees = function ({
+  amount,
+  marketId,
+}: {
+  amount: bigint;
+  marketId: Hash;
+}) {
+  const { address: owner } = useAccount();
+  const client = useEthereumClient();
   const ethereumChain = useMainnet();
-  const { address } = useAccount();
-  const morphoAddress = getChainAddresses(ethereumChain.id).morpho;
+  const queryClient = useQueryClient();
 
-  const { data: morphoMarket } = useMorphoMarket(marketId);
-
-  const withinWithdrawLimit =
-    maxWithdrawable === undefined || collateralAmount <= maxWithdrawable;
-
-  const canEstimate =
-    collateralAmount > 0n &&
-    !!address &&
-    withinWithdrawLimit &&
-    morphoMarket !== undefined;
-
-  const { data: withdrawGasUnits, isError: isWithdrawGasUnitsError } =
-    useEstimateGas({
-      chainId: ethereumChain.id,
-      data: canEstimate
-        ? encodeWithdrawCollateral({
-            amount: collateralAmount,
-            marketParams: morphoMarket!.params,
-            onBehalf: address!,
-            receiver: address!,
-          })
-        : undefined,
-      query: {
-        enabled: canEstimate,
-        retry: false,
-      },
-      to: morphoAddress,
-    });
-
-  const { fees, isError } = useEstimateFees({
-    chainId: ethereumChain.id,
-    gasUnits: withdrawGasUnits,
-    isGasUnitsError: isWithdrawGasUnitsError,
-  });
-
-  return useNetworkFee({
-    fees,
-    isEnabled: collateralAmount > 0n && withinWithdrawLimit,
-    isError,
-  });
-}
+  return useQuery(
+    totalWithdrawCollateralFeesOptions({
+      amount,
+      chain: ethereumChain,
+      client,
+      marketId,
+      owner,
+      queryClient,
+    }),
+  );
+};

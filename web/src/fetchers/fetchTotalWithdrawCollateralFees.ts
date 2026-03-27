@@ -1,31 +1,34 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { withdrawGasUnitsOptions } from "pages/earn/hooks/useWithdrawFees";
-import { type Address, type Chain, type Client } from "viem";
+import { withdrawCollateralGasUnitsOptions } from "hooks/borrow/useWithdrawCollateralFees";
+import { type Address, type Chain, type Client, type Hash } from "viem";
 
 import { fetchTotalNetworkFees } from "./fetchTotalNetworkFees";
 
 /**
- * Calculates the total fees in USD for an earn withdraw.
+ * Calculates the total fees in USD for a withdraw collateral operation.
  */
-export const fetchTotalWithdrawFees = async function ({
+export const fetchTotalWithdrawCollateralFees = async function ({
   amount,
   chain,
   client,
+  marketId,
   owner,
   queryClient,
 }: {
   amount: bigint;
   chain: Chain;
   client: Client;
+  marketId: Hash;
   owner: Address;
   queryClient: QueryClient;
 }) {
   const gasUnits = await queryClient.ensureQueryData(
-    withdrawGasUnitsOptions({
-      account: owner,
+    withdrawCollateralGasUnitsOptions({
       amount,
       chainId: chain.id,
       client,
+      marketId,
+      owner,
       queryClient,
     }),
   );

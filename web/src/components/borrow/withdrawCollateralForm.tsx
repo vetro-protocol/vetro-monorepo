@@ -10,8 +10,7 @@ import {
   stepStatus,
 } from "components/base/verticalStepper";
 import { hasSufficientGas } from "components/borrow/utils";
-import { FeeDetails } from "components/feeDetails";
-import { FeesContainer } from "components/feesContainer";
+import { NetworkFees } from "components/networkFees";
 import { TokenInput } from "components/tokenInput";
 import { Balance } from "components/tokenInput/balance";
 import type { InputError } from "components/tokenInput/utils";
@@ -19,7 +18,7 @@ import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import type { MarketData } from "hooks/borrow/useMarketData";
 import { usePositionInfo } from "hooks/borrow/usePositionInfo";
 import { useWithdrawCollateral } from "hooks/borrow/useWithdrawCollateral";
-import { useWithdrawCollateralFees } from "hooks/borrow/useWithdrawCollateralFees";
+import { useTotalWithdrawCollateralFees } from "hooks/borrow/useWithdrawCollateralFees";
 import { useWithdrawCollateralReview } from "hooks/borrow/useWithdrawCollateralReview";
 import { useAmount } from "hooks/useAmount";
 import { useAnimatedVisibility } from "hooks/useAnimatedVisibility";
@@ -211,10 +210,9 @@ export function WithdrawCollateralForm({ market, onClose }: Props) {
 
   const maxWithdrawable = positionInfo?.withdrawableCollateral;
 
-  const networkFee = useWithdrawCollateralFees({
-    collateralAmount: collateralAmountBigInt,
+  const networkFee = useTotalWithdrawCollateralFees({
+    amount: collateralAmountBigInt,
     marketId,
-    maxWithdrawable,
   });
 
   const withdrawMutation = useWithdrawCollateral({
@@ -336,13 +334,7 @@ export function WithdrawCollateralForm({ market, onClose }: Props) {
             sufficientGas={sufficientGas}
           />
         </div>
-        <FeesContainer isError={networkFee.isError} totalFees={networkFee.data}>
-          <FeeDetails
-            isError={networkFee.isError}
-            label={t("pages.swap.fees.network-fee")}
-            value={networkFee.data}
-          />
-        </FeesContainer>
+        <NetworkFees networkFee={networkFee} />
         <div className="border-t border-gray-200 px-6 py-2">
           <PositionReview
             borrowApy={market.borrowApy}

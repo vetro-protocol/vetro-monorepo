@@ -8,8 +8,7 @@ import { RenderCryptoValue } from "components/base/cryptoValue";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { MaxButton } from "components/base/maxButton";
 import { Toast } from "components/base/toast";
-import { FeeDetails } from "components/feeDetails";
-import { FeesContainer } from "components/feesContainer";
+import { NetworkFees } from "components/networkFees";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenInput } from "components/tokenInput";
 import { Balance } from "components/tokenInput/balance";
@@ -18,7 +17,7 @@ import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import type { MarketData } from "hooks/borrow/useMarketData";
 import { useMorphoMarket } from "hooks/borrow/useMorphoMarket";
 import { useSupplyAndBorrow } from "hooks/borrow/useSupplyAndBorrow";
-import { useSupplyAndBorrowFees } from "hooks/borrow/useSupplyAndBorrowFees";
+import { useTotalSupplyAndBorrowFees } from "hooks/borrow/useSupplyAndBorrowFees";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useMainnet } from "hooks/useMainnet";
 import {
@@ -28,7 +27,7 @@ import {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { minBigInt } from "utils/bigint";
+import { getMaxBorrowable } from "utils/borrowLimit";
 import { type Address, formatUnits, parseUnits } from "viem";
 import { useAccount } from "wagmi";
 
@@ -165,20 +164,19 @@ export function BorrowForm({
   const { data: morphoMarket, status: morphoMarketStatus } =
     useMorphoMarket(marketId);
 
-  const maxBorrowFromCollateral = morphoMarket?.getMaxBorrowAssets(
-    collateralAmountBigInt,
-  );
-  const maxBorrowable =
-    maxBorrowFromCollateral !== undefined
-      ? minBigInt(maxBorrowFromCollateral, market.liquidity)
-      : undefined;
+  const maxBorrowable = morphoMarket
+    ? getMaxBorrowable({
+        collateral: collateralAmountBigInt,
+        market: morphoMarket,
+      })
+    : undefined;
 
-  const networkFee = useSupplyAndBorrowFees({
+  const networkFee = useTotalSupplyAndBorrowFees({
+    approveAmount: undefined,
     borrowAmount: borrowAmountBigInt,
     collateralAmount: collateralAmountBigInt,
     collateralToken,
     marketId,
-    maxBorrowable,
   });
 
   const { onCompleted, onFailed, onPending, onTransactionHash } =
@@ -362,13 +360,7 @@ export function BorrowForm({
             openConnectModal={openConnectModal}
           />
         </div>
-        <FeesContainer isError={networkFee.isError} totalFees={networkFee.data}>
-          <FeeDetails
-            isError={networkFee.isError}
-            label={t("pages.swap.fees.network-fee")}
-            value={networkFee.data}
-          />
-        </FeesContainer>
+        <NetworkFees networkFee={networkFee} />
         <div className="border-t border-gray-200 px-4 py-1">
           <BorrowingReview
             borrowApy={market.borrowApy}

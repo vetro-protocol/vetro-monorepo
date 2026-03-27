@@ -1,39 +1,45 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { depositGasUnitsOptions } from "pages/earn/hooks/useDepositFees";
+import { supplyAndBorrowGasUnitsOptions } from "hooks/borrow/useSupplyAndBorrowFees";
 import type { Token } from "types";
-import { type Address, type Chain, type Client } from "viem";
+import { type Address, type Chain, type Client, type Hash } from "viem";
 
 import { fetchTotalNetworkFees } from "./fetchTotalNetworkFees";
 
 /**
- * Calculates the total fees in USD for an earn deposit.
+ * Calculates the total fees in USD for a supply collateral + borrow operation.
  */
-export const fetchTotalDepositFees = async function ({
-  amount,
+export const fetchTotalSupplyAndBorrowFees = async function ({
   approveAmount,
+  borrowAmount,
   chain,
   client,
+  collateralAmount,
+  collateralToken,
+  marketId,
   owner,
   queryClient,
-  token,
 }: {
-  amount: bigint;
   approveAmount: bigint | undefined;
+  borrowAmount: bigint;
   chain: Chain;
   client: Client;
+  collateralAmount: bigint;
+  collateralToken: Token;
+  marketId: Hash;
   owner: Address;
   queryClient: QueryClient;
-  token: Token;
 }) {
   const gasUnits = await queryClient.ensureQueryData(
-    depositGasUnitsOptions({
-      amount,
+    supplyAndBorrowGasUnitsOptions({
       approveAmount,
+      borrowAmount,
       chainId: chain.id,
       client,
+      collateralAmount,
+      collateralToken,
+      marketId,
       owner,
       queryClient,
-      token,
     }),
   );
 

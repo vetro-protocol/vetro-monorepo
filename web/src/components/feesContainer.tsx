@@ -12,11 +12,18 @@ type FeeChild = ReactElement<FeeDetailsProps> | false | null | undefined;
 type Props = {
   children: FeeChild | FeeChild[];
   isError?: boolean;
+  isIdle?: boolean;
   label?: ReactNode;
   totalFees?: ReactNode;
 };
 
-export function FeesContainer({ children, isError, label, totalFees }: Props) {
+export function FeesContainer({
+  children,
+  isError,
+  isIdle,
+  label,
+  totalFees,
+}: Props) {
   const [isOpen, setIsOpen] = useState(false);
 
   // the network fee is unavoidable. So if it's the only one, we can use the "gas" icon
@@ -25,7 +32,7 @@ export function FeesContainer({ children, isError, label, totalFees }: Props) {
   const renderedTotalFees =
     totalFees !== undefined ? (
       totalFees
-    ) : isError ? (
+    ) : isError || isIdle ? (
       "-"
     ) : (
       <Skeleton width={50} />

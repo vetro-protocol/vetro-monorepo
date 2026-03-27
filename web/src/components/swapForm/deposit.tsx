@@ -1,7 +1,7 @@
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { useNeedsApproval } from "@hemilabs/react-hooks/useNeedsApproval";
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
-import type { QueryStatus } from "@tanstack/react-query";
+import type { FetchStatus, QueryStatus } from "@tanstack/react-query";
 import { getGatewayAddress } from "@vetro/gateway";
 import { ApproveSection } from "components/approveSection";
 import { RenderFiatValue } from "components/base/fiatValue";
@@ -203,6 +203,7 @@ export function Deposit({
 
   const networkFee = {
     data: networkFeeQueryData.fees,
+    fetchStatus: (amountBigInt > 0n ? "fetching" : "idle") as FetchStatus,
     status: (networkFeeQueryData.isError ? "error" : "pending") as QueryStatus,
   };
 

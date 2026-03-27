@@ -47,12 +47,12 @@ describe("fetchTotalDepositFees", function () {
     const networkFeeWei = 1000000000000000n;
 
     vi.mocked(mockQueryClient.ensureQueryData)
-      // tokenPricesOptions (started before gas units)
-      .mockResolvedValueOnce({ ETH: "2000" })
       // depositGasUnitsOptions
       .mockResolvedValueOnce(gasUnits)
       // estimateFeesQueryOptions
-      .mockResolvedValueOnce(networkFeeWei);
+      .mockResolvedValueOnce(networkFeeWei)
+      // tokenPricesOptions
+      .mockResolvedValueOnce({ ETH: "2000" });
 
     const result = await fetchTotalDepositFees({
       amount: 1000000000000000000n,
@@ -70,9 +70,9 @@ describe("fetchTotalDepositFees", function () {
 
   it("returns zero when network fee is zero", async function () {
     vi.mocked(mockQueryClient.ensureQueryData)
-      .mockResolvedValueOnce({ ETH: "2000" })
       .mockResolvedValueOnce(100000n)
-      .mockResolvedValueOnce(0n);
+      .mockResolvedValueOnce(0n)
+      .mockResolvedValueOnce({ ETH: "2000" });
 
     const result = await fetchTotalDepositFees({
       amount: 1000000000000000000n,
@@ -89,9 +89,9 @@ describe("fetchTotalDepositFees", function () {
 
   it("handles undefined network fee", async function () {
     vi.mocked(mockQueryClient.ensureQueryData)
-      .mockResolvedValueOnce({ ETH: "2000" })
       .mockResolvedValueOnce(100000n)
-      .mockResolvedValueOnce(undefined);
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce({ ETH: "2000" });
 
     const result = await fetchTotalDepositFees({
       amount: 1000000000000000000n,

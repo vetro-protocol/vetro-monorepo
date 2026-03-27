@@ -1,36 +1,122 @@
-import { useNetworkFee } from "hooks/useNetworkFee";
-import type { Hash } from "viem";
+import {
+  type QueryClient,
+  queryOptions,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { fetchBorrowGasUnits } from "fetchers/fetchBorrowGasUnits";
+import { fetchTotalBorrowFees } from "fetchers/fetchTotalBorrowFees";
+import { useEthereumClient } from "hooks/useEthereumClient";
+import { useMainnet } from "hooks/useMainnet";
+import { type Address, type Chain, type Client, type Hash } from "viem";
 import { useAccount } from "wagmi";
 
-import { useEstimateBorrowFees } from "./useEstimateBorrowFees";
-
-type Params = {
-  borrowAmount: bigint;
-  marketId: Hash;
-  maxBorrowable: bigint | undefined;
-};
-
-export function useBorrowMoreFees({
-  borrowAmount,
+const borrowGasUnitsQueryKey = ({
+  amount,
+  chainId,
   marketId,
-  maxBorrowable,
-}: Params) {
-  const { address } = useAccount();
+  owner,
+}: {
+  amount: bigint;
+  chainId: Chain["id"];
+  marketId: Hash;
+  owner: Address | undefined;
+}) => ["borrow-gas-units", chainId, marketId, owner, amount.toString()];
 
-  const withinBorrowLimit =
-    maxBorrowable === undefined || borrowAmount <= maxBorrowable;
-
-  const canEstimate = borrowAmount > 0n && !!address && withinBorrowLimit;
-
-  const { fees, isError } = useEstimateBorrowFees({
-    borrowAmount,
-    canEstimate,
-    marketId,
+export const borrowGasUnitsOptions = ({
+  amount,
+  chainId,
+  client,
+  marketId,
+  owner,
+  queryClient,
+}: {
+  amount: bigint;
+  chainId: Chain["id"];
+  client: Client | undefined;
+  marketId: Hash;
+  owner: Address | undefined;
+  queryClient: QueryClient;
+}) =>
+  queryOptions({
+    enabled: !!client && !!owner && amount > 0n,
+    queryFn: () =>
+      fetchBorrowGasUnits({
+        amount,
+        client: client!,
+        marketId,
+        owner: owner!,
+        queryClient,
+      }),
+    queryKey: borrowGasUnitsQueryKey({ amount, chainId, marketId, owner }),
   });
 
-  return useNetworkFee({
-    fees,
-    isEnabled: borrowAmount > 0n && withinBorrowLimit,
-    isError,
+const totalBorrowFeesQueryKey = ({
+  amount,
+  chainId,
+  marketId,
+  owner,
+}: {
+  amount: bigint;
+  chainId: Chain["id"];
+  marketId: Hash;
+  owner: Address | undefined;
+}) => ["total-borrow-fees", chainId, marketId, owner, amount.toString()];
+
+const totalBorrowFeesOptions = ({
+  amount,
+  chain,
+  client,
+  marketId,
+  owner,
+  queryClient,
+}: {
+  amount: bigint;
+  chain: Chain;
+  client: Client | undefined;
+  marketId: Hash;
+  owner: Address | undefined;
+  queryClient: QueryClient;
+}) =>
+  queryOptions({
+    enabled: !!client && !!owner && amount > 0n,
+    queryFn: () =>
+      fetchTotalBorrowFees({
+        amount,
+        chain,
+        client: client!,
+        marketId,
+        owner: owner!,
+        queryClient,
+      }),
+    queryKey: totalBorrowFeesQueryKey({
+      amount,
+      chainId: chain.id,
+      marketId,
+      owner,
+    }),
   });
-}
+
+export const useTotalBorrowMoreFees = function ({
+  amount,
+  marketId,
+}: {
+  amount: bigint;
+  marketId: Hash;
+}) {
+  const { address: owner } = useAccount();
+  const client = useEthereumClient();
+  const ethereumChain = useMainnet();
+  const queryClient = useQueryClient();
+
+  return useQuery(
+    totalBorrowFeesOptions({
+      amount,
+      chain: ethereumChain,
+      client,
+      marketId,
+      owner,
+      queryClient,
+    }),
+  );
+};

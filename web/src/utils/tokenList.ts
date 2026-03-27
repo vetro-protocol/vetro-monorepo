@@ -7,6 +7,7 @@ export const knownTokens: Token[] = [
     chainId: mainnet.id,
     decimals: 8,
     extensions: {
+      allowanceSlot: 6n,
       balanceSlot: 5,
       priceSymbol: "BTC",
     },
