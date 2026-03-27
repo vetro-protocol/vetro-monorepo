@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { hasActivePosition } from "../../src/utils/borrowPosition";
+import {
+  hasActivePosition,
+  isPositionAtRisk,
+} from "../../src/utils/borrowPosition";
 
 describe("hasActivePosition", function () {
   it("returns false for undefined", function () {
@@ -25,5 +28,32 @@ describe("hasActivePosition", function () {
   it("returns true when both are > 0n", function () {
     // @ts-expect-error - using partial object for testing
     expect(hasActivePosition({ borrowAssets: 1n, collateral: 1n })).toBe(true);
+  });
+});
+
+describe("isPositionAtRisk", function () {
+  const parseEther = (value: string) =>
+    BigInt(Math.round(Number(value) * 1e18));
+
+  it("returns false for undefined", function () {
+    expect(isPositionAtRisk(undefined)).toBe(false);
+  });
+
+  it("returns false for maxUint256 (no debt)", function () {
+    const maxUint256 =
+      115792089237316195423570985008687907853269984665640564039457584007913129639935n;
+    expect(isPositionAtRisk(maxUint256)).toBe(false);
+  });
+
+  it("returns false when health factor is above threshold", function () {
+    expect(isPositionAtRisk(parseEther("2.0"))).toBe(false);
+  });
+
+  it("returns true when health factor is at threshold", function () {
+    expect(isPositionAtRisk(parseEther("1.1"))).toBe(true);
+  });
+
+  it("returns true when health factor is below threshold", function () {
+    expect(isPositionAtRisk(parseEther("1.05"))).toBe(true);
   });
 });

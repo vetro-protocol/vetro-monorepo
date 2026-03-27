@@ -11,6 +11,7 @@ import {
 import { useTokenPrices } from "hooks/useTokenPrices";
 import { lazy, Suspense, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { isPositionAtRisk } from "utils/borrowPosition";
 import {
   calculateDailyInterestCost,
   formatHealthFactor,
@@ -50,8 +51,6 @@ const WithdrawCollateralDrawerForm = lazy(() =>
     default: m.WithdrawCollateralDrawerForm,
   })),
 );
-
-const LIQUIDATION_WARNING_THRESHOLD = 1.1;
 
 type PositionRow = MarketData & PositionData;
 
@@ -227,13 +226,12 @@ export function PositionsTable({ marketIds }: Props) {
     if (!row) {
       return null;
     }
-    const hf = formatHealthFactor(row.healthFactor);
-    if (hf === null || hf > LIQUIDATION_WARNING_THRESHOLD) {
+    if (!isPositionAtRisk(row.healthFactor)) {
       return null;
     }
     return (
       <LiquidationWarning
-        healthFactor={hf}
+        healthFactor={formatHealthFactor(row.healthFactor)!}
         lltv={row.lltv}
         marketId={row.marketId}
       />

@@ -1,5 +1,7 @@
 import type { Hash } from "viem";
 
+export const LIQUIDATION_WARNING_THRESHOLD = 1.1;
+
 export const marketIds: Hash[] = [
   // hemiBTC / VUSD
   "0x55609be688a4d96e715bfe39969133bd4e7f83db4f77bb06216109189a11f2e5",
