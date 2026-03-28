@@ -99,6 +99,7 @@
         "supply-collateral-title": "Depositar garantía",
         "title": "Préstamo en progreso"
       },
+      "reload-chart": "Recargar gráfico",
       "repay-loan": "Pagar préstamo",
       "repay-loan-progress": {
         "approve-description": "Apruebe el gasto del token de préstamo",

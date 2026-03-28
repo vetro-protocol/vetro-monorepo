@@ -99,6 +99,7 @@
         "supply-collateral-title": "Supply collateral",
         "title": "Borrow in progress"
       },
+      "reload-chart": "Reload chart",
       "repay-loan": "Repay loan",
       "repay-loan-progress": {
         "approve-description": "Approve the loan token spending",
