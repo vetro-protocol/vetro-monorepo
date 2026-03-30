@@ -266,6 +266,11 @@
     "faq": {
       "title": "Hello Faq"
     },
+    "not-found": {
+      "back-to-swap": "Take me back to swap",
+      "description": "The page you're trying to access does not exist.",
+      "title": "Page not found"
+    },
     "swap": {
       "activity": {
         "cancel-redeem-text": "{{amount}} {{symbol}} sent back to wallet",
