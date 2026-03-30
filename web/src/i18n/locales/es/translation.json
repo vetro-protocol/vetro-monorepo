@@ -79,6 +79,7 @@
       "max-lltv": "Max {{value}}",
       "no-positions-description": "Deposite garantía para pedir prestado {{symbol}} y poner sus activos a trabajar.",
       "no-positions-title": "Aún no hay posiciones de préstamos activos",
+      "oracle": "Oráculo",
       "per-day": "/ día",
       "period-1-month": "1 mes",
       "period-1-week": "1 semana",

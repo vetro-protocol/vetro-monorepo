@@ -8,6 +8,7 @@ import { RenderCryptoValue } from "components/base/cryptoValue";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { MaxButton } from "components/base/maxButton";
 import { Toast } from "components/base/toast";
+import { OracleLabel } from "components/borrow/oracleLabel";
 import { NetworkFees } from "components/networkFees";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenInput } from "components/tokenInput";
@@ -360,7 +361,10 @@ export function BorrowForm({
             openConnectModal={openConnectModal}
           />
         </div>
-        <NetworkFees networkFee={networkFee} />
+        <NetworkFees
+          label={<OracleLabel oracle={market.oracle} />}
+          networkFee={networkFee}
+        />
         <div className="border-t border-gray-200 px-4 py-1">
           <BorrowingReview
             borrowApy={market.borrowApy}

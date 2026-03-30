@@ -79,6 +79,7 @@
       "max-lltv": "Max {{value}}",
       "no-positions-description": "Deposit collateral to borrow {{symbol}} and put your assets to work.",
       "no-positions-title": "No active borrow position yet",
+      "oracle": "Oracle",
       "per-day": "/ day",
       "period-1-month": "1 month",
       "period-1-week": "1 week",
