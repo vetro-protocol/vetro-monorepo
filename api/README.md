@@ -8,7 +8,7 @@ Service that provides data to the Vetro web application.
 
 Get the total strategic reserves and the total surplus.
 
-### Sample response
+#### Sample response
 
 ```json
 {
