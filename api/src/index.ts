@@ -19,6 +19,23 @@ app.use("*", async function (c, next) {
 });
 
 app.get(
+  "/analytics/backing-vusd",
+  cache({
+    cacheControl: "max-age=15, stale-while-revalidate=45",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const url = c.env.CUSTOM_RPC_URL_MAINNET;
+      const data = await analytics.getBackingVusd({ url });
+      return c.json(convertBigIntsToString(data));
+    } catch (error) {
+      throw new Error(`Failed to get backing VUSD: ${error.message}`);
+    }
+  },
+);
+
+app.get(
   "/analytics/totals",
   cache({
     cacheControl: "max-age=15, stale-while-revalidate=45",

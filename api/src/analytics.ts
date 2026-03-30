@@ -6,8 +6,14 @@ import {
   getWhitelistedTokens,
   getWithdrawable,
 } from "@vetro/treasury/actions";
-import { createPublicClient, http } from "viem";
+import {
+  type Address,
+  createPublicClient,
+  http,
+  type PublicClient,
+} from "viem";
 import { mainnet } from "viem/chains";
+import { balanceOf, previewRedeem } from "viem-erc4626/actions";
 
 import { getTotalAssets, getTotalSupply } from "./contracts.ts";
 import {
@@ -16,7 +22,14 @@ import {
   getTotalDebt,
   getVaultName,
 } from "./vesper.ts";
-import { sVusdAddress, vusdAddress } from "./vusd.ts";
+import {
+  sVusdAddress,
+  ummRoleAddress,
+  vetroMultisigAddress,
+  vusdAddress,
+  vusdMetaAddress,
+  yieldDistributorAddress,
+} from "./vusd.ts";
 
 /**
  * Get the total VUSD minted and staked to calculate the TVL in the protocol.
@@ -98,4 +111,76 @@ export async function getTreasuryComposition({
       };
     }),
   );
+}
+
+async function getStrategicReserves({
+  client,
+  treasuryAddress,
+}: {
+  client: PublicClient;
+  treasuryAddress: Address;
+}) {
+  const strategicReserveAddresses = [
+    treasuryAddress,
+    ummRoleAddress,
+    vetroMultisigAddress,
+  ] as `0x${string}`[];
+  const vusdMetaBalancePromises = strategicReserveAddresses.map((account) =>
+    balanceOf(client, { account, address: vusdMetaAddress }),
+  );
+  const vusdMetaBalances = await Promise.all(vusdMetaBalancePromises);
+  const totalVusdMetaBalance = vusdMetaBalances.reduce(
+    (acc, balance) => acc + balance,
+    0n,
+  );
+  return previewRedeem(client, {
+    address: vusdMetaAddress,
+    shares: totalVusdMetaBalance,
+  });
+}
+
+async function getSurplus({
+  client,
+  treasuryAddress,
+}: {
+  client: PublicClient;
+  treasuryAddress: Address;
+}) {
+  const surplusAddresses = [
+    treasuryAddress,
+    ummRoleAddress,
+    yieldDistributorAddress,
+  ] as `0x${string}`[];
+  const surplusBalancePromises = surplusAddresses.map((account) =>
+    balanceOf(client, { account, address: vusdAddress }),
+  );
+  const surplusBalances = await Promise.all(surplusBalancePromises);
+  return surplusBalances.reduce((acc, balance) => acc + balance, 0n);
+}
+
+/**
+ * The strategic reserves are the mark-to-market value of VUSDmeta receipts held
+ * by the Treasury, the UMM role and the Operator (multisig). The protocol
+ * surplus is any VUSD held in the Treasury or UMM or YieldDistributor.
+ *
+ * This is useful to understand the health of the protocol and its ability to
+ * cover redemptions.
+ */
+export async function getBackingVusd({ url }: { url: string | undefined }) {
+  const client = createPublicClient({
+    chain: mainnet,
+    transport: http(url),
+  });
+  const gatewayAddress = getGatewayAddress(mainnet.id);
+  const treasuryAddress = await getTreasury(client, {
+    address: gatewayAddress,
+  });
+  const [strategicReserves, surplus] = await Promise.all([
+    getStrategicReserves({ client, treasuryAddress }),
+    getSurplus({ client, treasuryAddress }),
+  ]);
+  return {
+    strategicReserves,
+    surplus,
+  };
 }

@@ -1,6 +1,6 @@
 {
   "name": "@vetro/api",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "scripts": {
     "deps:check": "knip",
     "dev": "wrangler dev",
@@ -14,7 +14,9 @@
     "simple-linear-regression": "1.0.3",
     "tiny-fetch-json": "2.0.1",
     "tiny-post-json": "1.0.0",
-    "viem": "2.44.4"
+    "viem": "2.44.4",
+    "viem-erc20": "2.1.0",
+    "viem-erc4626": "1.0.0"
   },
   "devDependencies": {
     "@types/node": "24.10.13",
