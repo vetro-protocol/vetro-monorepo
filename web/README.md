@@ -81,3 +81,23 @@ Options:
 | `--token`   | `-t`  | Token address (required)                | —                       |
 | `--fee`     | `-f`  | New redeem fee in BPS, 0–500 (required) | —                       |
 | `--rpc-url` | `-r`  | Anvil RPC URL                           | `http://127.0.0.1:8545` |
+
+### Redeem Delay
+
+Toggle the withdrawal delay for an address on the Gateway contract using a local Anvil fork. Impersonates the contract owner to enable/disable the delay and manage the instant redeem whitelist.
+
+**Usage:**
+
+```bash
+node web/scripts/redeemDelay.ts --address 0xYourAddress --delay
+node web/scripts/redeemDelay.ts --address 0xYourAddress --no-delay
+```
+
+Options:
+
+| Flag         | Short | Description                              | Default                 |
+| ------------ | ----- | ---------------------------------------- | ----------------------- |
+| `--address`  | `-a`  | Target address (required)                | —                       |
+| `--delay`    |       | Enable withdrawal delay for the address  | —                       |
+| `--no-delay` |       | Disable withdrawal delay for the address | —                       |
+| `--fork-url` | `-f`  | Anvil RPC URL                            | `http://127.0.0.1:8545` |
