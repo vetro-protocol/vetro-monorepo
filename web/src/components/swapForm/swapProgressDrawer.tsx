@@ -6,8 +6,9 @@ import { useAnimatedVisibility } from "hooks/useAnimatedVisibility";
 import type { ComponentProps, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
+import type { Address } from "viem";
 
-import { OutputLabel } from "./outputLabel";
+import { OutputLabel, type UnitPreview } from "./outputLabel";
 import { SwapFees } from "./swapFees";
 import { TreasuryReserves } from "./treasuryReserves";
 
@@ -15,10 +16,12 @@ type Props = {
   fromAmount: string;
   fromToken: Token;
   onRetry?: VoidFunction;
+  oracleToken?: Address;
   outputValue?: string;
   steps: Step[];
   subtitle?: ReactNode;
   toToken?: Token;
+  unitPreview?: UnitPreview;
 } & Pick<
   ComponentProps<typeof SwapFees>,
   "networkFee" | "protocolFee" | "totalFees"
@@ -29,12 +32,14 @@ export function SwapProgressDrawer({
   fromToken,
   networkFee,
   onRetry,
+  oracleToken,
   outputValue,
   protocolFee,
   steps,
   subtitle,
   totalFees,
   toToken,
+  unitPreview,
 }: Props) {
   const { t } = useTranslation();
   const { render: renderRetry, show: showRetry } =
@@ -88,12 +93,14 @@ export function SwapProgressDrawer({
           fromToken={fromToken}
           networkFee={networkFee}
           outputLabel={
-            toToken !== undefined && outputValue !== undefined ? (
+            toToken !== undefined &&
+            oracleToken !== undefined &&
+            unitPreview !== undefined ? (
               <OutputLabel
-                fromInputValue={fromAmount}
                 fromToken={fromToken}
-                outputValue={outputValue}
+                oracleToken={oracleToken}
                 toToken={toToken}
+                unitPreview={unitPreview}
               />
             ) : null
           }

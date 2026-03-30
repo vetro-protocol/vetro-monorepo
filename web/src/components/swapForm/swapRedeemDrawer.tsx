@@ -5,7 +5,9 @@ import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
 import { type ComponentProps, Suspense, lazy } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
+import type { Address } from "viem";
 
+import type { UnitPreview } from "./outputLabel";
 import type { SwapFees } from "./swapFees";
 
 const SwapProgressDrawer = lazy(() =>
@@ -56,9 +58,11 @@ type Props = {
   fromToken: Token;
   onClose: VoidFunction;
   onRetry: VoidFunction;
+  oracleToken: Address;
   outputValue: string;
   showApproveStep: boolean;
   toToken: Token;
+  unitPreview: UnitPreview;
 } & Pick<
   ComponentProps<typeof SwapFees>,
   "networkFee" | "protocolFee" | "totalFees"
@@ -71,11 +75,13 @@ export function SwapRedeemDrawer({
   networkFee,
   onClose,
   onRetry,
+  oracleToken,
   outputValue,
   protocolFee,
   showApproveStep,
   totalFees,
   toToken,
+  unitPreview,
 }: Props) {
   const { t } = useTranslation();
   useCloseOnSuccess({ onClose, success: flowStatus === "redeemed" });
@@ -107,11 +113,13 @@ export function SwapRedeemDrawer({
           fromToken={fromToken}
           networkFee={networkFee}
           onRetry={isError ? onRetry : undefined}
+          oracleToken={oracleToken}
           outputValue={outputValue}
           protocolFee={protocolFee}
           steps={steps}
           totalFees={totalFees}
           toToken={toToken}
+          unitPreview={unitPreview}
         />
       </Suspense>
     </Drawer>

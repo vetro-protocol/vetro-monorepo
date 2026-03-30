@@ -12,8 +12,9 @@ import type { ComponentProps } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 import { formatAmount } from "utils/token";
+import type { Address } from "viem";
 
-import { OutputLabel } from "./outputLabel";
+import { OutputLabel, type UnitPreview } from "./outputLabel";
 import { SwapFees } from "./swapFees";
 import { ToTokenBalance } from "./toTokenBalance";
 import { TreasuryReserves } from "./treasuryReserves";
@@ -37,7 +38,9 @@ type Props = {
   onRetry?: VoidFunction;
   onSubmit: VoidFunction;
   onTokenChange: (token: Token) => void;
+  oracleToken: Address;
   outputBigInt: bigint | undefined;
+  unitPreview: UnitPreview;
   outputValue: string;
   steps: Step[];
   toToken: Token;
@@ -60,12 +63,14 @@ export function ClaimRedeemProgressDrawer({
   onRetry,
   onSubmit,
   onTokenChange,
+  oracleToken,
   outputBigInt,
   outputValue,
   protocolFee,
   steps,
   totalFees,
   toToken,
+  unitPreview,
   whitelistedTokens,
 }: Props) {
   const { t } = useTranslation();
@@ -140,10 +145,10 @@ export function ClaimRedeemProgressDrawer({
         networkFee={networkFee}
         outputLabel={
           <OutputLabel
-            fromInputValue={fromAmount}
             fromToken={fromToken}
-            outputValue={outputValue}
+            oracleToken={oracleToken}
             toToken={toToken}
+            unitPreview={unitPreview}
           />
         }
         protocolFee={protocolFee}

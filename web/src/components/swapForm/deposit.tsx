@@ -22,6 +22,7 @@ import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 import { applyBps } from "utils/fees";
 import { formatAmount } from "utils/token";
+import { parseUnits } from "viem";
 
 import { Form } from "./form";
 import { OutputLabel } from "./outputLabel";
@@ -90,6 +91,11 @@ export function Deposit({
       amountIn: amountBigInt,
       tokenIn: fromToken.address,
     });
+
+  const unitDepositPreview = usePreviewDeposit({
+    amountIn: parseUnits("1", fromToken.decimals),
+    tokenIn: fromToken.address,
+  });
 
   const outputValue = formatAmount({
     amount: depositPreview,
@@ -255,10 +261,10 @@ export function Deposit({
         networkFee={networkFee}
         outputLabel={
           <OutputLabel
-            fromInputValue={fromInputValue}
             fromToken={fromToken}
-            outputValue={outputValue}
+            oracleToken={fromToken.address}
             toToken={toToken}
+            unitPreview={unitDepositPreview}
           />
         }
         protocolFee={protocolFeeQueryData}
@@ -273,11 +279,13 @@ export function Deposit({
           networkFee={networkFee}
           onClose={handleDrawerClose}
           onRetry={handleRetry}
+          oracleToken={fromToken.address}
           outputValue={outputValue}
           protocolFee={protocolFeeQueryData}
           showApproveStep={startedWithApproval}
           toToken={toToken}
           totalFees={totalMintFeesQueryData}
+          unitPreview={unitDepositPreview}
         />
       )}
       {showToast && (

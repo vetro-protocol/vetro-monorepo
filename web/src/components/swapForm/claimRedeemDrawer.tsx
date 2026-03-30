@@ -6,8 +6,10 @@ import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
 import { type ComponentProps, Suspense, lazy } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
+import type { Address } from "viem";
 
 import { type ClaimRedeemFlowStatus } from "./claimRedeemProgressDrawer";
+import type { UnitPreview } from "./outputLabel";
 import type { SwapFees } from "./swapFees";
 
 const ClaimRedeemProgressDrawer = lazy(() =>
@@ -35,10 +37,12 @@ type Props = {
   onMaxClick: VoidFunction;
   onSubmit: VoidFunction;
   onTokenChange: (token: Token) => void;
+  oracleToken: Address;
   outputBigInt: bigint | undefined;
   outputValue: string;
   toToken: Token;
   inputError: InputError | undefined;
+  unitPreview: UnitPreview;
   whitelistedTokens: Token[];
 } & Pick<
   ComponentProps<typeof SwapFees>,
@@ -58,11 +62,13 @@ export function ClaimRedeemDrawer({
   onMaxClick,
   onSubmit,
   onTokenChange,
+  oracleToken,
   outputBigInt,
   outputValue,
   protocolFee,
   totalFees,
   toToken,
+  unitPreview,
   whitelistedTokens,
 }: Props) {
   const { t } = useTranslation();
@@ -94,7 +100,9 @@ export function ClaimRedeemDrawer({
           onRetry={isError ? onSubmit : undefined}
           onSubmit={onSubmit}
           onTokenChange={onTokenChange}
+          oracleToken={oracleToken}
           outputBigInt={outputBigInt}
+          unitPreview={unitPreview}
           outputValue={outputValue}
           protocolFee={protocolFee}
           steps={steps}
