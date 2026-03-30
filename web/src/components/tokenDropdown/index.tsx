@@ -24,6 +24,7 @@ const renderItem = (token: Token) => (
 
 export const TokenDropdown = function ({ onChange, tokens, value }: Props) {
   const { t } = useTranslation();
+
   return (
     <Dropdown
       getItemKey={(token) => `${token.address}-${token.chainId}`}
