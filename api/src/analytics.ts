@@ -6,7 +6,12 @@ import {
   getWhitelistedTokens,
   getWithdrawable,
 } from "@vetro/treasury/actions";
-import { createPublicClient, http } from "viem";
+import {
+  type Address,
+  createPublicClient,
+  http,
+  type PublicClient,
+} from "viem";
 import { mainnet } from "viem/chains";
 import { balanceOf, previewRedeem } from "viem-erc4626/actions";
 
@@ -108,6 +113,51 @@ export async function getTreasuryComposition({
   );
 }
 
+async function getStrategicReserves({
+  client,
+  treasuryAddress,
+}: {
+  client: PublicClient;
+  treasuryAddress: Address;
+}) {
+  const strategicReserveAddresses = [
+    treasuryAddress,
+    ummRoleAddress,
+    vetroMultisigAddress,
+  ] as `0x${string}`[];
+  const vusdMetaBalancePromises = strategicReserveAddresses.map((account) =>
+    balanceOf(client, { account, address: vusdMetaAddress }),
+  );
+  const vusdMetaBalances = await Promise.all(vusdMetaBalancePromises);
+  const totalVusdMetaBalance = vusdMetaBalances.reduce(
+    (acc, balance) => acc + balance,
+    0n,
+  );
+  return previewRedeem(client, {
+    address: vusdMetaAddress,
+    shares: totalVusdMetaBalance,
+  });
+}
+
+async function getSurplus({
+  client,
+  treasuryAddress,
+}: {
+  client: PublicClient;
+  treasuryAddress: Address;
+}) {
+  const surplusAddresses = [
+    treasuryAddress,
+    ummRoleAddress,
+    yieldDistributorAddress,
+  ] as `0x${string}`[];
+  const surplusBalancePromises = surplusAddresses.map((account) =>
+    balanceOf(client, { account, address: vusdAddress }),
+  );
+  const surplusBalances = await Promise.all(surplusBalancePromises);
+  return surplusBalances.reduce((acc, balance) => acc + balance, 0n);
+}
+
 /**
  * The strategic reserves are the mark-to-market value of VUSDmeta receipts held
  * by the Treasury, the UMM role and the Operator (multisig). The protocol
@@ -125,33 +175,10 @@ export async function getBackingVusd({ url }: { url: string | undefined }) {
   const treasuryAddress = await getTreasury(client, {
     address: gatewayAddress,
   });
-  const strategicReserveAddresses = [
-    treasuryAddress,
-    ummRoleAddress,
-    vetroMultisigAddress,
-  ] as `0x${string}`[];
-  const vusdMetaBalancePromises = strategicReserveAddresses.map((account) =>
-    balanceOf(client, { account, address: vusdMetaAddress }),
-  );
-  const vusdMetaBalances = await Promise.all(vusdMetaBalancePromises);
-  const totalVusdMetaBalance = vusdMetaBalances.reduce(
-    (acc, balance) => acc + balance,
-    0n,
-  );
-  const strategicReserves = await previewRedeem(client, {
-    address: vusdMetaAddress,
-    shares: totalVusdMetaBalance,
-  });
-  const surplusAddresses = [
-    treasuryAddress,
-    ummRoleAddress,
-    yieldDistributorAddress,
-  ] as `0x${string}`[];
-  const surplusBalancePromises = surplusAddresses.map((account) =>
-    balanceOf(client, { account, address: vusdAddress }),
-  );
-  const surplusBalances = await Promise.all(surplusBalancePromises);
-  const surplus = surplusBalances.reduce((acc, balance) => acc + balance, 0n);
+  const [strategicReserves, surplus] = await Promise.all([
+    getStrategicReserves({ client, treasuryAddress }),
+    getSurplus({ client, treasuryAddress }),
+  ]);
   return {
     strategicReserves,
     surplus,
