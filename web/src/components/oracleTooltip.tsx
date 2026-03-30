@@ -2,6 +2,7 @@ import { ExternalLink } from "components/base/externalLink";
 import { InfoIcon } from "components/icons/infoIcon";
 import { Tooltip } from "components/tooltip";
 import { useMainnet } from "hooks/useMainnet";
+import { useTranslation } from "react-i18next";
 import { formatEvmAddress } from "utils/format";
 import type { Address } from "viem";
 
@@ -52,15 +53,12 @@ const OracleLogo = () => (
   </svg>
 );
 
-const variantConfig = {
-  chainlink: { label: "Chainlink", logo: <ChainlinkLogo /> },
-  oracle: { label: "Oracle", logo: <OracleLogo /> },
-} as const;
+type Variant = "chainlink" | "oracle";
 
 type Props = {
   oracle: Address;
   useParentContainer?: boolean;
-  variant?: keyof typeof variantConfig;
+  variant?: Variant;
 };
 
 export function OracleTooltip({
@@ -69,7 +67,14 @@ export function OracleTooltip({
   variant = "chainlink",
 }: Props) {
   const chain = useMainnet();
+  const { t } = useTranslation();
   const explorerBaseUrl = chain.blockExplorers!.default.url;
+
+  const variantConfig = {
+    chainlink: { label: "Chainlink", logo: <ChainlinkLogo /> },
+    oracle: { label: t("common.oracle"), logo: <OracleLogo /> },
+  };
+
   const { label, logo } = variantConfig[variant];
 
   return (
