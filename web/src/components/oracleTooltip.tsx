@@ -72,7 +72,7 @@ export function OracleTooltip({
 
   const variantConfig = {
     chainlink: { label: "Chainlink", logo: <ChainlinkLogo /> },
-    oracle: { label: t("pages.borrow.oracle"), logo: <OracleLogo /> },
+    oracle: { label: t("common.oracle"), logo: <OracleLogo /> },
   };
 
   const { label, logo } = variantConfig[variant];

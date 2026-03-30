@@ -11,9 +11,7 @@ export function OracleLabel({ oracle }: Props) {
 
   return (
     <span className="flex items-center gap-x-1">
-      <span className="text-b-medium text-gray-500">
-        {t("pages.borrow.oracle")}
-      </span>
+      <span className="text-b-medium text-gray-500">{t("common.oracle")}</span>
       <OracleTooltip oracle={oracle} useParentContainer />
     </span>
   );

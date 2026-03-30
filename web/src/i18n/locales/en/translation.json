@@ -2,7 +2,8 @@
   "common": {
     "approve-10x": "Approve 10x",
     "approve-10x-tooltip": "Approves up to 10× your transaction amount, reducing future approval steps. You can revoke it anytime.",
-    "network-fee": "Network Fee"
+    "network-fee": "Network Fee",
+    "oracle": "Oracle"
   },
   "language": {
     "switch-to": "Switch to Spanish"
@@ -79,7 +80,6 @@
       "max-lltv": "Max {{value}}",
       "no-positions-description": "Deposit collateral to borrow {{symbol}} and put your assets to work.",
       "no-positions-title": "No active borrow position yet",
-      "oracle": "Oracle",
       "per-day": "/ day",
       "period-1-month": "1 month",
       "period-1-week": "1 week",
