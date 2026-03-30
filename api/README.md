@@ -4,6 +4,19 @@ Service that provides data to the Vetro web application.
 
 ## Data endpoints
 
+### `GET /analytics/backing-vusd`
+
+Get the total strategic reserves and the total surplus.
+
+### Sample response
+
+```json
+{
+  "strategicReserves": "10000000000000000000",
+  "surplus": "1424707358963452827"
+}
+```
+
 ### `GET /analytics/totals`
 
 Get the total VUSD minted and staked to calculate the TVL in the protocol.
