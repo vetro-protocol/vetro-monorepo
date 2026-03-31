@@ -75,10 +75,10 @@ const BorrowMarketDetailsContent = function ({ marketId }: { marketId: Hash }) {
 };
 
 export const BorrowMarketDetails = function () {
-  const { marketId } = useParams<{ marketId: Hash }>();
+  const { lang, marketId } = useParams<{ lang: string; marketId: Hash }>();
 
   if (!marketId || !isHash(marketId) || !marketIds.includes(marketId)) {
-    return <Navigate replace to="../not-found" />;
+    return <Navigate replace to={`/${lang}/not-found`} />;
   }
 
   return <BorrowMarketDetailsContent marketId={marketId} />;
