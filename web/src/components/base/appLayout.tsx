@@ -3,7 +3,13 @@ import { useLocation } from "react-router";
 
 import "react-loading-skeleton/dist/skeleton.css";
 
-export function AppLayout({ children }: { children: ReactNode }) {
+export function MainContent({
+  bottom,
+  children,
+}: {
+  bottom?: ReactNode;
+  children: ReactNode;
+}) {
   const { pathname } = useLocation();
   return (
     <div className="flex h-full flex-col overflow-y-auto *:mx-auto *:w-[calc(100%-2rem)] md:*:w-[calc(100%-6rem)] xl:*:w-5xl">
@@ -13,6 +19,14 @@ export function AppLayout({ children }: { children: ReactNode }) {
       >
         {children}
       </main>
+      {bottom}
+    </div>
+  );
+}
+
+export const AppLayout = ({ children }: { children: ReactNode }) => (
+  <MainContent
+    bottom={
       <div className="relative border-x border-gray-200 pt-18">
         <img alt="" src="/pageBackground.svg" />
         <img
@@ -21,6 +35,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
           src="/squareDotsBackground.svg"
         />
       </div>
-    </div>
-  );
-}
+    }
+  >
+    {children}
+  </MainContent>
+);

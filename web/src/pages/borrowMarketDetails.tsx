@@ -3,12 +3,13 @@ import { ExistingPositionNotice } from "components/borrow/existingPositionNotice
 import { MarketHeader } from "components/borrow/marketHeader";
 import { MarketInfoCards } from "components/borrow/marketInfoCards";
 import { StripedDivider } from "components/stripedDivider";
+import { marketIds } from "constants/borrow";
 import { type MarketData, useMarketData } from "hooks/borrow/useMarketData";
 import { usePositionInfo } from "hooks/borrow/usePositionInfo";
 import { useAmount } from "hooks/useAmount";
 import { useState } from "react";
 import Skeleton from "react-loading-skeleton";
-import { useParams } from "react-router";
+import { Navigate, useParams } from "react-router";
 import { hasActivePosition } from "utils/borrowPosition";
 import { type Hash, isHash } from "viem";
 
@@ -76,9 +77,8 @@ const BorrowMarketDetailsContent = function ({ marketId }: { marketId: Hash }) {
 export const BorrowMarketDetails = function () {
   const { marketId } = useParams<{ marketId: Hash }>();
 
-  if (!marketId || !isHash(marketId)) {
-    // TODO: Implement 404 page https://github.com/vetro-protocol/vetro-monorepo/issues/146
-    return <div>Invalid Market Id</div>;
+  if (!marketId || !isHash(marketId) || !marketIds.includes(marketId)) {
+    return <Navigate replace to="../not-found" />;
   }
 
   return <BorrowMarketDetailsContent marketId={marketId} />;
