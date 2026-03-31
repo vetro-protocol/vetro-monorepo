@@ -1,7 +1,7 @@
 import { tokenBalanceQueryOptions } from "@hemilabs/react-hooks/useTokenBalance";
 import type { QueryClient } from "@tanstack/react-query";
-import { getGatewayAddress } from "@vetro/gateway";
-import { encodeRedeem } from "@vetro/gateway/actions";
+import { getGatewayAddress } from "@vetro-protocol/gateway";
+import { encodeRedeem } from "@vetro-protocol/gateway/actions";
 import { redeemDelayOptions } from "hooks/useRedeemDelay";
 import { treasuryReservesOptions } from "hooks/useTreasuryReserves";
 import type { Token } from "types";

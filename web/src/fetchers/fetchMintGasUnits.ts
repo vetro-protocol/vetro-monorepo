@@ -1,7 +1,7 @@
 import { tokenBalanceQueryOptions } from "@hemilabs/react-hooks/useTokenBalance";
 import type { QueryClient } from "@tanstack/react-query";
-import { getGatewayAddress } from "@vetro/gateway";
-import { encodeDeposit } from "@vetro/gateway/actions";
+import { getGatewayAddress } from "@vetro-protocol/gateway";
+import { encodeDeposit } from "@vetro-protocol/gateway/actions";
 import type { Token } from "types";
 import { createErc20AllowanceStateOverride } from "utils/erc20StateOverride";
 import type { Address, Client } from "viem";

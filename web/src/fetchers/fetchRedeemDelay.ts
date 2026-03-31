@@ -2,7 +2,7 @@ import type { QueryClient } from "@tanstack/react-query";
 import {
   getWithdrawalDelayEnabled,
   isInstantRedeemWhitelisted,
-} from "@vetro/gateway/actions";
+} from "@vetro-protocol/gateway/actions";
 import { withdrawalDelayOptions } from "hooks/useWithdrawalDelay";
 import type { Address, Client } from "viem";
 

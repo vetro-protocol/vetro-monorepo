@@ -1,5 +1,5 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { getMaxWithdraw } from "@vetro/gateway/actions";
+import { getMaxWithdraw } from "@vetro-protocol/gateway/actions";
 import { whitelistedTokensOptions } from "hooks/useWhitelistedTokens";
 import type { Address, Client } from "viem";
 

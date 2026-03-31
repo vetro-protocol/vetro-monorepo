@@ -1,6 +1,6 @@
 import { tokenBalanceQueryOptions } from "@hemilabs/react-hooks/useTokenBalance";
 import type { QueryClient } from "@tanstack/react-query";
-import { getStakingVaultAddress, stakingVaultAbi } from "@vetro/earn";
+import { getStakingVaultAddress, stakingVaultAbi } from "@vetro-protocol/earn";
 import { canInstantWithdrawOptions } from "pages/earn/hooks/useCanInstantWithdraw";
 import {
   type Address,

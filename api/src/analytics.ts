@@ -1,11 +1,11 @@
-import { getGatewayAddress } from "@vetro/gateway";
-import { getTreasury } from "@vetro/gateway/actions";
+import { getGatewayAddress } from "@vetro-protocol/gateway";
+import { getTreasury } from "@vetro-protocol/gateway/actions";
 import {
   getPrice,
   getTokenConfig,
   getWhitelistedTokens,
   getWithdrawable,
-} from "@vetro/treasury/actions";
+} from "@vetro-protocol/treasury/actions";
 import {
   type Address,
   createPublicClient,

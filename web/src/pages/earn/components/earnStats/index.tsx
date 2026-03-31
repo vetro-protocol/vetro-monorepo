@@ -1,5 +1,5 @@
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
-import { getStakingVaultAddress } from "@vetro/earn";
+import { getStakingVaultAddress } from "@vetro-protocol/earn";
 import { useMainnet } from "hooks/useMainnet";
 import { useStakedBalance } from "hooks/useStakedBalance";
 import { useSvusd } from "hooks/useSvusd";

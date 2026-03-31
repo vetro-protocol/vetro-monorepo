@@ -12,7 +12,7 @@ vi.mock("@hemilabs/react-hooks/useEstimateFees", () => ({
   }),
 }));
 
-vi.mock("@vetro/gateway", () => ({
+vi.mock("@vetro-protocol/gateway", () => ({
   getGatewayAddress: vi.fn().mockReturnValue(zeroAddress),
 }));
 

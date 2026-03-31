@@ -17,11 +17,11 @@ vi.mock("../../src/fetchers/estimateApprovalGasUnits", () => ({
   estimateApprovalGasUnits: vi.fn(),
 }));
 
-vi.mock("@vetro/gateway", () => ({
+vi.mock("@vetro-protocol/gateway", () => ({
   getGatewayAddress: vi.fn().mockReturnValue(zeroAddress),
 }));
 
-vi.mock("@vetro/gateway/actions", () => ({
+vi.mock("@vetro-protocol/gateway/actions", () => ({
   encodeRedeem: vi.fn().mockReturnValue("0x"),
 }));
 

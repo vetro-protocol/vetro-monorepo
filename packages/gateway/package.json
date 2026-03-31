@@ -1,5 +1,5 @@
 {
-  "name": "@vetro/gateway",
+  "name": "@vetro-protocol/gateway",
   "version": "1.0.0",
   "scripts": {
     "build": "tsc --noEmit",

@@ -3,8 +3,8 @@ import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
 import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpdateNativeBalanceAfterReceipt";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { type CancelRedeemRequestEvents } from "@vetro/gateway";
-import { cancelRedeemRequest } from "@vetro/gateway/actions";
+import { type CancelRedeemRequestEvents } from "@vetro-protocol/gateway";
+import { cancelRedeemRequest } from "@vetro-protocol/gateway/actions";
 import type { EventEmitter } from "events";
 import { useAccount } from "wagmi";
 

@@ -2,11 +2,11 @@ import type { QueryClient } from "@tanstack/react-query";
 import {
   getWithdrawalDelayEnabled,
   isInstantRedeemWhitelisted,
-} from "@vetro/gateway/actions";
+} from "@vetro-protocol/gateway/actions";
 import type { Address, Client } from "viem";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@vetro/gateway/actions", () => ({
+vi.mock("@vetro-protocol/gateway/actions", () => ({
   getWithdrawalDelay: vi.fn(),
   getWithdrawalDelayEnabled: vi.fn(),
   isInstantRedeemWhitelisted: vi.fn(),

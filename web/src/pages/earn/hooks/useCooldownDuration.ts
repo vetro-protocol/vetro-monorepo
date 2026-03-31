@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { getStakingVaultAddress } from "@vetro/earn";
-import { getCooldownDuration } from "@vetro/earn/actions";
+import { getStakingVaultAddress } from "@vetro-protocol/earn";
+import { getCooldownDuration } from "@vetro-protocol/earn/actions";
 import { useEthereumClient } from "hooks/useEthereumClient";
 import { useMainnet } from "hooks/useMainnet";
 

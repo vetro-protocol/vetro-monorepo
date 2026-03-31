@@ -1,6 +1,6 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import { getGatewayAddress } from "@vetro/gateway";
-import { previewRedeem } from "@vetro/gateway/actions";
+import { getGatewayAddress } from "@vetro-protocol/gateway";
+import { previewRedeem } from "@vetro-protocol/gateway/actions";
 import type { Address, Chain, Client } from "viem";
 
 import { useEthereumClient } from "./useEthereumClient";

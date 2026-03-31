@@ -1,5 +1,5 @@
 {
-  "name": "vetro-app-subgraph",
+  "name": "@vetro-protocol/subgraph",
   "version": "1.1.0",
   "license": "MIT",
   "scripts": {

@@ -4,8 +4,8 @@ import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
 import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpdateNativeBalanceAfterReceipt";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { getStakingVaultAddress } from "@vetro/earn";
-import { deposit } from "@vetro/earn/actions";
+import { getStakingVaultAddress } from "@vetro-protocol/earn";
+import { deposit } from "@vetro-protocol/earn/actions";
 import type { TransactionReceipt } from "viem";
 import { useAccount } from "wagmi";
 

@@ -1,7 +1,7 @@
 import { tokenBalanceQueryOptions } from "@hemilabs/react-hooks/useTokenBalance";
 import { getChainAddresses } from "@morpho-org/blue-sdk";
 import type { QueryClient } from "@tanstack/react-query";
-import { encodeSupplyCollateral } from "@vetro/morpho-blue-market/actions";
+import { encodeSupplyCollateral } from "@vetro-protocol/morpho-blue-market/actions";
 import { morphoMarketOptions } from "hooks/borrow/useMorphoMarket";
 import type { Token } from "types";
 import { createErc20AllowanceStateOverride } from "utils/erc20StateOverride";

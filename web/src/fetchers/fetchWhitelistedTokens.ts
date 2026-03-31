@@ -1,5 +1,5 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { getWhitelistedTokens } from "@vetro/treasury/actions";
+import { getWhitelistedTokens } from "@vetro-protocol/treasury/actions";
 import { tokenInfoOptions } from "hooks/useTokenInfo";
 import { treasuryAddressOptions } from "hooks/useTreasuryAddress";
 import type { Address, Client } from "viem";

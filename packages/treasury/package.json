@@ -1,5 +1,5 @@
 {
-  "name": "@vetro/treasury",
+  "name": "@vetro-protocol/treasury",
   "version": "1.0.0",
   "scripts": {
     "build": "tsc --noEmit",

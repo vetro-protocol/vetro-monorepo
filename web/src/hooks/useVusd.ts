@@ -4,7 +4,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { getGatewayAddress } from "@vetro/gateway";
+import { getGatewayAddress } from "@vetro-protocol/gateway";
 import { fetchVusd } from "fetchers/fetchVusd";
 import { knownTokens } from "utils/tokenList";
 import type { Chain, Client } from "viem";

@@ -3,8 +3,8 @@ import {
   queryOptions,
   useQuery,
 } from "@tanstack/react-query";
-import { getGatewayAddress } from "@vetro/gateway";
-import { getWithdrawalDelay } from "@vetro/gateway/actions";
+import { getGatewayAddress } from "@vetro-protocol/gateway";
+import { getWithdrawalDelay } from "@vetro-protocol/gateway/actions";
 import type { Address, Chain, Client } from "viem";
 
 import { useEthereumClient } from "./useEthereumClient";

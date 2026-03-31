@@ -2,7 +2,7 @@ import { useAllowance } from "@hemilabs/react-hooks/useAllowance";
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
-import { getStakingVaultAddress } from "@vetro/earn";
+import { getStakingVaultAddress } from "@vetro-protocol/earn";
 import { ApproveSection } from "components/approveSection";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { VerticalStepper, stepStatus } from "components/base/verticalStepper";

@@ -1,5 +1,5 @@
 {
-  "name": "@vetro/morpho-blue-market",
+  "name": "@vetro-protocol/morpho-blue-market",
   "version": "1.0.0",
   "scripts": {
     "build": "tsc --noEmit",

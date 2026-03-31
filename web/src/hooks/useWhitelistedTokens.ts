@@ -4,7 +4,7 @@ import {
   useQueryClient,
   type QueryClient,
 } from "@tanstack/react-query";
-import { getGatewayAddress } from "@vetro/gateway";
+import { getGatewayAddress } from "@vetro-protocol/gateway";
 import { fetchWhitelistedTokens } from "fetchers/fetchWhitelistedTokens";
 import type { Client } from "viem";
 
