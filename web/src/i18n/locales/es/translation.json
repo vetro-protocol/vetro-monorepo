@@ -271,6 +271,16 @@
     "faq": {
       "title": "Hola FAQ"
     },
+    "not-found": {
+      "back-to-swap": "Lléveme de vuelta a swap",
+      "description": "La página a la que intenta acceder no existe.",
+      "title": "Página no encontrada"
+    },
+    "server-error": {
+      "description": "Intente refrescar la página o vuelva en unos minutos.",
+      "refresh": "Refrescar página",
+      "title": "Algo salió mal"
+    },
     "swap": {
       "activity": {
         "cancel-redeem-text": "{{amount}} {{symbol}} devuelto a la billetera",

@@ -13,6 +13,10 @@ const meta: Meta<typeof ButtonLink> = {
       control: "select",
       options: ["xSmall", "small", "xLarge"],
     },
+    variant: {
+      control: "select",
+      options: [undefined, "primary", "secondary", "tertiary", "danger"],
+    },
   },
   component: ButtonLink,
   title: "Components/ButtonLink",
@@ -25,6 +29,23 @@ export const InactiveLink: Story = {
   args: {
     children: "Inactive Link",
     href: "/swap",
+  },
+  decorators: [
+    (StoryComponent) => (
+      <MemoryRouter initialEntries={["/en/earn"]}>
+        <Routes>
+          <Route element={<StoryComponent />} path="/:lang/*" />
+        </Routes>
+      </MemoryRouter>
+    ),
+  ],
+};
+
+export const PrimaryVariant: Story = {
+  args: {
+    children: "Take me back to swap",
+    href: "/swap",
+    variant: "primary",
   },
   decorators: [
     (StoryComponent) => (
