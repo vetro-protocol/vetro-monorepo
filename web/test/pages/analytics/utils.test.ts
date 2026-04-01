@@ -304,11 +304,12 @@ describe("pages/analytics/utils", function () {
     });
 
     it("computes correct percentages", function () {
+      // 100/200 = 50%, 80/200 = 40%, 20/200 = 10%
       const data = {
-        strategicReserves: 50,
-        surplus: 10,
-        total: 100,
-        treasuryTotal: 40,
+        strategicReserves: 100,
+        surplus: 20,
+        total: 200,
+        treasuryTotal: 80,
       };
       const items = toCollateralizationItems(data, labels)!;
 
@@ -333,17 +334,25 @@ describe("pages/analytics/utils", function () {
     });
 
     it("adjusts largest item so percentages sum to exactly 100", function () {
-      // 1/3 each → 33.33 + 33.33 + 33.33 = 99.99 → adjust to 33.34
+      // 200/300 = 66.67%, 70/300 = 23.33%, 30/300 = 10% → sum = 100%
+      // rounding remainder (0.01) is added to the largest item (66.67 → 66.67)
       const data = {
-        strategicReserves: 100,
-        surplus: 100,
+        strategicReserves: 30,
+        surplus: 70,
         total: 300,
-        treasuryTotal: 100,
+        treasuryTotal: 200,
       };
       const items = toCollateralizationItems(data, labels)!;
       const sum = items.reduce((acc, item) => acc + item.amount, 0);
 
       expect(sum).toBe(100);
+      // largest item (Liquid Reserves) absorbs the rounding remainder
+      expect(items[0]?.label).toBe("Liquid Reserves");
+      expect(items[0]?.amount).toBe(66.67);
+      expect(items[1]?.label).toBe("Surplus");
+      expect(items[1]?.amount).toBe(23.33);
+      expect(items[2]?.label).toBe("Strategic Reserves");
+      expect(items[2]?.amount).toBe(10);
     });
 
     it("handles case where one component is 0", function () {
