@@ -1,6 +1,6 @@
 import { getChainAddresses } from "@morpho-org/blue-sdk";
 import type { QueryClient } from "@tanstack/react-query";
-import { encodeWithdrawCollateral } from "@vetro/morpho-blue-market/actions";
+import { encodeWithdrawCollateral } from "@vetro-protocol/morpho-blue-market/actions";
 import { morphoMarketOptions } from "hooks/borrow/useMorphoMarket";
 import { positionInfoOptions } from "hooks/borrow/usePositionInfo";
 import { type Address, type Client, type Hash } from "viem";

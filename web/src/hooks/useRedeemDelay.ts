@@ -4,7 +4,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { getGatewayAddress } from "@vetro/gateway";
+import { getGatewayAddress } from "@vetro-protocol/gateway";
 import { fetchRedeemDelay } from "fetchers/fetchRedeemDelay";
 import type { Address, Chain, Client } from "viem";
 import { useAccount } from "wagmi";

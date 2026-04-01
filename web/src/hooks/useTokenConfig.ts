@@ -4,8 +4,8 @@ import {
   useQueryClient,
   type QueryClient,
 } from "@tanstack/react-query";
-import { getGatewayAddress } from "@vetro/gateway";
-import { getTokenConfig } from "@vetro/treasury/actions";
+import { getGatewayAddress } from "@vetro-protocol/gateway";
+import { getTokenConfig } from "@vetro-protocol/treasury/actions";
 import type { Address, Chain, Client } from "viem";
 
 import { useEthereumClient } from "./useEthereumClient";

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getStakingVaultAddress } from "@vetro/earn";
+import { getStakingVaultAddress } from "@vetro-protocol/earn";
 import { useEthereumClient } from "hooks/useEthereumClient";
 import { useMainnet } from "hooks/useMainnet";
 import { totalAssets } from "viem-erc4626/actions";

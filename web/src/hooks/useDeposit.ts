@@ -3,8 +3,8 @@ import { useEnsureConnectedTo } from "@hemilabs/react-hooks/useEnsureConnectedTo
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
 import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpdateNativeBalanceAfterReceipt";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { type DepositEvents, getGatewayAddress } from "@vetro/gateway";
-import { deposit } from "@vetro/gateway/actions";
+import { type DepositEvents, getGatewayAddress } from "@vetro-protocol/gateway";
+import { deposit } from "@vetro-protocol/gateway/actions";
 import type { EventEmitter } from "events";
 import { type Address, isAddressEqual } from "viem";
 import { useAccount } from "wagmi";

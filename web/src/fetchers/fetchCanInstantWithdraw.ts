@@ -1,7 +1,7 @@
 import {
   getCooldownEnabled,
   getInstantWithdrawWhitelist,
-} from "@vetro/earn/actions";
+} from "@vetro-protocol/earn/actions";
 import type { Address, Client } from "viem";
 
 export const fetchCanInstantWithdraw = async function ({

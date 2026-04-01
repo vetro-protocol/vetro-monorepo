@@ -18,7 +18,7 @@ vi.mock("@morpho-org/blue-sdk", () => ({
   getChainAddresses: vi.fn().mockReturnValue({ morpho: zeroAddress }),
 }));
 
-vi.mock("@vetro/morpho-blue-market/actions", () => ({
+vi.mock("@vetro-protocol/morpho-blue-market/actions", () => ({
   encodeRepayAssets: vi.fn().mockReturnValue("0x"),
 }));
 

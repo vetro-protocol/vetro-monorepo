@@ -1,6 +1,6 @@
 import { estimateFeesQueryOptions } from "@hemilabs/react-hooks/useEstimateFees";
 import type { QueryClient } from "@tanstack/react-query";
-import { getGatewayAddress } from "@vetro/gateway";
+import { getGatewayAddress } from "@vetro-protocol/gateway";
 import { parseEthPrice } from "hooks/useEthPrice";
 import { mintFeeOptions } from "hooks/useMintFee";
 import { mintGasUnitsOptions } from "hooks/useSwapMintFees";

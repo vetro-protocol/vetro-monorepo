@@ -8,8 +8,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   morphoBlueAbi,
   type SupplyCollateralAndBorrowEvents,
-} from "@vetro/morpho-blue-market";
-import { supplyCollateralAndBorrow } from "@vetro/morpho-blue-market/actions";
+} from "@vetro-protocol/morpho-blue-market";
+import { supplyCollateralAndBorrow } from "@vetro-protocol/morpho-blue-market/actions";
 import type { EventEmitter } from "events";
 import { parseEventLogs, type Hash } from "viem";
 import { useAccount } from "wagmi";

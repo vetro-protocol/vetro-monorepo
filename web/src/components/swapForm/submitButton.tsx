@@ -1,6 +1,6 @@
 import { useAllowance } from "@hemilabs/react-hooks/useAllowance";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
-import { getGatewayAddress } from "@vetro/gateway";
+import { getGatewayAddress } from "@vetro-protocol/gateway";
 import { Button } from "components/base/button";
 import { Spinner } from "components/base/spinner";
 import type { InputError } from "components/tokenInput/utils";

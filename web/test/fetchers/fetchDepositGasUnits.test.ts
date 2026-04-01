@@ -12,7 +12,7 @@ vi.mock("../../src/fetchers/estimateApprovalGasUnits", () => ({
   estimateApprovalGasUnits: vi.fn(),
 }));
 
-vi.mock("@vetro/earn", async (importOriginal) => ({
+vi.mock("@vetro-protocol/earn", async (importOriginal) => ({
   ...(await importOriginal()),
   getStakingVaultAddress: vi.fn().mockReturnValue(zeroAddress),
 }));

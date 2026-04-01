@@ -5,8 +5,8 @@ import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpd
 import { getChainAddresses } from "@morpho-org/blue-sdk";
 import type { AccrualPosition } from "@morpho-org/blue-sdk-viem/lib/augment/Position";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { RepayAssetsEvents } from "@vetro/morpho-blue-market";
-import { repayAssets } from "@vetro/morpho-blue-market/actions";
+import type { RepayAssetsEvents } from "@vetro-protocol/morpho-blue-market";
+import { repayAssets } from "@vetro-protocol/morpho-blue-market/actions";
 import type { EventEmitter } from "events";
 import type { Hash } from "viem";
 import { useAccount } from "wagmi";

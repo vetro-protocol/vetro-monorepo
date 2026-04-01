@@ -1,5 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
-import { getTreasury } from "@vetro/gateway/actions";
+import { getTreasury } from "@vetro-protocol/gateway/actions";
 import type { Address, Chain, Client } from "viem";
 
 export const treasuryAddressOptions = ({

@@ -179,7 +179,7 @@ export const [fetcherName] = async function({
 ```typescript
 // File: web/src/hooks/useMintFee.ts
 import { useQuery } from "@tanstack/react-query";
-import { getMintFee } from "@vetro/gateway/actions";
+import { getMintFee } from "@vetro-protocol/gateway/actions";
 import type { Address } from "viem";
 import { usePublicClient } from "wagmi";
 
@@ -208,7 +208,7 @@ export const useMintFee = function ({
 
 ```typescript
 // File: web/src/fetchers/fetchUserPortfolio.ts
-import { getMintFee, getRedeemFee } from "@vetro/gateway/actions";
+import { getMintFee, getRedeemFee } from "@vetro-protocol/gateway/actions";
 import type { Address, PublicClient } from "viem";
 
 export const fetchUserPortfolio = async function ({
@@ -263,7 +263,7 @@ export const useUserPortfolio = function ({
 ```typescript
 // File: web/src/hooks/useUserBalanceDetails.ts
 import { useQuery } from "@tanstack/react-query";
-import { getBalanceDetails } from "@vetro/gateway/actions";
+import { getBalanceDetails } from "@vetro-protocol/gateway/actions";
 import type { Address } from "viem";
 import { useAccount, usePublicClient } from "wagmi";
 

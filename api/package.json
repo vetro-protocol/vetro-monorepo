@@ -1,5 +1,5 @@
 {
-  "name": "@vetro/api",
+  "name": "@vetro-protocol/api",
   "version": "1.2.0",
   "scripts": {
     "deps:check": "knip",
@@ -8,8 +8,8 @@
     "types:check": "pnpm types && tsc"
   },
   "dependencies": {
-    "@vetro/gateway": "workspace:*",
-    "@vetro/treasury": "workspace:*",
+    "@vetro-protocol/gateway": "workspace:*",
+    "@vetro-protocol/treasury": "workspace:*",
     "hono": "4.11.9",
     "simple-linear-regression": "1.0.3",
     "tiny-fetch-json": "2.0.1",

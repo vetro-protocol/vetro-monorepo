@@ -1,4 +1,4 @@
-import { getStakingVaultAddress } from "@vetro/earn";
+import { getStakingVaultAddress } from "@vetro-protocol/earn";
 import { useApy } from "hooks/useApy";
 import { useMainnet } from "hooks/useMainnet";
 import { usePoolDeposits } from "hooks/usePoolDeposits";

@@ -1,5 +1,5 @@
 {
-  "name": "vetro-monorepo",
+  "name": "@vetro-protocol/monorepo",
   "version": "1.0.0",
   "scripts": {
     "deps:check": "knip",
