@@ -13,6 +13,7 @@ export const analyticsTreasuryOptions = () =>
     queryKey: ["analytics-treasury"],
     refetchInterval: 5 * 60 * 1000, // 5 minutes
     retry: 2,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
 export const useAnalyticsTreasury = () => useQuery(analyticsTreasuryOptions());
