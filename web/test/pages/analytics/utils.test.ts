@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   assignColor,
+  toCollateralizationItems,
   toReserveBufferAmount,
   toTvlItems,
   toYieldItems,
@@ -278,6 +279,95 @@ describe("pages/analytics/utils", function () {
       });
 
       expect(items[0]?.amount).toBeCloseTo(500);
+    });
+  });
+
+  describe("toCollateralizationItems", function () {
+    const labels = {
+      liquidReserves: "Liquid Reserves",
+      strategicReserves: "Strategic Reserves",
+      surplus: "Surplus",
+    };
+
+    it("returns undefined when data is undefined", function () {
+      expect(toCollateralizationItems(undefined, labels)).toBeUndefined();
+    });
+
+    it("returns undefined when total is 0", function () {
+      const data = {
+        strategicReserves: 0,
+        surplus: 0,
+        total: 0,
+        treasuryTotal: 0,
+      };
+      expect(toCollateralizationItems(data, labels)).toBeUndefined();
+    });
+
+    it("computes correct percentages", function () {
+      // 100/200 = 50%, 80/200 = 40%, 20/200 = 10%
+      const data = {
+        strategicReserves: 100,
+        surplus: 20,
+        total: 200,
+        treasuryTotal: 80,
+      };
+      const items = toCollateralizationItems(data, labels)!;
+
+      expect(items).toHaveLength(3);
+      expect(items[0]?.amount).toBe(50);
+      expect(items[1]?.amount).toBe(40);
+      expect(items[2]?.amount).toBe(10);
+    });
+
+    it("sorts items by percentage descending", function () {
+      const data = {
+        strategicReserves: 10,
+        surplus: 50,
+        total: 100,
+        treasuryTotal: 40,
+      };
+      const items = toCollateralizationItems(data, labels)!;
+
+      expect(items[0]?.label).toBe("Surplus");
+      expect(items[1]?.label).toBe("Liquid Reserves");
+      expect(items[2]?.label).toBe("Strategic Reserves");
+    });
+
+    it("adjusts largest item so percentages sum to exactly 100", function () {
+      // 200/300 = 66.67%, 70/300 = 23.33%, 30/300 = 10% → sum = 100%
+      // rounding remainder (0.01) is added to the largest item (66.67 → 66.67)
+      const data = {
+        strategicReserves: 30,
+        surplus: 70,
+        total: 300,
+        treasuryTotal: 200,
+      };
+      const items = toCollateralizationItems(data, labels)!;
+      const sum = items.reduce((acc, item) => acc + item.amount, 0);
+
+      expect(sum).toBe(100);
+      // largest item (Liquid Reserves) absorbs the rounding remainder
+      expect(items[0]?.label).toBe("Liquid Reserves");
+      expect(items[0]?.amount).toBe(66.67);
+      expect(items[1]?.label).toBe("Surplus");
+      expect(items[1]?.amount).toBe(23.33);
+      expect(items[2]?.label).toBe("Strategic Reserves");
+      expect(items[2]?.amount).toBe(10);
+    });
+
+    it("handles case where one component is 0", function () {
+      const data = {
+        strategicReserves: 80,
+        surplus: 0,
+        total: 100,
+        treasuryTotal: 20,
+      };
+      const items = toCollateralizationItems(data, labels)!;
+
+      expect(items).toHaveLength(3);
+      expect(items.find((i) => i.label === "Surplus")?.amount).toBe(0);
+      const sum = items.reduce((acc, item) => acc + item.amount, 0);
+      expect(sum).toBe(100);
     });
   });
 });

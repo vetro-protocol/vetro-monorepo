@@ -62,11 +62,13 @@ describe("utils/format", function () {
       expect(formatPercentage("12.34")).toBe("12.34%");
     });
 
-    it("should format very small percentage correctly", function () {
-      expect(formatPercentage(0.001)).toBe("0.00%");
+    it("should format values below 0.01 as '< 0.01%'", function () {
+      expect(formatPercentage(0.001)).toBe("< 0.01%");
+      expect(formatPercentage(0.009)).toBe("< 0.01%");
+      expect(formatPercentage("0.005")).toBe("< 0.01%");
     });
 
-    it("should format small decimal percentage correctly", function () {
+    it("should format exactly 0.01 normally", function () {
       expect(formatPercentage(0.01)).toBe("0.01%");
     });
 

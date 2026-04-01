@@ -19,5 +19,10 @@ export const formatFiatNumber = (value: number | string) =>
 export const formatNumber = (value: number | string) =>
   cryptoRounder(value, { roundingMode: "round-down", shouldFormat: true });
 
-export const formatPercentage = (value: number | string) =>
-  `${percentageRounder(value, { shouldFormat: true })}%`;
+export const formatPercentage = function (value: number | string) {
+  const num = typeof value === "string" ? parseFloat(value) : value;
+  if (num > 0 && num < 0.01) {
+    return "< 0.01%";
+  }
+  return `${percentageRounder(value, { shouldFormat: true })}%`;
+};

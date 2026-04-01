@@ -13,7 +13,7 @@ import { useEthereumClient } from "./useEthereumClient";
 
 const vusdQueryKey = (chainId: Chain["id"] | undefined) => ["vusd", chainId];
 
-const vusdOptions = ({
+export const vusdOptions = ({
   client,
   queryClient,
 }: {

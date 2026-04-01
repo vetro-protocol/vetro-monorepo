@@ -1,11 +1,11 @@
 import Skeleton from "react-loading-skeleton";
-import { formatUsd } from "utils/currency";
 
 import type { AllocationItem } from "../../types";
 
 const skeletonRows = 4;
 
 type Props = {
+  formatAmount: (value: number) => string;
   hoveredLabel: string | null;
   isError: boolean;
   isLoading: boolean;
@@ -14,13 +14,14 @@ type Props = {
 };
 
 export const AllocationLegend = ({
+  formatAmount,
   hoveredLabel,
   isError,
   isLoading,
   items,
   onHover,
 }: Props) => (
-  <div className="flex flex-1 flex-col border-b border-gray-200 px-7 md:px-15">
+  <div className="flex flex-1 flex-col px-7 md:px-15">
     {!isLoading &&
       !isError &&
       items.map(({ amount, color, label }) => (
@@ -35,7 +36,7 @@ export const AllocationLegend = ({
             <span className="text-b-medium text-gray-900">{label}</span>
           </div>
           <span className="text-b-medium text-right text-gray-900">
-            {formatUsd(amount)}
+            {formatAmount(amount)}
           </span>
         </div>
       ))}

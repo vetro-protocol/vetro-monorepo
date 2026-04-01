@@ -17,9 +17,13 @@
   },
   "pages": {
     "analytics": {
+      "collateralization-ratio-label": "Ratio de colateralización",
       "exit-queue-label": "Total VUSD en período de espera de retiro",
+      "liquid-reserves-label": "Reservas líquidas",
       "reserve-buffer-label": "Reserva de liquidez",
       "staked-label": "Total VUSD depositado",
+      "strategic-reserves-label": "Reservas estratégicas",
+      "surplus-label": "Excedente",
       "title": "Monitorear analíticas del protocolo",
       "tvl-label": "Valor Total Bloqueado (TVL)",
       "yield-label": "Asignación de yield",

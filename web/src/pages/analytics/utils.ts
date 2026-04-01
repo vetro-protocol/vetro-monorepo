@@ -2,7 +2,7 @@ import type { Token } from "types";
 import { formatNumber } from "utils/format";
 import { formatUnits } from "viem";
 
-import type { TreasuryToken } from "./types";
+import type { AllocationItem, TreasuryToken } from "./types";
 
 const colorPalette = [
   "bg-blue-400",
@@ -82,6 +82,49 @@ export const toYieldItems = function ({
       }
     }
   }
+
+  return items;
+};
+
+// Converts collateralization data into percentage-based allocation items.
+// Rounds to 2 decimal places and adjusts the largest item so they sum to exactly 100.
+export const toCollateralizationItems = function (
+  data:
+    | {
+        strategicReserves: number;
+        surplus: number;
+        total: number;
+        treasuryTotal: number;
+      }
+    | undefined,
+  labels: {
+    liquidReserves: string;
+    strategicReserves: string;
+    surplus: string;
+  },
+): Omit<AllocationItem, "color">[] | undefined {
+  if (!data || data.total <= 0) {
+    return undefined;
+  }
+  const round = (n: number) => Number(n.toFixed(2));
+  const items = [
+    {
+      amount: round((data.strategicReserves / data.total) * 100),
+      label: labels.strategicReserves,
+    },
+    {
+      amount: round((data.treasuryTotal / data.total) * 100),
+      label: labels.liquidReserves,
+    },
+    {
+      amount: round((data.surplus / data.total) * 100),
+      label: labels.surplus,
+    },
+  ].sort((a, b) => b.amount - a.amount);
+
+  // Adjust the largest so percentages sum to exactly 100
+  const sum = items.reduce((acc, item) => acc + item.amount, 0);
+  items[0].amount = round(items[0].amount + (100 - sum));
 
   return items;
 };
