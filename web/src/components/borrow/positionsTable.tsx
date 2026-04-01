@@ -8,8 +8,8 @@ import {
   type PositionData,
   usePositionsData,
 } from "hooks/borrow/usePositionsData";
+import { usePrices } from "hooks/usePrices";
 import { useScrollToHash } from "hooks/useScrollToHash";
-import { useTokenPrices } from "hooks/useTokenPrices";
 import { lazy, Suspense, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { isPositionAtRisk } from "utils/borrowPosition";
@@ -66,7 +66,7 @@ export function PositionsTable({ marketIds }: Props) {
     useMarketsData(marketIds);
   const { data: positionsData, isLoading: isPositionsLoading } =
     usePositionsData(marketIds);
-  const { data: prices } = useTokenPrices();
+  const { data: prices } = usePrices();
   const [{ borrowAction, marketId: actionMarketId }, setBorrowAction] =
     useBorrowAction();
 

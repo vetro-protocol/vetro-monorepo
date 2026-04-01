@@ -1,14 +1,19 @@
-import type { QueryClient } from "@tanstack/react-query";
+import { estimateFeesQueryOptions } from "@hemilabs/react-hooks/useEstimateFees";
+import { pricesOptions } from "hooks/usePrices";
+import { redeemFeeOptions } from "hooks/useRedeemFee";
+import { redeemGasUnitsOptions } from "hooks/useSwapRedeemFees";
 import type { Token } from "types";
 import { zeroAddress, type Client } from "viem";
 import { sepolia } from "viem/chains";
 import { describe, expect, it, vi } from "vitest";
 
 import { fetchTotalRedeemFees } from "../../src/fetchers/fetchTotalRedeemFees";
+import { createTestQueryClient } from "../utils";
 
 vi.mock("@hemilabs/react-hooks/useEstimateFees", () => ({
   estimateFeesQueryOptions: vi.fn().mockReturnValue({
     queryFn: () => 0n,
+    queryKey: ["estimate-fees"],
   }),
 }));
 
@@ -16,21 +21,24 @@ vi.mock("@vetro-protocol/gateway", () => ({
   getGatewayAddress: vi.fn().mockReturnValue(zeroAddress),
 }));
 
+vi.mock("hooks/usePrices", () => ({
+  pricesOptions: vi.fn().mockReturnValue({
+    queryFn: () => ({}),
+    queryKey: ["prices"],
+  }),
+}));
+
 vi.mock("hooks/useRedeemFee", () => ({
   redeemFeeOptions: vi.fn().mockReturnValue({
     queryFn: () => 0n,
+    queryKey: ["redeem-fee"],
   }),
 }));
 
 vi.mock("hooks/useSwapRedeemFees", () => ({
   redeemGasUnitsOptions: vi.fn().mockReturnValue({
     queryFn: () => 100000n,
-  }),
-}));
-
-vi.mock("hooks/useTokenPrices", () => ({
-  tokenPricesOptions: vi.fn().mockReturnValue({
-    queryFn: () => ({}),
+    queryKey: ["redeem-gas-units"],
   }),
 }));
 
@@ -49,12 +57,7 @@ describe("fetchTotalRedeemFees", function () {
   } as Token;
   const mockTokenOut = zeroAddress;
 
-  const mockQueryClient = {
-    ensureQueryData: vi.fn(),
-  } as unknown as QueryClient;
-
   it("returns correct total fee in USD", async function () {
-    const gasUnits = 100000n;
     // 0.001 ETH in wei
     const networkFeeWei = 1000000000000000n;
     // 100 bps = 1%
@@ -62,15 +65,24 @@ describe("fetchTotalRedeemFees", function () {
     // amount is 1 USDC (6 decimals)
     const amount = 1000000n;
 
-    vi.mocked(mockQueryClient.ensureQueryData)
-      // redeemGasUnitsOptions
-      .mockResolvedValueOnce(gasUnits)
-      // redeemFeeOptions
-      .mockResolvedValueOnce(protocolFeeBps)
-      // tokenPricesOptions
-      .mockResolvedValueOnce({ ETH: "2000", USDC: "1" })
-      // estimateFeesQueryOptions (chained after gasUnits resolves)
-      .mockResolvedValueOnce(networkFeeWei);
+    const queryClient = createTestQueryClient();
+
+    vi.mocked(redeemGasUnitsOptions).mockReturnValue({
+      queryFn: () => 100000n,
+      queryKey: ["redeem-gas-units"],
+    } as never);
+    vi.mocked(estimateFeesQueryOptions).mockReturnValue({
+      queryFn: () => networkFeeWei,
+      queryKey: ["estimate-fees"],
+    } as never);
+    vi.mocked(redeemFeeOptions).mockReturnValue({
+      queryFn: () => protocolFeeBps,
+      queryKey: ["redeem-fee"],
+    } as never);
+    vi.mocked(pricesOptions).mockReturnValue({
+      queryFn: () => ({ ETH: "2000", USDC: "1" }),
+      queryKey: ["prices"],
+    } as never);
 
     const result = await fetchTotalRedeemFees({
       amount,
@@ -80,7 +92,7 @@ describe("fetchTotalRedeemFees", function () {
       fromToken: mockToken,
       minAmountOut: 0n,
       owner: mockOwner,
-      queryClient: mockQueryClient,
+      queryClient,
       tokenOut: mockTokenOut,
     });
 
@@ -91,15 +103,24 @@ describe("fetchTotalRedeemFees", function () {
   });
 
   it("returns zero when both fees are zero", async function () {
-    vi.mocked(mockQueryClient.ensureQueryData)
-      // redeemGasUnitsOptions
-      .mockResolvedValueOnce(100000n)
-      // redeemFeeOptions
-      .mockResolvedValueOnce(0n)
-      // tokenPricesOptions
-      .mockResolvedValueOnce({ ETH: "2000", USDC: "1" })
-      // estimateFeesQueryOptions
-      .mockResolvedValueOnce(0n);
+    const queryClient = createTestQueryClient();
+
+    vi.mocked(redeemGasUnitsOptions).mockReturnValue({
+      queryFn: () => 100000n,
+      queryKey: ["redeem-gas-units"],
+    } as never);
+    vi.mocked(estimateFeesQueryOptions).mockReturnValue({
+      queryFn: () => 0n,
+      queryKey: ["estimate-fees"],
+    } as never);
+    vi.mocked(redeemFeeOptions).mockReturnValue({
+      queryFn: () => 0n,
+      queryKey: ["redeem-fee"],
+    } as never);
+    vi.mocked(pricesOptions).mockReturnValue({
+      queryFn: () => ({ ETH: "2000", USDC: "1" }),
+      queryKey: ["prices"],
+    } as never);
 
     const result = await fetchTotalRedeemFees({
       amount: 1000000n,
@@ -109,27 +130,36 @@ describe("fetchTotalRedeemFees", function () {
       fromToken: mockToken,
       minAmountOut: 0n,
       owner: mockOwner,
-      queryClient: mockQueryClient,
+      queryClient,
       tokenOut: mockTokenOut,
     });
 
     expect(result).toBe(0);
   });
 
-  it("handles undefined network fee", async function () {
+  it("handles zero network fee", async function () {
     // 100 bps = 1%
     const protocolFeeBps = 100n;
     const amount = 1000000n;
 
-    vi.mocked(mockQueryClient.ensureQueryData)
-      // redeemGasUnitsOptions
-      .mockResolvedValueOnce(100000n)
-      // redeemFeeOptions
-      .mockResolvedValueOnce(protocolFeeBps)
-      // tokenPricesOptions
-      .mockResolvedValueOnce({ ETH: "2000", USDC: "1" })
-      // estimateFeesQueryOptions
-      .mockResolvedValueOnce(undefined);
+    const queryClient = createTestQueryClient();
+
+    vi.mocked(redeemGasUnitsOptions).mockReturnValue({
+      queryFn: () => 100000n,
+      queryKey: ["redeem-gas-units"],
+    } as never);
+    vi.mocked(estimateFeesQueryOptions).mockReturnValue({
+      queryFn: () => 0n,
+      queryKey: ["estimate-fees"],
+    } as never);
+    vi.mocked(redeemFeeOptions).mockReturnValue({
+      queryFn: () => protocolFeeBps,
+      queryKey: ["redeem-fee"],
+    } as never);
+    vi.mocked(pricesOptions).mockReturnValue({
+      queryFn: () => ({ ETH: "2000", USDC: "1" }),
+      queryKey: ["prices"],
+    } as never);
 
     const result = await fetchTotalRedeemFees({
       amount,
@@ -139,11 +169,11 @@ describe("fetchTotalRedeemFees", function () {
       fromToken: mockToken,
       minAmountOut: 0n,
       owner: mockOwner,
-      queryClient: mockQueryClient,
+      queryClient,
       tokenOut: mockTokenOut,
     });
 
-    // network: 0 (undefined → 0n)
+    // network: 0
     // protocol: 1% of 1 USDC = $0.01
     expect(result).toBeCloseTo(0.01);
   });

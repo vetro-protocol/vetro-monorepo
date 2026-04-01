@@ -9,7 +9,7 @@ import {
 import { getTokenPrice, parseTokenUnits } from "utils/token";
 import { formatUnits } from "viem";
 
-import { useTokenPrices } from "../useTokenPrices";
+import { usePrices } from "../usePrices";
 
 type Position = {
   borrowShares: bigint;
@@ -86,7 +86,7 @@ export const usePositionReview = function ({
   loanToken,
   position,
 }: Params): { current: PositionMetrics; updated: PositionMetrics | null } {
-  const { data: prices } = useTokenPrices();
+  const { data: prices } = usePrices();
 
   if (!position) {
     return { current: nullMetrics, updated: null };
