@@ -1,6 +1,5 @@
 // Represents a single item in an allocation card's chart and legend.
-// `amount` is a pre-computed USD value used for bar proportions (via CSS flex)
-// and formatted to compact currency ("$37.5M") by the AllocationLegend component.
+// `amount` is used for bar proportions (via CSS flex) and formatted by AllocationLegend.
 export type AllocationItem = {
   amount: number;
   color: string;

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   assignColor,
+  toCollateralizationItems,
   toReserveBufferAmount,
   toTvlItems,
   toYieldItems,
@@ -278,6 +279,86 @@ describe("pages/analytics/utils", function () {
       });
 
       expect(items[0]?.amount).toBeCloseTo(500);
+    });
+  });
+
+  describe("toCollateralizationItems", function () {
+    const labels = {
+      liquidReserves: "Liquid Reserves",
+      strategicReserves: "Strategic Reserves",
+      surplus: "Surplus",
+    };
+
+    it("returns undefined when data is undefined", function () {
+      expect(toCollateralizationItems(undefined, labels)).toBeUndefined();
+    });
+
+    it("returns undefined when total is 0", function () {
+      const data = {
+        strategicReserves: 0,
+        surplus: 0,
+        total: 0,
+        treasuryTotal: 0,
+      };
+      expect(toCollateralizationItems(data, labels)).toBeUndefined();
+    });
+
+    it("computes correct percentages", function () {
+      const data = {
+        strategicReserves: 50,
+        surplus: 10,
+        total: 100,
+        treasuryTotal: 40,
+      };
+      const items = toCollateralizationItems(data, labels)!;
+
+      expect(items).toHaveLength(3);
+      expect(items[0]?.amount).toBe(50);
+      expect(items[1]?.amount).toBe(40);
+      expect(items[2]?.amount).toBe(10);
+    });
+
+    it("sorts items by percentage descending", function () {
+      const data = {
+        strategicReserves: 10,
+        surplus: 50,
+        total: 100,
+        treasuryTotal: 40,
+      };
+      const items = toCollateralizationItems(data, labels)!;
+
+      expect(items[0]?.label).toBe("Surplus");
+      expect(items[1]?.label).toBe("Liquid Reserves");
+      expect(items[2]?.label).toBe("Strategic Reserves");
+    });
+
+    it("adjusts largest item so percentages sum to exactly 100", function () {
+      // 1/3 each → 33.33 + 33.33 + 33.33 = 99.99 → adjust to 33.34
+      const data = {
+        strategicReserves: 100,
+        surplus: 100,
+        total: 300,
+        treasuryTotal: 100,
+      };
+      const items = toCollateralizationItems(data, labels)!;
+      const sum = items.reduce((acc, item) => acc + item.amount, 0);
+
+      expect(sum).toBe(100);
+    });
+
+    it("handles case where one component is 0", function () {
+      const data = {
+        strategicReserves: 80,
+        surplus: 0,
+        total: 100,
+        treasuryTotal: 20,
+      };
+      const items = toCollateralizationItems(data, labels)!;
+
+      expect(items).toHaveLength(3);
+      expect(items.find((i) => i.label === "Surplus")?.amount).toBe(0);
+      const sum = items.reduce((acc, item) => acc + item.amount, 0);
+      expect(sum).toBe(100);
     });
   });
 });

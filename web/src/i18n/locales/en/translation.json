@@ -17,9 +17,13 @@
   },
   "pages": {
     "analytics": {
+      "collateralization-ratio-label": "Collateralization ratio",
       "exit-queue-label": "Total VUSD on withdrawn cooldown",
+      "liquid-reserves-label": "Liquid Reserves",
       "reserve-buffer-label": "Reserve buffer",
       "staked-label": "Total VUSD staked",
+      "strategic-reserves-label": "Strategic Reserves",
+      "surplus-label": "Surplus",
       "title": "Monitor protocol analytics",
       "tvl-label": "Total Value Locked (TVL)",
       "yield-label": "Yield allocation",

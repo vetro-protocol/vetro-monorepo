@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import fetch from "fetch-plus-plus";
 import { isValidUrl } from "utils/url";
 
@@ -9,8 +9,8 @@ type AnalyticsTotals = {
   vusdStaked: string;
 };
 
-export const useAnalyticsTotals = () =>
-  useQuery({
+export const analyticsTotalsOptions = () =>
+  queryOptions({
     enabled: apiUrl !== undefined && isValidUrl(apiUrl),
     queryFn: () =>
       fetch(`${apiUrl}/analytics/totals`) as Promise<AnalyticsTotals>,
@@ -19,3 +19,5 @@ export const useAnalyticsTotals = () =>
     retry: 2,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+
+export const useAnalyticsTotals = () => useQuery(analyticsTotalsOptions());
