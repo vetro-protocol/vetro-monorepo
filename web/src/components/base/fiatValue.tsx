@@ -1,5 +1,5 @@
 import { type QueryStatus } from "@tanstack/react-query";
-import { useTokenPrices } from "hooks/useTokenPrices";
+import { usePrices } from "hooks/usePrices";
 import { type ComponentProps } from "react";
 import Skeleton from "react-loading-skeleton";
 import type { Token } from "types";
@@ -20,9 +20,7 @@ const RenderFiatValueUnsafe = function ({
   token: Token;
   value: bigint | undefined;
 }) {
-  const { data: pricesData, status: pricesStatus } = useTokenPrices({
-    retryOnMount: false,
-  });
+  const { data: pricesData, status: pricesStatus } = usePrices();
 
   if (value !== undefined && pricesData !== undefined) {
     const stringBalance = formatUnits(value, token.decimals);

@@ -1,14 +1,19 @@
-import type { QueryClient } from "@tanstack/react-query";
+import { estimateFeesQueryOptions } from "@hemilabs/react-hooks/useEstimateFees";
+import { mintFeeOptions } from "hooks/useMintFee";
+import { pricesOptions } from "hooks/usePrices";
+import { mintGasUnitsOptions } from "hooks/useSwapMintFees";
 import type { Token } from "types";
 import { zeroAddress, type Client } from "viem";
 import { sepolia } from "viem/chains";
 import { describe, expect, it, vi } from "vitest";
 
 import { fetchTotalMintFees } from "../../src/fetchers/fetchTotalMintFees";
+import { createTestQueryClient } from "../utils";
 
 vi.mock("@hemilabs/react-hooks/useEstimateFees", () => ({
   estimateFeesQueryOptions: vi.fn().mockReturnValue({
     queryFn: () => 0n,
+    queryKey: ["estimate-fees"],
   }),
 }));
 
@@ -19,18 +24,21 @@ vi.mock("@vetro-protocol/gateway", () => ({
 vi.mock("hooks/useMintFee", () => ({
   mintFeeOptions: vi.fn().mockReturnValue({
     queryFn: () => 0n,
+    queryKey: ["mint-fee"],
+  }),
+}));
+
+vi.mock("hooks/usePrices", () => ({
+  pricesOptions: vi.fn().mockReturnValue({
+    queryFn: () => ({}),
+    queryKey: ["prices"],
   }),
 }));
 
 vi.mock("hooks/useSwapMintFees", () => ({
   mintGasUnitsOptions: vi.fn().mockReturnValue({
     queryFn: () => 100000n,
-  }),
-}));
-
-vi.mock("hooks/useTokenPrices", () => ({
-  tokenPricesOptions: vi.fn().mockReturnValue({
-    queryFn: () => ({}),
+    queryKey: ["mint-gas-units"],
   }),
 }));
 
@@ -48,12 +56,7 @@ describe("fetchTotalMintFees", function () {
     symbol: "USDC",
   } as Token;
 
-  const mockQueryClient = {
-    ensureQueryData: vi.fn(),
-  } as unknown as QueryClient;
-
   it("returns correct total fee in USD", async function () {
-    const gasUnits = 100000n;
     // 0.001 ETH in wei
     const networkFeeWei = 1000000000000000n;
     // 100 bps = 1%
@@ -61,15 +64,24 @@ describe("fetchTotalMintFees", function () {
     // amount is 1 USDC (6 decimals)
     const amount = 1000000n;
 
-    vi.mocked(mockQueryClient.ensureQueryData)
-      // mintGasUnitsOptions
-      .mockResolvedValueOnce(gasUnits)
-      // estimateFeesQueryOptions
-      .mockResolvedValueOnce(networkFeeWei)
-      // mintFeeOptions
-      .mockResolvedValueOnce(protocolFeeBps)
-      // tokenPricesOptions
-      .mockResolvedValueOnce({ ETH: "2000", USDC: "1" });
+    const queryClient = createTestQueryClient();
+
+    vi.mocked(mintGasUnitsOptions).mockReturnValue({
+      queryFn: () => 100000n,
+      queryKey: ["mint-gas-units"],
+    } as never);
+    vi.mocked(estimateFeesQueryOptions).mockReturnValue({
+      queryFn: () => networkFeeWei,
+      queryKey: ["estimate-fees"],
+    } as never);
+    vi.mocked(mintFeeOptions).mockReturnValue({
+      queryFn: () => protocolFeeBps,
+      queryKey: ["mint-fee"],
+    } as never);
+    vi.mocked(pricesOptions).mockReturnValue({
+      queryFn: () => ({ ETH: "2000", USDC: "1" }),
+      queryKey: ["prices"],
+    } as never);
 
     const result = await fetchTotalMintFees({
       amount,
@@ -79,7 +91,7 @@ describe("fetchTotalMintFees", function () {
       fromToken: mockToken,
       minPeggedTokenOut: 0n,
       owner: mockOwner,
-      queryClient: mockQueryClient,
+      queryClient,
     });
 
     // network: 0.001 ETH * 2000 = $2
@@ -89,15 +101,24 @@ describe("fetchTotalMintFees", function () {
   });
 
   it("returns zero when both fees are zero", async function () {
-    vi.mocked(mockQueryClient.ensureQueryData)
-      // mintGasUnitsOptions
-      .mockResolvedValueOnce(100000n)
-      // estimateFeesQueryOptions
-      .mockResolvedValueOnce(0n)
-      // mintFeeOptions
-      .mockResolvedValueOnce(0n)
-      // tokenPricesOptions
-      .mockResolvedValueOnce({ ETH: "2000", USDC: "1" });
+    const queryClient = createTestQueryClient();
+
+    vi.mocked(mintGasUnitsOptions).mockReturnValue({
+      queryFn: () => 100000n,
+      queryKey: ["mint-gas-units"],
+    } as never);
+    vi.mocked(estimateFeesQueryOptions).mockReturnValue({
+      queryFn: () => 0n,
+      queryKey: ["estimate-fees"],
+    } as never);
+    vi.mocked(mintFeeOptions).mockReturnValue({
+      queryFn: () => 0n,
+      queryKey: ["mint-fee"],
+    } as never);
+    vi.mocked(pricesOptions).mockReturnValue({
+      queryFn: () => ({ ETH: "2000", USDC: "1" }),
+      queryKey: ["prices"],
+    } as never);
 
     const result = await fetchTotalMintFees({
       amount: 1000000n,
@@ -107,26 +128,35 @@ describe("fetchTotalMintFees", function () {
       fromToken: mockToken,
       minPeggedTokenOut: 0n,
       owner: mockOwner,
-      queryClient: mockQueryClient,
+      queryClient,
     });
 
     expect(result).toBe(0);
   });
 
-  it("handles undefined network fee", async function () {
+  it("handles zero network fee", async function () {
     // 100 bps = 1%
     const protocolFeeBps = 100n;
     const amount = 1000000n;
 
-    vi.mocked(mockQueryClient.ensureQueryData)
-      // mintGasUnitsOptions
-      .mockResolvedValueOnce(100000n)
-      // estimateFeesQueryOptions
-      .mockResolvedValueOnce(undefined)
-      // mintFeeOptions
-      .mockResolvedValueOnce(protocolFeeBps)
-      // tokenPricesOptions
-      .mockResolvedValueOnce({ ETH: "2000", USDC: "1" });
+    const queryClient = createTestQueryClient();
+
+    vi.mocked(mintGasUnitsOptions).mockReturnValue({
+      queryFn: () => 100000n,
+      queryKey: ["mint-gas-units"],
+    } as never);
+    vi.mocked(estimateFeesQueryOptions).mockReturnValue({
+      queryFn: () => 0n,
+      queryKey: ["estimate-fees"],
+    } as never);
+    vi.mocked(mintFeeOptions).mockReturnValue({
+      queryFn: () => protocolFeeBps,
+      queryKey: ["mint-fee"],
+    } as never);
+    vi.mocked(pricesOptions).mockReturnValue({
+      queryFn: () => ({ ETH: "2000", USDC: "1" }),
+      queryKey: ["prices"],
+    } as never);
 
     const result = await fetchTotalMintFees({
       amount,
@@ -136,10 +166,10 @@ describe("fetchTotalMintFees", function () {
       fromToken: mockToken,
       minPeggedTokenOut: 0n,
       owner: mockOwner,
-      queryClient: mockQueryClient,
+      queryClient,
     });
 
-    // network: 0 (undefined → 0n)
+    // network: 0
     // protocol: 1% of 1 USDC = $0.01
     expect(result).toBeCloseTo(0.01);
   });

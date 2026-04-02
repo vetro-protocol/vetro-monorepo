@@ -10,7 +10,7 @@ import {
 import { getTokenPrice } from "utils/token";
 import { parseUnits } from "viem";
 
-import { useTokenPrices } from "../useTokenPrices";
+import { usePrices } from "../usePrices";
 
 type ReviewValues = {
   dailyInterestCost: number | null;
@@ -45,7 +45,7 @@ export const useBorrowReview = function ({
   loanToken,
   morphoMarket,
 }: Params): ReviewValues {
-  const { data: prices } = useTokenPrices();
+  const { data: prices } = usePrices();
 
   if (!morphoMarket) {
     return nullReview;

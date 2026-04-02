@@ -12,7 +12,7 @@ import { useEthereumClient } from "./useEthereumClient";
 import { useMainnet } from "./useMainnet";
 import { treasuryAddressOptions } from "./useTreasuryAddress";
 
-const tokenConfigOptions = ({
+export const tokenConfigOptions = ({
   chainId,
   client,
   gatewayAddress,
@@ -31,24 +31,24 @@ const tokenConfigOptions = ({
       const treasuryAddress = await queryClient.fetchQuery(
         treasuryAddressOptions({ chainId, client, gatewayAddress }),
       );
-      return getTokenConfig(client!, { address: treasuryAddress, token });
+      const [
+        vault,
+        oracle,
+        stalePeriod,
+        depositActive,
+        withdrawActive,
+        decimals,
+      ] = await getTokenConfig(client!, { address: treasuryAddress, token });
+      return {
+        decimals,
+        depositActive,
+        oracle,
+        stalePeriod,
+        vault,
+        withdrawActive,
+      };
     },
     queryKey: ["token-config", chainId, gatewayAddress, token],
-    select: ([
-      vault,
-      oracle,
-      stalePeriod,
-      depositActive,
-      withdrawActive,
-      decimals,
-    ]) => ({
-      decimals,
-      depositActive,
-      oracle,
-      stalePeriod,
-      vault,
-      withdrawActive,
-    }),
   });
 
 export const useTokenConfig = function (token: Address) {

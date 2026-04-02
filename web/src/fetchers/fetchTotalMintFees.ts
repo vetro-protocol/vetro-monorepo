@@ -3,8 +3,8 @@ import type { QueryClient } from "@tanstack/react-query";
 import { getGatewayAddress } from "@vetro-protocol/gateway";
 import { parseEthPrice } from "hooks/useEthPrice";
 import { mintFeeOptions } from "hooks/useMintFee";
+import { pricesOptions } from "hooks/usePrices";
 import { mintGasUnitsOptions } from "hooks/useSwapMintFees";
-import { tokenPricesOptions } from "hooks/useTokenPrices";
 import { config } from "providers/web3Provider";
 import type { Token } from "types";
 import { applyBps, weiToUsd } from "utils/fees";
@@ -68,7 +68,7 @@ export const fetchTotalMintFees = async function ({
         }),
       )
       .then((protocolFeeBps) => applyBps(amount, protocolFeeBps)),
-    queryClient.ensureQueryData(tokenPricesOptions()),
+    queryClient.ensureQueryData(pricesOptions({ client, queryClient })),
   ]);
 
   const ethPrice = parseEthPrice(prices);
