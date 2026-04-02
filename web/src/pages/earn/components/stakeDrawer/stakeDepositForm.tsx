@@ -6,6 +6,7 @@ import { getStakingVaultAddress } from "@vetro-protocol/earn";
 import { ApproveSection } from "components/approveSection";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { VerticalStepper, stepStatus } from "components/base/verticalStepper";
+import { DrawerFeesContainer } from "components/feesContainer";
 import { NetworkFees } from "components/networkFees";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenInput } from "components/tokenInput";
@@ -303,22 +304,19 @@ export function StakeDepositForm({
           pendingText={pendingText}
         />
       </div>
-
-      <ApproveSection
-        active={approve10x}
-        contentPadding="wide"
-        onToggle={onApprove10xToggle}
-      />
-      <div className="border-b border-gray-200 px-6">
+      <DrawerFeesContainer>
+        <ApproveSection active={approve10x} onToggle={onApprove10xToggle} />
+      </DrawerFeesContainer>
+      <div className="border-b border-gray-200">
         <NetworkFees
           label={t("pages.earn.stake.fees-label", {
             amount: inputValue,
             token: vusd.symbol,
           })}
           networkFee={depositFeesQuery}
+          sectionClassName="px-6"
         />
       </div>
-
       <DepositProgress
         approvalCompleted={approvalCompleted}
         depositStep={depositStep}

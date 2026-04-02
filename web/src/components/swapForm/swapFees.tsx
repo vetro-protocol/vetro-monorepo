@@ -27,6 +27,7 @@ type Props = {
   networkFee: FeeData;
   outputLabel?: ReactNode;
   protocolFee?: FeeData;
+  sectionClassName?: string;
   totalFees?: TotalFeesData;
 };
 
@@ -39,6 +40,7 @@ export const SwapFees = function ({
   networkFee,
   outputLabel,
   protocolFee,
+  sectionClassName,
   totalFees,
 }: Props) {
   const { t } = useTranslation();
@@ -80,30 +82,29 @@ export const SwapFees = function ({
     ) : undefined;
 
   return (
-    <div className="w-full border-b border-gray-200">
-      <div className="mx-auto w-full max-w-md">
-        <FeesContainer
-          isError={isTotalFeesError}
-          isIdle={isTotalFeesIdle}
-          label={outputLabel}
-          totalFees={totalFeesValue}
-        >
-          <FeeDetails
-            isError={isNetworkFeeError}
-            isIdle={isNetworkFeeIdle}
-            label={t("common.network-fee")}
-            value={networkFeeValue}
-          />
-          {protocolFee ? (
-            <FeeDetails
-              isError={protocolFee.status === "error"}
-              isIdle={protocolFee.fetchStatus === "idle"}
-              label={t("pages.swap.fees.fixed-protocol-fee")}
-              value={protocolFeeValue}
-            />
-          ) : null}
-        </FeesContainer>
-      </div>
-    </div>
+    <FeesContainer
+      isError={isTotalFeesError}
+      isIdle={isTotalFeesIdle}
+      label={outputLabel}
+      sectionClassName={sectionClassName}
+      totalFees={totalFeesValue}
+    >
+      <FeeDetails
+        className={sectionClassName}
+        isError={isNetworkFeeError}
+        isIdle={isNetworkFeeIdle}
+        label={t("common.network-fee")}
+        value={networkFeeValue}
+      />
+      {protocolFee ? (
+        <FeeDetails
+          className={sectionClassName}
+          isError={protocolFee.status === "error"}
+          isIdle={protocolFee.fetchStatus === "idle"}
+          label={t("pages.swap.fees.fixed-protocol-fee")}
+          value={protocolFeeValue}
+        />
+      ) : null}
+    </FeesContainer>
   );
 };

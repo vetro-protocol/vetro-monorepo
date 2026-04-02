@@ -298,17 +298,16 @@ export function StakeWithdrawForm({
           }
         />
       </div>
-
-      <div className="border-b border-gray-200 px-6">
+      <div className="border-b border-gray-200">
         <NetworkFees
           label={t("pages.earn.stake.withdrawing-fees-label", {
             amount: inputValue,
             token: vusd.symbol,
           })}
           networkFee={withdrawFeesQuery}
+          sectionClassName="px-6"
         />
       </div>
-
       <div className="mt-auto flex flex-col gap-2 px-6">
         <p className="text-xs font-medium tracking-wide text-gray-500">
           {t("pages.earn.stake.withdraw-progress")}

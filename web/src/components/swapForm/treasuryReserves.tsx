@@ -20,32 +20,30 @@ export const TreasuryReserves = function () {
   const { data: treasuryTokens, isError } = useTreasuryReserves();
 
   return (
-    <div className="w-full border-b border-gray-200">
-      <div className="mx-auto flex w-full max-w-md items-center justify-between px-2 py-3">
-        <span className="text-h5 text-gray-900">
-          {t("pages.swap.treasury-reserves")}
+    <div className="mx-auto flex w-full items-center justify-between py-3 md:max-w-md">
+      <span className="text-h5 text-gray-900">
+        {t("pages.swap.treasury-reserves")}
+      </span>
+      {isError ? (
+        <span className="text-h5 text-gray-500">-</span>
+      ) : treasuryTokens !== undefined ? (
+        <span className="text-h5 flex items-center gap-x-3 text-gray-500">
+          {treasuryTokens.map(({ amount, token }, index) => (
+            <Fragment key={token.address}>
+              {index > 0 && (
+                <span className="h-2 w-0.5 rounded-full border border-gray-300" />
+              )}
+              <DisplayAmount
+                amount={amount}
+                container={tokenContainer(token)}
+                token={token}
+              />
+            </Fragment>
+          ))}
         </span>
-        {isError ? (
-          <span className="text-h5 text-gray-500">-</span>
-        ) : treasuryTokens !== undefined ? (
-          <span className="text-h5 flex items-center gap-x-3 text-gray-500">
-            {treasuryTokens.map(({ amount, token }, index) => (
-              <Fragment key={token.address}>
-                {index > 0 && (
-                  <span className="h-2 w-0.5 rounded-full border border-gray-300" />
-                )}
-                <DisplayAmount
-                  amount={amount}
-                  container={tokenContainer(token)}
-                  token={token}
-                />
-              </Fragment>
-            ))}
-          </span>
-        ) : (
-          <Skeleton height={16} width={120} />
-        )}
-      </div>
+      ) : (
+        <Skeleton height={16} width={120} />
+      )}
     </div>
   );
 };

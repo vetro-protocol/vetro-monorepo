@@ -2,6 +2,7 @@ import { Button } from "components/base/button";
 import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { type Step, VerticalStepper } from "components/base/verticalStepper";
+import { DrawerFeesContainer } from "components/feesContainer";
 import { NetworkFees } from "components/networkFees";
 import { TokenLogo } from "components/tokenLogo";
 import { useTotalSupplyAndBorrowFees } from "hooks/borrow/useSupplyAndBorrowFees";
@@ -87,8 +88,9 @@ export function BorrowProgressDrawer({
           </p>
         </div>
       </div>
-
-      <NetworkFees networkFee={networkFee} />
+      <DrawerFeesContainer>
+        <NetworkFees networkFee={networkFee} />
+      </DrawerFeesContainer>
 
       <div className="flex-1" />
 

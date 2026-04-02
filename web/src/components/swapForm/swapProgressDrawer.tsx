@@ -1,6 +1,7 @@
 import { Button } from "components/base/button";
 import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { type Step, VerticalStepper } from "components/base/verticalStepper";
+import { DrawerFeesContainer } from "components/feesContainer";
 import { TokenLogo } from "components/tokenLogo";
 import { useAnimatedVisibility } from "hooks/useAnimatedVisibility";
 import type { ComponentProps, ReactNode } from "react";
@@ -86,27 +87,29 @@ export function SwapProgressDrawer({
             </div>
           )}
         </div>
-        <div className="*:px-4">
+        <DrawerFeesContainer>
           <TreasuryReserves />
-        </div>
-        <SwapFees
-          fromToken={fromToken}
-          networkFee={networkFee}
-          outputLabel={
-            toToken !== undefined &&
-            oracleToken !== undefined &&
-            unitPreview !== undefined ? (
-              <OutputLabel
-                fromToken={fromToken}
-                oracleToken={oracleToken}
-                toToken={toToken}
-                unitPreview={unitPreview}
-              />
-            ) : null
-          }
-          protocolFee={protocolFee}
-          totalFees={totalFees}
-        />
+        </DrawerFeesContainer>
+        <DrawerFeesContainer>
+          <SwapFees
+            fromToken={fromToken}
+            networkFee={networkFee}
+            outputLabel={
+              toToken !== undefined &&
+              oracleToken !== undefined &&
+              unitPreview !== undefined ? (
+                <OutputLabel
+                  fromToken={fromToken}
+                  oracleToken={oracleToken}
+                  toToken={toToken}
+                  unitPreview={unitPreview}
+                />
+              ) : null
+            }
+            protocolFee={protocolFee}
+            totalFees={totalFees}
+          />
+        </DrawerFeesContainer>
         <div className="flex-1" />
         {steps.length > 0 && (
           <div className="flex flex-col gap-2 px-6 pb-6">

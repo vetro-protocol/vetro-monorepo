@@ -13,6 +13,7 @@ import {
 } from "components/base/verticalStepper";
 import { OracleLabel } from "components/borrow/oracleLabel";
 import { hasSufficientGas } from "components/borrow/utils";
+import { DrawerFeesContainer } from "components/feesContainer";
 import { NetworkFees } from "components/networkFees";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenInput } from "components/tokenInput";
@@ -403,11 +404,13 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
             sufficientGas={sufficientGas}
           />
         </div>
-        <NetworkFees
-          label={<OracleLabel oracle={market.oracle} />}
-          networkFee={networkFee}
-        />
-        <div className="border-t border-gray-200 px-6 py-2">
+        <DrawerFeesContainer>
+          <NetworkFees
+            label={<OracleLabel oracle={market.oracle} />}
+            networkFee={networkFee}
+          />
+        </DrawerFeesContainer>
+        <DrawerFeesContainer>
           <PositionReview
             borrowApy={market.borrowApy}
             collateralToken={collateralToken}
@@ -416,7 +419,7 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
             loanToken={loanToken}
             updated={inputError ? null : updated}
           />
-        </div>
+        </DrawerFeesContainer>
       </form>
       <StepperOverlay
         isError={isError}

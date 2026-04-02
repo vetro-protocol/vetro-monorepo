@@ -6,6 +6,7 @@ import { getGatewayAddress } from "@vetro-protocol/gateway";
 import { ApproveSection } from "components/approveSection";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { Toast } from "components/base/toast";
+import { FormSection, FormSectionItem } from "components/feesContainer";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenDropdown } from "components/tokenDropdown";
 import { TokenInput } from "components/tokenInput";
@@ -255,22 +256,29 @@ export function OneStepRedeem({
           token={fromToken}
         />
       </Form>
-      <ApproveSection active={approve10x} onToggle={onToggleApprove10x} />
-      <TreasuryReserves />
-      <SwapFees
-        fromToken={fromToken}
-        networkFee={networkFee}
-        outputLabel={
-          <OutputLabel
-            fromToken={fromToken}
-            oracleToken={toToken.address}
-            toToken={toToken}
-            unitPreview={unitRedeemPreview}
-          />
-        }
-        protocolFee={protocolFeeQueryData}
-        totalFees={totalRedeemFeesQueryData}
-      />
+      <FormSection>
+        <FormSectionItem>
+          <ApproveSection active={approve10x} onToggle={onToggleApprove10x} />
+        </FormSectionItem>
+        <FormSectionItem>
+          <TreasuryReserves />
+        </FormSectionItem>
+        <SwapFees
+          fromToken={fromToken}
+          networkFee={networkFee}
+          outputLabel={
+            <OutputLabel
+              fromToken={fromToken}
+              oracleToken={toToken.address}
+              toToken={toToken}
+              unitPreview={unitRedeemPreview}
+            />
+          }
+          protocolFee={protocolFeeQueryData}
+          sectionClassName="max-md:px-4 md:px-2"
+          totalFees={totalRedeemFeesQueryData}
+        />
+      </FormSection>
       <RedeemVaultSection whitelistedTokens={whitelistedTokens} />
       {isDrawerOpen && flowStatus !== "idle" && (
         <SwapRedeemDrawer
