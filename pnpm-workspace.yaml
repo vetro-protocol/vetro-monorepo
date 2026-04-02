@@ -2,6 +2,8 @@ minimumReleaseAge: 10080 # 7 days in minutes
 minimumReleaseAgeExclude:
   - "@hemilabs/*"
   - "@vetro-protocol/*"
+  - "viem-erc20"
+  - "viem-erc4626"
 
 packages:
   - "api"
