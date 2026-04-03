@@ -18,8 +18,6 @@ const colorPalette = [
 export const assignColor = (index: number) =>
   colorPalette[index % colorPalette.length] ?? "bg-gray-400";
 
-const priceDecimals = 8;
-
 const findToken = (tokenAddress: string, whitelistedTokens: Token[]) =>
   whitelistedTokens.find(
     (t) => t.address.toLowerCase() === tokenAddress.toLowerCase(),
@@ -37,7 +35,7 @@ export const toTvlItems = ({
   whitelistedTokens?: Token[];
 }) =>
   treasuryTokens.map(function (
-    { latestPrice, tokenAddress, withdrawable },
+    { latestPrice, priceDecimals, tokenAddress, withdrawable },
     index,
   ) {
     const token = findToken(tokenAddress, whitelistedTokens);
@@ -69,6 +67,7 @@ export const toYieldItems = function ({
   for (const {
     activeStrategies,
     latestPrice,
+    priceDecimals,
     tokenAddress,
   } of treasuryTokens) {
     const token = findToken(tokenAddress, whitelistedTokens);
@@ -142,6 +141,7 @@ export const toReserveBufferAmount = function ({
 
   for (const {
     latestPrice,
+    priceDecimals,
     tokenAddress,
     totalDebt,
     withdrawable,
