@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import type { TreasuryToken } from "../../../src/pages/analytics/types";
 import {
   assignColor,
   toCollateralizationItems,
@@ -15,6 +16,15 @@ const USDC_ADDRESS =
 
 // $1.00 expressed with 8 decimals
 const ONE_USD_PRICE = "100000000";
+
+const baseTreasuryToken: TreasuryToken = {
+  activeStrategies: [],
+  latestPrice: ONE_USD_PRICE,
+  priceDecimals: 8,
+  tokenAddress: USDT_ADDRESS,
+  totalDebt: "0",
+  withdrawable: "0",
+};
 
 const usdtToken = {
   address: USDT_ADDRESS,
@@ -55,9 +65,7 @@ describe("pages/analytics/utils", function () {
       const result = toReserveBufferAmount({
         treasuryTokens: [
           {
-            activeStrategies: [],
-            latestPrice: ONE_USD_PRICE,
-            tokenAddress: USDT_ADDRESS,
+            ...baseTreasuryToken,
             totalDebt: "1000000000",
             withdrawable: "1000000000",
           },
@@ -72,9 +80,7 @@ describe("pages/analytics/utils", function () {
       const result = toReserveBufferAmount({
         treasuryTokens: [
           {
-            activeStrategies: [],
-            latestPrice: ONE_USD_PRICE,
-            tokenAddress: USDT_ADDRESS,
+            ...baseTreasuryToken,
             totalDebt: "1100000000",
             withdrawable: "1000000000",
           },
@@ -90,9 +96,7 @@ describe("pages/analytics/utils", function () {
       const result = toReserveBufferAmount({
         treasuryTokens: [
           {
-            activeStrategies: [],
-            latestPrice: ONE_USD_PRICE,
-            tokenAddress: USDT_ADDRESS,
+            ...baseTreasuryToken,
             totalDebt: "900000000",
             withdrawable: "1000000000",
           },
@@ -108,15 +112,12 @@ describe("pages/analytics/utils", function () {
       const result = toReserveBufferAmount({
         treasuryTokens: [
           {
-            activeStrategies: [],
-            latestPrice: ONE_USD_PRICE,
-            tokenAddress: USDT_ADDRESS,
+            ...baseTreasuryToken,
             totalDebt: "900000000",
             withdrawable: "1000000000",
           },
           {
-            activeStrategies: [],
-            latestPrice: ONE_USD_PRICE,
+            ...baseTreasuryToken,
             tokenAddress: USDC_ADDRESS,
             totalDebt: "50000000",
             withdrawable: "100000000",
@@ -132,13 +133,7 @@ describe("pages/analytics/utils", function () {
       // 1 token with 18 decimals @ $1 → buffer: $1
       const result = toReserveBufferAmount({
         treasuryTokens: [
-          {
-            activeStrategies: [],
-            latestPrice: ONE_USD_PRICE,
-            tokenAddress: USDT_ADDRESS,
-            totalDebt: "0",
-            withdrawable: "1000000000000000000",
-          },
+          { ...baseTreasuryToken, withdrawable: "1000000000000000000" },
         ],
         whitelistedTokens: [{ ...usdtToken, decimals: 18 as const }],
       });
@@ -150,10 +145,8 @@ describe("pages/analytics/utils", function () {
       const result = toReserveBufferAmount({
         treasuryTokens: [
           {
-            activeStrategies: [],
-            latestPrice: ONE_USD_PRICE,
+            ...baseTreasuryToken,
             tokenAddress: "0xunknown",
-            totalDebt: "0",
             withdrawable: "1000000000000000000",
           },
         ],
@@ -172,15 +165,7 @@ describe("pages/analytics/utils", function () {
     it("computes correct USD amount per token", function () {
       // 1000 USDT (6 decimals) @ $1 = $1000
       const items = toTvlItems({
-        treasuryTokens: [
-          {
-            activeStrategies: [],
-            latestPrice: ONE_USD_PRICE,
-            tokenAddress: USDT_ADDRESS,
-            totalDebt: "0",
-            withdrawable: "1000000000",
-          },
-        ],
+        treasuryTokens: [{ ...baseTreasuryToken, withdrawable: "1000000000" }],
         whitelistedTokens: [usdtToken],
       });
 
@@ -193,10 +178,8 @@ describe("pages/analytics/utils", function () {
       const items = toTvlItems({
         treasuryTokens: [
           {
-            activeStrategies: [],
-            latestPrice: ONE_USD_PRICE,
+            ...baseTreasuryToken,
             tokenAddress: "0xABCDEF123456",
-            totalDebt: "0",
             withdrawable: "1000000000000000000",
           },
         ],
@@ -216,12 +199,11 @@ describe("pages/analytics/utils", function () {
       const items = toYieldItems({
         treasuryTokens: [
           {
+            ...baseTreasuryToken,
             activeStrategies: [
               { name: "Zero Strategy", totalDebt: "0" },
               { name: "Active Strategy", totalDebt: "500000000" },
             ],
-            latestPrice: ONE_USD_PRICE,
-            tokenAddress: USDT_ADDRESS,
             totalDebt: "500000000",
             withdrawable: "500000000",
           },
@@ -237,19 +219,18 @@ describe("pages/analytics/utils", function () {
       const items = toYieldItems({
         treasuryTokens: [
           {
+            ...baseTreasuryToken,
             activeStrategies: [
               { name: "USDT Strategy", totalDebt: "500000000" },
             ],
-            latestPrice: ONE_USD_PRICE,
-            tokenAddress: USDT_ADDRESS,
             totalDebt: "500000000",
             withdrawable: "500000000",
           },
           {
+            ...baseTreasuryToken,
             activeStrategies: [
               { name: "USDC Strategy", totalDebt: "200000000" },
             ],
-            latestPrice: ONE_USD_PRICE,
             tokenAddress: USDC_ADDRESS,
             totalDebt: "200000000",
             withdrawable: "200000000",
@@ -268,9 +249,8 @@ describe("pages/analytics/utils", function () {
       const items = toYieldItems({
         treasuryTokens: [
           {
+            ...baseTreasuryToken,
             activeStrategies: [{ name: "Strategy", totalDebt: "500000000" }],
-            latestPrice: ONE_USD_PRICE,
-            tokenAddress: USDT_ADDRESS,
             totalDebt: "500000000",
             withdrawable: "500000000",
           },

@@ -12,6 +12,7 @@ export type AllocationItem = {
 export type TreasuryToken = {
   activeStrategies: { name: string; totalDebt: string }[];
   latestPrice: string;
+  priceDecimals: number;
   tokenAddress: string;
   totalDebt: string;
   withdrawable: string;
