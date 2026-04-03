@@ -2,6 +2,7 @@ import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { VerticalStepper, stepStatus } from "components/base/verticalStepper";
+import { CollapsibleSection } from "components/collapsibleSection";
 import { NetworkFees } from "components/networkFees";
 import { SetMaxStakedBalance } from "components/setMaxStakedBalance";
 import { TokenInput } from "components/tokenInput";
@@ -298,16 +299,18 @@ export function StakeWithdrawForm({
           }
         />
       </div>
-      <div className="border-b border-gray-200">
-        <NetworkFees
-          label={t("pages.earn.stake.withdrawing-fees-label", {
-            amount: inputValue,
-            token: vusd.symbol,
-          })}
-          networkFee={withdrawFeesQuery}
-          sectionClassName="px-6"
-        />
-      </div>
+      <CollapsibleSection show={amountBigInt !== 0n}>
+        <div className="border-b border-gray-200">
+          <NetworkFees
+            label={t("pages.earn.stake.withdrawing-fees-label", {
+              amount: inputValue,
+              token: vusd.symbol,
+            })}
+            networkFee={withdrawFeesQuery}
+            sectionClassName="px-6"
+          />
+        </div>
+      </CollapsibleSection>
       <div className="mt-auto flex flex-col gap-2 px-6">
         <p className="text-xs font-medium tracking-wide text-gray-500">
           {t("pages.earn.stake.withdraw-progress")}

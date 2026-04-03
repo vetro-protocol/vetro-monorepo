@@ -13,6 +13,7 @@ import {
 } from "components/base/verticalStepper";
 import { OracleLabel } from "components/borrow/oracleLabel";
 import { hasSufficientGas } from "components/borrow/utils";
+import { CollapsibleSection } from "components/collapsibleSection";
 import { DrawerFeesContainer } from "components/feesContainer";
 import { NetworkFees } from "components/networkFees";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
@@ -404,12 +405,14 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
             sufficientGas={sufficientGas}
           />
         </div>
-        <DrawerFeesContainer>
-          <NetworkFees
-            label={<OracleLabel oracle={market.oracle} />}
-            networkFee={networkFee}
-          />
-        </DrawerFeesContainer>
+        <CollapsibleSection show={collateralAmountBigInt !== 0n}>
+          <DrawerFeesContainer>
+            <NetworkFees
+              label={<OracleLabel oracle={market.oracle} />}
+              networkFee={networkFee}
+            />
+          </DrawerFeesContainer>
+        </CollapsibleSection>
         <DrawerFeesContainer>
           <PositionReview
             borrowApy={market.borrowApy}

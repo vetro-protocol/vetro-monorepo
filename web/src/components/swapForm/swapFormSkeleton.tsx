@@ -54,7 +54,7 @@ export function SwapFormSkeleton() {
           </div>
         </div>
       </div>
-      <FormSection>
+      <FormSection show={false}>
         <FormSectionItem>
           <ApproveSection active={false} />
         </FormSectionItem>

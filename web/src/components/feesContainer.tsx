@@ -2,6 +2,7 @@ import { Children, type ReactElement, type ReactNode, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 
 import { ChevronIcon } from "./base/chevronIcon";
+import { CollapsibleSection } from "./collapsibleSection";
 import type { FeeDetailsProps } from "./feeDetails";
 import feesSvg from "./icons/fees.svg";
 import gasSvg from "./icons/gas.svg";
@@ -86,8 +87,16 @@ export const DrawerFeesContainer = ({ children }: { children: ReactNode }) => (
   <div className="w-full border-b border-gray-200 px-6">{children}</div>
 );
 
-export const FormSection = ({ children }: { children: ReactNode }) => (
-  <div className="w-full md:max-w-md">{children}</div>
+export const FormSection = ({
+  children,
+  show,
+}: {
+  children: ReactNode;
+  show: boolean;
+}) => (
+  <CollapsibleSection className="w-full md:max-w-md" show={show}>
+    {children}
+  </CollapsibleSection>
 );
 
 export const FormSectionItem = ({ children }: { children: ReactNode }) => (

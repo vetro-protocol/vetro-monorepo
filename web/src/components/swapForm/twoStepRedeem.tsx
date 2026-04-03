@@ -249,7 +249,7 @@ export function TwoStepRedeem({
           </Button>
         </div>
       </Form>
-      <FormSection>
+      <FormSection show={amountBigInt !== 0n}>
         <FormSectionItem>
           <ApproveSection active={approve10x} onToggle={onToggleApprove10x} />
         </FormSectionItem>
