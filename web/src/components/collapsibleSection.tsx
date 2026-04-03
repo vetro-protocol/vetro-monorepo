@@ -12,6 +12,8 @@ export const CollapsibleSection = ({
   <div
     className={`grid transition-[grid-template-rows] duration-200 ease-out ${show ? "grid-rows-[1fr]" : "grid-rows-[0fr]"} ${className}`}
   >
-    <div className="overflow-hidden">{children}</div>
+    <div aria-hidden={!show} className="overflow-hidden" inert={!show}>
+      {children}
+    </div>
   </div>
 );
