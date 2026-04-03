@@ -24,7 +24,7 @@ const findToken = (tokenAddress: string, whitelistedTokens: Token[]) =>
   );
 
 // Transforms /analytics/treasury response into TVL allocation items.
-// amount: USD value = (withdrawable / 10^decimals) × (latestPrice / 10^8)
+// amount: USD value = (withdrawable / 10^decimals) × (latestPrice / 10^priceDecimals)
 // withdrawable includes idle funds + deployed strategies (vs totalDebt = strategies only).
 // tokenDecimals sourced from whitelistedTokens; falls back to 18 for unknown tokens.
 export const toTvlItems = ({
@@ -54,7 +54,7 @@ export const toTvlItems = ({
 
 // Transforms /analytics/treasury response into yield allocation items,
 // one item per active strategy across all tokens.
-// amount: USD value = (totalDebt / 10^decimals) × (latestPrice / 10^8)
+// amount: USD value = (totalDebt / 10^decimals) × (latestPrice / 10^priceDecimals)
 export const toYieldItems = function ({
   treasuryTokens = [],
   whitelistedTokens = [],
