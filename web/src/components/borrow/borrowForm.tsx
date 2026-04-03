@@ -9,6 +9,7 @@ import { RenderFiatValue } from "components/base/fiatValue";
 import { MaxButton } from "components/base/maxButton";
 import { Toast } from "components/base/toast";
 import { OracleLabel } from "components/borrow/oracleLabel";
+import { FormSection, FormSectionItem } from "components/feesContainer";
 import { NetworkFees } from "components/networkFees";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenInput } from "components/tokenInput";
@@ -361,20 +362,27 @@ export function BorrowForm({
             openConnectModal={openConnectModal}
           />
         </div>
-        <NetworkFees
-          label={<OracleLabel oracle={market.oracle} />}
-          networkFee={networkFee}
-        />
-        <div className="border-t border-gray-200 px-4 py-1">
-          <BorrowingReview
-            borrowApy={market.borrowApy}
-            borrowInput={borrowInput}
-            collateralInput={collateralInput}
-            collateralToken={collateralToken}
-            loanToken={loanToken}
-            morphoMarket={morphoMarket}
-          />
-        </div>
+        <FormSection>
+          <FormSectionItem>
+            <NetworkFees
+              label={<OracleLabel oracle={market.oracle} />}
+              networkFee={networkFee}
+              sectionClassName="max-md:px-4 md:px-2"
+            />
+          </FormSectionItem>
+          <FormSectionItem>
+            <div className="py-1">
+              <BorrowingReview
+                borrowApy={market.borrowApy}
+                borrowInput={borrowInput}
+                collateralInput={collateralInput}
+                collateralToken={collateralToken}
+                loanToken={loanToken}
+                morphoMarket={morphoMarket}
+              />
+            </div>
+          </FormSectionItem>
+        </FormSection>
       </form>
       {isDrawerOpen && flowStatus !== "idle" && (
         <BorrowDrawer

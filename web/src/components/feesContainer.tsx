@@ -1,7 +1,6 @@
 import { Children, type ReactElement, type ReactNode, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 
-import { ButtonIcon } from "./base/button";
 import { ChevronIcon } from "./base/chevronIcon";
 import type { FeeDetailsProps } from "./feeDetails";
 import feesSvg from "./icons/fees.svg";
@@ -14,6 +13,7 @@ type Props = {
   isError?: boolean;
   isIdle?: boolean;
   label?: ReactNode;
+  sectionClassName?: string;
   totalFees?: ReactNode;
 };
 
@@ -22,6 +22,7 @@ export function FeesContainer({
   isError,
   isIdle,
   label,
+  sectionClassName = "",
   totalFees,
 }: Props) {
   const [isOpen, setIsOpen] = useState(false);
@@ -39,17 +40,17 @@ export function FeesContainer({
     );
 
   return (
-    <div className="w-full">
+    <>
       <div
         aria-controls="fees-list"
         aria-expanded={isOpen}
-        className="text-xsm flex h-11 w-full cursor-pointer items-center justify-between px-2 py-3"
+        className={`text-xsm flex h-11 w-full cursor-pointer items-center justify-between ${sectionClassName}`}
         onClick={() => setIsOpen(!isOpen)}
         role="button"
         tabIndex={0}
       >
         {label && <span className="font-semibold text-gray-900">{label}</span>}
-        <div className="ml-auto flex items-center gap-2 max-md:px-4">
+        <div className="ml-auto flex items-center gap-2">
           {!isOpen && (
             <>
               <img
@@ -63,18 +64,34 @@ export function FeesContainer({
               </span>
             </>
           )}
-          <ButtonIcon type="button" variant="tertiary">
+          <button
+            className="button--base button-icon button-tertiary translate-x-1"
+            type="button"
+          >
             <ChevronIcon direction={isOpen ? "up" : "down"} />
-          </ButtonIcon>
+          </button>
         </div>
       </div>
-
       <div
         className={`grid transition-[grid-template-rows] duration-200 ease-out ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
         id="fees-list"
       >
         <div className="overflow-hidden">{children}</div>
       </div>
-    </div>
+    </>
   );
 }
+
+export const DrawerFeesContainer = ({ children }: { children: ReactNode }) => (
+  <div className="w-full border-b border-gray-200 px-6">{children}</div>
+);
+
+export const FormSection = ({ children }: { children: ReactNode }) => (
+  <div className="w-full md:max-w-md">{children}</div>
+);
+
+export const FormSectionItem = ({ children }: { children: ReactNode }) => (
+  <div className="mx-auto w-full not-last:border-b not-last:border-gray-200 max-md:px-4 md:max-w-md *:md:px-2">
+    {children}
+  </div>
+);

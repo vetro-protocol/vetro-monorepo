@@ -3,6 +3,7 @@ import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { MaxButton } from "components/base/maxButton";
 import { type Step, VerticalStepper } from "components/base/verticalStepper";
+import { DrawerFeesContainer } from "components/feesContainer";
 import { TokenDropdown } from "components/tokenDropdown";
 import { TokenInput } from "components/tokenInput";
 import { Balance } from "components/tokenInput/balance";
@@ -137,23 +138,25 @@ export function ClaimRedeemProgressDrawer({
               : t("pages.swap.redeem-vault.redeem")}
         </Button>
       </div>
-      <div className="*:px-4">
+      <DrawerFeesContainer>
         <TreasuryReserves />
-      </div>
-      <SwapFees
-        fromToken={fromToken}
-        networkFee={networkFee}
-        outputLabel={
-          <OutputLabel
-            fromToken={fromToken}
-            oracleToken={oracleToken}
-            toToken={toToken}
-            unitPreview={unitPreview}
-          />
-        }
-        protocolFee={protocolFee}
-        totalFees={totalFees}
-      />
+      </DrawerFeesContainer>
+      <DrawerFeesContainer>
+        <SwapFees
+          fromToken={fromToken}
+          networkFee={networkFee}
+          outputLabel={
+            <OutputLabel
+              fromToken={fromToken}
+              oracleToken={oracleToken}
+              toToken={toToken}
+              unitPreview={unitPreview}
+            />
+          }
+          protocolFee={protocolFee}
+          totalFees={totalFees}
+        />
+      </DrawerFeesContainer>
       {steps.length > 0 && (
         <div className="mt-auto flex flex-col gap-2 px-6 pb-6">
           <p className="text-[11px] leading-4 font-medium tracking-wide text-gray-500">

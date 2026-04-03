@@ -12,9 +12,14 @@ type Props = {
     fetchStatus: FetchStatus;
     status: QueryStatus;
   };
+  sectionClassName?: string;
 };
 
-export const NetworkFees = function ({ label, networkFee }: Props) {
+export const NetworkFees = function ({
+  label,
+  networkFee,
+  sectionClassName,
+}: Props) {
   const { t } = useTranslation();
 
   const formattedFee =
@@ -30,9 +35,11 @@ export const NetworkFees = function ({ label, networkFee }: Props) {
       isError={isError}
       isIdle={isIdle}
       label={label}
+      sectionClassName={sectionClassName}
       totalFees={formattedFee}
     >
       <FeeDetails
+        className={sectionClassName}
         isError={isError}
         isIdle={isIdle}
         label={t("common.network-fee")}

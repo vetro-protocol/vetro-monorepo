@@ -1,5 +1,6 @@
 import { ApproveSection } from "components/approveSection";
 import { Button } from "components/base/button";
+import { FormSection, FormSectionItem } from "components/feesContainer";
 import { TokenInput } from "components/tokenInput";
 import { Balance } from "components/tokenInput/balance";
 import { TokenSelectorSkeleton } from "components/tokenSelectorSkeleton";
@@ -53,8 +54,14 @@ export function SwapFormSkeleton() {
           </div>
         </div>
       </div>
-      <ApproveSection active={false} />
-      <TreasuryReserves />
+      <FormSection>
+        <FormSectionItem>
+          <ApproveSection active={false} />
+        </FormSectionItem>
+        <FormSectionItem>
+          <TreasuryReserves />
+        </FormSectionItem>
+      </FormSection>
     </>
   );
 }

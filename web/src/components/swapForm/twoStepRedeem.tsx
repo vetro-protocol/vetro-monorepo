@@ -6,6 +6,7 @@ import { getGatewayAddress } from "@vetro-protocol/gateway";
 import { ApproveSection } from "components/approveSection";
 import { Button } from "components/base/button";
 import { Toast } from "components/base/toast";
+import { FormSection, FormSectionItem } from "components/feesContainer";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useActivityTracking } from "hooks/useActivityTracking";
@@ -248,13 +249,20 @@ export function TwoStepRedeem({
           </Button>
         </div>
       </Form>
-      <ApproveSection active={approve10x} onToggle={onToggleApprove10x} />
-      <TreasuryReserves />
-      <SwapFees
-        fromToken={fromToken}
-        networkFee={networkFee}
-        totalFees={totalFeesQueryData}
-      />
+      <FormSection>
+        <FormSectionItem>
+          <ApproveSection active={approve10x} onToggle={onToggleApprove10x} />
+        </FormSectionItem>
+        <FormSectionItem>
+          <TreasuryReserves />
+        </FormSectionItem>
+        <SwapFees
+          fromToken={fromToken}
+          networkFee={networkFee}
+          sectionClassName="max-md:px-4 md:px-2"
+          totalFees={totalFeesQueryData}
+        />
+      </FormSection>
       <RedeemVaultSection whitelistedTokens={whitelistedTokens} />
       {isTutorialOpen && (
         <RedeemTutorialModal
