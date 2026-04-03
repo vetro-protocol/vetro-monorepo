@@ -1,7 +1,6 @@
 import { getGatewayAddress } from "@vetro-protocol/gateway";
 import { getTreasury } from "@vetro-protocol/gateway/actions";
 import {
-  getPrice,
   getTokenConfig,
   getWhitelistedTokens,
   getWithdrawable,
@@ -15,6 +14,7 @@ import {
 import { mainnet } from "viem/chains";
 import { balanceOf, previewRedeem } from "viem-erc4626/actions";
 
+import { getPrice } from "./chainlink.ts";
 import { getTotalAssets, getTotalSupply } from "./contracts.ts";
 import {
   getStrategies,
@@ -73,7 +73,7 @@ export async function getTreasuryComposition({
   });
   return Promise.all(
     whitelistedTokens.map(async function (tokenAddress) {
-      const [[vaultAddress], withdrawable, [latestPrice]] = await Promise.all([
+      const [[vaultAddress, oracleAddress], withdrawable] = await Promise.all([
         getTokenConfig(client, {
           address: treasuryAddress,
           token: tokenAddress,
@@ -82,12 +82,13 @@ export async function getTreasuryComposition({
           address: treasuryAddress,
           token: tokenAddress,
         }),
-        getPrice(client, { address: treasuryAddress, token: tokenAddress }),
       ]);
-      const [strategies, totalDebt] = await Promise.all([
-        getStrategies(client, vaultAddress),
-        getTotalDebt(client, vaultAddress),
-      ]);
+      const [strategies, [latestPrice, priceDecimals], totalDebt] =
+        await Promise.all([
+          getStrategies(client, vaultAddress),
+          getPrice(client, oracleAddress),
+          getTotalDebt(client, vaultAddress),
+        ]);
       const strategyData = await Promise.all(
         strategies.map((strategyAddress) =>
           Promise.all([
@@ -105,6 +106,7 @@ export async function getTreasuryComposition({
       return {
         activeStrategies,
         latestPrice,
+        priceDecimals,
         tokenAddress,
         totalDebt,
         withdrawable,

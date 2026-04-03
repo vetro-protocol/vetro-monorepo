@@ -42,25 +42,27 @@ Get the composition of the treasury by whitelisted token.
     "activeStrategies": [
       {
         "name": "Morpho SkyMoney USDT Savings",
-        "totalDebt": "5853032"
+        "totalDebt": "4021526891"
       }
     ],
-    "latestPrice": "100010000",
+    "latestPrice": "99987053",
+    "priceDecimals": 8,
     "tokenAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-    "totalDebt": "5853032",
-    "withdrawable": "3029900000"
+    "totalDebt": "4021526891",
+    "withdrawable": "4032465582"
   },
   {
     "activeStrategies": [
       {
         "name": "Morpho AlphaPing USDC Core",
-        "totalDebt": "60029"
+        "totalDebt": "234771834"
       }
     ],
     "latestPrice": "99991000",
+    "priceDecimals": 8,
     "tokenAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-    "totalDebt": "60029",
-    "withdrawable": "73000000"
+    "totalDebt": "234771834",
+    "withdrawable": "260862058"
   }
 ]
 ```
