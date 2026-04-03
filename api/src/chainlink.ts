@@ -27,21 +27,21 @@ const aggregatorV3Abi = [
     stateMutability: "view",
     type: "function",
   },
-];
+] as const;
 
 const getDecimals = (client: PublicClient, address: Address) =>
   client.readContract({
     abi: aggregatorV3Abi,
     address,
     functionName: "decimals",
-  }) as Promise<number>;
+  });
 
 const getLatestAnswer = (client: PublicClient, address: Address) =>
   client.readContract({
     abi: aggregatorV3Abi,
     address,
     functionName: "latestAnswer",
-  }) as Promise<bigint>;
+  });
 
 export const getPrice = (client: PublicClient, address: Address) =>
   Promise.all([getLatestAnswer(client, address), getDecimals(client, address)]);
