@@ -86,7 +86,7 @@ export async function getTreasuryComposition({
       const [strategies, [latestPrice, priceDecimals], totalDebt] =
         await Promise.all([
           getStrategies(client, vaultAddress),
-          getPrice(client, oracleAddress), // call oracle.latestAnser() and assume 8 decimals
+          getPrice(client, oracleAddress),
           getTotalDebt(client, vaultAddress),
         ]);
       const strategyData = await Promise.all(
