@@ -6,6 +6,7 @@ import { getStakingVaultAddress } from "@vetro-protocol/earn";
 import { ApproveSection } from "components/approveSection";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { VerticalStepper, stepStatus } from "components/base/verticalStepper";
+import { CollapsibleSection } from "components/collapsibleSection";
 import { DrawerFeesContainer } from "components/feesContainer";
 import { NetworkFees } from "components/networkFees";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
@@ -304,19 +305,21 @@ export function StakeDepositForm({
           pendingText={pendingText}
         />
       </div>
-      <DrawerFeesContainer>
-        <ApproveSection active={approve10x} onToggle={onApprove10xToggle} />
-      </DrawerFeesContainer>
-      <div className="border-b border-gray-200">
-        <NetworkFees
-          label={t("pages.earn.stake.fees-label", {
-            amount: inputValue,
-            token: vusd.symbol,
-          })}
-          networkFee={depositFeesQuery}
-          sectionClassName="px-6"
-        />
-      </div>
+      <CollapsibleSection show={amountBigInt !== 0n}>
+        <DrawerFeesContainer>
+          <ApproveSection active={approve10x} onToggle={onApprove10xToggle} />
+        </DrawerFeesContainer>
+        <div className="border-b border-gray-200">
+          <NetworkFees
+            label={t("pages.earn.stake.fees-label", {
+              amount: inputValue,
+              token: vusd.symbol,
+            })}
+            networkFee={depositFeesQuery}
+            sectionClassName="px-6"
+          />
+        </div>
+      </CollapsibleSection>
       <DepositProgress
         approvalCompleted={approvalCompleted}
         depositStep={depositStep}

@@ -255,7 +255,7 @@ export function Deposit({
           token={fromToken}
         />
       </Form>
-      <FormSection>
+      <FormSection show={amountBigInt !== 0n}>
         <FormSectionItem>
           <ApproveSection active={approve10x} onToggle={onToggleApprove10x} />
         </FormSectionItem>

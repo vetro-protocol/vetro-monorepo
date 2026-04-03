@@ -362,7 +362,9 @@ export function BorrowForm({
             openConnectModal={openConnectModal}
           />
         </div>
-        <FormSection>
+        <FormSection
+          show={borrowAmountBigInt !== 0n && collateralAmountBigInt !== 0n}
+        >
           <FormSectionItem>
             <NetworkFees
               label={<OracleLabel oracle={market.oracle} />}
