@@ -19,6 +19,7 @@
   "env": {
     "production": {
       "name": "vetro-web",
+      "preview_urls": false,
     },
     "staging": {
       "name": "vetro-web-staging",
