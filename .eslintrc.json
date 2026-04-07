@@ -12,6 +12,7 @@
       "files": [
         "*.{js,mjs}",
         "api/**/*.ts",
+        "landing/**/*.ts",
         "packages/**/*.{js,ts,tsx}",
         "subgraph/**/*.ts",
         "web/**/*.{js,ts,tsx}"
@@ -53,7 +54,7 @@
       }
     },
     {
-      "files": ["api/**/*.ts", "web/scripts/**/*.ts"],
+      "files": ["api/**/*.ts", "landing/**/*.ts", "web/scripts/**/*.ts"],
       "rules": {
         "no-console": "off"
       }
