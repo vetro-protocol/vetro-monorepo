@@ -1,4 +1,4 @@
-const API_URL = "/api/submit";
+const API_URL = "https://api.vetro.org/api/submit";
 
 const buttonText = document.getElementById("button-text");
 const checkmarkIcon = document.getElementById("checkmark-icon");
