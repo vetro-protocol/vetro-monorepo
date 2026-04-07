@@ -63,12 +63,6 @@ form.addEventListener("submit", async function (e) {
       method: "POST",
     });
 
-    if (response.status === 409) {
-      showMessage("This email is already on the waitlist", true);
-      resetButton();
-      return;
-    }
-
     if (!response.ok) {
       throw new Error("Request failed");
     }
