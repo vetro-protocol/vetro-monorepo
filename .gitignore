@@ -13,6 +13,9 @@ build/
 out/
 storybook-static/
 
+# Landing TailwindCSS generated stylesheet
+landing/public/style.css
+
 # Environment files
 .env.local
 .env.*.local
