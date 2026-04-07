@@ -7,9 +7,23 @@
   "env": {
     "production": {
       "name": "vetro-landing",
-      "vars": {
-        "ORIGIN": "https://vetro.com",
+      "observability": {
+        "enabled": true,
+        "head_sampling_rate": 0.1,
+        "traces": {
+          "enabled": true,
+          "head_sampling_rate": 0.1,
+        },
       },
+      "vars": {
+        "ORIGIN": "https://vetro.org",
+      },
+      "kv_namespaces": [
+        {
+          "binding": "KV",
+          "id": "fc3dcb6070824b3cbf4b945767006661", // Not sensitive information
+        },
+      ],
     },
   },
   "kv_namespaces": [

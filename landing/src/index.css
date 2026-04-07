@@ -14,3 +14,13 @@ body {
   margin: 0;
   font-family: var(--font-geist);
 }
+
+.bg-page {
+  background:
+    linear-gradient(
+      0deg,
+      rgba(33, 59, 230, 0.08) 0%,
+      rgba(33, 59, 230, 0.08) 100%
+    ),
+    #fff;
+}

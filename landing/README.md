@@ -11,10 +11,8 @@ pnpm dev:css    # watches for CSS changes and rebuilds (run in a separate termin
 
 ## CSS build
 
-Tailwind CSS is pre-compiled using the Tailwind CLI to avoid runtime dependencies and simplify deployment. The compiled file (`public/style.css`) is committed to the repository.
-
-If you modify `src/input.css` or change any Tailwind classes in `public/index.html`, you must rebuild and commit the output:
+Tailwind CSS is pre-compiled using the Tailwind CLI. The compiled output (`public/style.css`) is gitignored and built during deployment.
 
 ```sh
-pnpm build:css  # compiles src/input.css -> public/style.css
+pnpm build:css  # compiles src/index.css -> public/style.css
 ```

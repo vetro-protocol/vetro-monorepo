@@ -2,10 +2,10 @@
   "name": "@vetro-protocol/landing",
   "version": "1.0.0",
   "scripts": {
-    "build:css": "tailwindcss -i src/input.css -o public/style.css --minify",
+    "build:css": "tailwindcss -i src/index.css -o public/style.css --minify",
     "deps:check": "knip",
     "dev": "pnpm build:css && wrangler dev",
-    "dev:css": "tailwindcss -i src/input.css -o public/style.css --watch",
+    "dev:css": "tailwindcss -i src/index.css -o public/style.css --watch",
     "types": "wrangler types",
     "types:check": "pnpm types && tsc"
   },
