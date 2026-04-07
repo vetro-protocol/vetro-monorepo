@@ -1,5 +1,5 @@
 {
-  "ignore": ["web/scripts/*"],
+  "ignore": ["landing/**", "web/scripts/*"],
   "ignoreDependencies": ["eslint-config-prettier"],
   "workspaces": {
     "subgraph": {
