@@ -12,14 +12,19 @@ export default {
         return sendJson({ error: "Not found" }, 404);
       }
 
-      const origin = request.headers.get("Origin");
-      if (!origin || origin !== env.ORIGIN) {
-        console.log("Blocked request from origin:", origin, env.ORIGIN);
-        return new Response(null, { status: 403 });
+      const origin = request.headers.get("Origin") || "";
+      if (origin !== env.ORIGIN) {
+        return sendJson({ error: "Forbidden" }, 403);
+      }
+
+      const contentType = request.headers.get("Content-Type") || "";
+      if (!contentType.includes("application/json")) {
+        return sendJson({ error: "Invalid payload" }, 400);
       }
 
       const body = await request.json<{ email?: string }>();
-      const email = typeof body.email === "string" ? body.email.trim() : "";
+      const email =
+        typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         return sendJson({ error: "Invalid email" }, 400);
       }
