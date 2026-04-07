@@ -2,6 +2,7 @@
   "extends": ["bloq", "prettier"],
   "ignorePatterns": [
     "api/.wrangler/**/*",
+    "landing/.wrangler/**/*",
     "web/dist/**/*",
     "web/storybook-static/**/*"
   ],
@@ -12,6 +13,7 @@
       "files": [
         "*.{js,mjs}",
         "api/**/*.ts",
+        "landing/**/*.ts",
         "packages/**/*.{js,ts,tsx}",
         "subgraph/**/*.ts",
         "web/**/*.{js,ts,tsx}"
@@ -47,15 +49,23 @@
       }
     },
     {
-      "files": ["packages/**/*.{js,ts,tsx}"],
+      "files": ["landing/**/*.ts", "packages/**/*.{js,ts,tsx}"],
       "rules": {
         "complexity": ["warn", { "max": 20 }]
       }
     },
     {
-      "files": ["api/**/*.ts", "web/scripts/**/*.ts"],
+      "files": ["api/**/*.ts", "landing/**/*.ts", "web/scripts/**/*.ts"],
       "rules": {
         "no-console": "off"
+      }
+    },
+    {
+      "files": ["landing/public/**/*.js"],
+      "globals": {
+        "document": "readonly",
+        "fetch": "readonly",
+        "setTimeout": "readonly"
       }
     }
   ],

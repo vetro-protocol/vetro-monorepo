@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vetro</title>
+    <link
+      rel="icon"
+      href="assets/faviconLightTheme.ico"
+      media="(prefers-color-scheme: light)"
+    />
+    <link
+      rel="icon"
+      href="assets/faviconDarkTheme.ico"
+      media="(prefers-color-scheme: dark)"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main
+      class="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 pb-40"
+      style="
+        background:
+          linear-gradient(
+            0deg,
+            rgba(33, 59, 230, 0.08) 0%,
+            rgba(33, 59, 230, 0.08) 100%
+          ),
+          #fff;
+      "
+    >
+      <!-- Logo -->
+      <img
+        alt="Vetro"
+        src="assets/vetroLogo.svg"
+        class="z-10 mb-8 w-full sm:max-w-[490px]"
+      />
+
+      <!-- Waitlist form -->
+      <form
+        id="waitlist-form"
+        class="z-10 flex h-10 w-full items-center rounded-full bg-white px-4 py-1.5 shadow-sm transition-shadow hover:shadow-[0_0_0_1px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.12)] sm:max-w-[320px]"
+        novalidate
+      >
+        <!-- Email icon -->
+        <svg
+          class="mr-3 size-4 shrink-0"
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+        >
+          <path
+            d="M2.5 3C2.10218 3 1.72064 3.15804 1.43934 3.43934C1.15804 3.72064 1 4.10218 1 4.5V5.293C1.026 5.302 1.051 5.313 1.076 5.325L7.674 8.51C7.88 8.61 8.12 8.61 8.326 8.51L14.924 5.325C14.9487 5.31296 14.9741 5.30227 15 5.293V4.5C15 4.10218 14.842 3.72064 14.5607 3.43934C14.2794 3.15804 13.8978 3 13.5 3H2.5Z"
+            fill="#90A1B9"
+          />
+          <path
+            d="M15 6.95401L8.978 9.86001C8.67299 10.0072 8.33868 10.0837 8 10.0837C7.66132 10.0837 7.32701 10.0072 7.022 9.86001L1 6.95401V11.5C1 11.8978 1.15804 12.2794 1.43934 12.5607C1.72064 12.842 2.10218 13 2.5 13H13.5C13.8978 13 14.2794 12.842 14.5607 12.5607C14.842 12.2794 15 11.8978 15 11.5V6.95401Z"
+            fill="#90A1B9"
+          />
+        </svg>
+        <input
+          id="email-input"
+          type="email"
+          name="email"
+          placeholder="Enter your email"
+          autocomplete="email"
+          class="min-w-0 flex-1 bg-transparent text-[15px] text-gray-900 outline-none placeholder:text-gray-500"
+        />
+        <button
+          id="submit-button"
+          type="submit"
+          class="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full text-[15px] font-semibold text-blue-800 transition-colors hover:text-blue-800/80"
+        >
+          <svg
+            id="checkmark-icon"
+            class="hidden size-5"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <span id="button-text">Join waitlist</span>
+        </button>
+      </form>
+
+      <!-- Form message (success/error) -->
+      <p
+        id="form-message"
+        class="invisible z-10 mt-3 text-center text-sm font-medium"
+      >
+        &nbsp;
+      </p>
+
+      <!-- Background globe decoration -->
+      <div
+        class="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center"
+      >
+        <img
+          alt=""
+          src="assets/pageBackground.svg"
+          class="w-full max-w-[80%] md:translate-y-1/6"
+        />
+        <img
+          alt=""
+          src="assets/squareDotsBackground.svg"
+          class="absolute inset-0 m-auto w-full max-w-[80%] md:translate-y-1/6"
+        />
+      </div>
+    </main>
+
+    <script src="main.js"></script>
+  </body>
+</html>

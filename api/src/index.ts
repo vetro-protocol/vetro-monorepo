@@ -7,6 +7,7 @@ import * as borrow from "./borrow.ts";
 import { convertBigIntsToString } from "./convert-bigints-to-string.ts";
 import { getSubgraphUrl } from "./env.ts";
 import { validateAddress, validateParam } from "./param-validators.ts";
+import { securityHeaders } from "./security-headers.ts";
 import { createOriginFn, parseOrigins } from "./validate-origin.ts";
 import * as variableStake from "./variable-stake.ts";
 
@@ -17,6 +18,8 @@ app.use("*", async function (c, next) {
   const originFn = createOriginFn(origins);
   return cors({ origin: originFn })(c, next);
 });
+
+app.use("*", securityHeaders);
 
 app.get(
   "/analytics/backing-vusd",

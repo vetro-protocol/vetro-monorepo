@@ -28,6 +28,7 @@
     },
     "production": {
       "name": "vetro-api",
+      "preview_urls": false,
       "observability": {
         "enabled": true,
         "head_sampling_rate": 0.1,
@@ -38,7 +39,7 @@
       },
       "vars": {
         "CUSTOM_RPC_URL_MAINNET": "https://eth.drpc.org",
-        "ORIGINS": "https://app.vetro.com",
+        "ORIGINS": "https://app.vetro.org,https://demo.vetro.org",
         "SUBGRAPH_ID": "7vnTMFYNE6Nv7RTeoaog4QgqQ3bwZTFoPUGv2gcmTxJ6",
         "SUBGRAPH_URL_TEMPLATE": "https://gateway.thegraph.com/api/$API_KEY/subgraphs/id/$ID",
       },

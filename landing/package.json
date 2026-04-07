@@ -1,0 +1,21 @@
+{
+  "name": "@vetro-protocol/landing",
+  "version": "1.0.0",
+  "scripts": {
+    "build:css": "tailwindcss -i src/input.css -o public/style.css --minify",
+    "deps:check": "knip",
+    "dev": "pnpm build:css && wrangler dev",
+    "dev:css": "tailwindcss -i src/input.css -o public/style.css --watch",
+    "types": "wrangler types",
+    "types:check": "pnpm types && tsc"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "4.1.18",
+    "@types/node": "24.12.0",
+    "tailwindcss": "4.1.18",
+    "typescript": "5.9.3",
+    "wrangler": "4.79.0"
+  },
+  "private": true,
+  "type": "module"
+}
