@@ -6,7 +6,7 @@
   "compatibility_date": "2026-02-12",
   "env": {
     "production": {
-      "name": "vetro-landing",
+      "name": "vetro-monorepo",
       "vars": {
         "ORIGIN": "https://vetro.com",
       },
