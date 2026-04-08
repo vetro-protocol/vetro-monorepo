@@ -1,3 +1,4 @@
+import { useAddTokenToWallet } from "@hemilabs/react-hooks/useAddTokenToWallet";
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { useNeedsApproval } from "@hemilabs/react-hooks/useNeedsApproval";
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
@@ -133,7 +134,6 @@ export function BorrowForm({
   const ethereumChain = useMainnet();
   const { address } = useAccount();
   const { openConnectModal } = useConnectModal();
-
   const [flowStatus, setFlowStatus] = useState<BorrowFlowStatus>("idle");
   const [showToast, setShowToast] = useState(false);
   const [startedWithApproval, setStartedWithApproval] = useState(false);
@@ -143,6 +143,13 @@ export function BorrowForm({
   );
 
   const { collateralToken, loanToken, marketId } = market;
+  const { mutate: watchToken } = useAddTokenToWallet({
+    token: {
+      address: loanToken.address,
+      chainId: loanToken.chainId,
+      extensions: { logoURI: loanToken.logoURI },
+    },
+  });
 
   const collateralAmountBigInt = parseUnits(
     collateralInput,
@@ -237,6 +244,7 @@ export function BorrowForm({
         onCompleted();
         setFlowStatus("borrowed");
         setShowToast(true);
+        watchToken();
       });
       emitter.on("borrow-assets-transaction-reverted", function () {
         onFailed();
