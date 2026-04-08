@@ -28,7 +28,7 @@ import { parseUnits } from "viem";
 
 import { Form } from "./form";
 import { OutputLabel } from "./outputLabel";
-import { RedeemVaultSection } from "./redeemVaultSection";
+import { RedeemQueueSection } from "./redeemQueueSection";
 import { SubmitButton } from "./submitButton";
 import { SwapFees } from "./swapFees";
 import { type RedeemFlowStatus, SwapRedeemDrawer } from "./swapRedeemDrawer";
@@ -279,7 +279,7 @@ export function OneStepRedeem({
           totalFees={totalRedeemFeesQueryData}
         />
       </FormSection>
-      <RedeemVaultSection whitelistedTokens={whitelistedTokens} />
+      <RedeemQueueSection whitelistedTokens={whitelistedTokens} />
       {isDrawerOpen && flowStatus !== "idle" && (
         <SwapRedeemDrawer
           flowStatus={flowStatus}

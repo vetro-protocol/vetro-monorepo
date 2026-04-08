@@ -284,7 +284,7 @@
       "activity": {
         "cancel-redeem-text": "{{amount}} {{symbol}} sent back to wallet",
         "claim-redeem-text": "{{fromAmount}} {{fromSymbol}} redeemed for {{toAmount}} {{toSymbol}}",
-        "request-redeem-text": "{{amount}} {{symbol}} sent to redeem vault",
+        "request-redeem-text": "{{amount}} {{symbol}} sent to redeem queue",
         "swap-text": "{{fromAmount}} {{fromSymbol}} to {{toAmount}} {{toSymbol}}"
       },
       "fees": {
@@ -306,10 +306,10 @@
         "redeem": "Redeem",
         "redeemable-for_one": "Redeemable for {{firstSymbol}}",
         "redeemable-for_other": "Redeemable for {{allButLast}} and {{lastSymbol}}",
-        "send-to-vault": "Send to vault",
+        "send-to-queue": "Send to queue",
         "swap": "Swap",
-        "vault-info_one": "{{vusd}} will enter a vault with a {{seconds}}-second cooldown. Once complete, you can redeem it for {{firstSymbol}}.",
-        "vault-info_other": "{{vusd}} will enter a vault with a {{seconds}}-second cooldown. Once complete, you can redeem it for {{allButLast}} or {{lastSymbol}}.",
+        "queue-info_one": "{{vusd}} will enter a queue with a {{seconds}}-second cooldown. Once complete, you can redeem it for {{firstSymbol}}.",
+        "queue-info_other": "{{vusd}} will enter a queue with a {{seconds}}-second cooldown. Once complete, you can redeem it for {{allButLast}} or {{lastSymbol}}.",
         "you-are-swapping": "You are swapping",
         "you-will-receive": "You will receive",
         "you-will-receive-approximately": "You will receive (approximately)"
@@ -323,13 +323,13 @@
         "swap-progress": "Swap progress",
         "title": "Swap in progress"
       },
-      "redeem-vault": {
+      "redeem-queue": {
         "action": "Action",
         "available-to-redeem": "Available to redeem",
         "cancel-redeem": "Cancel redeem",
         "cancel-redeem-btn-cancel": "Cancel redeem",
         "cancel-redeem-btn-cancelling": "Cancelling...",
-        "cancel-redeem-description": "Canceling this redemption will return your {{symbol}} to your available balance and remove them from the vault. You can redeposit {{symbol}} at any time to redeem for stables.",
+        "cancel-redeem-description": "Canceling this redemption will return your {{symbol}} to your available balance and remove them from the queue. You can redeposit {{symbol}} at any time to redeem for stables.",
         "cancel-redeem-toast-description": "Your {{symbol}} has been returned to your available balance.",
         "cancel-redeem-toast-title": "Redeem cancelled",
         "cooldown-in-progress": "Cooldown in progress",
@@ -337,7 +337,7 @@
         "empty-step-1-description": "Enter how much {{symbol}} you want to convert back to stablecoins.",
         "empty-step-1-title": "Start with {{symbol}}",
         "empty-step-2-description": "Your {{symbol}} is deposited here and starts a {{seconds}}-second security cooldown.",
-        "empty-step-2-title": "{{symbol}} goes to the Redeem Vault",
+        "empty-step-2-title": "{{symbol}} goes to the Redeem Queue",
         "empty-step-3-description_one": "When the cooldown ends, redeem to {{firstSymbol}}.",
         "empty-step-3-description_other": "When the cooldown ends, choose {{allButLast}} or {{lastSymbol}} to redeem.",
         "empty-step-3-title": "Redeem to a stablecoin",
@@ -351,14 +351,14 @@
         "redeemable-balance": "Redeemable balance",
         "status": "Status",
         "swap-confirmed-description": "Your {{symbol}} is now available in your wallet",
-        "title": "Vault"
+        "title": "Redeem Queue"
       },
       "select-option": "Select token to swap",
       "title": "Swap stablecoins for VUSD and back",
       "toast": {
         "deposit-description": "VUSD is now available in your wallet",
         "deposit-title": "Deposit confirmed",
-        "deposited-to-vault": "{{symbol}} deposited to vault",
+        "deposited-to-queue": "{{symbol}} deposited to queue",
         "your-cooldown-period-has-started": "Your {{seconds}}-second cooldown has started."
       },
       "treasury-reserves": "Treasury reserves",
@@ -366,10 +366,10 @@
         "breadcrumb": "Vetro tutorials · Swap",
         "learn-button": "Learn how to redeem {{symbol}} to stables",
         "step-1-badge": "Step 1",
-        "step-1-paragraph-1": "Enter the amount of {{symbol}} you want to swap back to stables and click “<strong>Send to Vault.</strong>”",
-        "step-1-paragraph-2": "Your {{symbol}} will be deposited into the vault, where it enters a short {{seconds}}-second security cooldown before it becomes redeemable.",
+        "step-1-paragraph-1": "Enter the amount of {{symbol}} you want to swap back to stables and click “<strong>Send to Queue.</strong>”",
+        "step-1-paragraph-2": "Your {{symbol}} will be deposited into the queue, where it enters a short {{seconds}}-second security cooldown before it becomes redeemable.",
         "step-2-badge": "Step 2",
-        "step-2-paragraph-1": "Once the cooldown ends, <strong>your balance will appear as ready to redeem in the Vault table.</strong>",
+        "step-2-paragraph-1": "Once the cooldown ends, <strong>your balance will appear as ready to redeem in the Redeem Queue table.</strong>",
         "step-2-paragraph-2_one": "Click Redeem, and choose the amount you want to receive.",
         "step-2-paragraph-2_other": "Click Redeem, choose the amount, and select the stablecoin ({{allButLast}}, or {{lastSymbol}}) you want to receive.",
         "title": "How to redeem VUSD to stables"

@@ -27,7 +27,7 @@ import { parseUnits } from "viem";
 
 import { Form } from "./form";
 import { OutputLabel } from "./outputLabel";
-import { RedeemVaultSection } from "./redeemVaultSection";
+import { RedeemQueueSection } from "./redeemQueueSection";
 import { SubmitButton } from "./submitButton";
 import { type DepositFlowStatus, SwapDepositDrawer } from "./swapDepositDrawer";
 import { SwapFees } from "./swapFees";
@@ -278,7 +278,7 @@ export function Deposit({
           totalFees={totalMintFeesQueryData}
         />
       </FormSection>
-      <RedeemVaultSection whitelistedTokens={whitelistedTokens} />
+      <RedeemQueueSection whitelistedTokens={whitelistedTokens} />
       {isDrawerOpen && flowStatus !== "idle" && (
         <SwapDepositDrawer
           flowStatus={flowStatus}

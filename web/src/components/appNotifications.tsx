@@ -68,12 +68,12 @@ function useRedeemItem(): StackItem | undefined {
   });
 
   function handleClick() {
-    const el = document.getElementById("redeem-vault");
+    const el = document.getElementById("redeem-queue");
     if (el) {
-      // if we're already on the swap page, scroll to the redeem vault section
+      // if we're already on the swap page, scroll to the redeem queue section
       el.scrollIntoView({ behavior: "smooth" });
     } else {
-      navigate(`/${lang}/swap#redeem-vault`);
+      navigate(`/${lang}/swap#redeem-queue`);
     }
   }
 
@@ -87,7 +87,7 @@ function useRedeemItem(): StackItem | undefined {
           variant="primary"
         >
           <Badge variant="blue">{formattedAmount}</Badge>
-          {t("pages.swap.redeem-vault.ready-to-redeem")}
+          {t("pages.swap.redeem-queue.ready-to-redeem")}
           <ChevronIcon direction="right" />
         </Button>
       </div>

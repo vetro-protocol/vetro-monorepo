@@ -22,8 +22,8 @@ import type { Token } from "types";
 import { getTokenListParams } from "utils/tokenList";
 
 import { Form } from "./form";
+import { RedeemQueueSection } from "./redeemQueueSection";
 import { RedeemTutorialModal } from "./redeemTutorialModal";
-import { RedeemVaultSection } from "./redeemVaultSection";
 import { SubmitButton } from "./submitButton";
 import { SwapFees } from "./swapFees";
 import {
@@ -129,7 +129,7 @@ export function TwoStepRedeem({
         setFlowStatus("request-redeemed");
         setShowToast(true);
         document
-          .getElementById("redeem-vault")
+          .getElementById("redeem-queue")
           ?.scrollIntoView({ behavior: "smooth" });
       });
       emitter.on("request-redeem-transaction-reverted", function () {
@@ -182,7 +182,7 @@ export function TwoStepRedeem({
     tokenListParams,
   );
 
-  const vaultInfoText = t("pages.swap.form.vault-info", {
+  const queueInfoText = t("pages.swap.form.queue-info", {
     ...tokenListParams,
     seconds,
     vusd: fromToken.symbol,
@@ -225,13 +225,13 @@ export function TwoStepRedeem({
         toSection={
           <div className="flex h-32 items-center justify-center rounded-lg bg-gray-50 px-12">
             <p className="text-b-medium text-center text-gray-600">
-              {vaultInfoText}
+              {queueInfoText}
             </p>
           </div>
         }
       >
         <SubmitButton
-          actionText={t("pages.swap.form.send-to-vault")}
+          actionText={t("pages.swap.form.send-to-queue")}
           inputError={inputError}
           isPreviewError={isPreviewError}
           previewValue={redeemPreview}
@@ -263,7 +263,7 @@ export function TwoStepRedeem({
           totalFees={totalFeesQueryData}
         />
       </FormSection>
-      <RedeemVaultSection whitelistedTokens={whitelistedTokens} />
+      <RedeemQueueSection whitelistedTokens={whitelistedTokens} />
       {isTutorialOpen && (
         <RedeemTutorialModal
           onClose={() => setIsTutorialOpen(false)}
@@ -291,7 +291,7 @@ export function TwoStepRedeem({
             seconds,
           })}
           onClose={() => setShowToast(false)}
-          title={t("pages.swap.toast.deposited-to-vault", {
+          title={t("pages.swap.toast.deposited-to-queue", {
             symbol: fromToken.symbol,
           })}
         />

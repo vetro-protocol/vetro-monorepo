@@ -86,7 +86,7 @@ export function ClaimRedeemProgressDrawer({
   return (
     <div className="flex h-full flex-col">
       <DrawerTitle>
-        {t("pages.swap.redeem-vault.drawer-title", {
+        {t("pages.swap.redeem-queue.drawer-title", {
           symbol: fromToken.symbol,
         })}
       </DrawerTitle>
@@ -94,7 +94,7 @@ export function ClaimRedeemProgressDrawer({
         <TokenInput
           balance={
             <Balance
-              label={t("pages.swap.redeem-vault.available-to-redeem")}
+              label={t("pages.swap.redeem-queue.available-to-redeem")}
               value={formatAmount({
                 amount: amountLocked,
                 decimals: fromToken.decimals,
@@ -103,7 +103,7 @@ export function ClaimRedeemProgressDrawer({
             />
           }
           fiatValue={<RenderFiatValue token={fromToken} value={amountBigInt} />}
-          label={t("pages.swap.redeem-vault.enter-amount-to-redeem")}
+          label={t("pages.swap.redeem-queue.enter-amount-to-redeem")}
           maxButton={<MaxButton onClick={onMaxClick} />}
           onChange={onInputChange}
           tokenSelector={<TokenSelectorReadOnly {...fromToken} />}
@@ -135,7 +135,7 @@ export function ClaimRedeemProgressDrawer({
             ? t(`pages.swap.form.${inputError}`)
             : renderRetry
               ? t("pages.swap.progress.retry")
-              : t("pages.swap.redeem-vault.redeem")}
+              : t("pages.swap.redeem-queue.redeem")}
         </Button>
       </div>
       <DrawerFeesContainer>

@@ -21,16 +21,16 @@ import { formatUnits, parseUnits } from "viem";
 import { CancelRedeemModal } from "./cancelRedeemModal";
 import { ClaimRedeemDrawer } from "./claimRedeemDrawer";
 import { type ClaimRedeemFlowStatus } from "./claimRedeemProgressDrawer";
-import { RedeemVaultEmptyState } from "./redeemVaultEmptyState";
-import { RedeemVaultToasts } from "./redeemVaultToasts";
+import { RedeemQueueEmptyState } from "./redeemQueueEmptyState";
+import { RedeemQueueTable } from "./redeemQueueTable";
+import { RedeemQueueToasts } from "./redeemQueueToasts";
 import { getSwapErrors } from "./validation";
-import { VaultTable } from "./vaultTable";
 
 type Props = {
   whitelistedTokens: Token[];
 };
 
-export function RedeemVault({ whitelistedTokens }: Props) {
+export function RedeemQueue({ whitelistedTokens }: Props) {
   const ethereumChain = useMainnet();
   const { t } = useTranslation();
   const { data: vusd } = useVusd();
@@ -87,7 +87,7 @@ export function RedeemVault({ whitelistedTokens }: Props) {
         toAmount: outputValue,
         toSymbol: toToken.symbol,
       }),
-      title: `${t("nav.swap")} · ${t("pages.swap.redeem-vault.redeem")}`,
+      title: `${t("nav.swap")} · ${t("pages.swap.redeem-queue.redeem")}`,
     });
 
   const networkFeeQueryData = useSwapRedeemFees({
@@ -110,7 +110,7 @@ export function RedeemVault({ whitelistedTokens }: Props) {
 
   const totalRedeemFeesQueryData = useTotalRedeemFees({
     amount: amountBigInt,
-    // no approval is needed when redeeming from the vault
+    // no approval is needed when redeeming from the queue
     approveAmount: undefined,
     fromToken: vusd,
     minAmountOut: redeemPreview,
@@ -162,14 +162,14 @@ export function RedeemVault({ whitelistedTokens }: Props) {
 
   return (
     <>
-      <TopSection title={t("pages.swap.redeem-vault.title")} />
-      <VaultTable
+      <TopSection title={t("pages.swap.redeem-queue.title")} />
+      <RedeemQueueTable
         data={hasRequest ? [{ amountLocked, claimableAt }] : []}
         loading={isLoading}
         onCancelRedeem={() => setIsCancelRedeemModalOpen(true)}
         onRedeem={() => setIsDrawerOpen(true)}
         placeholder={
-          <RedeemVaultEmptyState whitelistedTokens={whitelistedTokens} />
+          <RedeemQueueEmptyState whitelistedTokens={whitelistedTokens} />
         }
         vusd={vusd}
       />
@@ -204,7 +204,7 @@ export function RedeemVault({ whitelistedTokens }: Props) {
           redeemableAmount={amountLocked}
         />
       )}
-      <RedeemVaultToasts
+      <RedeemQueueToasts
         onClose={() => setToastType(undefined)}
         toastType={toastType}
         toToken={toToken}

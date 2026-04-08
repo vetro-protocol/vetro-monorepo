@@ -13,13 +13,13 @@ import type { Token } from "types";
 import { formatCountdown } from "utils/countdown";
 import { formatAmount } from "utils/token";
 
-type VaultRow = {
+type RedeemQueueRow = {
   amountLocked: bigint;
   claimableAt: bigint;
 };
 
 type Props = {
-  data: VaultRow[];
+  data: RedeemQueueRow[];
   loading: boolean;
   onCancelRedeem: () => void;
   onRedeem: () => void;
@@ -34,11 +34,11 @@ function StatusCell({ claimableAt }: { claimableAt: bigint }) {
 
   return isReady ? (
     <StatusBadge variant="ready">
-      {t("pages.swap.redeem-vault.ready-to-redeem")}
+      {t("pages.swap.redeem-queue.ready-to-redeem")}
     </StatusBadge>
   ) : (
     <StatusBadge variant="cooldown">
-      {t("pages.swap.redeem-vault.cooldown-in-progress")}
+      {t("pages.swap.redeem-queue.cooldown-in-progress")}
     </StatusBadge>
   );
 }
@@ -64,20 +64,20 @@ function ActionsCell({
         size="xSmall"
         variant="primary"
       >
-        {t("pages.swap.redeem-vault.redeem")}
+        {t("pages.swap.redeem-queue.redeem")}
         {!isReady && (
           <span className="w-22.5 *:w-full">
             <Badge variant="blue">
-              {t("pages.swap.redeem-vault.ready-on", {
+              {t("pages.swap.redeem-queue.ready-on", {
                 time: formatCountdown(remainingSeconds),
               })}
             </Badge>
           </span>
         )}
       </Button>
-      <Tooltip content={t("pages.swap.redeem-vault.cancel-redeem")}>
+      <Tooltip content={t("pages.swap.redeem-queue.cancel-redeem")}>
         <ButtonIcon
-          aria-label={t("pages.swap.redeem-vault.cancel-redeem")}
+          aria-label={t("pages.swap.redeem-queue.cancel-redeem")}
           onClick={onCancelRedeem}
           variant="secondary"
         >
@@ -99,7 +99,7 @@ function ActionsCell({
   );
 }
 
-export function VaultTable({
+export function RedeemQueueTable({
   data,
   loading,
   onCancelRedeem,
@@ -110,7 +110,7 @@ export function VaultTable({
   const { t } = useTranslation();
 
   const columns = useMemo(
-    (): ColumnDef<VaultRow>[] => [
+    (): ColumnDef<RedeemQueueRow>[] => [
       {
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
@@ -126,7 +126,7 @@ export function VaultTable({
           </div>
         ),
         header: () => (
-          <Header text={t("pages.swap.redeem-vault.redeemable-balance")} />
+          <Header text={t("pages.swap.redeem-queue.redeemable-balance")} />
         ),
         id: "redeemable-balance",
         meta: { width: "200px" },
@@ -135,7 +135,7 @@ export function VaultTable({
         cell: ({ row }) => (
           <StatusCell claimableAt={row.original.claimableAt} />
         ),
-        header: () => <Header text={t("pages.swap.redeem-vault.status")} />,
+        header: () => <Header text={t("pages.swap.redeem-queue.status")} />,
         id: "status",
         meta: { width: "200px" },
       },
@@ -147,7 +147,7 @@ export function VaultTable({
             onRedeem={onRedeem}
           />
         ),
-        header: () => <Header text={t("pages.swap.redeem-vault.action")} />,
+        header: () => <Header text={t("pages.swap.redeem-queue.action")} />,
         id: "action",
         meta: { className: "justify-end", width: "250px" },
       },
