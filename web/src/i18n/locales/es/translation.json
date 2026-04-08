@@ -289,7 +289,7 @@
       "activity": {
         "cancel-redeem-text": "{{amount}} {{symbol}} devuelto a la billetera",
         "claim-redeem-text": "{{fromAmount}} {{fromSymbol}} canjeado por {{toAmount}} {{toSymbol}}",
-        "request-redeem-text": "{{amount}} {{symbol}} enviado al vault de canje",
+        "request-redeem-text": "{{amount}} {{symbol}} enviado a la cola de canje",
         "swap-text": "{{fromAmount}} {{fromSymbol}} a {{toAmount}} {{toSymbol}}"
       },
       "fees": {
@@ -308,13 +308,13 @@
         "insufficient-liquidity": "Liquidez insuficiente",
         "insufficient-treasury": "Saldo insuficiente en la tesorería",
         "preview-error": "No se pudo calcular el monto a recibir",
+        "queue-info_one": "{{vusd}} ingresará a una cola con un período de espera de {{seconds}} segundos. Una vez completado, podrá canjearlo por {{firstSymbol}}.",
+        "queue-info_other": "{{vusd}} ingresará a una cola con un período de espera de {{seconds}} segundos. Una vez completado, podrá canjearlo por {{allButLast}}, o {{lastSymbol}}.",
         "redeem": "Canjear",
         "redeemable-for_one": "Intercambiable por {{firstSymbol}}",
         "redeemable-for_other": "Intercambiable por {{allButLast}} y {{lastSymbol}}",
-        "send-to-vault": "Enviar a la bóveda",
+        "send-to-queue": "Enviar a la cola",
         "swap": "Intercambiar",
-        "vault-info_one": "{{vusd}} ingresará a una bóveda con un período de espera de {{seconds}} segundos. Una vez completado, podrá canjearlo por {{firstSymbol}}.",
-        "vault-info_other": "{{vusd}} ingresará a una bóveda con un período de espera de {{seconds}} segundos. Una vez completado, podrá canjearlo por {{allButLast}}, o {{lastSymbol}}.",
         "you-are-swapping": "Vas a intercambiar",
         "you-will-receive": "Vas a recibir",
         "you-will-receive-approximately": "Vas a recibir (aproximadamente)"
@@ -328,13 +328,13 @@
         "swap-progress": "Progreso del intercambio",
         "title": "Intercambio en progreso"
       },
-      "redeem-vault": {
+      "redeem-queue": {
         "action": "Acción",
         "available-to-redeem": "Disponible para canjear",
         "cancel-redeem": "Cancelar canje",
         "cancel-redeem-btn-cancel": "Cancelar canje",
         "cancel-redeem-btn-cancelling": "Cancelando...",
-        "cancel-redeem-description": "Al cancelar este canje, sus {{symbol}} volverán a su saldo disponible y se eliminarán de la bóveda. Puede volver a depositar {{symbol}} en cualquier momento para canjear por stablecoins.",
+        "cancel-redeem-description": "Al cancelar este canje, sus {{symbol}} volverán a su saldo disponible y se eliminarán de la cola. Puede volver a depositar {{symbol}} en cualquier momento para canjear por stablecoins.",
         "cancel-redeem-toast-description": "Sus {{symbol}} han sido devueltos a su saldo disponible.",
         "cancel-redeem-toast-title": "Canje cancelado",
         "cooldown-in-progress": "Período de espera en curso",
@@ -343,7 +343,7 @@
         "empty-step-1-title": "Comience con {{symbol}}",
         "empty-step-2-description_one": "Su {{symbol}} se deposita aquí y comienza un período de espera de seguridad de {{seconds}} segundo.",
         "empty-step-2-description_other": "Su {{symbol}} se deposita aquí y comienza un período de espera de seguridad de {{seconds}} segundos.",
-        "empty-step-2-title": "{{symbol}} va a la bóveda de canje",
+        "empty-step-2-title": "{{symbol}} va a la cola de canje",
         "empty-step-3-description_one": "Cuando termine el período de espera, canjee a {{firstSymbol}}.",
         "empty-step-3-description_other": "Cuando termine el período de espera, elija {{allButLast}} o {{lastSymbol}} para canjear.",
         "empty-step-3-title": "Canjear a una stablecoin",
@@ -357,14 +357,14 @@
         "redeemable-balance": "Saldo canjeable",
         "status": "Estado",
         "swap-confirmed-description": "Su {{symbol}} ahora está disponible en su billetera",
-        "title": "Bóveda"
+        "title": "Cola de Canje"
       },
       "select-option": "Seleccione el token a intercambiar",
       "title": "Intercambie stablecoins por VUSD y viceversa",
       "toast": {
         "deposit-description": "VUSD disponible en su billetera",
         "deposit-title": "Depósito confirmado",
-        "deposited-to-vault": "{{symbol}} depositado en la bóveda",
+        "deposited-to-queue": "{{symbol}} depositado en la cola",
         "your-cooldown-period-has-started_one": "Su período de espera de {{seconds}} segundo ha comenzado.",
         "your-cooldown-period-has-started_other": "Su período de espera de {{seconds}} segundos ha comenzado."
       },
@@ -373,11 +373,11 @@
         "breadcrumb": "Tutoriales Vetro · Intercambios",
         "learn-button": "Aprenda cómo canjear {{symbol}} a stables",
         "step-1-badge": "Paso 1",
-        "step-1-paragraph-1": "Ingrese la cantidad de {{symbol}} que desea intercambiar de vuelta a stables y haga clic en “<strong>Enviar a la bóveda.</strong>”",
-        "step-1-paragraph-2_one": "Su {{symbol}} se depositará en la bóveda, donde ingresa a un breve período de espera de seguridad de {{seconds}} segundo antes de que sea canjeable.",
-        "step-1-paragraph-2_other": "Su {{symbol}} se depositará en la bóveda, donde ingresa a un breve período de espera de seguridad de {{seconds}} segundos antes de que sea canjeable.",
+        "step-1-paragraph-1": "Ingrese la cantidad de {{symbol}} que desea intercambiar de vuelta a stables y haga clic en “<strong>Enviar a la cola.</strong>”",
+        "step-1-paragraph-2_one": "Su {{symbol}} se depositará en la cola, donde ingresa a un breve período de espera de seguridad de {{seconds}} segundo antes de que sea canjeable.",
+        "step-1-paragraph-2_other": "Su {{symbol}} se depositará en la cola, donde ingresa a un breve período de espera de seguridad de {{seconds}} segundos antes de que sea canjeable.",
         "step-2-badge": "Paso 2",
-        "step-2-paragraph-1": "Una vez que termine el período de espera, <strong>su saldo aparecerá como listo para canjear en la tabla de la Bóveda.</strong>",
+        "step-2-paragraph-1": "Una vez que termine el período de espera, <strong>su saldo aparecerá como listo para canjear en la tabla de la Cola de Canje.</strong>",
         "step-2-paragraph-2_one": "Haga clic en Canjear y elija el monto que desea recibir.",
         "step-2-paragraph-2_other": "Haga clic en Canjear, elija el monto y seleccione la stablecoin ({{allButLast}} o {{lastSymbol}}) que desea recibir.",
         "title": "Cómo canjear VUSD a stables"

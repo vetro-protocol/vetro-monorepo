@@ -9,7 +9,7 @@ type Props = {
   vusd: Token;
 };
 
-export function RedeemVaultToasts({
+export function RedeemQueueToasts({
   onClose,
   toastType,
   toToken,
@@ -22,11 +22,11 @@ export function RedeemVaultToasts({
       <Toast
         closable
         description={t(
-          "pages.swap.redeem-vault.cancel-redeem-toast-description",
+          "pages.swap.redeem-queue.cancel-redeem-toast-description",
           { symbol: vusd.symbol },
         )}
         onClose={onClose}
-        title={t("pages.swap.redeem-vault.cancel-redeem-toast-title")}
+        title={t("pages.swap.redeem-queue.cancel-redeem-toast-title")}
       />
     );
   }
@@ -35,11 +35,11 @@ export function RedeemVaultToasts({
     return (
       <Toast
         closable
-        description={t("pages.swap.redeem-vault.swap-confirmed-description", {
+        description={t("pages.swap.redeem-queue.swap-confirmed-description", {
           symbol: toToken.symbol,
         })}
         onClose={onClose}
-        title={t("pages.swap.redeem-vault.redeem-confirmed")}
+        title={t("pages.swap.redeem-queue.redeem-confirmed")}
       />
     );
   }

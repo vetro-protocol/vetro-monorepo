@@ -74,7 +74,7 @@ type Props = {
   whitelistedTokens: Token[];
 };
 
-export function RedeemVaultEmptyState({ whitelistedTokens }: Props) {
+export function RedeemQueueEmptyState({ whitelistedTokens }: Props) {
   const { t } = useTranslation();
   const { data: vusd } = useVusd();
   const { symbol } = vusd;
@@ -84,28 +84,28 @@ export function RedeemVaultEmptyState({ whitelistedTokens }: Props) {
 
   const steps = [
     {
-      description: t("pages.swap.redeem-vault.empty-step-1-description", {
+      description: t("pages.swap.redeem-queue.empty-step-1-description", {
         symbol,
       }),
       icon: <StartWithVusdIcon />,
-      title: t("pages.swap.redeem-vault.empty-step-1-title", { symbol }),
+      title: t("pages.swap.redeem-queue.empty-step-1-title", { symbol }),
     },
     {
-      description: t("pages.swap.redeem-vault.empty-step-2-description", {
+      description: t("pages.swap.redeem-queue.empty-step-2-description", {
         count: seconds,
         seconds,
         symbol,
       }),
       icon: <CooldownIcon />,
-      title: t("pages.swap.redeem-vault.empty-step-2-title", { symbol }),
+      title: t("pages.swap.redeem-queue.empty-step-2-title", { symbol }),
     },
     {
       description: t(
-        "pages.swap.redeem-vault.empty-step-3-description",
+        "pages.swap.redeem-queue.empty-step-3-description",
         getTokenListParams(whitelistedTokens),
       ),
       icon: <RedeemIcon />,
-      title: t("pages.swap.redeem-vault.empty-step-3-title"),
+      title: t("pages.swap.redeem-queue.empty-step-3-title"),
     },
   ];
 

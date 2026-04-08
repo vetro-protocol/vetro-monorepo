@@ -2,21 +2,21 @@ import { StripedDivider } from "components/stripedDivider";
 import { useScrollToHash } from "hooks/useScrollToHash";
 import type { Token } from "types";
 
-import { RedeemVault } from "./redeemVault";
+import { RedeemQueue } from "./redeemQueue";
 
 type Props = {
   whitelistedTokens: Token[];
 };
-export const RedeemVaultSection = function ({ whitelistedTokens }: Props) {
-  const ref = useScrollToHash("redeem-vault");
+export const RedeemQueueSection = function ({ whitelistedTokens }: Props) {
+  const ref = useScrollToHash("redeem-queue");
 
   return (
     <>
       <div className="w-full border-y border-gray-200 bg-gray-100">
         <StripedDivider />
       </div>
-      <div className="w-full" id="redeem-vault" ref={ref}>
-        <RedeemVault whitelistedTokens={whitelistedTokens} />
+      <div className="w-full" id="redeem-queue" ref={ref}>
+        <RedeemQueue whitelistedTokens={whitelistedTokens} />
       </div>
     </>
   );
