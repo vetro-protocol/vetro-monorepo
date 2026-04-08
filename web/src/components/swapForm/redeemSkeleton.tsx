@@ -28,7 +28,9 @@ export function RedeemSkeleton({ fromToken }: Props) {
                 <Balance label={t("pages.swap.form.balance")} value="-" />
               }
               disabled
-              fiatValue={<Skeleton className="ml-2" height={14} width={32} />}
+              fiatValue={
+                <Skeleton className="h-full" containerClassName="w-8" />
+              }
               label={t("pages.swap.form.you-are-swapping")}
               tokenSelector={<TokenSelectorReadOnly {...fromToken} />}
               value="0"
@@ -45,7 +47,9 @@ export function RedeemSkeleton({ fromToken }: Props) {
                 <Balance label={t("pages.swap.form.balance")} value="-" />
               }
               disabled
-              fiatValue={<Skeleton className="ml-2" height={14} width={32} />}
+              fiatValue={
+                <Skeleton className="h-full" containerClassName="w-8" />
+              }
               label={t("pages.swap.form.you-will-receive")}
               tokenSelector={<TokenSelectorSkeleton />}
               value="0"
