@@ -6,7 +6,7 @@ import { useReducer } from "react";
 import type { Token } from "types";
 import { parseTokenUnits } from "utils/token";
 
-import { Deposit } from "./deposit";
+import { Mint } from "./mint";
 import { Redeem } from "./redeem";
 import { swapFormReducer } from "./swapFormReducer";
 import { SwapFormSkeleton } from "./swapFormSkeleton";
@@ -72,7 +72,7 @@ function SwapFormContent({
   };
 
   return mode === "deposit" ? (
-    <Deposit
+    <Mint
       {...childProps}
       {...state}
       onTokenChange={(token) =>

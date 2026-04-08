@@ -50,7 +50,7 @@ type Props = {
   whitelistedTokens: Token[];
 };
 
-export function Deposit({
+export function Mint({
   amountBigInt,
   approve10x,
   approveAmount,
