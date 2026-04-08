@@ -21,12 +21,16 @@ import {
 import { formatFiatNumber, formatPercentage } from "utils/format";
 import { getTokenPrice } from "utils/token";
 import { type Hash, formatUnits } from "viem";
+import { useAccount } from "wagmi";
 
 import { HealthFactor, HealthFactorBar } from "./healthFactor";
 import { LiquidationPriceCell } from "./liquidationPriceCell";
 import { LiquidationWarning } from "./liquidationWarning";
 import { ManageButton } from "./manageButton";
-import { PositionsEmptyState } from "./positionsEmptyState";
+import {
+  PositionsDisconnectedState,
+  PositionsEmptyState,
+} from "./positionsEmptyState";
 import { TokenValueCell } from "./tokenValueCell";
 
 const BorrowMoreDrawerForm = lazy(() =>
@@ -60,6 +64,7 @@ type Props = {
 };
 
 export function PositionsTable({ marketIds }: Props) {
+  const { address } = useAccount();
   const ref = useScrollToHash("borrow-positions");
   const { t } = useTranslation();
   const { data: marketsData, isLoading: isMarketsLoading } =
@@ -247,7 +252,9 @@ export function PositionsTable({ marketIds }: Props) {
         columns={columns}
         data={data}
         loading={isMarketsLoading || isPositionsLoading}
-        placeholder={<PositionsEmptyState />}
+        placeholder={
+          address ? <PositionsEmptyState /> : <PositionsDisconnectedState />
+        }
         renderAfterRow={renderAfterRow}
       />
       {activeMarket && (
