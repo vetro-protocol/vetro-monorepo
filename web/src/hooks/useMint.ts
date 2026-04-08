@@ -11,14 +11,11 @@ import { useAccount } from "wagmi";
 
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { useMainnet } from "./useMainnet";
-import {
-  previewDepositQueryKey,
-  previewDepositTokenOptions,
-} from "./usePreviewDeposit";
+import { previewMintQueryKey, previewMintTokenOptions } from "./usePreviewMint";
 import { treasuryReservesQueryKey } from "./useTreasuryReserves";
 import { useVusd } from "./useVusd";
 
-export const useDeposit = function ({
+export const useMint = function ({
   amountIn,
   approveAmount,
   onEmitter,
@@ -70,7 +67,7 @@ export const useDeposit = function ({
       await ensureConnectedTo(ethereumChain.id);
 
       const minPeggedTokenOut = await queryClient.ensureQueryData(
-        previewDepositTokenOptions({
+        previewMintTokenOptions({
           amountIn,
           chainId: ethereumChain.id,
           client: walletClient!,
@@ -150,7 +147,7 @@ export const useDeposit = function ({
       // Let's clear this query, as once the user inputs an amount
       // again, it has to be recalculated
       queryClient.removeQueries({
-        queryKey: previewDepositQueryKey({
+        queryKey: previewMintQueryKey({
           amountIn,
           chainId: ethereumChain.id,
           gatewayAddress,

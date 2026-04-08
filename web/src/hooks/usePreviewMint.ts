@@ -6,7 +6,7 @@ import type { Address, Chain, Client } from "viem";
 import { useEthereumClient } from "./useEthereumClient";
 import { useMainnet } from "./useMainnet";
 
-export const previewDepositQueryKey = ({
+export const previewMintQueryKey = ({
   amountIn,
   chainId,
   gatewayAddress,
@@ -16,15 +16,9 @@ export const previewDepositQueryKey = ({
   chainId: Chain["id"];
   gatewayAddress: Address;
   tokenIn: Address;
-}) => [
-  "preview-deposit",
-  chainId,
-  gatewayAddress,
-  tokenIn,
-  amountIn.toString(),
-];
+}) => ["preview-mint", chainId, gatewayAddress, tokenIn, amountIn.toString()];
 
-export const previewDepositTokenOptions = ({
+export const previewMintTokenOptions = ({
   amountIn,
   chainId,
   client,
@@ -47,7 +41,7 @@ export const previewDepositTokenOptions = ({
             tokenIn,
           })
         : 0n,
-    queryKey: previewDepositQueryKey({
+    queryKey: previewMintQueryKey({
       amountIn,
       chainId,
       gatewayAddress,
@@ -55,7 +49,7 @@ export const previewDepositTokenOptions = ({
     }),
   });
 
-export const usePreviewDeposit = function ({
+export const usePreviewMint = function ({
   amountIn,
   tokenIn,
 }: {
@@ -67,7 +61,7 @@ export const usePreviewDeposit = function ({
   const gatewayAddress = getGatewayAddress(ethereumChain.id);
 
   return useQuery(
-    previewDepositTokenOptions({
+    previewMintTokenOptions({
       amountIn,
       chainId: ethereumChain.id,
       client: client!,

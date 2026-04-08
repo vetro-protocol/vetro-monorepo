@@ -16,7 +16,7 @@ const SwapProgressDrawer = lazy(() =>
   })),
 );
 
-export type DepositFlowStatus =
+export type MintFlowStatus =
   | "approve-error"
   | "approved"
   | "approving"
@@ -27,7 +27,7 @@ export type DepositFlowStatus =
   | "idle";
 
 const approveStepStatuses: Record<
-  Exclude<DepositFlowStatus, "idle">,
+  Exclude<MintFlowStatus, "idle">,
   Step["status"]
 > = {
   "approve-error": stepStatus.failed,
@@ -40,7 +40,7 @@ const approveStepStatuses: Record<
 };
 
 const confirmStepStatuses: Record<
-  Exclude<DepositFlowStatus, "idle">,
+  Exclude<MintFlowStatus, "idle">,
   Step["status"]
 > = {
   "approve-error": stepStatus.notReady,
@@ -53,7 +53,7 @@ const confirmStepStatuses: Record<
 };
 
 type Props = {
-  flowStatus: Exclude<DepositFlowStatus, "idle">;
+  flowStatus: Exclude<MintFlowStatus, "idle">;
   fromAmount: string;
   fromToken: Token;
   onClose: VoidFunction;
@@ -68,7 +68,7 @@ type Props = {
   "networkFee" | "protocolFee" | "totalFees"
 >;
 
-export function SwapDepositDrawer({
+export function SwapMintDrawer({
   flowStatus,
   fromAmount,
   fromToken,

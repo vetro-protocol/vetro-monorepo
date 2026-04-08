@@ -12,10 +12,10 @@ import { TokenDropdown } from "components/tokenDropdown";
 import { TokenInput } from "components/tokenInput";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useActivityTracking } from "hooks/useActivityTracking";
-import { useDeposit } from "hooks/useDeposit";
 import { useMainnet } from "hooks/useMainnet";
+import { useMint } from "hooks/useMint";
 import { useMintFee } from "hooks/useMintFee";
-import { usePreviewDeposit } from "hooks/usePreviewDeposit";
+import { usePreviewMint } from "hooks/usePreviewMint";
 import { useSwapMintFees } from "hooks/useSwapMintFees";
 import { useTotalMintFees } from "hooks/useTotalMintFees";
 import { type FormEvent, useCallback, useState } from "react";
@@ -29,8 +29,8 @@ import { Form } from "./form";
 import { OutputLabel } from "./outputLabel";
 import { RedeemVaultSection } from "./redeemVaultSection";
 import { SubmitButton } from "./submitButton";
-import { type DepositFlowStatus, SwapDepositDrawer } from "./swapDepositDrawer";
 import { SwapFees } from "./swapFees";
+import { type MintFlowStatus, SwapMintDrawer } from "./swapMintDrawer";
 import { ToTokenBalance } from "./toTokenBalance";
 import { TreasuryReserves } from "./treasuryReserves";
 import { getSwapErrors } from "./validation";
@@ -68,7 +68,7 @@ export function Mint({
   const { t } = useTranslation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const handleDrawerClose = useCallback(() => setIsDrawerOpen(false), []);
-  const [flowStatus, setFlowStatus] = useState<DepositFlowStatus>("idle");
+  const [flowStatus, setFlowStatus] = useState<MintFlowStatus>("idle");
   const [showToast, setShowToast] = useState(false);
   // Captures whether approval was needed when the flow started, because
   // useNeedsApproval flips to false after a successful approval tx.
@@ -87,21 +87,20 @@ export function Mint({
     token: fromToken,
   });
 
-  const { data: depositPreview, isError: isDepositPreviewError } =
-    usePreviewDeposit({
-      amountIn: amountBigInt,
-      tokenIn: fromToken.address,
-    });
+  const { data: mintPreview, isError: isMintPreviewError } = usePreviewMint({
+    amountIn: amountBigInt,
+    tokenIn: fromToken.address,
+  });
 
-  const unitDepositPreview = usePreviewDeposit({
+  const unitMintPreview = usePreviewMint({
     amountIn: parseUnits("1", fromToken.decimals),
     tokenIn: fromToken.address,
   });
 
   const outputValue = formatAmount({
-    amount: depositPreview,
+    amount: mintPreview,
     decimals: toToken.decimals,
-    isError: isDepositPreviewError,
+    isError: isMintPreviewError,
   });
 
   const { onCompleted, onFailed, onPending, onTransactionHash } =
@@ -116,7 +115,7 @@ export function Mint({
       title: t("nav.swap"),
     });
 
-  const depositMutation = useDeposit({
+  const mintMutation = useMint({
     amountIn: amountBigInt,
     approveAmount,
     onEmitter(emitter) {
@@ -174,7 +173,7 @@ export function Mint({
     amount: amountBigInt,
     approveAmount,
     fromToken,
-    minPeggedTokenOut: depositPreview,
+    minPeggedTokenOut: mintPreview,
   });
 
   // This is measured in {token} units - paid to the Vetro contracts
@@ -187,7 +186,7 @@ export function Mint({
     amount: amountBigInt,
     approveAmount,
     fromToken,
-    minPeggedTokenOut: depositPreview,
+    minPeggedTokenOut: mintPreview,
   });
 
   const balancesLoaded =
@@ -195,7 +194,7 @@ export function Mint({
 
   const handleRetry = function () {
     setFlowStatus(startedWithApproval ? "approving" : "deposit-ready");
-    depositMutation.mutate();
+    mintMutation.mutate();
   };
 
   function handleSubmit(e: FormEvent) {
@@ -203,7 +202,7 @@ export function Mint({
     if (!inputError) {
       setStartedWithApproval(!!needsApproval);
       setFlowStatus(needsApproval ? "approving" : "deposit-ready");
-      depositMutation.mutate();
+      mintMutation.mutate();
       setIsDrawerOpen(true);
     }
   }
@@ -238,9 +237,7 @@ export function Mint({
           <TokenInput
             balance={<ToTokenBalance token={toToken} />}
             disabled
-            fiatValue={
-              <RenderFiatValue token={toToken} value={depositPreview} />
-            }
+            fiatValue={<RenderFiatValue token={toToken} value={mintPreview} />}
             label={t("pages.swap.form.you-will-receive")}
             tokenSelector={<TokenSelectorReadOnly {...toToken} />}
             value={outputValue}
@@ -250,8 +247,8 @@ export function Mint({
         <SubmitButton
           actionText={t("pages.swap.form.swap")}
           inputError={inputError}
-          isPreviewError={isDepositPreviewError}
-          previewValue={depositPreview}
+          isPreviewError={isMintPreviewError}
+          previewValue={mintPreview}
           token={fromToken}
         />
       </Form>
@@ -270,7 +267,7 @@ export function Mint({
               fromToken={fromToken}
               oracleToken={fromToken.address}
               toToken={toToken}
-              unitPreview={unitDepositPreview}
+              unitPreview={unitMintPreview}
             />
           }
           protocolFee={protocolFeeQueryData}
@@ -280,7 +277,7 @@ export function Mint({
       </FormSection>
       <RedeemVaultSection whitelistedTokens={whitelistedTokens} />
       {isDrawerOpen && flowStatus !== "idle" && (
-        <SwapDepositDrawer
+        <SwapMintDrawer
           flowStatus={flowStatus}
           fromAmount={fromInputValue}
           fromToken={fromToken}
@@ -293,7 +290,7 @@ export function Mint({
           showApproveStep={startedWithApproval}
           toToken={toToken}
           totalFees={totalMintFeesQueryData}
-          unitPreview={unitDepositPreview}
+          unitPreview={unitMintPreview}
         />
       )}
       {showToast && (
