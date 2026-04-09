@@ -1,3 +1,4 @@
+import { useAddTokenToWallet } from "@hemilabs/react-hooks/useAddTokenToWallet";
 import { useAllowance } from "@hemilabs/react-hooks/useAllowance";
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
@@ -16,6 +17,7 @@ import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useMainnet } from "hooks/useMainnet";
 import { useStakeDeposit } from "hooks/useStakeDeposit";
+import { useSvusd } from "hooks/useSvusd";
 import { useVusd } from "hooks/useVusd";
 import { useTotalDepositFees } from "pages/earn/hooks/useTotalDepositFees";
 import { type FormEvent, useCallback } from "react";
@@ -166,7 +168,15 @@ export function StakeDepositForm({
   const chain = useMainnet();
   const { openConnectModal } = useConnectModal();
   const { t } = useTranslation();
+  const { data: svusd } = useSvusd();
   const { data: vusd } = useVusd();
+  const { mutate: watchToken } = useAddTokenToWallet({
+    token: {
+      address: svusd!.address,
+      chainId: chain.id,
+      extensions: { logoURI: svusd!.logoURI },
+    },
+  });
   const stakingVaultAddress = getStakingVaultAddress(chain.id);
 
   const { data: vusdBalance, isError: isVusdBalanceError } = useTokenBalance({
@@ -219,8 +229,9 @@ export function StakeDepositForm({
         description: t("pages.earn.stake.deposit-toast-description"),
         title: t("pages.earn.stake.deposit-toast-title"),
       });
+      watchToken();
     },
-    [onSuccess, t],
+    [onSuccess, t, watchToken],
   );
 
   const depositMutation = useStakeDeposit({

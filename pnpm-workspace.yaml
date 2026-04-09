@@ -12,6 +12,9 @@ packages:
   - "subgraph"
   - "web"
 
+patchedDependencies:
+  "@hemilabs/wallet-watch-asset@1.0.2": "patches/@hemilabs__wallet-watch-asset@1.0.2.patch"
+
 # https://github.com/microsoft/vscode-eslint/issues/1986#issuecomment-2799868163
 publicHoistPattern:
   - "*eslint*"

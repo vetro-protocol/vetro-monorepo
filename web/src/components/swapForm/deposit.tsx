@@ -1,3 +1,4 @@
+import { useAddTokenToWallet } from "@hemilabs/react-hooks/useAddTokenToWallet";
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { useNeedsApproval } from "@hemilabs/react-hooks/useNeedsApproval";
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
@@ -65,6 +66,13 @@ export function Deposit({
   whitelistedTokens,
 }: Props) {
   const ethereumChain = useMainnet();
+  const { mutate: watchToken } = useAddTokenToWallet({
+    token: {
+      address: toToken.address,
+      chainId: toToken.chainId,
+      extensions: { logoURI: toToken.logoURI },
+    },
+  });
   const { t } = useTranslation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const handleDrawerClose = useCallback(() => setIsDrawerOpen(false), []);
@@ -144,6 +152,7 @@ export function Deposit({
         onCompleted();
         setFlowStatus("deposited");
         setShowToast(true);
+        watchToken();
       });
       emitter.on("deposit-transaction-reverted", function () {
         onFailed();
