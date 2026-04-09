@@ -7,6 +7,7 @@ import { usePositionReview } from "./usePositionReview";
 type Params = {
   borrowApy: number;
   collateralToken: Token;
+  frozen?: boolean;
   loanToken: Token;
   position: AccrualPosition | undefined;
   repayInput: string;
@@ -15,6 +16,7 @@ type Params = {
 export const useRepayReview = ({
   borrowApy,
   collateralToken,
+  frozen,
   loanToken,
   position,
   repayInput,
@@ -22,6 +24,7 @@ export const useRepayReview = ({
   usePositionReview({
     borrowApy,
     collateralToken,
+    frozen,
     getUpdatedPosition(pos, amount) {
       const updatedBorrowAssets =
         pos.market.toBorrowAssets(pos.borrowShares) - amount;
