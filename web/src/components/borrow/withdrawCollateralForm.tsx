@@ -260,6 +260,7 @@ export function WithdrawCollateralForm({ market, onClose }: Props) {
     borrowApy: market.borrowApy,
     collateralInput,
     collateralToken,
+    frozen: isActive,
     loanToken,
     position: positionInfo,
   });

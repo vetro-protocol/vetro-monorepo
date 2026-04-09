@@ -1,4 +1,5 @@
 import type { AccrualPosition, Market } from "@morpho-org/blue-sdk";
+import { useRef } from "react";
 import type { Token } from "types";
 import {
   calculateDailyInterestCost,
@@ -70,6 +71,7 @@ const buildMetrics = function ({
 type Params = {
   borrowApy: number;
   collateralToken: Token;
+  frozen?: boolean;
   getUpdatedPosition: (position: AccrualPosition, amount: bigint) => Position;
   input: string;
   inputToken: Token;
@@ -80,6 +82,7 @@ type Params = {
 export const usePositionReview = function ({
   borrowApy,
   collateralToken,
+  frozen = false,
   getUpdatedPosition,
   input,
   inputToken,
@@ -87,9 +90,18 @@ export const usePositionReview = function ({
   position,
 }: Params): { current: PositionMetrics; updated: PositionMetrics | null } {
   const { data: prices } = usePrices();
+  const resultRef = useRef<{
+    current: PositionMetrics;
+    updated: PositionMetrics | null;
+  }>({ current: nullMetrics, updated: null });
+
+  if (frozen) {
+    return resultRef.current;
+  }
 
   if (!position) {
-    return { current: nullMetrics, updated: null };
+    resultRef.current = { current: nullMetrics, updated: null };
+    return resultRef.current;
   }
 
   const loanUsdPrice = prices
@@ -114,7 +126,8 @@ export const usePositionReview = function ({
 
   const parsedInput = parseFloat(input);
   if (!parsedInput || isNaN(parsedInput)) {
-    return { current, updated: null };
+    resultRef.current = { current, updated: null };
+    return resultRef.current;
   }
 
   const amount = parseTokenUnits(input, inputToken);
@@ -125,5 +138,6 @@ export const usePositionReview = function ({
     position: updatedPosition,
   });
 
-  return { current, updated };
+  resultRef.current = { current, updated };
+  return resultRef.current;
 };

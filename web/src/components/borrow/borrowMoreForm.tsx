@@ -303,6 +303,7 @@ export function BorrowMoreForm({ market, onClose }: Props) {
     borrowApy: market.borrowApy,
     borrowInput,
     collateralToken,
+    frozen: isActive,
     loanToken,
     position: positionInfo,
   });

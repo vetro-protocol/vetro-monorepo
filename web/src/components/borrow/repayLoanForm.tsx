@@ -328,6 +328,7 @@ export function RepayLoanForm({ market, onClose }: Props) {
   const { current, updated } = useRepayReview({
     borrowApy: market.borrowApy,
     collateralToken,
+    frozen: isActive,
     loanToken,
     position: positionInfo,
     repayInput,
