@@ -113,7 +113,7 @@ export function ClaimRedeemProgressDrawer({
           balance={<ToTokenBalance token={toToken} />}
           disabled
           fiatValue={<RenderFiatValue token={toToken} value={outputBigInt} />}
-          label={t("pages.swap.form.you-will-receive")}
+          label={t("pages.swap.form.you-will-receive-estimated")}
           tokenSelector={
             <TokenDropdown
               onChange={onTokenChange}

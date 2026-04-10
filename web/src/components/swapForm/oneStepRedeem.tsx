@@ -236,7 +236,7 @@ export function OneStepRedeem({
             fiatValue={
               <RenderFiatValue token={toToken} value={redeemPreview} />
             }
-            label={t("pages.swap.form.you-will-receive")}
+            label={t("pages.swap.form.you-will-receive-estimated")}
             tokenSelector={
               <TokenDropdown
                 onChange={onTokenChange}

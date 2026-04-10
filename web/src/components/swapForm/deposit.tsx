@@ -250,7 +250,7 @@ export function Deposit({
             fiatValue={
               <RenderFiatValue token={toToken} value={depositPreview} />
             }
-            label={t("pages.swap.form.you-will-receive")}
+            label={t("pages.swap.form.you-will-receive-estimated")}
             tokenSelector={<TokenSelectorReadOnly {...toToken} />}
             value={outputValue}
           />
