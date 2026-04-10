@@ -124,6 +124,7 @@ export function Dropdown<T>(props: DropdownProps<T>) {
     if (isMultiSelect(props)) {
       const selected = !isItemSelected(item);
       props.onChange(item, selected);
+      triggerRef.current?.focus();
     } else {
       props.onChange(item);
       setIsOpen(false);

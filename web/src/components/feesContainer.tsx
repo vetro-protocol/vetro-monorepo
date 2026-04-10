@@ -27,7 +27,7 @@ export function FeesContainer({
   totalFees,
 }: Props) {
   const [isOpen, setIsOpen] = useState(false);
-  const toggleOpen = () => setIsOpen(!isOpen);
+  const toggleOpen = () => setIsOpen((prev) => !prev);
 
   // the network fee is unavoidable. So if it's the only one, we can use the "gas" icon
   const icon = Children.toArray(children).length === 1 ? gasSvg : feesSvg;
