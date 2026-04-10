@@ -189,11 +189,11 @@ export function RedeemQueue({ whitelistedTokens }: Props) {
           onTokenChange={setToToken}
           oracleToken={toToken.address}
           outputBigInt={redeemPreview}
-          unitPreview={unitRedeemPreview}
           outputValue={outputValue}
           protocolFee={protocolFeeQueryData}
           toToken={toToken}
           totalFees={totalRedeemFeesQueryData}
+          unitPreview={unitRedeemPreview}
           whitelistedTokens={whitelistedTokens}
         />
       )}
@@ -206,8 +206,8 @@ export function RedeemQueue({ whitelistedTokens }: Props) {
       )}
       <RedeemQueueToasts
         onClose={() => setToastType(undefined)}
-        toastType={toastType}
         toToken={toToken}
+        toastType={toastType}
         vusd={vusd}
       />
     </>

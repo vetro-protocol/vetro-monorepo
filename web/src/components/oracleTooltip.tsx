@@ -79,7 +79,6 @@ export function OracleTooltip({
 
   return (
     <Tooltip
-      useParentContainer={useParentContainer}
       content={
         <ExternalLink
           className="group flex items-center gap-x-1 text-white"
@@ -94,6 +93,7 @@ export function OracleTooltip({
           <ExternalLinkIcon />
         </ExternalLink>
       }
+      useParentContainer={useParentContainer}
     >
       <InfoIcon />
     </Tooltip>

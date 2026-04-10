@@ -117,8 +117,8 @@ export function SwapRedeemDrawer({
           outputValue={outputValue}
           protocolFee={protocolFee}
           steps={steps}
-          totalFees={totalFees}
           toToken={toToken}
+          totalFees={totalFees}
           unitPreview={unitPreview}
         />
       </Suspense>

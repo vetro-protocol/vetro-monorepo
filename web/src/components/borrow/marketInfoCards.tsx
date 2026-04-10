@@ -97,10 +97,10 @@ export function MarketInfoCards({ market }: { market: MarketData }) {
           <InfoCard
             badge={
               <RenderCryptoValue
+                showSymbol
                 status={collateralStatus}
                 token={market.collateralToken}
                 value={collateralAssets}
-                showSymbol
               />
             }
             icon={<SparkleIcon />}
@@ -119,9 +119,9 @@ export function MarketInfoCards({ market }: { market: MarketData }) {
           <InfoCard
             badge={
               <RenderCryptoValue
+                showSymbol
                 token={market.loanToken}
                 value={market.liquidity}
-                showSymbol
               />
             }
             icon={<SparkleIcon />}

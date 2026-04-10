@@ -102,12 +102,12 @@ export function ClaimRedeemDrawer({
           onTokenChange={onTokenChange}
           oracleToken={oracleToken}
           outputBigInt={outputBigInt}
-          unitPreview={unitPreview}
           outputValue={outputValue}
           protocolFee={protocolFee}
           steps={steps}
           toToken={toToken}
           totalFees={totalFees}
+          unitPreview={unitPreview}
           whitelistedTokens={whitelistedTokens}
         />
       </Suspense>
