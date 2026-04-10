@@ -314,7 +314,7 @@
         "send-to-queue": "Send to queue",
         "swap": "Swap",
         "you-are-swapping": "You are swapping",
-        "you-will-receive-estimated": "You will receive (estimate)"
+        "you-will-receive-estimated": "You will receive (estimated)"
       },
       "progress": {
         "approve-description": "This allows the app to use this token for your swap.",
