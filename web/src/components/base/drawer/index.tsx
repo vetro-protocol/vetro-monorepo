@@ -18,7 +18,7 @@ export function Drawer({ children, onClose, requestClose }: Props) {
         handleClose();
       }
     },
-    [requestClose],
+    [handleClose, requestClose],
   );
 
   return createPortal(

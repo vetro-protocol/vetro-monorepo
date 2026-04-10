@@ -6,13 +6,15 @@ import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import type { Token } from "types";
 
-const tokenContainer =
-  (token: Token) =>
-  ({ children }: { children?: ReactNode }) => (
-    <span className="flex items-center gap-1">
-      <TokenLogo {...token} />
-      {children}
-    </span>
+const tokenContainer = (token: Token) =>
+  Object.assign(
+    ({ children }: { children?: ReactNode }) => (
+      <span className="flex items-center gap-1">
+        <TokenLogo {...token} />
+        {children}
+      </span>
+    ),
+    { displayName: "TokenContainer" },
   );
 
 export const TreasuryReserves = function () {

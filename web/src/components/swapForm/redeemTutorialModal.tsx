@@ -63,7 +63,13 @@ export function RedeemTutorialModal({ onClose, whitelistedTokens }: Props) {
         {/* Step 1 */}
         <StepSection
           badge={t("pages.swap.tutorial.step-1-badge")}
-          image={<img className="shadow-lg" src="/gatewayRedeem/step1.png" />}
+          image={
+            <img
+              alt={t("pages.swap.tutorial.step-1-image-alt")}
+              className="shadow-lg"
+              src="/gatewayRedeem/step1.png"
+            />
+          }
         >
           <p className="text-base font-semibold text-gray-500">
             <Trans
@@ -91,7 +97,12 @@ export function RedeemTutorialModal({ onClose, whitelistedTokens }: Props) {
         {/* Step 2 */}
         <StepSection
           badge={t("pages.swap.tutorial.step-2-badge")}
-          image={<img src="/gatewayRedeem/step2.png" />}
+          image={
+            <img
+              alt={t("pages.swap.tutorial.step-2-image-alt")}
+              src="/gatewayRedeem/step2.png"
+            />
+          }
         >
           <p className="text-base font-semibold text-gray-500">
             <Trans
