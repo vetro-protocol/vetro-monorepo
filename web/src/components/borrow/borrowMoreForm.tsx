@@ -149,6 +149,7 @@ function StepperOverlay({
           showStepper ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={isError ? onDismiss : undefined}
+        role="presentation"
       />
       <div
         className={`fixed right-0 bottom-0 z-30 w-full rounded-t-lg rounded-bl-lg bg-white shadow-md transition-transform duration-300 ease-out md:w-md ${

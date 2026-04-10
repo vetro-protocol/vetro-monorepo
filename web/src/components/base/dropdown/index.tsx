@@ -124,10 +124,18 @@ export function Dropdown<T>(props: DropdownProps<T>) {
     if (isMultiSelect(props)) {
       const selected = !isItemSelected(item);
       props.onChange(item, selected);
+      triggerRef.current?.focus();
     } else {
       props.onChange(item);
       setIsOpen(false);
       triggerRef.current?.focus();
+    }
+  }
+
+  function handleItemKeyDown(event: KeyboardEvent, item: T) {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      handleItemClick(item);
     }
   }
 
@@ -229,7 +237,9 @@ export function Dropdown<T>(props: DropdownProps<T>) {
                           className={`text-xsm flex cursor-pointer items-center rounded px-3 py-2 ${isFocused ? "bg-gray-100" : "hover:bg-gray-50"}`}
                           key={getItemKey(item)}
                           onClick={() => handleItemClick(item)}
+                          onKeyDown={(e) => handleItemKeyDown(e, item)}
                           role={itemRole}
+                          tabIndex={-1}
                         >
                           <div className="flex w-full items-center justify-between gap-2 font-medium text-gray-900">
                             {renderItem(item, isSelected)}
@@ -253,7 +263,9 @@ export function Dropdown<T>(props: DropdownProps<T>) {
                       className={`text-xsm group/item flex cursor-pointer items-center rounded px-3 py-2 ${isFocused ? "bg-gray-100" : "hover:bg-gray-50"}`}
                       key={getItemKey(item)}
                       onClick={() => handleItemClick(item)}
+                      onKeyDown={(e) => handleItemKeyDown(e, item)}
                       role={itemRole}
+                      tabIndex={-1}
                     >
                       <div className="flex w-full items-center justify-between gap-2 font-medium text-gray-900">
                         {renderItem(item, isSelected)}
