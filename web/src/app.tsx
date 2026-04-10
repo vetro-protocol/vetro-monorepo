@@ -95,13 +95,13 @@ export const App = () => (
       <AppViewport>
         <Routes>
           {/* Redirect root to English */}
-          <Route element={<Navigate to="/en" replace />} path="/" />
+          <Route element={<Navigate replace to="/en" />} path="/" />
 
           {/* Language-prefixed routes */}
           <Route element={<LanguageRoutes />} path="/:lang/*" />
 
           {/* Catch-all: redirect unknown paths to English */}
-          <Route element={<Navigate to="/en" replace />} path="*" />
+          <Route element={<Navigate replace to="/en" />} path="*" />
         </Routes>
       </AppViewport>
     </NuqsAdapter>

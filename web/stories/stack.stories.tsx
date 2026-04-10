@@ -76,9 +76,9 @@ function MixedContentStackDemo() {
           <div className="mx-auto *:w-2xs *:border-2 *:border-rose-500">
             <Button
               size="xLarge"
+              style={{ justifyItems: "flex-start" }}
               type="button"
               variant="danger"
-              style={{ justifyItems: "flex-start" }}
             >
               <Badge variant="red">{label}</Badge>
               Position at risk

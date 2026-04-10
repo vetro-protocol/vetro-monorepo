@@ -63,8 +63,8 @@ export function StakeDrawerContent({ mode, onModeChange, onSuccess }: Props) {
 
       {mode === "deposit" ? (
         <StakeDepositForm
-          approve10x={state.approve10x}
           approvalCompleted={state.approvalCompleted}
+          approve10x={state.approve10x}
           depositStep={state.depositStep}
           inputValue={state.inputValue}
           onApprove10xToggle={handleToggleApprove10x}

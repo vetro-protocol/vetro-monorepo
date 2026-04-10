@@ -278,9 +278,9 @@ export function TwoStepRedeem({
           networkFee={networkFee}
           onClose={handleDrawerClose}
           onRetry={handleRetry}
-          totalFees={totalFeesQueryData}
           showApproveStep={startedWithApproval}
           subtitle={redeemableForText}
+          totalFees={totalFeesQueryData}
         />
       )}
       {showToast && (
