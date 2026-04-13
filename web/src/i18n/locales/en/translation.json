@@ -2,7 +2,6 @@
   "common": {
     "approve-10x": "Approve 10x",
     "approve-10x-tooltip": "Approves up to 10× your transaction amount, reducing future approval steps. You can revoke it anytime.",
-    "go-back": "Go back",
     "network-fee": "Network Fee",
     "oracle": "Oracle"
   },

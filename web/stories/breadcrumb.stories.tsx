@@ -29,16 +29,8 @@ export const Default: Story = {
   },
 };
 
-export const WithBackButton: Story = {
-  args: {
-    backHref: "/",
-    items: [{ text: "Home" }, { text: "Products" }, { text: "Current Page" }],
-  },
-};
-
 export const WithMenu: Story = {
   args: {
-    backHref: "/borrow",
     items: [
       {
         menu: (

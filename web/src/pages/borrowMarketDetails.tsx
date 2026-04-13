@@ -56,7 +56,6 @@ const BorrowMarketDetailsLoaded = function ({
   return (
     <div className="flex flex-col">
       <Breadcrumb
-        backHref="/borrow"
         items={[
           {
             menu: (
