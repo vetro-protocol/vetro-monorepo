@@ -35,7 +35,6 @@ export const Breadcrumb = ({ backHref, items }: Props) => (
         </>
       )}
       {items.map((item, index) => (
-        // eslint-disable-next-line react/no-array-index-key
         <li
           className={`contents ${index === items.length - 1 ? "text-gray-700" : "text-gray-500"}`}
           key={index}
