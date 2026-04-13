@@ -74,7 +74,7 @@ export const useStakeDeposit = function ({
         throw new Error("No account connected");
       }
       if (!peggedToken) {
-        throw new Error("VUSD token not loaded");
+        throw new Error("Pegged Token not loaded");
       }
 
       await ensureConnectedTo(chain.id);
