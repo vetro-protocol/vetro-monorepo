@@ -61,7 +61,7 @@ const BorrowMarketDetailsLoaded = function ({
           {
             menu: (
               <ButtonLink href="/borrow" size="xSmall" variant="tertiary">
-                <BorrowIcon className="size-4" />
+                <BorrowIcon className="size-4 text-gray-400" />
                 {t("nav.borrow")}
               </ButtonLink>
             ),
