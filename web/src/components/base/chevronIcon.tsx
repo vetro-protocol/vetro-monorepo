@@ -1,5 +1,6 @@
 const rotations = {
   down: "",
+  left: "rotate-90",
   right: "-rotate-90",
   up: "rotate-180",
 } as const;

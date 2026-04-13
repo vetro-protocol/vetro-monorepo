@@ -110,7 +110,7 @@ export function Dropdown<T>(props: DropdownProps<T>) {
     );
   }
 
-  const canOpenMenu = items.length > 1;
+  const canOpenMenu = items.length > 0;
 
   function handleTriggerClick() {
     if (!canOpenMenu) {
