@@ -3,8 +3,8 @@ import { getGatewayAddress } from "@vetro-protocol/gateway";
 import { analyticsBackingVusdOptions } from "hooks/useAnalyticsBackingVusd";
 import { analyticsTotalsOptions } from "hooks/useAnalyticsTotals";
 import { analyticsTreasuryOptions } from "hooks/useAnalyticsTreasury";
+import { peggedTokenQueryOptions } from "hooks/usePeggedToken";
 import { previewRedeemTokenOptions } from "hooks/usePreviewRedeem";
-import { vusdOptions } from "hooks/useVusd";
 import { type Address, type Client, formatUnits } from "viem";
 
 // Converts treasury token holdings to VUSD using on-chain previewRedeem prices.
@@ -58,7 +58,7 @@ export const fetchCollateralizationRatio = async function ({
   const chainId = client.chain!.id;
   const gatewayAddress = getGatewayAddress(chainId);
   const vusd = await queryClient.ensureQueryData(
-    vusdOptions({ client, queryClient }),
+    peggedTokenQueryOptions({ client, queryClient }),
   );
   const { decimals } = vusd;
   const oneVusd = 10n ** BigInt(decimals);

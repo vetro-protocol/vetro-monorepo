@@ -11,7 +11,7 @@ import { useAccount } from "wagmi";
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { redeemRequestQueryKey } from "./useGetRedeemRequest";
 import { useMainnet } from "./useMainnet";
-import { useVusd } from "./useVusd";
+import { usePeggedToken } from "./usePeggedToken";
 
 export const useCancelRedeemRequest = function ({
   onEmitter,
@@ -29,9 +29,9 @@ export const useCancelRedeemRequest = function ({
   const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
     ethereumChain.id,
   );
-  const { data: vusd } = useVusd();
+  const { data: peggedToken } = usePeggedToken();
 
-  const vusdBalanceQueryKey = tokenBalanceQueryKey(vusd, address);
+  const vusdBalanceQueryKey = tokenBalanceQueryKey(peggedToken, address);
 
   return useMutation({
     async mutationFn() {

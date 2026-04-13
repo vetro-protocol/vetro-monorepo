@@ -11,8 +11,8 @@ import { useAccount } from "wagmi";
 
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { useMainnet } from "./useMainnet";
+import { usePeggedToken } from "./usePeggedToken";
 import { stakedBalanceQueryKey } from "./useStakedBalance";
-import { useVusd } from "./useVusd";
 
 type DepositStatus =
   | "approve-failed"
@@ -47,15 +47,15 @@ export const useStakeDeposit = function ({
   const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
     chain.id,
   );
-  const { data: vusd } = useVusd();
+  const { data: peggedToken } = usePeggedToken();
 
   const allowanceKey = allowanceQueryKey({
     owner: account,
     spender: stakingVaultAddress,
-    token: { address: vusd?.address, chainId: chain.id },
+    token: { address: peggedToken?.address, chainId: chain.id },
   });
 
-  const vusdBalanceKey = tokenBalanceQueryKey(vusd, account);
+  const vusdBalanceKey = tokenBalanceQueryKey(peggedToken, account);
 
   const sharesBalanceKey = tokenBalanceQueryKey(
     { address: stakingVaultAddress, chainId: chain.id },
@@ -73,7 +73,7 @@ export const useStakeDeposit = function ({
       if (!account) {
         throw new Error("No account connected");
       }
-      if (!vusd) {
+      if (!peggedToken) {
         throw new Error("VUSD token not loaded");
       }
 
@@ -83,7 +83,7 @@ export const useStakeDeposit = function ({
         approveAmount,
         assets,
         receiver: account,
-        token: vusd.address,
+        token: peggedToken.address,
       });
 
       emitter.on("user-signed-approval", function () {

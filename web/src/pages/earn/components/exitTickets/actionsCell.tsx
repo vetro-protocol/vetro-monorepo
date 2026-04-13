@@ -4,7 +4,7 @@ import { Toast } from "components/base/toast";
 import { Tooltip } from "components/tooltip";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useClaimWithdraw } from "hooks/useClaimWithdraw";
-import { useVusd } from "hooks/useVusd";
+import { usePeggedToken } from "hooks/usePeggedToken";
 import { TrashIcon } from "pages/earn/icons/trashIcon";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -74,7 +74,7 @@ export function ActionsCell({
 }: Props) {
   const { t } = useTranslation();
   const { openConnectModal } = useConnectModal();
-  const { data: vusd } = useVusd();
+  const { data: peggedToken } = usePeggedToken();
   const status = getTicketStatus(ticket);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
@@ -82,7 +82,7 @@ export function ActionsCell({
 
   const formattedAmount = formatAmount({
     amount: BigInt(ticket.assets),
-    decimals: vusd?.decimals ?? 18,
+    decimals: peggedToken?.decimals ?? 18,
     isError: false,
   });
 
@@ -91,7 +91,7 @@ export function ActionsCell({
       page: "earn",
       text: t("pages.earn.activity.claim-withdraw-text", {
         amount: formattedAmount,
-        symbol: vusd?.symbol,
+        symbol: peggedToken?.symbol,
       }),
       title: `${t("nav.earn")} · ${t("pages.earn.exit-tickets.withdraw")}`,
     });

@@ -3,7 +3,7 @@ import { Button } from "components/base/button";
 import { Modal } from "components/base/modal";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useCancelWithdraw } from "hooks/useCancelWithdraw";
-import { useVusd } from "hooks/useVusd";
+import { usePeggedToken } from "hooks/usePeggedToken";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { formatAmount } from "utils/token";
@@ -21,12 +21,12 @@ export function DeleteTicketModal({ onClose, onSuccess, ticket }: Props) {
   const { t } = useTranslation();
   const { isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
-  const { data: vusd } = useVusd();
+  const { data: peggedToken } = usePeggedToken();
   const [isDeleting, setIsDeleting] = useState(false);
 
   const formattedAmount = formatAmount({
     amount: BigInt(ticket.assets),
-    decimals: vusd?.decimals ?? 18,
+    decimals: peggedToken?.decimals ?? 18,
     isError: false,
   });
 
@@ -35,7 +35,7 @@ export function DeleteTicketModal({ onClose, onSuccess, ticket }: Props) {
       page: "earn",
       text: t("pages.earn.activity.cancel-withdraw-text", {
         amount: formattedAmount,
-        symbol: vusd?.symbol,
+        symbol: peggedToken?.symbol,
       }),
       title: `${t("nav.earn")} · ${t("pages.earn.exit-tickets.delete-title")}`,
     });

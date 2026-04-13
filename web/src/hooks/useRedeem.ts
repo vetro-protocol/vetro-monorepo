@@ -14,13 +14,13 @@ import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { redeemRequestQueryKey } from "./useGetRedeemRequest";
 import { useMainnet } from "./useMainnet";
 import { maxWithdrawQueryKey } from "./useMaxWithdraw";
+import { usePeggedToken } from "./usePeggedToken";
 import {
   previewRedeemQueryKey,
   previewRedeemTokenOptions,
 } from "./usePreviewRedeem";
 import { redeemDelayOptions } from "./useRedeemDelay";
 import { treasuryReservesQueryKey } from "./useTreasuryReserves";
-import { useVusd } from "./useVusd";
 
 export const useRedeem = function ({
   approveAmount,
@@ -45,7 +45,7 @@ export const useRedeem = function ({
     ethereumChain.id,
   );
 
-  const { data: vusd } = useVusd();
+  const { data: peggedToken } = usePeggedToken();
 
   const requestQueryKey = redeemRequestQueryKey({
     address: account,
@@ -55,10 +55,10 @@ export const useRedeem = function ({
   const allowanceKey = allowanceQueryKey({
     owner: account,
     spender: gatewayAddress,
-    token: vusd,
+    token: peggedToken,
   });
 
-  const vusdBalanceQueryKey = tokenBalanceQueryKey(vusd, account);
+  const vusdBalanceQueryKey = tokenBalanceQueryKey(peggedToken, account);
 
   const treasuryReservesKey = treasuryReservesQueryKey({
     chainId: ethereumChain.id,

@@ -11,9 +11,9 @@ import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useInstantWithdraw } from "hooks/useInstantWithdraw";
 import { useMainnet } from "hooks/useMainnet";
+import { usePeggedToken } from "hooks/usePeggedToken";
 import { useStakedBalance } from "hooks/useStakedBalance";
 import { useStakeWithdraw } from "hooks/useStakeWithdraw";
-import { useVusd } from "hooks/useVusd";
 import { useCanInstantWithdraw } from "pages/earn/hooks/useCanInstantWithdraw";
 import { useCooldownDuration } from "pages/earn/hooks/useCooldownDuration";
 import { useTotalWithdrawFees } from "pages/earn/hooks/useTotalWithdrawFees";
@@ -139,13 +139,13 @@ export function StakeWithdrawForm({
   const { data: cooldownDays } = useCooldownDuration();
   const { openConnectModal } = useConnectModal();
   const { t } = useTranslation();
-  const { data: vusd } = useVusd();
+  const { data: peggedToken } = usePeggedToken();
 
   const instantTracking = useActivityTracking({
     page: "earn",
     text: t("pages.earn.activity.instant-withdraw-text", {
       amount: inputValue,
-      symbol: vusd?.symbol,
+      symbol: peggedToken?.symbol,
     }),
     title: `${t("nav.earn")} · ${t("pages.earn.stake.instant-withdraw")}`,
   });
@@ -154,7 +154,7 @@ export function StakeWithdrawForm({
     page: "earn",
     text: t("pages.earn.activity.request-withdraw-text", {
       amount: inputValue,
-      symbol: vusd?.symbol,
+      symbol: peggedToken?.symbol,
     }),
     title: `${t("nav.earn")} · ${t("pages.earn.stake.withdraw")}`,
   });
@@ -167,7 +167,9 @@ export function StakeWithdrawForm({
   const { data: nativeBalanceData } = useNativeBalance(chain.id);
   const nativeBalance = nativeBalanceData?.value;
 
-  const amountBigInt = vusd ? parseUnits(inputValue, vusd.decimals) : 0n;
+  const amountBigInt = peggedToken
+    ? parseUnits(inputValue, peggedToken.decimals)
+    : 0n;
 
   const handleRequestWithdrawSuccess = function () {
     onSuccess({
@@ -230,7 +232,7 @@ export function StakeWithdrawForm({
 
   const formattedBalance = formatAmount({
     amount: stakedBalance,
-    decimals: vusd?.decimals ?? 18,
+    decimals: peggedToken?.decimals ?? 18,
     isError: isStakedBalanceError,
   });
 
@@ -266,16 +268,18 @@ export function StakeWithdrawForm({
             />
           }
           errorKey={balancesLoaded ? inputError : undefined}
-          fiatValue={<RenderFiatValue token={vusd} value={amountBigInt} />}
+          fiatValue={
+            <RenderFiatValue token={peggedToken} value={amountBigInt} />
+          }
           label={t("pages.earn.stake.you-will-withdraw")}
           maxButton={
             <SetMaxStakedBalance
-              decimals={vusd!.decimals}
+              decimals={peggedToken!.decimals}
               onClick={handleMaxClick}
             />
           }
           onChange={onInputChange}
-          tokenSelector={<TokenSelectorReadOnly {...vusd} />}
+          tokenSelector={<TokenSelectorReadOnly {...peggedToken} />}
           value={inputValue}
         />
       </div>
@@ -304,7 +308,7 @@ export function StakeWithdrawForm({
           <NetworkFees
             label={t("pages.earn.stake.withdrawing-fees-label", {
               amount: inputValue,
-              token: vusd.symbol,
+              token: peggedToken.symbol,
             })}
             networkFee={withdrawFeesQuery}
             sectionClassName="px-6"

@@ -12,7 +12,7 @@ import { useAccount } from "wagmi";
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { redeemRequestQueryKey } from "./useGetRedeemRequest";
 import { useMainnet } from "./useMainnet";
-import { useVusd } from "./useVusd";
+import { usePeggedToken } from "./usePeggedToken";
 
 export const useRequestRedeem = function ({
   approveAmount,
@@ -29,9 +29,9 @@ export const useRequestRedeem = function ({
   const ethereumChain = useMainnet();
   const { queryKey: nativeBalanceKey } = useNativeBalance(ethereumChain.id);
   const queryClient = useQueryClient();
-  const { data: vusd } = useVusd();
+  const { data: peggedToken } = usePeggedToken();
 
-  const vusdBalanceQueryKey = tokenBalanceQueryKey(vusd, address);
+  const vusdBalanceQueryKey = tokenBalanceQueryKey(peggedToken, address);
 
   const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
     ethereumChain.id,

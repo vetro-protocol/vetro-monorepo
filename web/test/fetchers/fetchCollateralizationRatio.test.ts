@@ -1,8 +1,8 @@
 import { analyticsBackingVusdOptions } from "hooks/useAnalyticsBackingVusd";
 import { analyticsTotalsOptions } from "hooks/useAnalyticsTotals";
 import { analyticsTreasuryOptions } from "hooks/useAnalyticsTreasury";
+import { peggedTokenQueryOptions } from "hooks/usePeggedToken";
 import { previewRedeemTokenOptions } from "hooks/usePreviewRedeem";
-import { vusdOptions } from "hooks/useVusd";
 import type { Client } from "viem";
 import { describe, expect, it, vi } from "vitest";
 
@@ -29,8 +29,8 @@ vi.mock("hooks/usePreviewRedeem", () => ({
   previewRedeemTokenOptions: vi.fn(),
 }));
 
-vi.mock("hooks/useVusd", () => ({
-  vusdOptions: vi.fn(),
+vi.mock("hooks/usePeggedToken", () => ({
+  peggedTokenQueryOptions: vi.fn(),
 }));
 
 const mockClient = { chain: { id: 1 } } as unknown as Client;
@@ -52,7 +52,7 @@ const setupMocks = function ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.mocked(fn as any).mockReturnValue({ queryFn, queryKey });
 
-  mock(vusdOptions, () => vusd, ["vusd"]);
+  mock(peggedTokenQueryOptions, () => vusd, ["vusd"]);
   mock(analyticsBackingVusdOptions, () => backing, ["analytics-backing-vusd"]);
   mock(analyticsTotalsOptions, () => totals, ["analytics-totals"]);
   mock(analyticsTreasuryOptions, () => treasury, ["analytics-treasury"]);

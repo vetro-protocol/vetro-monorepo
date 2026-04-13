@@ -1,6 +1,6 @@
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { Button } from "components/base/button";
-import { useVusd } from "hooks/useVusd";
+import { usePeggedToken } from "hooks/usePeggedToken";
 import { useTranslation } from "react-i18next";
 
 const DisconnectedWalletIcon = () => (
@@ -86,7 +86,7 @@ export function PositionsDisconnectedState() {
 
 export function PositionsEmptyState() {
   const { t } = useTranslation();
-  const { data: vusd } = useVusd();
+  const { data: peggedToken } = usePeggedToken();
 
   return (
     <div className="flex items-center justify-center border-b border-gray-200 bg-white px-8 py-12">
@@ -98,7 +98,7 @@ export function PositionsEmptyState() {
           </span>
           <span className="font-normal text-gray-500">
             {t("pages.borrow.no-positions-description", {
-              symbol: vusd.symbol,
+              symbol: peggedToken.symbol,
             })}
           </span>
         </div>

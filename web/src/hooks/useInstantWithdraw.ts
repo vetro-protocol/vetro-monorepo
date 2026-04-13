@@ -10,8 +10,8 @@ import { useAccount } from "wagmi";
 
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { useMainnet } from "./useMainnet";
+import { usePeggedToken } from "./usePeggedToken";
 import { stakedBalanceQueryKey } from "./useStakedBalance";
-import { useVusd } from "./useVusd";
 
 type InstantWithdrawStatus = "completed" | "failed" | "withdrawing";
 
@@ -38,9 +38,9 @@ export const useInstantWithdraw = function ({
   const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
     chain.id,
   );
-  const { data: vusd } = useVusd();
+  const { data: peggedToken } = usePeggedToken();
 
-  const vusdBalanceKey = tokenBalanceQueryKey(vusd, account);
+  const vusdBalanceKey = tokenBalanceQueryKey(peggedToken, account);
 
   const sharesBalanceKey = tokenBalanceQueryKey(
     { address: stakingVaultAddress, chainId: chain.id },

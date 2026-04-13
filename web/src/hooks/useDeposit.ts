@@ -11,12 +11,12 @@ import { useAccount } from "wagmi";
 
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { useMainnet } from "./useMainnet";
+import { usePeggedToken } from "./usePeggedToken";
 import {
   previewDepositQueryKey,
   previewDepositTokenOptions,
 } from "./usePreviewDeposit";
 import { treasuryReservesQueryKey } from "./useTreasuryReserves";
-import { useVusd } from "./useVusd";
 
 export const useDeposit = function ({
   amountIn,
@@ -38,7 +38,7 @@ export const useDeposit = function ({
   const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
     ethereumChain.id,
   );
-  const { data: vusd } = useVusd();
+  const { data: peggedToken } = usePeggedToken();
 
   const allowanceKey = allowanceQueryKey({
     owner: account,
@@ -59,7 +59,7 @@ export const useDeposit = function ({
     gatewayAddress,
   });
 
-  const vusdBalanceQueryKey = tokenBalanceQueryKey(vusd, account);
+  const vusdBalanceQueryKey = tokenBalanceQueryKey(peggedToken, account);
 
   return useMutation({
     async mutationFn() {

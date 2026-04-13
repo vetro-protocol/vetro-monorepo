@@ -1,4 +1,4 @@
-import { useVusd } from "hooks/useVusd";
+import { usePeggedToken } from "hooks/usePeggedToken";
 import { useTranslation } from "react-i18next";
 import { formatAmount } from "utils/token";
 
@@ -10,10 +10,10 @@ type Props = {
 
 export function WithdrawalCell({ ticket }: Props) {
   const { t } = useTranslation();
-  const { data: vusd } = useVusd();
+  const { data: peggedToken } = usePeggedToken();
   const amount = formatAmount({
     amount: BigInt(ticket.assets),
-    decimals: vusd?.decimals ?? 18,
+    decimals: peggedToken?.decimals ?? 18,
     isError: false,
   });
 

@@ -1,9 +1,9 @@
 import { getStakingVaultAddress } from "@vetro-protocol/earn";
 import { useApy } from "hooks/useApy";
 import { useMainnet } from "hooks/useMainnet";
+import { usePeggedToken } from "hooks/usePeggedToken";
 import { usePoolDeposits } from "hooks/usePoolDeposits";
 import { useUserRewards } from "hooks/useUserRewards";
-import { useVusd } from "hooks/useVusd";
 import { useTranslation } from "react-i18next";
 import { formatUsd } from "utils/currency";
 import { formatEvmAddress } from "utils/format";
@@ -17,7 +17,7 @@ export function PoolInfoBar() {
   const { t } = useTranslation();
   const chain = useMainnet();
   const stakingVaultAddress = getStakingVaultAddress(chain.id);
-  const { data: vusd } = useVusd();
+  const { data: peggedToken } = usePeggedToken();
 
   const { data: apy, isLoading: isLoadingApy } = useApy();
   const { data: poolDeposits, isLoading: isLoadingDeposits } =
@@ -30,8 +30,8 @@ export function PoolInfoBar() {
     })) ?? [];
 
   function formatPoolDeposits() {
-    if (poolDeposits !== undefined && vusd) {
-      const formatted = Number(formatUnits(poolDeposits, vusd.decimals));
+    if (poolDeposits !== undefined && peggedToken) {
+      const formatted = Number(formatUnits(poolDeposits, peggedToken.decimals));
       return formatUsd(formatted);
     }
     return undefined;
