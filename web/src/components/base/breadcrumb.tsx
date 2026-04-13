@@ -20,7 +20,7 @@ const Separator = () => (
 
 export const Breadcrumb = ({ backHref, items }: Props) => (
   <nav aria-label="breadcrumb">
-    <ol className="flex items-center gap-3 px-4 py-3">
+    <ol className="flex items-center gap-3 border-b border-gray-200 px-4 py-3 xl:pl-14">
       {backHref && (
         <>
           <li>
