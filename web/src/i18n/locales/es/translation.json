@@ -319,8 +319,7 @@
         "send-to-queue": "Enviar a la cola",
         "swap": "Intercambiar",
         "you-are-swapping": "Vas a intercambiar",
-        "you-will-receive": "Vas a recibir",
-        "you-will-receive-approximately": "Vas a recibir (aproximadamente)"
+        "you-will-receive-estimated": "Va a recibir (estimado)"
       },
       "progress": {
         "approve-description": "Esto permite que la app use este token para su intercambio.",

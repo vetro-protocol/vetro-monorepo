@@ -50,7 +50,7 @@ export function RedeemSkeleton({ fromToken }: Props) {
               fiatValue={
                 <Skeleton className="h-full" containerClassName="w-8" />
               }
-              label={t("pages.swap.form.you-will-receive")}
+              label={t("pages.swap.form.you-will-receive-estimated")}
               tokenSelector={<TokenSelectorSkeleton />}
               value="0"
             />

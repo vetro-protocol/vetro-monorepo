@@ -74,7 +74,7 @@ export function SwapProgressDrawer({
           {toToken && outputValue !== undefined && (
             <div className="flex flex-col gap-2">
               <p className="text-xsm text-gray-500">
-                {t("pages.swap.form.you-will-receive")}
+                {t("pages.swap.form.you-will-receive-estimated")}
               </p>
               <div className="flex items-center gap-3">
                 <p className="flex items-center gap-x-2 text-4xl leading-10 font-semibold tracking-tight text-gray-900">
