@@ -3,7 +3,10 @@ import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
 import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpdateNativeBalanceAfterReceipt";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { type CancelRedeemRequestEvents } from "@vetro-protocol/gateway";
+import {
+  type CancelRedeemRequestEvents,
+  getGatewayAddress,
+} from "@vetro-protocol/gateway";
 import { cancelRedeemRequest } from "@vetro-protocol/gateway/actions";
 import type { EventEmitter } from "events";
 import { useAccount } from "wagmi";
@@ -24,6 +27,7 @@ export const useCancelRedeemRequest = function ({
   const { data: walletClient } = useEthereumWalletClient();
   const ensureConnectedTo = useEnsureConnectedTo();
   const ethereumChain = useMainnet();
+  const gatewayAddress = getGatewayAddress(ethereumChain.id);
   const { queryKey: nativeBalanceKey } = useNativeBalance(ethereumChain.id);
   const queryClient = useQueryClient();
   const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
@@ -41,7 +45,9 @@ export const useCancelRedeemRequest = function ({
 
       await ensureConnectedTo(ethereumChain.id);
 
-      const { emitter, promise } = cancelRedeemRequest(walletClient!);
+      const { emitter, promise } = cancelRedeemRequest(walletClient!, {
+        gatewayAddress,
+      });
 
       emitter.on("cancel-redeem-request-transaction-reverted", (receipt) =>
         updateNativeBalanceAfterReceipt(receipt),

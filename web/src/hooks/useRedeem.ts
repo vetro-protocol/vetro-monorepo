@@ -111,6 +111,7 @@ export const useRedeem = function ({
 
       const { emitter, promise } = redeem(walletClient!, {
         approveAmount,
+        gatewayAddress,
         minAmountOut,
         peggedTokenIn,
         receiver: account,

@@ -1,4 +1,5 @@
 import {
+  type Address,
   type TransactionReceipt,
   type WalletClient,
   zeroAddress,
@@ -15,19 +16,27 @@ vi.mock("viem/actions", () => ({
   writeContract: vi.fn(),
 }));
 
+const mockGatewayAddress =
+  "0x3333333333333333333333333333333333333333" as Address;
+
 // @ts-expect-error - mock client
 const mockWalletClient = {
   account: {
-    address: zeroAddress,
+    address: "0x1111111111111111111111111111111111111111" as Address,
   },
   chain: sepolia,
 } as WalletClient;
+
+const validParameters = {
+  gatewayAddress: mockGatewayAddress,
+};
 
 describe("cancelRedeemRequest", function () {
   it("should emit 'cancel-redeem-request-failed-validation' if client is not defined", async function () {
     const { emitter, promise } = cancelRedeemRequest(
       // @ts-expect-error - Testing invalid input
       undefined,
+      validParameters,
     );
 
     const onFailedValidation = vi.fn();
@@ -49,7 +58,10 @@ describe("cancelRedeemRequest", function () {
       account: mockWalletClient.account,
     } as WalletClient;
 
-    const { emitter, promise } = cancelRedeemRequest(clientWithoutChain);
+    const { emitter, promise } = cancelRedeemRequest(
+      clientWithoutChain,
+      validParameters,
+    );
 
     const onFailedValidation = vi.fn();
     const onSettled = vi.fn();
@@ -71,7 +83,10 @@ describe("cancelRedeemRequest", function () {
       chain: sepolia,
     } as WalletClient;
 
-    const { emitter, promise } = cancelRedeemRequest(clientWithoutAccount);
+    const { emitter, promise } = cancelRedeemRequest(
+      clientWithoutAccount,
+      validParameters,
+    );
 
     const onFailedValidation = vi.fn();
     const onSettled = vi.fn();
@@ -87,10 +102,52 @@ describe("cancelRedeemRequest", function () {
     expect(onSettled).toHaveBeenCalledOnce();
   });
 
+  it("should emit 'cancel-redeem-request-failed-validation' if gateway address is not valid", async function () {
+    const { emitter, promise } = cancelRedeemRequest(mockWalletClient, {
+      // @ts-expect-error - Testing invalid input
+      gatewayAddress: "invalid_gateway",
+    });
+
+    const onFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("cancel-redeem-request-failed-validation", onFailedValidation);
+    emitter.on("cancel-redeem-request-settled", onSettled);
+
+    await promise;
+
+    expect(onFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "Invalid gateway address",
+    );
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("should emit 'cancel-redeem-request-failed-validation' if gateway address is zero address", async function () {
+    const { emitter, promise } = cancelRedeemRequest(mockWalletClient, {
+      gatewayAddress: zeroAddress,
+    });
+
+    const onFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("cancel-redeem-request-failed-validation", onFailedValidation);
+    emitter.on("cancel-redeem-request-settled", onSettled);
+
+    await promise;
+
+    expect(onFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "Gateway address cannot be zero address",
+    );
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
   it("should emit 'user-signing-cancel-redeem-request-error' when signing fails", async function () {
     vi.mocked(writeContract).mockRejectedValue(new Error("Signing error"));
 
-    const { emitter, promise } = cancelRedeemRequest(mockWalletClient);
+    const { emitter, promise } = cancelRedeemRequest(
+      mockWalletClient,
+      validParameters,
+    );
 
     const onPreCancel = vi.fn();
     const onSigningError = vi.fn();
@@ -113,7 +170,10 @@ describe("cancelRedeemRequest", function () {
       new Error("Receipt error"),
     );
 
-    const { emitter, promise } = cancelRedeemRequest(mockWalletClient);
+    const { emitter, promise } = cancelRedeemRequest(
+      mockWalletClient,
+      validParameters,
+    );
 
     const onPreCancel = vi.fn();
     const onUserSigned = vi.fn();
@@ -141,7 +201,10 @@ describe("cancelRedeemRequest", function () {
     vi.mocked(writeContract).mockResolvedValue(zeroHash);
     vi.mocked(waitForTransactionReceipt).mockResolvedValue(receipt);
 
-    const { emitter, promise } = cancelRedeemRequest(mockWalletClient);
+    const { emitter, promise } = cancelRedeemRequest(
+      mockWalletClient,
+      validParameters,
+    );
 
     const onPreCancel = vi.fn();
     const onUserSigned = vi.fn();
@@ -172,7 +235,10 @@ describe("cancelRedeemRequest", function () {
     vi.mocked(writeContract).mockResolvedValue(zeroHash);
     vi.mocked(waitForTransactionReceipt).mockResolvedValue(receipt);
 
-    const { emitter, promise } = cancelRedeemRequest(mockWalletClient);
+    const { emitter, promise } = cancelRedeemRequest(
+      mockWalletClient,
+      validParameters,
+    );
 
     const onPreCancel = vi.fn();
     const onUserSigned = vi.fn();
@@ -198,7 +264,10 @@ describe("cancelRedeemRequest", function () {
       throw new Error("Unexpected");
     });
 
-    const { emitter, promise } = cancelRedeemRequest(mockWalletClient);
+    const { emitter, promise } = cancelRedeemRequest(
+      mockWalletClient,
+      validParameters,
+    );
 
     const onUnexpectedError = vi.fn();
     const onSettled = vi.fn();

@@ -1,30 +1,36 @@
 import { EventEmitter } from "events";
 import { toPromiseEvent } from "to-promise-event";
 import {
+  type Address,
   type TransactionReceipt,
   type WalletClient,
   encodeFunctionData,
+  isAddress,
+  isAddressEqual,
+  zeroAddress,
 } from "viem";
 import { waitForTransactionReceipt, writeContract } from "viem/actions";
 import { allowance, approve } from "viem-erc20/actions";
 
 import { gatewayAbi } from "../../abi/gatewayAbi.js";
-import { getGatewayAddress } from "../../getGatewayAddress.js";
 import type { RequestRedeemEvents } from "../../types.js";
 import { getPeggedToken } from "../public/getPeggedToken.js";
 
 export type RequestRedeemParams = {
   approveAmount?: bigint;
+  gatewayAddress: Address;
   peggedTokenAmount: bigint;
 };
 
 const canRequestRedeem = function ({
   approveAmount,
   client,
+  gatewayAddress,
   peggedTokenAmount,
 }: {
   approveAmount: bigint;
   client: WalletClient;
+  gatewayAddress: Address;
   peggedTokenAmount: bigint;
 }): {
   canRequestRedeem: boolean;
@@ -46,6 +52,19 @@ const canRequestRedeem = function ({
     return {
       canRequestRedeem: false,
       reason: "Client must have an account",
+    };
+  }
+  // Validate gateway address
+  if (!gatewayAddress || !isAddress(gatewayAddress)) {
+    return {
+      canRequestRedeem: false,
+      reason: "Invalid gateway address",
+    };
+  }
+  if (isAddressEqual(gatewayAddress, zeroAddress)) {
+    return {
+      canRequestRedeem: false,
+      reason: "Gateway address cannot be zero address",
     };
   }
 
@@ -75,7 +94,7 @@ const canRequestRedeem = function ({
 
 const runRequestRedeem = (
   walletClient: WalletClient,
-  { approveAmount, peggedTokenAmount }: RequestRedeemParams,
+  { approveAmount, gatewayAddress, peggedTokenAmount }: RequestRedeemParams,
 ) =>
   async function (emitter: EventEmitter<RequestRedeemEvents>) {
     const resolvedApproveAmount = approveAmount ?? peggedTokenAmount;
@@ -84,6 +103,7 @@ const runRequestRedeem = (
         canRequestRedeem({
           approveAmount: resolvedApproveAmount,
           client: walletClient,
+          gatewayAddress,
           peggedTokenAmount,
         });
 
@@ -91,9 +111,6 @@ const runRequestRedeem = (
         emitter.emit("request-redeem-failed-validation", reason!);
         return;
       }
-
-      // already validated
-      const gatewayAddress = getGatewayAddress(walletClient.chain!.id);
 
       // Get the pegged token address
       const peggedTokenAddress = await getPeggedToken(walletClient, {
