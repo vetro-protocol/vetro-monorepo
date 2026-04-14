@@ -3,7 +3,11 @@ import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
 import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpdateNativeBalanceAfterReceipt";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { gatewayAbi, type RequestRedeemEvents } from "@vetro-protocol/gateway";
+import {
+  gatewayAbi,
+  getGatewayAddress,
+  type RequestRedeemEvents,
+} from "@vetro-protocol/gateway";
 import { requestRedeem } from "@vetro-protocol/gateway/actions";
 import type { EventEmitter } from "events";
 import { parseEventLogs } from "viem";
@@ -27,6 +31,7 @@ export const useRequestRedeem = function ({
   const { data: walletClient } = useEthereumWalletClient();
   const ensureConnectedTo = useEnsureConnectedTo();
   const ethereumChain = useMainnet();
+  const gatewayAddress = getGatewayAddress(ethereumChain.id);
   const { queryKey: nativeBalanceKey } = useNativeBalance(ethereumChain.id);
   const queryClient = useQueryClient();
   const { data: peggedToken } = usePeggedToken();
@@ -47,6 +52,7 @@ export const useRequestRedeem = function ({
 
       const { emitter, promise } = requestRedeem(walletClient!, {
         approveAmount,
+        gatewayAddress,
         peggedTokenAmount,
       });
 

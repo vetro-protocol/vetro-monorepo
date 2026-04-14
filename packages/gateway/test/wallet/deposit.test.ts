@@ -29,8 +29,12 @@ const mockWalletClient = {
   chain: sepolia,
 } as unknown as WalletClient;
 
+const mockGatewayAddress =
+  "0x3333333333333333333333333333333333333333" as Address;
+
 const validParameters = {
   amountIn: BigInt(1000),
+  gatewayAddress: mockGatewayAddress,
   minPeggedTokenOut: BigInt(900),
   receiver: "0x2222222222222222222222222222222222222222" as Address,
   tokenIn: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd" as Address,
@@ -96,6 +100,54 @@ describe("deposit", function () {
 
     expect(onDepositFailedValidation).toHaveBeenCalledExactlyOnceWith(
       "Chain is not defined on wallet client",
+    );
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("should emit 'deposit-failed-validation' if gateway address is not valid", async function () {
+    const parameters = {
+      ...validParameters,
+      gatewayAddress: "invalid_gateway",
+    };
+
+    const { emitter, promise } = deposit(
+      mockWalletClient,
+      // @ts-expect-error - Testing invalid input
+      parameters,
+    );
+
+    const onDepositFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("deposit-failed-validation", onDepositFailedValidation);
+    emitter.on("deposit-settled", onSettled);
+
+    await promise;
+
+    expect(onDepositFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "Invalid gateway address",
+    );
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("should emit 'deposit-failed-validation' if gateway address is zero address", async function () {
+    const parameters = {
+      ...validParameters,
+      gatewayAddress: zeroAddress,
+    };
+
+    const { emitter, promise } = deposit(mockWalletClient, parameters);
+
+    const onDepositFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("deposit-failed-validation", onDepositFailedValidation);
+    emitter.on("deposit-settled", onSettled);
+
+    await promise;
+
+    expect(onDepositFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "Gateway address cannot be zero address",
     );
     expect(onSettled).toHaveBeenCalledOnce();
   });

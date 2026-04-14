@@ -13,7 +13,6 @@ import { waitForTransactionReceipt, writeContract } from "viem/actions";
 import { allowance, approve } from "viem-erc20/actions";
 
 import { gatewayAbi } from "../../abi/gatewayAbi.js";
-import { getGatewayAddress } from "../../getGatewayAddress.js";
 import type { RedeemEvents } from "../../types.js";
 import { getMaxWithdraw } from "../public/getMaxWithdraw.js";
 import { getPeggedToken } from "../public/getPeggedToken.js";
@@ -22,6 +21,7 @@ import { isInstantRedeemWhitelisted } from "../public/isInstantRedeemWhitelisted
 
 export type RedeemParams = {
   approveAmount?: bigint;
+  gatewayAddress: Address;
   minAmountOut: bigint;
   peggedTokenIn: bigint;
   receiver: Address;
@@ -31,6 +31,7 @@ export type RedeemParams = {
 const canRedeem = async function ({
   approveAmount,
   client,
+  gatewayAddress,
   minAmountOut,
   peggedTokenIn,
   receiver,
@@ -38,6 +39,7 @@ const canRedeem = async function ({
 }: {
   approveAmount: bigint;
   client: WalletClient;
+  gatewayAddress: Address;
   minAmountOut: bigint;
   peggedTokenIn: bigint;
   receiver: Address;
@@ -64,6 +66,19 @@ const canRedeem = async function ({
     return {
       canRedeem: false,
       reason: "Client must have an account",
+    };
+  }
+  // Validate gateway address
+  if (!gatewayAddress || !isAddress(gatewayAddress)) {
+    return {
+      canRedeem: false,
+      reason: "Invalid gateway address",
+    };
+  }
+  if (isAddressEqual(gatewayAddress, zeroAddress)) {
+    return {
+      canRedeem: false,
+      reason: "Gateway address cannot be zero address",
     };
   }
   // Validate tokenOut address
@@ -130,7 +145,6 @@ const canRedeem = async function ({
   }
 
   // Check treasury has enough balance for the requested token
-  const gatewayAddress = getGatewayAddress(client.chain.id);
   const maxWithdrawable = await getMaxWithdraw(client, {
     address: gatewayAddress,
     tokenOut,
@@ -149,18 +163,21 @@ const canRedeem = async function ({
 const runRedeem = (
   walletClient: WalletClient,
   {
+    approveAmount,
+    gatewayAddress,
     minAmountOut,
     peggedTokenIn,
-    approveAmount = peggedTokenIn,
     receiver,
     tokenOut,
   }: RedeemParams,
 ) =>
   async function (emitter: EventEmitter<RedeemEvents>) {
+    const resolvedApproveAmount = approveAmount ?? peggedTokenIn;
     try {
       const { canRedeem: canRedeemFlag, reason } = await canRedeem({
-        approveAmount,
+        approveAmount: resolvedApproveAmount,
         client: walletClient,
+        gatewayAddress,
         minAmountOut,
         peggedTokenIn,
         receiver,
@@ -171,9 +188,6 @@ const runRedeem = (
         emitter.emit("redeem-failed-validation", reason!);
         return;
       }
-
-      // already validated
-      const gatewayAddress = getGatewayAddress(walletClient.chain!.id);
 
       // Check if user is whitelisted for instant redeem
       const [isWhitelisted, delayEnabled] = await Promise.all([
@@ -207,7 +221,7 @@ const runRedeem = (
 
           const approvalHash = await approve(walletClient, {
             address: peggedTokenAddress,
-            amount: approveAmount,
+            amount: resolvedApproveAmount,
             spender: gatewayAddress,
           }).catch(function (error: Error) {
             emitter.emit("user-signing-approval-error", error);

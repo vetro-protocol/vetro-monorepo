@@ -82,6 +82,7 @@ export const useDeposit = function ({
       const { emitter, promise } = deposit(walletClient!, {
         amountIn,
         approveAmount,
+        gatewayAddress,
         minPeggedTokenOut,
         receiver: account,
         tokenIn,
