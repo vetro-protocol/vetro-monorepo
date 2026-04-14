@@ -5,12 +5,12 @@ import { useActivityTracking } from "hooks/useActivityTracking";
 import { useGetRedeemRequest } from "hooks/useGetRedeemRequest";
 import { useMainnet } from "hooks/useMainnet";
 import { useMaxWithdraw } from "hooks/useMaxWithdraw";
+import { usePeggedToken } from "hooks/usePeggedToken";
 import { usePreviewRedeem } from "hooks/usePreviewRedeem";
 import { useRedeem } from "hooks/useRedeem";
 import { useRedeemFee } from "hooks/useRedeemFee";
 import { useSwapRedeemFees } from "hooks/useSwapRedeemFees";
 import { useTotalRedeemFees } from "hooks/useTotalRedeemFees";
-import { useVusd } from "hooks/useVusd";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
@@ -33,7 +33,7 @@ type Props = {
 export function RedeemQueue({ whitelistedTokens }: Props) {
   const ethereumChain = useMainnet();
   const { t } = useTranslation();
-  const { data: vusd } = useVusd();
+  const { data: peggedToken } = usePeggedToken();
   const { data: nativeBalanceData } = useNativeBalance(ethereumChain.id);
   const nativeBalance = nativeBalanceData?.value;
   const { data: redeemRequest, isLoading } = useGetRedeemRequest();
@@ -49,7 +49,7 @@ export function RedeemQueue({ whitelistedTokens }: Props) {
   const hasRequest = amountLocked > 0n;
 
   const amountBigInt = fromInputValue
-    ? parseTokenUnits(fromInputValue, vusd)
+    ? parseTokenUnits(fromInputValue, peggedToken)
     : 0n;
 
   const { data: maxWithdraw } = useMaxWithdraw(toToken.address);
@@ -60,7 +60,7 @@ export function RedeemQueue({ whitelistedTokens }: Props) {
   });
 
   const unitRedeemPreview = usePreviewRedeem({
-    peggedTokenIn: parseUnits("1", vusd.decimals),
+    peggedTokenIn: parseUnits("1", peggedToken.decimals),
     tokenOut: toToken.address,
   });
 
@@ -83,7 +83,7 @@ export function RedeemQueue({ whitelistedTokens }: Props) {
       page: "swap",
       text: t("pages.swap.activity.claim-redeem-text", {
         fromAmount: fromInputValue,
-        fromSymbol: vusd.symbol,
+        fromSymbol: peggedToken.symbol,
         toAmount: outputValue,
         toSymbol: toToken.symbol,
       }),
@@ -93,7 +93,7 @@ export function RedeemQueue({ whitelistedTokens }: Props) {
   const networkFeeQueryData = useSwapRedeemFees({
     amount: amountBigInt,
     approveAmount: undefined,
-    fromToken: vusd,
+    fromToken: peggedToken,
     minAmountOut: redeemPreview,
     tokenOut: toToken.address,
   });
@@ -112,7 +112,7 @@ export function RedeemQueue({ whitelistedTokens }: Props) {
     amount: amountBigInt,
     // no approval is needed when redeeming from the queue
     approveAmount: undefined,
-    fromToken: vusd,
+    fromToken: peggedToken,
     minAmountOut: redeemPreview,
     tokenOut: toToken.address,
   });
@@ -148,7 +148,7 @@ export function RedeemQueue({ whitelistedTokens }: Props) {
   });
 
   const handleMaxClick = () =>
-    setFromInputValue(formatUnits(amountLocked, vusd.decimals));
+    setFromInputValue(formatUnits(amountLocked, peggedToken.decimals));
 
   const handleSubmit = function () {
     setFlowStatus("redeem-ready");
@@ -171,7 +171,7 @@ export function RedeemQueue({ whitelistedTokens }: Props) {
         placeholder={
           <RedeemQueueEmptyState whitelistedTokens={whitelistedTokens} />
         }
-        vusd={vusd}
+        vusd={peggedToken}
       />
       {isDrawerOpen && (
         <ClaimRedeemDrawer
@@ -179,7 +179,7 @@ export function RedeemQueue({ whitelistedTokens }: Props) {
           amountLocked={amountLocked}
           flowStatus={flowStatus}
           fromAmount={fromInputValue}
-          fromToken={vusd}
+          fromToken={peggedToken}
           inputError={inputError}
           networkFee={networkFee}
           onClose={handleClose}
@@ -208,7 +208,7 @@ export function RedeemQueue({ whitelistedTokens }: Props) {
         onClose={() => setToastType(undefined)}
         toToken={toToken}
         toastType={toastType}
-        vusd={vusd}
+        vusd={peggedToken}
       />
     </>
   );

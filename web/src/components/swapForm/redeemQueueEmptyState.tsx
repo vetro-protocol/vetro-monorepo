@@ -1,4 +1,4 @@
-import { useVusd } from "hooks/useVusd";
+import { usePeggedToken } from "hooks/usePeggedToken";
 import { useWithdrawalDelay } from "hooks/useWithdrawalDelay";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
@@ -76,8 +76,8 @@ type Props = {
 
 export function RedeemQueueEmptyState({ whitelistedTokens }: Props) {
   const { t } = useTranslation();
-  const { data: vusd } = useVusd();
-  const { symbol } = vusd;
+  const { data: peggedToken } = usePeggedToken();
+  const { symbol } = peggedToken;
   const { data: seconds } = useWithdrawalDelay({
     select: (data) => Number(data),
   });

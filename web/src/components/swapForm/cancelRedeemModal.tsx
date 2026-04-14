@@ -3,7 +3,7 @@ import { Button } from "components/base/button";
 import { Modal } from "components/base/modal";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useCancelRedeemRequest } from "hooks/useCancelRedeemRequest";
-import { useVusd } from "hooks/useVusd";
+import { usePeggedToken } from "hooks/usePeggedToken";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { formatUnits } from "viem";
@@ -24,14 +24,14 @@ export function CancelRedeemModal({
   const { openConnectModal } = useConnectModal();
   const [isCancelling, setIsCancelling] = useState(false);
   const { t } = useTranslation();
-  const { data: vusd } = useVusd();
+  const { data: peggedToken } = usePeggedToken();
 
   const { onCompleted, onFailed, onPending, onTransactionHash } =
     useActivityTracking({
       page: "swap",
       text: t("pages.swap.activity.cancel-redeem-text", {
-        amount: formatUnits(redeemableAmount, vusd.decimals),
-        symbol: vusd.symbol,
+        amount: formatUnits(redeemableAmount, peggedToken.decimals),
+        symbol: peggedToken.symbol,
       }),
       title: `${t("nav.swap")} · ${t("pages.swap.redeem-queue.cancel-redeem")}`,
     });
@@ -77,7 +77,7 @@ export function CancelRedeemModal({
           </h4>
           <p className="text-b-regular text-gray-500">
             {t("pages.swap.redeem-queue.cancel-redeem-description", {
-              symbol: vusd.symbol,
+              symbol: peggedToken.symbol,
             })}
           </p>
         </div>

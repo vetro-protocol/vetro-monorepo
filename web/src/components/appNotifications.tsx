@@ -5,7 +5,7 @@ import { type StackItem, Stack } from "components/base/stack";
 import { useAtRiskPositions } from "hooks/borrow/useAtRiskPositions";
 import { useCountdown } from "hooks/useCountdown";
 import { useGetRedeemRequest } from "hooks/useGetRedeemRequest";
-import { useVusd } from "hooks/useVusd";
+import { usePeggedToken } from "hooks/usePeggedToken";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router";
 import { formatAmount } from "utils/token";
@@ -47,7 +47,7 @@ function useLiquidationItems(): StackItem[] {
 
 function useRedeemItem(): StackItem | undefined {
   const { data: redeemRequest } = useGetRedeemRequest();
-  const { data: vusd } = useVusd();
+  const { data: peggedToken } = usePeggedToken();
   const { lang } = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -62,9 +62,9 @@ function useRedeemItem(): StackItem | undefined {
 
   const formattedAmount = formatAmount({
     amount: amountLocked,
-    decimals: vusd.decimals,
+    decimals: peggedToken.decimals,
     isError: false,
-    symbol: vusd.symbol,
+    symbol: peggedToken.symbol,
   });
 
   function handleClick() {

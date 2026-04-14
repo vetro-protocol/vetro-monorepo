@@ -1,6 +1,6 @@
 import { useDebounce } from "@hemilabs/react-hooks/useDebounce";
+import { usePeggedToken } from "hooks/usePeggedToken";
 import { useSwapMode } from "hooks/useSwapMode";
-import { useVusd } from "hooks/useVusd";
 import { useWhitelistedTokens } from "hooks/useWhitelistedTokens";
 import { useReducer } from "react";
 import type { Token } from "types";
@@ -92,10 +92,10 @@ function SwapFormContent({
 
 export function SwapForm() {
   const [mode, setMode] = useSwapMode();
-  const { data: vusd } = useVusd();
+  const { data: peggedToken } = usePeggedToken();
   const { data: whitelistedTokens } = useWhitelistedTokens();
 
-  if (vusd === undefined || whitelistedTokens === undefined) {
+  if (peggedToken === undefined || whitelistedTokens === undefined) {
     return <SwapFormSkeleton />;
   }
 
@@ -103,7 +103,7 @@ export function SwapForm() {
     <SwapFormContent
       mode={mode}
       setMode={setMode}
-      vusd={vusd}
+      vusd={peggedToken}
       whitelistedTokens={whitelistedTokens}
     />
   );

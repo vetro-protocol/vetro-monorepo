@@ -3,8 +3,8 @@ import { StripedDivider } from "components/stripedDivider";
 import { useAnalyticsTotals } from "hooks/useAnalyticsTotals";
 import { useAnalyticsTreasury } from "hooks/useAnalyticsTreasury";
 import { useCollateralizationRatio } from "hooks/useCollateralizationRatio";
+import { usePeggedToken } from "hooks/usePeggedToken";
 import { useVariableStakeExitQueue } from "hooks/useVariableStakeExitQueue";
-import { useVusd } from "hooks/useVusd";
 import { useWhitelistedTokens } from "hooks/useWhitelistedTokens";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
@@ -84,7 +84,7 @@ export const Analytics = function () {
     isError: isExitQueueError,
     isLoading: isExitQueueLoading,
   } = useVariableStakeExitQueue();
-  const { data: vusd } = useVusd();
+  const { data: peggedToken } = usePeggedToken();
   const {
     data: whitelistedTokens,
     isError: isWhitelistedTokensError,
@@ -100,10 +100,12 @@ export const Analytics = function () {
   const isTokensError = isTreasuryError || isWhitelistedTokensError;
   const tokens = { treasuryTokens: treasury, whitelistedTokens };
 
-  const [tvlValue, stakedValue] = toTotalsValues(totals, vusd.decimals);
+  const [tvlValue, stakedValue] = toTotalsValues(totals, peggedToken.decimals);
 
   const exitQueueValue = exitQueue
-    ? formatUsd(Number(formatUnits(exitQueue.vusdInCooldown, vusd.decimals)))
+    ? formatUsd(
+        Number(formatUnits(exitQueue.vusdInCooldown, peggedToken.decimals)),
+      )
     : "";
 
   const yieldItems = toYieldItems(tokens);

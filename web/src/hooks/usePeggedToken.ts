@@ -11,9 +11,12 @@ import type { Chain, Client } from "viem";
 
 import { useEthereumClient } from "./useEthereumClient";
 
-const vusdQueryKey = (chainId: Chain["id"] | undefined) => ["vusd", chainId];
+const peggedTokenQueryKey = (chainId: Chain["id"] | undefined) => [
+  "vusd",
+  chainId,
+];
 
-export const vusdOptions = ({
+export const peggedTokenQueryOptions = ({
   client,
   queryClient,
 }: {
@@ -29,11 +32,11 @@ export const vusdOptions = ({
         gatewayAddress: getGatewayAddress(client!.chain!.id),
         queryClient,
       }),
-    queryKey: vusdQueryKey(client?.chain?.id),
+    queryKey: peggedTokenQueryKey(client?.chain?.id),
   });
 
-export const useVusd = function () {
+export const usePeggedToken = function () {
   const client = useEthereumClient();
   const queryClient = useQueryClient();
-  return useQuery(vusdOptions({ client, queryClient }));
+  return useQuery(peggedTokenQueryOptions({ client, queryClient }));
 };
