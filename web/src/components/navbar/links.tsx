@@ -23,13 +23,14 @@ export const NavBarLinks = function () {
         <li key={href}>
           <I18nLink
             className={({ isActive }) =>
-              `button--base button-x-small button-regular ${isActive ? "button-nav-primary pl-1.5!" : "button-nav-secondary"} `
+              `button--base button-x-small button-regular ${isActive ? "button-nav-primary pl-1.5!" : "button-nav-secondary gap-0!"}`
             }
             to={href}
           >
             {({ isActive }) => (
               <>
                 <span
+                  aria-hidden="true"
                   className={`inline-flex shrink-0 overflow-hidden transition-[width,transform] duration-300 ease-in-out motion-reduce:transition-none ${isActive ? "w-4 scale-100" : "w-0 scale-0"}`}
                 >
                   <Icon className="size-4 shrink-0" />
