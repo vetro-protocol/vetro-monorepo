@@ -29,7 +29,11 @@ export const NavBarLinks = function () {
           >
             {({ isActive }) => (
               <>
-                {isActive && <Icon className="size-4" />}
+                <span
+                  className={`inline-flex shrink-0 overflow-hidden transition-[width,transform] duration-300 ease-in-out motion-reduce:transition-none ${isActive ? "w-4 scale-100" : "w-0 scale-0"}`}
+                >
+                  <Icon className="size-4 shrink-0" />
+                </span>
                 {t(translationKey)}
               </>
             )}
