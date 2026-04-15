@@ -26,8 +26,8 @@ import {
 
 // Export ABI
 export { gatewayAbi } from "./abi/gatewayAbi.js";
-// Export gateway address utility
-export { getGatewayAddress } from "./getGatewayAddress.js";
+// Export gateway addresses
+export { gatewayAddresses } from "./gatewayAddresses.js";
 
 export type { CancelRedeemRequestParams };
 
