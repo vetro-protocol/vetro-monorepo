@@ -1,6 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { getRedeemRequest } from "@vetro-protocol/gateway/actions";
-import type { Address, Chain } from "viem";
+import type { Address, Chain, Client } from "viem";
 import { useAccount } from "wagmi";
 
 import { useEthereumClient } from "./useEthereumClient";
@@ -15,21 +15,34 @@ export const redeemRequestQueryKey = ({
   gatewayAddress: Address;
 }) => ["redeem-request", chainId, gatewayAddress, address];
 
-export const useGetRedeemRequest = function (gatewayAddress: Address) {
-  const { address } = useAccount();
-  const client = useEthereumClient();
-
-  return useQuery({
-    enabled: !!client && !!address,
+export const redeemRequestQueryOptions = ({
+  client,
+  gatewayAddress,
+  user,
+}: {
+  client: Client | undefined;
+  gatewayAddress: Address;
+  user: Address | undefined;
+}) =>
+  queryOptions({
+    enabled: !!client && !!user,
     queryFn: () =>
       getRedeemRequest(client!, {
         address: gatewayAddress,
-        user: address!,
+        user: user!,
       }),
     queryKey: redeemRequestQueryKey({
-      address,
+      address: user,
       chainId: client?.chain?.id,
       gatewayAddress,
     }),
   });
+
+export const useGetRedeemRequest = function (gatewayAddress: Address) {
+  const { address } = useAccount();
+  const client = useEthereumClient();
+
+  return useQuery(
+    redeemRequestQueryOptions({ client, gatewayAddress, user: address }),
+  );
 };

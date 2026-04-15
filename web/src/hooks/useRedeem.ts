@@ -13,6 +13,7 @@ import { useAccount } from "wagmi";
 
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { redeemRequestQueryKey } from "./useGetRedeemRequest";
+import { redeemRequestsQueryKey } from "./useGetRedeemRequests";
 import { useMainnet } from "./useMainnet";
 import { maxWithdrawQueryKey } from "./useMaxWithdraw";
 import {
@@ -50,6 +51,11 @@ export const useRedeem = function ({
     address: account,
     chainId: ethereumChain.id,
     gatewayAddress: peggedToken.gatewayAddress,
+  });
+
+  const requestsQueryKey = redeemRequestsQueryKey({
+    address: account,
+    chainId: ethereumChain.id,
   });
 
   const allowanceKey = allowanceQueryKey({
@@ -231,6 +237,9 @@ export const useRedeem = function ({
       });
       queryClient.invalidateQueries({
         queryKey: maxWithdrawKey,
+      });
+      queryClient.invalidateQueries({
+        queryKey: requestsQueryKey,
       });
 
       // Let's clear this query, as once the user inputs an amount
