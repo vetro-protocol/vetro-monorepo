@@ -1,7 +1,6 @@
-import { usePeggedToken } from "hooks/usePeggedToken";
 import { useWithdrawalDelay } from "hooks/useWithdrawalDelay";
 import { useTranslation } from "react-i18next";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 import { getTokenListParams } from "utils/tokenList";
 
 const StartWithVusdIcon = () => (
@@ -71,14 +70,18 @@ const RedeemIcon = () => (
 );
 
 type Props = {
-  whitelistedTokens: Token[];
+  peggedToken: TokenWithGateway;
+  whitelistedTokens: TokenWithGateway[];
 };
 
-export function RedeemQueueEmptyState({ whitelistedTokens }: Props) {
+export function RedeemQueueEmptyState({
+  peggedToken,
+  whitelistedTokens,
+}: Props) {
   const { t } = useTranslation();
-  const { data: peggedToken } = usePeggedToken();
   const { symbol } = peggedToken;
   const { data: seconds } = useWithdrawalDelay({
+    gatewayAddress: peggedToken.gatewayAddress,
     select: (data) => Number(data),
   });
 
@@ -88,7 +91,9 @@ export function RedeemQueueEmptyState({ whitelistedTokens }: Props) {
         symbol,
       }),
       icon: <StartWithVusdIcon />,
-      title: t("pages.swap.redeem-queue.empty-step-1-title", { symbol }),
+      title: t("pages.swap.redeem-queue.empty-step-1-title", {
+        symbol,
+      }),
     },
     {
       description: t("pages.swap.redeem-queue.empty-step-2-description", {

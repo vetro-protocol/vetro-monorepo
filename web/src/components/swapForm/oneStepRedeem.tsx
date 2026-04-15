@@ -303,7 +303,10 @@ export function OneStepRedeem({
           totalFees={totalRedeemFeesQueryData}
         />
       </FormSection>
-      <RedeemQueueSection whitelistedTokens={whitelistedTokens} />
+      <RedeemQueueSection
+        peggedTokens={peggedTokens}
+        whitelistedTokens={whitelistedTokens}
+      />
       {isDrawerOpen && flowStatus !== "idle" && (
         <SwapRedeemDrawer
           flowStatus={flowStatus}

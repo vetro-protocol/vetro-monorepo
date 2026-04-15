@@ -3,39 +3,36 @@ import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
 import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpdateNativeBalanceAfterReceipt";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  type CancelRedeemRequestEvents,
-  getGatewayAddress,
-} from "@vetro-protocol/gateway";
+import type { CancelRedeemRequestEvents } from "@vetro-protocol/gateway";
 import { cancelRedeemRequest } from "@vetro-protocol/gateway/actions";
 import type { EventEmitter } from "events";
+import type { TokenWithGateway } from "types";
 import { useAccount } from "wagmi";
 
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { redeemRequestQueryKey } from "./useGetRedeemRequest";
 import { useMainnet } from "./useMainnet";
-import { usePeggedToken } from "./usePeggedToken";
 
 export const useCancelRedeemRequest = function ({
   onEmitter,
+  peggedToken,
   redeemableAmount,
 }: {
   onEmitter?: (emitter: EventEmitter<CancelRedeemRequestEvents>) => void;
+  peggedToken: TokenWithGateway;
   redeemableAmount: bigint;
 }) {
   const { address } = useAccount();
   const { data: walletClient } = useEthereumWalletClient();
   const ensureConnectedTo = useEnsureConnectedTo();
   const ethereumChain = useMainnet();
-  const gatewayAddress = getGatewayAddress(ethereumChain.id);
   const { queryKey: nativeBalanceKey } = useNativeBalance(ethereumChain.id);
   const queryClient = useQueryClient();
   const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
     ethereumChain.id,
   );
-  const { data: peggedToken } = usePeggedToken();
 
-  const vusdBalanceQueryKey = tokenBalanceQueryKey(peggedToken, address);
+  const peggedTokenBalanceQueryKey = tokenBalanceQueryKey(peggedToken, address);
 
   return useMutation({
     async mutationFn() {
@@ -46,7 +43,7 @@ export const useCancelRedeemRequest = function ({
       await ensureConnectedTo(ethereumChain.id);
 
       const { emitter, promise } = cancelRedeemRequest(walletClient!, {
-        gatewayAddress,
+        gatewayAddress: peggedToken.gatewayAddress,
       });
 
       emitter.on("cancel-redeem-request-transaction-reverted", (receipt) =>
@@ -57,9 +54,9 @@ export const useCancelRedeemRequest = function ({
         "cancel-redeem-request-transaction-succeeded",
         function (receipt) {
           updateNativeBalanceAfterReceipt(receipt);
-          // VUSD balance increases as these are transferred back to the user
+          // PeggedToken balance increases as these are transferred back to the user
           queryClient.setQueryData(
-            vusdBalanceQueryKey,
+            peggedTokenBalanceQueryKey,
             (old: bigint) => old + redeemableAmount,
           );
           // The redeem request is cleared
@@ -67,6 +64,7 @@ export const useCancelRedeemRequest = function ({
             redeemRequestQueryKey({
               address,
               chainId: ethereumChain.id,
+              gatewayAddress: peggedToken.gatewayAddress,
             }),
             [0n, 0n] as [bigint, bigint],
           );
@@ -85,10 +83,11 @@ export const useCancelRedeemRequest = function ({
         queryKey: redeemRequestQueryKey({
           address,
           chainId: ethereumChain.id,
+          gatewayAddress: peggedToken.gatewayAddress,
         }),
       });
       queryClient.invalidateQueries({
-        queryKey: vusdBalanceQueryKey,
+        queryKey: peggedTokenBalanceQueryKey,
       });
     },
   });

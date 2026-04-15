@@ -49,6 +49,7 @@ export const useRedeem = function ({
   const requestQueryKey = redeemRequestQueryKey({
     address: account,
     chainId: ethereumChain.id,
+    gatewayAddress: peggedToken.gatewayAddress,
   });
 
   const allowanceKey = allowanceQueryKey({

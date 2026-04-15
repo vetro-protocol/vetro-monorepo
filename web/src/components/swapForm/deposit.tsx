@@ -46,6 +46,7 @@ type Props = {
   onToggle: VoidFunction;
   onTokenChange: (token: TokenWithGateway) => void;
   onToggleApprove10x: VoidFunction;
+  peggedTokens: TokenWithGateway[];
   toToken: TokenWithGateway;
   whitelistedTokens: TokenWithGateway[];
 };
@@ -61,6 +62,7 @@ export function Deposit({
   onToggle,
   onToggleApprove10x,
   onTokenChange,
+  peggedTokens,
   toToken,
   whitelistedTokens,
 }: Props) {
@@ -292,7 +294,10 @@ export function Deposit({
           totalFees={totalMintFeesQueryData}
         />
       </FormSection>
-      <RedeemQueueSection whitelistedTokens={whitelistedTokens} />
+      <RedeemQueueSection
+        peggedTokens={peggedTokens}
+        whitelistedTokens={whitelistedTokens}
+      />
       {isDrawerOpen && flowStatus !== "idle" && (
         <SwapDepositDrawer
           flowStatus={flowStatus}

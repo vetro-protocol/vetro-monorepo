@@ -1,13 +1,14 @@
 import { StripedDivider } from "components/stripedDivider";
 import { useScrollToHash } from "hooks/useScrollToHash";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 
 import { RedeemQueue } from "./redeemQueue";
 
 type Props = {
-  whitelistedTokens: Token[];
+  peggedTokens: TokenWithGateway[];
+  whitelistedTokens: TokenWithGateway[];
 };
-export const RedeemQueueSection = function ({ whitelistedTokens }: Props) {
+export const RedeemQueueSection = function (props: Props) {
   const ref = useScrollToHash("redeem-queue");
 
   return (
@@ -16,7 +17,7 @@ export const RedeemQueueSection = function ({ whitelistedTokens }: Props) {
         <StripedDivider />
       </div>
       <div className="w-full" id="redeem-queue" ref={ref}>
-        <RedeemQueue whitelistedTokens={whitelistedTokens} />
+        <RedeemQueue {...props} />
       </div>
     </>
   );

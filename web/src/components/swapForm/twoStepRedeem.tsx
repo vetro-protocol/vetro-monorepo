@@ -279,10 +279,14 @@ export function TwoStepRedeem({
           totalFees={totalFeesQueryData}
         />
       </FormSection>
-      <RedeemQueueSection whitelistedTokens={whitelistedTokens} />
+      <RedeemQueueSection
+        peggedTokens={peggedTokens}
+        whitelistedTokens={whitelistedTokens}
+      />
       {isTutorialOpen && (
         <RedeemTutorialModal
           onClose={() => setIsTutorialOpen(false)}
+          peggedToken={fromToken}
           whitelistedTokens={whitelistedTokens}
         />
       )}

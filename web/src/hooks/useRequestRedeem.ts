@@ -75,6 +75,7 @@ export const useRequestRedeem = function ({
             redeemRequestQueryKey({
               address,
               chainId: ethereumChain.id,
+              gatewayAddress,
             }),
             // event includes the updated amount and claimableAt
             [args.amount, args.claimableAt] as [bigint, bigint],
@@ -94,6 +95,7 @@ export const useRequestRedeem = function ({
         queryKey: redeemRequestQueryKey({
           address,
           chainId: ethereumChain.id,
+          gatewayAddress,
         }),
       });
       queryClient.invalidateQueries({

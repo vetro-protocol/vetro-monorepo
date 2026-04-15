@@ -1,5 +1,5 @@
 import { tokenConfigOptions } from "hooks/useTokenConfig";
-import { whitelistedTokensOptions } from "hooks/useWhitelistedTokens";
+import { whitelistedTokensByGatewayOptions } from "hooks/useWhitelistedTokens";
 import type { Token } from "types";
 import { type Address, type Client, zeroAddress } from "viem";
 import { readContract } from "viem/actions";
@@ -16,7 +16,7 @@ vi.mock("hooks/useTokenConfig", () => ({
 }));
 
 vi.mock("hooks/useWhitelistedTokens", () => ({
-  whitelistedTokensOptions: vi.fn().mockReturnValue({
+  whitelistedTokensByGatewayOptions: vi.fn().mockReturnValue({
     queryFn: () => [],
     queryKey: ["whitelisted-tokens"],
   }),
@@ -52,7 +52,7 @@ describe("fetchOraclePrices", function () {
     );
     const queryClient = createTestQueryClient();
 
-    vi.mocked(whitelistedTokensOptions).mockReturnValue({
+    vi.mocked(whitelistedTokensByGatewayOptions).mockReturnValue({
       queryFn: () => [usdc],
       queryKey: ["whitelisted-tokens"],
     } as never);
@@ -83,7 +83,7 @@ describe("fetchOraclePrices", function () {
     );
     const queryClient = createTestQueryClient();
 
-    vi.mocked(whitelistedTokensOptions).mockReturnValue({
+    vi.mocked(whitelistedTokensByGatewayOptions).mockReturnValue({
       queryFn: () => [hemiBtc],
       queryKey: ["whitelisted-tokens"],
     } as never);
@@ -116,7 +116,7 @@ describe("fetchOraclePrices", function () {
     );
     const queryClient = createTestQueryClient();
 
-    vi.mocked(whitelistedTokensOptions).mockReturnValue({
+    vi.mocked(whitelistedTokensByGatewayOptions).mockReturnValue({
       queryFn: () => [usdc, wbtc],
       queryKey: ["whitelisted-tokens"],
     } as never);
@@ -144,7 +144,7 @@ describe("fetchOraclePrices", function () {
   it("returns empty object when no whitelisted tokens", async function () {
     const queryClient = createTestQueryClient();
 
-    vi.mocked(whitelistedTokensOptions).mockReturnValue({
+    vi.mocked(whitelistedTokensByGatewayOptions).mockReturnValue({
       queryFn: () => [],
       queryKey: ["whitelisted-tokens"],
     } as never);

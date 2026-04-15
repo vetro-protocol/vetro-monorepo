@@ -4,13 +4,34 @@ import {
   useQueryClient,
   type QueryClient,
 } from "@tanstack/react-query";
-import { getGatewayAddress } from "@vetro-protocol/gateway";
+import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { fetchWhitelistedTokens } from "fetchers/fetchWhitelistedTokens";
-import type { Client } from "viem";
+import type { Address, Client } from "viem";
 
 import { useEthereumClient } from "./useEthereumClient";
 
-export const whitelistedTokensOptions = ({
+export const whitelistedTokensByGatewayOptions = ({
+  client,
+  gatewayAddress,
+  queryClient,
+}: {
+  client: Client | undefined;
+  gatewayAddress: Address;
+  queryClient: QueryClient;
+}) =>
+  queryOptions({
+    enabled: !!client && !!client.chain,
+    queryFn: () =>
+      fetchWhitelistedTokens({
+        client: client!,
+        gatewayAddress,
+        queryClient,
+      }),
+    queryKey: ["whitelisted-tokens", client?.chain?.id, gatewayAddress],
+    staleTime: Infinity,
+  });
+
+const whitelistedTokensOptions = ({
   client,
   queryClient,
 }: {
@@ -20,23 +41,32 @@ export const whitelistedTokensOptions = ({
   queryOptions({
     enabled: !!client && !!client.chain,
     queryFn: () =>
-      fetchWhitelistedTokens({
-        client: client!,
-        gatewayAddress: getGatewayAddress(client!.chain!.id),
-        queryClient,
-      }),
+      Promise.all(
+        gatewayAddresses.map((gatewayAddress) =>
+          queryClient.ensureQueryData(
+            whitelistedTokensByGatewayOptions({
+              client: client!,
+              gatewayAddress,
+              queryClient,
+            }),
+          ),
+        ),
+      ).then((results) => results.flat()),
     queryKey: ["whitelisted-tokens", client?.chain?.id],
     staleTime: Infinity,
   });
 
-export const useWhitelistedTokens = function () {
+export const useWhitelistedTokens = function (gatewayAddress?: Address) {
   const client = useEthereumClient();
   const queryClient = useQueryClient();
 
   return useQuery(
-    whitelistedTokensOptions({
-      client,
-      queryClient,
-    }),
+    gatewayAddress
+      ? whitelistedTokensByGatewayOptions({
+          client,
+          gatewayAddress,
+          queryClient,
+        })
+      : whitelistedTokensOptions({ client, queryClient }),
   );
 };

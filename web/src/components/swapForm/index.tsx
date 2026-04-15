@@ -87,6 +87,7 @@ function SwapFormContent({
     onMaxClick,
     onToggle,
     onToggleApprove10x,
+    peggedTokens,
     whitelistedTokens,
   };
 
@@ -119,7 +120,6 @@ function SwapFormContent({
       onTokenChange={(token) =>
         dispatch({ payload: token, type: "SET_TO_TOKEN" })
       }
-      peggedTokens={peggedTokens}
     />
   );
 }
