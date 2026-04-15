@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchTotalMintFees } from "fetchers/fetchTotalMintFees";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 import { useAccount } from "wagmi";
 
 import { useEthereumClient } from "./useEthereumClient";
@@ -14,7 +14,7 @@ export const useTotalMintFees = function ({
 }: {
   amount: bigint;
   approveAmount: bigint | undefined;
-  fromToken: Token;
+  fromToken: TokenWithGateway;
   minPeggedTokenOut: bigint | undefined;
 }) {
   const { address: owner } = useAccount();

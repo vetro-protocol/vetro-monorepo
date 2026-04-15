@@ -1,5 +1,4 @@
 import { useQuery, queryOptions } from "@tanstack/react-query";
-import { getGatewayAddress } from "@vetro-protocol/gateway";
 import { previewDeposit } from "@vetro-protocol/gateway/actions";
 import type { Address, Chain, Client } from "viem";
 
@@ -57,14 +56,15 @@ export const previewDepositTokenOptions = ({
 
 export const usePreviewDeposit = function ({
   amountIn,
+  gatewayAddress,
   tokenIn,
 }: {
   amountIn: bigint;
+  gatewayAddress: Address;
   tokenIn: Address;
 }) {
   const ethereumChain = useMainnet();
   const client = useEthereumClient();
-  const gatewayAddress = getGatewayAddress(ethereumChain.id);
 
   return useQuery(
     previewDepositTokenOptions({

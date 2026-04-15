@@ -4,7 +4,7 @@ import { type Step, stepStatus } from "components/base/verticalStepper";
 import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
 import { type ComponentProps, Suspense, lazy } from "react";
 import { useTranslation } from "react-i18next";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 import type { Address } from "viem";
 
 import type { UnitPreview } from "./outputLabel";
@@ -55,13 +55,13 @@ const confirmStepStatuses: Record<
 type Props = {
   flowStatus: Exclude<DepositFlowStatus, "idle">;
   fromAmount: string;
-  fromToken: Token;
+  fromToken: TokenWithGateway;
   onClose: VoidFunction;
   onRetry: VoidFunction;
   oracleToken: Address;
   outputValue: string;
   showApproveStep: boolean;
-  toToken: Token;
+  toToken: TokenWithGateway;
   unitPreview: UnitPreview;
 } & Pick<
   ComponentProps<typeof SwapFees>,
