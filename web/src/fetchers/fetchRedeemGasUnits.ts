@@ -1,10 +1,9 @@
 import { tokenBalanceQueryOptions } from "@hemilabs/react-hooks/useTokenBalance";
 import type { QueryClient } from "@tanstack/react-query";
-import { getGatewayAddress } from "@vetro-protocol/gateway";
 import { encodeRedeem } from "@vetro-protocol/gateway/actions";
 import { redeemDelayOptions } from "hooks/useRedeemDelay";
 import { treasuryReservesOptions } from "hooks/useTreasuryReserves";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 import { createErc20AllowanceStateOverride } from "utils/erc20StateOverride";
 import { type Address, type Client, isAddressEqual } from "viem";
 import { estimateGas } from "viem/actions";
@@ -35,18 +34,17 @@ export const fetchRedeemGasUnits = async function ({
   minAmountOut: bigint;
   owner: Address;
   queryClient: QueryClient;
-  token: Token;
+  token: TokenWithGateway;
   tokenOut: Address;
 }) {
   const chainId = client.chain!.id;
-  const gatewayAddress = getGatewayAddress(chainId);
 
   const redeemDelay = await queryClient.ensureQueryData(
     redeemDelayOptions({
       account: owner,
       chainId,
       client,
-      gatewayAddress,
+      gatewayAddress: token.gatewayAddress,
       queryClient,
     }),
   );
@@ -68,7 +66,12 @@ export const fetchRedeemGasUnits = async function ({
     }
   } else {
     const reserves = await queryClient.ensureQueryData(
-      treasuryReservesOptions({ chainId, client, gatewayAddress, queryClient }),
+      treasuryReservesOptions({
+        chainId,
+        client,
+        gatewayAddress: token.gatewayAddress,
+        queryClient,
+      }),
     );
     const reserve = reserves.find((r) =>
       isAddressEqual(r.token.address, tokenOut),
@@ -91,10 +94,10 @@ export const fetchRedeemGasUnits = async function ({
     }),
     stateOverride: createErc20AllowanceStateOverride({
       owner,
-      spender: gatewayAddress,
+      spender: token.gatewayAddress,
       token,
     }),
-    to: gatewayAddress,
+    to: token.gatewayAddress,
   });
 
   // When there's a delay, user can't instant redeem so no approval needed
@@ -112,7 +115,7 @@ export const fetchRedeemGasUnits = async function ({
       client,
       owner,
       queryClient,
-      spender: gatewayAddress,
+      spender: token.gatewayAddress,
       token,
     }),
     operationGasPromise,

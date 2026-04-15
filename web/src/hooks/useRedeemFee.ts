@@ -3,7 +3,6 @@ import {
   queryOptions,
   useQuery,
 } from "@tanstack/react-query";
-import { getGatewayAddress } from "@vetro-protocol/gateway";
 import { getRedeemFee } from "@vetro-protocol/gateway/actions";
 import type { Address, Chain, Client } from "viem";
 
@@ -34,13 +33,16 @@ export const redeemFeeOptions = <TSelect = bigint>({
     queryKey: ["redeem-fee", chainId, gatewayAddress, token],
   });
 
-export const useRedeemFee = function <TSelect = bigint>(
-  token: Address,
-  options?: QueryOptions<TSelect>,
-) {
+export const useRedeemFee = function <TSelect = bigint>({
+  gatewayAddress,
+  token,
+  ...options
+}: {
+  gatewayAddress: Address;
+  token: Address;
+} & QueryOptions<TSelect>) {
   const ethereumChain = useMainnet();
   const client = useEthereumClient();
-  const gatewayAddress = getGatewayAddress(ethereumChain.id);
 
   return useQuery(
     redeemFeeOptions({
