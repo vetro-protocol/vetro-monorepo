@@ -1,7 +1,9 @@
 import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { Button } from "components/base/button";
 import { usePeggedToken } from "hooks/usePeggedToken";
 import { useTranslation } from "react-i18next";
+import Skeleton from "react-loading-skeleton";
 
 const DisconnectedWalletIcon = () => (
   <svg
@@ -86,7 +88,8 @@ export function PositionsDisconnectedState() {
 
 export function PositionsEmptyState() {
   const { t } = useTranslation();
-  const { data: peggedToken } = usePeggedToken();
+  // The only markets so far for Borrow are VUSD ones, so this is safe
+  const { data: peggedToken } = usePeggedToken(gatewayAddresses[0]);
 
   return (
     <div className="flex items-center justify-center border-b border-gray-200 bg-white px-8 py-12">
@@ -96,11 +99,15 @@ export function PositionsEmptyState() {
           <span className="font-semibold text-gray-900">
             {t("pages.borrow.no-positions-title")}
           </span>
-          <span className="font-normal text-gray-500">
-            {t("pages.borrow.no-positions-description", {
-              symbol: peggedToken.symbol,
-            })}
-          </span>
+          {peggedToken !== undefined ? (
+            <span className="font-normal text-gray-500">
+              {t("pages.borrow.no-positions-description", {
+                symbol: peggedToken.symbol,
+              })}
+            </span>
+          ) : (
+            <Skeleton count={2} width={200} />
+          )}
         </div>
       </div>
     </div>
