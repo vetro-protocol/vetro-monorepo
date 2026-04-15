@@ -1,6 +1,5 @@
-import { ApproveSection } from "components/approveSection";
 import { Button } from "components/base/button";
-import { FormSection, FormSectionItem } from "components/feesContainer";
+import { StripedDivider } from "components/stripedDivider";
 import { TokenInput } from "components/tokenInput";
 import { Balance } from "components/tokenInput/balance";
 import { TokenSelectorSkeleton } from "components/tokenSelectorSkeleton";
@@ -8,7 +7,6 @@ import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 
 import { SwapToggleButton } from "./swapToggleButton";
-import { TreasuryReserves } from "./treasuryReserves";
 
 export function SwapFormSkeleton() {
   const { t } = useTranslation();
@@ -58,14 +56,9 @@ export function SwapFormSkeleton() {
           </div>
         </div>
       </div>
-      <FormSection show={false}>
-        <FormSectionItem>
-          <ApproveSection active={false} />
-        </FormSectionItem>
-        <FormSectionItem>
-          <TreasuryReserves />
-        </FormSectionItem>
-      </FormSection>
+      <div className="w-full border-y border-gray-200 bg-gray-100">
+        <StripedDivider />
+      </div>
     </>
   );
 }
