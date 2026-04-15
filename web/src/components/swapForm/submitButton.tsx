@@ -1,13 +1,11 @@
 import { useAllowance } from "@hemilabs/react-hooks/useAllowance";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
-import { getGatewayAddress } from "@vetro-protocol/gateway";
 import { Button } from "components/base/button";
 import { Spinner } from "components/base/spinner";
 import type { InputError } from "components/tokenInput/utils";
-import { useMainnet } from "hooks/useMainnet";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 import { useAccount } from "wagmi";
 
 const Container = ({ children }: { children: ReactNode }) => (
@@ -21,7 +19,7 @@ type Props = {
   inputError: InputError | undefined;
   isPreviewError: boolean;
   previewValue: bigint | undefined;
-  token: Token;
+  token: TokenWithGateway;
 };
 
 export function SubmitButton({
@@ -33,11 +31,10 @@ export function SubmitButton({
 }: Props) {
   const { address } = useAccount();
   const { openConnectModal } = useConnectModal();
-  const ethereumChain = useMainnet();
 
   const { data: allowance, isError: isAllowanceError } = useAllowance({
     owner: address,
-    spender: getGatewayAddress(ethereumChain.id),
+    spender: token.gatewayAddress,
     token,
   });
 

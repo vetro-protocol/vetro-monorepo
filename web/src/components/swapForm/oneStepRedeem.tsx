@@ -293,7 +293,6 @@ export function OneStepRedeem({
           outputLabel={
             <OutputLabel
               fromToken={fromToken}
-              gatewayAddress={toToken.gatewayAddress}
               oracleToken={toToken.address}
               toToken={toToken}
               unitPreview={unitRedeemPreview}

@@ -282,7 +282,6 @@ export function Deposit({
           outputLabel={
             <OutputLabel
               fromToken={fromToken}
-              gatewayAddress={fromToken.gatewayAddress}
               oracleToken={fromToken.address}
               toToken={toToken}
               unitPreview={unitDepositPreview}

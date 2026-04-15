@@ -1,8 +1,7 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { getGatewayAddress } from "@vetro-protocol/gateway";
 import { tokenConfigOptions } from "hooks/useTokenConfig";
 import { whitelistedTokensOptions } from "hooks/useWhitelistedTokens";
-import { type Client, formatUnits } from "viem";
+import { type Address, type Client, formatUnits } from "viem";
 import { readContract } from "viem/actions";
 
 const aggregatorV3Abi = [
@@ -24,16 +23,17 @@ const aggregatorV3Abi = [
 
 export const fetchOraclePrices = async function ({
   client,
+  gatewayAddress,
   queryClient,
 }: {
   client: Client;
+  gatewayAddress: Address;
   queryClient: QueryClient;
 }) {
   const chainId = client.chain!.id;
-  const gatewayAddress = getGatewayAddress(chainId);
 
   const whitelistedTokens = await queryClient.ensureQueryData(
-    whitelistedTokensOptions({ client, queryClient }),
+    whitelistedTokensOptions({ client, gatewayAddress, queryClient }),
   );
 
   const entries = await Promise.all(

@@ -15,6 +15,7 @@ export const fetchTreasuryReserves = async function ({
   const tokens = await queryClient.ensureQueryData(
     whitelistedTokensOptions({
       client,
+      gatewayAddress,
       queryClient,
     }),
   );

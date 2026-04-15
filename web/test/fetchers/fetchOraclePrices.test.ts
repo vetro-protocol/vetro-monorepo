@@ -8,10 +8,6 @@ import { describe, expect, it, vi } from "vitest";
 import { fetchOraclePrices } from "../../src/fetchers/fetchOraclePrices";
 import { createTestQueryClient } from "../utils";
 
-vi.mock("@vetro-protocol/gateway", () => ({
-  getGatewayAddress: vi.fn().mockReturnValue(zeroAddress),
-}));
-
 vi.mock("hooks/useTokenConfig", () => ({
   tokenConfigOptions: vi.fn().mockReturnValue({
     queryFn: () => ({ oracle: zeroAddress }),
@@ -72,6 +68,7 @@ describe("fetchOraclePrices", function () {
 
     const result = await fetchOraclePrices({
       client: mockClient,
+      gatewayAddress: "0xDaD503f8B9d42bb7af3AfC588358D30163e4416F",
       queryClient,
     });
 
@@ -101,6 +98,7 @@ describe("fetchOraclePrices", function () {
 
     const result = await fetchOraclePrices({
       client: mockClient,
+      gatewayAddress: "0xDaD503f8B9d42bb7af3AfC588358D30163e4416F",
       queryClient,
     });
 
@@ -136,6 +134,7 @@ describe("fetchOraclePrices", function () {
 
     const result = await fetchOraclePrices({
       client: mockClient,
+      gatewayAddress: "0xDaD503f8B9d42bb7af3AfC588358D30163e4416F",
       queryClient,
     });
 
@@ -152,6 +151,7 @@ describe("fetchOraclePrices", function () {
 
     const result = await fetchOraclePrices({
       client: mockClient,
+      gatewayAddress: "0xDaD503f8B9d42bb7af3AfC588358D30163e4416F",
       queryClient,
     });
 

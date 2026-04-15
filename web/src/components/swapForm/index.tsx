@@ -3,7 +3,7 @@ import { usePeggedTokensByGateway } from "hooks/usePeggedTokensByGateway";
 import { useSwapMode } from "hooks/useSwapMode";
 import { useWhitelistedTokens } from "hooks/useWhitelistedTokens";
 import { useReducer } from "react";
-import type { WhitelistedToken } from "types";
+import type { TokenWithGateway } from "types";
 import { parseTokenUnits } from "utils/token";
 import type { Address } from "viem";
 
@@ -15,9 +15,9 @@ import type { SwapFormState } from "./types";
 
 type SwapFormContentProps = {
   mode: "deposit" | "redeem";
-  peggedTokensByGateway: Record<Address, WhitelistedToken>;
+  peggedTokensByGateway: Record<Address, TokenWithGateway>;
   setMode: (mode: "deposit" | "redeem") => void;
-  whitelistedTokens: WhitelistedToken[];
+  whitelistedTokens: TokenWithGateway[];
 };
 
 function getInitialState({
@@ -26,8 +26,8 @@ function getInitialState({
   whitelistedTokens,
 }: {
   mode: "deposit" | "redeem";
-  peggedTokensByGateway: Record<Address, WhitelistedToken>;
-  whitelistedTokens: WhitelistedToken[];
+  peggedTokensByGateway: Record<Address, TokenWithGateway>;
+  whitelistedTokens: TokenWithGateway[];
 }): SwapFormState {
   const firstStablecoin = whitelistedTokens[0];
   const firstPeggedToken =
