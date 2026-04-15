@@ -2,12 +2,12 @@ import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { useNeedsApproval } from "@hemilabs/react-hooks/useNeedsApproval";
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
 import type { FetchStatus, QueryStatus } from "@tanstack/react-query";
-import { getGatewayAddress } from "@vetro-protocol/gateway";
 import { ApproveSection } from "components/approveSection";
 import { Button } from "components/base/button";
 import { Toast } from "components/base/toast";
 import { FormSection, FormSectionItem } from "components/feesContainer";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
+import { TokenDropdown } from "components/tokenDropdown";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useMainnet } from "hooks/useMainnet";
@@ -18,7 +18,7 @@ import { useTotalRequestRedeemFees } from "hooks/useTotalRequestRedeemFees";
 import { useWithdrawalDelay } from "hooks/useWithdrawalDelay";
 import { type FormEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 import { getTokenListParams } from "utils/tokenList";
 
 import { Form } from "./form";
@@ -38,14 +38,16 @@ type Props = {
   approve10x: boolean;
   approveAmount: bigint | undefined;
   fromInputValue: string;
-  fromToken: Token;
+  fromToken: TokenWithGateway;
+  onFromTokenChange: (token: TokenWithGateway) => void;
   onInputChange: (value: string) => void;
   onMaxClick: (maxValue: string) => void;
   onToggle: VoidFunction;
-  onTokenChange: (token: Token) => void;
+  onTokenChange: (token: TokenWithGateway) => void;
   onToggleApprove10x: VoidFunction;
-  toToken: Token;
-  whitelistedTokens: Token[];
+  peggedTokens: TokenWithGateway[];
+  toToken: TokenWithGateway;
+  whitelistedTokens: TokenWithGateway[];
 };
 
 export function TwoStepRedeem({
@@ -54,10 +56,12 @@ export function TwoStepRedeem({
   approveAmount,
   fromInputValue,
   fromToken,
+  onFromTokenChange,
   onInputChange,
   onMaxClick,
   onToggle,
   onToggleApprove10x,
+  peggedTokens,
   toToken,
   whitelistedTokens,
 }: Props) {
@@ -72,6 +76,7 @@ export function TwoStepRedeem({
   const [startedWithApproval, setStartedWithApproval] = useState(false);
 
   const { data: seconds } = useWithdrawalDelay({
+    gatewayAddress: fromToken.gatewayAddress,
     select: (data) => Number(data),
   });
   const { data: fromTokenBalance } = useTokenBalance({
@@ -84,11 +89,12 @@ export function TwoStepRedeem({
 
   const { data: needsApproval } = useNeedsApproval({
     amount: amountBigInt,
-    spender: getGatewayAddress(ethereumChain.id),
+    spender: fromToken.gatewayAddress,
     token: fromToken,
   });
 
   const { data: redeemPreview, isError: isPreviewError } = usePreviewRedeem({
+    gatewayAddress: fromToken.gatewayAddress,
     peggedTokenIn: amountBigInt,
     tokenOut: toToken.address,
   });
@@ -105,6 +111,7 @@ export function TwoStepRedeem({
 
   const requestRedeemMutation = useRequestRedeem({
     approveAmount,
+    gatewayAddress: fromToken.gatewayAddress,
     onEmitter(emitter) {
       emitter.on("user-signed-approval", () => setFlowStatus("approving"));
       emitter.on("approve-transaction-succeeded", () =>
@@ -145,6 +152,7 @@ export function TwoStepRedeem({
         setFlowStatus("request-redeem-error");
       });
     },
+    peggedToken: fromToken,
     peggedTokenAmount: amountBigInt,
   });
 
@@ -211,10 +219,18 @@ export function TwoStepRedeem({
         fromInputValue={fromInputValue}
         fromToken={fromToken}
         fromTokenSelector={
-          <TokenSelectorReadOnly
-            logoURI={fromToken.logoURI}
-            symbol={fromToken.symbol}
-          />
+          peggedTokens.length > 1 ? (
+            <TokenDropdown
+              onChange={onFromTokenChange}
+              tokens={peggedTokens}
+              value={fromToken}
+            />
+          ) : (
+            <TokenSelectorReadOnly
+              logoURI={fromToken.logoURI}
+              symbol={fromToken.symbol}
+            />
+          )
         }
         maxButton={
           <SetMaxErc20Balance onClick={onMaxClick} token={fromToken} />
@@ -254,7 +270,7 @@ export function TwoStepRedeem({
           <ApproveSection active={approve10x} onToggle={onToggleApprove10x} />
         </FormSectionItem>
         <FormSectionItem>
-          <TreasuryReserves />
+          <TreasuryReserves gatewayAddress={fromToken.gatewayAddress} />
         </FormSectionItem>
         <SwapFees
           fromToken={fromToken}

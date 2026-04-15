@@ -1,5 +1,5 @@
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 import { zeroAddress, type Client } from "viem";
 import { estimateGas } from "viem/actions";
 import { describe, expect, it, vi } from "vitest";
@@ -10,10 +10,6 @@ import { createTestQueryClient } from "../utils";
 
 vi.mock("../../src/fetchers/estimateApprovalGasUnits", () => ({
   estimateApprovalGasUnits: vi.fn(),
-}));
-
-vi.mock("@vetro-protocol/gateway", () => ({
-  getGatewayAddress: vi.fn().mockReturnValue(zeroAddress),
 }));
 
 vi.mock("@vetro-protocol/gateway/actions", () => ({
@@ -37,7 +33,8 @@ describe("fetchRequestRedeemGasUnits", function () {
   const mockToken = {
     address: zeroAddress,
     chainId,
-  } as Token;
+    gatewayAddress: "0xDaD503f8B9d42bb7af3AfC588358D30163e4416F",
+  } as TokenWithGateway;
 
   function createPrepopulatedQueryClient(balance = 1000n) {
     const queryClient = createTestQueryClient();
