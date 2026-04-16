@@ -1,3 +1,4 @@
+import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { PageTitle } from "components/base/pageTitle";
 import { StripedDivider } from "components/stripedDivider";
 import { useAnalyticsTotals } from "hooks/useAnalyticsTotals";
@@ -28,6 +29,11 @@ import {
 
 type AnalyticsTotals = NonNullable<
   ReturnType<typeof useAnalyticsTotals>["data"]
+>;
+
+type PeggedToken = NonNullable<ReturnType<typeof usePeggedToken>["data"]>;
+type WhitelistedTokens = NonNullable<
+  ReturnType<typeof useWhitelistedTokens>["data"]
 >;
 
 const toTotalsValues = function (
@@ -67,7 +73,15 @@ const AllocationRow = ({
   </>
 );
 
-export const Analytics = function () {
+type AnalyticsContentProps = {
+  peggedToken: PeggedToken;
+  whitelistedTokens: WhitelistedTokens;
+};
+
+const AnalyticsContent = function ({
+  peggedToken,
+  whitelistedTokens,
+}: AnalyticsContentProps) {
   const { t } = useTranslation();
   const {
     data: treasury,
@@ -84,20 +98,12 @@ export const Analytics = function () {
     isError: isExitQueueError,
     isLoading: isExitQueueLoading,
   } = useVariableStakeExitQueue();
-  const { data: peggedToken } = usePeggedToken();
-  const {
-    data: whitelistedTokens,
-    isError: isWhitelistedTokensError,
-    isLoading: isWhitelistedTokensLoading,
-  } = useWhitelistedTokens();
   const {
     data: collateralization,
     isError: isCollateralizationError,
     isLoading: isCollateralizationLoading,
   } = useCollateralizationRatio();
 
-  const isTokensLoading = isTreasuryLoading || isWhitelistedTokensLoading;
-  const isTokensError = isTreasuryError || isWhitelistedTokensError;
   const tokens = { treasuryTokens: treasury, whitelistedTokens };
 
   const [tvlValue, stakedValue] = toTotalsValues(totals, peggedToken.decimals);
@@ -130,21 +136,20 @@ export const Analytics = function () {
   })?.map((item, index) => ({ ...item, color: assignColor(index) }));
 
   return (
-    <div className="flex flex-col">
-      <PageTitle value={t("pages.analytics.title")} />
+    <>
       <AllocationRow className="md:divide-x md:divide-gray-200">
         <AllocationCard
           icon={<DatabaseIcon />}
-          isError={isTokensError || isTotalsError}
-          isLoading={isTokensLoading || isTotalsLoading}
+          isError={isTreasuryError || isTotalsError}
+          isLoading={isTreasuryLoading || isTotalsLoading}
           items={toTvlItems(tokens)}
           label={t("pages.analytics.tvl-label")}
           value={tvlValue}
         />
         <AllocationCard
           icon={<PieChartIcon />}
-          isError={isTokensError}
-          isLoading={isTokensLoading}
+          isError={isTreasuryError}
+          isLoading={isTreasuryLoading}
           items={bufferItem ? [...yieldItems, bufferItem] : yieldItems}
           label={t("pages.analytics.yield-label")}
           value={yieldValue}
@@ -179,6 +184,82 @@ export const Analytics = function () {
           />
         </div>
       </AllocationRow>
+    </>
+  );
+};
+
+export const Analytics = function () {
+  const { t } = useTranslation();
+  const { data: peggedToken, isError: isPeggedTokenError } = usePeggedToken(
+    // The analytics page is VUSD only, so this is ok
+    gatewayAddresses[0],
+  );
+  const { data: whitelistedTokens, isError: isWhitelistedTokensError } =
+    // The analytics page is VUSD only, so this is ok
+    useWhitelistedTokens(gatewayAddresses[0]);
+
+  const isGateError = isPeggedTokenError || isWhitelistedTokensError;
+  const isGateLoading = !isGateError && (!peggedToken || !whitelistedTokens);
+
+  return (
+    <div className="flex flex-col">
+      <PageTitle value={t("pages.analytics.title")} />
+      {peggedToken && whitelistedTokens ? (
+        <AnalyticsContent
+          peggedToken={peggedToken}
+          whitelistedTokens={whitelistedTokens}
+        />
+      ) : (
+        <>
+          <AllocationRow className="md:divide-x md:divide-gray-200">
+            <AllocationCard
+              icon={<DatabaseIcon />}
+              isError={isGateError}
+              isLoading={isGateLoading}
+              items={[]}
+              label={t("pages.analytics.tvl-label")}
+              value=""
+            />
+            <AllocationCard
+              icon={<PieChartIcon />}
+              isError={isGateError}
+              isLoading={isGateLoading}
+              items={[]}
+              label={t("pages.analytics.yield-label")}
+              value=""
+            />
+          </AllocationRow>
+          <AllocationRow className="md:divide-x md:divide-gray-200">
+            <AllocationCard
+              icon={<StakingIcon />}
+              isError={isGateError}
+              isLoading={isGateLoading}
+              label={t("pages.analytics.staked-label")}
+              value=""
+            />
+            <AllocationCard
+              icon={<ExitQueueIcon />}
+              isError={isGateError}
+              isLoading={isGateLoading}
+              label={t("pages.analytics.exit-queue-label")}
+              value=""
+            />
+          </AllocationRow>
+          <AllocationRow className="md:justify-center">
+            <div className="md:w-1/2">
+              <AllocationCard
+                formatAmount={formatPercentage}
+                icon={<ShieldIcon />}
+                isError={isGateError}
+                isLoading={isGateLoading}
+                items={[]}
+                label={t("pages.analytics.collateralization-ratio-label")}
+                value=""
+              />
+            </div>
+          </AllocationRow>
+        </>
+      )}
     </div>
   );
 };

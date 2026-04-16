@@ -1,5 +1,4 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { getGatewayAddress } from "@vetro-protocol/gateway";
 import { analyticsBackingVusdOptions } from "hooks/useAnalyticsBackingVusd";
 import { analyticsTotalsOptions } from "hooks/useAnalyticsTotals";
 import { analyticsTreasuryOptions } from "hooks/useAnalyticsTreasury";
@@ -50,15 +49,16 @@ const fetchTreasuryTotal = async function ({
 
 export const fetchCollateralizationRatio = async function ({
   client,
+  gatewayAddress,
   queryClient,
 }: {
   client: Client;
+  gatewayAddress: Address;
   queryClient: QueryClient;
 }) {
   const chainId = client.chain!.id;
-  const gatewayAddress = getGatewayAddress(chainId);
   const peggedToken = await queryClient.ensureQueryData(
-    peggedTokenQueryOptions({ client, queryClient }),
+    peggedTokenQueryOptions({ client, gatewayAddress, queryClient }),
   );
   const { decimals } = peggedToken;
   const oneUnit = 10n ** BigInt(decimals);

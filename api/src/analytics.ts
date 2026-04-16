@@ -1,4 +1,4 @@
-import { getGatewayAddress } from "@vetro-protocol/gateway";
+import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { getTreasury } from "@vetro-protocol/gateway/actions";
 import {
   getTokenConfig,
@@ -64,7 +64,9 @@ export async function getTreasuryComposition({
     chain: mainnet,
     transport: http(url),
   });
-  const gatewayAddress = getGatewayAddress(mainnet.id);
+  // TODO we may need to update this to work with multiple gateways.
+  // See https://github.com/vetro-protocol/vetro-monorepo/issues/239
+  const gatewayAddress = gatewayAddresses[0];
   const treasuryAddress = await getTreasury(client, {
     address: gatewayAddress,
   });
@@ -173,7 +175,9 @@ export async function getBackingVusd({ url }: { url: string | undefined }) {
     chain: mainnet,
     transport: http(url),
   });
-  const gatewayAddress = getGatewayAddress(mainnet.id);
+  // TODO we may need to update this to work with multiple gateways.
+  // See https://github.com/vetro-protocol/vetro-monorepo/issues/239
+  const gatewayAddress = gatewayAddresses[0];
   const treasuryAddress = await getTreasury(client, {
     address: gatewayAddress,
   });
