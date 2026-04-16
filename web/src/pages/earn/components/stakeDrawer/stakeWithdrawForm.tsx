@@ -11,7 +11,6 @@ import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useInstantWithdraw } from "hooks/useInstantWithdraw";
 import { useMainnet } from "hooks/useMainnet";
-import { usePeggedToken } from "hooks/usePeggedToken";
 import { useStakedBalance } from "hooks/useStakedBalance";
 import { useStakeWithdraw } from "hooks/useStakeWithdraw";
 import { useCanInstantWithdraw } from "pages/earn/hooks/useCanInstantWithdraw";
@@ -20,6 +19,7 @@ import { useTotalWithdrawFees } from "pages/earn/hooks/useTotalWithdrawFees";
 import { type FormEvent, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
+import type { Token } from "types";
 import { formatAmount } from "utils/token";
 import { parseUnits } from "viem";
 import { useAccount } from "wagmi";
@@ -32,6 +32,7 @@ type Props = {
   onInputChange: (value: string) => void;
   onSuccess: (toast: { description: string; title: string }) => void;
   onWithdrawStepChange: (step: WithdrawStep) => void;
+  peggedToken: Token;
   withdrawStep: WithdrawStep;
 };
 
@@ -131,6 +132,7 @@ export function StakeWithdrawForm({
   onInputChange,
   onSuccess,
   onWithdrawStepChange,
+  peggedToken,
   withdrawStep,
 }: Props) {
   const { isConnected } = useAccount();
@@ -139,13 +141,12 @@ export function StakeWithdrawForm({
   const { data: cooldownDays } = useCooldownDuration();
   const { openConnectModal } = useConnectModal();
   const { t } = useTranslation();
-  const { data: peggedToken } = usePeggedToken();
 
   const instantTracking = useActivityTracking({
     page: "earn",
     text: t("pages.earn.activity.instant-withdraw-text", {
       amount: inputValue,
-      symbol: peggedToken?.symbol,
+      symbol: peggedToken.symbol,
     }),
     title: `${t("nav.earn")} · ${t("pages.earn.stake.instant-withdraw")}`,
   });
@@ -154,7 +155,7 @@ export function StakeWithdrawForm({
     page: "earn",
     text: t("pages.earn.activity.request-withdraw-text", {
       amount: inputValue,
-      symbol: peggedToken?.symbol,
+      symbol: peggedToken.symbol,
     }),
     title: `${t("nav.earn")} · ${t("pages.earn.stake.withdraw")}`,
   });
@@ -167,9 +168,7 @@ export function StakeWithdrawForm({
   const { data: nativeBalanceData } = useNativeBalance(chain.id);
   const nativeBalance = nativeBalanceData?.value;
 
-  const amountBigInt = peggedToken
-    ? parseUnits(inputValue, peggedToken.decimals)
-    : 0n;
+  const amountBigInt = parseUnits(inputValue, peggedToken.decimals);
 
   const handleRequestWithdrawSuccess = function () {
     onSuccess({
@@ -232,7 +231,7 @@ export function StakeWithdrawForm({
 
   const formattedBalance = formatAmount({
     amount: stakedBalance,
-    decimals: peggedToken?.decimals ?? 18,
+    decimals: peggedToken.decimals,
     isError: isStakedBalanceError,
   });
 
@@ -274,7 +273,7 @@ export function StakeWithdrawForm({
           label={t("pages.earn.stake.you-will-withdraw")}
           maxButton={
             <SetMaxStakedBalance
-              decimals={peggedToken!.decimals}
+              decimals={peggedToken.decimals}
               onClick={handleMaxClick}
             />
           }

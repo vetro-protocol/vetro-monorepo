@@ -2,6 +2,7 @@ import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { SegmentedControl } from "components/base/segmentedControl";
 import { useReducer } from "react";
 import { useTranslation } from "react-i18next";
+import { type Token } from "types";
 
 import { StakeDepositForm } from "./stakeDepositForm";
 import {
@@ -22,9 +23,15 @@ type Props = {
   mode: StakeMode;
   onModeChange: (mode: StakeMode) => void;
   onSuccess: (toast: ToastData) => void;
+  peggedToken: Token;
 };
 
-export function StakeDrawerContent({ mode, onModeChange, onSuccess }: Props) {
+export function StakeDrawerContent({
+  mode,
+  onModeChange,
+  onSuccess,
+  peggedToken,
+}: Props) {
   const { t } = useTranslation();
   const [state, dispatch] = useReducer(
     stakeDrawerReducer,
@@ -71,6 +78,7 @@ export function StakeDrawerContent({ mode, onModeChange, onSuccess }: Props) {
           onDepositStepChange={handleDepositStepChange}
           onInputChange={handleInputChange}
           onSuccess={onSuccess}
+          peggedToken={peggedToken}
         />
       ) : (
         <StakeWithdrawForm
@@ -79,6 +87,7 @@ export function StakeDrawerContent({ mode, onModeChange, onSuccess }: Props) {
           onSuccess={onSuccess}
           onWithdrawStepChange={handleWithdrawStepChange}
           withdrawStep={state.withdrawStep}
+          peggedToken={peggedToken}
         />
       )}
     </div>

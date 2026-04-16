@@ -1,5 +1,6 @@
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
 import { getStakingVaultAddress } from "@vetro-protocol/earn";
+import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { useMainnet } from "hooks/useMainnet";
 import { usePeggedToken } from "hooks/usePeggedToken";
 import { useStakedBalance } from "hooks/useStakedBalance";
@@ -17,7 +18,7 @@ export function EarnStats() {
   const chain = useMainnet();
   const stakingVaultAddress = getStakingVaultAddress(chain.id);
   const { data: svusd } = useSvusd();
-  const { data: peggedToken } = usePeggedToken();
+  const { data: peggedToken } = usePeggedToken(gatewayAddresses[0]);
 
   const { data: stakedBalance, isLoading: isLoadingStakedBalance } =
     useStakedBalance();

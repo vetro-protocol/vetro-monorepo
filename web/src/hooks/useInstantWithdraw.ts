@@ -4,6 +4,7 @@ import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
 import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpdateNativeBalanceAfterReceipt";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { getStakingVaultAddress } from "@vetro-protocol/earn";
+import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { waitForTransactionReceipt } from "viem/actions";
 import { withdraw } from "viem-erc4626/actions";
 import { useAccount } from "wagmi";
@@ -38,9 +39,13 @@ export const useInstantWithdraw = function ({
   const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
     chain.id,
   );
-  const { data: peggedToken } = usePeggedToken();
+  // TODO using the only gateway to simplify this PR
+  // we will handle multiple gateways in the next PR
+  const { data: peggedToken } = usePeggedToken(gatewayAddresses[0]);
 
-  const vusdBalanceKey = tokenBalanceQueryKey(peggedToken, account);
+  const peggedTokenBalanceKey = peggedToken
+    ? tokenBalanceQueryKey(peggedToken, account)
+    : [];
 
   const sharesBalanceKey = tokenBalanceQueryKey(
     { address: stakingVaultAddress, chainId: chain.id },
@@ -85,8 +90,9 @@ export const useInstantWithdraw = function ({
       onSuccess?.();
 
       // Optimistically update balances
-      queryClient.setQueryData(vusdBalanceKey, (old: bigint | undefined) =>
-        old !== undefined ? old + assets : old,
+      queryClient.setQueryData(
+        peggedTokenBalanceKey,
+        (old: bigint | undefined) => (old !== undefined ? old + assets : old),
       );
       queryClient.setQueryData(stakedKey, (old: bigint | undefined) =>
         old !== undefined ? old - assets : old,
@@ -101,7 +107,7 @@ export const useInstantWithdraw = function ({
       });
 
       queryClient.invalidateQueries({
-        queryKey: vusdBalanceKey,
+        queryKey: peggedTokenBalanceKey,
       });
 
       // Shares must be refetched before staked balance, because

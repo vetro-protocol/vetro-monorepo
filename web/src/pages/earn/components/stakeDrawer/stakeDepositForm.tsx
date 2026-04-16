@@ -16,12 +16,12 @@ import { Balance } from "components/tokenInput/balance";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useMainnet } from "hooks/useMainnet";
-import { usePeggedToken } from "hooks/usePeggedToken";
 import { useStakeDeposit } from "hooks/useStakeDeposit";
 import { useSvusd } from "hooks/useSvusd";
 import { useTotalDepositFees } from "pages/earn/hooks/useTotalDepositFees";
 import { type FormEvent, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import type { Token } from "types";
 import { formatAmount } from "utils/token";
 import { parseUnits } from "viem";
 import { useAccount } from "wagmi";
@@ -38,6 +38,7 @@ type Props = {
   onDepositStepChange: (step: DepositStep) => void;
   onInputChange: (value: string) => void;
   onSuccess: (toast: { description: string; title: string }) => void;
+  peggedToken: Token;
 };
 
 function getStakeErrors({
@@ -163,13 +164,13 @@ export function StakeDepositForm({
   onDepositStepChange,
   onInputChange,
   onSuccess,
+  peggedToken,
 }: Props) {
   const { address: account, isConnected } = useAccount();
   const chain = useMainnet();
   const { openConnectModal } = useConnectModal();
   const { t } = useTranslation();
   const { data: svusd } = useSvusd();
-  const { data: peggedToken } = usePeggedToken();
   const { mutate: watchToken } = useAddTokenToWallet({
     token: {
       address: svusd!.address,
@@ -180,7 +181,7 @@ export function StakeDepositForm({
   const stakingVaultAddress = getStakingVaultAddress(chain.id);
 
   const { data: vusdBalance, isError: isVusdBalanceError } = useTokenBalance({
-    address: peggedToken?.address,
+    address: peggedToken.address,
     chainId: chain.id,
   });
 
@@ -193,9 +194,7 @@ export function StakeDepositForm({
     token: peggedToken,
   });
 
-  const amountBigInt = peggedToken
-    ? parseUnits(inputValue, peggedToken.decimals)
-    : 0n;
+  const amountBigInt = parseUnits(inputValue, peggedToken.decimals);
 
   const needsApproval =
     currentAllowance !== undefined && currentAllowance < amountBigInt;
@@ -207,7 +206,7 @@ export function StakeDepositForm({
       page: "earn",
       text: t("pages.earn.activity.deposit-text", {
         amount: inputValue,
-        symbol: peggedToken?.symbol,
+        symbol: peggedToken.symbol,
       }),
       title: `${t("nav.earn")} · ${t("pages.earn.stake.deposit")}`,
     });
@@ -301,7 +300,7 @@ export function StakeDepositForm({
           }
           label={t("pages.earn.stake.you-will-stake")}
           maxButton={
-            <SetMaxErc20Balance onClick={handleMaxClick} token={peggedToken!} />
+            <SetMaxErc20Balance onClick={handleMaxClick} token={peggedToken} />
           }
           onChange={onInputChange}
           tokenSelector={<TokenSelectorReadOnly {...peggedToken} />}
@@ -328,7 +327,7 @@ export function StakeDepositForm({
           <NetworkFees
             label={t("pages.earn.stake.fees-label", {
               amount: inputValue,
-              token: peggedToken.symbol,
+              token: peggedToken?.symbol,
             })}
             networkFee={depositFeesQuery}
             sectionClassName="px-6"

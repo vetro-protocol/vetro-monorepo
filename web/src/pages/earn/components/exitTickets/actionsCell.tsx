@@ -1,4 +1,5 @@
 import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { Button, ButtonIcon } from "components/base/button";
 import { Toast } from "components/base/toast";
 import { Tooltip } from "components/tooltip";
@@ -74,7 +75,9 @@ export function ActionsCell({
 }: Props) {
   const { t } = useTranslation();
   const { openConnectModal } = useConnectModal();
-  const { data: peggedToken } = usePeggedToken();
+  // TODO using the only gateway to simplify this PR
+  // we will handle multiple gateways in the next PR
+  const { data: peggedToken } = usePeggedToken(gatewayAddresses[0]);
   const status = getTicketStatus(ticket);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isWithdrawing, setIsWithdrawing] = useState(false);

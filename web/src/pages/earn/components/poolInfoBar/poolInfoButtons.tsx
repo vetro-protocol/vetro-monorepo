@@ -1,7 +1,9 @@
+import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { Button } from "components/base/button";
 import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
 import { Toast } from "components/base/toast";
+import { usePeggedToken } from "hooks/usePeggedToken";
 import { useStakeMode } from "hooks/useStakeMode";
 import {
   lazy,
@@ -31,6 +33,9 @@ export function PoolInfoButtons() {
   const [requestCloseDrawer, setRequestCloseDrawer] = useState(false);
   const [toast, setToast] = useState<ToastData | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  // TODO using the only gateway to simplify this PR
+  // we will handle multiple gateways in the next PR
+  const { data: peggedToken } = usePeggedToken(gatewayAddresses[0]);
 
   // Auto-open drawer when mode is in URL
   useEffect(
@@ -82,13 +87,14 @@ export function PoolInfoButtons() {
         </Button>
       </div>
 
-      {isDrawerOpen && mode && (
+      {isDrawerOpen && mode && peggedToken && (
         <Drawer onClose={handleClose} requestClose={requestCloseDrawer}>
           <Suspense fallback={<DrawerLoader />}>
             <StakeDrawerContent
               mode={mode}
               onModeChange={setMode}
               onSuccess={handleSuccess}
+              peggedToken={peggedToken}
             />
           </Suspense>
         </Drawer>
