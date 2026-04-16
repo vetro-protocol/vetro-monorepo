@@ -31,8 +31,8 @@ export function CancelRedeemModal({
     useActivityTracking({
       page: "swap",
       text: t("pages.swap.activity.cancel-redeem-text", {
-        amount: formatUnits(redeemableAmount, peggedToken?.decimals ?? 18),
-        symbol: peggedToken?.symbol,
+        amount: formatUnits(redeemableAmount, peggedToken.decimals),
+        symbol: peggedToken.symbol,
       }),
       title: `${t("nav.swap")} · ${t("pages.swap.redeem-queue.cancel-redeem")}`,
     });
