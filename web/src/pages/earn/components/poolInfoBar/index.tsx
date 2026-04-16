@@ -1,10 +1,12 @@
 import { getStakingVaultAddress } from "@vetro-protocol/earn";
+import { TokenLogo } from "components/tokenLogo";
 import { useApy } from "hooks/useApy";
 import { useMainnet } from "hooks/useMainnet";
 import { usePeggedToken } from "hooks/usePeggedToken";
 import { usePoolDeposits } from "hooks/usePoolDeposits";
 import { useUserRewards } from "hooks/useUserRewards";
 import { useTranslation } from "react-i18next";
+import Skeleton from "react-loading-skeleton";
 import { formatUsd } from "utils/currency";
 import { formatEvmAddress } from "utils/format";
 import { type Address, formatUnits } from "viem";
@@ -51,6 +53,14 @@ export function PoolInfoBar({ gatewayAddress }: Props) {
   return (
     <div className="flex flex-col gap-6 border-b border-gray-200 bg-white p-4 sm:gap-4 md:flex-row md:items-center md:justify-between md:px-16 md:py-6">
       <div className="grid grid-cols-2 gap-4 sm:flex sm:items-center sm:justify-center sm:gap-6 md:justify-start md:gap-8">
+        {peggedToken ? (
+          <div className="flex size-10 items-center justify-center rounded-lg bg-blue-800/10">
+            <TokenLogo {...peggedToken} />
+          </div>
+        ) : (
+          <Skeleton borderRadius={8} height={40} width={40} />
+        )}
+        <PoolInfoItem label="Token" value={peggedToken?.symbol} />
         <PoolInfoItem
           label={t("pages.earn.pool-info.pool-contract")}
           value={formatEvmAddress(stakingVaultAddress)}
