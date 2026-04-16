@@ -27,7 +27,7 @@ export const mintFeeOptions = <TSelect = bigint>({
     ...options,
     enabled: !!client,
     queryFn: () => getMintFee(client!, { address: gatewayAddress, token }),
-    queryKey: ["mint-fee", gatewayAddress, token],
+    queryKey: ["mint-fee", client?.chain?.id, gatewayAddress, token],
   });
 
 export const useMintFee = function <TSelect = bigint>({
