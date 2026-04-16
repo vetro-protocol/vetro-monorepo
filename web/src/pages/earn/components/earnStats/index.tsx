@@ -18,6 +18,8 @@ export function EarnStats() {
   const chain = useMainnet();
   const stakingVaultAddress = getStakingVaultAddress(chain.id);
   const { data: svusd } = useSvusd();
+  // TODO using the only gateway to simplify this PR
+  // we will handle multiple gateways in the next PR
   const { data: peggedToken } = usePeggedToken(gatewayAddresses[0]);
 
   const { data: stakedBalance, isLoading: isLoadingStakedBalance } =
