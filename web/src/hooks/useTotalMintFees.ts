@@ -43,6 +43,7 @@ export const useTotalMintFees = function ({
     queryKey: [
       "total-mint-fees",
       ethereumChain.id,
+      fromToken.gatewayAddress,
       fromToken.address,
       owner,
       amount.toString(),
