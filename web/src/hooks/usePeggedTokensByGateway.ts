@@ -29,6 +29,6 @@ export const usePeggedTokensByGateway = function () {
             tokens.map((t) => [t.gatewayAddress, t]),
           ) as Record<Address, TokenWithGateway>,
       ),
-    queryKey: ["pegged-tokens"],
+    queryKey: ["pegged-tokens", client?.chain.id],
   });
 };
