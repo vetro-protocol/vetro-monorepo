@@ -34,7 +34,7 @@ export const useRequestRedeem = function ({
   const { queryKey: nativeBalanceKey } = useNativeBalance(ethereumChain.id);
   const queryClient = useQueryClient();
 
-  const vusdBalanceQueryKey = tokenBalanceQueryKey(peggedToken, address);
+  const peggedTokenBalanceQueryKey = tokenBalanceQueryKey(peggedToken, address);
 
   const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
     ethereumChain.id,
@@ -60,7 +60,7 @@ export const useRequestRedeem = function ({
       emitter.on("request-redeem-transaction-succeeded", function (receipt) {
         updateNativeBalanceAfterReceipt(receipt);
         queryClient.setQueryData(
-          vusdBalanceQueryKey,
+          peggedTokenBalanceQueryKey,
           (old: bigint) => old - peggedTokenAmount,
         );
         // event is always emitted
@@ -99,7 +99,7 @@ export const useRequestRedeem = function ({
         }),
       });
       queryClient.invalidateQueries({
-        queryKey: vusdBalanceQueryKey,
+        queryKey: peggedTokenBalanceQueryKey,
       });
     },
   });
