@@ -193,7 +193,9 @@ export function RedeemQueue({ peggedTokens, whitelistedTokens }: Props) {
         placeholder={
           <RedeemQueueEmptyState
             peggedToken={peggedToken}
-            whitelistedTokens={whitelistedTokens}
+            whitelistedTokens={whitelistedTokens.filter((wt) =>
+              isAddressEqual(wt.gatewayAddress, peggedToken.gatewayAddress),
+            )}
           />
         }
         vusd={peggedToken}

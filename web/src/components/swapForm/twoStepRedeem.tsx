@@ -20,6 +20,7 @@ import { type FormEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
 import { getTokenListParams } from "utils/tokenList";
+import { isAddressEqual } from "viem";
 
 import { Form } from "./form";
 import { RedeemQueueSection } from "./redeemQueueSection";
@@ -211,6 +212,10 @@ export function TwoStepRedeem({
     }
   }
 
+  const whitelistedTokensForPeggedToken = whitelistedTokens.filter((wt) =>
+    isAddressEqual(wt.gatewayAddress, fromToken.gatewayAddress),
+  );
+
   return (
     <>
       <Form
@@ -287,7 +292,7 @@ export function TwoStepRedeem({
         <RedeemTutorialModal
           onClose={() => setIsTutorialOpen(false)}
           peggedToken={fromToken}
-          whitelistedTokens={whitelistedTokens}
+          whitelistedTokens={whitelistedTokensForPeggedToken}
         />
       )}
       {isDrawerOpen && flowStatus !== "idle" && (
