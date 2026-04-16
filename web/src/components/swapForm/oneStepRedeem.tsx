@@ -96,7 +96,7 @@ export function OneStepRedeem({
   });
 
   const { data: redeemPreview, isError: isPreviewError } = usePreviewRedeem({
-    gatewayAddress: toToken.gatewayAddress,
+    gatewayAddress: fromToken.gatewayAddress,
     peggedTokenIn: amountBigInt,
     tokenOut: toToken.address,
   });
@@ -184,7 +184,7 @@ export function OneStepRedeem({
   });
 
   const protocolFeeQueryData = useRedeemFee({
-    gatewayAddress: toToken.gatewayAddress,
+    gatewayAddress: fromToken.gatewayAddress,
     select: (fee) => applyBps(amountBigInt, fee),
     token: toToken.address,
   });
