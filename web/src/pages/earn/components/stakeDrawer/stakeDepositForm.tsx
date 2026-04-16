@@ -327,7 +327,7 @@ export function StakeDepositForm({
           <NetworkFees
             label={t("pages.earn.stake.fees-label", {
               amount: inputValue,
-              token: peggedToken?.symbol,
+              token: peggedToken.symbol,
             })}
             networkFee={depositFeesQuery}
             sectionClassName="px-6"
