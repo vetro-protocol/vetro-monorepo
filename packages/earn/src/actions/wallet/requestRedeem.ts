@@ -12,22 +12,25 @@ import {
 import { waitForTransactionReceipt, writeContract } from "viem/actions";
 
 import { stakingVaultAbi } from "../../abi/stakingVaultAbi.js";
-import { getStakingVaultAddress } from "../../getStakingVaultAddress.js";
 import type { RequestRedeemEvents } from "../../types.js";
+import { isAddressValid } from "../../utils/isAddressValid.js";
 
 export type RequestRedeemParams = {
   owner: Address;
   shares: bigint;
+  vaultAddress: Address;
 };
 
 const canRequestRedeem = function ({
   client,
   owner,
   shares,
+  vaultAddress,
 }: {
   client: WalletClient;
   owner: Address;
   shares: bigint;
+  vaultAddress: Address;
 }): {
   canRequestRedeem: boolean;
   reason?: string;
@@ -48,6 +51,12 @@ const canRequestRedeem = function ({
     return {
       canRequestRedeem: false,
       reason: "Client must have an account",
+    };
+  }
+  if (!isAddressValid(vaultAddress)) {
+    return {
+      canRequestRedeem: false,
+      reason: "Invalid StakingVault address",
     };
   }
 
@@ -82,7 +91,7 @@ const canRequestRedeem = function ({
 
 const runRequestRedeem = (
   walletClient: WalletClient,
-  { owner, shares }: RequestRedeemParams,
+  { owner, shares, vaultAddress }: RequestRedeemParams,
 ) =>
   async function (emitter: EventEmitter<RequestRedeemEvents>) {
     try {
@@ -91,6 +100,7 @@ const runRequestRedeem = (
           client: walletClient,
           owner,
           shares,
+          vaultAddress,
         });
 
       if (!canRequestRedeemFlag) {
@@ -98,16 +108,12 @@ const runRequestRedeem = (
         return;
       }
 
-      const stakingVaultAddress = getStakingVaultAddress(
-        walletClient.chain!.id,
-      );
-
       emitter.emit("pre-request-redeem");
 
       const requestRedeemHash = await writeContract(walletClient, {
         abi: stakingVaultAbi,
         account: walletClient.account!,
-        address: stakingVaultAddress,
+        address: vaultAddress,
         args: [shares, owner],
         chain: walletClient.chain,
         functionName: "requestRedeem",

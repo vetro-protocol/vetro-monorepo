@@ -10,6 +10,7 @@ import { sepolia } from "viem/chains";
 import { describe, expect, it, vi } from "vitest";
 
 import { requestRedeem } from "../../src/actions/wallet/requestRedeem";
+import { stakingVaultAddresses } from "../../src/stakingVaultAddresses";
 
 vi.mock("viem/actions", () => ({
   waitForTransactionReceipt: vi.fn(),
@@ -26,6 +27,7 @@ const mockWalletClient = {
 const validParameters = {
   owner: "0x2222222222222222222222222222222222222222" as Address,
   shares: BigInt(1000),
+  vaultAddress: stakingVaultAddresses[0],
 };
 
 describe("requestRedeem", function () {
@@ -94,6 +96,28 @@ describe("requestRedeem", function () {
 
     expect(onFailedValidation).toHaveBeenCalledExactlyOnceWith(
       "Chain is not defined on wallet client",
+    );
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("should emit 'request-redeem-failed-validation' if vault address is invalid", async function () {
+    const parameters = {
+      ...validParameters,
+      vaultAddress: zeroAddress,
+    };
+
+    const { emitter, promise } = requestRedeem(mockWalletClient, parameters);
+
+    const onFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("request-redeem-failed-validation", onFailedValidation);
+    emitter.on("request-redeem-settled", onSettled);
+
+    await promise;
+
+    expect(onFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "Invalid StakingVault address",
     );
     expect(onSettled).toHaveBeenCalledOnce();
   });

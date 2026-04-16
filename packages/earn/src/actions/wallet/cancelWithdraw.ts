@@ -1,6 +1,7 @@
 import { EventEmitter } from "events";
 import { toPromiseEvent } from "to-promise-event";
 import {
+  type Address,
   type TransactionReceipt,
   type WalletClient,
   encodeFunctionData,
@@ -8,19 +9,22 @@ import {
 import { waitForTransactionReceipt, writeContract } from "viem/actions";
 
 import { stakingVaultAbi } from "../../abi/stakingVaultAbi.js";
-import { getStakingVaultAddress } from "../../getStakingVaultAddress.js";
 import type { CancelWithdrawEvents } from "../../types.js";
+import { isAddressValid } from "../../utils/isAddressValid.js";
 
 export type CancelWithdrawParams = {
   requestId: bigint;
+  vaultAddress: Address;
 };
 
 const canCancelWithdraw = function ({
   client,
   requestId,
+  vaultAddress,
 }: {
   client: WalletClient;
   requestId: bigint;
+  vaultAddress: Address;
 }): {
   canCancelWithdraw: boolean;
   reason?: string;
@@ -43,6 +47,12 @@ const canCancelWithdraw = function ({
       reason: "Client must have an account",
     };
   }
+  if (!isAddressValid(vaultAddress)) {
+    return {
+      canCancelWithdraw: false,
+      reason: "Invalid StakingVault address",
+    };
+  }
 
   if (typeof requestId !== "bigint") {
     return {
@@ -56,7 +66,7 @@ const canCancelWithdraw = function ({
 
 const runCancelWithdraw = (
   walletClient: WalletClient,
-  { requestId }: CancelWithdrawParams,
+  { requestId, vaultAddress }: CancelWithdrawParams,
 ) =>
   async function (emitter: EventEmitter<CancelWithdrawEvents>) {
     try {
@@ -64,6 +74,7 @@ const runCancelWithdraw = (
         canCancelWithdraw({
           client: walletClient,
           requestId,
+          vaultAddress,
         });
 
       if (!canCancelWithdrawFlag) {
@@ -71,16 +82,12 @@ const runCancelWithdraw = (
         return;
       }
 
-      const stakingVaultAddress = getStakingVaultAddress(
-        walletClient.chain!.id,
-      );
-
       emitter.emit("pre-cancel-withdraw");
 
       const cancelWithdrawHash = await writeContract(walletClient, {
         abi: stakingVaultAbi,
         account: walletClient.account!,
-        address: stakingVaultAddress,
+        address: vaultAddress,
         args: [requestId],
         chain: walletClient.chain,
         functionName: "cancelWithdraw",

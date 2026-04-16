@@ -10,6 +10,7 @@ import { sepolia } from "viem/chains";
 import { describe, expect, it, vi } from "vitest";
 
 import { claimWithdrawBatch } from "../../src/actions/wallet/claimWithdrawBatch";
+import { stakingVaultAddresses } from "../../src/stakingVaultAddresses";
 
 vi.mock("viem/actions", () => ({
   waitForTransactionReceipt: vi.fn(),
@@ -26,6 +27,7 @@ const mockWalletClient = {
 const validParameters = {
   receiver: "0x2222222222222222222222222222222222222222" as Address,
   requestIds: [BigInt(1), BigInt(2), BigInt(3)],
+  vaultAddress: stakingVaultAddresses[0],
 };
 
 describe("claimWithdrawBatch", function () {
@@ -94,6 +96,31 @@ describe("claimWithdrawBatch", function () {
 
     expect(onFailedValidation).toHaveBeenCalledExactlyOnceWith(
       "Chain is not defined on wallet client",
+    );
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("should emit 'claim-withdraw-batch-failed-validation' if vault address is invalid", async function () {
+    const parameters = {
+      ...validParameters,
+      vaultAddress: zeroAddress,
+    };
+
+    const { emitter, promise } = claimWithdrawBatch(
+      mockWalletClient,
+      parameters,
+    );
+
+    const onFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("claim-withdraw-batch-failed-validation", onFailedValidation);
+    emitter.on("claim-withdraw-batch-settled", onSettled);
+
+    await promise;
+
+    expect(onFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "Invalid StakingVault address",
     );
     expect(onSettled).toHaveBeenCalledOnce();
   });

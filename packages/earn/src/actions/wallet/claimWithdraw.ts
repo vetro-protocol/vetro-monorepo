@@ -12,22 +12,25 @@ import {
 import { waitForTransactionReceipt, writeContract } from "viem/actions";
 
 import { stakingVaultAbi } from "../../abi/stakingVaultAbi.js";
-import { getStakingVaultAddress } from "../../getStakingVaultAddress.js";
 import type { ClaimWithdrawEvents } from "../../types.js";
+import { isAddressValid } from "../../utils/isAddressValid.js";
 
 export type ClaimWithdrawParams = {
   receiver: Address;
   requestId: bigint;
+  vaultAddress: Address;
 };
 
 const canClaimWithdraw = function ({
   client,
   receiver,
   requestId,
+  vaultAddress,
 }: {
   client: WalletClient;
   receiver: Address;
   requestId: bigint;
+  vaultAddress: Address;
 }): {
   canClaimWithdraw: boolean;
   reason?: string;
@@ -48,6 +51,12 @@ const canClaimWithdraw = function ({
     return {
       canClaimWithdraw: false,
       reason: "Client must have an account",
+    };
+  }
+  if (!isAddressValid(vaultAddress)) {
+    return {
+      canClaimWithdraw: false,
+      reason: "Invalid StakingVault address",
     };
   }
 
@@ -76,7 +85,7 @@ const canClaimWithdraw = function ({
 
 const runClaimWithdraw = (
   walletClient: WalletClient,
-  { receiver, requestId }: ClaimWithdrawParams,
+  { receiver, requestId, vaultAddress }: ClaimWithdrawParams,
 ) =>
   async function (emitter: EventEmitter<ClaimWithdrawEvents>) {
     try {
@@ -85,6 +94,7 @@ const runClaimWithdraw = (
           client: walletClient,
           receiver,
           requestId,
+          vaultAddress,
         });
 
       if (!canClaimWithdrawFlag) {
@@ -92,16 +102,12 @@ const runClaimWithdraw = (
         return;
       }
 
-      const stakingVaultAddress = getStakingVaultAddress(
-        walletClient.chain!.id,
-      );
-
       emitter.emit("pre-claim-withdraw");
 
       const claimWithdrawHash = await writeContract(walletClient, {
         abi: stakingVaultAbi,
         account: walletClient.account!,
-        address: stakingVaultAddress,
+        address: vaultAddress,
         args: [requestId, receiver],
         chain: walletClient.chain,
         functionName: "claimWithdraw",
