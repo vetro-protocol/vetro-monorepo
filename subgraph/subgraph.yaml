@@ -8,7 +8,7 @@ dataSources:
     name: StakingVault
     network: mainnet
     source:
-      address: "0x476310E34D2810f7d79C43A74E4D79405bd7a925" # Test contract
+      address: "0x476310E34D2810f7d79C43A74E4D79405bd7a925"
       abi: StakingVault
       startBlock: 24625396
     mapping:
@@ -16,7 +16,9 @@ dataSources:
       apiVersion: 0.0.9
       language: wasm/assemblyscript
       entities:
-        - TaskEvent
+        - ExitTicket
+        - ExitTicketQueueSummary
+        - VaultHistory
       abis:
         - name: StakingVault
           file: ./abis/StakingVault.json
