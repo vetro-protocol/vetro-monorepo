@@ -1,6 +1,7 @@
 type VaultHistory @entity(immutable: false) {
   id: ID!
   shareValue: BigInt!
+  stakingVaultAddress: Bytes!
   timestamp: BigInt! # Timestamp fixed to YYYY-MM-DD 00:00:00 UTC
 }
 
@@ -15,10 +16,12 @@ type ExitTicket @entity(immutable: false) {
   requestId: BigInt!
   requestTxHash: Bytes!
   shares: BigInt!
+  stakingVaultAddress: Bytes!
 }
 
 type ExitTicketQueueSummary @entity(immutable: false) {
   id: ID!
   openTickets: Int!
   shares: BigInt!
+  stakingVaultAddress: Bytes!
 }

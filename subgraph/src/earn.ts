@@ -1,4 +1,4 @@
-import { BigInt, dataSource, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, dataSource, ethereum } from "@graphprotocol/graph-ts";
 
 import {
   ExitTicket,
@@ -12,28 +12,37 @@ import {
   WithdrawRequested,
 } from "../generated/StakingVault/StakingVault";
 
-function loadOrCreateQueueSummary(): ExitTicketQueueSummary {
-  let summary = ExitTicketQueueSummary.load("singleton");
+const buildId = (vaultAddress: Address, suffix: string): string =>
+  `${vaultAddress.toHexString()}-${suffix}`;
+
+function loadOrCreateQueueSummary(
+  vaultAddress: Address,
+): ExitTicketQueueSummary {
+  const id = vaultAddress.toHexString();
+  let summary = ExitTicketQueueSummary.load(id);
   if (summary == null) {
-    summary = new ExitTicketQueueSummary("singleton");
+    summary = new ExitTicketQueueSummary(id);
     summary.shares = BigInt.fromI32(0);
     summary.openTickets = 0;
+    summary.stakingVaultAddress = vaultAddress;
   }
   return summary;
 }
 
 export function handleBlock(block: ethereum.Block): void {
   const daySeconds = BigInt.fromI32(86400);
+  // Integer-divide then re-multiply to snap block.timestamp to the start of the UTC day (00:00:00).
   const dayTimestamp = block.timestamp.div(daySeconds).times(daySeconds);
 
-  const id = dayTimestamp.toString();
+  const vaultAddress = dataSource.address();
+  const id = buildId(vaultAddress, dayTimestamp.toString());
   let entity = VaultHistory.load(id);
   if (entity == null) {
     entity = new VaultHistory(id);
     entity.timestamp = dayTimestamp;
+    entity.stakingVaultAddress = vaultAddress;
   }
 
-  const vaultAddress = dataSource.address();
   const vault = StakingVault.bind(vaultAddress);
   const decimals = vault.decimals();
   const oneShare = BigInt.fromI32(10).pow(<u8>decimals);
@@ -44,7 +53,8 @@ export function handleBlock(block: ethereum.Block): void {
 }
 
 export function handleWithdrawRequested(event: WithdrawRequested): void {
-  const id = event.params.requestId.toString();
+  const vaultAddress = dataSource.address();
+  const id = buildId(vaultAddress, event.params.requestId.toString());
   const entity = new ExitTicket(id);
 
   entity.owner = event.params.owner;
@@ -52,12 +62,13 @@ export function handleWithdrawRequested(event: WithdrawRequested): void {
   entity.claimableAt = event.params.claimableAt;
   entity.requestId = event.params.requestId;
   entity.shares = event.params.shares;
+  entity.stakingVaultAddress = vaultAddress;
 
   entity.requestTxHash = event.transaction.hash;
 
   entity.save();
 
-  const summary = loadOrCreateQueueSummary();
+  const summary = loadOrCreateQueueSummary(vaultAddress);
 
   summary.shares = summary.shares.plus(event.params.shares);
   summary.openTickets = summary.openTickets + 1;
@@ -66,7 +77,8 @@ export function handleWithdrawRequested(event: WithdrawRequested): void {
 }
 
 export function handleWithdrawCancelled(event: WithdrawCancelled): void {
-  const id = event.params.requestId.toString();
+  const vaultAddress = dataSource.address();
+  const id = buildId(vaultAddress, event.params.requestId.toString());
   const entity = ExitTicket.load(id);
   if (entity == null) {
     return;
@@ -76,7 +88,7 @@ export function handleWithdrawCancelled(event: WithdrawCancelled): void {
 
   entity.save();
 
-  const summary = loadOrCreateQueueSummary();
+  const summary = loadOrCreateQueueSummary(vaultAddress);
 
   summary.shares = summary.shares.minus(entity.shares);
   summary.openTickets = summary.openTickets - 1;
@@ -85,7 +97,8 @@ export function handleWithdrawCancelled(event: WithdrawCancelled): void {
 }
 
 export function handleWithdrawClaimed(event: WithdrawClaimed): void {
-  const id = event.params.requestId.toString();
+  const vaultAddress = dataSource.address();
+  const id = buildId(vaultAddress, event.params.requestId.toString());
   const entity = ExitTicket.load(id);
   if (entity == null) {
     return;
@@ -95,7 +108,7 @@ export function handleWithdrawClaimed(event: WithdrawClaimed): void {
 
   entity.save();
 
-  const summary = loadOrCreateQueueSummary();
+  const summary = loadOrCreateQueueSummary(vaultAddress);
 
   summary.shares = summary.shares.minus(entity.shares);
   summary.openTickets = summary.openTickets - 1;
