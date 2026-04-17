@@ -243,6 +243,8 @@ export function StakeDepositForm({
     onStatusChange: handleDepositStepChange,
     onSuccess: handleDepositSuccess,
     onTransactionHash,
+    peggedToken,
+    stakingVaultAddress,
   });
 
   const depositFeesQuery = useTotalDepositFees({

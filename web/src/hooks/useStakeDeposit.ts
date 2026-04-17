@@ -4,15 +4,13 @@ import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
 import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpdateNativeBalanceAfterReceipt";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { getStakingVaultAddress } from "@vetro-protocol/earn";
 import { deposit } from "@vetro-protocol/earn/actions";
-import { gatewayAddresses } from "@vetro-protocol/gateway";
-import type { TransactionReceipt } from "viem";
+import type { Token } from "types";
+import type { Address, TransactionReceipt } from "viem";
 import { useAccount } from "wagmi";
 
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { useMainnet } from "./useMainnet";
-import { usePeggedToken } from "./usePeggedToken";
 import { stakedBalanceQueryKey } from "./useStakedBalance";
 
 type DepositStatus =
@@ -29,6 +27,8 @@ type Params = {
   onStatusChange?: (status: DepositStatus) => void;
   onSuccess?: VoidFunction;
   onTransactionHash?: (hash: string) => void;
+  peggedToken: Token;
+  stakingVaultAddress: Address;
 };
 
 export const useStakeDeposit = function ({
@@ -37,32 +37,26 @@ export const useStakeDeposit = function ({
   onStatusChange,
   onSuccess,
   onTransactionHash,
+  peggedToken,
+  stakingVaultAddress,
 }: Params) {
   const { address: account } = useAccount();
   const chain = useMainnet();
   const { data: walletClient } = useEthereumWalletClient();
   const ensureConnectedTo = useEnsureConnectedTo();
   const queryClient = useQueryClient();
-  const stakingVaultAddress = getStakingVaultAddress(chain.id);
   const { queryKey: nativeBalanceKey } = useNativeBalance(chain.id);
   const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
     chain.id,
   );
-  // TODO using the only gateway to simplify this PR
-  // we will handle multiple gateways in the next PR
-  const { data: peggedToken } = usePeggedToken(gatewayAddresses[0]);
 
-  const allowanceKey = peggedToken
-    ? allowanceQueryKey({
-        owner: account,
-        spender: stakingVaultAddress,
-        token: { address: peggedToken.address, chainId: chain.id },
-      })
-    : [];
+  const allowanceKey = allowanceQueryKey({
+    owner: account,
+    spender: stakingVaultAddress,
+    token: { address: peggedToken.address, chainId: chain.id },
+  });
 
-  const peggedTokenBalanceKey = peggedToken
-    ? tokenBalanceQueryKey(peggedToken, account)
-    : [];
+  const peggedTokenBalanceKey = tokenBalanceQueryKey(peggedToken, account);
 
   const sharesBalanceKey = tokenBalanceQueryKey(
     { address: stakingVaultAddress, chainId: chain.id },
@@ -80,9 +74,6 @@ export const useStakeDeposit = function ({
       if (!account) {
         throw new Error("No account connected");
       }
-      if (!peggedToken) {
-        throw new Error("Pegged Token not loaded");
-      }
 
       await ensureConnectedTo(chain.id);
 
@@ -91,6 +82,7 @@ export const useStakeDeposit = function ({
         assets,
         receiver: account,
         token: peggedToken.address,
+        vaultAddress: stakingVaultAddress,
       });
 
       emitter.on("user-signed-approval", function () {

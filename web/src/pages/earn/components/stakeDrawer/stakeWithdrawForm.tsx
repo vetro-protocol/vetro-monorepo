@@ -140,7 +140,7 @@ export function StakeWithdrawForm({
   const { isConnected } = useAccount();
   const { data: canInstantWithdraw } = useCanInstantWithdraw();
   const chain = useMainnet();
-  const { data: cooldownDays } = useCooldownDuration();
+  const { data: cooldownDays } = useCooldownDuration(stakingVaultAddress);
   const { openConnectModal } = useConnectModal();
   const { t } = useTranslation();
 
@@ -208,6 +208,7 @@ export function StakeWithdrawForm({
     onStatusChange: handleWithdrawStepChange,
     onSuccess: handleRequestWithdrawSuccess,
     onTransactionHash: tracking.onTransactionHash,
+    stakingVaultAddress,
   });
 
   const instantWithdrawMutation = useInstantWithdraw({
@@ -215,6 +216,8 @@ export function StakeWithdrawForm({
     onStatusChange: handleWithdrawStepChange,
     onSuccess: handleInstantWithdrawSuccess,
     onTransactionHash: tracking.onTransactionHash,
+    peggedToken,
+    stakingVaultAddress,
   });
 
   const withdrawMutation = canInstantWithdraw
@@ -277,6 +280,7 @@ export function StakeWithdrawForm({
             <SetMaxStakedBalance
               decimals={peggedToken.decimals}
               onClick={handleMaxClick}
+              stakingVaultAddress={stakingVaultAddress}
             />
           }
           onChange={onInputChange}

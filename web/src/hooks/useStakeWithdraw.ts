@@ -3,11 +3,11 @@ import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
 import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpdateNativeBalanceAfterReceipt";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { getStakingVaultAddress, stakingVaultAbi } from "@vetro-protocol/earn";
+import { stakingVaultAbi } from "@vetro-protocol/earn";
 import { requestWithdraw } from "@vetro-protocol/earn/actions";
 import { exitTicketsQueryKey } from "pages/earn/hooks/useExitTickets";
 import type { ExitTicket } from "pages/earn/types";
-import { type TransactionReceipt, parseEventLogs } from "viem";
+import { type Address, type TransactionReceipt, parseEventLogs } from "viem";
 import { useAccount } from "wagmi";
 
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
@@ -21,6 +21,7 @@ type Params = {
   onStatusChange?: (status: WithdrawStatus) => void;
   onSuccess?: VoidFunction;
   onTransactionHash?: (hash: string) => void;
+  stakingVaultAddress: Address;
 };
 
 export const useStakeWithdraw = function ({
@@ -28,13 +29,14 @@ export const useStakeWithdraw = function ({
   onStatusChange,
   onSuccess,
   onTransactionHash,
+  stakingVaultAddress,
 }: Params) {
   const { address: account } = useAccount();
   const chain = useMainnet();
   const { data: walletClient } = useEthereumWalletClient();
   const ensureConnectedTo = useEnsureConnectedTo();
   const queryClient = useQueryClient();
-  const stakingVaultAddress = getStakingVaultAddress(chain.id);
+
   const { queryKey: nativeBalanceKey } = useNativeBalance(chain.id);
   const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
     chain.id,
@@ -62,6 +64,7 @@ export const useStakeWithdraw = function ({
       const { emitter, promise } = requestWithdraw(walletClient!, {
         assets,
         owner: account,
+        vaultAddress: stakingVaultAddress,
       });
 
       emitter.on("user-signed-request-withdraw", function (hash) {
