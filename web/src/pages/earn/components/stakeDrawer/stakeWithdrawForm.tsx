@@ -138,7 +138,9 @@ export function StakeWithdrawForm({
   withdrawStep,
 }: Props) {
   const { isConnected } = useAccount();
-  const { data: canInstantWithdraw } = useCanInstantWithdraw();
+  const { data: canInstantWithdraw } = useCanInstantWithdraw({
+    stakingVaultAddress,
+  });
   const chain = useMainnet();
   const { data: cooldownDays } = useCooldownDuration(stakingVaultAddress);
   const { openConnectModal } = useConnectModal();

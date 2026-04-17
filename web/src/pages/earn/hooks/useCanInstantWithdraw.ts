@@ -1,5 +1,4 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { fetchCanInstantWithdraw } from "fetchers/fetchCanInstantWithdraw";
 import { useEthereumClient } from "hooks/useEthereumClient";
 import { useMainnet } from "hooks/useMainnet";
@@ -28,11 +27,11 @@ export const canInstantWithdrawOptions = ({
     queryKey: ["can-instant-withdraw", chainId, account, stakingVaultAddress],
   });
 
-// TODO using the only staking vault address to simplify this PR
-// we will handle multiple addresses in the next PR
-const stakingVaultAddress = stakingVaultAddresses[0];
-
-export function useCanInstantWithdraw() {
+export function useCanInstantWithdraw({
+  stakingVaultAddress,
+}: {
+  stakingVaultAddress: Address;
+}) {
   const { address: account } = useAccount();
   const chain = useMainnet();
   const client = useEthereumClient();
