@@ -2,7 +2,16 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { fetchTotalStakedUsd } from "fetchers/fetchTotalStakedUsd";
 import { useEthereumClient } from "hooks/useEthereumClient";
+import type { Address } from "viem";
 import { useAccount } from "wagmi";
+
+export const totalStakedUsdQueryKey = ({
+  account,
+  chainId,
+}: {
+  account: Address | undefined;
+  chainId: number | undefined;
+}) => ["total-staked-usd", chainId, account];
 
 export function useTotalStakedUsd() {
   const { address: account } = useAccount();
@@ -18,6 +27,6 @@ export function useTotalStakedUsd() {
         queryClient,
         stakingVaultAddresses,
       }),
-    queryKey: ["total-staked-usd", client?.chain?.id, account],
+    queryKey: totalStakedUsdQueryKey({ account, chainId: client?.chain?.id }),
   });
 }
