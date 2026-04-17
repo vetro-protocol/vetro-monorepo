@@ -1,16 +1,24 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  type QueryClient,
+  queryOptions,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { gatewayAddresses } from "@vetro-protocol/gateway";
 import type { TokenWithGateway } from "types";
-import type { Address } from "viem";
+import type { Address, Client } from "viem";
 
 import { useEthereumClient } from "./useEthereumClient";
 import { peggedTokenQueryOptions } from "./usePeggedToken";
 
-export const usePeggedTokensByGateway = function () {
-  const client = useEthereumClient();
-  const queryClient = useQueryClient();
-
-  return useQuery({
+export const peggedTokensByGatewayQueryOptions = ({
+  client,
+  queryClient,
+}: {
+  client: Client | undefined;
+  queryClient: QueryClient;
+}) =>
+  queryOptions({
     enabled: !!client,
     queryFn: () =>
       Promise.all(
@@ -29,6 +37,12 @@ export const usePeggedTokensByGateway = function () {
             tokens.map((t) => [t.gatewayAddress, t]),
           ) as Record<Address, TokenWithGateway>,
       ),
-    queryKey: ["pegged-tokens", client?.chain.id],
+    queryKey: ["pegged-tokens", client?.chain?.id],
   });
+
+export const usePeggedTokensByGateway = function () {
+  const client = useEthereumClient();
+  const queryClient = useQueryClient();
+
+  return useQuery(peggedTokensByGatewayQueryOptions({ client, queryClient }));
 };
