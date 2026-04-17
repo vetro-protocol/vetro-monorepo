@@ -17,7 +17,7 @@ const vaultPeggedTokenQueryKey = ({
   stakingVaultAddress: Address;
 }) => ["vault-pegged-token", chainId, stakingVaultAddress];
 
-const vaultPeggedTokenQueryOptions = ({
+export const vaultPeggedTokenQueryOptions = ({
   client,
   queryClient,
   stakingVaultAddress,
