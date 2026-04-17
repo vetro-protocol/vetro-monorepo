@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getStakingVaultAddress } from "@vetro-protocol/earn";
+import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import fetch from "fetch-plus-plus";
 import { useEthereumClient } from "hooks/useEthereumClient";
 import { useMainnet } from "hooks/useMainnet";
@@ -22,10 +22,13 @@ const exitQueueQueryKey = ({
   stakingVaultAddress: Address;
 }) => ["variable-stake-exit-queue", chainId, stakingVaultAddress];
 
+// TODO using the only staking vault address to simplify this PR
+// we will handle multiple addresses in the next PR
+const stakingVaultAddress = stakingVaultAddresses[0];
+
 export function useVariableStakeExitQueue() {
   const chain = useMainnet();
   const client = useEthereumClient();
-  const stakingVaultAddress = getStakingVaultAddress(chain.id);
 
   return useQuery({
     enabled: apiUrl !== undefined && isValidUrl(apiUrl) && !!client,
