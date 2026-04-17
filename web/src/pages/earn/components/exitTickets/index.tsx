@@ -1,5 +1,6 @@
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { type ColumnDef } from "@tanstack/react-table";
+import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { Badge } from "components/base/badge";
 import { Button } from "components/base/button";
 import { FilterMenu } from "components/base/filterMenu";
@@ -116,8 +117,12 @@ const getColumns = ({
   },
 ];
 
+// TODO we'll update this in the next PR to add support to
+// exit tickets from multiple vaults - hardcoding to one for the time being
+const stakingVaultAddress = stakingVaultAddresses[0];
+
 export function ExitTickets() {
-  const { data: cooldownDuration } = useCooldownDuration();
+  const { data: cooldownDuration } = useCooldownDuration(stakingVaultAddress);
   const { data, isLoading } = useExitTickets();
   const { i18n, t } = useTranslation();
   const { isConnected } = useAccount();
@@ -295,7 +300,7 @@ export function ExitTickets() {
         getRowId={(ticket) => ticket.requestId}
         loading={isLoading}
         maxBodyHeight="280px"
-        placeholder={<EmptyState />}
+        placeholder={<EmptyState stakingVaultAddress={stakingVaultAddress} />}
         priorityColumnIdsOnSmall={["actions"]}
       />
       {showDeleteToast && (

@@ -1,6 +1,5 @@
 import { tokenBalanceQueryOptions } from "@hemilabs/react-hooks/useTokenBalance";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { useEthereumClient } from "hooks/useEthereumClient";
 import { useMainnet } from "hooks/useMainnet";
 import type { Address } from "viem";
@@ -17,11 +16,7 @@ export const stakedBalanceQueryKey = ({
   stakingVaultAddress: Address;
 }) => ["staked-balance", chainId, stakingVaultAddress, account];
 
-// TODO we temporarily set the stakingVaultAddress optional as there is really
-// only one, but in the incoming PRs we'll remove this default value
-export function useStakedBalance(
-  stakingVaultAddress: Address = stakingVaultAddresses[0],
-) {
+export function useStakedBalance(stakingVaultAddress: Address) {
   const { address: account } = useAccount();
   const chain = useMainnet();
   const client = useEthereumClient();
