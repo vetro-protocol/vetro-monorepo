@@ -22,7 +22,7 @@ import { type FormEvent, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 import { formatAmount } from "utils/token";
-import { type Address, parseUnits } from "viem";
+import { type Address, parseUnits, zeroAddress } from "viem";
 import { useAccount } from "wagmi";
 
 import type { DepositStep } from "./stakeDrawerReducer";
@@ -175,9 +175,11 @@ export function StakeDepositForm({
 
   const { mutate: watchToken } = useAddTokenToWallet({
     token: {
-      address: shareToken!.address,
+      // By the time "watchToken" is called, the share token should have been loaded
+      // otherwise, submission wouldn't have happened
+      address: shareToken?.address ?? zeroAddress,
       chainId: chain.id,
-      extensions: { logoURI: shareToken!.logoURI },
+      extensions: { logoURI: shareToken?.logoURI },
     },
   });
 
