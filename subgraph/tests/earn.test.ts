@@ -63,7 +63,7 @@ describe("handleBlock", function () {
     handleBlock(block);
 
     const dayTimestamp = timestamp.div(daySeconds).times(daySeconds);
-    const id = dayTimestamp.toString();
+    const id = `${vaultAddressString}-${dayTimestamp.toString()}`;
     assert.entityCount("VaultHistory", 1);
     assert.fieldEquals(
       "VaultHistory",
@@ -76,6 +76,12 @@ describe("handleBlock", function () {
       id,
       "shareValue",
       currentShareValue.toString(),
+    );
+    assert.fieldEquals(
+      "VaultHistory",
+      id,
+      "stakingVaultAddress",
+      vaultAddressString,
     );
   });
 
@@ -91,7 +97,7 @@ describe("handleBlock", function () {
     handleBlock(block1);
 
     const dayTimestamp = timestamp1.div(daySeconds).times(daySeconds);
-    const id = dayTimestamp.toString();
+    const id = `${vaultAddressString}-${dayTimestamp.toString()}`;
     assert.entityCount("VaultHistory", 1);
 
     mockVaultCalls(decimals, updatedShareValue);
@@ -117,6 +123,7 @@ describe("handleBlock", function () {
 describe("handleWithdrawRequested", function () {
   beforeEach(function () {
     clearStore();
+    dataSourceMock.setAddress(vaultAddressString);
   });
 
   test("creates ExitTicket from event", function () {
@@ -134,7 +141,7 @@ describe("handleWithdrawRequested", function () {
     );
     handleWithdrawRequested(event);
 
-    const id = requestId.toString();
+    const id = `${vaultAddressString}-${requestId.toString()}`;
     assert.entityCount("ExitTicket", 1);
     assert.fieldEquals("ExitTicket", id, "owner", ownerAddress.toHexString());
     assert.fieldEquals("ExitTicket", id, "assets", assets.toString());
@@ -144,20 +151,32 @@ describe("handleWithdrawRequested", function () {
     assert.fieldEquals(
       "ExitTicket",
       id,
+      "stakingVaultAddress",
+      vaultAddressString,
+    );
+    assert.fieldEquals(
+      "ExitTicket",
+      id,
       "requestTxHash",
       event.transaction.hash.toHexString(),
     );
     assert.fieldEquals(
       "ExitTicketQueueSummary",
-      "singleton",
+      vaultAddressString,
       "openTickets",
       "1",
     );
     assert.fieldEquals(
       "ExitTicketQueueSummary",
-      "singleton",
+      vaultAddressString,
       "shares",
       shares.toString(),
+    );
+    assert.fieldEquals(
+      "ExitTicketQueueSummary",
+      vaultAddressString,
+      "stakingVaultAddress",
+      vaultAddressString,
     );
   });
 });
@@ -165,6 +184,7 @@ describe("handleWithdrawRequested", function () {
 describe("handleWithdrawCancelled", function () {
   beforeEach(function () {
     clearStore();
+    dataSourceMock.setAddress(vaultAddressString);
   });
 
   test("updates ExitTicket when cancelled", function () {
@@ -182,7 +202,7 @@ describe("handleWithdrawCancelled", function () {
     );
     handleWithdrawRequested(requestEvent);
 
-    const id = requestId.toString();
+    const id = `${vaultAddressString}-${requestId.toString()}`;
     assert.entityCount("ExitTicket", 1);
 
     const cancelEvent = createWithdrawCancelledEvent(
@@ -202,11 +222,16 @@ describe("handleWithdrawCancelled", function () {
     );
     assert.fieldEquals(
       "ExitTicketQueueSummary",
-      "singleton",
+      vaultAddressString,
       "openTickets",
       "0",
     );
-    assert.fieldEquals("ExitTicketQueueSummary", "singleton", "shares", "0");
+    assert.fieldEquals(
+      "ExitTicketQueueSummary",
+      vaultAddressString,
+      "shares",
+      "0",
+    );
   });
 
   test("ignores missing ExitTicket on cancel", function () {
@@ -229,6 +254,7 @@ describe("handleWithdrawCancelled", function () {
 describe("handleWithdrawClaimed", function () {
   beforeEach(function () {
     clearStore();
+    dataSourceMock.setAddress(vaultAddressString);
   });
 
   test("updates ExitTicket when claimed", function () {
@@ -246,7 +272,7 @@ describe("handleWithdrawClaimed", function () {
     );
     handleWithdrawRequested(requestEvent);
 
-    const id = requestId.toString();
+    const id = `${vaultAddressString}-${requestId.toString()}`;
     assert.entityCount("ExitTicket", 1);
 
     const claimEvent = createWithdrawClaimedEvent(
@@ -266,11 +292,16 @@ describe("handleWithdrawClaimed", function () {
     );
     assert.fieldEquals(
       "ExitTicketQueueSummary",
-      "singleton",
+      vaultAddressString,
       "openTickets",
       "0",
     );
-    assert.fieldEquals("ExitTicketQueueSummary", "singleton", "shares", "0");
+    assert.fieldEquals(
+      "ExitTicketQueueSummary",
+      vaultAddressString,
+      "shares",
+      "0",
+    );
   });
 
   test("ignores missing ExitTicket on claim", function () {
