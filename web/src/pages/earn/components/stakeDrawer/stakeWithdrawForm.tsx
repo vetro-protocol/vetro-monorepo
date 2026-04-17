@@ -21,7 +21,7 @@ import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import type { Token } from "types";
 import { formatAmount } from "utils/token";
-import { parseUnits } from "viem";
+import { parseUnits, type Address } from "viem";
 import { useAccount } from "wagmi";
 
 import type { WithdrawStep } from "./stakeDrawerReducer";
@@ -33,6 +33,7 @@ type Props = {
   onSuccess: (toast: { description: string; title: string }) => void;
   onWithdrawStepChange: (step: WithdrawStep) => void;
   peggedToken: Token;
+  stakingVaultAddress: Address;
   withdrawStep: WithdrawStep;
 };
 
@@ -133,6 +134,7 @@ export function StakeWithdrawForm({
   onSuccess,
   onWithdrawStepChange,
   peggedToken,
+  stakingVaultAddress,
   withdrawStep,
 }: Props) {
   const { isConnected } = useAccount();
@@ -163,7 +165,7 @@ export function StakeWithdrawForm({
   const tracking = canInstantWithdraw ? instantTracking : requestTracking;
 
   const { data: stakedBalance, isError: isStakedBalanceError } =
-    useStakedBalance();
+    useStakedBalance(stakingVaultAddress);
 
   const { data: nativeBalanceData } = useNativeBalance(chain.id);
   const nativeBalance = nativeBalanceData?.value;

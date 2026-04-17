@@ -1,10 +1,9 @@
-import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { Button } from "components/base/button";
 import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
 import { Toast } from "components/base/toast";
-import { usePeggedToken } from "hooks/usePeggedToken";
 import { useStakeMode } from "hooks/useStakeMode";
+import { useVaultPeggedToken } from "hooks/useVaultPeggedToken";
 import {
   lazy,
   Suspense,
@@ -14,6 +13,7 @@ import {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
+import type { Address } from "viem";
 
 const StakeDrawerContent = lazy(() =>
   import("../stakeDrawer/stakeDrawerContent").then((mod) => ({
@@ -26,16 +26,18 @@ type ToastData = {
   title: string;
 };
 
-export function PoolInfoButtons() {
+type Props = {
+  stakingVaultAddress: Address;
+};
+
+export function PoolInfoButtons({ stakingVaultAddress }: Props) {
   const { t } = useTranslation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [mode, setMode] = useStakeMode();
   const [requestCloseDrawer, setRequestCloseDrawer] = useState(false);
   const [toast, setToast] = useState<ToastData | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  // TODO using the only gateway to simplify this PR
-  // we will handle multiple gateways in the next PR
-  const { data: peggedToken } = usePeggedToken(gatewayAddresses[0]);
+  const { data: peggedToken } = useVaultPeggedToken(stakingVaultAddress);
 
   // Auto-open drawer when mode is in URL
   useEffect(
@@ -95,6 +97,7 @@ export function PoolInfoButtons() {
               onModeChange={setMode}
               onSuccess={handleSuccess}
               peggedToken={peggedToken}
+              stakingVaultAddress={stakingVaultAddress}
             />
           </Suspense>
         </Drawer>

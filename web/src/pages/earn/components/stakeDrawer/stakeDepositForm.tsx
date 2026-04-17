@@ -3,7 +3,6 @@ import { useAllowance } from "@hemilabs/react-hooks/useAllowance";
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
-import { getStakingVaultAddress } from "@vetro-protocol/earn";
 import { ApproveSection } from "components/approveSection";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { VerticalStepper, stepStatus } from "components/base/verticalStepper";
@@ -16,14 +15,14 @@ import { Balance } from "components/tokenInput/balance";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useMainnet } from "hooks/useMainnet";
+import { useShareToken } from "hooks/useShareToken";
 import { useStakeDeposit } from "hooks/useStakeDeposit";
-import { useSvusd } from "hooks/useSvusd";
 import { useTotalDepositFees } from "pages/earn/hooks/useTotalDepositFees";
 import { type FormEvent, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 import { formatAmount } from "utils/token";
-import { parseUnits } from "viem";
+import { parseUnits, type Address } from "viem";
 import { useAccount } from "wagmi";
 
 import type { DepositStep } from "./stakeDrawerReducer";
@@ -39,6 +38,7 @@ type Props = {
   onInputChange: (value: string) => void;
   onSuccess: (toast: { description: string; title: string }) => void;
   peggedToken: Token;
+  stakingVaultAddress: Address;
 };
 
 function getStakeErrors({
@@ -165,25 +165,27 @@ export function StakeDepositForm({
   onInputChange,
   onSuccess,
   peggedToken,
+  stakingVaultAddress,
 }: Props) {
   const { address: account, isConnected } = useAccount();
   const chain = useMainnet();
   const { openConnectModal } = useConnectModal();
   const { t } = useTranslation();
-  const { data: svusd } = useSvusd();
+  const { data: shareToken } = useShareToken(stakingVaultAddress);
+
   const { mutate: watchToken } = useAddTokenToWallet({
     token: {
-      address: svusd!.address,
+      address: shareToken!.address,
       chainId: chain.id,
-      extensions: { logoURI: svusd!.logoURI },
+      extensions: { logoURI: shareToken!.logoURI },
     },
   });
-  const stakingVaultAddress = getStakingVaultAddress(chain.id);
 
-  const { data: vusdBalance, isError: isVusdBalanceError } = useTokenBalance({
-    address: peggedToken.address,
-    chainId: chain.id,
-  });
+  const { data: peggedTokenBalance, isError: isPeggedTokenBalanceError } =
+    useTokenBalance({
+      address: peggedToken.address,
+      chainId: chain.id,
+    });
 
   const { data: nativeBalanceData } = useNativeBalance(chain.id);
   const nativeBalance = nativeBalanceData?.value;
@@ -252,17 +254,17 @@ export function StakeDepositForm({
   const inputError = getStakeErrors({
     amount: amountBigInt,
     nativeBalance,
-    tokenBalance: vusdBalance,
+    tokenBalance: peggedTokenBalance,
   });
 
   const formattedBalance = formatAmount({
-    amount: vusdBalance,
+    amount: peggedTokenBalance,
     decimals: peggedToken.decimals,
-    isError: isVusdBalanceError,
+    isError: isPeggedTokenBalanceError,
   });
 
   const balancesLoaded =
-    nativeBalance !== undefined && vusdBalance !== undefined;
+    nativeBalance !== undefined && peggedTokenBalance !== undefined;
 
   const actionText = needsApproval
     ? t("pages.earn.stake.approve-and-deposit")

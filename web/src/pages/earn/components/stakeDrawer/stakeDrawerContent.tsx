@@ -3,6 +3,7 @@ import { SegmentedControl } from "components/base/segmentedControl";
 import { useReducer } from "react";
 import { useTranslation } from "react-i18next";
 import { type Token } from "types";
+import type { Address } from "viem";
 
 import { StakeDepositForm } from "./stakeDepositForm";
 import {
@@ -24,6 +25,7 @@ type Props = {
   onModeChange: (mode: StakeMode) => void;
   onSuccess: (toast: ToastData) => void;
   peggedToken: Token;
+  stakingVaultAddress: Address;
 };
 
 export function StakeDrawerContent({
@@ -31,6 +33,7 @@ export function StakeDrawerContent({
   onModeChange,
   onSuccess,
   peggedToken,
+  stakingVaultAddress,
 }: Props) {
   const { t } = useTranslation();
   const [state, dispatch] = useReducer(
@@ -79,6 +82,7 @@ export function StakeDrawerContent({
           onInputChange={handleInputChange}
           onSuccess={onSuccess}
           peggedToken={peggedToken}
+          stakingVaultAddress={stakingVaultAddress}
         />
       ) : (
         <StakeWithdrawForm
@@ -88,6 +92,7 @@ export function StakeDrawerContent({
           onWithdrawStepChange={handleWithdrawStepChange}
           withdrawStep={state.withdrawStep}
           peggedToken={peggedToken}
+          stakingVaultAddress={stakingVaultAddress}
         />
       )}
     </div>

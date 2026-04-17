@@ -1,10 +1,8 @@
-import { getStakingVaultAddress } from "@vetro-protocol/earn";
 import { TokenLogo } from "components/tokenLogo";
 import { useApy } from "hooks/useApy";
-import { useMainnet } from "hooks/useMainnet";
-import { usePeggedToken } from "hooks/usePeggedToken";
 import { usePoolDeposits } from "hooks/usePoolDeposits";
 import { useUserRewards } from "hooks/useUserRewards";
+import { useVaultPeggedToken } from "hooks/useVaultPeggedToken";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import { formatUsd } from "utils/currency";
@@ -16,14 +14,12 @@ import { PoolInfoItem } from "./poolInfoItem";
 import { TokenIconStack } from "./tokenIconStack";
 
 type Props = {
-  gatewayAddress: Address;
+  stakingVaultAddress: Address;
 };
 
-export function PoolInfoBar({ gatewayAddress }: Props) {
+export function PoolInfoBar({ stakingVaultAddress }: Props) {
   const { t } = useTranslation();
-  const chain = useMainnet();
-  const stakingVaultAddress = getStakingVaultAddress(chain.id);
-  const { data: peggedToken } = usePeggedToken(gatewayAddress);
+  const { data: peggedToken } = useVaultPeggedToken(stakingVaultAddress);
 
   const { data: apy, isLoading: isLoadingApy } = useApy();
   const { data: poolDeposits, isLoading: isLoadingDeposits } =
@@ -85,7 +81,7 @@ export function PoolInfoBar({ gatewayAddress }: Props) {
           </div>
         </PoolInfoItem>
       </div>
-      <PoolInfoButtons />
+      <PoolInfoButtons stakingVaultAddress={stakingVaultAddress} />
     </div>
   );
 }
