@@ -250,6 +250,7 @@ export function StakeDepositForm({
   const depositFeesQuery = useTotalDepositFees({
     amount: amountBigInt,
     approveAmount,
+    stakingVaultAddress,
     token: peggedToken,
   });
 

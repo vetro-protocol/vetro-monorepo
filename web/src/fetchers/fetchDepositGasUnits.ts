@@ -1,6 +1,6 @@
 import { tokenBalanceQueryOptions } from "@hemilabs/react-hooks/useTokenBalance";
 import type { QueryClient } from "@tanstack/react-query";
-import { getStakingVaultAddress, stakingVaultAbi } from "@vetro-protocol/earn";
+import { stakingVaultAbi } from "@vetro-protocol/earn";
 import type { Token } from "types";
 import { createErc20AllowanceStateOverride } from "utils/erc20StateOverride";
 import { type Address, type Client, encodeFunctionData } from "viem";
@@ -19,6 +19,7 @@ export const fetchDepositGasUnits = async function ({
   client,
   owner,
   queryClient,
+  stakingVaultAddress,
   token,
 }: {
   amount: bigint;
@@ -26,11 +27,9 @@ export const fetchDepositGasUnits = async function ({
   client: Client;
   owner: Address;
   queryClient: QueryClient;
+  stakingVaultAddress: Address;
   token: Token;
 }) {
-  const chainId = client.chain!.id;
-  const stakingVaultAddress = getStakingVaultAddress(chainId);
-
   const balance = await queryClient.ensureQueryData(
     tokenBalanceQueryOptions({
       account: owner,

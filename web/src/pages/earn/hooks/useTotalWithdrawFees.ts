@@ -16,12 +16,14 @@ const totalWithdrawFeesOptions = ({
   client,
   owner,
   queryClient,
+  stakingVaultAddress,
 }: {
   amount: bigint;
   chain: Chain;
   client: Client | undefined;
   owner: Address | undefined;
   queryClient: QueryClient;
+  stakingVaultAddress: Address;
 }) =>
   queryOptions({
     enabled: !!client && !!owner && amount > 0n,
@@ -32,11 +34,24 @@ const totalWithdrawFeesOptions = ({
         client: client!,
         owner: owner!,
         queryClient,
+        stakingVaultAddress,
       }),
-    queryKey: ["total-withdraw-fees", chain.id, owner, amount.toString()],
+    queryKey: [
+      "total-withdraw-fees",
+      chain.id,
+      owner,
+      amount.toString(),
+      stakingVaultAddress,
+    ],
   });
 
-export const useTotalWithdrawFees = function ({ amount }: { amount: bigint }) {
+export const useTotalWithdrawFees = function ({
+  amount,
+  stakingVaultAddress,
+}: {
+  amount: bigint;
+  stakingVaultAddress: Address;
+}) {
   const { address: owner } = useAccount();
   const client = useEthereumClient();
   const ethereumChain = useMainnet();
@@ -49,6 +64,7 @@ export const useTotalWithdrawFees = function ({ amount }: { amount: bigint }) {
       client,
       owner,
       queryClient,
+      stakingVaultAddress,
     }),
   );
 };

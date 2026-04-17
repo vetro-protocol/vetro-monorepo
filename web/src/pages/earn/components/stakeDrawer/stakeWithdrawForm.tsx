@@ -226,6 +226,7 @@ export function StakeWithdrawForm({
 
   const withdrawFeesQuery = useTotalWithdrawFees({
     amount: amountBigInt,
+    stakingVaultAddress,
   });
 
   const inputError = getWithdrawErrors({

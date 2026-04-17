@@ -13,12 +13,14 @@ export const fetchTotalWithdrawFees = async function ({
   client,
   owner,
   queryClient,
+  stakingVaultAddress,
 }: {
   amount: bigint;
   chain: Chain;
   client: Client;
   owner: Address;
   queryClient: QueryClient;
+  stakingVaultAddress: Address;
 }) {
   const gasUnits = await queryClient.ensureQueryData(
     withdrawGasUnitsOptions({
@@ -27,6 +29,7 @@ export const fetchTotalWithdrawFees = async function ({
       chainId: chain.id,
       client,
       queryClient,
+      stakingVaultAddress,
     }),
   );
 

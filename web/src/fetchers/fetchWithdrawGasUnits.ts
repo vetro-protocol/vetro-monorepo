@@ -1,6 +1,6 @@
 import { tokenBalanceQueryOptions } from "@hemilabs/react-hooks/useTokenBalance";
 import type { QueryClient } from "@tanstack/react-query";
-import { getStakingVaultAddress, stakingVaultAbi } from "@vetro-protocol/earn";
+import { stakingVaultAbi } from "@vetro-protocol/earn";
 import { canInstantWithdrawOptions } from "pages/earn/hooks/useCanInstantWithdraw";
 import {
   type Address,
@@ -21,14 +21,15 @@ export const fetchWithdrawGasUnits = async function ({
   amount,
   client,
   queryClient,
+  stakingVaultAddress,
 }: {
   account: Address;
   amount: bigint;
   client: Client;
   queryClient: QueryClient;
+  stakingVaultAddress: Address;
 }) {
   const chainId = client.chain!.id;
-  const stakingVaultAddress = getStakingVaultAddress(chainId);
 
   const [canInstantWithdraw, stakedBalance] = await Promise.all([
     queryClient.ensureQueryData(
