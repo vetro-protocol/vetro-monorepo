@@ -1,5 +1,5 @@
 import { useStakedBalance } from "hooks/useStakedBalance";
-import { formatUnits, type Address } from "viem";
+import { type Address, formatUnits } from "viem";
 
 import { MaxButton } from "./base/maxButton";
 

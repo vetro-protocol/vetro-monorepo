@@ -21,7 +21,7 @@ import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import type { Token } from "types";
 import { formatAmount } from "utils/token";
-import { parseUnits, type Address } from "viem";
+import { type Address, parseUnits } from "viem";
 import { useAccount } from "wagmi";
 
 import type { WithdrawStep } from "./stakeDrawerReducer";
