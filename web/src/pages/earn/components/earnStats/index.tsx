@@ -1,10 +1,9 @@
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
-import { getStakingVaultAddress } from "@vetro-protocol/earn";
-import { gatewayAddresses } from "@vetro-protocol/gateway";
+import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { useMainnet } from "hooks/useMainnet";
-import { usePeggedToken } from "hooks/usePeggedToken";
+import { useShareToken } from "hooks/useShareToken";
 import { useStakedBalance } from "hooks/useStakedBalance";
-import { useSvusd } from "hooks/useSvusd";
+import { useVaultPeggedToken } from "hooks/useVaultPeggedToken";
 import { useTranslation } from "react-i18next";
 import { formatUnits } from "viem";
 
@@ -16,14 +15,14 @@ import { StatCard } from "../statCard";
 export function EarnStats() {
   const { t } = useTranslation();
   const chain = useMainnet();
-  const stakingVaultAddress = getStakingVaultAddress(chain.id);
-  const { data: svusd } = useSvusd();
-  // TODO using the only gateway to simplify this PR
-  // we will handle multiple gateways in the next PR
-  const { data: peggedToken } = usePeggedToken(gatewayAddresses[0]);
+  // TODO using the only staking vault address to simplify this PR
+  // we will handle multiple addresses in the next PR
+  const stakingVaultAddress = stakingVaultAddresses[0];
+  const { data: shareToken } = useShareToken(stakingVaultAddress);
+  const { data: peggedToken } = useVaultPeggedToken(stakingVaultAddress);
 
   const { data: stakedBalance, isLoading: isLoadingStakedBalance } =
-    useStakedBalance();
+    useStakedBalance(stakingVaultAddress);
 
   const { data: earnedAmount, isLoading: isLoadingEarnedAmount } =
     useTokenBalance({ address: stakingVaultAddress, chainId: chain.id });
@@ -36,8 +35,8 @@ export function EarnStats() {
   };
 
   const formatEarnedAmount = function () {
-    if (earnedAmount !== undefined && svusd) {
-      return `${formatUnits(earnedAmount, svusd.decimals)} ${svusd.symbol}`;
+    if (earnedAmount !== undefined && shareToken) {
+      return `${formatUnits(earnedAmount, shareToken.decimals)} ${shareToken.symbol}`;
     }
     return "";
   };

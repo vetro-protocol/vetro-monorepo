@@ -12,22 +12,25 @@ import {
 import { waitForTransactionReceipt, writeContract } from "viem/actions";
 
 import { stakingVaultAbi } from "../../abi/stakingVaultAbi.js";
-import { getStakingVaultAddress } from "../../getStakingVaultAddress.js";
 import type { RequestWithdrawEvents } from "../../types.js";
+import { isAddressValid } from "../../utils/isAddressValid.js";
 
 export type RequestWithdrawParams = {
   assets: bigint;
   owner: Address;
+  vaultAddress: Address;
 };
 
 const canRequestWithdraw = function ({
   assets,
   client,
   owner,
+  vaultAddress,
 }: {
   assets: bigint;
   client: WalletClient;
   owner: Address;
+  vaultAddress: Address;
 }): {
   canRequestWithdraw: boolean;
   reason?: string;
@@ -48,6 +51,12 @@ const canRequestWithdraw = function ({
     return {
       canRequestWithdraw: false,
       reason: "Client must have an account",
+    };
+  }
+  if (!isAddressValid(vaultAddress)) {
+    return {
+      canRequestWithdraw: false,
+      reason: "Invalid StakingVault address",
     };
   }
 
@@ -82,7 +91,7 @@ const canRequestWithdraw = function ({
 
 const runRequestWithdraw = (
   walletClient: WalletClient,
-  { assets, owner }: RequestWithdrawParams,
+  { assets, owner, vaultAddress }: RequestWithdrawParams,
 ) =>
   async function (emitter: EventEmitter<RequestWithdrawEvents>) {
     try {
@@ -91,6 +100,7 @@ const runRequestWithdraw = (
           assets,
           client: walletClient,
           owner,
+          vaultAddress,
         });
 
       if (!canRequestWithdrawFlag) {
@@ -98,16 +108,12 @@ const runRequestWithdraw = (
         return;
       }
 
-      const stakingVaultAddress = getStakingVaultAddress(
-        walletClient.chain!.id,
-      );
-
       emitter.emit("pre-request-withdraw");
 
       const requestWithdrawHash = await writeContract(walletClient, {
         abi: stakingVaultAbi,
         account: walletClient.account!,
-        address: stakingVaultAddress,
+        address: vaultAddress,
         args: [assets, owner],
         chain: walletClient.chain,
         functionName: "requestWithdraw",

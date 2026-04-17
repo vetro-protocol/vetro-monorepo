@@ -3,15 +3,14 @@ import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
 import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpdateNativeBalanceAfterReceipt";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { getStakingVaultAddress } from "@vetro-protocol/earn";
-import { gatewayAddresses } from "@vetro-protocol/gateway";
+import type { Token } from "types";
+import type { Address } from "viem";
 import { waitForTransactionReceipt } from "viem/actions";
 import { withdraw } from "viem-erc4626/actions";
 import { useAccount } from "wagmi";
 
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { useMainnet } from "./useMainnet";
-import { usePeggedToken } from "./usePeggedToken";
 import { stakedBalanceQueryKey } from "./useStakedBalance";
 
 type InstantWithdrawStatus = "completed" | "failed" | "withdrawing";
@@ -21,6 +20,8 @@ type Params = {
   onStatusChange?: (status: InstantWithdrawStatus) => void;
   onSuccess?: VoidFunction;
   onTransactionHash?: (hash: string) => void;
+  peggedToken: Token;
+  stakingVaultAddress: Address;
 };
 
 export const useInstantWithdraw = function ({
@@ -28,24 +29,21 @@ export const useInstantWithdraw = function ({
   onStatusChange,
   onSuccess,
   onTransactionHash,
+  peggedToken,
+  stakingVaultAddress,
 }: Params) {
   const { address: account } = useAccount();
   const chain = useMainnet();
   const { data: walletClient } = useEthereumWalletClient();
   const ensureConnectedTo = useEnsureConnectedTo();
   const queryClient = useQueryClient();
-  const stakingVaultAddress = getStakingVaultAddress(chain.id);
+
   const { queryKey: nativeBalanceKey } = useNativeBalance(chain.id);
   const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
     chain.id,
   );
-  // TODO using the only gateway to simplify this PR
-  // we will handle multiple gateways in the next PR
-  const { data: peggedToken } = usePeggedToken(gatewayAddresses[0]);
 
-  const peggedTokenBalanceKey = peggedToken
-    ? tokenBalanceQueryKey(peggedToken, account)
-    : [];
+  const peggedTokenBalanceKey = tokenBalanceQueryKey(peggedToken, account);
 
   const sharesBalanceKey = tokenBalanceQueryKey(
     { address: stakingVaultAddress, chainId: chain.id },

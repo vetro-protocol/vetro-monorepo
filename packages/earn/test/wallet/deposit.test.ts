@@ -11,6 +11,7 @@ import { allowance, approve } from "viem-erc20/actions";
 import { describe, expect, it, vi } from "vitest";
 
 import { deposit } from "../../src/actions/wallet/deposit";
+import { stakingVaultAddresses } from "../../src/stakingVaultAddresses";
 
 vi.mock("viem/actions", () => ({
   waitForTransactionReceipt: vi.fn(),
@@ -33,6 +34,7 @@ const validParameters = {
   assets: BigInt(1000),
   receiver: "0x2222222222222222222222222222222222222222" as Address,
   token: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd" as Address,
+  vaultAddress: stakingVaultAddresses[0],
 };
 
 describe("deposit", function () {
@@ -95,6 +97,28 @@ describe("deposit", function () {
 
     expect(onDepositFailedValidation).toHaveBeenCalledExactlyOnceWith(
       "Chain is not defined on wallet client",
+    );
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("should emit 'deposit-failed-validation' if vault address is invalid", async function () {
+    const parameters = {
+      ...validParameters,
+      vaultAddress: zeroAddress,
+    };
+
+    const { emitter, promise } = deposit(mockWalletClient, parameters);
+
+    const onDepositFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("deposit-failed-validation", onDepositFailedValidation);
+    emitter.on("deposit-settled", onSettled);
+
+    await promise;
+
+    expect(onDepositFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "Invalid StakingVault address",
     );
     expect(onSettled).toHaveBeenCalledOnce();
   });

@@ -21,7 +21,7 @@ import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import type { Token } from "types";
 import { formatAmount } from "utils/token";
-import { parseUnits } from "viem";
+import { type Address, parseUnits } from "viem";
 import { useAccount } from "wagmi";
 
 import type { WithdrawStep } from "./stakeDrawerReducer";
@@ -33,6 +33,7 @@ type Props = {
   onSuccess: (toast: { description: string; title: string }) => void;
   onWithdrawStepChange: (step: WithdrawStep) => void;
   peggedToken: Token;
+  stakingVaultAddress: Address;
   withdrawStep: WithdrawStep;
 };
 
@@ -133,12 +134,13 @@ export function StakeWithdrawForm({
   onSuccess,
   onWithdrawStepChange,
   peggedToken,
+  stakingVaultAddress,
   withdrawStep,
 }: Props) {
   const { isConnected } = useAccount();
   const { data: canInstantWithdraw } = useCanInstantWithdraw();
   const chain = useMainnet();
-  const { data: cooldownDays } = useCooldownDuration();
+  const { data: cooldownDays } = useCooldownDuration(stakingVaultAddress);
   const { openConnectModal } = useConnectModal();
   const { t } = useTranslation();
 
@@ -163,7 +165,7 @@ export function StakeWithdrawForm({
   const tracking = canInstantWithdraw ? instantTracking : requestTracking;
 
   const { data: stakedBalance, isError: isStakedBalanceError } =
-    useStakedBalance();
+    useStakedBalance(stakingVaultAddress);
 
   const { data: nativeBalanceData } = useNativeBalance(chain.id);
   const nativeBalance = nativeBalanceData?.value;
@@ -206,6 +208,7 @@ export function StakeWithdrawForm({
     onStatusChange: handleWithdrawStepChange,
     onSuccess: handleRequestWithdrawSuccess,
     onTransactionHash: tracking.onTransactionHash,
+    stakingVaultAddress,
   });
 
   const instantWithdrawMutation = useInstantWithdraw({
@@ -213,6 +216,8 @@ export function StakeWithdrawForm({
     onStatusChange: handleWithdrawStepChange,
     onSuccess: handleInstantWithdrawSuccess,
     onTransactionHash: tracking.onTransactionHash,
+    peggedToken,
+    stakingVaultAddress,
   });
 
   const withdrawMutation = canInstantWithdraw
@@ -221,6 +226,7 @@ export function StakeWithdrawForm({
 
   const withdrawFeesQuery = useTotalWithdrawFees({
     amount: amountBigInt,
+    stakingVaultAddress,
   });
 
   const inputError = getWithdrawErrors({
@@ -275,6 +281,7 @@ export function StakeWithdrawForm({
             <SetMaxStakedBalance
               decimals={peggedToken.decimals}
               onClick={handleMaxClick}
+              stakingVaultAddress={stakingVaultAddress}
             />
           }
           onChange={onInputChange}

@@ -10,6 +10,7 @@ export const depositGasUnitsOptions = ({
   client,
   owner,
   queryClient,
+  stakingVaultAddress,
   token,
 }: {
   amount: bigint;
@@ -18,6 +19,7 @@ export const depositGasUnitsOptions = ({
   client: Client | undefined;
   owner: Address | undefined;
   queryClient: QueryClient;
+  stakingVaultAddress: Address;
   token: Token | undefined;
 }) =>
   queryOptions({
@@ -29,6 +31,7 @@ export const depositGasUnitsOptions = ({
         client: client!,
         owner: owner!,
         queryClient,
+        stakingVaultAddress,
         token: token!,
       }),
     queryKey: [
@@ -37,5 +40,6 @@ export const depositGasUnitsOptions = ({
       token?.address,
       owner,
       amount.toString(),
+      stakingVaultAddress,
     ],
   });

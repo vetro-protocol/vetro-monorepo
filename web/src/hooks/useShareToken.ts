@@ -1,32 +1,33 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import { getStakingVaultAddress } from "@vetro-protocol/earn";
 import { fetchTokenInfo } from "fetchers/fetchTokenInfo";
 import { useEthereumClient } from "hooks/useEthereumClient";
 import { useMainnet } from "hooks/useMainnet";
-import type { Client } from "viem";
+import type { Address, Client } from "viem";
 
-const svusdQueryKey = (chainId: number | undefined) => ["svusd", chainId];
-
-const svusdOptions = ({
+const shareTokenQueryOptions = ({
   chainId,
   client,
+  stakingVaultAddress,
 }: {
   chainId: number;
   client: Client | undefined;
+  stakingVaultAddress: Address;
 }) =>
   queryOptions({
     enabled: !!client,
     queryFn: () =>
       fetchTokenInfo({
-        address: getStakingVaultAddress(chainId),
+        address: stakingVaultAddress,
         client: client!,
       }),
-    queryKey: svusdQueryKey(chainId),
+    queryKey: ["share-token", chainId, stakingVaultAddress],
   });
 
-export function useSvusd() {
+export function useShareToken(stakingVaultAddress: Address) {
   const chain = useMainnet();
   const client = useEthereumClient();
 
-  return useQuery(svusdOptions({ chainId: chain.id, client }));
+  return useQuery(
+    shareTokenQueryOptions({ chainId: chain.id, client, stakingVaultAddress }),
+  );
 }

@@ -3,7 +3,7 @@ import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
 import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpdateNativeBalanceAfterReceipt";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { getStakingVaultAddress } from "@vetro-protocol/earn";
+import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { claimWithdraw } from "@vetro-protocol/earn/actions";
 import { exitTicketsQueryKey } from "pages/earn/hooks/useExitTickets";
 import type { ExitTicket } from "pages/earn/types";
@@ -21,6 +21,10 @@ type Params = {
   requestId: bigint;
 };
 
+// TODO using the only staking vault address to simplify this PR
+// we will handle multiple addresses in the next PR
+const stakingVaultAddress = stakingVaultAddresses[0];
+
 export const useClaimWithdraw = function ({
   onStatusChange,
   onTransactionHash,
@@ -31,7 +35,7 @@ export const useClaimWithdraw = function ({
   const { data: walletClient } = useEthereumWalletClient();
   const ensureConnectedTo = useEnsureConnectedTo();
   const queryClient = useQueryClient();
-  const stakingVaultAddress = getStakingVaultAddress(chain.id);
+
   const { queryKey: nativeBalanceKey } = useNativeBalance(chain.id);
   const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
     chain.id,
@@ -59,6 +63,7 @@ export const useClaimWithdraw = function ({
       const { emitter, promise } = claimWithdraw(walletClient!, {
         receiver: account,
         requestId,
+        vaultAddress: stakingVaultAddress,
       });
 
       emitter.on("user-signed-claim-withdraw", function (hash) {

@@ -1,13 +1,18 @@
 import { useCooldownDuration } from "pages/earn/hooks/useCooldownDuration";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
+import type { Address } from "viem";
 
 import { ClockIcon } from "../../icons/clockIcon";
 import { DownloadIcon } from "../../icons/downloadIcon";
 import { PaymentIcon } from "../../icons/paymentIcon";
 
-export function EmptyState() {
-  const { data: cooldownDays } = useCooldownDuration();
+export function EmptyState({
+  stakingVaultAddress,
+}: {
+  stakingVaultAddress: Address;
+}) {
+  const { data: cooldownDays } = useCooldownDuration(stakingVaultAddress);
   const { t } = useTranslation();
 
   const steps = [

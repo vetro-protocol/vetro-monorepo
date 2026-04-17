@@ -1,4 +1,5 @@
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
+import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { type Client, zeroAddress } from "viem";
 import { estimateGas } from "viem/actions";
 import { convertToAssets } from "viem-erc4626/actions";
@@ -6,11 +7,6 @@ import { describe, expect, it, vi } from "vitest";
 
 import { fetchWithdrawGasUnits } from "../../src/fetchers/fetchWithdrawGasUnits";
 import { createTestQueryClient } from "../utils";
-
-vi.mock("@vetro-protocol/earn", async (importOriginal) => ({
-  ...(await importOriginal()),
-  getStakingVaultAddress: vi.fn().mockReturnValue(zeroAddress),
-}));
 
 vi.mock("pages/earn/hooks/useCanInstantWithdraw", () => ({
   canInstantWithdrawOptions: vi.fn().mockReturnValue({
@@ -39,7 +35,10 @@ describe("fetchWithdrawGasUnits", function () {
   } = {}) {
     const queryClient = createTestQueryClient();
     queryClient.setQueryData(
-      tokenBalanceQueryKey({ address: zeroAddress, chainId }, mockAccount),
+      tokenBalanceQueryKey(
+        { address: stakingVaultAddresses[0], chainId },
+        mockAccount,
+      ),
       shares,
     );
     vi.mocked(convertToAssets).mockResolvedValue(stakedBalance);
@@ -57,6 +56,7 @@ describe("fetchWithdrawGasUnits", function () {
       amount: 100n,
       client: mockClient,
       queryClient,
+      stakingVaultAddress: stakingVaultAddresses[0],
     });
 
     expect(result).toBe(withdrawGas);
@@ -80,6 +80,7 @@ describe("fetchWithdrawGasUnits", function () {
       amount: 100n,
       client: mockClient,
       queryClient,
+      stakingVaultAddress: stakingVaultAddresses[0],
     });
 
     expect(result).toBe(requestGas);
@@ -97,6 +98,7 @@ describe("fetchWithdrawGasUnits", function () {
         amount: 100n,
         client: mockClient,
         queryClient,
+        stakingVaultAddress: stakingVaultAddresses[0],
       }),
     ).rejects.toThrow("Insufficient staked balance");
 
