@@ -4,16 +4,16 @@ import type { Token } from "types";
 
 type Props = {
   onClose: VoidFunction;
+  peggedToken: Token;
   toastType: "cancel" | "redeem" | undefined;
   toToken: Token;
-  vusd: Token;
 };
 
 export function RedeemQueueToasts({
   onClose,
+  peggedToken,
   toastType,
   toToken,
-  vusd,
 }: Props) {
   const { t } = useTranslation();
 
@@ -23,7 +23,7 @@ export function RedeemQueueToasts({
         closable
         description={t(
           "pages.swap.redeem-queue.cancel-redeem-toast-description",
-          { symbol: vusd.symbol },
+          { symbol: peggedToken.symbol },
         )}
         onClose={onClose}
         title={t("pages.swap.redeem-queue.cancel-redeem-toast-title")}

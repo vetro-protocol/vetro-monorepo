@@ -1,12 +1,11 @@
 import { estimateFeesQueryOptions } from "@hemilabs/react-hooks/useEstimateFees";
 import type { QueryClient } from "@tanstack/react-query";
-import { getGatewayAddress } from "@vetro-protocol/gateway";
 import { parseEthPrice } from "hooks/useEthPrice";
 import { mintFeeOptions } from "hooks/useMintFee";
 import { pricesOptions } from "hooks/usePrices";
 import { mintGasUnitsOptions } from "hooks/useSwapMintFees";
 import { config } from "providers/web3Provider";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 import { applyBps, weiToUsd } from "utils/fees";
 import { getTokenPrice } from "utils/token";
 import { type Address, type Chain, type Client, formatUnits } from "viem";
@@ -29,13 +28,11 @@ export const fetchTotalMintFees = async function ({
   approveAmount: bigint | undefined;
   chain: Chain;
   client: Client;
-  fromToken: Token;
+  fromToken: TokenWithGateway;
   minPeggedTokenOut: bigint;
   owner: Address;
   queryClient: QueryClient;
 }) {
-  const gatewayAddress = getGatewayAddress(chain.id);
-
   const gasUnits = await queryClient.ensureQueryData(
     mintGasUnitsOptions({
       amount,
@@ -61,14 +58,19 @@ export const fetchTotalMintFees = async function ({
     queryClient
       .ensureQueryData(
         mintFeeOptions({
-          chainId: chain.id,
           client,
-          gatewayAddress,
+          gatewayAddress: fromToken.gatewayAddress,
           token: fromToken.address,
         }),
       )
       .then((protocolFeeBps) => applyBps(amount, protocolFeeBps)),
-    queryClient.ensureQueryData(pricesOptions({ client, queryClient })),
+    queryClient.ensureQueryData(
+      pricesOptions({
+        client,
+        gatewayAddress: fromToken.gatewayAddress,
+        queryClient,
+      }),
+    ),
   ]);
 
   const ethPrice = parseEthPrice(prices);

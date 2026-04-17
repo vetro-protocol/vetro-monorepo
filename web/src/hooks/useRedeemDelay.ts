@@ -4,7 +4,6 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { getGatewayAddress } from "@vetro-protocol/gateway";
 import { fetchRedeemDelay } from "fetchers/fetchRedeemDelay";
 import type { Address, Chain, Client } from "viem";
 import { useAccount } from "wagmi";
@@ -51,11 +50,10 @@ export const redeemDelayOptions = ({
     }),
   });
 
-export const useRedeemDelay = function () {
+export const useRedeemDelay = function (gatewayAddress: Address) {
   const { address: account } = useAccount();
   const ethereumChain = useMainnet();
   const client = useEthereumClient();
-  const gatewayAddress = getGatewayAddress(ethereumChain.id);
   const queryClient = useQueryClient();
 
   return useQuery(

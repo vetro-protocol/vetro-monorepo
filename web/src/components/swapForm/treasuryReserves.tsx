@@ -5,6 +5,11 @@ import { Fragment, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import type { Token } from "types";
+import type { Address } from "viem";
+
+type Props = {
+  gatewayAddress: Address;
+};
 
 const tokenContainer = (token: Token) =>
   Object.assign(
@@ -17,9 +22,9 @@ const tokenContainer = (token: Token) =>
     { displayName: "TokenContainer" },
   );
 
-export const TreasuryReserves = function () {
+export const TreasuryReserves = function ({ gatewayAddress }: Props) {
   const { t } = useTranslation();
-  const { data: treasuryTokens, isError } = useTreasuryReserves();
+  const { data: treasuryTokens, isError } = useTreasuryReserves(gatewayAddress);
 
   return (
     <div className="mx-auto flex w-full items-center justify-between py-3 md:max-w-md">

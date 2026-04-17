@@ -3,12 +3,10 @@ import {
   queryOptions,
   useQuery,
 } from "@tanstack/react-query";
-import { getGatewayAddress } from "@vetro-protocol/gateway";
 import { getMintFee } from "@vetro-protocol/gateway/actions";
-import type { Address, Chain, Client } from "viem";
+import type { Address, Client } from "viem";
 
 import { useEthereumClient } from "./useEthereumClient";
-import { useMainnet } from "./useMainnet";
 
 type QueryOptions<TSelect = bigint> = Omit<
   UseQueryOptions<bigint, Error, TSelect>,
@@ -16,13 +14,11 @@ type QueryOptions<TSelect = bigint> = Omit<
 >;
 
 export const mintFeeOptions = <TSelect = bigint>({
-  chainId,
   client,
   gatewayAddress,
   token,
   ...options
 }: {
-  chainId: Chain["id"];
   client: Client | undefined;
   gatewayAddress: Address;
   token: Address;
@@ -31,21 +27,22 @@ export const mintFeeOptions = <TSelect = bigint>({
     ...options,
     enabled: !!client,
     queryFn: () => getMintFee(client!, { address: gatewayAddress, token }),
-    queryKey: ["mint-fee", chainId, gatewayAddress, token],
+    queryKey: ["mint-fee", client?.chain?.id, gatewayAddress, token],
   });
 
-export const useMintFee = function <TSelect = bigint>(
-  token: Address,
-  options?: QueryOptions<TSelect>,
-) {
-  const ethereumChain = useMainnet();
+export const useMintFee = function <TSelect = bigint>({
+  gatewayAddress,
+  token,
+  ...options
+}: {
+  gatewayAddress: Address;
+  token: Address;
+} & QueryOptions<TSelect>) {
   const client = useEthereumClient();
-  const gatewayAddress = getGatewayAddress(ethereumChain.id);
 
   return useQuery(
     mintFeeOptions({
       ...options,
-      chainId: ethereumChain.id,
       client,
       gatewayAddress,
       token,

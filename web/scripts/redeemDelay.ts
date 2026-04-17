@@ -1,5 +1,6 @@
 import { parseArgs } from "node:util";
 import {
+  type Address,
   createPublicClient,
   createTestClient,
   http,
@@ -17,20 +18,25 @@ import {
 import { mainnet } from "viem/chains";
 
 import { gatewayAbi } from "../../packages/gateway/src/abi/gatewayAbi.ts";
-import { getGatewayAddress } from "../../packages/gateway/src/getGatewayAddress.ts";
-
-const gateway = getGatewayAddress(mainnet.id);
+import { gatewayAddresses } from "../../packages/gateway/src/gatewayAddresses.ts";
 
 const { values } = parseArgs({
   options: {
     address: { short: "a", type: "string" },
     delay: { type: "boolean" },
     "fork-url": { short: "f", type: "string" },
+    gateway: { short: "g", type: "string" },
     "no-delay": { type: "boolean" },
   },
   strict: true,
 });
 
+if (values.gateway && !isAddress(values.gateway, { strict: false })) {
+  console.error("Invalid --gateway. Must be a valid address.");
+  process.exit(1);
+}
+
+const gateway = (values.gateway as Address) ?? gatewayAddresses[0];
 const forkUrl = values["fork-url"] ?? "http://127.0.0.1:8545";
 
 if (!values.address || !isAddress(values.address, { strict: false })) {

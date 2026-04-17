@@ -3,28 +3,29 @@ import { Button } from "components/base/button";
 import { Modal } from "components/base/modal";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useCancelRedeemRequest } from "hooks/useCancelRedeemRequest";
-import { usePeggedToken } from "hooks/usePeggedToken";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import type { TokenWithGateway } from "types";
 import { formatUnits } from "viem";
 import { useAccount } from "wagmi";
 
 type Props = {
   onClose: VoidFunction;
   onSuccess: VoidFunction;
+  peggedToken: TokenWithGateway;
   redeemableAmount: bigint;
 };
 
 export function CancelRedeemModal({
   onClose,
   onSuccess,
+  peggedToken,
   redeemableAmount,
 }: Props) {
   const { isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
   const [isCancelling, setIsCancelling] = useState(false);
   const { t } = useTranslation();
-  const { data: peggedToken } = usePeggedToken();
 
   const { onCompleted, onFailed, onPending, onTransactionHash } =
     useActivityTracking({
@@ -65,6 +66,7 @@ export function CancelRedeemModal({
         setIsCancelling(false);
       });
     },
+    peggedToken,
     redeemableAmount,
   });
 

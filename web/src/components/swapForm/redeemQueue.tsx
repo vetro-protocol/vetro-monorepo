@@ -5,7 +5,6 @@ import { useActivityTracking } from "hooks/useActivityTracking";
 import { useGetRedeemRequest } from "hooks/useGetRedeemRequest";
 import { useMainnet } from "hooks/useMainnet";
 import { useMaxWithdraw } from "hooks/useMaxWithdraw";
-import { usePeggedToken } from "hooks/usePeggedToken";
 import { usePreviewRedeem } from "hooks/usePreviewRedeem";
 import { useRedeem } from "hooks/useRedeem";
 import { useRedeemFee } from "hooks/useRedeemFee";
@@ -13,10 +12,10 @@ import { useSwapRedeemFees } from "hooks/useSwapRedeemFees";
 import { useTotalRedeemFees } from "hooks/useTotalRedeemFees";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 import { applyBps } from "utils/fees";
 import { formatAmount, parseTokenUnits } from "utils/token";
-import { formatUnits, parseUnits } from "viem";
+import { formatUnits, isAddressEqual, parseUnits } from "viem";
 
 import { CancelRedeemModal } from "./cancelRedeemModal";
 import { ClaimRedeemDrawer } from "./claimRedeemDrawer";
@@ -27,22 +26,37 @@ import { RedeemQueueToasts } from "./redeemQueueToasts";
 import { getSwapErrors } from "./validation";
 
 type Props = {
-  whitelistedTokens: Token[];
+  peggedTokens: TokenWithGateway[];
+  whitelistedTokens: TokenWithGateway[];
 };
 
-export function RedeemQueue({ whitelistedTokens }: Props) {
+export function RedeemQueue({ peggedTokens, whitelistedTokens }: Props) {
   const ethereumChain = useMainnet();
   const { t } = useTranslation();
-  const { data: peggedToken } = usePeggedToken();
+
   const { data: nativeBalanceData } = useNativeBalance(ethereumChain.id);
   const nativeBalance = nativeBalanceData?.value;
-  const { data: redeemRequest, isLoading } = useGetRedeemRequest();
+
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isCancelRedeemModalOpen, setIsCancelRedeemModalOpen] = useState(false);
   const [flowStatus, setFlowStatus] = useState<ClaimRedeemFlowStatus>("idle");
   const [toastType, setToastType] = useState<"cancel" | "redeem">();
   const [fromInputValue, setFromInputValue] = useState("0");
   const [toToken, setToToken] = useState(whitelistedTokens[0]);
+
+  const { data: redeemRequest, isLoading } = useGetRedeemRequest(
+    toToken.gatewayAddress,
+  );
+
+  const peggedToken = peggedTokens.find((pt) =>
+    isAddressEqual(pt.gatewayAddress, toToken.gatewayAddress),
+  );
+
+  if (!peggedToken) {
+    throw new Error(
+      `PeggedToken not found for gateway address ${toToken.gatewayAddress}`,
+    );
+  }
 
   const amountLocked = redeemRequest?.[0] ?? 0n;
   const claimableAt = redeemRequest?.[1] ?? 0n;
@@ -52,14 +66,19 @@ export function RedeemQueue({ whitelistedTokens }: Props) {
     ? parseTokenUnits(fromInputValue, peggedToken)
     : 0n;
 
-  const { data: maxWithdraw } = useMaxWithdraw(toToken.address);
+  const { data: maxWithdraw } = useMaxWithdraw({
+    gatewayAddress: peggedToken.gatewayAddress,
+    tokenOut: toToken.address,
+  });
 
   const { data: redeemPreview, isError: isPreviewError } = usePreviewRedeem({
+    gatewayAddress: peggedToken.gatewayAddress,
     peggedTokenIn: amountBigInt,
     tokenOut: toToken.address,
   });
 
   const unitRedeemPreview = usePreviewRedeem({
+    gatewayAddress: peggedToken.gatewayAddress,
     peggedTokenIn: parseUnits("1", peggedToken.decimals),
     tokenOut: toToken.address,
   });
@@ -104,8 +123,10 @@ export function RedeemQueue({ whitelistedTokens }: Props) {
     status: (networkFeeQueryData.isError ? "error" : "pending") as QueryStatus,
   };
 
-  const protocolFeeQueryData = useRedeemFee(toToken.address, {
+  const protocolFeeQueryData = useRedeemFee({
+    gatewayAddress: peggedToken.gatewayAddress,
     select: (fee) => applyBps(amountBigInt, fee),
+    token: toToken.address,
   });
 
   const totalRedeemFeesQueryData = useTotalRedeemFees({
@@ -143,12 +164,13 @@ export function RedeemQueue({ whitelistedTokens }: Props) {
         setFlowStatus("redeem-error");
       });
     },
+    peggedToken,
     peggedTokenIn: amountBigInt,
     tokenOut: toToken.address,
   });
 
   const handleMaxClick = () =>
-    setFromInputValue(formatUnits(amountLocked, peggedToken.decimals));
+    setFromInputValue(formatUnits(amountLocked, peggedToken?.decimals ?? 18));
 
   const handleSubmit = function () {
     setFlowStatus("redeem-ready");
@@ -169,7 +191,12 @@ export function RedeemQueue({ whitelistedTokens }: Props) {
         onCancelRedeem={() => setIsCancelRedeemModalOpen(true)}
         onRedeem={() => setIsDrawerOpen(true)}
         placeholder={
-          <RedeemQueueEmptyState whitelistedTokens={whitelistedTokens} />
+          <RedeemQueueEmptyState
+            peggedToken={peggedToken}
+            whitelistedTokens={whitelistedTokens.filter((wt) =>
+              isAddressEqual(wt.gatewayAddress, peggedToken.gatewayAddress),
+            )}
+          />
         }
         vusd={peggedToken}
       />
@@ -201,14 +228,15 @@ export function RedeemQueue({ whitelistedTokens }: Props) {
         <CancelRedeemModal
           onClose={() => setIsCancelRedeemModalOpen(false)}
           onSuccess={() => setToastType("cancel")}
+          peggedToken={peggedToken}
           redeemableAmount={amountLocked}
         />
       )}
       <RedeemQueueToasts
         onClose={() => setToastType(undefined)}
+        peggedToken={peggedToken}
         toToken={toToken}
         toastType={toastType}
-        vusd={peggedToken}
       />
     </>
   );

@@ -1,14 +1,14 @@
 import { Modal } from "components/base/modal";
 import { StripedDivider } from "components/stripedDivider";
-import { usePeggedToken } from "hooks/usePeggedToken";
 import { useWithdrawalDelay } from "hooks/useWithdrawalDelay";
 import type { ReactNode } from "react";
 import { Trans, useTranslation } from "react-i18next";
-import type { Token } from "types";
+import type { Token, TokenWithGateway } from "types";
 import { getTokenListParams } from "utils/tokenList";
 
 type Props = {
   onClose: VoidFunction;
+  peggedToken: TokenWithGateway;
   whitelistedTokens: Token[];
 };
 
@@ -36,10 +36,14 @@ const StepSection = ({ badge, children, image }: StepSectionProps) => (
   </div>
 );
 
-export function RedeemTutorialModal({ onClose, whitelistedTokens }: Props) {
+export function RedeemTutorialModal({
+  onClose,
+  peggedToken,
+  whitelistedTokens,
+}: Props) {
   const { t } = useTranslation();
-  const { data: peggedToken } = usePeggedToken();
   const { data: seconds } = useWithdrawalDelay({
+    gatewayAddress: peggedToken.gatewayAddress,
     select: (data) => Number(data),
   });
 

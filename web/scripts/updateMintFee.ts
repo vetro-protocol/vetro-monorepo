@@ -1,5 +1,6 @@
 import { parseArgs } from "node:util";
 import {
+  type Address,
   createPublicClient,
   createTestClient,
   http,
@@ -18,9 +19,7 @@ import {
 import { mainnet } from "viem/chains";
 
 import { gatewayAbi } from "../../packages/gateway/src/abi/gatewayAbi.ts";
-import { getGatewayAddress } from "../../packages/gateway/src/getGatewayAddress.ts";
-
-const gateway = getGatewayAddress(mainnet.id);
+import { gatewayAddresses } from "../../packages/gateway/src/gatewayAddresses.ts";
 
 const grantRoleAbi = [
   {
@@ -38,12 +37,19 @@ const grantRoleAbi = [
 const { values } = parseArgs({
   options: {
     fee: { short: "f", type: "string" },
+    gateway: { short: "g", type: "string" },
     "rpc-url": { default: "http://127.0.0.1:8545", short: "r", type: "string" },
     token: { short: "t", type: "string" },
   },
   strict: true,
 });
 
+if (values.gateway && !isAddress(values.gateway, { strict: false })) {
+  console.error("Invalid --gateway. Must be a valid address.");
+  process.exit(1);
+}
+
+const gateway = (values.gateway as Address) ?? gatewayAddresses[0];
 const token = values.token;
 if (!token || !isAddress(token, { strict: false })) {
   console.error("Invalid --token. Must be a valid address.");

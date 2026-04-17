@@ -9,10 +9,6 @@ import { describe, expect, it, vi } from "vitest";
 import { fetchCollateralizationRatio } from "../../src/fetchers/fetchCollateralizationRatio";
 import { createTestQueryClient } from "../utils";
 
-vi.mock("@vetro-protocol/gateway", () => ({
-  getGatewayAddress: vi.fn().mockReturnValue("0xGateway"),
-}));
-
 vi.mock("hooks/useAnalyticsBackingVusd", () => ({
   analyticsBackingVusdOptions: vi.fn(),
 }));
@@ -79,6 +75,7 @@ describe("fetchCollateralizationRatio", function () {
 
     const result = await fetchCollateralizationRatio({
       client: mockClient,
+      gatewayAddress: "0xDaD503f8B9d42bb7af3AfC588358D30163e4416F",
       queryClient: createTestQueryClient(),
     });
 
@@ -111,6 +108,7 @@ describe("fetchCollateralizationRatio", function () {
 
     const result = await fetchCollateralizationRatio({
       client: mockClient,
+      gatewayAddress: "0xDaD503f8B9d42bb7af3AfC588358D30163e4416F",
       queryClient: createTestQueryClient(),
     });
 
@@ -126,6 +124,7 @@ describe("fetchCollateralizationRatio", function () {
 
     const result = await fetchCollateralizationRatio({
       client: mockClient,
+      gatewayAddress: "0xDaD503f8B9d42bb7af3AfC588358D30163e4416F",
       queryClient: createTestQueryClient(),
     });
 
@@ -147,6 +146,7 @@ describe("fetchCollateralizationRatio", function () {
 
     const result = await fetchCollateralizationRatio({
       client: mockClient,
+      gatewayAddress: "0xDaD503f8B9d42bb7af3AfC588358D30163e4416F",
       queryClient: createTestQueryClient(),
     });
 
@@ -181,6 +181,7 @@ describe("fetchCollateralizationRatio", function () {
 
     const result = await fetchCollateralizationRatio({
       client: mockClient,
+      gatewayAddress: "0xDaD503f8B9d42bb7af3AfC588358D30163e4416F",
       queryClient: createTestQueryClient(),
     });
 
@@ -209,6 +210,7 @@ describe("fetchCollateralizationRatio", function () {
 
     const result = await fetchCollateralizationRatio({
       client: mockClient,
+      gatewayAddress: "0xDaD503f8B9d42bb7af3AfC588358D30163e4416F",
       queryClient: createTestQueryClient(),
     });
 

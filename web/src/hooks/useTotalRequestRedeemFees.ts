@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchTotalRequestRedeemFees } from "fetchers/fetchTotalRequestRedeemFees";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 import { useAccount } from "wagmi";
 
 import { useEthereumClient } from "./useEthereumClient";
@@ -13,7 +13,7 @@ export const useTotalRequestRedeemFees = function ({
 }: {
   amount: bigint;
   approveAmount: bigint | undefined;
-  fromToken: Token;
+  fromToken: TokenWithGateway;
 }) {
   const { address: owner } = useAccount();
   const client = useEthereumClient();
@@ -36,6 +36,7 @@ export const useTotalRequestRedeemFees = function ({
       "total-request-redeem-fees",
       ethereumChain.id,
       fromToken.address,
+      fromToken.gatewayAddress,
       owner,
       amount.toString(),
     ],

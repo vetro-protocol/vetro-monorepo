@@ -6,7 +6,7 @@ import { TokenLogo } from "components/tokenLogo";
 import { useAnimatedVisibility } from "hooks/useAnimatedVisibility";
 import type { ComponentProps, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 import type { Address } from "viem";
 
 import { OutputLabel, type UnitPreview } from "./outputLabel";
@@ -15,13 +15,13 @@ import { TreasuryReserves } from "./treasuryReserves";
 
 type Props = {
   fromAmount: string;
-  fromToken: Token;
+  fromToken: TokenWithGateway;
   onRetry?: VoidFunction;
   oracleToken?: Address;
   outputValue?: string;
   steps: Step[];
   subtitle?: ReactNode;
-  toToken?: Token;
+  toToken?: TokenWithGateway;
   unitPreview?: UnitPreview;
 } & Pick<
   ComponentProps<typeof SwapFees>,
@@ -88,7 +88,7 @@ export function SwapProgressDrawer({
           )}
         </div>
         <DrawerFeesContainer>
-          <TreasuryReserves />
+          <TreasuryReserves gatewayAddress={fromToken.gatewayAddress} />
         </DrawerFeesContainer>
         <DrawerFeesContainer>
           <SwapFees

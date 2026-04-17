@@ -3,40 +3,38 @@ import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
 import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpdateNativeBalanceAfterReceipt";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  gatewayAbi,
-  getGatewayAddress,
-  type RequestRedeemEvents,
-} from "@vetro-protocol/gateway";
+import { gatewayAbi, type RequestRedeemEvents } from "@vetro-protocol/gateway";
 import { requestRedeem } from "@vetro-protocol/gateway/actions";
 import type { EventEmitter } from "events";
-import { parseEventLogs } from "viem";
+import type { TokenWithGateway } from "types";
+import { type Address, parseEventLogs } from "viem";
 import { useAccount } from "wagmi";
 
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { redeemRequestQueryKey } from "./useGetRedeemRequest";
 import { useMainnet } from "./useMainnet";
-import { usePeggedToken } from "./usePeggedToken";
 
 export const useRequestRedeem = function ({
   approveAmount,
+  gatewayAddress,
   onEmitter,
+  peggedToken,
   peggedTokenAmount,
 }: {
   approveAmount?: bigint;
+  gatewayAddress: Address;
   onEmitter?: (emitter: EventEmitter<RequestRedeemEvents>) => void;
+  peggedToken: TokenWithGateway;
   peggedTokenAmount: bigint;
 }) {
   const { address } = useAccount();
   const { data: walletClient } = useEthereumWalletClient();
   const ensureConnectedTo = useEnsureConnectedTo();
   const ethereumChain = useMainnet();
-  const gatewayAddress = getGatewayAddress(ethereumChain.id);
   const { queryKey: nativeBalanceKey } = useNativeBalance(ethereumChain.id);
   const queryClient = useQueryClient();
-  const { data: peggedToken } = usePeggedToken();
 
-  const vusdBalanceQueryKey = tokenBalanceQueryKey(peggedToken, address);
+  const peggedTokenBalanceQueryKey = tokenBalanceQueryKey(peggedToken, address);
 
   const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
     ethereumChain.id,
@@ -62,7 +60,7 @@ export const useRequestRedeem = function ({
       emitter.on("request-redeem-transaction-succeeded", function (receipt) {
         updateNativeBalanceAfterReceipt(receipt);
         queryClient.setQueryData(
-          vusdBalanceQueryKey,
+          peggedTokenBalanceQueryKey,
           (old: bigint) => old - peggedTokenAmount,
         );
         // event is always emitted
@@ -77,6 +75,7 @@ export const useRequestRedeem = function ({
             redeemRequestQueryKey({
               address,
               chainId: ethereumChain.id,
+              gatewayAddress,
             }),
             // event includes the updated amount and claimableAt
             [args.amount, args.claimableAt] as [bigint, bigint],
@@ -96,10 +95,11 @@ export const useRequestRedeem = function ({
         queryKey: redeemRequestQueryKey({
           address,
           chainId: ethereumChain.id,
+          gatewayAddress,
         }),
       });
       queryClient.invalidateQueries({
-        queryKey: vusdBalanceQueryKey,
+        queryKey: peggedTokenBalanceQueryKey,
       });
     },
   });

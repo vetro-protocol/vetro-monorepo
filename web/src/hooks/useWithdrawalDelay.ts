@@ -3,7 +3,6 @@ import {
   queryOptions,
   useQuery,
 } from "@tanstack/react-query";
-import { getGatewayAddress } from "@vetro-protocol/gateway";
 import { getWithdrawalDelay } from "@vetro-protocol/gateway/actions";
 import type { Address, Chain, Client } from "viem";
 
@@ -12,9 +11,11 @@ import { useMainnet } from "./useMainnet";
 
 const withdrawalDelayQueryKey = ({
   chainId,
+  gatewayAddress,
 }: {
   chainId: Chain["id"] | undefined;
-}) => ["withdrawal-delay", chainId];
+  gatewayAddress: Address;
+}) => ["withdrawal-delay", chainId, gatewayAddress];
 
 type WithdrawalDelayQueryKey = ReturnType<typeof withdrawalDelayQueryKey>;
 type QueryOptions<TSelect = bigint> = Omit<
@@ -36,15 +37,17 @@ export const withdrawalDelayOptions = <TSelect = bigint>({
     ...options,
     enabled: !!client,
     queryFn: () => getWithdrawalDelay(client!, { address: gatewayAddress }),
-    queryKey: withdrawalDelayQueryKey({ chainId }),
+    queryKey: withdrawalDelayQueryKey({ chainId, gatewayAddress }),
   });
 
-export const useWithdrawalDelay = function <TSelect = bigint>(
-  options?: QueryOptions<TSelect>,
-) {
+export const useWithdrawalDelay = function <TSelect = bigint>({
+  gatewayAddress,
+  ...options
+}: {
+  gatewayAddress: Address;
+} & QueryOptions<TSelect>) {
   const ethereumChain = useMainnet();
   const client = useEthereumClient();
-  const gatewayAddress = getGatewayAddress(ethereumChain.id);
 
   return useQuery(
     withdrawalDelayOptions({

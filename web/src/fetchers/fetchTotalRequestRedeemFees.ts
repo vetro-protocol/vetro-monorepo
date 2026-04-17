@@ -1,6 +1,6 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { requestRedeemGasUnitsOptions } from "hooks/useSwapRequestRedeemFees";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 import { type Address, type Chain, type Client } from "viem";
 
 import { fetchTotalNetworkFees } from "./fetchTotalNetworkFees";
@@ -22,7 +22,7 @@ export const fetchTotalRequestRedeemFees = async function ({
   approveAmount: bigint | undefined;
   chain: Chain;
   client: Client;
-  fromToken: Token;
+  fromToken: TokenWithGateway;
   owner: Address;
   queryClient: QueryClient;
 }) {

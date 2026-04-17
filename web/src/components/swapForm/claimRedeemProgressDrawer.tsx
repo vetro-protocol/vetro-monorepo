@@ -11,7 +11,7 @@ import type { InputError } from "components/tokenInput/utils";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import type { ComponentProps } from "react";
 import { useTranslation } from "react-i18next";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 import { formatAmount } from "utils/token";
 import type { Address } from "viem";
 
@@ -32,20 +32,20 @@ type Props = {
   amountLocked: bigint;
   flowStatus: ClaimRedeemFlowStatus;
   fromAmount: string;
-  fromToken: Token;
+  fromToken: TokenWithGateway;
   inputError: InputError | undefined;
   onInputChange: (value: string) => void;
   onMaxClick: VoidFunction;
   onRetry?: VoidFunction;
   onSubmit: VoidFunction;
-  onTokenChange: (token: Token) => void;
+  onTokenChange: (token: TokenWithGateway) => void;
   oracleToken: Address;
   outputBigInt: bigint | undefined;
-  unitPreview: UnitPreview;
   outputValue: string;
   steps: Step[];
-  toToken: Token;
-  whitelistedTokens: Token[];
+  toToken: TokenWithGateway;
+  unitPreview: UnitPreview;
+  whitelistedTokens: TokenWithGateway[];
 } & Pick<
   ComponentProps<typeof SwapFees>,
   "networkFee" | "protocolFee" | "totalFees"
@@ -139,7 +139,7 @@ export function ClaimRedeemProgressDrawer({
         </Button>
       </div>
       <DrawerFeesContainer>
-        <TreasuryReserves />
+        <TreasuryReserves gatewayAddress={fromToken.gatewayAddress} />
       </DrawerFeesContainer>
       <DrawerFeesContainer>
         <SwapFees

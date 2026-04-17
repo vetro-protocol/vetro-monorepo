@@ -6,7 +6,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { fetchRequestRedeemGasUnits } from "fetchers/fetchRequestRedeemGasUnits";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 import type { Address, Chain, Client } from "viem";
 import { useAccount } from "wagmi";
 
@@ -26,7 +26,7 @@ export const requestRedeemGasUnitsOptions = ({
   approveAmount: bigint | undefined;
   chainId: Chain["id"];
   client: Client | undefined;
-  fromToken: Token;
+  fromToken: TokenWithGateway;
   owner: Address | undefined;
   queryClient: QueryClient;
 }) =>
@@ -44,6 +44,7 @@ export const requestRedeemGasUnitsOptions = ({
     queryKey: [
       "swap-request-redeem-gas-units",
       chainId,
+      fromToken.gatewayAddress,
       fromToken.address,
       owner,
       amount.toString(),
@@ -57,7 +58,7 @@ export const useSwapRequestRedeemFees = function ({
 }: {
   amount: bigint;
   approveAmount: bigint | undefined;
-  fromToken: Token;
+  fromToken: TokenWithGateway;
 }) {
   const { address: owner } = useAccount();
   const client = useEthereumClient();

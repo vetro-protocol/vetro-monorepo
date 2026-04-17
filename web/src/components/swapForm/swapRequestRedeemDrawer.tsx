@@ -4,7 +4,7 @@ import { type Step, stepStatus } from "components/base/verticalStepper";
 import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
 import { type ComponentProps, type ReactNode, Suspense, lazy } from "react";
 import { useTranslation } from "react-i18next";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 
 import type { SwapFees } from "./swapFees";
 
@@ -53,7 +53,7 @@ const confirmStepStatuses: Record<
 type Props = {
   flowStatus: Exclude<RequestRedeemFlowStatus, "idle">;
   fromAmount: string;
-  fromToken: Token;
+  fromToken: TokenWithGateway;
   onClose: VoidFunction;
   onRetry: VoidFunction;
   showApproveStep: boolean;

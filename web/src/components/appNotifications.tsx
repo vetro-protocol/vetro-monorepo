@@ -4,10 +4,11 @@ import { ChevronIcon } from "components/base/chevronIcon";
 import { type StackItem, Stack } from "components/base/stack";
 import { useAtRiskPositions } from "hooks/borrow/useAtRiskPositions";
 import { useCountdown } from "hooks/useCountdown";
-import { useGetRedeemRequest } from "hooks/useGetRedeemRequest";
-import { usePeggedToken } from "hooks/usePeggedToken";
+import { useGetRedeemRequests } from "hooks/useGetRedeemRequests";
+import { usePeggedTokensByGateway } from "hooks/usePeggedTokensByGateway";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router";
+import type { TokenWithGateway } from "types";
 import { formatAmount } from "utils/token";
 
 function useLiquidationItems(): StackItem[] {
@@ -45,19 +46,22 @@ function useLiquidationItems(): StackItem[] {
   }));
 }
 
-function useRedeemItem(): StackItem | undefined {
-  const { data: redeemRequest } = useGetRedeemRequest();
-  const { data: peggedToken } = usePeggedToken();
+function RedeemNotification({
+  amountLocked,
+  claimableAt,
+  peggedToken,
+}: {
+  amountLocked: bigint;
+  claimableAt: bigint;
+  peggedToken: TokenWithGateway;
+}) {
   const { lang } = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
-
-  const amountLocked = redeemRequest?.[0] ?? 0n;
-  const claimableAt = redeemRequest?.[1] ?? 0n;
   const remainingSeconds = useCountdown(claimableAt);
 
-  if (amountLocked === 0n || remainingSeconds > 0) {
-    return undefined;
+  if (remainingSeconds > 0) {
+    return null;
   }
 
   const formattedAmount = formatAmount({
@@ -77,32 +81,49 @@ function useRedeemItem(): StackItem | undefined {
     }
   }
 
-  return {
-    content: (
-      <div className="mx-auto w-fit *:w-2xs *:border-2 *:border-blue-500">
-        <Button
-          onClick={handleClick}
-          size="xLarge"
-          type="button"
-          variant="primary"
-        >
-          <Badge variant="blue">{formattedAmount}</Badge>
-          {t("pages.swap.redeem-queue.ready-to-redeem")}
-          <ChevronIcon direction="right" />
-        </Button>
-      </div>
-    ),
-    id: "redeem-ready",
-  };
+  return (
+    <div className="mx-auto w-fit *:w-2xs *:border-2 *:border-blue-500">
+      <Button
+        onClick={handleClick}
+        size="xLarge"
+        type="button"
+        variant="primary"
+      >
+        <Badge variant="blue">{formattedAmount}</Badge>
+        {t("pages.swap.redeem-queue.ready-to-redeem")}
+        <ChevronIcon direction="right" />
+      </Button>
+    </div>
+  );
+}
+
+function useRedeemItems(): StackItem[] {
+  const { data: requests } = useGetRedeemRequests();
+  const { data: peggedTokensByGateway } = usePeggedTokensByGateway();
+
+  if (!peggedTokensByGateway || !requests) {
+    return [];
+  }
+
+  return requests
+    .filter((r) => peggedTokensByGateway[r.gatewayAddress] !== undefined)
+    .map((r) => ({
+      content: (
+        <RedeemNotification
+          amountLocked={r.amountLocked}
+          claimableAt={r.claimableAt}
+          peggedToken={peggedTokensByGateway[r.gatewayAddress]}
+        />
+      ),
+      id: `redeem-ready-${r.gatewayAddress}`,
+    }));
 }
 
 export function AppNotifications() {
   const liquidationItems = useLiquidationItems();
-  const redeemItem = useRedeemItem();
+  const redeemItems = useRedeemItems();
 
-  const items = redeemItem
-    ? [...liquidationItems, redeemItem]
-    : liquidationItems;
+  const items = [...liquidationItems, ...redeemItems];
 
   if (items.length === 0) {
     return null;

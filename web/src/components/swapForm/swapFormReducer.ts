@@ -1,12 +1,12 @@
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 import { sanitizeAmount } from "utils/sanitizeAmount";
 
 import type { SwapFormState } from "./types";
 
 export type SwapFormAction =
   | { payload: string; type: "SET_FROM_INPUT_VALUE" }
-  | { payload: Token; type: "SET_FROM_TOKEN" }
-  | { payload: Token; type: "SET_TO_TOKEN" }
+  | { payload: TokenWithGateway; type: "SET_FROM_TOKEN" }
+  | { payload: TokenWithGateway; type: "SET_TO_TOKEN" }
   | { type: "TOGGLE_APPROVE_10X" }
   | { type: "TOGGLE_TOKENS" };
 

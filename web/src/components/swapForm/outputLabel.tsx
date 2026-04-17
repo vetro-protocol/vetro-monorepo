@@ -2,7 +2,7 @@ import type { UseQueryResult } from "@tanstack/react-query";
 import { OracleTooltip } from "components/oracleTooltip";
 import { useTokenConfig } from "hooks/useTokenConfig";
 import Skeleton from "react-loading-skeleton";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 import { type Address, formatUnits, isAddressEqual, zeroAddress } from "viem";
 
 export type UnitPreview = Pick<
@@ -11,9 +11,9 @@ export type UnitPreview = Pick<
 >;
 
 type Props = {
-  fromToken: Token;
+  fromToken: TokenWithGateway;
   oracleToken: Address;
-  toToken: Token;
+  toToken: TokenWithGateway;
   unitPreview: UnitPreview;
 };
 
@@ -23,8 +23,10 @@ export const OutputLabel = function ({
   toToken,
   unitPreview,
 }: Props) {
-  const { data: tokenConfig, isError: isTokenConfigError } =
-    useTokenConfig(oracleToken);
+  const { data: tokenConfig, isError: isTokenConfigError } = useTokenConfig({
+    gatewayAddress: fromToken.gatewayAddress,
+    token: oracleToken,
+  });
 
   if (!tokenConfig?.oracle || isAddressEqual(tokenConfig.oracle, zeroAddress)) {
     return null;

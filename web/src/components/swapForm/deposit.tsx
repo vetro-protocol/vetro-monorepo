@@ -3,7 +3,6 @@ import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { useNeedsApproval } from "@hemilabs/react-hooks/useNeedsApproval";
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
 import type { FetchStatus, QueryStatus } from "@tanstack/react-query";
-import { getGatewayAddress } from "@vetro-protocol/gateway";
 import { ApproveSection } from "components/approveSection";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { Toast } from "components/base/toast";
@@ -21,7 +20,7 @@ import { useSwapMintFees } from "hooks/useSwapMintFees";
 import { useTotalMintFees } from "hooks/useTotalMintFees";
 import { type FormEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 import { applyBps } from "utils/fees";
 import { formatAmount } from "utils/token";
 import { parseUnits } from "viem";
@@ -41,14 +40,15 @@ type Props = {
   approve10x: boolean;
   approveAmount: bigint | undefined;
   fromInputValue: string;
-  fromToken: Token;
+  fromToken: TokenWithGateway;
   onInputChange: (value: string) => void;
   onMaxClick: (maxValue: string) => void;
   onToggle: VoidFunction;
-  onTokenChange: (token: Token) => void;
+  onTokenChange: (token: TokenWithGateway) => void;
   onToggleApprove10x: VoidFunction;
-  toToken: Token;
-  whitelistedTokens: Token[];
+  peggedTokens: TokenWithGateway[];
+  toToken: TokenWithGateway;
+  whitelistedTokens: TokenWithGateway[];
 };
 
 export function Deposit({
@@ -62,6 +62,7 @@ export function Deposit({
   onToggle,
   onToggleApprove10x,
   onTokenChange,
+  peggedTokens,
   toToken,
   whitelistedTokens,
 }: Props) {
@@ -91,18 +92,20 @@ export function Deposit({
 
   const { data: needsApproval } = useNeedsApproval({
     amount: amountBigInt,
-    spender: getGatewayAddress(ethereumChain.id),
+    spender: fromToken.gatewayAddress,
     token: fromToken,
   });
 
   const { data: depositPreview, isError: isDepositPreviewError } =
     usePreviewDeposit({
       amountIn: amountBigInt,
+      gatewayAddress: fromToken.gatewayAddress,
       tokenIn: fromToken.address,
     });
 
   const unitDepositPreview = usePreviewDeposit({
     amountIn: parseUnits("1", fromToken.decimals),
+    gatewayAddress: fromToken.gatewayAddress,
     tokenIn: fromToken.address,
   });
 
@@ -127,6 +130,7 @@ export function Deposit({
   const depositMutation = useDeposit({
     amountIn: amountBigInt,
     approveAmount,
+    gatewayAddress: fromToken.gatewayAddress,
     onEmitter(emitter) {
       emitter.on("user-signed-approval", () => setFlowStatus("approving"));
       emitter.on("approve-transaction-succeeded", () =>
@@ -167,6 +171,7 @@ export function Deposit({
         setFlowStatus("deposit-error");
       });
     },
+    peggedToken: toToken,
     tokenIn: fromToken.address,
   });
 
@@ -187,8 +192,10 @@ export function Deposit({
   });
 
   // This is measured in {token} units - paid to the Vetro contracts
-  const protocolFeeQueryData = useMintFee(fromToken.address, {
+  const protocolFeeQueryData = useMintFee({
+    gatewayAddress: fromToken.gatewayAddress,
     select: (fee) => applyBps(amountBigInt, fee),
+    token: fromToken.address,
   });
 
   // Total fees converted to USD (network + protocol)
@@ -269,7 +276,7 @@ export function Deposit({
           <ApproveSection active={approve10x} onToggle={onToggleApprove10x} />
         </FormSectionItem>
         <FormSectionItem>
-          <TreasuryReserves />
+          <TreasuryReserves gatewayAddress={fromToken.gatewayAddress} />
         </FormSectionItem>
         <SwapFees
           fromToken={fromToken}
@@ -287,7 +294,10 @@ export function Deposit({
           totalFees={totalMintFeesQueryData}
         />
       </FormSection>
-      <RedeemQueueSection whitelistedTokens={whitelistedTokens} />
+      <RedeemQueueSection
+        peggedTokens={peggedTokens}
+        whitelistedTokens={whitelistedTokens}
+      />
       {isDrawerOpen && flowStatus !== "idle" && (
         <SwapDepositDrawer
           flowStatus={flowStatus}

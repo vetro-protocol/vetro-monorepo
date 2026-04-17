@@ -1,4 +1,5 @@
 import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { Button } from "components/base/button";
 import { Modal } from "components/base/modal";
 import { useActivityTracking } from "hooks/useActivityTracking";
@@ -21,7 +22,9 @@ export function DeleteTicketModal({ onClose, onSuccess, ticket }: Props) {
   const { t } = useTranslation();
   const { isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
-  const { data: peggedToken } = usePeggedToken();
+  // TODO using the only gateway to simplify this PR
+  // we will handle multiple gateways in the next PR
+  const { data: peggedToken } = usePeggedToken(gatewayAddresses[0]);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const formattedAmount = formatAmount({

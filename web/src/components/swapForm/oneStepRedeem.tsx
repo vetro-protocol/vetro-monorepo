@@ -2,7 +2,6 @@ import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { useNeedsApproval } from "@hemilabs/react-hooks/useNeedsApproval";
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
 import type { FetchStatus, QueryStatus } from "@tanstack/react-query";
-import { getGatewayAddress } from "@vetro-protocol/gateway";
 import { ApproveSection } from "components/approveSection";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { Toast } from "components/base/toast";
@@ -21,10 +20,10 @@ import { useSwapRedeemFees } from "hooks/useSwapRedeemFees";
 import { useTotalRedeemFees } from "hooks/useTotalRedeemFees";
 import { type FormEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 import { applyBps } from "utils/fees";
 import { formatAmount } from "utils/token";
-import { parseUnits } from "viem";
+import { isAddressEqual, parseUnits } from "viem";
 
 import { Form } from "./form";
 import { OutputLabel } from "./outputLabel";
@@ -41,14 +40,16 @@ type Props = {
   approve10x: boolean;
   approveAmount: bigint | undefined;
   fromInputValue: string;
-  fromToken: Token;
+  fromToken: TokenWithGateway;
+  onFromTokenChange: (token: TokenWithGateway) => void;
   onInputChange: (value: string) => void;
   onMaxClick: (maxValue: string) => void;
   onToggle: VoidFunction;
-  onTokenChange: (token: Token) => void;
+  onTokenChange: (token: TokenWithGateway) => void;
   onToggleApprove10x: VoidFunction;
-  toToken: Token;
-  whitelistedTokens: Token[];
+  peggedTokens: TokenWithGateway[];
+  toToken: TokenWithGateway;
+  whitelistedTokens: TokenWithGateway[];
 };
 
 export function OneStepRedeem({
@@ -57,11 +58,13 @@ export function OneStepRedeem({
   approveAmount,
   fromInputValue,
   fromToken,
+  onFromTokenChange,
   onInputChange,
   onMaxClick,
   onToggle,
   onToggleApprove10x,
   onTokenChange,
+  peggedTokens,
   toToken,
   whitelistedTokens,
 }: Props) {
@@ -83,18 +86,23 @@ export function OneStepRedeem({
 
   const { data: needsApproval } = useNeedsApproval({
     amount: amountBigInt,
-    spender: getGatewayAddress(ethereumChain.id),
+    spender: fromToken.gatewayAddress,
     token: fromToken,
   });
 
-  const { data: maxWithdraw } = useMaxWithdraw(toToken.address);
+  const { data: maxWithdraw } = useMaxWithdraw({
+    gatewayAddress: fromToken.gatewayAddress,
+    tokenOut: toToken.address,
+  });
 
   const { data: redeemPreview, isError: isPreviewError } = usePreviewRedeem({
+    gatewayAddress: fromToken.gatewayAddress,
     peggedTokenIn: amountBigInt,
     tokenOut: toToken.address,
   });
 
   const unitRedeemPreview = usePreviewRedeem({
+    gatewayAddress: fromToken.gatewayAddress,
     peggedTokenIn: parseUnits("1", fromToken.decimals),
     tokenOut: toToken.address,
   });
@@ -154,6 +162,7 @@ export function OneStepRedeem({
         setFlowStatus("redeem-error");
       });
     },
+    peggedToken: fromToken,
     peggedTokenIn: amountBigInt,
     tokenOut: toToken.address,
   });
@@ -174,8 +183,10 @@ export function OneStepRedeem({
     tokenOut: toToken.address,
   });
 
-  const protocolFeeQueryData = useRedeemFee(toToken.address, {
+  const protocolFeeQueryData = useRedeemFee({
+    gatewayAddress: fromToken.gatewayAddress,
     select: (fee) => applyBps(amountBigInt, fee),
+    token: toToken.address,
   });
 
   const totalRedeemFeesQueryData = useTotalRedeemFees({
@@ -218,10 +229,18 @@ export function OneStepRedeem({
         fromInputValue={fromInputValue}
         fromToken={fromToken}
         fromTokenSelector={
-          <TokenSelectorReadOnly
-            logoURI={fromToken.logoURI}
-            symbol={fromToken.symbol}
-          />
+          peggedTokens.length > 1 ? (
+            <TokenDropdown
+              onChange={onFromTokenChange}
+              tokens={peggedTokens}
+              value={fromToken}
+            />
+          ) : (
+            <TokenSelectorReadOnly
+              logoURI={fromToken.logoURI}
+              symbol={fromToken.symbol}
+            />
+          )
         }
         maxButton={
           <SetMaxErc20Balance onClick={onMaxClick} token={fromToken} />
@@ -240,7 +259,12 @@ export function OneStepRedeem({
             tokenSelector={
               <TokenDropdown
                 onChange={onTokenChange}
-                tokens={whitelistedTokens}
+                tokens={whitelistedTokens.filter((whitelistedToken) =>
+                  isAddressEqual(
+                    whitelistedToken.gatewayAddress,
+                    fromToken.gatewayAddress,
+                  ),
+                )}
                 value={toToken}
               />
             }
@@ -261,7 +285,7 @@ export function OneStepRedeem({
           <ApproveSection active={approve10x} onToggle={onToggleApprove10x} />
         </FormSectionItem>
         <FormSectionItem>
-          <TreasuryReserves />
+          <TreasuryReserves gatewayAddress={fromToken.gatewayAddress} />
         </FormSectionItem>
         <SwapFees
           fromToken={fromToken}
@@ -279,7 +303,10 @@ export function OneStepRedeem({
           totalFees={totalRedeemFeesQueryData}
         />
       </FormSection>
-      <RedeemQueueSection whitelistedTokens={whitelistedTokens} />
+      <RedeemQueueSection
+        peggedTokens={peggedTokens}
+        whitelistedTokens={whitelistedTokens}
+      />
       {isDrawerOpen && flowStatus !== "idle" && (
         <SwapRedeemDrawer
           flowStatus={flowStatus}

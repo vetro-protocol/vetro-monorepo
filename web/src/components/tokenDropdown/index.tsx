@@ -6,10 +6,10 @@ import { Dropdown } from "../base/dropdown";
 import { TokenDisplay } from "../tokenDisplay";
 import { TokenLogo } from "../tokenLogo";
 
-type Props = {
-  onChange: (token: Token) => void;
-  tokens: Token[];
-  value: Token;
+type Props<T extends Token = Token> = {
+  onChange: (token: T) => void;
+  tokens: T[];
+  value: T;
 };
 
 const renderItem = (token: Token) => (
@@ -22,7 +22,11 @@ const renderItem = (token: Token) => (
   </>
 );
 
-export const TokenDropdown = function ({ onChange, tokens, value }: Props) {
+export const TokenDropdown = function <T extends Token = Token>({
+  onChange,
+  tokens,
+  value,
+}: Props<T>) {
   const { t } = useTranslation();
 
   return (

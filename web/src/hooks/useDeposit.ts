@@ -3,15 +3,15 @@ import { useEnsureConnectedTo } from "@hemilabs/react-hooks/useEnsureConnectedTo
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
 import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpdateNativeBalanceAfterReceipt";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { type DepositEvents, getGatewayAddress } from "@vetro-protocol/gateway";
+import type { DepositEvents } from "@vetro-protocol/gateway";
 import { deposit } from "@vetro-protocol/gateway/actions";
 import type { EventEmitter } from "events";
+import type { TokenWithGateway } from "types";
 import { type Address, isAddressEqual } from "viem";
 import { useAccount } from "wagmi";
 
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { useMainnet } from "./useMainnet";
-import { usePeggedToken } from "./usePeggedToken";
 import {
   previewDepositQueryKey,
   previewDepositTokenOptions,
@@ -21,24 +21,26 @@ import { treasuryReservesQueryKey } from "./useTreasuryReserves";
 export const useDeposit = function ({
   amountIn,
   approveAmount,
+  gatewayAddress,
   onEmitter,
+  peggedToken,
   tokenIn,
 }: {
   amountIn: bigint;
   approveAmount?: bigint;
+  gatewayAddress: Address;
   onEmitter?: (emitter: EventEmitter<DepositEvents>) => void;
+  peggedToken: TokenWithGateway;
   tokenIn: Address;
 }) {
   const { address: account } = useAccount();
   const { data: walletClient } = useEthereumWalletClient();
   const ensureConnectedTo = useEnsureConnectedTo();
   const ethereumChain = useMainnet();
-  const gatewayAddress = getGatewayAddress(ethereumChain.id);
   const queryClient = useQueryClient();
   const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
     ethereumChain.id,
   );
-  const { data: peggedToken } = usePeggedToken();
 
   const allowanceKey = allowanceQueryKey({
     owner: account,
@@ -59,7 +61,7 @@ export const useDeposit = function ({
     gatewayAddress,
   });
 
-  const vusdBalanceQueryKey = tokenBalanceQueryKey(peggedToken, account);
+  const peggedTokenBalanceQueryKey = tokenBalanceQueryKey(peggedToken, account);
 
   return useMutation({
     async mutationFn() {
@@ -108,13 +110,13 @@ export const useDeposit = function ({
       emitter.on("deposit-transaction-succeeded", function (receipt) {
         updateNativeBalanceAfterReceipt(receipt);
 
-        // optimistically deduce the deposited token, and increase vusd balance
+        // optimistically deduce the deposited token, and increase PeggedToken balance
         queryClient.setQueryData(
           tokenInBalanceQueryKey,
           (old: bigint) => old - amountIn,
         );
         queryClient.setQueryData(
-          vusdBalanceQueryKey,
+          peggedTokenBalanceQueryKey,
           (old: bigint) => old + minPeggedTokenOut,
         );
         // optimistically increase treasury reserve for the deposited token
@@ -141,7 +143,7 @@ export const useDeposit = function ({
       });
 
       queryClient.invalidateQueries({
-        queryKey: vusdBalanceQueryKey,
+        queryKey: peggedTokenBalanceQueryKey,
       });
 
       queryClient.invalidateQueries({

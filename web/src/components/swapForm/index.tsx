@@ -1,10 +1,11 @@
 import { useDebounce } from "@hemilabs/react-hooks/useDebounce";
-import { usePeggedToken } from "hooks/usePeggedToken";
+import { usePeggedTokensByGateway } from "hooks/usePeggedTokensByGateway";
 import { useSwapMode } from "hooks/useSwapMode";
 import { useWhitelistedTokens } from "hooks/useWhitelistedTokens";
 import { useReducer } from "react";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 import { parseTokenUnits } from "utils/token";
+import type { Address } from "viem";
 
 import { Deposit } from "./deposit";
 import { Redeem } from "./redeem";
@@ -14,26 +15,44 @@ import type { SwapFormState } from "./types";
 
 type SwapFormContentProps = {
   mode: "deposit" | "redeem";
+  peggedTokensByGateway: Record<Address, TokenWithGateway>;
   setMode: (mode: "deposit" | "redeem") => void;
-  vusd: Token;
-  whitelistedTokens: Token[];
+  whitelistedTokens: TokenWithGateway[];
 };
+
+function getInitialState({
+  mode,
+  peggedTokensByGateway,
+  whitelistedTokens,
+}: {
+  mode: "deposit" | "redeem";
+  peggedTokensByGateway: Record<Address, TokenWithGateway>;
+  whitelistedTokens: TokenWithGateway[];
+}): SwapFormState {
+  const firstStablecoin = whitelistedTokens[0];
+  const firstPeggedToken =
+    peggedTokensByGateway[firstStablecoin.gatewayAddress];
+  return {
+    approve10x: false,
+    fromInputValue: "0",
+    fromToken: mode === "deposit" ? firstStablecoin : firstPeggedToken,
+    toToken: mode === "deposit" ? firstPeggedToken : firstStablecoin,
+  };
+}
 
 function SwapFormContent({
   mode,
+  peggedTokensByGateway,
   setMode,
-  vusd,
   whitelistedTokens,
 }: SwapFormContentProps) {
-  const firstStablecoin = whitelistedTokens[0];
+  const peggedTokens = Object.values(peggedTokensByGateway);
 
-  const initialState: SwapFormState = {
-    approve10x: false,
-    fromInputValue: "0",
-    fromToken: mode === "deposit" ? firstStablecoin : vusd,
-    toToken: mode === "deposit" ? vusd : firstStablecoin,
-  };
-  const [state, dispatch] = useReducer(swapFormReducer, initialState);
+  const [state, dispatch] = useReducer(
+    swapFormReducer,
+    { mode, peggedTokensByGateway, whitelistedTokens },
+    getInitialState,
+  );
 
   const debouncedInputValue = useDebounce(state.fromInputValue);
   const amountBigInt = parseTokenUnits(debouncedInputValue, state.fromToken);
@@ -68,6 +87,7 @@ function SwapFormContent({
     onMaxClick,
     onToggle,
     onToggleApprove10x,
+    peggedTokens,
     whitelistedTokens,
   };
 
@@ -75,14 +95,28 @@ function SwapFormContent({
     <Deposit
       {...childProps}
       {...state}
-      onTokenChange={(token) =>
-        dispatch({ payload: token, type: "SET_FROM_TOKEN" })
-      }
+      onTokenChange={function (token) {
+        dispatch({ payload: token, type: "SET_FROM_TOKEN" });
+        dispatch({
+          payload: peggedTokensByGateway[token.gatewayAddress],
+          type: "SET_TO_TOKEN",
+        });
+      }}
     />
   ) : (
     <Redeem
       {...childProps}
       {...state}
+      onFromTokenChange={function (peggedToken) {
+        dispatch({ payload: peggedToken, type: "SET_FROM_TOKEN" });
+        const firstWhitelistedForGateway = whitelistedTokens.find(
+          (t) => t.gatewayAddress === peggedToken.gatewayAddress,
+        )!;
+        dispatch({
+          payload: firstWhitelistedForGateway,
+          type: "SET_TO_TOKEN",
+        });
+      }}
       onTokenChange={(token) =>
         dispatch({ payload: token, type: "SET_TO_TOKEN" })
       }
@@ -92,18 +126,18 @@ function SwapFormContent({
 
 export function SwapForm() {
   const [mode, setMode] = useSwapMode();
-  const { data: peggedToken } = usePeggedToken();
   const { data: whitelistedTokens } = useWhitelistedTokens();
+  const { data: peggedTokensByGateway } = usePeggedTokensByGateway();
 
-  if (peggedToken === undefined || whitelistedTokens === undefined) {
+  if (whitelistedTokens === undefined || peggedTokensByGateway === undefined) {
     return <SwapFormSkeleton />;
   }
 
   return (
     <SwapFormContent
       mode={mode}
+      peggedTokensByGateway={peggedTokensByGateway}
       setMode={setMode}
-      vusd={peggedToken}
       whitelistedTokens={whitelistedTokens}
     />
   );

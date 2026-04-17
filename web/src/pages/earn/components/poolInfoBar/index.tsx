@@ -1,4 +1,5 @@
 import { getStakingVaultAddress } from "@vetro-protocol/earn";
+import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { useApy } from "hooks/useApy";
 import { useMainnet } from "hooks/useMainnet";
 import { usePeggedToken } from "hooks/usePeggedToken";
@@ -17,7 +18,9 @@ export function PoolInfoBar() {
   const { t } = useTranslation();
   const chain = useMainnet();
   const stakingVaultAddress = getStakingVaultAddress(chain.id);
-  const { data: peggedToken } = usePeggedToken();
+  // TODO using the only gateway to simplify this PR
+  // we will handle multiple gateways in the next PR
+  const { data: peggedToken } = usePeggedToken(gatewayAddresses[0]);
 
   const { data: apy, isLoading: isLoadingApy } = useApy();
   const { data: poolDeposits, isLoading: isLoadingDeposits } =

@@ -6,6 +6,7 @@ import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpd
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { getStakingVaultAddress } from "@vetro-protocol/earn";
 import { deposit } from "@vetro-protocol/earn/actions";
+import { gatewayAddresses } from "@vetro-protocol/gateway";
 import type { TransactionReceipt } from "viem";
 import { useAccount } from "wagmi";
 
@@ -47,15 +48,21 @@ export const useStakeDeposit = function ({
   const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
     chain.id,
   );
-  const { data: peggedToken } = usePeggedToken();
+  // TODO using the only gateway to simplify this PR
+  // we will handle multiple gateways in the next PR
+  const { data: peggedToken } = usePeggedToken(gatewayAddresses[0]);
 
-  const allowanceKey = allowanceQueryKey({
-    owner: account,
-    spender: stakingVaultAddress,
-    token: { address: peggedToken?.address, chainId: chain.id },
-  });
+  const allowanceKey = peggedToken
+    ? allowanceQueryKey({
+        owner: account,
+        spender: stakingVaultAddress,
+        token: { address: peggedToken.address, chainId: chain.id },
+      })
+    : [];
 
-  const vusdBalanceKey = tokenBalanceQueryKey(peggedToken, account);
+  const peggedTokenBalanceKey = peggedToken
+    ? tokenBalanceQueryKey(peggedToken, account)
+    : [];
 
   const sharesBalanceKey = tokenBalanceQueryKey(
     { address: stakingVaultAddress, chainId: chain.id },
@@ -141,8 +148,10 @@ export const useStakeDeposit = function ({
           onSuccess?.();
 
           // Optimistically update balances
-          queryClient.setQueryData(vusdBalanceKey, (old: bigint | undefined) =>
-            old !== undefined ? old - assets : old,
+          queryClient.setQueryData(
+            peggedTokenBalanceKey,
+            (old: bigint | undefined) =>
+              old !== undefined ? old - assets : old,
           );
           queryClient.setQueryData(stakedKey, (old: bigint | undefined) =>
             old !== undefined ? old + assets : old,
@@ -162,7 +171,7 @@ export const useStakeDeposit = function ({
       });
 
       queryClient.invalidateQueries({
-        queryKey: vusdBalanceKey,
+        queryKey: peggedTokenBalanceKey,
       });
 
       // Shares must be refetched before staked balance, because

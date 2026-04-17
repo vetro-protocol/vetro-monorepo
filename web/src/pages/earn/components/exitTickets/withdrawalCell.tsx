@@ -1,3 +1,4 @@
+import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { usePeggedToken } from "hooks/usePeggedToken";
 import { useTranslation } from "react-i18next";
 import { formatAmount } from "utils/token";
@@ -10,7 +11,9 @@ type Props = {
 
 export function WithdrawalCell({ ticket }: Props) {
   const { t } = useTranslation();
-  const { data: peggedToken } = usePeggedToken();
+  // TODO using the only gateway to simplify this PR
+  // we will handle multiple gateways in the next PR
+  const { data: peggedToken } = usePeggedToken(gatewayAddresses[0]);
   const amount = formatAmount({
     amount: BigInt(ticket.assets),
     decimals: peggedToken?.decimals ?? 18,

@@ -6,13 +6,13 @@ import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { TokenSelectorSkeleton } from "components/tokenSelectorSkeleton";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 
 import { SwapToggleButton } from "./swapToggleButton";
 import { TreasuryReserves } from "./treasuryReserves";
 
 type Props = {
-  fromToken: Token;
+  fromToken: TokenWithGateway;
 };
 
 export function RedeemSkeleton({ fromToken }: Props) {
@@ -64,7 +64,7 @@ export function RedeemSkeleton({ fromToken }: Props) {
         </div>
       </div>
       <ApproveSection active={false} />
-      <TreasuryReserves />
+      <TreasuryReserves gatewayAddress={fromToken.gatewayAddress} />
     </>
   );
 }
