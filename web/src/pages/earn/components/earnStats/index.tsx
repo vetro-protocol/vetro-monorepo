@@ -56,6 +56,7 @@ export function EarnStats() {
         value={formatEarnedAmount()}
       />
       {/* TODO - Rewards should be implemented as soon we have the API available */}
+      {/* See https://github.com/vetro-protocol/vetro-monorepo/issues/69 */}
       <StatCard
         icon={<SparklesIcon />}
         label={t("pages.earn.stats.rewards")}
