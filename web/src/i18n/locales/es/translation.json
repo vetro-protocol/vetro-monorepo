@@ -270,6 +270,8 @@
       },
       "stats": {
         "earned-amount": "Su monto ganado",
+        "from-pools": "De {{count}} fondo",
+        "from-pools_other": "De {{count}} fondos",
         "rewards": "Sus recompensas",
         "staked-balance": "Su balance stakeado"
       },
