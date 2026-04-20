@@ -11,6 +11,7 @@ import { useAccount } from "wagmi";
 
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { useMainnet } from "./useMainnet";
+import { poolDepositsQueryKey } from "./usePoolDeposits";
 import { stakedBalanceQueryKey } from "./useStakedBalance";
 import { totalStakedUsdQueryKey } from "./useTotalStakedUsd";
 
@@ -57,6 +58,11 @@ export const useInstantWithdraw = function ({
     stakingVaultAddress,
   });
 
+  const poolDepositsKey = poolDepositsQueryKey({
+    chainId: chain.id,
+    stakingVaultAddress,
+  });
+
   return useMutation({
     async mutationFn() {
       if (!account) {
@@ -96,6 +102,9 @@ export const useInstantWithdraw = function ({
       queryClient.setQueryData(stakedKey, (old: bigint | undefined) =>
         old !== undefined ? old - assets : old,
       );
+      queryClient.setQueryData(poolDepositsKey, (old: bigint | undefined) =>
+        old !== undefined ? old - assets : old,
+      );
     },
     onError() {
       onStatusChange?.("failed");
@@ -124,6 +133,13 @@ export const useInstantWithdraw = function ({
 
       queryClient.invalidateQueries({
         queryKey: totalStakedUsdQueryKey({ account, chainId: chain.id }),
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: poolDepositsQueryKey({
+          chainId: chain.id,
+          stakingVaultAddress,
+        }),
       });
     },
   });
