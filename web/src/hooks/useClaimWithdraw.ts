@@ -3,10 +3,10 @@ import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
 import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpdateNativeBalanceAfterReceipt";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { claimWithdraw } from "@vetro-protocol/earn/actions";
 import { exitTicketsQueryKey } from "pages/earn/hooks/useExitTickets";
 import type { ExitTicket } from "pages/earn/types";
+import type { Address } from "viem";
 import { useAccount } from "wagmi";
 
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
@@ -19,16 +19,14 @@ type Params = {
   onStatusChange: (status: ClaimWithdrawStatus) => void;
   onTransactionHash?: (hash: string) => void;
   requestId: bigint;
+  stakingVaultAddress: Address;
 };
-
-// TODO using the only staking vault address to simplify this PR
-// we will handle multiple addresses in the next PR
-const stakingVaultAddress = stakingVaultAddresses[0];
 
 export const useClaimWithdraw = function ({
   onStatusChange,
   onTransactionHash,
   requestId,
+  stakingVaultAddress,
 }: Params) {
   const { address: account } = useAccount();
   const chain = useMainnet();

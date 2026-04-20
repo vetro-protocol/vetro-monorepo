@@ -3,15 +3,16 @@ import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
 import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpdateNativeBalanceAfterReceipt";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { cancelWithdraw } from "@vetro-protocol/earn/actions";
 import { exitTicketsQueryKey } from "pages/earn/hooks/useExitTickets";
 import type { ExitTicket } from "pages/earn/types";
+import type { Address } from "viem";
 import { useAccount } from "wagmi";
 
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { useMainnet } from "./useMainnet";
 import { stakedBalanceQueryKey } from "./useStakedBalance";
+import { totalStakedUsdQueryKey } from "./useTotalStakedUsd";
 
 type CancelWithdrawStatus = "cancelling" | "completed" | "failed";
 
@@ -20,17 +21,15 @@ type Params = {
   onStatusChange: (status: CancelWithdrawStatus) => void;
   onTransactionHash?: (hash: string) => void;
   requestId: bigint;
+  stakingVaultAddress: Address;
 };
-
-// TODO using the only staking vault address to simplify this PR
-// we will handle multiple addresses in the next PR
-const stakingVaultAddress = stakingVaultAddresses[0];
 
 export const useCancelWithdraw = function ({
   assets,
   onStatusChange,
   onTransactionHash,
   requestId,
+  stakingVaultAddress,
 }: Params) {
   const { address: account } = useAccount();
   const chain = useMainnet();
@@ -104,12 +103,21 @@ export const useCancelWithdraw = function ({
         queryKey: nativeBalanceKey,
       });
 
-      await queryClient.invalidateQueries({
+      // Shares must be refetched before staked balance, because
+      // useStakedBalance uses ensureQueryData to read shares from cache.
+      // refetchQueries (not invalidateQueries) is required because the
+      // shares query has no mounted observer — invalidation alone would
+      // only mark it stale, and ensureQueryData returns stale cached data.
+      await queryClient.refetchQueries({
         queryKey: sharesBalanceKey,
       });
 
       queryClient.invalidateQueries({
         queryKey: stakedKey,
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: totalStakedUsdQueryKey({ account, chainId: chain.id }),
       });
     },
   });

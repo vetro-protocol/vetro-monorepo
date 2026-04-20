@@ -212,7 +212,7 @@
         "withdraw-all-toast-title": "Todos los retiros completados",
         "withdraw-toast-description": "Sus fondos han sido retirados exitosamente a su billetera.",
         "withdraw-toast-title": "Retiro completado",
-        "withdrawal-amount": "{{amount}} vUSD",
+        "withdrawal-amount": "{{amount}} {{symbol}}",
         "withdrawal-tx": "Retiro:",
         "withdrawing": "Retirando...",
         "withdrawn": "Retirado"

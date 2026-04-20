@@ -14,15 +14,14 @@ import { useClaimWithdrawBatch } from "hooks/useClaimWithdrawBatch";
 import { TableCellsIcon } from "pages/earn/icons/tableCellsIcon";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { formatDate } from "utils/date";
 import { useAccount } from "wagmi";
 
-import { useCooldownDuration } from "../../hooks/useCooldownDuration";
 import { useExitTickets } from "../../hooks/useExitTickets";
 import type { ExitTicket } from "../../types";
 
 import { ActionsCell } from "./actionsCell";
 import { CooldownCell } from "./cooldownCell";
+import { DateCreatedCell } from "./dateCreatedCell";
 import { EmptyState } from "./emptyState";
 import { getTicketStatus } from "./getTicketStatus";
 import { TxsCell } from "./txsCell";
@@ -35,32 +34,18 @@ const statusLabels = {
 } as const;
 
 const getColumns = ({
-  cooldownDuration,
   isWithdrawingAll,
-  language,
   onDeleteSuccess,
   onWithdrawingChange,
   t,
 }: {
-  cooldownDuration: number | undefined;
   isWithdrawingAll: boolean;
-  language: string;
   onDeleteSuccess: VoidFunction;
   onWithdrawingChange: (isWithdrawing: boolean) => void;
   t: ReturnType<typeof useTranslation>["t"];
 }): ColumnDef<ExitTicket>[] => [
   {
-    cell: ({ row }) => (
-      <span className="text-xsm font-normal text-gray-500">
-        {/* Derive creation date by subtracting cooldown duration from claimableAt */}
-        {cooldownDuration !== undefined
-          ? formatDate(
-              Number(row.original.claimableAt) - cooldownDuration * 86400,
-              language,
-            )
-          : "-"}
-      </span>
-    ),
+    cell: ({ row }) => <DateCreatedCell ticket={row.original} />,
     header: () => (
       <Header text={t("pages.earn.exit-tickets.col-date-created")} />
     ),
@@ -122,9 +107,8 @@ const getColumns = ({
 const stakingVaultAddress = stakingVaultAddresses[0];
 
 export function ExitTickets() {
-  const { data: cooldownDuration } = useCooldownDuration(stakingVaultAddress);
   const { data, isLoading } = useExitTickets();
-  const { i18n, t } = useTranslation();
+  const { t } = useTranslation();
   const { isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
   const [selectedFilters, setSelectedFilters] = useState([
@@ -190,9 +174,7 @@ export function ExitTickets() {
   const columns = useMemo(
     () =>
       getColumns({
-        cooldownDuration,
         isWithdrawingAll,
-        language: i18n.language,
         onDeleteSuccess() {
           setShowDeleteToast(true);
         },
@@ -201,7 +183,7 @@ export function ExitTickets() {
         },
         t,
       }),
-    [cooldownDuration, i18n.language, isWithdrawingAll, t],
+    [isWithdrawingAll, t],
   );
 
   // Filter and sort data based on selected filters and ticket status
