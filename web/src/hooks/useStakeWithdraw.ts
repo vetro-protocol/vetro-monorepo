@@ -13,6 +13,7 @@ import { useAccount } from "wagmi";
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { useMainnet } from "./useMainnet";
 import { stakedBalanceQueryKey } from "./useStakedBalance";
+import { totalStakedUsdQueryKey } from "./useTotalStakedUsd";
 
 type WithdrawStatus = "completed" | "request-failed" | "requesting";
 
@@ -130,13 +131,20 @@ export const useStakeWithdraw = function ({
       });
 
       // Shares must be refetched before staked balance, because
-      // useStakedBalance uses ensureQueryData to read shares from cache
-      await queryClient.invalidateQueries({
+      // useStakedBalance uses ensureQueryData to read shares from cache.
+      // refetchQueries (not invalidateQueries) is required because the
+      // shares query has no mounted observer — invalidation alone would
+      // only mark it stale, and ensureQueryData returns stale cached data.
+      await queryClient.refetchQueries({
         queryKey: sharesBalanceKey,
       });
 
       queryClient.invalidateQueries({
         queryKey: stakedKey,
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: totalStakedUsdQueryKey({ account, chainId: chain.id }),
       });
     },
   });
