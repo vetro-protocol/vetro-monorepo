@@ -124,6 +124,7 @@ export async function getUserExitTickets({
         requestId
         requestTxHash
         shares
+        stakingVaultAddress,
       }
     }`;
   const variables = {
