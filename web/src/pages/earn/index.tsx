@@ -24,6 +24,8 @@ export function Earn() {
           stakingVaultAddress={stakingVaultAddress}
         />
       ))}
+      {/* TODO add skeleton loading for this section
+      See https://github.com/vetro-protocol/vetro-monorepo/issues/341 */}
       {showExitTickets && (
         <>
           <div className="border-b border-gray-200 bg-gray-100">
