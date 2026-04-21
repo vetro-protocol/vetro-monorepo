@@ -4,6 +4,18 @@ Vetro is a DeFi web application built on the [Hemi](https://hemi.xyz) network. I
 
 Built with React, Viem, Wagmi, and Tailwind CSS.
 
+## Environment Variables
+
+Vite only exposes variables prefixed with `VITE_` to the client bundle. Set these in `web/.env` (or a `.env.local` override) before running `dev` or `build`.
+
+| Variable                      | Required | Description                                                                           |
+| ----------------------------- | -------- | ------------------------------------------------------------------------------------- |
+| `VITE_FEATURE_BRIDGE_ENABLED` | No       | When `"true"`, the `/bridge` route and its nav entry are rendered. Defaults to false. |
+| `VITE_PORTAL_API_URL`         | Yes      | Hemi Portal API base URL (used for token prices).                                     |
+| `VITE_RPC_URL_MAINNET`        | No       | RPC URL for Ethereum mainnet. Falls back to viem's default when unset.                |
+| `VITE_RPC_URL_SEPOLIA`        | No       | RPC URL for Ethereum Sepolia. Falls back to viem's default when unset.                |
+| `VITE_VETRO_API_URL`          | Yes      | Vetro backend API base URL (analytics, APR history, exit tickets, rewards, etc.).     |
+
 ## Scripts
 
 ### Local Fork Setup

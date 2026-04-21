@@ -11,6 +11,7 @@
   "nav": {
     "analytics": "Analytics",
     "borrow": "Borrow",
+    "bridge": "Bridge",
     "earn": "Earn",
     "open-menu": "Open navigation menu",
     "swap": "Swap"
@@ -158,6 +159,9 @@
       },
       "you-are-borrowing": "You are borrowing",
       "you-are-depositing": "You are depositing as collateral"
+    },
+    "bridge": {
+      "title": "Bridge assets across chains"
     },
     "earn": {
       "activity": {

@@ -2,11 +2,13 @@ import { AppLayout, MainContent } from "components/base/appLayout";
 import { AppViewport } from "components/base/appViewport";
 import { ErrorBoundary } from "components/base/errorBoundary";
 import { Header } from "components/header";
+import { featureFlags } from "featureFlags";
 import { I18nInitializer } from "i18n/config";
 import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
 import { Analytics } from "pages/analytics";
 import { Borrow } from "pages/borrow";
 import { BorrowMarketDetails } from "pages/borrowMarketDetails";
+import { Bridge } from "pages/bridge";
 import { Earn } from "pages/earn";
 import { ErrorPage } from "pages/errorPage";
 import { Faq } from "pages/faq";
@@ -69,6 +71,9 @@ function LanguageRoutes() {
             <Route element={<Earn />} path="earn" />
             <Route element={<Borrow />} path="borrow" />
             <Route element={<BorrowMarketDetails />} path="borrow/:marketId" />
+            {featureFlags.bridgeEnabled && (
+              <Route element={<Bridge />} path="bridge" />
+            )}
             <Route element={<Analytics />} path="analytics" />
             <Route element={<Faq />} path="faq" />
           </Route>
