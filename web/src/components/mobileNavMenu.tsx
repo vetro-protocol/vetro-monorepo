@@ -36,7 +36,7 @@ export function MobileNavMenu({ onClose }: Props) {
             >
               {({ isActive }) => (
                 <>
-                  <Icon className="size-12" />
+                  <Icon aria-hidden="true" className="size-12" />
                   <span
                     className={`text-h4 ${isActive ? "text-blue-500" : "text-gray-500"}`}
                   >
