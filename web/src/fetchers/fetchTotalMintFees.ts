@@ -64,13 +64,7 @@ export const fetchTotalMintFees = async function ({
         }),
       )
       .then((protocolFeeBps) => applyBps(amount, protocolFeeBps)),
-    queryClient.ensureQueryData(
-      pricesOptions({
-        client,
-        gatewayAddress: fromToken.gatewayAddress,
-        queryClient,
-      }),
-    ),
+    queryClient.ensureQueryData(pricesOptions({ client, queryClient })),
   ]);
 
   const ethPrice = parseEthPrice(prices);

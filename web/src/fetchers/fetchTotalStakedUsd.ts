@@ -1,5 +1,4 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { peggedTokensByGatewayQueryOptions } from "hooks/usePeggedTokensByGateway";
 import { pricesOptions } from "hooks/usePrices";
 import { stakedBalanceQueryOptions } from "hooks/useStakedBalance";
 import { vaultPeggedTokenQueryOptions } from "hooks/useVaultPeggedToken";
@@ -22,24 +21,13 @@ export const fetchTotalStakedUsd = async function ({
     throw new Error("Client is missing a chain");
   }
 
-  // peggedTokensByGateway is indexed by gateway address; we only have the pegged
-  // token here, so reverse the index to look up gateway by pegged-token address.
-  // Kick off the fetch now (without awaiting) so it overlaps with the per-vault
-  // pegged-token fetch below.
-  const gatewayByPeggedTokenPromise = queryClient
-    .ensureQueryData(peggedTokensByGatewayQueryOptions({ client, queryClient }))
-    .then((peggedTokensByGateway) =>
-      Object.fromEntries(
-        Object.values(peggedTokensByGateway).map((token) => [
-          token.address,
-          token.gatewayAddress,
-        ]),
-      ),
-    );
+  const pricesPromise = queryClient.ensureQueryData(
+    pricesOptions({ client, queryClient }),
+  );
 
   const perVaultUsd = await Promise.all(
     stakingVaultAddresses.map(async function (stakingVaultAddress) {
-      const [peggedToken, gatewayByPeggedToken] = await Promise.all([
+      const [peggedToken, stakedAssets, prices] = await Promise.all([
         queryClient.ensureQueryData(
           vaultPeggedTokenQueryOptions({
             client,
@@ -47,16 +35,6 @@ export const fetchTotalStakedUsd = async function ({
             stakingVaultAddress,
           }),
         ),
-        gatewayByPeggedTokenPromise,
-      ]);
-      const gatewayAddress = gatewayByPeggedToken[peggedToken.address];
-      if (!gatewayAddress) {
-        throw new Error(
-          `No gateway found for pegged token ${peggedToken.address}`,
-        );
-      }
-
-      const [stakedAssets, prices] = await Promise.all([
         queryClient.ensureQueryData(
           stakedBalanceQueryOptions({
             account,
@@ -66,9 +44,7 @@ export const fetchTotalStakedUsd = async function ({
             stakingVaultAddress,
           }),
         ),
-        queryClient.ensureQueryData(
-          pricesOptions({ client, gatewayAddress, queryClient }),
-        ),
+        pricesPromise,
       ]);
 
       const amount = Number(formatUnits(stakedAssets, peggedToken.decimals));

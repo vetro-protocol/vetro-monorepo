@@ -11,7 +11,7 @@ import type { Address, Client } from "viem";
 import { useEthereumClient } from "./useEthereumClient";
 import { peggedTokenQueryOptions } from "./usePeggedToken";
 
-export const peggedTokensByGatewayQueryOptions = ({
+const peggedTokensByGatewayQueryOptions = ({
   client,
   queryClient,
 }: {
