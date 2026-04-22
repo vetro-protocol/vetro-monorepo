@@ -6,3 +6,4 @@ export * from "./getInstantWithdrawWhitelist.js";
 export * from "./getPendingRequests.js";
 export * from "./getRequestDetails.js";
 export * from "./getTotalAssetsInCooldown.js";
+export * from "./getYieldDistributor.js";

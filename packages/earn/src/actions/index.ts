@@ -7,6 +7,7 @@ export * from "./public/getInstantWithdrawWhitelist.js";
 export * from "./public/getPendingRequests.js";
 export * from "./public/getRequestDetails.js";
 export * from "./public/getTotalAssetsInCooldown.js";
+export * from "./public/getYieldDistributor.js";
 
 // Export all wallet actions
 export * from "./wallet/cancelWithdraw.js";
