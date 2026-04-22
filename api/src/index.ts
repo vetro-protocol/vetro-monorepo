@@ -194,15 +194,22 @@ app.get(
 );
 
 app.get(
-  "/variable-stake/exit-queue",
+  "/variable-stake/exit-queue/:gatewayAddress",
+  validateGatewayAddress,
   cache({
     cacheControl: "max-age=300",
     cacheName: "vetro-api",
   }),
   async function (c) {
     try {
-      const url = getSubgraphUrl(c.env);
-      const data = await variableStake.getExitTicketQueueSize({ url });
+      const gatewayAddress = c.get("gatewayAddress");
+      const rpcUrl = c.env.CUSTOM_RPC_URL_MAINNET;
+      const subgraphUrl = getSubgraphUrl(c.env);
+      const data = await variableStake.getExitTicketQueueSize({
+        gatewayAddress,
+        rpcUrl,
+        subgraphUrl,
+      });
       return c.json(convertBigIntsToString(data));
     } catch (error) {
       console.log(error.stack);

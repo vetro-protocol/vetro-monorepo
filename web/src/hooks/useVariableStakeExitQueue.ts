@@ -1,48 +1,34 @@
 import { useQuery } from "@tanstack/react-query";
-import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import fetch from "fetch-plus-plus";
-import { useEthereumClient } from "hooks/useEthereumClient";
 import { useMainnet } from "hooks/useMainnet";
 import { isValidUrl } from "utils/url";
 import type { Address } from "viem";
-import { convertToAssets } from "viem-erc4626/actions";
 
 const apiUrl = import.meta.env.VITE_VETRO_API_URL;
 
-type ExitQueue = {
+type ExitQueueResponse = {
+  assets: string;
   openTickets: number;
-  shares: string;
 };
 
-const exitQueueQueryKey = ({
-  chainId,
-  stakingVaultAddress,
-}: {
-  chainId: number;
-  stakingVaultAddress: Address;
-}) => ["variable-stake-exit-queue", chainId, stakingVaultAddress];
-
-// TODO using the only staking vault address to simplify this PR
-// we will handle multiple addresses in the next PR
-const stakingVaultAddress = stakingVaultAddresses[0];
-
-export function useVariableStakeExitQueue() {
+export function useVariableStakeExitQueue(gatewayAddress: Address | undefined) {
   const chain = useMainnet();
-  const client = useEthereumClient();
 
   return useQuery({
-    enabled: apiUrl !== undefined && isValidUrl(apiUrl) && !!client,
+    enabled:
+      apiUrl !== undefined &&
+      isValidUrl(apiUrl) &&
+      gatewayAddress !== undefined,
     async queryFn() {
-      const { openTickets, shares } = await (fetch(
-        `${apiUrl}/variable-stake/exit-queue`,
-      ) as Promise<ExitQueue>);
-      const vusdInCooldown = await convertToAssets(client!, {
-        address: stakingVaultAddress,
-        shares: BigInt(shares),
-      });
-      return { openTickets, vusdInCooldown };
+      const { assets, openTickets } = await (fetch(
+        `${apiUrl}/variable-stake/exit-queue/${gatewayAddress}`,
+      ) as Promise<ExitQueueResponse>);
+      return {
+        assetsInCooldown: BigInt(assets),
+        openTickets,
+      };
     },
-    queryKey: exitQueueQueryKey({ chainId: chain.id, stakingVaultAddress }),
+    queryKey: ["variable-stake-exit-queue", chain.id, gatewayAddress],
     refetchInterval: 5 * 60 * 1000, // 5 minutes
     retry: 2,
     staleTime: 5 * 60 * 1000, // 5 minutes

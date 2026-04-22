@@ -1,9 +1,14 @@
+import { getPeggedToken } from "@vetro-protocol/gateway/actions";
 // @ts-expect-error Type declarations are not available for this dependency.
 import linearRegression from "simple-linear-regression";
+import { type Address, createPublicClient, http } from "viem";
+import { mainnet } from "viem/chains";
+import { convertToAssets } from "viem-erc4626/actions";
 
 import * as graphql from "./graphql.ts";
 import * as merkl from "./merkl.ts";
 import parseBigIntStringToNumber from "./parse-bigint-string-to-number.ts";
+import { findStakingVaultForPeggedToken } from "./staking-vault.ts";
 
 const secsPerDay = 86400;
 
@@ -67,7 +72,7 @@ export async function getUserRewards({
   address,
   opportunityId,
 }: {
-  address: `0x${string}`;
+  address: Address;
   opportunityId?: string;
 }) {
   if (!opportunityId) {
@@ -88,15 +93,16 @@ export async function getUserRewards({
 
 type ExitTicket = {
   assets: string;
-  cancelTxHash?: `0x${string}`;
+  cancelTxHash?: Address;
   claimableAt: number;
-  claimTxHash?: `0x${string}`;
+  claimTxHash?: Address;
   id: string;
-  owner: `0x${string}`;
-  receiver?: `0x${string}`;
+  owner: Address;
+  receiver?: Address;
   requestId: string;
-  requestTxHash: `0x${string}`;
+  requestTxHash: Address;
   shares: string;
+  stakingVaultAddress: Address;
 };
 
 /**
@@ -146,28 +152,69 @@ export async function getUserExitTickets({
 }
 
 /**
- * Queries the subgraph for the precomputed queue summary singleton and returns
- * the total number of open exit tickets and their combined shares.
+ * Queries the subgraph for all open exit tickets scoped to the given gateway's
+ * staking vault and returns the number of open tickets and their combined
+ * value in the vault's underlying asset (shares converted via the vault's
+ * exchange rate).
  */
-export async function getExitTicketQueueSize({ url }: { url: string }) {
+export async function getExitTicketQueueSize({
+  gatewayAddress,
+  rpcUrl,
+  subgraphUrl,
+}: {
+  gatewayAddress: Address;
+  rpcUrl: string | undefined;
+  subgraphUrl: string;
+}) {
+  const client = createPublicClient({
+    chain: mainnet,
+    transport: http(rpcUrl),
+  });
+  const peggedTokenAddress = await getPeggedToken(client, {
+    address: gatewayAddress,
+  });
+  const stakingVaultAddress = await findStakingVaultForPeggedToken({
+    client,
+    peggedTokenAddress,
+  });
   const query = `
-    {
-      exitTicketQueueSummary(id: "singleton") {
+    query ($stakingVault: Bytes!) {
+      exitTickets(
+        first: 100,
+        where: {
+          stakingVaultAddress: $stakingVault,
+          cancelTxHash: null,
+          claimTxHash: null
+        }
+      ) {
         shares
-        openTickets
       }
     }`;
-  const { exitTicketQueueSummary } = await graphql.runQuery<{
-    exitTicketQueueSummary: { shares: string; openTickets: number } | null;
-  }>(url, query);
-  if (!exitTicketQueueSummary) {
-    return {
-      openTickets: 0,
-      shares: 0n,
-    };
+  const variables = { stakingVault: stakingVaultAddress.toLowerCase() };
+  const { exitTickets } = await graphql.runQuery<{
+    exitTickets: { shares: string }[];
+  }>(subgraphUrl, query, variables);
+  if (!Array.isArray(exitTickets)) {
+    throw new Error(
+      `Invalid subgraph response for exit tickets of vault ${stakingVaultAddress}`,
+    );
   }
+  // TODO https://github.com/vetro-protocol/vetro-monorepo/issues/339
+  if (exitTickets.length === 100) {
+    console.warn(
+      `Got exactly 100 open exit tickets for vault ${stakingVaultAddress}. Implement pagination!`,
+    );
+  }
+  const shares = exitTickets.reduce(
+    (acc, ticket) => acc + BigInt(ticket.shares),
+    0n,
+  );
+  const assets = await convertToAssets(client, {
+    address: stakingVaultAddress,
+    shares,
+  });
   return {
-    openTickets: exitTicketQueueSummary.openTickets,
-    shares: BigInt(exitTicketQueueSummary.shares),
+    assets,
+    openTickets: exitTickets.length,
   };
 }

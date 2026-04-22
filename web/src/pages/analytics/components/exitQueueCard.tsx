@@ -23,7 +23,7 @@ export const ExitQueueCard = function ({
     data: exitQueue,
     isError: isExitQueueError,
     isLoading: isExitQueueLoading,
-  } = useVariableStakeExitQueue();
+  } = useVariableStakeExitQueue(peggedToken?.gatewayAddress);
 
   const isError = peggedTokenError || isExitQueueError;
   const isLoading = !isError && (!peggedToken || isExitQueueLoading);
@@ -31,7 +31,7 @@ export const ExitQueueCard = function ({
   const value =
     peggedToken && exitQueue
       ? formatUsd(
-          Number(formatUnits(exitQueue.vusdInCooldown, peggedToken.decimals)),
+          Number(formatUnits(exitQueue.assetsInCooldown, peggedToken.decimals)),
         )
       : "";
 

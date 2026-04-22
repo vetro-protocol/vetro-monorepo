@@ -1,4 +1,3 @@
-import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { getPeggedToken, getTreasury } from "@vetro-protocol/gateway/actions";
 import {
   getTokenConfig,
@@ -13,7 +12,6 @@ import {
 } from "viem";
 import { mainnet } from "viem/chains";
 import {
-  asset,
   balanceOf,
   previewRedeem,
   totalAssets,
@@ -21,6 +19,7 @@ import {
 } from "viem-erc4626/actions";
 
 import { getPrice } from "./chainlink.ts";
+import { findStakingVaultForPeggedToken } from "./staking-vault.ts";
 import {
   getStrategies,
   getStrategyConfig,
@@ -34,29 +33,6 @@ import {
   vusdMetaAddress,
   yieldDistributorAddress,
 } from "./vusd.ts";
-
-// Find the staking vault whose underlying asset matches the given pegged token.
-async function findStakingVaultForPeggedToken({
-  client,
-  peggedTokenAddress,
-}: {
-  client: PublicClient;
-  peggedTokenAddress: Address;
-}) {
-  const assets = await Promise.all(
-    stakingVaultAddresses.map((address) => asset(client, { address })),
-  );
-  const stakingVaultAddress = stakingVaultAddresses.find(
-    (_, index) =>
-      assets[index].toLowerCase() === peggedTokenAddress.toLowerCase(),
-  );
-  if (!stakingVaultAddress) {
-    throw new Error(
-      `No staking vault found for pegged token ${peggedTokenAddress}`,
-    );
-  }
-  return stakingVaultAddress;
-}
 
 /**
  * Get the total pegged token minted and staked for a given gateway, used to
