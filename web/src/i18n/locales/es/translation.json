@@ -273,7 +273,7 @@
         "rewards": "Sus recompensas",
         "staked-balance": "Su balance stakeado"
       },
-      "title": "Haga stake de VUSD para ganar un rendimiento variable."
+      "title": "Haga stake de activos para ganar un rendimiento variable."
     },
     "faq": {
       "title": "Hola FAQ"
@@ -341,14 +341,13 @@
         "cancel-redeem-toast-title": "Canje cancelado",
         "cooldown-in-progress": "Período de espera en curso",
         "drawer-title": "Canjee su {{symbol}}",
-        "empty-step-1-description": "Ingrese cuánto {{symbol}} desea convertir de vuelta a stablecoins.",
-        "empty-step-1-title": "Comience con {{symbol}}",
-        "empty-step-2-description_one": "Su {{symbol}} se deposita aquí y comienza un período de espera de seguridad de {{seconds}} segundo.",
-        "empty-step-2-description_other": "Su {{symbol}} se deposita aquí y comienza un período de espera de seguridad de {{seconds}} segundos.",
-        "empty-step-2-title": "{{symbol}} va a la cola de canje",
-        "empty-step-3-description_one": "Cuando termine el período de espera, canjee a {{firstSymbol}}.",
-        "empty-step-3-description_other": "Cuando termine el período de espera, elija {{allButLast}} o {{lastSymbol}} para canjear.",
-        "empty-step-3-title": "Canjear a una stablecoin",
+        "empty-step-1-description": "Ingrese cuánto desea convertir de vuelta.",
+        "empty-step-1-title": "Comience con sus activos",
+        "empty-step-2-description_one": "Sus activos se depositan aquí y comienzan un período de espera de seguridad de {{seconds}} segundo.",
+        "empty-step-2-description_other": "Sus activos se depositan aquí y comienzan un período de espera de seguridad de {{seconds}} segundos.",
+        "empty-step-2-title": "Los activos van a la cola de canje",
+        "empty-step-3-description": "Cuando termine el período de espera, canjee al token de su preferencia.",
+        "empty-step-3-title": "Complete su canje",
         "enter-amount-to-redeem": "Ingrese el monto a canjear",
         "keep-redeem": "Mantener canje",
         "ready-on": "Listo en {{time}}",
@@ -362,7 +361,7 @@
         "title": "Cola de Canje"
       },
       "select-option": "Seleccione el token a intercambiar",
-      "title": "Intercambie stablecoins por VUSD y viceversa",
+      "title": "Intercambie sus tokens por activos de Vetro",
       "toast": {
         "deposit-description": "VUSD disponible en su billetera",
         "deposit-title": "Depósito confirmado",

@@ -190,14 +190,7 @@ export function RedeemQueue({ peggedTokens, whitelistedTokens }: Props) {
         loading={isLoading}
         onCancelRedeem={() => setIsCancelRedeemModalOpen(true)}
         onRedeem={() => setIsDrawerOpen(true)}
-        placeholder={
-          <RedeemQueueEmptyState
-            peggedToken={peggedToken}
-            whitelistedTokens={whitelistedTokens.filter((wt) =>
-              isAddressEqual(wt.gatewayAddress, peggedToken.gatewayAddress),
-            )}
-          />
-        }
+        placeholder={<RedeemQueueEmptyState peggedToken={peggedToken} />}
         vusd={peggedToken}
       />
       {isDrawerOpen && (

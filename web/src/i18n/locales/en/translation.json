@@ -268,7 +268,7 @@
         "rewards": "Your rewards",
         "staked-balance": "Your staked balance"
       },
-      "title": "Stake VUSD to earn variable yield."
+      "title": "Stake assets to earn variable yield."
     },
     "faq": {
       "title": "Hello Faq"
@@ -336,13 +336,12 @@
         "cancel-redeem-toast-title": "Redeem cancelled",
         "cooldown-in-progress": "Cooldown in progress",
         "drawer-title": "Redeem your {{symbol}}",
-        "empty-step-1-description": "Enter how much {{symbol}} you want to convert back to stablecoins.",
-        "empty-step-1-title": "Start with {{symbol}}",
-        "empty-step-2-description": "Your {{symbol}} is deposited here and starts a {{seconds}}-second security cooldown.",
-        "empty-step-2-title": "{{symbol}} goes to the Redeem Queue",
-        "empty-step-3-description_one": "When the cooldown ends, redeem to {{firstSymbol}}.",
-        "empty-step-3-description_other": "When the cooldown ends, choose {{allButLast}} or {{lastSymbol}} to redeem.",
-        "empty-step-3-title": "Redeem to a stablecoin",
+        "empty-step-1-description": "Enter how much you want to convert back.",
+        "empty-step-1-title": "Start with your assets",
+        "empty-step-2-description": "Your assets are deposited here and start a {{seconds}}-second security cooldown.",
+        "empty-step-2-title": "Assets go to the Redeem Queue",
+        "empty-step-3-description": "When the cooldown ends, redeem to your preferred token.",
+        "empty-step-3-title": "Complete your redemption",
         "enter-amount-to-redeem": "Enter amount to redeem",
         "keep-redeem": "Keep redeem",
         "ready-on": "Ready on {{time}}",
@@ -356,7 +355,7 @@
         "title": "Redeem Queue"
       },
       "select-option": "Select token to swap",
-      "title": "Swap stablecoins for VUSD and back",
+      "title": "Swap your tokens with Vetro assets",
       "toast": {
         "deposit-description": "VUSD is now available in your wallet",
         "deposit-title": "Deposit confirmed",
