@@ -4,6 +4,7 @@
   "scripts": {
     "deps:check": "knip",
     "dev": "wrangler dev",
+    "tsc": "tsc",
     "types": "wrangler types",
     "types:check": "pnpm types && tsc"
   },

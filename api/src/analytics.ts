@@ -56,17 +56,16 @@ export async function getTotals({ url }: { url: string | undefined }) {
  * strategies in it, and draw compelling visualizations.
  */
 export async function getTreasuryComposition({
+  gatewayAddress,
   url,
 }: {
+  gatewayAddress: Address;
   url: string | undefined;
 }) {
   const client = createPublicClient({
     chain: mainnet,
     transport: http(url),
   });
-  // TODO we may need to update this to work with multiple gateways.
-  // See https://github.com/vetro-protocol/vetro-monorepo/issues/239
-  const gatewayAddress = gatewayAddresses[0];
   const treasuryAddress = await getTreasury(client, {
     address: gatewayAddress,
   });
