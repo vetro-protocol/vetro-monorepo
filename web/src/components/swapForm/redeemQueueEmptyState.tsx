@@ -1,7 +1,6 @@
 import { useWithdrawalDelay } from "hooks/useWithdrawalDelay";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
-import { getTokenListParams } from "utils/tokenList";
 
 const StartWithVusdIcon = () => (
   <svg fill="none" height="28" width="28" xmlns="http://www.w3.org/2000/svg">
@@ -71,15 +70,10 @@ const RedeemIcon = () => (
 
 type Props = {
   peggedToken: TokenWithGateway;
-  whitelistedTokens: TokenWithGateway[];
 };
 
-export function RedeemQueueEmptyState({
-  peggedToken,
-  whitelistedTokens,
-}: Props) {
+export function RedeemQueueEmptyState({ peggedToken }: Props) {
   const { t } = useTranslation();
-  const { symbol } = peggedToken;
   const { data: seconds } = useWithdrawalDelay({
     gatewayAddress: peggedToken.gatewayAddress,
     select: (data) => Number(data),
@@ -87,28 +81,20 @@ export function RedeemQueueEmptyState({
 
   const steps = [
     {
-      description: t("pages.swap.redeem-queue.empty-step-1-description", {
-        symbol,
-      }),
+      description: t("pages.swap.redeem-queue.empty-step-1-description"),
       icon: <StartWithVusdIcon />,
-      title: t("pages.swap.redeem-queue.empty-step-1-title", {
-        symbol,
-      }),
+      title: t("pages.swap.redeem-queue.empty-step-1-title"),
     },
     {
       description: t("pages.swap.redeem-queue.empty-step-2-description", {
         count: seconds,
         seconds,
-        symbol,
       }),
       icon: <CooldownIcon />,
-      title: t("pages.swap.redeem-queue.empty-step-2-title", { symbol }),
+      title: t("pages.swap.redeem-queue.empty-step-2-title"),
     },
     {
-      description: t(
-        "pages.swap.redeem-queue.empty-step-3-description",
-        getTokenListParams(whitelistedTokens),
-      ),
+      description: t("pages.swap.redeem-queue.empty-step-3-description"),
       icon: <RedeemIcon />,
       title: t("pages.swap.redeem-queue.empty-step-3-title"),
     },
