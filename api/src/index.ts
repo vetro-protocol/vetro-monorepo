@@ -1,6 +1,8 @@
+import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { Hono } from "hono";
 import { cache } from "hono/cache";
 import { cors } from "hono/cors";
+import { isAddress, checksumAddress } from "viem";
 
 import * as analytics from "./analytics.ts";
 import * as borrow from "./borrow.ts";
@@ -56,7 +58,7 @@ app.get(
 );
 
 app.get(
-  "/analytics/treasury",
+  "/analytics/treasury/:gatewayAddress",
   cache({
     cacheControl: "max-age=15, stale-while-revalidate=45",
     cacheName: "vetro-api",
@@ -64,7 +66,22 @@ app.get(
   async function (c) {
     try {
       const url = c.env.CUSTOM_RPC_URL_MAINNET;
-      const data = await analytics.getTreasuryComposition({ url });
+      const rawGatewayAddress = c.req.param("gatewayAddress");
+
+      if (!isAddress(rawGatewayAddress, { strict: false })) {
+        return c.json({ error: "Malformed Gateway Address" }, 400);
+      }
+      const gatewayAddress = checksumAddress(rawGatewayAddress);
+
+      if (!gatewayAddresses.includes(gatewayAddress)) {
+        return c.json({ error: "Gateway not found" }, 404);
+      }
+
+      const data = await analytics.getTreasuryComposition({
+        gatewayAddress: rawGatewayAddress,
+        url,
+      });
+
       return c.json(convertBigIntsToString(data));
     } catch (error) {
       throw new Error(`Failed to get treasury composition: ${error.message}`);

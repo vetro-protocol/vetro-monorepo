@@ -25,7 +25,7 @@ export const TvlCard = function ({ peggedToken, peggedTokenError }: Props) {
     data: treasury,
     isError: isTreasuryError,
     isLoading: isTreasuryLoading,
-  } = useAnalyticsTreasury();
+  } = useAnalyticsTreasury(peggedToken?.gatewayAddress);
   const {
     data: totals,
     isError: isTotalsError,

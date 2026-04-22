@@ -6,7 +6,7 @@ import { peggedTokenQueryOptions } from "hooks/usePeggedToken";
 import { previewRedeemTokenOptions } from "hooks/usePreviewRedeem";
 import { type Address, type Client, formatUnits } from "viem";
 
-// Converts treasury token holdings to VUSD using on-chain previewRedeem prices.
+// Converts treasury token holdings to PeggedToken using on-chain previewRedeem prices.
 const fetchTreasuryTotal = async function ({
   chainId,
   client,
@@ -21,9 +21,9 @@ const fetchTreasuryTotal = async function ({
   queryClient: QueryClient;
 }) {
   const treasuryTokens = await queryClient.ensureQueryData(
-    analyticsTreasuryOptions(),
+    analyticsTreasuryOptions({ gatewayAddress }),
   );
-  const tokensPerVusd = await Promise.all(
+  const tokensPerPeggedToken = await Promise.all(
     treasuryTokens.map(({ tokenAddress }) =>
       queryClient.ensureQueryData(
         previewRedeemTokenOptions({
@@ -39,7 +39,7 @@ const fetchTreasuryTotal = async function ({
 
   let total = 0n;
   for (let i = 0; i < treasuryTokens.length; i++) {
-    const rate = tokensPerVusd[i];
+    const rate = tokensPerPeggedToken[i];
     if (rate > 0n) {
       total += (BigInt(treasuryTokens[i].withdrawable) * oneUnit) / rate;
     }

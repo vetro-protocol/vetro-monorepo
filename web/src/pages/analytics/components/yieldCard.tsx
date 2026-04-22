@@ -21,7 +21,7 @@ export const YieldCard = function ({ peggedToken, peggedTokenError }: Props) {
     data: treasury,
     isError: isTreasuryError,
     isLoading: isTreasuryLoading,
-  } = useAnalyticsTreasury();
+  } = useAnalyticsTreasury(peggedToken?.gatewayAddress);
 
   const isError =
     peggedTokenError || isWhitelistedTokensError || isTreasuryError;
