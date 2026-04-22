@@ -49,6 +49,9 @@ importers:
 
   api:
     dependencies:
+      '@vetro-protocol/earn':
+        specifier: workspace:*
+        version: link:../packages/earn
       '@vetro-protocol/gateway':
         specifier: workspace:*
         version: link:../packages/gateway

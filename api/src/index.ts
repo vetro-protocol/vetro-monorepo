@@ -1,14 +1,16 @@
-import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { Hono } from "hono";
 import { cache } from "hono/cache";
 import { cors } from "hono/cors";
-import { isAddress, checksumAddress } from "viem";
 
 import * as analytics from "./analytics.ts";
 import * as borrow from "./borrow.ts";
 import { convertBigIntsToString } from "./convert-bigints-to-string.ts";
 import { getSubgraphUrl } from "./env.ts";
-import { validateAddress, validateParam } from "./param-validators.ts";
+import {
+  validateAddress,
+  validateGatewayAddress,
+  validateParam,
+} from "./param-validators.ts";
 import { securityHeaders } from "./security-headers.ts";
 import { createOriginFn, parseOrigins } from "./validate-origin.ts";
 import * as variableStake from "./variable-stake.ts";
@@ -41,7 +43,8 @@ app.get(
 );
 
 app.get(
-  "/analytics/totals",
+  "/analytics/totals/:gatewayAddress",
+  validateGatewayAddress,
   cache({
     cacheControl: "max-age=15, stale-while-revalidate=45",
     cacheName: "vetro-api",
@@ -49,7 +52,8 @@ app.get(
   async function (c) {
     try {
       const url = c.env.CUSTOM_RPC_URL_MAINNET;
-      const data = await analytics.getTotals({ url });
+      const gatewayAddress = c.get("gatewayAddress");
+      const data = await analytics.getTotals({ gatewayAddress, url });
       return c.json(convertBigIntsToString(data));
     } catch (error) {
       throw new Error(`Failed to get totals: ${error.message}`);
@@ -59,6 +63,7 @@ app.get(
 
 app.get(
   "/analytics/treasury/:gatewayAddress",
+  validateGatewayAddress,
   cache({
     cacheControl: "max-age=15, stale-while-revalidate=45",
     cacheName: "vetro-api",
@@ -66,22 +71,11 @@ app.get(
   async function (c) {
     try {
       const url = c.env.CUSTOM_RPC_URL_MAINNET;
-      const rawGatewayAddress = c.req.param("gatewayAddress");
-
-      if (!isAddress(rawGatewayAddress, { strict: false })) {
-        return c.json({ error: "Malformed Gateway Address" }, 400);
-      }
-      const gatewayAddress = checksumAddress(rawGatewayAddress);
-
-      if (!gatewayAddresses.includes(gatewayAddress)) {
-        return c.json({ error: "Gateway not found" }, 404);
-      }
-
+      const gatewayAddress = c.get("gatewayAddress");
       const data = await analytics.getTreasuryComposition({
-        gatewayAddress: rawGatewayAddress,
+        gatewayAddress,
         url,
       });
-
       return c.json(convertBigIntsToString(data));
     } catch (error) {
       throw new Error(`Failed to get treasury composition: ${error.message}`);

@@ -1,5 +1,6 @@
+import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { gatewayAddresses } from "@vetro-protocol/gateway";
-import { getTreasury } from "@vetro-protocol/gateway/actions";
+import { getPeggedToken, getTreasury } from "@vetro-protocol/gateway/actions";
 import {
   getTokenConfig,
   getWhitelistedTokens,
@@ -12,10 +13,15 @@ import {
   type PublicClient,
 } from "viem";
 import { mainnet } from "viem/chains";
-import { balanceOf, previewRedeem } from "viem-erc4626/actions";
+import {
+  asset,
+  balanceOf,
+  previewRedeem,
+  totalAssets,
+  totalSupply,
+} from "viem-erc4626/actions";
 
 import { getPrice } from "./chainlink.ts";
-import { getTotalAssets, getTotalSupply } from "./contracts.ts";
 import {
   getStrategies,
   getStrategyConfig,
@@ -23,7 +29,6 @@ import {
   getVaultName,
 } from "./vesper.ts";
 import {
-  sVusdAddress,
   ummRoleAddress,
   vetroMultisigAddress,
   vusdAddress,
@@ -31,21 +36,58 @@ import {
   yieldDistributorAddress,
 } from "./vusd.ts";
 
+// Find the staking vault whose underlying asset matches the given pegged token.
+async function findStakingVaultForPeggedToken({
+  client,
+  peggedTokenAddress,
+}: {
+  client: PublicClient;
+  peggedTokenAddress: Address;
+}) {
+  const assets = await Promise.all(
+    stakingVaultAddresses.map((address) => asset(client, { address })),
+  );
+  const stakingVaultAddress = stakingVaultAddresses.find(
+    (_, index) =>
+      assets[index].toLowerCase() === peggedTokenAddress.toLowerCase(),
+  );
+  if (!stakingVaultAddress) {
+    throw new Error(
+      `No staking vault found for pegged token ${peggedTokenAddress}`,
+    );
+  }
+  return stakingVaultAddress;
+}
+
 /**
- * Get the total VUSD minted and staked to calculate the TVL in the protocol.
+ * Get the total pegged token minted and staked for a given gateway, used to
+ * calculate the TVL contributed by that pegged token to the protocol.
  */
-export async function getTotals({ url }: { url: string | undefined }) {
+export async function getTotals({
+  gatewayAddress,
+  url,
+}: {
+  gatewayAddress: Address;
+  url: string | undefined;
+}) {
   const client = createPublicClient({
     chain: mainnet,
     transport: http(url),
   });
-  const [vusdMinted, vusdStaked] = await Promise.all([
-    getTotalSupply(client, vusdAddress),
-    getTotalAssets(client, sVusdAddress),
+  const peggedTokenAddress = await getPeggedToken(client, {
+    address: gatewayAddress,
+  });
+  const stakingVaultAddress = await findStakingVaultForPeggedToken({
+    client,
+    peggedTokenAddress,
+  });
+  const [minted, staked] = await Promise.all([
+    totalSupply(client, { address: peggedTokenAddress }),
+    totalAssets(client, { address: stakingVaultAddress }),
   ]);
   return {
-    vusdMinted,
-    vusdStaked,
+    minted,
+    staked,
   };
 }
 

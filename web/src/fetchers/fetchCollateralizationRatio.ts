@@ -63,12 +63,12 @@ export const fetchCollateralizationRatio = async function ({
   const { decimals } = peggedToken;
   const oneUnit = 10n ** BigInt(decimals);
 
-  const [backing, { vusdMinted }, treasuryTotal] = await Promise.all([
+  const [backing, { minted }, treasuryTotal] = await Promise.all([
     queryClient.ensureQueryData(analyticsBackingVusdOptions()).then((b) => ({
       strategicReserves: BigInt(b.strategicReserves),
       surplus: BigInt(b.surplus),
     })),
-    queryClient.ensureQueryData(analyticsTotalsOptions()),
+    queryClient.ensureQueryData(analyticsTotalsOptions({ gatewayAddress })),
     fetchTreasuryTotal({
       chainId,
       client,
@@ -86,6 +86,6 @@ export const fetchCollateralizationRatio = async function ({
     surplus: toNumber(backing.surplus),
     total: toNumber(total),
     treasuryTotal: toNumber(treasuryTotal),
-    vusdSupply: toNumber(BigInt(vusdMinted)),
+    vusdSupply: toNumber(BigInt(minted)),
   };
 };

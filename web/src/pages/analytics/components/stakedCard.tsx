@@ -19,7 +19,7 @@ export const StakedCard = function ({ peggedToken, peggedTokenError }: Props) {
     data: totals,
     isError: isTotalsError,
     isLoading: isTotalsLoading,
-  } = useAnalyticsTotals();
+  } = useAnalyticsTotals(peggedToken?.gatewayAddress);
 
   const isError = peggedTokenError || isTotalsError;
   const isLoading = !isError && (!peggedToken || isTotalsLoading);
@@ -27,7 +27,7 @@ export const StakedCard = function ({ peggedToken, peggedTokenError }: Props) {
   const value =
     peggedToken && totals
       ? formatUsd(
-          Number(formatUnits(BigInt(totals.vusdStaked), peggedToken.decimals)),
+          Number(formatUnits(BigInt(totals.staked), peggedToken.decimals)),
         )
       : "";
 
