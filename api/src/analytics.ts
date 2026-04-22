@@ -29,7 +29,6 @@ import {
 import {
   ummRoleAddress,
   vetroMultisigAddress,
-  vusdAddress,
   vusdMetaAddress,
   yieldDistributorAddress,
 } from "./vusd.ts";
@@ -144,37 +143,42 @@ async function getStrategicReserves({
     treasuryAddress,
     ummRoleAddress,
     vetroMultisigAddress,
-  ] as `0x${string}`[];
-  const vusdMetaBalancePromises = strategicReserveAddresses.map((account) =>
-    balanceOf(client, { account, address: vusdMetaAddress }),
+  ] as Address[];
+  const metaBalances = await Promise.all(
+    strategicReserveAddresses.map((account) =>
+      balanceOf(client, { account, address: vusdMetaAddress }),
+    ),
   );
-  const vusdMetaBalances = await Promise.all(vusdMetaBalancePromises);
-  const totalVusdMetaBalance = vusdMetaBalances.reduce(
+  const totalMetaBalance = metaBalances.reduce(
     (acc, balance) => acc + balance,
     0n,
   );
   return previewRedeem(client, {
     address: vusdMetaAddress,
-    shares: totalVusdMetaBalance,
+    shares: totalMetaBalance,
   });
 }
 
 async function getSurplus({
   client,
+  peggedTokenAddress,
   treasuryAddress,
 }: {
   client: PublicClient;
+  peggedTokenAddress: Address;
   treasuryAddress: Address;
 }) {
   const surplusAddresses = [
     treasuryAddress,
     ummRoleAddress,
     yieldDistributorAddress,
-  ] as `0x${string}`[];
-  const surplusBalancePromises = surplusAddresses.map((account) =>
-    balanceOf(client, { account, address: vusdAddress }),
+  ] as Address[];
+
+  const surplusBalances = await Promise.all(
+    surplusAddresses.map((account) =>
+      balanceOf(client, { account, address: peggedTokenAddress }),
+    ),
   );
-  const surplusBalances = await Promise.all(surplusBalancePromises);
   return surplusBalances.reduce((acc, balance) => acc + balance, 0n);
 }
 
@@ -198,12 +202,13 @@ export async function getPeggedTokenBacking({
     chain: mainnet,
     transport: http(url),
   });
-  const treasuryAddress = await getTreasury(client, {
-    address: gatewayAddress,
-  });
+  const [peggedTokenAddress, treasuryAddress] = await Promise.all([
+    getPeggedToken(client, { address: gatewayAddress }),
+    getTreasury(client, { address: gatewayAddress }),
+  ]);
   const [strategicReserves, surplus] = await Promise.all([
     getStrategicReserves({ client, treasuryAddress }),
-    getSurplus({ client, treasuryAddress }),
+    getSurplus({ client, peggedTokenAddress, treasuryAddress }),
   ]);
   return {
     strategicReserves,

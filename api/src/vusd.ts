@@ -1,6 +1,3 @@
-// StakedVault
-export const sVusdAddress = "0x476310E34D2810f7d79C43A74E4D79405bd7a925";
-
 // EOA
 export const ummRoleAddress = "0xE173b056eF552c7322040703dDfC1e0638A575d3";
 
