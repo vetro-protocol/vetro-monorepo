@@ -1,5 +1,4 @@
 import { stakingVaultAddresses } from "@vetro-protocol/earn";
-import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { getPeggedToken, getTreasury } from "@vetro-protocol/gateway/actions";
 import {
   getTokenConfig,
@@ -204,21 +203,25 @@ async function getSurplus({
 }
 
 /**
- * The strategic reserves are the mark-to-market value of VUSDmeta receipts held
- * by the Treasury, the UMM role and the Operator (multisig). The protocol
- * surplus is any VUSD held in the Treasury or UMM or YieldDistributor.
+ * The strategic reserves are the mark-to-market value of yield-bearing
+ * receipts held by the Treasury, the UMM role and the Operator (multisig).
+ * The protocol surplus is any pegged token held in the Treasury, UMM or
+ * YieldDistributor.
  *
  * This is useful to understand the health of the protocol and its ability to
- * cover redemptions.
+ * cover redemptions for the given gateway's pegged token.
  */
-export async function getBackingVusd({ url }: { url: string | undefined }) {
+export async function getPeggedTokenBacking({
+  gatewayAddress,
+  url,
+}: {
+  gatewayAddress: Address;
+  url: string | undefined;
+}) {
   const client = createPublicClient({
     chain: mainnet,
     transport: http(url),
   });
-  // TODO we may need to update this to work with multiple gateways.
-  // See https://github.com/vetro-protocol/vetro-monorepo/issues/239
-  const gatewayAddress = gatewayAddresses[0];
   const treasuryAddress = await getTreasury(client, {
     address: gatewayAddress,
   });

@@ -1,8 +1,8 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { analyticsBackingVusdOptions } from "hooks/useAnalyticsBackingVusd";
 import { analyticsTotalsOptions } from "hooks/useAnalyticsTotals";
 import { analyticsTreasuryOptions } from "hooks/useAnalyticsTreasury";
 import { peggedTokenQueryOptions } from "hooks/usePeggedToken";
+import { peggedTokenBackingOptions } from "hooks/usePeggedTokenBacking";
 import { previewRedeemTokenOptions } from "hooks/usePreviewRedeem";
 import { type Address, type Client, formatUnits } from "viem";
 
@@ -64,10 +64,12 @@ export const fetchCollateralizationRatio = async function ({
   const oneUnit = 10n ** BigInt(decimals);
 
   const [backing, { minted }, treasuryTotal] = await Promise.all([
-    queryClient.ensureQueryData(analyticsBackingVusdOptions()).then((b) => ({
-      strategicReserves: BigInt(b.strategicReserves),
-      surplus: BigInt(b.surplus),
-    })),
+    queryClient
+      .ensureQueryData(peggedTokenBackingOptions({ gatewayAddress }))
+      .then((b) => ({
+        strategicReserves: BigInt(b.strategicReserves),
+        surplus: BigInt(b.surplus),
+      })),
     queryClient.ensureQueryData(analyticsTotalsOptions({ gatewayAddress })),
     fetchTreasuryTotal({
       chainId,

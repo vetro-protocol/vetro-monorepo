@@ -26,7 +26,8 @@ app.use("*", async function (c, next) {
 app.use("*", securityHeaders);
 
 app.get(
-  "/analytics/backing-vusd",
+  "/analytics/pegged-token-backing/:gatewayAddress",
+  validateGatewayAddress,
   cache({
     cacheControl: "max-age=15, stale-while-revalidate=45",
     cacheName: "vetro-api",
@@ -34,10 +35,14 @@ app.get(
   async function (c) {
     try {
       const url = c.env.CUSTOM_RPC_URL_MAINNET;
-      const data = await analytics.getBackingVusd({ url });
+      const gatewayAddress = c.get("gatewayAddress");
+      const data = await analytics.getPeggedTokenBacking({
+        gatewayAddress,
+        url,
+      });
       return c.json(convertBigIntsToString(data));
     } catch (error) {
-      throw new Error(`Failed to get backing VUSD: ${error.message}`);
+      throw new Error(`Failed to get pegged token backing: ${error.message}`);
     }
   },
 );
