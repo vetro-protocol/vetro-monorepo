@@ -113,6 +113,7 @@ export const useStakeWithdraw = function ({
               requestId: args.requestId.toString(),
               requestTxHash: receipt.transactionHash,
               shares: args.shares.toString(),
+              stakingVaultAddress,
             };
 
             queryClient.setQueryData(

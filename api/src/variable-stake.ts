@@ -124,6 +124,7 @@ export async function getUserExitTickets({
         requestId
         requestTxHash
         shares
+        stakingVaultAddress
       }
     }`;
   const variables = {
@@ -136,6 +137,7 @@ export async function getUserExitTickets({
     throw new Error(`Invalid subgraph response for exit tickets of ${address}`);
   }
   if (exitTickets.length === 100) {
+    // TODO https://github.com/vetro-protocol/vetro-monorepo/issues/339
     console.warn(
       `Got exactly 100 exit tickets for ${address}. Implement pagination!`,
     );

@@ -1,12 +1,11 @@
 import { useConnectModal } from "@rainbow-me/rainbowkit";
-import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { Button } from "components/base/button";
 import { Modal } from "components/base/modal";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useCancelWithdraw } from "hooks/useCancelWithdraw";
-import { usePeggedToken } from "hooks/usePeggedToken";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import type { Token } from "types";
 import { formatAmount } from "utils/token";
 import { useAccount } from "wagmi";
 
@@ -15,21 +14,25 @@ import type { ExitTicket } from "../../types";
 type Props = {
   onClose: VoidFunction;
   onSuccess?: VoidFunction;
+  peggedToken: Token;
   ticket: ExitTicket;
 };
 
-export function DeleteTicketModal({ onClose, onSuccess, ticket }: Props) {
+export function DeleteTicketModal({
+  onClose,
+  onSuccess,
+  peggedToken,
+  ticket,
+}: Props) {
   const { t } = useTranslation();
   const { isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
-  // TODO using the only gateway to simplify this PR
-  // we will handle multiple gateways in the next PR
-  const { data: peggedToken } = usePeggedToken(gatewayAddresses[0]);
+
   const [isDeleting, setIsDeleting] = useState(false);
 
   const formattedAmount = formatAmount({
     amount: BigInt(ticket.assets),
-    decimals: peggedToken?.decimals ?? 18,
+    decimals: peggedToken.decimals,
     isError: false,
   });
 
@@ -38,7 +41,7 @@ export function DeleteTicketModal({ onClose, onSuccess, ticket }: Props) {
       page: "earn",
       text: t("pages.earn.activity.cancel-withdraw-text", {
         amount: formattedAmount,
-        symbol: peggedToken?.symbol,
+        symbol: peggedToken.symbol,
       }),
       title: `${t("nav.earn")} · ${t("pages.earn.exit-tickets.delete-title")}`,
     });
@@ -65,6 +68,7 @@ export function DeleteTicketModal({ onClose, onSuccess, ticket }: Props) {
     },
     onTransactionHash,
     requestId: BigInt(ticket.requestId),
+    stakingVaultAddress: ticket.stakingVaultAddress,
   });
 
   function handleDelete() {

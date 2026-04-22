@@ -1,4 +1,4 @@
-import type { Hash } from "viem";
+import type { Address, Hash } from "viem";
 
 export type ExitTicket = {
   assets: string;
@@ -10,4 +10,5 @@ export type ExitTicket = {
   requestId: string;
   requestTxHash: Hash;
   shares: string;
+  stakingVaultAddress: Address;
 };

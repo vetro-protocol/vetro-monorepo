@@ -1,11 +1,10 @@
 import { useConnectModal } from "@rainbow-me/rainbowkit";
-import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { Button, ButtonIcon } from "components/base/button";
 import { Toast } from "components/base/toast";
 import { Tooltip } from "components/tooltip";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useClaimWithdraw } from "hooks/useClaimWithdraw";
-import { usePeggedToken } from "hooks/usePeggedToken";
+import { useVaultPeggedToken } from "hooks/useVaultPeggedToken";
 import { TrashIcon } from "pages/earn/icons/trashIcon";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -27,22 +26,22 @@ type Props = {
 type WithdrawButtonProps = {
   disabled: boolean;
   isWithdrawing: boolean;
-  onConnectWallet: VoidFunction | undefined;
   onWithdraw: VoidFunction;
 };
 
 function WithdrawButton({
   disabled,
   isWithdrawing,
-  onConnectWallet,
+
   onWithdraw,
 }: WithdrawButtonProps) {
+  const { openConnectModal } = useConnectModal();
   const { t } = useTranslation();
   const { isConnected } = useAccount();
 
   if (!isConnected) {
     return (
-      <Button onClick={onConnectWallet} size="xSmall" variant="primary">
+      <Button onClick={openConnectModal} size="xSmall" variant="primary">
         {t("pages.swap.form.connect-wallet")}
       </Button>
     );
@@ -74,10 +73,8 @@ export function ActionsCell({
   ticket,
 }: Props) {
   const { t } = useTranslation();
-  const { openConnectModal } = useConnectModal();
-  // TODO using the only gateway to simplify this PR
-  // we will handle multiple gateways in the next PR
-  const { data: peggedToken } = usePeggedToken(gatewayAddresses[0]);
+
+  const { data: peggedToken } = useVaultPeggedToken(ticket.stakingVaultAddress);
   const status = getTicketStatus(ticket);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
@@ -119,6 +116,7 @@ export function ActionsCell({
     },
     onTransactionHash,
     requestId: BigInt(ticket.requestId),
+    stakingVaultAddress: ticket.stakingVaultAddress,
   });
 
   function handleWithdraw() {
@@ -135,7 +133,6 @@ export function ActionsCell({
             <WithdrawButton
               disabled={disabled}
               isWithdrawing={isWithdrawing}
-              onConnectWallet={openConnectModal}
               onWithdraw={handleWithdraw}
             />
           )}
@@ -152,10 +149,11 @@ export function ActionsCell({
           </Tooltip>
         </div>
       )}
-      {isModalOpen && (
+      {isModalOpen && peggedToken && (
         <DeleteTicketModal
           onClose={() => setIsModalOpen(false)}
           onSuccess={onDeleteSuccess}
+          peggedToken={peggedToken}
           ticket={ticket}
         />
       )}

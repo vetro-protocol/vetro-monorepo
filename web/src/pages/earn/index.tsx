@@ -6,10 +6,10 @@ import { useTranslation } from "react-i18next";
 import { EarnStats } from "./components/earnStats";
 import { ExitTickets } from "./components/exitTickets";
 import { PoolInfoBar } from "./components/poolInfoBar";
-import { useCanInstantWithdraw } from "./hooks/useCanInstantWithdraw";
+import { useShowExitTickets } from "./hooks/useShowExitTickets";
 
 export function Earn() {
-  const { data: canInstantWithdraw } = useCanInstantWithdraw();
+  const { data: showExitTickets } = useShowExitTickets();
   const { t } = useTranslation();
 
   return (
@@ -24,7 +24,9 @@ export function Earn() {
           stakingVaultAddress={stakingVaultAddress}
         />
       ))}
-      {!canInstantWithdraw && (
+      {/* TODO add skeleton loading for this section
+      See https://github.com/vetro-protocol/vetro-monorepo/issues/341 */}
+      {showExitTickets && (
         <>
           <div className="border-b border-gray-200 bg-gray-100">
             <StripedDivider />

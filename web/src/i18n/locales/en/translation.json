@@ -210,7 +210,7 @@
         "withdraw-all-toast-title": "All withdrawals complete",
         "withdraw-toast-description": "Your funds have been successfully withdrawn to your wallet.",
         "withdraw-toast-title": "Withdrawal complete",
-        "withdrawal-amount": "{{amount}} vUSD",
+        "withdrawal-amount": "{{amount}} {{symbol}}",
         "withdrawal-tx": "Withdrawal:",
         "withdrawing": "Withdrawing...",
         "withdrawn": "Withdrawn"
