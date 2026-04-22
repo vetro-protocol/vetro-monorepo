@@ -1,3 +1,4 @@
+import { getYieldDistributor } from "@vetro-protocol/earn/actions";
 import { getPeggedToken, getTreasury } from "@vetro-protocol/gateway/actions";
 import {
   getTokenConfig,
@@ -30,7 +31,6 @@ import {
   ummRoleAddress,
   vetroMultisigAddress,
   vusdMetaAddress,
-  yieldDistributorAddress,
 } from "./vusd.ts";
 
 /**
@@ -163,10 +163,12 @@ async function getSurplus({
   client,
   peggedTokenAddress,
   treasuryAddress,
+  yieldDistributorAddress,
 }: {
   client: PublicClient;
   peggedTokenAddress: Address;
   treasuryAddress: Address;
+  yieldDistributorAddress: Address;
 }) {
   const surplusAddresses = [
     treasuryAddress,
@@ -206,9 +208,26 @@ export async function getPeggedTokenBacking({
     getPeggedToken(client, { address: gatewayAddress }),
     getTreasury(client, { address: gatewayAddress }),
   ]);
+
   const [strategicReserves, surplus] = await Promise.all([
     getStrategicReserves({ client, treasuryAddress }),
-    getSurplus({ client, peggedTokenAddress, treasuryAddress }),
+    findStakingVaultForPeggedToken({
+      client,
+      peggedTokenAddress,
+    })
+      .then((stakingVaultAddress) =>
+        getYieldDistributor(client, {
+          address: stakingVaultAddress,
+        }),
+      )
+      .then((yieldDistributorAddress) =>
+        getSurplus({
+          client,
+          peggedTokenAddress,
+          treasuryAddress,
+          yieldDistributorAddress,
+        }),
+      ),
   ]);
   return {
     strategicReserves,
