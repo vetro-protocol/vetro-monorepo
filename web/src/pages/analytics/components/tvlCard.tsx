@@ -1,9 +1,8 @@
-import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { useAnalyticsTotals } from "hooks/useAnalyticsTotals";
 import { useAnalyticsTreasury } from "hooks/useAnalyticsTreasury";
-import { usePeggedToken } from "hooks/usePeggedToken";
 import { useWhitelistedTokens } from "hooks/useWhitelistedTokens";
 import { useTranslation } from "react-i18next";
+import type { TokenWithGateway } from "types";
 import { formatUsd } from "utils/currency";
 import { formatUnits } from "viem";
 
@@ -12,15 +11,16 @@ import { toTvlItems } from "../utils";
 
 import { AllocationCard } from "./allocationCard";
 
-export const TvlCard = function () {
+type Props = {
+  peggedToken: TokenWithGateway | undefined;
+  peggedTokenError: boolean;
+};
+
+export const TvlCard = function ({ peggedToken, peggedTokenError }: Props) {
   const { t } = useTranslation();
-  const { data: peggedToken, isError: isPeggedTokenError } = usePeggedToken(
-    // Analytics page is VUSD only
-    gatewayAddresses[0],
-  );
+
   const { data: whitelistedTokens, isError: isWhitelistedTokensError } =
-    // Analytics page is VUSD only
-    useWhitelistedTokens(gatewayAddresses[0]);
+    useWhitelistedTokens(peggedToken?.gatewayAddress);
   const {
     data: treasury,
     isError: isTreasuryError,
@@ -33,16 +33,16 @@ export const TvlCard = function () {
   } = useAnalyticsTotals();
 
   const isError =
-    isPeggedTokenError ||
+    peggedTokenError ||
     isWhitelistedTokensError ||
     isTreasuryError ||
     isTotalsError;
 
   const isLoading =
     !isError &&
-    (isTreasuryLoading ||
+    (!peggedToken ||
+      isTreasuryLoading ||
       isTotalsLoading ||
-      !peggedToken ||
       !whitelistedTokens);
 
   const value =
