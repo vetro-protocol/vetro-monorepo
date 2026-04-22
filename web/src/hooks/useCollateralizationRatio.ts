@@ -4,7 +4,6 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { fetchCollateralizationRatio } from "fetchers/fetchCollateralizationRatio";
 import { isValidUrl } from "utils/url";
 import type { Address, Client } from "viem";
@@ -19,15 +18,19 @@ const collateralizationRatioOptions = ({
   queryClient,
 }: {
   client: Client | undefined;
-  gatewayAddress: Address;
+  gatewayAddress: Address | undefined;
   queryClient: QueryClient;
 }) =>
   queryOptions({
-    enabled: apiUrl !== undefined && isValidUrl(apiUrl) && !!client,
+    enabled:
+      apiUrl !== undefined &&
+      isValidUrl(apiUrl) &&
+      !!client &&
+      gatewayAddress !== undefined,
     queryFn: () =>
       fetchCollateralizationRatio({
         client: client!,
-        gatewayAddress,
+        gatewayAddress: gatewayAddress!,
         queryClient,
       }),
     queryKey: ["collateralization-ratio", client?.chain?.id, gatewayAddress],
@@ -35,16 +38,11 @@ const collateralizationRatioOptions = ({
     retry: 2,
   });
 
-export function useCollateralizationRatio() {
+export function useCollateralizationRatio(gatewayAddress: Address | undefined) {
   const client = useEthereumClient();
   const queryClient = useQueryClient();
 
   return useQuery(
-    collateralizationRatioOptions({
-      client,
-      // analytics uses VUSD only, so this is safe for now
-      gatewayAddress: gatewayAddresses[0],
-      queryClient,
-    }),
+    collateralizationRatioOptions({ client, gatewayAddress, queryClient }),
   );
 }

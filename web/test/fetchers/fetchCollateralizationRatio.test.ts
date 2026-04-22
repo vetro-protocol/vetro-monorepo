@@ -83,7 +83,7 @@ describe("fetchCollateralizationRatio", function () {
     expect(result.surplus).toBe(20);
     expect(result.treasuryTotal).toBe(0);
     expect(result.total).toBe(100);
-    expect(result.vusdSupply).toBe(100);
+    expect(result.supply).toBe(100);
   });
 
   it("includes treasury total converted via previewRedeem", async function () {
@@ -116,7 +116,7 @@ describe("fetchCollateralizationRatio", function () {
     expect(result.surplus).toBe(10);
     expect(result.treasuryTotal).toBe(40);
     expect(result.total).toBe(100);
-    expect(result.vusdSupply).toBe(100);
+    expect(result.supply).toBe(100);
   });
 
   it("returns zero values when all inputs are zero", async function () {
@@ -132,7 +132,7 @@ describe("fetchCollateralizationRatio", function () {
     expect(result.surplus).toBe(0);
     expect(result.treasuryTotal).toBe(0);
     expect(result.total).toBe(0);
-    expect(result.vusdSupply).toBe(0);
+    expect(result.supply).toBe(0);
   });
 
   it("sums strategic reserves and surplus in bigint before converting", async function () {
@@ -189,7 +189,7 @@ describe("fetchCollateralizationRatio", function () {
     expect(result.surplus).toBe(10);
     expect(result.treasuryTotal).toBe(60);
     expect(result.total).toBe(100);
-    expect(result.vusdSupply).toBe(100);
+    expect(result.supply).toBe(100);
   });
 
   it("skips treasury tokens where previewRedeem returns zero", async function () {

@@ -22,15 +22,15 @@ export const CollateralizationCard = function ({
     data: collateralization,
     isError: isCollateralizationError,
     isLoading: isCollateralizationLoading,
-  } = useCollateralizationRatio();
+  } = useCollateralizationRatio(peggedToken?.gatewayAddress);
 
   const isError = peggedTokenError || isCollateralizationError;
   const isLoading = !isError && (!peggedToken || isCollateralizationLoading);
 
   const value =
-    collateralization && collateralization.vusdSupply > 0
+    collateralization && collateralization.supply > 0
       ? formatPercentage(
-          (collateralization.total / collateralization.vusdSupply) * 100,
+          (collateralization.total / collateralization.supply) * 100,
         )
       : "";
 

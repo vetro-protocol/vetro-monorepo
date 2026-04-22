@@ -85,9 +85,9 @@ export const fetchCollateralizationRatio = async function ({
 
   return {
     strategicReserves: toNumber(backing.strategicReserves),
+    supply: toNumber(BigInt(minted)),
     surplus: toNumber(backing.surplus),
     total: toNumber(total),
     treasuryTotal: toNumber(treasuryTotal),
-    vusdSupply: toNumber(BigInt(minted)),
   };
 };
