@@ -1,5 +1,6 @@
 import { useVariableStakeExitQueue } from "hooks/useVariableStakeExitQueue";
 import { useTranslation } from "react-i18next";
+import Skeleton from "react-loading-skeleton";
 import type { TokenWithGateway } from "types";
 import { formatUsd } from "utils/currency";
 import { formatUnits } from "viem";
@@ -35,12 +36,18 @@ export const ExitQueueCard = function ({
         )
       : "";
 
+  const label = peggedToken ? (
+    t("pages.analytics.exit-queue-label", { symbol: peggedToken.symbol })
+  ) : (
+    <Skeleton width={240} />
+  );
+
   return (
     <AllocationCard
       icon={<ExitQueueIcon />}
       isError={isError}
       isLoading={isLoading}
-      label={t("pages.analytics.exit-queue-label")}
+      label={label}
       value={value}
     />
   );

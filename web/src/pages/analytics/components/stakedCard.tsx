@@ -1,5 +1,6 @@
 import { useAnalyticsTotals } from "hooks/useAnalyticsTotals";
 import { useTranslation } from "react-i18next";
+import Skeleton from "react-loading-skeleton";
 import type { TokenWithGateway } from "types";
 import { formatUsd } from "utils/currency";
 import { formatUnits } from "viem";
@@ -31,12 +32,18 @@ export const StakedCard = function ({ peggedToken, peggedTokenError }: Props) {
         )
       : "";
 
+  const label = peggedToken ? (
+    t("pages.analytics.staked-label", { symbol: peggedToken.symbol })
+  ) : (
+    <Skeleton width={160} />
+  );
+
   return (
     <AllocationCard
       icon={<StakingIcon />}
       isError={isError}
       isLoading={isLoading}
-      label={t("pages.analytics.staked-label")}
+      label={label}
       value={value}
     />
   );
