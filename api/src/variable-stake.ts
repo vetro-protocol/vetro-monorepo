@@ -1,7 +1,7 @@
 import { getPeggedToken } from "@vetro-protocol/gateway/actions";
 // @ts-expect-error Type declarations are not available for this dependency.
 import linearRegression from "simple-linear-regression";
-import { type Address, createPublicClient, http } from "viem";
+import { type Address, createPublicClient, type Hash, http } from "viem";
 import { mainnet } from "viem/chains";
 import { convertToAssets } from "viem-erc4626/actions";
 
@@ -93,14 +93,14 @@ export async function getUserRewards({
 
 type ExitTicket = {
   assets: string;
-  cancelTxHash?: Address;
+  cancelTxHash?: Hash;
   claimableAt: number;
-  claimTxHash?: Address;
+  claimTxHash?: Hash;
   id: string;
   owner: Address;
   receiver?: Address;
   requestId: string;
-  requestTxHash: Address;
+  requestTxHash: Hash;
   shares: string;
   stakingVaultAddress: Address;
 };
