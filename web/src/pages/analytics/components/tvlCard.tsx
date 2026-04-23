@@ -1,6 +1,6 @@
 import { useAnalyticsTotals } from "hooks/useAnalyticsTotals";
 import { useAnalyticsTreasury } from "hooks/useAnalyticsTreasury";
-import { useWhitelistedTokens } from "hooks/useWhitelistedTokens";
+import { useWhitelistedTokensByGateway } from "hooks/useWhitelistedTokensByGateway";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
 import { formatUsd } from "utils/currency";
@@ -20,7 +20,7 @@ export const TvlCard = function ({ peggedToken, peggedTokenError }: Props) {
   const { t } = useTranslation();
 
   const { data: whitelistedTokens, isError: isWhitelistedTokensError } =
-    useWhitelistedTokens(peggedToken?.gatewayAddress);
+    useWhitelistedTokensByGateway(peggedToken?.gatewayAddress);
   const {
     data: treasury,
     isError: isTreasuryError,

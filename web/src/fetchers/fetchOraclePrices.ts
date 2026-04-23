@@ -1,6 +1,6 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { tokenConfigOptions } from "hooks/useTokenConfig";
-import { whitelistedTokensByGatewayOptions } from "hooks/useWhitelistedTokens";
+import { whitelistedTokensByGatewayOptions } from "hooks/useWhitelistedTokensByGateway";
 import { type Address, type Client, formatUnits } from "viem";
 import { readContract } from "viem/actions";
 

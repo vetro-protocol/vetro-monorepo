@@ -1,5 +1,5 @@
 import { tokenConfigOptions } from "hooks/useTokenConfig";
-import { whitelistedTokensByGatewayOptions } from "hooks/useWhitelistedTokens";
+import { whitelistedTokensByGatewayOptions } from "hooks/useWhitelistedTokensByGateway";
 import type { Token } from "types";
 import { type Address, type Client, zeroAddress } from "viem";
 import { readContract } from "viem/actions";
@@ -15,7 +15,7 @@ vi.mock("hooks/useTokenConfig", () => ({
   }),
 }));
 
-vi.mock("hooks/useWhitelistedTokens", () => ({
+vi.mock("hooks/useWhitelistedTokensByGateway", () => ({
   whitelistedTokensByGatewayOptions: vi.fn().mockReturnValue({
     queryFn: () => [],
     queryKey: ["whitelisted-tokens"],
