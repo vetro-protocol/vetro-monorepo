@@ -5,7 +5,7 @@ import {
   WithdrawCancelled,
   WithdrawClaimed,
   WithdrawRequested,
-} from "../generated/StakingVault/StakingVault";
+} from "../generated/sVusdStakingVault/StakingVault";
 
 export function createMockBlock(
   number: BigInt,

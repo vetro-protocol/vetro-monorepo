@@ -10,7 +10,8 @@ import {
   WithdrawCancelled,
   WithdrawClaimed,
   WithdrawRequested,
-} from "../generated/StakingVault/StakingVault";
+  // The code generated is the same for both vaults
+} from "../generated/sVusdStakingVault/StakingVault";
 
 const buildId = (vaultAddress: Address, suffix: string): string =>
   `${vaultAddress.toHexString()}-${suffix}`;
