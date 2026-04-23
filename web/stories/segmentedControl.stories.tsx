@@ -56,7 +56,7 @@ const tokenSymbols = ["USDC", "USDT"] as const;
 type TokenSymbol = (typeof tokenSymbols)[number];
 const labeledTokens = tokenSymbols
   .map((symbol) => knownTokens.find((token) => token.symbol === symbol))
-  .filter((token) => !!token);
+  .filter(Boolean);
 
 export const WithTokenLabels: Story = {
   render: function Component() {
