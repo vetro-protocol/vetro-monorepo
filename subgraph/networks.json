@@ -1,8 +1,12 @@
 {
   "mainnet": {
-    "StakingVault": {
+    "sVusdStakingVault": {
       "address": "0x476310E34D2810f7d79C43A74E4D79405bd7a925",
       "startBlock": 24625396
+    },
+    "sVetBTCStakingVault": {
+      "address": "0x0cB9D84d4bcEc8d3D5B2d99a6F07f4605325987e",
+      "startBlock": 24931128
     }
   }
 }
