@@ -12,6 +12,7 @@ import { useAccount } from "wagmi";
 
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { redeemRequestQueryKey } from "./useGetRedeemRequest";
+import { redeemRequestsQueryKey } from "./useGetRedeemRequests";
 import { useMainnet } from "./useMainnet";
 
 export const useRequestRedeem = function ({
@@ -96,6 +97,12 @@ export const useRequestRedeem = function ({
           address,
           chainId: ethereumChain.id,
           gatewayAddress,
+        }),
+      });
+      queryClient.invalidateQueries({
+        queryKey: redeemRequestsQueryKey({
+          address,
+          chainId: ethereumChain.id,
         }),
       });
       queryClient.invalidateQueries({
