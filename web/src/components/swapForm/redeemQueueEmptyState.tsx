@@ -2,7 +2,7 @@ import { useWithdrawalDelay } from "hooks/useWithdrawalDelay";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
 
-const StartWithVusdIcon = () => (
+const StartWithPeggedTokenIcon = () => (
   <svg fill="none" height="28" width="28" xmlns="http://www.w3.org/2000/svg">
     <path
       d="M14 2.25a11.75 11.75 0 1 1 0 23.5 11.75 11.75 0 0 1 0-23.5Zm0 4.25a1.812 1.812 0 0 0-1.813 1.813v7l-1.28-1.282-.008-.006-.005-.005-.134-.114a1.813 1.813 0 0 0-2.428 2.675l.006.006.006.007 4.375 4.375a1.814 1.814 0 0 0 2.429.12l.133-.12 4.374-4.376a1.812 1.812 0 0 0 .565-1.281 1.814 1.814 0 0 0-2.55-1.688 1.814 1.814 0 0 0-.576.407l-1.282 1.281v-7A1.812 1.812 0 0 0 14 6.5Z"
@@ -82,7 +82,7 @@ export function RedeemQueueEmptyState({ peggedToken }: Props) {
   const steps = [
     {
       description: t("pages.swap.redeem-queue.empty-step-1-description"),
-      icon: <StartWithVusdIcon />,
+      icon: <StartWithPeggedTokenIcon />,
       title: t("pages.swap.redeem-queue.empty-step-1-title"),
     },
     {
