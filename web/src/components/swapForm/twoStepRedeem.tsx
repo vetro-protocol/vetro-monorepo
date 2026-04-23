@@ -285,7 +285,7 @@ export function TwoStepRedeem({
         />
       </FormSection>
       <RedeemQueueSection
-        peggedTokens={peggedTokens}
+        peggedToken={fromToken}
         whitelistedTokens={whitelistedTokens}
       />
       {isTutorialOpen && (

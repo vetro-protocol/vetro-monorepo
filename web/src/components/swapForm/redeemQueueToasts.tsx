@@ -5,19 +5,20 @@ import type { Token } from "types";
 type Props = {
   onClose: VoidFunction;
   peggedToken: Token;
-  toastType: "cancel" | "redeem" | undefined;
-  toToken: Token;
-};
+} & (
+  | { toToken?: undefined; type: "cancel" }
+  | { toToken: Token; type: "redeem" }
+);
 
 export function RedeemQueueToasts({
   onClose,
   peggedToken,
-  toastType,
   toToken,
+  type,
 }: Props) {
   const { t } = useTranslation();
 
-  if (toastType === "cancel") {
+  if (type === "cancel") {
     return (
       <Toast
         closable
@@ -31,18 +32,14 @@ export function RedeemQueueToasts({
     );
   }
 
-  if (toastType === "redeem") {
-    return (
-      <Toast
-        closable
-        description={t("pages.swap.redeem-queue.swap-confirmed-description", {
-          symbol: toToken.symbol,
-        })}
-        onClose={onClose}
-        title={t("pages.swap.redeem-queue.redeem-confirmed")}
-      />
-    );
-  }
-
-  return null;
+  return (
+    <Toast
+      closable
+      description={t("pages.swap.redeem-queue.swap-confirmed-description", {
+        symbol: toToken.symbol,
+      })}
+      onClose={onClose}
+      title={t("pages.swap.redeem-queue.redeem-confirmed")}
+    />
+  );
 }

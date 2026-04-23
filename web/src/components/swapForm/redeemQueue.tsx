@@ -2,7 +2,10 @@ import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import type { FetchStatus, QueryStatus } from "@tanstack/react-query";
 import { TopSection } from "components/base/table/topSection";
 import { useActivityTracking } from "hooks/useActivityTracking";
-import { useGetRedeemRequest } from "hooks/useGetRedeemRequest";
+import {
+  type RedeemRequest,
+  useGetRedeemRequests,
+} from "hooks/useGetRedeemRequests";
 import { useMainnet } from "hooks/useMainnet";
 import { useMaxWithdraw } from "hooks/useMaxWithdraw";
 import { usePreviewRedeem } from "hooks/usePreviewRedeem";
@@ -26,41 +29,47 @@ import { RedeemQueueToasts } from "./redeemQueueToasts";
 import { getSwapErrors } from "./validation";
 
 type Props = {
-  peggedTokens: TokenWithGateway[];
+  peggedToken: TokenWithGateway;
   whitelistedTokens: TokenWithGateway[];
 };
 
-export function RedeemQueue({ peggedTokens, whitelistedTokens }: Props) {
-  const ethereumChain = useMainnet();
+type ToastState =
+  | { peggedToken: TokenWithGateway; type: "cancel" }
+  | {
+      peggedToken: TokenWithGateway;
+      toToken: TokenWithGateway;
+      type: "redeem";
+    };
+
+type ActiveRedeemDrawerProps = {
+  amountLocked: bigint;
+  onClose: VoidFunction;
+  onRedeemSuccess: (toToken: TokenWithGateway) => void;
+  peggedToken: TokenWithGateway;
+  whitelistedTokens: TokenWithGateway[];
+};
+
+function ActiveRedeemDrawer({
+  amountLocked,
+  onClose,
+  onRedeemSuccess,
+  peggedToken,
+  whitelistedTokens,
+}: ActiveRedeemDrawerProps) {
   const { t } = useTranslation();
+  const ethereumChain = useMainnet();
 
   const { data: nativeBalanceData } = useNativeBalance(ethereumChain.id);
   const nativeBalance = nativeBalanceData?.value;
 
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [isCancelRedeemModalOpen, setIsCancelRedeemModalOpen] = useState(false);
+  const drawerWhitelistedTokens = whitelistedTokens.filter((wl) =>
+    isAddressEqual(wl.gatewayAddress, peggedToken.gatewayAddress),
+  );
+  const [toToken, setToToken] = useState<TokenWithGateway>(
+    () => drawerWhitelistedTokens[0],
+  );
   const [flowStatus, setFlowStatus] = useState<ClaimRedeemFlowStatus>("idle");
-  const [toastType, setToastType] = useState<"cancel" | "redeem">();
   const [fromInputValue, setFromInputValue] = useState("0");
-  const [toToken, setToToken] = useState(whitelistedTokens[0]);
-
-  const { data: redeemRequest, isLoading } = useGetRedeemRequest(
-    toToken.gatewayAddress,
-  );
-
-  const peggedToken = peggedTokens.find((pt) =>
-    isAddressEqual(pt.gatewayAddress, toToken.gatewayAddress),
-  );
-
-  if (!peggedToken) {
-    throw new Error(
-      `PeggedToken not found for gateway address ${toToken.gatewayAddress}`,
-    );
-  }
-
-  const amountLocked = redeemRequest?.[0] ?? 0n;
-  const claimableAt = redeemRequest?.[1] ?? 0n;
-  const hasRequest = amountLocked > 0n;
 
   const amountBigInt = fromInputValue
     ? parseTokenUnits(fromInputValue, peggedToken)
@@ -149,7 +158,7 @@ export function RedeemQueue({ peggedTokens, whitelistedTokens }: Props) {
       emitter.on("redeem-transaction-succeeded", function () {
         onCompleted();
         setFlowStatus("redeemed");
-        setToastType("redeem");
+        onRedeemSuccess(toToken);
       });
       emitter.on("redeem-transaction-reverted", function () {
         onFailed();
@@ -170,7 +179,7 @@ export function RedeemQueue({ peggedTokens, whitelistedTokens }: Props) {
   });
 
   const handleMaxClick = () =>
-    setFromInputValue(formatUnits(amountLocked, peggedToken?.decimals ?? 18));
+    setFromInputValue(formatUnits(amountLocked, peggedToken.decimals));
 
   const handleSubmit = function () {
     setFlowStatus("redeem-ready");
@@ -178,59 +187,85 @@ export function RedeemQueue({ peggedTokens, whitelistedTokens }: Props) {
   };
 
   function handleClose() {
-    setIsDrawerOpen(false);
+    onClose();
     setFlowStatus("idle");
   }
+
+  return (
+    <ClaimRedeemDrawer
+      amountBigInt={amountBigInt}
+      amountLocked={amountLocked}
+      flowStatus={flowStatus}
+      fromAmount={fromInputValue}
+      fromToken={peggedToken}
+      inputError={inputError}
+      networkFee={networkFee}
+      onClose={handleClose}
+      onInputChange={setFromInputValue}
+      onMaxClick={handleMaxClick}
+      onSubmit={handleSubmit}
+      onTokenChange={setToToken}
+      oracleToken={toToken.address}
+      outputBigInt={redeemPreview}
+      outputValue={outputValue}
+      protocolFee={protocolFeeQueryData}
+      toToken={toToken}
+      totalFees={totalRedeemFeesQueryData}
+      unitPreview={unitRedeemPreview}
+      whitelistedTokens={drawerWhitelistedTokens}
+    />
+  );
+}
+
+export function RedeemQueue({ peggedToken, whitelistedTokens }: Props) {
+  const { t } = useTranslation();
+
+  const { data: requests, isLoading } = useGetRedeemRequests();
+
+  const [activeRow, setActiveRow] = useState<RedeemRequest>();
+  const [cancelRow, setCancelRow] = useState<RedeemRequest>();
+  const [toast, setToast] = useState<ToastState>();
+
+  const rows = requests ?? [];
 
   return (
     <>
       <TopSection title={t("pages.swap.redeem-queue.title")} />
       <RedeemQueueTable
-        data={hasRequest ? [{ amountLocked, claimableAt }] : []}
+        data={rows}
         loading={isLoading}
-        onCancelRedeem={() => setIsCancelRedeemModalOpen(true)}
-        onRedeem={() => setIsDrawerOpen(true)}
+        onCancelRedeem={setCancelRow}
+        onRedeem={setActiveRow}
         placeholder={<RedeemQueueEmptyState peggedToken={peggedToken} />}
-        vusd={peggedToken}
       />
-      {isDrawerOpen && (
-        <ClaimRedeemDrawer
-          amountBigInt={amountBigInt}
-          amountLocked={amountLocked}
-          flowStatus={flowStatus}
-          fromAmount={fromInputValue}
-          fromToken={peggedToken}
-          inputError={inputError}
-          networkFee={networkFee}
-          onClose={handleClose}
-          onInputChange={setFromInputValue}
-          onMaxClick={handleMaxClick}
-          onSubmit={handleSubmit}
-          onTokenChange={setToToken}
-          oracleToken={toToken.address}
-          outputBigInt={redeemPreview}
-          outputValue={outputValue}
-          protocolFee={protocolFeeQueryData}
-          toToken={toToken}
-          totalFees={totalRedeemFeesQueryData}
-          unitPreview={unitRedeemPreview}
+      {activeRow && (
+        <ActiveRedeemDrawer
+          amountLocked={activeRow.amountLocked}
+          onClose={() => setActiveRow(undefined)}
+          onRedeemSuccess={(toToken) =>
+            setToast({
+              peggedToken: activeRow.peggedToken,
+              toToken,
+              type: "redeem",
+            })
+          }
+          peggedToken={activeRow.peggedToken}
           whitelistedTokens={whitelistedTokens}
         />
       )}
-      {isCancelRedeemModalOpen && (
+      {cancelRow && (
         <CancelRedeemModal
-          onClose={() => setIsCancelRedeemModalOpen(false)}
-          onSuccess={() => setToastType("cancel")}
-          peggedToken={peggedToken}
-          redeemableAmount={amountLocked}
+          onClose={() => setCancelRow(undefined)}
+          onSuccess={() =>
+            setToast({ peggedToken: cancelRow.peggedToken, type: "cancel" })
+          }
+          peggedToken={cancelRow.peggedToken}
+          redeemableAmount={cancelRow.amountLocked}
         />
       )}
-      <RedeemQueueToasts
-        onClose={() => setToastType(undefined)}
-        peggedToken={peggedToken}
-        toToken={toToken}
-        toastType={toastType}
-      />
+      {toast && (
+        <RedeemQueueToasts onClose={() => setToast(undefined)} {...toast} />
+      )}
     </>
   );
 }

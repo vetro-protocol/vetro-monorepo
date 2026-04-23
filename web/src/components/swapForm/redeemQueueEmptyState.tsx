@@ -1,5 +1,6 @@
 import { useWithdrawalDelay } from "hooks/useWithdrawalDelay";
 import { useTranslation } from "react-i18next";
+import Skeleton from "react-loading-skeleton";
 import type { TokenWithGateway } from "types";
 
 const StartWithPeggedTokenIcon = () => (
@@ -86,10 +87,15 @@ export function RedeemQueueEmptyState({ peggedToken }: Props) {
       title: t("pages.swap.redeem-queue.empty-step-1-title"),
     },
     {
-      description: t("pages.swap.redeem-queue.empty-step-2-description", {
-        count: seconds,
-        seconds,
-      }),
+      description:
+        seconds === undefined ? (
+          <Skeleton count={2} />
+        ) : (
+          t("pages.swap.redeem-queue.empty-step-2-description", {
+            count: seconds,
+            seconds,
+          })
+        ),
       icon: <CooldownIcon />,
       title: t("pages.swap.redeem-queue.empty-step-2-title"),
     },
