@@ -184,7 +184,11 @@ export function TwoStepRedeem({
   const balancesLoaded =
     nativeBalance !== undefined && fromTokenBalance !== undefined;
 
-  const tokenListParams = getTokenListParams(whitelistedTokens);
+  const whitelistedTokensForPeggedToken = whitelistedTokens.filter((wt) =>
+    isAddressEqual(wt.gatewayAddress, fromToken.gatewayAddress),
+  );
+
+  const tokenListParams = getTokenListParams(whitelistedTokensForPeggedToken);
 
   const redeemableForText = t(
     "pages.swap.form.redeemable-for",
@@ -193,8 +197,8 @@ export function TwoStepRedeem({
 
   const queueInfoText = t("pages.swap.form.queue-info", {
     ...tokenListParams,
+    peggedToken: fromToken.symbol,
     seconds,
-    vusd: fromToken.symbol,
   });
 
   const handleRetry = function () {
@@ -211,10 +215,6 @@ export function TwoStepRedeem({
       setIsDrawerOpen(true);
     }
   }
-
-  const whitelistedTokensForPeggedToken = whitelistedTokens.filter((wt) =>
-    isAddressEqual(wt.gatewayAddress, fromToken.gatewayAddress),
-  );
 
   return (
     <>

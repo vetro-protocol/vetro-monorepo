@@ -127,8 +127,8 @@ export const useRedeem = function ({
       onEmitter?.(emitter);
 
       if (!hasDelay) {
-        // If the user is redeeming from the Gateway Vault where VUSD is locked
-        // the VUSD is burned from this vault, so no approval step is required.
+        // If the user is redeeming from the Gateway Vault where the PeggedToken is locked
+        // the PeggedToken is burned from this vault, so no approval step is required.
         // We don't need these events
         emitter.on("approve-transaction-reverted", function (receipt) {
           queryClient.invalidateQueries({
@@ -163,20 +163,20 @@ export const useRedeem = function ({
           )?.args.value ?? minAmountOut;
 
         if (hasDelay) {
-          // if there's a delay, VUSD was burned from the Gateway vault
+          // if there's a delay, the PeggedToken was burned from the Gateway vault
           // so the amount to redeem is reduced.
           queryClient.setQueryData(requestQueryKey, (old: [bigint, bigint]) => [
             old[0] - peggedTokenIn,
             old[1],
           ]);
         } else {
-          // If there's no delay, the user is burning VUSD from their wallet
+          // If there's no delay, the user is burning PeggedTokens from their wallet
           queryClient.setQueryData(
             peggedTokenBalanceQueryKey,
             (old: bigint) => old - peggedTokenIn,
           );
         }
-        // In any case, the user ends up receiving the stablecoins converted from VUSD
+        // In any case, the user ends up receiving the original tokens converted from the PeggedToken
         queryClient.setQueryData(
           tokenOutBalanceQueryKey,
           (old: bigint) => old + actualAmount,
