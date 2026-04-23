@@ -3,12 +3,13 @@ import { Button } from "components/base/button";
 import { ChevronIcon } from "components/base/chevronIcon";
 import { type StackItem, Stack } from "components/base/stack";
 import { useAtRiskPositions } from "hooks/borrow/useAtRiskPositions";
-import { useCountdown } from "hooks/useCountdown";
 import { useGetRedeemRequests } from "hooks/useGetRedeemRequests";
 import { usePeggedTokensByGateway } from "hooks/usePeggedTokensByGateway";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router";
 import type { TokenWithGateway } from "types";
+import { unixNowTimestamp } from "utils/date";
 import { formatAmount } from "utils/token";
 
 function useLiquidationItems(): StackItem[] {
@@ -48,21 +49,14 @@ function useLiquidationItems(): StackItem[] {
 
 function RedeemNotification({
   amountLocked,
-  claimableAt,
   peggedToken,
 }: {
   amountLocked: bigint;
-  claimableAt: bigint;
   peggedToken: TokenWithGateway;
 }) {
   const { lang } = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const remainingSeconds = useCountdown(claimableAt);
-
-  if (remainingSeconds > 0) {
-    return null;
-  }
 
   const formattedAmount = formatAmount({
     amount: amountLocked,
@@ -100,18 +94,46 @@ function RedeemNotification({
 function useRedeemItems(): StackItem[] {
   const { data: requests } = useGetRedeemRequests();
   const { data: peggedTokensByGateway } = usePeggedTokensByGateway();
+  const [now, setNow] = useState(unixNowTimestamp);
+
+  const nextClaimableAt = requests?.reduce<number | undefined>(
+    function findNext(nearest, request) {
+      const ts = Number(request.claimableAt);
+      if (ts <= now) return nearest;
+      if (nearest === undefined || ts < nearest) return ts;
+      return nearest;
+    },
+    undefined,
+  );
+
+  useEffect(
+    function scheduleNextTick() {
+      if (nextClaimableAt === undefined) return undefined;
+      const delay = Math.max(0, (nextClaimableAt - unixNowTimestamp()) * 1000);
+      const timer = setTimeout(function tick() {
+        setNow(unixNowTimestamp());
+      }, delay);
+      return () => clearTimeout(timer);
+    },
+    [nextClaimableAt],
+  );
 
   if (!peggedTokensByGateway || !requests) {
     return [];
   }
 
   return requests
-    .filter((r) => peggedTokensByGateway[r.gatewayAddress] !== undefined)
+    .filter(
+      // exclude unknown gateways and cooldown requests so the Stack doesn't
+      // render invisible items that would still affect its offsets/hover.
+      (r) =>
+        peggedTokensByGateway[r.gatewayAddress] !== undefined &&
+        Number(r.claimableAt) <= now,
+    )
     .map((r) => ({
       content: (
         <RedeemNotification
           amountLocked={r.amountLocked}
-          claimableAt={r.claimableAt}
           peggedToken={peggedTokensByGateway[r.gatewayAddress]}
         />
       ),
