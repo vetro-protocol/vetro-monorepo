@@ -15,7 +15,7 @@ export const whitelistedTokensByGatewayOptions = ({
   queryClient,
 }: {
   client: Client | undefined;
-  gatewayAddress: Address;
+  gatewayAddress: Address | undefined;
   queryClient: QueryClient;
 }) =>
   queryOptions({
@@ -23,7 +23,7 @@ export const whitelistedTokensByGatewayOptions = ({
     queryFn: () =>
       fetchWhitelistedTokens({
         client: client!,
-        gatewayAddress,
+        gatewayAddress: gatewayAddress!,
         queryClient,
       }),
     queryKey: ["whitelisted-tokens", client?.chain?.id, gatewayAddress],
@@ -39,7 +39,7 @@ export const useWhitelistedTokensByGateway = function (
   return useQuery(
     whitelistedTokensByGatewayOptions({
       client,
-      gatewayAddress: gatewayAddress!,
+      gatewayAddress,
       queryClient,
     }),
   );
