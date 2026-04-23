@@ -2,10 +2,40 @@ import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { newMockEvent } from "matchstick-as";
 
 import {
+  Deposit,
   WithdrawCancelled,
   WithdrawClaimed,
   WithdrawRequested,
 } from "../generated/StakingVault/StakingVault";
+
+export function createDepositEvent(
+  assets: BigInt,
+  owner: Address,
+  sender: Address,
+  shares: BigInt,
+): Deposit {
+  const event = changetype<Deposit>(newMockEvent());
+  event.parameters = [];
+  event.parameters.push(
+    new ethereum.EventParam("sender", ethereum.Value.fromAddress(sender)),
+  );
+  event.parameters.push(
+    new ethereum.EventParam("owner", ethereum.Value.fromAddress(owner)),
+  );
+  event.parameters.push(
+    new ethereum.EventParam(
+      "assets",
+      ethereum.Value.fromUnsignedBigInt(assets),
+    ),
+  );
+  event.parameters.push(
+    new ethereum.EventParam(
+      "shares",
+      ethereum.Value.fromUnsignedBigInt(shares),
+    ),
+  );
+  return event;
+}
 
 export function createMockBlock(
   number: BigInt,

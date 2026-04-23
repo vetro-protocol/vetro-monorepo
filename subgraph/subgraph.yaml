@@ -18,11 +18,14 @@ dataSources:
       entities:
         - ExitTicket
         - ExitTicketQueueSummary
+        - UserStakingPosition
         - VaultHistory
       abis:
         - name: StakingVault
           file: ./abis/StakingVault.json
       eventHandlers:
+        - event: Deposit(indexed address,indexed address,uint256,uint256)
+          handler: handleDeposit
         - event: WithdrawCancelled(indexed address,indexed uint256,uint256,uint256)
           handler: handleWithdrawCancelled
         - event: WithdrawClaimed(indexed address,indexed address,indexed uint256,uint256)

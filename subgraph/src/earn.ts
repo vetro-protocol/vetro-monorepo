@@ -3,9 +3,11 @@ import { Address, BigInt, dataSource, ethereum } from "@graphprotocol/graph-ts";
 import {
   ExitTicket,
   ExitTicketQueueSummary,
+  UserStakingPosition,
   VaultHistory,
 } from "../generated/schema";
 import {
+  Deposit,
   StakingVault,
   WithdrawCancelled,
   WithdrawClaimed,
@@ -14,6 +16,8 @@ import {
 
 const buildId = (vaultAddress: Address, suffix: string): string =>
   `${vaultAddress.toHexString()}-${suffix}`;
+
+const WAD = BigInt.fromI32(10).pow(18);
 
 function loadOrCreateQueueSummary(
   vaultAddress: Address,
@@ -48,6 +52,32 @@ export function handleBlock(block: ethereum.Block): void {
   const oneShare = BigInt.fromI32(10).pow(<u8>decimals);
   const shareValue = vault.convertToAssets(oneShare);
   entity.shareValue = shareValue;
+
+  entity.save();
+}
+
+export function handleDeposit(event: Deposit): void {
+  const vaultAddress = dataSource.address();
+  const owner = event.params.owner;
+  const id = buildId(vaultAddress, owner.toHexString());
+
+  let entity = UserStakingPosition.load(id);
+  if (entity == null) {
+    entity = new UserStakingPosition(id);
+    entity.averagePrice = BigInt.fromI32(0);
+    entity.owner = owner;
+    entity.stakingVaultAddress = vaultAddress;
+  }
+
+  const vault = StakingVault.bind(vaultAddress);
+  const currentShares = vault.balanceOf(owner);
+  const newShares = event.params.shares;
+  const oldShares = currentShares.minus(newShares);
+
+  const calculatedAssets = oldShares
+    .times(entity.averagePrice)
+    .plus(event.params.assets.times(WAD));
+  entity.averagePrice = calculatedAssets.div(currentShares);
 
   entity.save();
 }
