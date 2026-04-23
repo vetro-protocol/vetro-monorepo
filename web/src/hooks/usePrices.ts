@@ -4,7 +4,8 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import type { Address, Client } from "viem";
+import { gatewayAddresses } from "@vetro-protocol/gateway";
+import type { Client } from "viem";
 
 import { useEthereumClient } from "./useEthereumClient";
 import { oraclePricesOptions } from "./useOraclePrices";
@@ -12,38 +13,34 @@ import { tokenPricesOptions } from "./useTokenPrices";
 
 export const pricesOptions = ({
   client,
-  gatewayAddress,
   queryClient,
 }: {
   client: Client | undefined;
-  gatewayAddress?: Address;
   queryClient: QueryClient;
 }) =>
   queryOptions({
     enabled: !!client && !!client.chain,
     async queryFn() {
-      const [portalPrices, oraclePrices] = await Promise.all([
+      // Assumes whitelisted tokens are disjoint across gateways; if two
+      // gateways ever whitelist the same symbol, the later one wins on merge.
+      const [portalPrices, ...oraclePricesPerGateway] = await Promise.all([
         queryClient.ensureQueryData(tokenPricesOptions()),
-        queryClient.ensureQueryData(
-          oraclePricesOptions({ client, gatewayAddress, queryClient }),
+        ...gatewayAddresses.map((gatewayAddress) =>
+          queryClient.ensureQueryData(
+            oraclePricesOptions({ client, gatewayAddress, queryClient }),
+          ),
         ),
       ]);
-      return { ...portalPrices, ...oraclePrices };
+      return Object.assign({}, portalPrices, ...oraclePricesPerGateway);
     },
-    queryKey: ["prices", client?.chain?.id, gatewayAddress],
+    queryKey: ["prices", client?.chain?.id],
     refetchInterval: 60_000,
     staleTime: 30_000,
   });
 
-export const usePrices = function (gatewayAddress?: Address) {
+export const usePrices = function () {
   const client = useEthereumClient();
   const queryClient = useQueryClient();
 
-  return useQuery(
-    pricesOptions({
-      client,
-      gatewayAddress,
-      queryClient,
-    }),
-  );
+  return useQuery(pricesOptions({ client, queryClient }));
 };

@@ -269,6 +269,8 @@
       },
       "stats": {
         "earned-amount": "Your earned amount",
+        "from-pools": "From {{count}} pool",
+        "from-pools_other": "From {{count}} pools",
         "rewards": "Your rewards",
         "staked-balance": "Your staked balance"
       },
