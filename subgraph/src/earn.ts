@@ -89,6 +89,14 @@ export function handleTransfer(event: Transfer): void {
   if (event.params.from.equals(Address.zero())) {
     return;
   }
+  // Self-transfer will cause incorrect average price dilution. Skip those.
+  if (event.params.from.equals(event.params.to)) {
+    return;
+  }
+  // Zero-value transfer will also cause incorrect average price dilution.
+  if (event.params.value.equals(BigInt.fromI32(0))) {
+    return;
+  }
 
   const vaultAddress = dataSource.address();
   const to = event.params.to;
