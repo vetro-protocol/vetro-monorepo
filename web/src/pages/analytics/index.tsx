@@ -2,10 +2,10 @@ import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { PageTitle } from "components/base/pageTitle";
 import { StripedDivider } from "components/stripedDivider";
 import { usePeggedTokensByGateway } from "hooks/usePeggedTokensByGateway";
-import { type ReactNode, useState } from "react";
+import { parseAsStringLiteral, useQueryState } from "nuqs";
+import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
-import type { Address } from "viem";
 
 import { CollateralizationCard } from "./components/collateralizationCard";
 import { ExitQueueCard } from "./components/exitQueueCard";
@@ -50,8 +50,9 @@ export const Analytics = function () {
   const { t } = useTranslation();
   const { data: peggedTokensByGateway, isError: isPeggedTokensError } =
     usePeggedTokensByGateway();
-  const [selectedGatewayAddress, setSelectedGatewayAddress] = useState<Address>(
-    gatewayAddresses[0],
+  const [selectedGatewayAddress, setSelectedGatewayAddress] = useQueryState(
+    "gateway",
+    parseAsStringLiteral(gatewayAddresses).withDefault(gatewayAddresses[0]),
   );
 
   const tokens = peggedTokensByGateway
