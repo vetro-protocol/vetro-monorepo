@@ -106,7 +106,7 @@ export const fetchRedeemGasUnits = async function ({
     return operationGasPromise;
   }
 
-  // The user is whitelisted, so they need to approve vusd
+  // The user is whitelisted, so they need to approve pegged
   // tokens that will be redeemed.
   const [approvalGas, operationGas] = await Promise.all([
     estimateApprovalGasUnits({
