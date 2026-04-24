@@ -13,7 +13,9 @@ import {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
-import type { Address } from "viem";
+import { type Address, isAddress, isAddressEqual } from "viem";
+
+import type { StakeMode } from "../stakeDrawer/types";
 
 const StakeDrawerContent = lazy(() =>
   import("../stakeDrawer/stakeDrawerContent").then((mod) => ({
@@ -32,37 +34,35 @@ type Props = {
 
 export function PoolInfoButtons({ stakingVaultAddress }: Props) {
   const { t } = useTranslation();
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [mode, setMode] = useStakeMode();
+  const [{ stake, vault }, setStakeMode] = useStakeMode();
   const [requestCloseDrawer, setRequestCloseDrawer] = useState(false);
   const [toast, setToast] = useState<ToastData | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const { data: peggedToken } = useVaultPeggedToken(stakingVaultAddress);
 
-  // Auto-open drawer when mode is in URL
-  useEffect(
-    function openDrawerFromUrl() {
-      if (mode && !isDrawerOpen) {
-        setIsDrawerOpen(true);
-      }
-    },
-    [mode, isDrawerOpen],
-  );
+  const isActive =
+    !!vault &&
+    isAddress(vault, { strict: false }) &&
+    isAddressEqual(vault, stakingVaultAddress);
+  const mode = isActive ? stake : null;
 
   useEffect(() => () => clearTimeout(closeTimerRef.current), []);
 
   function handleOpenDeposit() {
-    setMode("deposit");
+    setStakeMode({ stake: "deposit", vault: stakingVaultAddress });
   }
 
   function handleOpenWithdraw() {
-    setMode("withdraw");
+    setStakeMode({ stake: "withdraw", vault: stakingVaultAddress });
+  }
+
+  function handleModeChange(nextMode: StakeMode) {
+    setStakeMode({ stake: nextMode, vault: stakingVaultAddress });
   }
 
   function handleClose() {
     setRequestCloseDrawer(false);
-    setMode(null);
-    setIsDrawerOpen(false);
+    setStakeMode({ stake: null, vault: null });
   }
 
   const handleSuccess = useCallback(function handleSuccess(
@@ -89,12 +89,12 @@ export function PoolInfoButtons({ stakingVaultAddress }: Props) {
         </Button>
       </div>
 
-      {isDrawerOpen && mode && peggedToken && (
+      {mode && peggedToken && (
         <Drawer onClose={handleClose} requestClose={requestCloseDrawer}>
           <Suspense fallback={<DrawerLoader />}>
             <StakeDrawerContent
               mode={mode}
-              onModeChange={setMode}
+              onModeChange={handleModeChange}
               onSuccess={handleSuccess}
               peggedToken={peggedToken}
               stakingVaultAddress={stakingVaultAddress}
