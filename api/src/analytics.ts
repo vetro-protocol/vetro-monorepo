@@ -1,4 +1,5 @@
 import { getYieldDistributor } from "@vetro-protocol/earn/actions";
+import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { getPeggedToken, getTreasury } from "@vetro-protocol/gateway/actions";
 import {
   getTokenConfig,
@@ -97,11 +98,16 @@ export async function getTreasuryComposition({
 
 async function getStrategicReserves({
   client,
+  gatewayAddress,
   treasuryAddress,
 }: {
   client: PublicClient;
+  gatewayAddress: Address;
   treasuryAddress: Address;
 }) {
+  if (gatewayAddress !== gatewayAddresses[0]) {
+    return 0n;
+  }
   const strategicReserveAddresses = [
     treasuryAddress,
     ummRoleAddress,
@@ -173,7 +179,7 @@ export async function getPeggedTokenBacking({
   ]);
 
   const [strategicReserves, surplus] = await Promise.all([
-    getStrategicReserves({ client, treasuryAddress }),
+    getStrategicReserves({ client, gatewayAddress, treasuryAddress }),
     findStakingVaultForPeggedToken({
       client,
       peggedTokenAddress,
