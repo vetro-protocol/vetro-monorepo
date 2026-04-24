@@ -3,17 +3,23 @@ import { Address, BigInt, dataSource, ethereum } from "@graphprotocol/graph-ts";
 import {
   ExitTicket,
   ExitTicketQueueSummary,
+  UserStakingPosition,
   VaultHistory,
 } from "../generated/schema";
 import {
+  Deposit,
   StakingVault,
+  Transfer,
   WithdrawCancelled,
   WithdrawClaimed,
   WithdrawRequested,
-} from "../generated/StakingVault/StakingVault";
+  // The code generated is the same for both vaults
+} from "../generated/sVusdStakingVault/StakingVault";
 
 const buildId = (vaultAddress: Address, suffix: string): string =>
   `${vaultAddress.toHexString()}-${suffix}`;
+
+const WAD = BigInt.fromI32(10).pow(18);
 
 function loadOrCreateQueueSummary(
   vaultAddress: Address,
@@ -48,6 +54,72 @@ export function handleBlock(block: ethereum.Block): void {
   const oneShare = BigInt.fromI32(10).pow(<u8>decimals);
   const shareValue = vault.convertToAssets(oneShare);
   entity.shareValue = shareValue;
+
+  entity.save();
+}
+
+export function handleDeposit(event: Deposit): void {
+  const vaultAddress = dataSource.address();
+  const owner = event.params.owner;
+  const id = buildId(vaultAddress, owner.toHexString());
+
+  let entity = UserStakingPosition.load(id);
+  if (entity == null) {
+    entity = new UserStakingPosition(id);
+    entity.averagePrice = BigInt.fromI32(0);
+    entity.owner = owner;
+    entity.stakingVaultAddress = vaultAddress;
+  }
+
+  const vault = StakingVault.bind(vaultAddress);
+  const currentShares = vault.balanceOf(owner);
+  const newShares = event.params.shares;
+  const oldShares = currentShares.minus(newShares);
+
+  const calculatedAssets = oldShares
+    .times(entity.averagePrice)
+    .plus(event.params.assets.times(WAD));
+  entity.averagePrice = calculatedAssets.div(currentShares);
+
+  entity.save();
+}
+
+export function handleTransfer(event: Transfer): void {
+  // Skip mints as those are already handled by the Deposit event handler.
+  if (event.params.from.equals(Address.zero())) {
+    return;
+  }
+  // Skip burns as those are not relevant.
+  if (event.params.to.equals(Address.zero())) {
+    return;
+  }
+  // Self-transfer will cause incorrect average price dilution. Skip those.
+  if (event.params.from.equals(event.params.to)) {
+    return;
+  }
+  // Zero-value transfer will also cause incorrect average price dilution.
+  if (event.params.value.equals(BigInt.fromI32(0))) {
+    return;
+  }
+
+  const vaultAddress = dataSource.address();
+  const to = event.params.to;
+  const id = buildId(vaultAddress, to.toHexString());
+
+  let entity = UserStakingPosition.load(id);
+  if (entity == null) {
+    entity = new UserStakingPosition(id);
+    entity.averagePrice = BigInt.fromI32(0);
+    entity.owner = to;
+    entity.stakingVaultAddress = vaultAddress;
+  }
+
+  const vault = StakingVault.bind(vaultAddress);
+  const currentShares = vault.balanceOf(to);
+  const oldShares = currentShares.minus(event.params.value);
+
+  // Transferred-in shares are valued at 0, diluting the average price proportionally.
+  entity.averagePrice = entity.averagePrice.times(oldShares).div(currentShares);
 
   entity.save();
 }

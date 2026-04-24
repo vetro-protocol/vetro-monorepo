@@ -25,3 +25,10 @@ type ExitTicketQueueSummary @entity(immutable: false) {
   shares: BigInt!
   stakingVaultAddress: Bytes!
 }
+
+type UserStakingPosition @entity(immutable: false) {
+  averagePrice: BigInt!
+  id: ID!
+  owner: Bytes!
+  stakingVaultAddress: Bytes!
+}
