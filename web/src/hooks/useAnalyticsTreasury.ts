@@ -6,6 +6,10 @@ import type { Address } from "viem";
 
 const apiUrl = import.meta.env.VITE_VETRO_API_URL;
 
+export const analyticsTreasuryQueryKey = (
+  gatewayAddress: Address | undefined,
+) => ["analytics-treasury", gatewayAddress];
+
 export const analyticsTreasuryOptions = ({
   gatewayAddress,
 }: {
@@ -20,7 +24,7 @@ export const analyticsTreasuryOptions = ({
       fetch(`${apiUrl}/analytics/treasury/${gatewayAddress}`) as Promise<
         TreasuryToken[]
       >,
-    queryKey: ["analytics-treasury", gatewayAddress],
+    queryKey: analyticsTreasuryQueryKey(gatewayAddress),
     refetchInterval: 5 * 60 * 1000, // 5 minutes
     retry: 2,
     staleTime: 5 * 60 * 1000, // 5 minutes
