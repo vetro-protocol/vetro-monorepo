@@ -9,6 +9,7 @@ import {
 import {
   Deposit,
   StakingVault,
+  Transfer,
   WithdrawCancelled,
   WithdrawClaimed,
   WithdrawRequested,
@@ -78,6 +79,34 @@ export function handleDeposit(event: Deposit): void {
     .times(entity.averagePrice)
     .plus(event.params.assets.times(WAD));
   entity.averagePrice = calculatedAssets.div(currentShares);
+
+  entity.save();
+}
+
+export function handleTransfer(event: Transfer): void {
+  // Skip mints as those are already handled by the Deposit event handler.
+  if (event.params.from.equals(Address.zero())) {
+    return;
+  }
+
+  const vaultAddress = dataSource.address();
+  const to = event.params.to;
+  const id = buildId(vaultAddress, to.toHexString());
+
+  let entity = UserStakingPosition.load(id);
+  if (entity == null) {
+    entity = new UserStakingPosition(id);
+    entity.averagePrice = BigInt.fromI32(0);
+    entity.owner = to;
+    entity.stakingVaultAddress = vaultAddress;
+  }
+
+  const vault = StakingVault.bind(vaultAddress);
+  const currentShares = vault.balanceOf(to);
+  const oldShares = currentShares.minus(event.params.value);
+
+  // Transferred-in shares are valued at 0, diluting the average price proportionally.
+  entity.averagePrice = entity.averagePrice.times(oldShares).div(currentShares);
 
   entity.save();
 }

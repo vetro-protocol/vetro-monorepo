@@ -3,6 +3,7 @@ import { newMockEvent } from "matchstick-as";
 
 import {
   Deposit,
+  Transfer,
   WithdrawCancelled,
   WithdrawClaimed,
   WithdrawRequested,
@@ -46,6 +47,25 @@ export function createMockBlock(
   block.number = number;
   block.timestamp = timestamp;
   return block;
+}
+
+export function createTransferEvent(
+  from: Address,
+  to: Address,
+  value: BigInt,
+): Transfer {
+  const event = changetype<Transfer>(newMockEvent());
+  event.parameters = [];
+  event.parameters.push(
+    new ethereum.EventParam("from", ethereum.Value.fromAddress(from)),
+  );
+  event.parameters.push(
+    new ethereum.EventParam("to", ethereum.Value.fromAddress(to)),
+  );
+  event.parameters.push(
+    new ethereum.EventParam("value", ethereum.Value.fromUnsignedBigInt(value)),
+  );
+  return event;
 }
 
 export function createWithdrawCancelledEvent(

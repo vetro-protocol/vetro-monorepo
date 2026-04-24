@@ -12,6 +12,7 @@ import {
 import {
   handleBlock,
   handleDeposit,
+  handleTransfer,
   handleWithdrawCancelled,
   handleWithdrawClaimed,
   handleWithdrawRequested,
@@ -20,6 +21,7 @@ import {
 import {
   createDepositEvent,
   createMockBlock,
+  createTransferEvent,
   createWithdrawCancelledEvent,
   createWithdrawClaimedEvent,
   createWithdrawRequestedEvent,
@@ -502,5 +504,119 @@ describe("handleWithdrawClaimed", function () {
     handleWithdrawClaimed(claimEvent);
 
     assert.entityCount("ExitTicket", 0);
+  });
+});
+
+describe("handleTransfer", function () {
+  beforeEach(function () {
+    clearStore();
+    dataSourceMock.setAddress(vaultAddressString);
+  });
+
+  test("updates average price on transfer-in", function () {
+    // t0: Deposit 120 VUSD -> 100 sVUSD, price = 1.2
+    mockBalanceOf(BigInt.fromString("100000000000000000000"));
+    handleDeposit(
+      createDepositEvent(
+        BigInt.fromString("120000000000000000000"),
+        ownerAddress,
+        ownerAddress,
+        BigInt.fromString("100000000000000000000"),
+      ),
+    );
+
+    // t1: Receive 50 sVUSD via transfer, balance = 150
+    mockBalanceOf(BigInt.fromString("150000000000000000000"));
+    handleTransfer(
+      createTransferEvent(
+        receiverAddress,
+        ownerAddress,
+        BigInt.fromString("50000000000000000000"),
+      ),
+    );
+
+    const id = `${vaultAddressString}-${ownerAddressString}`;
+    // 1.2 * 100 / 150 = 0.8
+    assert.fieldEquals(
+      "UserStakingPosition",
+      id,
+      "averagePrice",
+      "800000000000000000",
+    );
+  });
+
+  test("handles two consecutive transfers", function () {
+    // t0: Deposit 120 VUSD -> 100 sVUSD, price = 1.2
+    mockBalanceOf(BigInt.fromString("100000000000000000000"));
+    handleDeposit(
+      createDepositEvent(
+        BigInt.fromString("120000000000000000000"),
+        ownerAddress,
+        ownerAddress,
+        BigInt.fromString("100000000000000000000"),
+      ),
+    );
+
+    // t1: Receive 50 sVUSD, balance = 150, price = 0.8
+    mockBalanceOf(BigInt.fromString("150000000000000000000"));
+    handleTransfer(
+      createTransferEvent(
+        receiverAddress,
+        ownerAddress,
+        BigInt.fromString("50000000000000000000"),
+      ),
+    );
+
+    // t2: Receive 150 sVUSD, balance = 300, price = 0.4
+    mockBalanceOf(BigInt.fromString("300000000000000000000"));
+    handleTransfer(
+      createTransferEvent(
+        receiverAddress,
+        ownerAddress,
+        BigInt.fromString("150000000000000000000"),
+      ),
+    );
+
+    const id = `${vaultAddressString}-${ownerAddressString}`;
+    // 0.8 * 150 / 300 = 0.4
+    assert.fieldEquals(
+      "UserStakingPosition",
+      id,
+      "averagePrice",
+      "400000000000000000",
+    );
+  });
+
+  test("sets average price to 0 for new user receiving a transfer", function () {
+    // User with no prior position receives 100 sVUSD
+    mockBalanceOf(BigInt.fromString("100000000000000000000"));
+    handleTransfer(
+      createTransferEvent(
+        receiverAddress,
+        ownerAddress,
+        BigInt.fromString("100000000000000000000"),
+      ),
+    );
+
+    const id = `${vaultAddressString}-${ownerAddressString}`;
+    assert.entityCount("UserStakingPosition", 1);
+    assert.fieldEquals("UserStakingPosition", id, "averagePrice", "0");
+    assert.fieldEquals("UserStakingPosition", id, "owner", ownerAddressString);
+  });
+
+  test("skips mint transfers", function () {
+    const zeroAddress = Address.fromString(
+      "0x0000000000000000000000000000000000000000",
+    );
+    mockBalanceOf(BigInt.fromString("100000000000000000000"));
+    handleTransfer(
+      createTransferEvent(
+        zeroAddress,
+        ownerAddress,
+        BigInt.fromString("100000000000000000000"),
+      ),
+    );
+
+    assert.entityCount("UserStakingPosition", 0);
   });
 });
