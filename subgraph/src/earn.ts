@@ -89,6 +89,10 @@ export function handleTransfer(event: Transfer): void {
   if (event.params.from.equals(Address.zero())) {
     return;
   }
+  // Skip burns as those are not relevant.
+  if (event.params.to.equals(Address.zero())) {
+    return;
+  }
   // Self-transfer will cause incorrect average price dilution. Skip those.
   if (event.params.from.equals(event.params.to)) {
     return;
