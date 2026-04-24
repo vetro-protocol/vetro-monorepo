@@ -1,8 +1,9 @@
 import type { QueryClient } from "@tanstack/react-query";
+import { peggedTokensByGatewayQueryOptions } from "hooks/usePeggedTokensByGateway";
 import { tokenInfoOptions } from "hooks/useTokenInfo";
 import { vaultAssetOptions } from "hooks/useVaultAsset";
-import type { Token } from "types";
-import type { Address, Client } from "viem";
+import type { TokenWithGateway } from "types";
+import { type Address, type Client, isAddressEqual } from "viem";
 
 export const fetchVaultPeggedToken = async function ({
   client,
@@ -12,18 +13,32 @@ export const fetchVaultPeggedToken = async function ({
   client: Client;
   queryClient: QueryClient;
   stakingVaultAddress: Address;
-}): Promise<Token> {
-  // The Asset of the vault is the pegged token,
-  // as the vaults we use are for depositing pegged Tokens.
+}): Promise<TokenWithGateway> {
   const address = await queryClient.ensureQueryData(
     vaultAssetOptions({ client, vaultAddress: stakingVaultAddress }),
   );
 
-  return queryClient.ensureQueryData(
-    tokenInfoOptions({
-      address,
-      chainId: client.chain!.id,
-      client,
-    }),
+  const [token, peggedTokensByGateway] = await Promise.all([
+    queryClient.ensureQueryData(
+      tokenInfoOptions({
+        address,
+        chainId: client.chain!.id,
+        client,
+      }),
+    ),
+    queryClient.ensureQueryData(
+      peggedTokensByGatewayQueryOptions({ client, queryClient }),
+    ),
+  ]);
+
+  const match = Object.values(peggedTokensByGateway).find((t) =>
+    isAddressEqual(t.address, address),
   );
+  if (!match) {
+    throw new Error(
+      `No gateway found for pegged token ${address} of vault ${stakingVaultAddress}`,
+    );
+  }
+
+  return { ...token, gatewayAddress: match.gatewayAddress };
 };

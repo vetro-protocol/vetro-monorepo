@@ -20,7 +20,7 @@ import { useStakeDeposit } from "hooks/useStakeDeposit";
 import { useTotalDepositFees } from "pages/earn/hooks/useTotalDepositFees";
 import { type FormEvent, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 import { formatAmount } from "utils/token";
 import { type Address, parseUnits, zeroAddress } from "viem";
 import { useAccount } from "wagmi";
@@ -37,7 +37,7 @@ type Props = {
   onDepositStepChange: (step: DepositStep) => void;
   onInputChange: (value: string) => void;
   onSuccess: (toast: { description: string; title: string }) => void;
-  peggedToken: Token;
+  peggedToken: TokenWithGateway;
   stakingVaultAddress: Address;
 };
 

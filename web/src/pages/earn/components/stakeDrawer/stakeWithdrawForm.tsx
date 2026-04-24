@@ -19,7 +19,7 @@ import { useTotalWithdrawFees } from "pages/earn/hooks/useTotalWithdrawFees";
 import { type FormEvent, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 import { formatAmount } from "utils/token";
 import { type Address, parseUnits } from "viem";
 import { useAccount } from "wagmi";
@@ -32,7 +32,7 @@ type Props = {
   onInputChange: (value: string) => void;
   onSuccess: (toast: { description: string; title: string }) => void;
   onWithdrawStepChange: (step: WithdrawStep) => void;
-  peggedToken: Token;
+  peggedToken: TokenWithGateway;
   stakingVaultAddress: Address;
   withdrawStep: WithdrawStep;
 };
@@ -210,6 +210,7 @@ export function StakeWithdrawForm({
     onStatusChange: handleWithdrawStepChange,
     onSuccess: handleRequestWithdrawSuccess,
     onTransactionHash: tracking.onTransactionHash,
+    peggedToken,
     stakingVaultAddress,
   });
 

@@ -5,7 +5,7 @@ import { useActivityTracking } from "hooks/useActivityTracking";
 import { useCancelWithdraw } from "hooks/useCancelWithdraw";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 import { formatAmount } from "utils/token";
 import { useAccount } from "wagmi";
 
@@ -14,7 +14,7 @@ import type { ExitTicket } from "../../types";
 type Props = {
   onClose: VoidFunction;
   onSuccess?: VoidFunction;
-  peggedToken: Token;
+  peggedToken: TokenWithGateway;
   ticket: ExitTicket;
 };
 
@@ -67,6 +67,7 @@ export function DeleteTicketModal({
       handlers[status]?.();
     },
     onTransactionHash,
+    peggedToken,
     requestId: BigInt(ticket.requestId),
     stakingVaultAddress: ticket.stakingVaultAddress,
   });

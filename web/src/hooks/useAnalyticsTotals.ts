@@ -7,7 +7,15 @@ import {
 import { fetchAnalyticsTotals } from "fetchers/fetchAnalyticsTotals";
 import { useEthereumClient } from "hooks/useEthereumClient";
 import type { TokenWithGateway } from "types";
-import type { Client } from "viem";
+import type { Address, Client } from "viem";
+
+export const analyticsTotalsQueryKey = ({
+  chainId,
+  gatewayAddress,
+}: {
+  chainId: number | undefined;
+  gatewayAddress: Address | undefined;
+}) => ["analytics-totals", chainId, gatewayAddress];
 
 export const analyticsTotalsOptions = ({
   client,
@@ -27,11 +35,10 @@ export const analyticsTotalsOptions = ({
         peggedToken: peggedToken!,
         queryClient,
       }),
-    queryKey: [
-      "analytics-totals",
-      client?.chain?.id,
-      peggedToken?.gatewayAddress,
-    ],
+    queryKey: analyticsTotalsQueryKey({
+      chainId: client?.chain?.id,
+      gatewayAddress: peggedToken?.gatewayAddress,
+    }),
     refetchInterval: 5 * 60 * 1000, // 5 minutes
     retry: 2,
     staleTime: 5 * 60 * 1000, // 5 minutes
