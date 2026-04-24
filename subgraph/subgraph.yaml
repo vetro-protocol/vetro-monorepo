@@ -8,7 +8,7 @@ dataSources:
     name: sVusdStakingVault
     network: mainnet
     source:
-      address: "0x476310E34D2810f7d79C43A74E4D79405bd7a925"
+      address: "0x476310E34D2810f7d79C43A74E4D79405bd7a925" # sVUSD
       abi: StakingVault
       startBlock: 24625396
     mapping:
@@ -41,7 +41,7 @@ dataSources:
     name: sVetBTCStakingVault
     network: mainnet
     source:
-      address: "0x0cB9D84d4bcEc8d3D5B2d99a6F07f4605325987e"
+      address: "0x0cB9D84d4bcEc8d3D5B2d99a6F07f4605325987e" # svetBTC
       abi: StakingVault
       startBlock: 24931128
     mapping:
@@ -51,11 +51,16 @@ dataSources:
       entities:
         - ExitTicket
         - ExitTicketQueueSummary
+        - UserStakingPosition
         - VaultHistory
       abis:
         - name: StakingVault
           file: ./abis/StakingVault.json
       eventHandlers:
+        - event: Deposit(indexed address,indexed address,uint256,uint256)
+          handler: handleDeposit
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
         - event: WithdrawCancelled(indexed address,indexed uint256,uint256,uint256)
           handler: handleWithdrawCancelled
         - event: WithdrawClaimed(indexed address,indexed address,indexed uint256,uint256)
