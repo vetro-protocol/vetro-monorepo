@@ -4,10 +4,12 @@
   "scripts": {
     "deps:check": "knip",
     "dev": "wrangler dev",
+    "tsc": "tsc",
     "types": "wrangler types",
     "types:check": "pnpm types && tsc"
   },
   "dependencies": {
+    "@vetro-protocol/earn": "workspace:*",
     "@vetro-protocol/gateway": "workspace:*",
     "@vetro-protocol/treasury": "workspace:*",
     "hono": "4.11.9",

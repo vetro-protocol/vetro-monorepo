@@ -6,7 +6,11 @@ import * as analytics from "./analytics.ts";
 import * as borrow from "./borrow.ts";
 import { convertBigIntsToString } from "./convert-bigints-to-string.ts";
 import { getSubgraphUrl } from "./env.ts";
-import { validateAddress, validateParam } from "./param-validators.ts";
+import {
+  validateAddress,
+  validateGatewayAddress,
+  validateParam,
+} from "./param-validators.ts";
 import { securityHeaders } from "./security-headers.ts";
 import { createOriginFn, parseOrigins } from "./validate-origin.ts";
 import * as variableStake from "./variable-stake.ts";
@@ -22,7 +26,8 @@ app.use("*", async function (c, next) {
 app.use("*", securityHeaders);
 
 app.get(
-  "/analytics/backing-vusd",
+  "/analytics/pegged-token-backing/:gatewayAddress",
+  validateGatewayAddress,
   cache({
     cacheControl: "max-age=15, stale-while-revalidate=45",
     cacheName: "vetro-api",
@@ -30,16 +35,21 @@ app.get(
   async function (c) {
     try {
       const url = c.env.CUSTOM_RPC_URL_MAINNET;
-      const data = await analytics.getBackingVusd({ url });
+      const gatewayAddress = c.get("gatewayAddress");
+      const data = await analytics.getPeggedTokenBacking({
+        gatewayAddress,
+        url,
+      });
       return c.json(convertBigIntsToString(data));
     } catch (error) {
-      throw new Error(`Failed to get backing VUSD: ${error.message}`);
+      throw new Error(`Failed to get pegged token backing: ${error.message}`);
     }
   },
 );
 
 app.get(
-  "/analytics/totals",
+  "/analytics/totals/:gatewayAddress",
+  validateGatewayAddress,
   cache({
     cacheControl: "max-age=15, stale-while-revalidate=45",
     cacheName: "vetro-api",
@@ -47,7 +57,8 @@ app.get(
   async function (c) {
     try {
       const url = c.env.CUSTOM_RPC_URL_MAINNET;
-      const data = await analytics.getTotals({ url });
+      const gatewayAddress = c.get("gatewayAddress");
+      const data = await analytics.getTotals({ gatewayAddress, url });
       return c.json(convertBigIntsToString(data));
     } catch (error) {
       throw new Error(`Failed to get totals: ${error.message}`);
@@ -56,7 +67,8 @@ app.get(
 );
 
 app.get(
-  "/analytics/treasury",
+  "/analytics/treasury/:gatewayAddress",
+  validateGatewayAddress,
   cache({
     cacheControl: "max-age=15, stale-while-revalidate=45",
     cacheName: "vetro-api",
@@ -64,7 +76,11 @@ app.get(
   async function (c) {
     try {
       const url = c.env.CUSTOM_RPC_URL_MAINNET;
-      const data = await analytics.getTreasuryComposition({ url });
+      const gatewayAddress = c.get("gatewayAddress");
+      const data = await analytics.getTreasuryComposition({
+        gatewayAddress,
+        url,
+      });
       return c.json(convertBigIntsToString(data));
     } catch (error) {
       throw new Error(`Failed to get treasury composition: ${error.message}`);
@@ -178,15 +194,22 @@ app.get(
 );
 
 app.get(
-  "/variable-stake/exit-queue",
+  "/variable-stake/exit-queue/:gatewayAddress",
+  validateGatewayAddress,
   cache({
     cacheControl: "max-age=300",
     cacheName: "vetro-api",
   }),
   async function (c) {
     try {
-      const url = getSubgraphUrl(c.env);
-      const data = await variableStake.getExitTicketQueueSize({ url });
+      const gatewayAddress = c.get("gatewayAddress");
+      const rpcUrl = c.env.CUSTOM_RPC_URL_MAINNET;
+      const subgraphUrl = getSubgraphUrl(c.env);
+      const data = await variableStake.getExitTicketQueueSize({
+        gatewayAddress,
+        rpcUrl,
+        subgraphUrl,
+      });
       return c.json(convertBigIntsToString(data));
     } catch (error) {
       console.log(error.stack);

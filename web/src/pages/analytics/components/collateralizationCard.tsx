@@ -1,5 +1,6 @@
 import { useCollateralizationRatio } from "hooks/useCollateralizationRatio";
 import { useTranslation } from "react-i18next";
+import type { TokenWithGateway } from "types";
 import { formatPercentage } from "utils/format";
 
 import { ShieldIcon } from "../icons/shieldIcon";
@@ -7,18 +8,29 @@ import { assignColor, toCollateralizationItems } from "../utils";
 
 import { AllocationCard } from "./allocationCard";
 
-export const CollateralizationCard = function () {
+type Props = {
+  peggedToken: TokenWithGateway | undefined;
+  peggedTokenError: boolean;
+};
+
+export const CollateralizationCard = function ({
+  peggedToken,
+  peggedTokenError,
+}: Props) {
   const { t } = useTranslation();
   const {
     data: collateralization,
-    isError,
-    isLoading,
-  } = useCollateralizationRatio();
+    isError: isCollateralizationError,
+    isLoading: isCollateralizationLoading,
+  } = useCollateralizationRatio(peggedToken?.gatewayAddress);
+
+  const isError = peggedTokenError || isCollateralizationError;
+  const isLoading = !isError && (!peggedToken || isCollateralizationLoading);
 
   const value =
-    collateralization && collateralization.vusdSupply > 0
+    collateralization && collateralization.supply > 0
       ? formatPercentage(
-          (collateralization.total / collateralization.vusdSupply) * 100,
+          (collateralization.total / collateralization.supply) * 100,
         )
       : "";
 

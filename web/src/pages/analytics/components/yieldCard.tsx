@@ -1,26 +1,32 @@
-import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { useAnalyticsTreasury } from "hooks/useAnalyticsTreasury";
-import { useWhitelistedTokens } from "hooks/useWhitelistedTokens";
+import { useWhitelistedTokensByGateway } from "hooks/useWhitelistedTokensByGateway";
 import { useTranslation } from "react-i18next";
+import type { TokenWithGateway } from "types";
 
 import { PieChartIcon } from "../icons/pieChartIcon";
 import { assignColor, toReserveBufferAmount, toYieldItems } from "../utils";
 
 import { AllocationCard } from "./allocationCard";
 
-export const YieldCard = function () {
+type Props = {
+  peggedToken: TokenWithGateway | undefined;
+  peggedTokenError: boolean;
+};
+
+export const YieldCard = function ({ peggedToken, peggedTokenError }: Props) {
   const { t } = useTranslation();
   const { data: whitelistedTokens, isError: isWhitelistedTokensError } =
-    // Analytics page is VUSD only
-    useWhitelistedTokens(gatewayAddresses[0]);
+    useWhitelistedTokensByGateway(peggedToken?.gatewayAddress);
   const {
     data: treasury,
     isError: isTreasuryError,
     isLoading: isTreasuryLoading,
-  } = useAnalyticsTreasury();
+  } = useAnalyticsTreasury(peggedToken?.gatewayAddress);
 
-  const isError = isWhitelistedTokensError || isTreasuryError;
-  const isLoading = !isError && (isTreasuryLoading || !whitelistedTokens);
+  const isError =
+    peggedTokenError || isWhitelistedTokensError || isTreasuryError;
+  const isLoading =
+    !isError && (!peggedToken || isTreasuryLoading || !whitelistedTokens);
 
   const tokens = { treasuryTokens: treasury, whitelistedTokens };
   const yieldItems = toYieldItems(tokens);

@@ -1,6 +1,6 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { getMaxWithdraw } from "@vetro-protocol/gateway/actions";
-import { whitelistedTokensByGatewayOptions } from "hooks/useWhitelistedTokens";
+import { whitelistedTokensByGatewayOptions } from "hooks/useWhitelistedTokensByGateway";
 import type { Address, Client } from "viem";
 
 export const fetchTreasuryReserves = async function ({

@@ -2,6 +2,8 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 
 import { SegmentedControl } from "../src/components/base/segmentedControl";
+import { TokenDisplay } from "../src/components/tokenDisplay";
+import { knownTokens } from "../src/utils/tokenList";
 
 const meta: Meta<typeof SegmentedControl> = {
   component: SegmentedControl,
@@ -44,6 +46,36 @@ export const ThreeOptions: Story = {
             { label: "Month", value: "month" },
           ]}
           value={value}
+        />
+      </div>
+    );
+  },
+};
+
+const tokenSymbols = ["USDC", "USDT"] as const;
+type TokenSymbol = (typeof tokenSymbols)[number];
+const labeledTokens = tokenSymbols
+  .map((symbol) => knownTokens.find((token) => token.symbol === symbol))
+  .filter(Boolean);
+
+export const WithTokenLabels: Story = {
+  render: function Component() {
+    const [value, setValue] = useState<TokenSymbol>(labeledTokens[0].symbol);
+
+    return (
+      <div className="flex justify-center">
+        <SegmentedControl
+          onChange={setValue}
+          options={labeledTokens.map((token) => ({
+            label: (
+              <span className="flex items-center gap-1.5">
+                <TokenDisplay logoURI={token.logoURI} symbol={token.symbol} />
+              </span>
+            ),
+            value: token.symbol as TokenSymbol,
+          }))}
+          value={value}
+          variant="pill"
         />
       </div>
     );

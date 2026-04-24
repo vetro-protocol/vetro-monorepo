@@ -5,6 +5,6 @@
     "resolveJsonModule": true,
     "types": ["node"]
   },
-  "include": ["scripts", "src", "test"],
+  "include": ["reset.d.ts", "scripts", "src", "test"],
   "exclude": ["node_modules", "dist"]
 }

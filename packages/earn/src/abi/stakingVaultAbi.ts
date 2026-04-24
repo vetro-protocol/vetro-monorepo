@@ -22,6 +22,13 @@ export const stakingVaultAbi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "yieldDistributor",
+    outputs: [{ type: "address" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [{ name: "account_", type: "address" }],
     name: "instantWithdrawWhitelist",
     outputs: [{ type: "bool" }],

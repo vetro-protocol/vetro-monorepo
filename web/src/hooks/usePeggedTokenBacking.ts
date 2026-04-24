@@ -1,16 +1,16 @@
-import { queryOptions, useQuery } from "@tanstack/react-query";
+import { queryOptions } from "@tanstack/react-query";
 import fetch from "fetch-plus-plus";
 import { isValidUrl } from "utils/url";
 import type { Address } from "viem";
 
 const apiUrl = import.meta.env.VITE_VETRO_API_URL;
 
-type AnalyticsTotals = {
-  minted: string;
-  staked: string;
+type PeggedTokenBacking = {
+  strategicReserves: string;
+  surplus: string;
 };
 
-export const analyticsTotalsOptions = ({
+export const peggedTokenBackingOptions = ({
   gatewayAddress,
 }: {
   gatewayAddress: Address | undefined;
@@ -22,13 +22,10 @@ export const analyticsTotalsOptions = ({
       gatewayAddress !== undefined,
     queryFn: () =>
       fetch(
-        `${apiUrl}/analytics/totals/${gatewayAddress}`,
-      ) as Promise<AnalyticsTotals>,
-    queryKey: ["analytics-totals", gatewayAddress],
+        `${apiUrl}/analytics/pegged-token-backing/${gatewayAddress}`,
+      ) as Promise<PeggedTokenBacking>,
+    queryKey: ["pegged-token-backing", gatewayAddress],
     refetchInterval: 5 * 60 * 1000, // 5 minutes
     retry: 2,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
-
-export const useAnalyticsTotals = (gatewayAddress: Address | undefined) =>
-  useQuery(analyticsTotalsOptions({ gatewayAddress }));
