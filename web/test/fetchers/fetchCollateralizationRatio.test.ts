@@ -36,12 +36,12 @@ const e18 = 10n ** 18n;
 const setupMocks = function ({
   backing = { strategicReserves: "0", surplus: "0" },
   previewRedeem,
-  totals = { minted: "0" },
+  totals = { minted: 0n },
   treasury = [],
 }: {
   backing?: { strategicReserves: string; surplus: string };
   previewRedeem?: (tokenAddress: string) => bigint;
-  totals?: { minted: string };
+  totals?: { minted: bigint };
   treasury?: { tokenAddress: string; withdrawable: string }[];
 }) {
   const mock = (fn: unknown, queryFn: () => unknown, queryKey: string[]) =>
@@ -70,7 +70,7 @@ describe("fetchCollateralizationRatio", function () {
         strategicReserves: (80n * e18).toString(),
         surplus: (20n * e18).toString(),
       },
-      totals: { minted: (100n * e18).toString() },
+      totals: { minted: 100n * e18 },
     });
 
     const result = await fetchCollateralizationRatio({
@@ -96,7 +96,7 @@ describe("fetchCollateralizationRatio", function () {
       },
       // 1 VUSD buys 1 USDC (6 decimals)
       previewRedeem: () => 1n * 10n ** 6n,
-      totals: { minted: (100n * e18).toString() },
+      totals: { minted: 100n * e18 },
       // 40 USDC
       treasury: [
         {
@@ -141,7 +141,7 @@ describe("fetchCollateralizationRatio", function () {
         strategicReserves: "10000000000000000001",
         surplus: "10000000000000000002",
       },
-      totals: { minted: (100n * e18).toString() },
+      totals: { minted: 100n * e18 },
     });
 
     const result = await fetchCollateralizationRatio({
@@ -166,7 +166,7 @@ describe("fetchCollateralizationRatio", function () {
       },
       // 1 VUSD buys 1 of each stablecoin (both 6 decimals)
       previewRedeem: () => 1n * 10n ** 6n,
-      totals: { minted: (100n * e18).toString() },
+      totals: { minted: 100n * e18 },
       treasury: [
         {
           tokenAddress: usdcAddress,
@@ -199,7 +199,7 @@ describe("fetchCollateralizationRatio", function () {
         surplus: (10n * e18).toString(),
       },
       previewRedeem: () => 0n,
-      totals: { minted: (100n * e18).toString() },
+      totals: { minted: 100n * e18 },
       treasury: [
         {
           tokenAddress: "0xToken",

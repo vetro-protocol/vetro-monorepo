@@ -12,12 +12,7 @@ import {
   type PublicClient,
 } from "viem";
 import { mainnet } from "viem/chains";
-import {
-  balanceOf,
-  previewRedeem,
-  totalAssets,
-  totalSupply,
-} from "viem-erc4626/actions";
+import { balanceOf, previewRedeem } from "viem-erc4626/actions";
 
 import { getPrice } from "./chainlink.ts";
 import { findStakingVaultForPeggedToken } from "./staking-vault.ts";
@@ -32,38 +27,6 @@ import {
   vetroMultisigAddress,
   vusdMetaAddress,
 } from "./vusd.ts";
-
-/**
- * Get the total pegged token minted and staked for a given gateway, used to
- * calculate the TVL contributed by that pegged token to the protocol.
- */
-export async function getTotals({
-  gatewayAddress,
-  url,
-}: {
-  gatewayAddress: Address;
-  url: string | undefined;
-}) {
-  const client = createPublicClient({
-    chain: mainnet,
-    transport: http(url),
-  });
-  const peggedTokenAddress = await getPeggedToken(client, {
-    address: gatewayAddress,
-  });
-  const stakingVaultAddress = await findStakingVaultForPeggedToken({
-    client,
-    peggedTokenAddress,
-  });
-  const [minted, staked] = await Promise.all([
-    totalSupply(client, { address: peggedTokenAddress }),
-    totalAssets(client, { address: stakingVaultAddress }),
-  ]);
-  return {
-    minted,
-    staked,
-  };
-}
 
 /**
  * Get the composition of the treasury by whitelisted token. For each token, get

@@ -48,25 +48,6 @@ app.get(
 );
 
 app.get(
-  "/analytics/totals/:gatewayAddress",
-  validateGatewayAddress,
-  cache({
-    cacheControl: "max-age=15, stale-while-revalidate=45",
-    cacheName: "vetro-api",
-  }),
-  async function (c) {
-    try {
-      const url = c.env.CUSTOM_RPC_URL_MAINNET;
-      const gatewayAddress = c.get("gatewayAddress");
-      const data = await analytics.getTotals({ gatewayAddress, url });
-      return c.json(convertBigIntsToString(data));
-    } catch (error) {
-      throw new Error(`Failed to get totals: ${error.message}`);
-    }
-  },
-);
-
-app.get(
   "/analytics/treasury/:gatewayAddress",
   validateGatewayAddress,
   cache({

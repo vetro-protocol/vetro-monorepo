@@ -1,8 +1,8 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { tokenInfoOptions } from "hooks/useTokenInfo";
+import { vaultAssetOptions } from "hooks/useVaultAsset";
 import type { Token } from "types";
 import type { Address, Client } from "viem";
-import { asset } from "viem-erc4626/actions";
 
 export const fetchVaultPeggedToken = async function ({
   client,
@@ -15,7 +15,9 @@ export const fetchVaultPeggedToken = async function ({
 }): Promise<Token> {
   // The Asset of the vault is the pegged token,
   // as the vaults we use are for depositing pegged Tokens.
-  const address = await asset(client, { address: stakingVaultAddress });
+  const address = await queryClient.ensureQueryData(
+    vaultAssetOptions({ client, vaultAddress: stakingVaultAddress }),
+  );
 
   return queryClient.ensureQueryData(
     tokenInfoOptions({

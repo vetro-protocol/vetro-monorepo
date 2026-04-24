@@ -70,7 +70,9 @@ export const fetchCollateralizationRatio = async function ({
         strategicReserves: BigInt(b.strategicReserves),
         surplus: BigInt(b.surplus),
       })),
-    queryClient.ensureQueryData(analyticsTotalsOptions({ gatewayAddress })),
+    queryClient.ensureQueryData(
+      analyticsTotalsOptions({ client, peggedToken, queryClient }),
+    ),
     fetchTreasuryTotal({
       chainId,
       client,
@@ -85,7 +87,7 @@ export const fetchCollateralizationRatio = async function ({
 
   return {
     strategicReserves: toNumber(backing.strategicReserves),
-    supply: toNumber(BigInt(minted)),
+    supply: toNumber(minted),
     surplus: toNumber(backing.surplus),
     total: toNumber(total),
     treasuryTotal: toNumber(treasuryTotal),

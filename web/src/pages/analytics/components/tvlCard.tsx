@@ -30,7 +30,7 @@ export const TvlCard = function ({ peggedToken, peggedTokenError }: Props) {
     data: totals,
     isError: isTotalsError,
     isLoading: isTotalsLoading,
-  } = useAnalyticsTotals(peggedToken?.gatewayAddress);
+  } = useAnalyticsTotals(peggedToken);
 
   const isError =
     peggedTokenError ||
@@ -47,9 +47,7 @@ export const TvlCard = function ({ peggedToken, peggedTokenError }: Props) {
 
   const value =
     peggedToken && totals
-      ? formatUsd(
-          Number(formatUnits(BigInt(totals.minted), peggedToken.decimals)),
-        )
+      ? formatUsd(Number(formatUnits(totals.minted, peggedToken.decimals)))
       : "";
 
   return (
