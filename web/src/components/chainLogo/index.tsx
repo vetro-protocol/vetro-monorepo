@@ -39,7 +39,12 @@ export const ChainLogo = function ({ chain, size = "small" }: Props) {
     );
   }
   return (
-    <div className={sizeClasses[size]} title={chain.name}>
+    <div
+      aria-label={chain.name}
+      className={sizeClasses[size]}
+      role="img"
+      title={chain.name}
+    >
       <Icon />
     </div>
   );
