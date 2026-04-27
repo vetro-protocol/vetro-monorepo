@@ -171,6 +171,14 @@
       "you-are-depositing": "Está depositando como garantía"
     },
     "bridge": {
+      "form": {
+        "action": "Transferir",
+        "you-are-sending": "Estás enviando",
+        "you-will-receive": "Recibirás"
+      },
+      "select-chain": "Seleccionar red",
+      "select-from-chain": "Seleccionar red de origen",
+      "select-to-chain": "Seleccionar red de destino",
       "title": "Transfiera activos entre redes"
     },
     "earn": {

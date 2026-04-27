@@ -171,6 +171,14 @@
       "you-are-depositing": "You are depositing as collateral"
     },
     "bridge": {
+      "form": {
+        "action": "Bridge",
+        "you-are-sending": "You are sending",
+        "you-will-receive": "You will receive"
+      },
+      "select-chain": "Select chain",
+      "select-from-chain": "Select source chain",
+      "select-to-chain": "Select destination chain",
       "title": "Bridge assets across chains"
     },
     "earn": {
