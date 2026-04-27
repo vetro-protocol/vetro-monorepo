@@ -48,7 +48,7 @@ export const Optimism: Story = {
   args: { chain: optimism },
 };
 
-export const Bnb: Story = {
+export const Bsc: Story = {
   args: { chain: bsc },
 };
 
