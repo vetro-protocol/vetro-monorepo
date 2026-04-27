@@ -1,9 +1,12 @@
+/* eslint-disable sort-keys */
 const sizeClasses = {
+  xSmall: "size-3",
+  small: "size-4",
   base: "size-5",
   large: "size-8",
-  small: "size-4",
   xLarge: "size-11",
 };
+/* eslint-enable sort-keys */
 
 type Props = {
   size?: keyof typeof sizeClasses;

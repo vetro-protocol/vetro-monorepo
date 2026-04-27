@@ -12,15 +12,6 @@ const unknownChain = {
 } as unknown as Chain;
 
 const meta: Meta<typeof ChainLogo> = {
-  args: {
-    size: "small",
-  },
-  argTypes: {
-    size: {
-      control: "select",
-      options: ["base", "small"],
-    },
-  },
   component: ChainLogo,
   title: "Components/ChainLogo",
 };

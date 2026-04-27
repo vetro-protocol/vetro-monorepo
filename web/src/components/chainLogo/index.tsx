@@ -18,22 +18,16 @@ const chainIcons = {
   [optimism.id]: OptimismIcon,
 };
 
-const sizeClasses = {
-  base: "size-4",
-  small: "size-3",
-};
-
 type Props = {
   chain: Chain;
-  size?: keyof typeof sizeClasses;
 };
 
-export const ChainLogo = function ({ chain, size = "small" }: Props) {
+export const ChainLogo = function ({ chain }: Props) {
   const Icon = chainIcons[chain.id as keyof typeof chainIcons];
   if (!Icon) {
     return (
       <DefaultTokenLogo
-        size={size}
+        size="xSmall"
         symbol={chain.name.charAt(0).toUpperCase()}
       />
     );
@@ -41,7 +35,7 @@ export const ChainLogo = function ({ chain, size = "small" }: Props) {
   return (
     <div
       aria-label={chain.name}
-      className={sizeClasses[size]}
+      className="size-3"
       role="img"
       title={chain.name}
     >
