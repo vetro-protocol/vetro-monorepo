@@ -3,12 +3,13 @@ import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
 import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpdateNativeBalanceAfterReceipt";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 import type { Address } from "viem";
 import { waitForTransactionReceipt } from "viem/actions";
 import { withdraw } from "viem-erc4626/actions";
 import { useAccount } from "wagmi";
 
+import { analyticsTotalsQueryKey } from "./useAnalyticsTotals";
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { useMainnet } from "./useMainnet";
 import { poolDepositsQueryKey } from "./usePoolDeposits";
@@ -22,7 +23,7 @@ type Params = {
   onStatusChange?: (status: InstantWithdrawStatus) => void;
   onSuccess?: VoidFunction;
   onTransactionHash?: (hash: string) => void;
-  peggedToken: Token;
+  peggedToken: TokenWithGateway;
   stakingVaultAddress: Address;
 };
 
@@ -61,6 +62,11 @@ export const useInstantWithdraw = function ({
   const poolDepositsKey = poolDepositsQueryKey({
     chainId: chain.id,
     stakingVaultAddress,
+  });
+
+  const analyticsTotalsKey = analyticsTotalsQueryKey({
+    chainId: chain.id,
+    gatewayAddress: peggedToken.gatewayAddress,
   });
 
   return useMutation({
@@ -136,10 +142,11 @@ export const useInstantWithdraw = function ({
       });
 
       queryClient.invalidateQueries({
-        queryKey: poolDepositsQueryKey({
-          chainId: chain.id,
-          stakingVaultAddress,
-        }),
+        queryKey: poolDepositsKey,
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: analyticsTotalsKey,
       });
     },
   });

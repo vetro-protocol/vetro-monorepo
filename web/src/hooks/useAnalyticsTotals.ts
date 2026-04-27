@@ -1,34 +1,53 @@
-import { queryOptions, useQuery } from "@tanstack/react-query";
-import fetch from "fetch-plus-plus";
-import { isValidUrl } from "utils/url";
-import type { Address } from "viem";
+import {
+  type QueryClient,
+  queryOptions,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { fetchAnalyticsTotals } from "fetchers/fetchAnalyticsTotals";
+import { useEthereumClient } from "hooks/useEthereumClient";
+import type { TokenWithGateway } from "types";
+import type { Address, Client } from "viem";
 
-const apiUrl = import.meta.env.VITE_VETRO_API_URL;
-
-type AnalyticsTotals = {
-  minted: string;
-  staked: string;
-};
-
-export const analyticsTotalsOptions = ({
+export const analyticsTotalsQueryKey = ({
+  chainId,
   gatewayAddress,
 }: {
+  chainId: number | undefined;
   gatewayAddress: Address | undefined;
+}) => ["analytics-totals", chainId, gatewayAddress];
+
+export const analyticsTotalsOptions = ({
+  client,
+  peggedToken,
+  queryClient,
+}: {
+  client: Client | undefined;
+  peggedToken: TokenWithGateway | undefined;
+  queryClient: QueryClient;
 }) =>
   queryOptions({
-    enabled:
-      apiUrl !== undefined &&
-      isValidUrl(apiUrl) &&
-      gatewayAddress !== undefined,
+    enabled: !!client && !!peggedToken,
     queryFn: () =>
-      fetch(
-        `${apiUrl}/analytics/totals/${gatewayAddress}`,
-      ) as Promise<AnalyticsTotals>,
-    queryKey: ["analytics-totals", gatewayAddress],
+      fetchAnalyticsTotals({
+        chainId: client!.chain!.id,
+        client: client!,
+        peggedToken: peggedToken!,
+        queryClient,
+      }),
+    queryKey: analyticsTotalsQueryKey({
+      chainId: client?.chain?.id,
+      gatewayAddress: peggedToken?.gatewayAddress,
+    }),
     refetchInterval: 5 * 60 * 1000, // 5 minutes
     retry: 2,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-export const useAnalyticsTotals = (gatewayAddress: Address | undefined) =>
-  useQuery(analyticsTotalsOptions({ gatewayAddress }));
+export const useAnalyticsTotals = function (
+  peggedToken: TokenWithGateway | undefined,
+) {
+  const client = useEthereumClient();
+  const queryClient = useQueryClient();
+  return useQuery(analyticsTotalsOptions({ client, peggedToken, queryClient }));
+};

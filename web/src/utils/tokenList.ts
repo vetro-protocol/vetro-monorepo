@@ -75,6 +75,48 @@ export const knownTokens: Token[] = [
     name: "Wrapped Ether",
     symbol: "WETH",
   },
+  {
+    address: "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf",
+    chainId: mainnet.id,
+    decimals: 8,
+    extensions: {
+      allowanceSlot: 10n,
+      balanceSlot: 9,
+      priceSymbol: "BTC",
+    },
+    logoURI: "https://hemilabs.github.io/token-list/l1Logos/cbbtc.svg",
+    name: "Coinbase Wrapped BTC",
+    symbol: "cbBTC",
+  },
+  {
+    address: "0xf196C68233464A16CFDa319a47c21f4cECa62001",
+    chainId: mainnet.id,
+    decimals: 18,
+    extensions: {
+      allowanceSlot: 1n,
+      balanceSlot: 0,
+      priceSymbol: "BTC",
+    },
+    logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetbtc.svg",
+    name: "Vetro BTC",
+    symbol: "vetBTC",
+  },
+  {
+    address: "0x0cB9D84d4bcEc8d3D5B2d99a6F07f4605325987e",
+    chainId: mainnet.id,
+    decimals: 18,
+    logoURI: "https://hemilabs.github.io/token-list/l1Logos/svetbtc.svg",
+    name: "Staked Vetro BTC",
+    symbol: "svetBTC",
+  },
+  {
+    address: "0x476310E34D2810f7d79C43A74E4D79405bd7a925",
+    chainId: mainnet.id,
+    decimals: 18,
+    logoURI: "https://hemilabs.github.io/token-list/l1Logos/svusd.svg",
+    name: "Staked Vetro USD",
+    symbol: "sVUSD",
+  },
 ];
 
 export const getTokenListParams = (tokens: Token[]) => ({

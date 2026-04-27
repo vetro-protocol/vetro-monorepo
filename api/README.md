@@ -4,9 +4,10 @@ Service that provides data to the Vetro web application.
 
 ## Data endpoints
 
-### `GET /analytics/backing-vusd`
+### `GET /analytics/pegged-token-backing/:gatewayAddress`
 
-Get the total strategic reserves and the total surplus.
+Get the total strategic reserves and the total surplus for a given gateway's pegged token.
+`:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway.
 
 #### Sample response
 
@@ -17,22 +18,10 @@ Get the total strategic reserves and the total surplus.
 }
 ```
 
-### `GET /analytics/totals`
+### `GET /analytics/treasury/:gatewayAddress`
 
-Get the total VUSD minted and staked to calculate the TVL in the protocol.
-
-#### Sample Response
-
-```json
-{
-  "vusdMinted": "3087191980362376717819",
-  "vusdStaked": "916500000000000000000"
-}
-```
-
-### `GET /analytics/treasury`
-
-Get the composition of the treasury by whitelisted token.
+Get the composition of the treasury by whitelisted token for a given gateway.
+`:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway.
 
 #### Sample Response
 
@@ -146,30 +135,33 @@ Returns all user's rewards from the Merkl campaigns related to Vetro.
 ]
 ```
 
-### `GET /variable-stake/exit-queue`
+### `GET /variable-stake/exit-queue/:gatewayAddress`
 
-Returns a summary of the exit tickets queue: the total number of open exit tickets and their combined shares.
+Returns a summary of the exit tickets queue for the gateway's staking vault: the total number of open exit tickets and their combined value in the vault's underlying asset (shares are converted via the vault's exchange rate).
+`:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway.
 
 #### Sample Response
 
 ```jsonc
 {
+  "assets": "4200000000000000000", // pegged token
   "openTickets": 1,
-  "shares": "4000000000000000000", // sVUSD
 }
 ```
 
 ### `GET /variable-stake/exit-tickets/:address`
 
-Returns all user's variable stake exit tickets to i.e. allow claiming the withdrawn VUSD.
+Returns all user's variable stake exit tickets to i.e. allow claiming the withdrawn pegged token.
 
 #### Sample Response
 
 ```jsonc
 [
   {
+    "id": "0x...",
     "requestId": "1",
     "requestTxHash": "0x0000000000000000000000000000000000000000000000000000000000000001",
+    "stakingVaultAddress": "0x0000000000000000000000000000000000000002",
     "owner": "0x0000000000000000000000000000000000000001",
     "assets": "1050000000000000000",
     "shares": "1000000000000000000",

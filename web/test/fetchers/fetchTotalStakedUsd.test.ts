@@ -15,8 +15,14 @@ const client = { chain: mainnet } as unknown as Client;
 const vault1 = "0x1111111111111111111111111111111111111111" as Address;
 const vault2 = "0x2222222222222222222222222222222222222222" as Address;
 
-const vusd = knownTokens.find((token) => token.symbol === "VUSD")!;
-const usdc = knownTokens.find((token) => token.symbol === "USDC")!;
+const vusd = {
+  ...knownTokens.find((token) => token.symbol === "VUSD")!,
+  gatewayAddress: "0x0000000000000000000000000000000000000001" as Address,
+};
+const usdc = {
+  ...knownTokens.find((token) => token.symbol === "USDC")!,
+  gatewayAddress: "0x0000000000000000000000000000000000000002" as Address,
+};
 
 describe("fetchTotalStakedUsd", function () {
   it("returns staked amount times price for a single vault", async function () {

@@ -20,16 +20,14 @@ export const StakedCard = function ({ peggedToken, peggedTokenError }: Props) {
     data: totals,
     isError: isTotalsError,
     isLoading: isTotalsLoading,
-  } = useAnalyticsTotals(peggedToken?.gatewayAddress);
+  } = useAnalyticsTotals(peggedToken);
 
   const isError = peggedTokenError || isTotalsError;
   const isLoading = !isError && (!peggedToken || isTotalsLoading);
 
   const value =
     peggedToken && totals
-      ? formatUsd(
-          Number(formatUnits(BigInt(totals.staked), peggedToken.decimals)),
-        )
+      ? formatUsd(Number(formatUnits(totals.staked, peggedToken.decimals)))
       : "";
 
   const label = peggedToken ? (

@@ -17,7 +17,16 @@ import { balanceOf } from "viem-erc20/actions";
 
 import { knownTokens } from "../src/utils/tokenList.ts";
 
-const setupSymbols = ["hemiBTC", "USDC", "USDT", "VUSD", "WBTC", "WETH"];
+const setupSymbols = [
+  "cbBTC",
+  "hemiBTC",
+  "USDC",
+  "USDT",
+  "vetBTC",
+  "VUSD",
+  "WBTC",
+  "WETH",
+];
 
 const tokens = knownTokens
   .filter((t) => setupSymbols.includes(t.symbol))

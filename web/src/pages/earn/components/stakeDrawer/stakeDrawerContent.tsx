@@ -2,7 +2,7 @@ import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { SegmentedControl } from "components/base/segmentedControl";
 import { useReducer } from "react";
 import { useTranslation } from "react-i18next";
-import { type Token } from "types";
+import { type TokenWithGateway } from "types";
 import type { Address } from "viem";
 
 import { StakeDepositForm } from "./stakeDepositForm";
@@ -24,7 +24,7 @@ type Props = {
   mode: StakeMode;
   onModeChange: (mode: StakeMode) => void;
   onSuccess: (toast: ToastData) => void;
-  peggedToken: Token;
+  peggedToken: TokenWithGateway;
   stakingVaultAddress: Address;
 };
 

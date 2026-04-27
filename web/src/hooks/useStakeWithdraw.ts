@@ -7,9 +7,11 @@ import { stakingVaultAbi } from "@vetro-protocol/earn";
 import { requestWithdraw } from "@vetro-protocol/earn/actions";
 import { exitTicketsQueryKey } from "pages/earn/hooks/useExitTickets";
 import type { ExitTicket } from "pages/earn/types";
+import type { TokenWithGateway } from "types";
 import { type Address, type TransactionReceipt, parseEventLogs } from "viem";
 import { useAccount } from "wagmi";
 
+import { analyticsTotalsQueryKey } from "./useAnalyticsTotals";
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { useMainnet } from "./useMainnet";
 import { poolDepositsQueryKey } from "./usePoolDeposits";
@@ -23,6 +25,7 @@ type Params = {
   onStatusChange?: (status: WithdrawStatus) => void;
   onSuccess?: VoidFunction;
   onTransactionHash?: (hash: string) => void;
+  peggedToken: TokenWithGateway;
   stakingVaultAddress: Address;
 };
 
@@ -31,6 +34,7 @@ export const useStakeWithdraw = function ({
   onStatusChange,
   onSuccess,
   onTransactionHash,
+  peggedToken,
   stakingVaultAddress,
 }: Params) {
   const { address: account } = useAccount();
@@ -58,6 +62,11 @@ export const useStakeWithdraw = function ({
   const poolDepositsKey = poolDepositsQueryKey({
     chainId: chain.id,
     stakingVaultAddress,
+  });
+
+  const analyticsTotalsKey = analyticsTotalsQueryKey({
+    chainId: chain.id,
+    gatewayAddress: peggedToken.gatewayAddress,
   });
 
   return useMutation({
@@ -161,10 +170,11 @@ export const useStakeWithdraw = function ({
       });
 
       queryClient.invalidateQueries({
-        queryKey: poolDepositsQueryKey({
-          chainId: chain.id,
-          stakingVaultAddress,
-        }),
+        queryKey: poolDepositsKey,
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: analyticsTotalsKey,
       });
     },
   });
