@@ -2,16 +2,14 @@ import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, WagmiProvider } from "wagmi";
 
-import { mainnet } from "../networks";
+import { allChains } from "../networks";
 
 export const config = getDefaultConfig({
   appName: "Vetro",
-  chains: [mainnet],
+  chains: allChains,
   // TODO add project id for wallet connect
   projectId: "YOUR_PROJECT_ID_HERE",
-  transports: {
-    [mainnet.id]: http(),
-  },
+  transports: Object.fromEntries(allChains.map((chain) => [chain.id, http()])),
 });
 
 const queryClient = new QueryClient();
