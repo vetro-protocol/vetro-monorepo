@@ -4,7 +4,6 @@ import { ChevronIcon } from "components/base/chevronIcon";
 import { type StackItem, Stack } from "components/base/stack";
 import { useAtRiskPositions } from "hooks/borrow/useAtRiskPositions";
 import { useGetRedeemRequests } from "hooks/useGetRedeemRequests";
-import { usePeggedTokensByGateway } from "hooks/usePeggedTokensByGateway";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router";
@@ -93,7 +92,6 @@ function RedeemNotification({
 
 function useRedeemItems(): StackItem[] {
   const { data: requests } = useGetRedeemRequests();
-  const { data: peggedTokensByGateway } = usePeggedTokensByGateway();
   const [now, setNow] = useState(unixNowTimestamp);
 
   const nextClaimableAt = requests?.reduce<number | undefined>(
@@ -118,26 +116,20 @@ function useRedeemItems(): StackItem[] {
     [nextClaimableAt],
   );
 
-  if (!peggedTokensByGateway || !requests) {
+  if (!requests) {
     return [];
   }
 
   return requests
-    .filter(
-      // exclude unknown gateways and cooldown requests so the Stack doesn't
-      // render invisible items that would still affect its offsets/hover.
-      (r) =>
-        peggedTokensByGateway[r.gatewayAddress] !== undefined &&
-        Number(r.claimableAt) <= now,
-    )
+    .filter((r) => Number(r.claimableAt) <= now)
     .map((r) => ({
       content: (
         <RedeemNotification
           amountLocked={r.amountLocked}
-          peggedToken={peggedTokensByGateway[r.gatewayAddress]}
+          peggedToken={r.peggedToken}
         />
       ),
-      id: `redeem-ready-${r.gatewayAddress}`,
+      id: `redeem-ready-${r.peggedToken.gatewayAddress}`,
     }));
 }
 

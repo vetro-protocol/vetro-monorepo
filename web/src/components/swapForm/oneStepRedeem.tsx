@@ -304,7 +304,7 @@ export function OneStepRedeem({
         />
       </FormSection>
       <RedeemQueueSection
-        peggedTokens={peggedTokens}
+        peggedToken={fromToken}
         whitelistedTokens={whitelistedTokens}
       />
       {isDrawerOpen && flowStatus !== "idle" && (

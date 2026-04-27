@@ -5,7 +5,7 @@ import type { TokenWithGateway } from "types";
 import { RedeemQueue } from "./redeemQueue";
 
 type Props = {
-  peggedTokens: TokenWithGateway[];
+  peggedToken: TokenWithGateway;
   whitelistedTokens: TokenWithGateway[];
 };
 export const RedeemQueueSection = function (props: Props) {
