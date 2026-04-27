@@ -87,6 +87,23 @@ export async function getUserRewards({
     ([, opportunityId]) => !!opportunityId,
   ) as [Address, string][];
 
+  // Pre-seed every configured vault with an empty array so the response shape
+  // is stable: callers can rely on every vault key being present even when a
+  // user has no rewards for it.
+  const rewardsByVault: Record<
+    Address,
+    Awaited<ReturnType<typeof merkl.getUserRewards>>[number]["rewards"]
+  > = Object.fromEntries(
+    vaultEntries.map(([vaultAddress]) => [vaultAddress, []]),
+  );
+
+  // Skip the external Merkl call when no vault has a configured opportunity:
+  // there are no campaigns to map rewards to, so the response is the
+  // pre-seeded empties.
+  if (vaultsWithOpportunity.length === 0) {
+    return rewardsByVault;
+  }
+
   // Each vault maps to one Merkl opportunity, and each opportunity contains
   // multiple campaigns. Resolve the campaigns for every configured opportunity,
   // in parallel with the user's full reward list.
@@ -110,13 +127,6 @@ export async function getUserRewards({
       campaignIds.map((campaignId) => [campaignId, vaultAddress] as const),
     ),
   ) as Record<string, Address>;
-
-  // Pre-seed every configured vault with an empty array so the response shape
-  // is stable: callers can rely on every vault key being present even when a
-  // user has no rewards for it.
-  const rewardsByVault = Object.fromEntries(
-    vaultEntries.map(([vaultAddress]) => [vaultAddress, []]),
-  ) as Record<Address, (typeof allUserRewards)[number]["rewards"]>;
 
   // Bucket each reward into the vault(s) it belongs to. A reward's breakdowns
   // can list multiple campaigns; `seen` prevents pushing the same reward twice
