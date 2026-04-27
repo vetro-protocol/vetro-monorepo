@@ -107,7 +107,7 @@ Returns the APY of the Vetro vault calculated using the share value variations o
 
 ### `GET /variable-stake/rewards/:address`
 
-Returns all user's rewards from the Merkl campaigns related to Vetro, indexed by staking vault address. Each configured vault (one with a non-empty `MERKL_OPPORTUNITY_*` env var) has an entry in the response, with an empty array if the user has no rewards for that vault.
+Returns all user's rewards from the Merkl campaigns related to Vetro, indexed by staking vault address. Each supported staking vault has an entry in the response, with an empty array if the user has no rewards for that vault.
 
 #### Sample Response
 
