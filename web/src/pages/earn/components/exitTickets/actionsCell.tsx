@@ -42,7 +42,7 @@ function WithdrawButton({
   if (!isConnected) {
     return (
       <Button onClick={openConnectModal} size="xSmall" variant="primary">
-        {t("pages.swap.form.connect-wallet")}
+        {t("common.connect-wallet")}
       </Button>
     );
   }

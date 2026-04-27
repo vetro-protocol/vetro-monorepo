@@ -51,7 +51,7 @@ export function SwapFormSkeleton() {
 
           <div className="mt-2 flex w-full flex-col border-t border-gray-200 px-2 py-3">
             <Button disabled size="xLarge" type="button">
-              {t("pages.swap.form.connect-wallet")}
+              {t("common.connect-wallet")}
             </Button>
           </div>
         </div>
