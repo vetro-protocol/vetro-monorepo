@@ -50,7 +50,13 @@ export function PoolInfoBar({ stakingVaultAddress }: Props) {
     <div className="flex flex-col gap-6 border-b border-gray-200 bg-white p-4 sm:gap-4 md:flex-row md:items-center md:justify-between md:px-16 md:py-6">
       <div className="grid grid-cols-2 gap-4 sm:flex sm:items-center sm:justify-center sm:gap-6 md:justify-start md:gap-8">
         {peggedToken ? (
-          <div className="flex size-10 items-center justify-center rounded-lg bg-blue-800/10">
+          <div
+            className={`flex size-10 items-center justify-center rounded-lg ${
+              peggedToken.symbol === "vetBTC"
+                ? "bg-vetbtc-logo/10"
+                : "bg-blue-800/10"
+            }`}
+          >
             <TokenLogo {...peggedToken} />
           </div>
         ) : (
