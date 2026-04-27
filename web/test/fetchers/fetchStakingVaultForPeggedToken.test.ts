@@ -10,6 +10,7 @@ import { createTestQueryClient } from "../utils";
 const client = { chain: mainnet } as unknown as Client;
 
 const vusdAddress = "0xCa83DDE9c22254f58e771bE5E157773212AcBAc3" as Address;
+const vetBtcAddress = "0xf196C68233464A16CFDa319a47c21f4cECa62001" as Address;
 
 const seedVaultAssets = function (
   queryClient: ReturnType<typeof createTestQueryClient>,
@@ -26,7 +27,7 @@ const seedVaultAssets = function (
 describe("fetchStakingVaultForPeggedToken", function () {
   it("returns the vault whose asset matches the pegged token", async function () {
     const queryClient = createTestQueryClient();
-    seedVaultAssets(queryClient, [vusdAddress]);
+    seedVaultAssets(queryClient, [vusdAddress, vetBtcAddress]);
 
     const result = await fetchStakingVaultForPeggedToken({
       client,
@@ -37,9 +38,25 @@ describe("fetchStakingVaultForPeggedToken", function () {
     expect(result).toBe(stakingVaultAddresses[0]);
   });
 
+  it("finds the matching vault regardless of position", async function () {
+    const queryClient = createTestQueryClient();
+    seedVaultAssets(queryClient, [vusdAddress, vetBtcAddress]);
+
+    const result = await fetchStakingVaultForPeggedToken({
+      client,
+      peggedTokenAddress: vetBtcAddress,
+      queryClient,
+    });
+
+    expect(result).toBe(stakingVaultAddresses[1]);
+  });
+
   it("compares addresses case-insensitively", async function () {
     const queryClient = createTestQueryClient();
-    seedVaultAssets(queryClient, [vusdAddress.toLowerCase() as Address]);
+    seedVaultAssets(queryClient, [
+      vusdAddress.toLowerCase() as Address,
+      vetBtcAddress,
+    ]);
 
     const result = await fetchStakingVaultForPeggedToken({
       client,
@@ -52,7 +69,7 @@ describe("fetchStakingVaultForPeggedToken", function () {
 
   it("throws when no vault matches the pegged token", async function () {
     const queryClient = createTestQueryClient();
-    seedVaultAssets(queryClient, [vusdAddress]);
+    seedVaultAssets(queryClient, [vusdAddress, vetBtcAddress]);
 
     const unknownPeggedToken =
       "0xdead000000000000000000000000000000000000" as Address;
