@@ -10,7 +10,7 @@ const meta: Meta<typeof DefaultTokenLogo> = {
   argTypes: {
     size: {
       control: "select",
-      options: ["base", "large", "small", "xLarge"],
+      options: ["base", "large", "small", "xLarge", "xSmall"],
     },
   },
   component: DefaultTokenLogo,
@@ -26,6 +26,10 @@ export const Base: Story = {
 
 export const Small: Story = {
   args: { size: "small" },
+};
+
+export const XSmall: Story = {
+  args: { size: "xSmall" },
 };
 
 export const Large: Story = {
