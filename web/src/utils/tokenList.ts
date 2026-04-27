@@ -1,3 +1,4 @@
+import { sVetBtcAddress, sVusdAddress } from "@vetro-protocol/earn";
 import type { Token } from "types";
 import { mainnet } from "viem/chains";
 
@@ -102,7 +103,7 @@ export const knownTokens: Token[] = [
     symbol: "vetBTC",
   },
   {
-    address: "0x0cB9D84d4bcEc8d3D5B2d99a6F07f4605325987e",
+    address: sVetBtcAddress,
     chainId: mainnet.id,
     decimals: 18,
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/svetbtc.svg",
@@ -110,7 +111,7 @@ export const knownTokens: Token[] = [
     symbol: "svetBTC",
   },
   {
-    address: "0x476310E34D2810f7d79C43A74E4D79405bd7a925",
+    address: sVusdAddress,
     chainId: mainnet.id,
     decimals: 18,
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/svusd.svg",
