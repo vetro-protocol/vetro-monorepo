@@ -4,7 +4,8 @@
     "approve-10x-tooltip": "Approves up to 10× your transaction amount, reducing future approval steps. You can revoke it anytime.",
     "clear-search": "Clear search",
     "network-fee": "Network Fee",
-    "oracle": "Oracle"
+    "oracle": "Oracle",
+    "search": "Search"
   },
   "language": {
     "switch-to": "Switch to Spanish"

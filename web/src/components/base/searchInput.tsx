@@ -38,18 +38,25 @@ const CloseIcon = (props: SVGProps<SVGSVGElement>) => (
 );
 
 type Props = {
+  ariaLabel?: string;
   onChange: (value: string) => void;
   placeholder?: string;
   value: string;
 };
 
-export const SearchInput = function ({ onChange, placeholder, value }: Props) {
+export const SearchInput = function ({
+  ariaLabel,
+  onChange,
+  placeholder,
+  value,
+}: Props) {
   const { t } = useTranslation();
 
   return (
     <div className="text-b-medium group flex h-8 w-full items-center gap-2 rounded-full bg-white px-3 py-1.5 text-gray-900 shadow-sm outline outline-transparent transition-colors focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-100 focus-within:outline-blue-500 hover:bg-gray-50">
       <SearchIcon className="shrink-0 text-gray-400" />
       <input
+        aria-label={ariaLabel ?? t("common.search")}
         className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-gray-500 group-hover:placeholder:text-gray-600"
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
