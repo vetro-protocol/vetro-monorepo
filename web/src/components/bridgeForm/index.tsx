@@ -8,7 +8,7 @@ import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { ToTokenBalance } from "components/swapForm/toTokenBalance";
 import { getSwapErrors } from "components/swapForm/validation";
 import { TokenInput } from "components/tokenInput";
-import { useBridgableTokens } from "hooks/useBridgableTokens";
+import { useBridgeableTokens } from "hooks/useBridgeableTokens";
 import { type FormEvent, useReducer } from "react";
 import { useTranslation } from "react-i18next";
 import type { BridgeableToken } from "types";
@@ -160,6 +160,6 @@ function BridgeFormContent({ tokens }: ContentProps) {
 }
 
 export function BridgeForm() {
-  const tokens = useBridgableTokens();
+  const tokens = useBridgeableTokens();
   return <BridgeFormContent tokens={tokens} />;
 }

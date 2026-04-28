@@ -3,7 +3,7 @@ import type { BridgeableToken } from "types";
 import { bridgeableTokens } from "utils/bridgeableTokens";
 import { knownTokens } from "utils/tokenList";
 
-export const useBridgableTokens = () =>
+export const useBridgeableTokens = () =>
   useMemo<BridgeableToken[]>(
     () =>
       bridgeableTokens.flatMap(function ({
