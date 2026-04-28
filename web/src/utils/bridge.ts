@@ -1,13 +1,13 @@
 import type { BridgeableToken } from "types";
 
-export const pickToToken = ({
-  fromToken,
+export const pickCounterpartToken = ({
+  token,
   tokens,
 }: {
-  fromToken: BridgeableToken;
+  token: BridgeableToken;
   tokens: BridgeableToken[];
 }) =>
   tokens.find(
-    (token) =>
-      token.symbol === fromToken.symbol && token.chainId !== fromToken.chainId,
+    (candidate) =>
+      candidate.symbol === token.symbol && candidate.chainId !== token.chainId,
   ) ?? tokens[0];

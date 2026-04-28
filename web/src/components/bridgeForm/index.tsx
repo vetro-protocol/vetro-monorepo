@@ -12,7 +12,7 @@ import { useBridgeableTokens } from "hooks/useBridgeableTokens";
 import { type FormEvent, useReducer } from "react";
 import { useTranslation } from "react-i18next";
 import type { BridgeableToken } from "types";
-import { pickToToken } from "utils/bridge";
+import { pickCounterpartToken } from "utils/bridge";
 import { parseTokenUnits } from "utils/token";
 
 import { BridgeSubmitButton } from "./bridgeSubmitButton";
@@ -26,7 +26,7 @@ function getInitialState(tokens: BridgeableToken[]): BridgeFormState {
     approve10x: false,
     fromInputValue: "0",
     fromToken,
-    toToken: pickToToken({ fromToken, tokens }),
+    toToken: pickCounterpartToken({ token: fromToken, tokens }),
   };
 }
 
@@ -74,7 +74,7 @@ function BridgeFormContent({ tokens }: ContentProps) {
   function handleFromTokenChange(token: BridgeableToken) {
     dispatch({ payload: token, type: "SET_FROM_TOKEN" });
     if (token.chainId === toToken.chainId) {
-      const nextTo = pickToToken({ fromToken: token, tokens });
+      const nextTo = pickCounterpartToken({ token, tokens });
       dispatch({ payload: nextTo, type: "SET_TO_TOKEN" });
     }
   }
@@ -82,7 +82,7 @@ function BridgeFormContent({ tokens }: ContentProps) {
   function handleToTokenChange(token: BridgeableToken) {
     dispatch({ payload: token, type: "SET_TO_TOKEN" });
     if (token.chainId === fromToken.chainId) {
-      const nextFrom = pickToToken({ fromToken: token, tokens });
+      const nextFrom = pickCounterpartToken({ token, tokens });
       dispatch({ payload: nextFrom, type: "SET_FROM_TOKEN" });
     }
   }

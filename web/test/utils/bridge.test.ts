@@ -1,7 +1,7 @@
 import type { BridgeableToken } from "types";
 import { describe, expect, it } from "vitest";
 
-import { pickToToken } from "../../src/utils/bridge";
+import { pickCounterpartToken } from "../../src/utils/bridge";
 
 const makeToken = (symbol: string, chainId: number): BridgeableToken =>
   ({
@@ -9,46 +9,48 @@ const makeToken = (symbol: string, chainId: number): BridgeableToken =>
     symbol,
   }) as BridgeableToken;
 
-describe("pickToToken", function () {
+describe("pickCounterpartToken", function () {
   it("picks a token with the same symbol on a different chain", function () {
-    const fromToken = makeToken("VUSD", 1);
+    const token = makeToken("VUSD", 1);
     const otherChain = makeToken("VUSD", 42161);
-    expect(pickToToken({ fromToken, tokens: [fromToken, otherChain] })).toBe(
+    expect(pickCounterpartToken({ token, tokens: [token, otherChain] })).toBe(
       otherChain,
     );
   });
 
   it("skips same-chain tokens even when symbol matches", function () {
-    const fromToken = makeToken("VUSD", 1);
+    const token = makeToken("VUSD", 1);
     const sameChain = makeToken("VUSD", 1);
     const otherChain = makeToken("VUSD", 8453);
-    expect(pickToToken({ fromToken, tokens: [sameChain, otherChain] })).toBe(
-      otherChain,
-    );
+    expect(
+      pickCounterpartToken({ token, tokens: [sameChain, otherChain] }),
+    ).toBe(otherChain);
   });
 
   it("skips different-symbol tokens even on a different chain", function () {
-    const fromToken = makeToken("VUSD", 1);
+    const token = makeToken("VUSD", 1);
     const differentSymbol = makeToken("vetBTC", 42161);
     const match = makeToken("VUSD", 8453);
-    expect(pickToToken({ fromToken, tokens: [differentSymbol, match] })).toBe(
-      match,
-    );
+    expect(
+      pickCounterpartToken({ token, tokens: [differentSymbol, match] }),
+    ).toBe(match);
   });
 
   it("returns the first eligible match when multiple exist", function () {
-    const fromToken = makeToken("VUSD", 1);
+    const token = makeToken("VUSD", 1);
     const first = makeToken("VUSD", 42161);
     const second = makeToken("VUSD", 8453);
-    expect(pickToToken({ fromToken, tokens: [first, second] })).toBe(first);
+    expect(pickCounterpartToken({ token, tokens: [first, second] })).toBe(
+      first,
+    );
   });
 
   it("falls back to tokens[0] when no eligible match exists", function () {
-    const fromToken = makeToken("VUSD", 1);
+    const token = makeToken("VUSD", 1);
     const sameChain = makeToken("VUSD", 1);
     const differentSymbol = makeToken("vetBTC", 42161);
     expect(
-      pickToToken({ fromToken, tokens: [sameChain, differentSymbol] }),
+      pickCounterpartToken({ token, tokens: [sameChain, differentSymbol] }),
     ).toBe(sameChain);
   });
 });
