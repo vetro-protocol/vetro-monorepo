@@ -101,7 +101,7 @@ export const FormSection = ({
   children: ReactNode;
   show: boolean;
 }) => (
-  <CollapsibleSection className="w-full md:max-w-md" show={show}>
+  <CollapsibleSection className="w-full max-w-md" show={show}>
     {children}
   </CollapsibleSection>
 );
