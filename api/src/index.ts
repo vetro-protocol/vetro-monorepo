@@ -1,6 +1,8 @@
+import { sVetBtcAddress, sVusdAddress } from "@vetro-protocol/earn";
 import { Hono } from "hono";
 import { cache } from "hono/cache";
 import { cors } from "hono/cors";
+import type { Address } from "viem";
 
 import * as analytics from "./analytics.ts";
 import * as borrow from "./borrow.ts";
@@ -162,10 +164,13 @@ app.get(
   async function (c) {
     try {
       const address = c.req.param("address") as `0x${string}`;
-      const opportunityId = c.env.MERKL_OPPORTUNITY_ID;
+      const vaultOpportunities: Record<Address, string | undefined> = {
+        [sVetBtcAddress]: c.env.MERKL_OPPORTUNITY_SVETBTC,
+        [sVusdAddress]: c.env.MERKL_OPPORTUNITY_SVUSD,
+      };
       const data = await variableStake.getUserRewards({
         address,
-        opportunityId,
+        vaultOpportunities,
       });
       return c.json(data);
     } catch (error) {

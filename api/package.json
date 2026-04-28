@@ -4,6 +4,7 @@
   "scripts": {
     "deps:check": "knip",
     "dev": "wrangler dev",
+    "test": "vitest run",
     "tsc": "tsc",
     "types": "wrangler types",
     "types:check": "pnpm types && tsc"
@@ -23,6 +24,8 @@
   "devDependencies": {
     "@types/node": "24.10.13",
     "typescript": "5.9.3",
+    "vite-tsconfig-paths": "6.0.4",
+    "vitest": "4.0.18",
     "wrangler": "4.65.0"
   },
   "private": true,

@@ -107,32 +107,35 @@ Returns the APY of the Vetro vault calculated using the share value variations o
 
 ### `GET /variable-stake/rewards/:address`
 
-Returns all user's rewards from the Merkl campaigns related to Vetro.
+Returns all user's rewards from the Merkl campaigns related to Vetro, indexed by staking vault address. Each supported staking vault has an entry in the response, with an empty array if the user has no rewards for that vault.
 
 #### Sample Response
 
 ```jsonc
-[
-  {
-    "amount": "1000000000000000000",
-    "breakdowns": [
-      // ...
-    ],
-    "claimed": "0",
-    "distributionChainId": 1,
-    "pending": "0",
-    "proofs": [
-      // ...
-    ],
-    "recipient": "0x0000000000000000000000000000000000000001",
-    "root": "0x...",
-    "token": {
-      "symbol": "sVUSD",
-      // All other token props
+{
+  "0x476310E34D2810f7d79C43A74E4D79405bd7a925": [
+    {
+      "amount": "1000000000000000000",
+      "breakdowns": [
+        // ...
+      ],
+      "claimed": "0",
+      "distributionChainId": 1,
+      "pending": "0",
+      "proofs": [
+        // ...
+      ],
+      "recipient": "0x0000000000000000000000000000000000000001",
+      "root": "0x...",
+      "token": {
+        "symbol": "sVUSD",
+        // All other token props
+      },
     },
-  },
-  // ...more rewards
-]
+    // ...more rewards
+  ],
+  "0x0cB9D84d4bcEc8d3D5B2d99a6F07f4605325987e": [],
+}
 ```
 
 ### `GET /variable-stake/exit-queue/:gatewayAddress`
@@ -176,14 +179,15 @@ Returns all user's variable stake exit tickets to i.e. allow claiming the withdr
 Environment variables are configured in `wrangler.jsonc`.
 Secrets are set separately using the Wrangler CLI.
 
-| Variable               | Description                                       | Default                 |
-| ---------------------- | ------------------------------------------------- | ----------------------- |
-| CUSTOM_RPC_URL_MAINNET | Ethereum RPC node URL. Overrides `viem`'s default |                         |
-| MERKL_OPPORTUNITY_ID   | The Merkl opportunity id to look for rewards.     |                         |
-| ORIGINS                | Comma-separated list of allowed origins. (1)      | `http://localhost:5173` |
-| SUBGRAPH_API_KEY       | The subgraph API key.                             |                         |
-| SUBGRAPH_ID            | The subgraph id.                                  |                         |
-| SUBGRAPH_URL_TEMPLATE  | The subgraph URL template. (2)                    | (localhost)             |
+| Variable                  | Description                                                                                           | Default                 |
+| ------------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------- |
+| CUSTOM_RPC_URL_MAINNET    | Ethereum RPC node URL. Overrides `viem`'s default                                                     |                         |
+| MERKL_OPPORTUNITY_SVETBTC | Merkl opportunity id for the sVetBTC staking vault. Optional; if unset, that vault yields no rewards. |                         |
+| MERKL_OPPORTUNITY_SVUSD   | Merkl opportunity id for the sVUSD staking vault. Optional; if unset, that vault yields no rewards.   |                         |
+| ORIGINS                   | Comma-separated list of allowed origins. (1)                                                          | `http://localhost:5173` |
+| SUBGRAPH_API_KEY          | The subgraph API key.                                                                                 |                         |
+| SUBGRAPH_ID               | The subgraph id.                                                                                      |                         |
+| SUBGRAPH_URL_TEMPLATE     | The subgraph URL template. (2)                                                                        | (localhost)             |
 
 (1) Globs with stars (`*`) are supported. I.e. `https://*.hemi.xyz` will match any subdomain or subdomain chain.
 (2) API key and id are replaced in the template at the `$API_KEY` and `$ID` positions.

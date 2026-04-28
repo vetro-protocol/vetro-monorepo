@@ -24,7 +24,7 @@ export function PoolInfoBar({ stakingVaultAddress }: Props) {
   const { data: apy, isLoading: isLoadingApy } = useApy();
   const { data: poolDeposits, isLoading: isLoadingDeposits } =
     usePoolDeposits(stakingVaultAddress);
-  const { data: userRewards } = useUserRewards();
+  const { data: userRewards } = useUserRewards(stakingVaultAddress);
 
   const rewardTokens =
     userRewards?.map((reward) => ({

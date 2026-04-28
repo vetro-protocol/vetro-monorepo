@@ -65,30 +65,86 @@ export async function getApy({ url }: { url: string }) {
 }
 
 /**
- * Gets all the Merkl rewards for the user that are associated with the Vetro
- * opportunity.
+ * Every configured vault gets an entry in the result, with an empty array if
+ * the user has no rewards for that vault (including vaults whose Merkl
+ * opportunity id is not configured).
  */
 export async function getUserRewards({
   address,
-  opportunityId,
+  vaultOpportunities,
 }: {
   address: Address;
-  opportunityId?: string;
+  vaultOpportunities: Record<Address, string | undefined>;
 }) {
-  if (!opportunityId) {
-    return [];
+  const vaultEntries = Object.entries(vaultOpportunities) as [
+    Address,
+    string | undefined,
+  ][];
+
+  // Only vaults with a configured opportunity id need a campaigns lookup; the
+  // rest will still appear in the response with an empty rewards array.
+  const vaultsWithOpportunity = vaultEntries.filter(
+    ([, opportunityId]) => !!opportunityId,
+  ) as [Address, string][];
+
+  // Pre-seed every configured vault with an empty array so the response shape
+  // is stable: callers can rely on every vault key being present even when a
+  // user has no rewards for it.
+  const rewardsByVault: Record<
+    Address,
+    Awaited<ReturnType<typeof merkl.getUserRewards>>[number]["rewards"]
+  > = Object.fromEntries(
+    vaultEntries.map(([vaultAddress]) => [vaultAddress, []]),
+  );
+
+  // Skip the external Merkl call when no vault has a configured opportunity:
+  // there are no campaigns to map rewards to, so the response is the
+  // pre-seeded empties.
+  if (vaultsWithOpportunity.length === 0) {
+    return rewardsByVault;
   }
 
-  const [{ campaigns }, allRewards] = await Promise.all([
-    merkl.getOpportunityCampaigns({ opportunityId }),
-    merkl.getUserRewards({ address, chainId: 1 }),
+  // Each vault maps to one Merkl opportunity, and each opportunity contains
+  // multiple campaigns. Resolve the campaigns for every configured opportunity,
+  // in parallel with the user's full reward list.
+  const [campaignsPerVault, allUserRewards] = await Promise.all([
+    Promise.all(
+      vaultsWithOpportunity.map(async function ([vaultAddress, opportunityId]) {
+        const { campaigns } = await merkl.getOpportunityCampaigns({
+          opportunityId,
+        });
+        return [vaultAddress, campaigns.map((c) => c.campaignId)] as const;
+      }),
+    ),
+    merkl.getUserRewards({ address, chainId: mainnet.id }),
   ]);
-  const campaignIds = campaigns.map((c) => c.campaignId);
-  return allRewards
-    .flatMap((r) => r.rewards)
-    .filter((r) =>
-      r.breakdowns.some((b) => campaignIds.includes(b.campaignId)),
-    );
+
+  // Reverse index: campaignId -> vault. Merkl rewards reference campaigns (not
+  // opportunities/vaults) in their breakdowns, so this is what lets us attribute
+  // each reward back to a vault below.
+  const campaignIdToVault = Object.fromEntries(
+    campaignsPerVault.flatMap(([vaultAddress, campaignIds]) =>
+      campaignIds.map((campaignId) => [campaignId, vaultAddress] as const),
+    ),
+  ) as Record<string, Address>;
+
+  // Bucket each reward into the vault(s) it belongs to. A reward's breakdowns
+  // can list multiple campaigns; `seen` prevents pushing the same reward twice
+  // into the same vault when several breakdowns map to it.
+  for (const userRewards of allUserRewards) {
+    for (const reward of userRewards.rewards) {
+      const seen = new Set<Address>();
+      for (const breakdown of reward.breakdowns) {
+        const vaultAddress = campaignIdToVault[breakdown.campaignId];
+        if (vaultAddress && !seen.has(vaultAddress)) {
+          seen.add(vaultAddress);
+          rewardsByVault[vaultAddress].push(reward);
+        }
+      }
+    }
+  }
+
+  return rewardsByVault;
 }
 
 type ExitTicket = {

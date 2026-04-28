@@ -37,7 +37,11 @@ import {
 export { stakingVaultAbi } from "./abi/stakingVaultAbi.js";
 
 // Export staking vault addresses
-export { stakingVaultAddresses } from "./stakingVaultAddresses.js";
+export {
+  sVetBtcAddress,
+  sVusdAddress,
+  stakingVaultAddresses,
+} from "./stakingVaultAddresses.js";
 
 // Export types
 export type {
