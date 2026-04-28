@@ -63,15 +63,12 @@ function BridgeFormContent({ tokens }: ContentProps) {
   });
 
   const fromTokens = tokens.filter(
-    (token) =>
-      token.chainId !== fromToken.chainId && token.chainId !== toToken.chainId,
+    (token) => token.chainId !== fromToken.chainId,
   );
 
   const toTokens = tokens.filter(
     (token) =>
-      token.symbol === fromToken.symbol &&
-      token.chainId !== fromToken.chainId &&
-      token.chainId !== toToken.chainId,
+      token.symbol === fromToken.symbol && token.chainId !== toToken.chainId,
   );
 
   function handleFromTokenChange(token: BridgeableToken) {
@@ -84,6 +81,10 @@ function BridgeFormContent({ tokens }: ContentProps) {
 
   function handleToTokenChange(token: BridgeableToken) {
     dispatch({ payload: token, type: "SET_TO_TOKEN" });
+    if (token.chainId === fromToken.chainId) {
+      const nextFrom = pickToToken({ fromToken: token, tokens });
+      dispatch({ payload: nextFrom, type: "SET_FROM_TOKEN" });
+    }
   }
 
   function handleInputChange(value: string) {
