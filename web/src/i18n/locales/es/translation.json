@@ -2,8 +2,10 @@
   "common": {
     "approve-10x": "Aprobar 10x",
     "approve-10x-tooltip": "Apruebe hasta 10× el monto de su transacción, reduciendo futuros pasos de aprobación. Puede revocarlo en cualquier momento.",
+    "clear-search": "Limpiar búsqueda",
     "network-fee": "Tarifa de Red",
-    "oracle": "Oráculo"
+    "oracle": "Oráculo",
+    "search": "Buscar"
   },
   "language": {
     "switch-to": "Cambiar a Inglés"
