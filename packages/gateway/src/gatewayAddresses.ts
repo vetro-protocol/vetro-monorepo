@@ -10,7 +10,7 @@ export type Gateway = {
 // Whitelisted-token oracles within a gateway are denominated in the gateway's
 // peg unit (e.g. WBTC/BTC for the vetBTC gateway, USDT/USD for the VUSD gateway),
 // so the USD price for any whitelisted token is `oracle × portal[pegBaseSymbol]`.
-// See `web/src/hooks/usePrices.ts` for the merge.
+// See `web/src/fetchers/fetchPrices.ts` for the merge.
 export const gateways: Gateway[] = [
   // VUSD
   {
