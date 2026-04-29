@@ -11,6 +11,23 @@ export const formatUsd = (value: number) =>
     style: "currency",
   }).format(value);
 
+type TokenAmountUsdArgs = {
+  amount: bigint;
+  prices: Record<string, string> | undefined;
+  token: Token;
+};
+
+// Multiplies a raw token amount (in smallest units) by the token's USD price
+// from `usePrices` / `getTokenPrice`. Returns a number, not a formatted string,
+// so callers can aggregate it (e.g. analytics chart proportions).
+export const tokenAmountToUsd = ({
+  amount,
+  prices,
+  token,
+}: TokenAmountUsdArgs) =>
+  Number(formatUnits(amount, token.decimals)) *
+  Number(getTokenPrice(token, prices));
+
 /**
  * Formats a raw token amount (in smallest units) as a compact USD string by
  * multiplying it by the token's USD price from `usePrices` / `getTokenPrice`.
@@ -19,19 +36,8 @@ export const formatUsd = (value: number) =>
  * notation of `formatUsd` is appropriate. For per-input fiat previews use
  * `RenderFiatValue` instead — it formats with full precision.
  */
-export const formatTokenAmountUsd = ({
-  amount,
-  prices,
-  token,
-}: {
-  amount: bigint;
-  prices: Record<string, string> | undefined;
-  token: Token;
-}) =>
-  formatUsd(
-    Number(formatUnits(amount, token.decimals)) *
-      Number(getTokenPrice(token, prices)),
-  );
+export const formatTokenAmountUsd = (args: TokenAmountUsdArgs) =>
+  formatUsd(tokenAmountToUsd(args));
 
 export function splitDecimalParts(value: number) {
   const formatted = new Intl.NumberFormat("en-US", {

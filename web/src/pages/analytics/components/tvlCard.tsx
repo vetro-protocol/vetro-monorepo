@@ -64,7 +64,15 @@ export const TvlCard = function ({ peggedToken, peggedTokenError }: Props) {
       icon={<DatabaseIcon />}
       isError={isError}
       isLoading={isLoading}
-      items={toTvlItems({ treasuryTokens: treasury, whitelistedTokens })}
+      items={
+        prices && treasury && whitelistedTokens
+          ? toTvlItems({
+              prices,
+              treasuryTokens: treasury,
+              whitelistedTokens,
+            })
+          : undefined
+      }
       label={t("pages.analytics.tvl-label")}
       value={value}
     />
