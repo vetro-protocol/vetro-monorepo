@@ -21,9 +21,9 @@ export const StakedCard = function ({ peggedToken, peggedTokenError }: Props) {
     isError: isTotalsError,
     isLoading: isTotalsLoading,
   } = useAnalyticsTotals(peggedToken);
-  const { data: prices } = usePrices();
+  const { data: prices, isError: isPricesError } = usePrices();
 
-  const isError = peggedTokenError || isTotalsError;
+  const isError = peggedTokenError || isTotalsError || isPricesError;
   const isLoading = !isError && (!peggedToken || isTotalsLoading || !prices);
 
   const value =
