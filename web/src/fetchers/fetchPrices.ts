@@ -47,9 +47,11 @@ const oracleDictInUsd = ({
  * happens downstream in `utils/token.ts#getTokenPrice`.
  *
  * Failure mode: if `portal[pegBaseSymbol]` is missing, the corresponding
- * gateway's tokens resolve to `$0`. Callers (`RenderFiatValue`,
- * `liquidationPriceCell`) already guard on zero/error, so this degrades
- * gracefully rather than crashing.
+ * gateway's tokens resolve to `$0` in the merged dict. Consumers either
+ * render that as `$0` (e.g. `RenderFiatValue`, which only shows `-` on
+ * query errors, not on a zero price) or branch on it explicitly (e.g.
+ * `liquidationPriceCell` shows `-` when the price is non-positive). Not
+ * crash-prone, but visually misleading until the portal recovers.
  */
 export const fetchPrices = async function ({
   client,
