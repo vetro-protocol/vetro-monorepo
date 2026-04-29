@@ -44,13 +44,4 @@ describe("pickCounterpartToken", function () {
       first,
     );
   });
-
-  it("falls back to tokens[0] when no eligible match exists", function () {
-    const token = makeToken("VUSD", 1);
-    const sameChain = makeToken("VUSD", 1);
-    const differentSymbol = makeToken("vetBTC", 42161);
-    expect(
-      pickCounterpartToken({ token, tokens: [sameChain, differentSymbol] }),
-    ).toBe(sameChain);
-  });
 });

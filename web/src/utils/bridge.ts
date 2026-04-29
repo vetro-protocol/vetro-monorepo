@@ -10,4 +10,4 @@ export const pickCounterpartToken = ({
   tokens.find(
     (candidate) =>
       candidate.symbol === token.symbol && candidate.chainId !== token.chainId,
-  ) ?? tokens[0];
+  )!;
