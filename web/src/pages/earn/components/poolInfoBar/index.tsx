@@ -25,7 +25,7 @@ export function PoolInfoBar({ stakingVaultAddress }: Props) {
   const { data: apy, isLoading: isLoadingApy } = useApy();
   const { data: poolDeposits, isLoading: isLoadingDeposits } =
     usePoolDeposits(stakingVaultAddress);
-  const { data: prices } = usePrices();
+  const { data: prices, isError: isPricesError } = usePrices();
   const { data: userRewards } = useUserRewards(stakingVaultAddress);
 
   const rewardTokens =
@@ -73,7 +73,7 @@ export function PoolInfoBar({ stakingVaultAddress }: Props) {
           value={formatEvmAddress(stakingVaultAddress)}
         />
         <PoolInfoItem
-          isLoading={isLoadingDeposits || !prices}
+          isLoading={isLoadingDeposits || (!prices && !isPricesError)}
           label={t("pages.earn.pool-info.pool-deposits")}
           value={formatPoolDeposits()}
         />
