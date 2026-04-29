@@ -25,9 +25,9 @@ export const ExitQueueCard = function ({
     isError: isExitQueueError,
     isLoading: isExitQueueLoading,
   } = useVariableStakeExitQueue(peggedToken?.gatewayAddress);
-  const { data: prices } = usePrices();
+  const { data: prices, isError: isPricesError } = usePrices();
 
-  const isError = peggedTokenError || isExitQueueError;
+  const isError = peggedTokenError || isExitQueueError || isPricesError;
   const isLoading = !isError && (!peggedToken || isExitQueueLoading || !prices);
 
   const value =
