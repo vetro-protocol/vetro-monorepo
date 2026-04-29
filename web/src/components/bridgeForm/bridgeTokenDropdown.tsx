@@ -46,7 +46,7 @@ export const BridgeTokenDropdown = function ({
         <div
           {...triggerProps}
           aria-label={triggerLabel}
-          className={`button-secondary flex ${hasMultiple ? "cursor-pointer text-gray-500! hover:bg-gray-50! hover:text-neutral-900!" : ""} items-center gap-1.5 rounded-full py-1.5 pr-2 pl-1.5`}
+          className={`flex items-center gap-1.5 rounded-full bg-white py-1.5 pr-2 pl-1.5 shadow-sm ${hasMultiple ? "cursor-pointer text-gray-500 hover:bg-gray-50 hover:text-neutral-900" : ""}`}
         >
           <TokenChainLogo token={value} />
           <span className="text-sm font-semibold text-gray-900">
