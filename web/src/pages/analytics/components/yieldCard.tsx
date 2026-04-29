@@ -23,12 +23,13 @@ export const YieldCard = function ({ peggedToken, peggedTokenError }: Props) {
     isError: isTreasuryError,
     isLoading: isTreasuryLoading,
   } = useAnalyticsTreasury(peggedToken?.gatewayAddress);
-  const { data: prices } = usePrices();
+  const { data: prices, isError: isPricesError } = usePrices();
 
   const isError = [
     peggedTokenError,
     isWhitelistedTokensError,
     isTreasuryError,
+    isPricesError,
   ].some(Boolean);
   const isLoading =
     !isError &&
