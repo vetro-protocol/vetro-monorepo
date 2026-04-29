@@ -27,8 +27,9 @@ type ExitTicketQueueSummary @entity(immutable: false) {
 }
 
 type UserStakingPosition @entity(immutable: false) {
-  averagePrice: BigInt!
   id: ID!
   owner: Bytes!
+  shares: BigInt!
   stakingVaultAddress: Bytes!
+  totalCostBasis: BigInt! # WAD-scaled (36 decimals when asset has 18 decimals)
 }

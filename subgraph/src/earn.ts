@@ -66,20 +66,16 @@ export function handleDeposit(event: Deposit): void {
   let entity = UserStakingPosition.load(id);
   if (entity == null) {
     entity = new UserStakingPosition(id);
-    entity.averagePrice = BigInt.fromI32(0);
     entity.owner = owner;
+    entity.shares = BigInt.fromI32(0);
     entity.stakingVaultAddress = vaultAddress;
+    entity.totalCostBasis = BigInt.fromI32(0);
   }
 
-  const vault = StakingVault.bind(vaultAddress);
-  const currentShares = vault.balanceOf(owner);
-  const newShares = event.params.shares;
-  const oldShares = currentShares.minus(newShares);
-
-  const calculatedAssets = oldShares
-    .times(entity.averagePrice)
-    .plus(event.params.assets.times(WAD));
-  entity.averagePrice = calculatedAssets.div(currentShares);
+  entity.shares = entity.shares.plus(event.params.shares);
+  entity.totalCostBasis = entity.totalCostBasis.plus(
+    event.params.assets.times(WAD),
+  );
 
   entity.save();
 }
@@ -89,39 +85,57 @@ export function handleTransfer(event: Transfer): void {
   if (event.params.from.equals(Address.zero())) {
     return;
   }
-  // Skip burns as those are not relevant.
-  if (event.params.to.equals(Address.zero())) {
-    return;
-  }
-  // Self-transfer will cause incorrect average price dilution. Skip those.
+  // Self-transfers do not affect balances.
   if (event.params.from.equals(event.params.to)) {
     return;
   }
-  // Zero-value transfer will also cause incorrect average price dilution.
+  // Zero-value transfers are no-ops.
   if (event.params.value.equals(BigInt.fromI32(0))) {
     return;
   }
 
   const vaultAddress = dataSource.address();
-  const to = event.params.to;
-  const id = buildId(vaultAddress, to.toHexString());
+  const value = event.params.value;
 
-  let entity = UserStakingPosition.load(id);
-  if (entity == null) {
-    entity = new UserStakingPosition(id);
-    entity.averagePrice = BigInt.fromI32(0);
-    entity.owner = to;
-    entity.stakingVaultAddress = vaultAddress;
+  // Update the sending party: decrement shares and totalCostBasis proportionally.
+  const fromId = buildId(vaultAddress, event.params.from.toHexString());
+  const fromEntity = UserStakingPosition.load(fromId)!;
+
+  if (fromEntity.shares.equals(value)) {
+    // All shares transferred out: reset to zero.
+    fromEntity.shares = BigInt.fromI32(0);
+    fromEntity.totalCostBasis = BigInt.fromI32(0);
+  } else {
+    // Decrement totalCostBasis proportionally before decrementing shares.
+    const newShares = fromEntity.shares.minus(value);
+    fromEntity.totalCostBasis = fromEntity.totalCostBasis
+      .times(newShares)
+      .div(fromEntity.shares);
+    fromEntity.shares = newShares;
   }
 
-  const vault = StakingVault.bind(vaultAddress);
-  const currentShares = vault.balanceOf(to);
-  const oldShares = currentShares.minus(event.params.value);
+  fromEntity.save();
 
-  // Transferred-in shares are valued at 0, diluting the average price proportionally.
-  entity.averagePrice = entity.averagePrice.times(oldShares).div(currentShares);
+  // Burns (to zero address) only affect the sending party.
+  if (event.params.to.equals(Address.zero())) {
+    return;
+  }
 
-  entity.save();
+  // Update the receiving party: increment shares, keep totalCostBasis unchanged.
+  // Received shares are valued at 0, diluting the average price proportionally.
+  const toId = buildId(vaultAddress, event.params.to.toHexString());
+  let toEntity = UserStakingPosition.load(toId);
+  if (toEntity == null) {
+    toEntity = new UserStakingPosition(toId);
+    toEntity.owner = event.params.to;
+    toEntity.shares = BigInt.fromI32(0);
+    toEntity.stakingVaultAddress = vaultAddress;
+    toEntity.totalCostBasis = BigInt.fromI32(0);
+  }
+
+  toEntity.shares = toEntity.shares.plus(value);
+
+  toEntity.save();
 }
 
 export function handleWithdrawRequested(event: WithdrawRequested): void {
