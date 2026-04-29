@@ -31,13 +31,14 @@ export const TvlCard = function ({ peggedToken, peggedTokenError }: Props) {
     isError: isTotalsError,
     isLoading: isTotalsLoading,
   } = useAnalyticsTotals(peggedToken);
-  const { data: prices } = usePrices();
+  const { data: prices, isError: isPricesError } = usePrices();
 
   const isError = [
     peggedTokenError,
     isWhitelistedTokensError,
     isTreasuryError,
     isTotalsError,
+    isPricesError,
   ].some(Boolean);
 
   const isLoading =
