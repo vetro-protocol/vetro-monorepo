@@ -1,6 +1,6 @@
 import { sVetBtcAddress, sVusdAddress } from "@vetro-protocol/earn";
 import type { Token } from "types";
-import { mainnet } from "viem/chains";
+import { arbitrum, base, bsc, hemi, mainnet, optimism } from "viem/chains";
 
 export const knownTokens: Token[] = [
   {
@@ -58,6 +58,61 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       balanceSlot: 0,
+      priceSymbol: "USDT",
+    },
+    logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetrousd.svg",
+    name: "Vetro USD",
+    symbol: "VUSD",
+  },
+  {
+    address: "0xCE2c108fB49551f6d27BBb529Ad1938835ac3574",
+    chainId: arbitrum.id,
+    decimals: 18,
+    extensions: {
+      priceSymbol: "USDT",
+    },
+    logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetrousd.svg",
+    name: "Vetro USD",
+    symbol: "VUSD",
+  },
+  {
+    address: "0x8a654093e21703afc8d038FF253A3c974C5C2957",
+    chainId: base.id,
+    decimals: 18,
+    extensions: {
+      priceSymbol: "USDT",
+    },
+    logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetrousd.svg",
+    name: "Vetro USD",
+    symbol: "VUSD",
+  },
+  {
+    address: "0x10061d0593441Ff74536158592e1Be3F4C7B180C",
+    chainId: bsc.id,
+    decimals: 18,
+    extensions: {
+      priceSymbol: "USDT",
+    },
+    logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetrousd.svg",
+    name: "Vetro USD",
+    symbol: "VUSD",
+  },
+  {
+    address: "0xD3599AE62EE280709A22268a46d23164214e345B",
+    chainId: hemi.id,
+    decimals: 18,
+    extensions: {
+      priceSymbol: "USDT",
+    },
+    logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetrousd.svg",
+    name: "Vetro USD",
+    symbol: "VUSD",
+  },
+  {
+    address: "0xb591169E6508983CC6618738cC73c9F09c38dE14",
+    chainId: optimism.id,
+    decimals: 18,
+    extensions: {
       priceSymbol: "USDT",
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetrousd.svg",

@@ -132,7 +132,7 @@ export function ClaimRedeemProgressDrawer({
           variant="primary"
         >
           {inputError
-            ? t(`pages.swap.form.${inputError}`)
+            ? t(`common.${inputError}`)
             : renderRetry
               ? t("pages.swap.progress.retry")
               : t("pages.swap.redeem-queue.redeem")}

@@ -105,7 +105,7 @@ export function CancelRedeemModal({
             </Button>
           ) : (
             <Button onClick={openConnectModal} size="xSmall" variant="primary">
-              {t("pages.swap.form.connect-wallet")}
+              {t("common.connect-wallet")}
             </Button>
           )}
         </div>

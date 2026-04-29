@@ -60,14 +60,14 @@ function SubmitButton({
         type="button"
         variant="primary"
       >
-        {t("pages.swap.form.connect-wallet")}
+        {t("common.connect-wallet")}
       </Button>
     );
   }
   if (balancesLoaded && inputError) {
     return (
       <Button disabled size="small" type="button" variant="primary">
-        {t(`pages.swap.form.${inputError}`)}
+        {t(`common.${inputError}`)}
       </Button>
     );
   }

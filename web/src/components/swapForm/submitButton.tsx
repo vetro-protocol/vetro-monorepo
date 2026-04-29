@@ -48,7 +48,7 @@ export function SubmitButton({
           size="xLarge"
           type="button"
         >
-          {t("pages.swap.form.connect-wallet")}
+          {t("common.connect-wallet")}
         </Button>
       </Container>
     );
@@ -58,7 +58,7 @@ export function SubmitButton({
     return (
       <Container>
         <Button disabled size="xLarge" type="button">
-          {t(`pages.swap.form.${inputError}`)}
+          {t(`common.${inputError}`)}
         </Button>
       </Container>
     );
