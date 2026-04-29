@@ -4,13 +4,17 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { gatewayAddresses } from "@vetro-protocol/gateway";
+import { gateways } from "@vetro-protocol/gateway";
+import { fetchPrices } from "fetchers/fetchPrices";
 import type { Client } from "viem";
 
 import { useEthereumClient } from "./useEthereumClient";
-import { oraclePricesOptions } from "./useOraclePrices";
-import { tokenPricesOptions } from "./useTokenPrices";
 
+/**
+ * USD prices for tokens used across the app. The merge logic lives in
+ * `fetchers/fetchPrices.ts` (with full architecture docs). This hook just
+ * wires the gateway list into the React Query cache.
+ */
 export const pricesOptions = ({
   client,
   queryClient,
@@ -20,19 +24,7 @@ export const pricesOptions = ({
 }) =>
   queryOptions({
     enabled: !!client && !!client.chain,
-    async queryFn() {
-      // Assumes whitelisted tokens are disjoint across gateways; if two
-      // gateways ever whitelist the same symbol, the later one wins on merge.
-      const [portalPrices, ...oraclePricesPerGateway] = await Promise.all([
-        queryClient.ensureQueryData(tokenPricesOptions()),
-        ...gatewayAddresses.map((gatewayAddress) =>
-          queryClient.ensureQueryData(
-            oraclePricesOptions({ client, gatewayAddress, queryClient }),
-          ),
-        ),
-      ]);
-      return Object.assign({}, portalPrices, ...oraclePricesPerGateway);
-    },
+    queryFn: () => fetchPrices({ client: client!, gateways, queryClient }),
     queryKey: ["prices", client?.chain?.id],
     refetchInterval: 60_000,
     staleTime: 30_000,

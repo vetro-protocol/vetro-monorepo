@@ -1,9 +1,9 @@
 import { useAnalyticsTotals } from "hooks/useAnalyticsTotals";
+import { usePrices } from "hooks/usePrices";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import type { TokenWithGateway } from "types";
-import { formatUsd } from "utils/currency";
-import { formatUnits } from "viem";
+import { formatTokenAmountUsd } from "utils/currency";
 
 import { StakingIcon } from "../icons/stakingIcon";
 
@@ -21,13 +21,18 @@ export const StakedCard = function ({ peggedToken, peggedTokenError }: Props) {
     isError: isTotalsError,
     isLoading: isTotalsLoading,
   } = useAnalyticsTotals(peggedToken);
+  const { data: prices } = usePrices();
 
   const isError = peggedTokenError || isTotalsError;
-  const isLoading = !isError && (!peggedToken || isTotalsLoading);
+  const isLoading = !isError && (!peggedToken || isTotalsLoading || !prices);
 
   const value =
-    peggedToken && totals
-      ? formatUsd(Number(formatUnits(totals.staked, peggedToken.decimals)))
+    peggedToken && totals && prices
+      ? formatTokenAmountUsd({
+          amount: totals.staked,
+          prices,
+          token: peggedToken,
+        })
       : "";
 
   const label = peggedToken ? (

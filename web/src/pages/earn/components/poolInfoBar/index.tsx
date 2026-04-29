@@ -1,13 +1,14 @@
 import { TokenLogo } from "components/tokenLogo";
 import { useApy } from "hooks/useApy";
 import { usePoolDeposits } from "hooks/usePoolDeposits";
+import { usePrices } from "hooks/usePrices";
 import { useUserRewards } from "hooks/useUserRewards";
 import { useVaultPeggedToken } from "hooks/useVaultPeggedToken";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
-import { formatUsd } from "utils/currency";
+import { formatTokenAmountUsd } from "utils/currency";
 import { formatEvmAddress } from "utils/format";
-import { type Address, formatUnits } from "viem";
+import type { Address } from "viem";
 
 import { PoolInfoButtons } from "./poolInfoButtons";
 import { PoolInfoItem } from "./poolInfoItem";
@@ -24,6 +25,7 @@ export function PoolInfoBar({ stakingVaultAddress }: Props) {
   const { data: apy, isLoading: isLoadingApy } = useApy();
   const { data: poolDeposits, isLoading: isLoadingDeposits } =
     usePoolDeposits(stakingVaultAddress);
+  const { data: prices } = usePrices();
   const { data: userRewards } = useUserRewards(stakingVaultAddress);
 
   const rewardTokens =
@@ -32,9 +34,12 @@ export function PoolInfoBar({ stakingVaultAddress }: Props) {
     })) ?? [];
 
   function formatPoolDeposits() {
-    if (poolDeposits !== undefined && peggedToken) {
-      const formatted = Number(formatUnits(poolDeposits, peggedToken.decimals));
-      return formatUsd(formatted);
+    if (poolDeposits !== undefined && peggedToken && prices) {
+      return formatTokenAmountUsd({
+        amount: poolDeposits,
+        prices,
+        token: peggedToken,
+      });
     }
     return undefined;
   }
@@ -68,7 +73,7 @@ export function PoolInfoBar({ stakingVaultAddress }: Props) {
           value={formatEvmAddress(stakingVaultAddress)}
         />
         <PoolInfoItem
-          isLoading={isLoadingDeposits}
+          isLoading={isLoadingDeposits || !prices}
           label={t("pages.earn.pool-info.pool-deposits")}
           value={formatPoolDeposits()}
         />

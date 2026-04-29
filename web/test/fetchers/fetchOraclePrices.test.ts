@@ -75,7 +75,7 @@ describe("fetchOraclePrices", function () {
     expect(result).toEqual({ USDC: "1" });
   });
 
-  it("uses priceSymbol from token extensions when available", async function () {
+  it("keys the oracle dict by token.symbol uppercased, ignoring priceSymbol", async function () {
     const hemiBtc = createMockToken(
       "hemiBTC",
       "0x3333333333333333333333333333333333333333",
@@ -91,18 +91,18 @@ describe("fetchOraclePrices", function () {
       queryFn: () => ({ oracle: oracleAddress }),
       queryKey: ["token-config"],
     } as never);
-    // BTC price: $60,000 with 8 decimals
+    // hemiBTC/BTC at 1.0 with 8 decimals
     vi.mocked(readContract)
-      .mockResolvedValueOnce(6000000000000n)
+      .mockResolvedValueOnce(100000000n)
       .mockResolvedValueOnce(8);
 
     const result = await fetchOraclePrices({
       client: mockClient,
-      gatewayAddress: "0xDaD503f8B9d42bb7af3AfC588358D30163e4416F",
+      gatewayAddress: "0xCBA2Ffa0AC52d7871a4221a871793Eb788013faB",
       queryClient,
     });
 
-    expect(result).toEqual({ BTC: "60000" });
+    expect(result).toEqual({ HEMIBTC: "1" });
   });
 
   it("returns prices for multiple tokens", async function () {

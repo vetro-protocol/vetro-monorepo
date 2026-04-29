@@ -138,7 +138,6 @@ export const knownTokens: Token[] = [
     extensions: {
       allowanceSlot: 10n,
       balanceSlot: 9,
-      priceSymbol: "BTC",
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/cbbtc.svg",
     name: "Coinbase Wrapped BTC",
@@ -151,7 +150,7 @@ export const knownTokens: Token[] = [
     extensions: {
       allowanceSlot: 1n,
       balanceSlot: 0,
-      priceSymbol: "BTC",
+      priceSymbol: "WBTC",
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetbtc.svg",
     name: "Vetro BTC",
