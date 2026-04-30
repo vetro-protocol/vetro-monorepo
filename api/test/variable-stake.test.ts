@@ -22,10 +22,6 @@ vi.mock("../src/merkl.ts", () => ({
   getUserRewards: vi.fn(),
 }));
 
-vi.mock("../src/graphql.ts", () => ({
-  runQuery: vi.fn(),
-}));
-
 describe("variable-stake/getApy", function () {
   const url = "https://subgraph.example/v1";
   const vaultA = sVusdAddress;
