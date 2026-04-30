@@ -60,6 +60,7 @@ Get the composition of the treasury by whitelisted token for a given gateway.
 
 Returns the historical borrow APR for a given market and period.
 Valid periods are: "1w", "1m", "3m" and "1y".
+`:marketId` must be a known market id. Returns `400` if malformed and `404` if the market is unsupported.
 
 #### Sample Response for "1m"
 
@@ -84,12 +85,27 @@ Valid periods are: "1w", "1m", "3m" and "1y".
 ### `GET /borrow/:marketId/collateral-assets`
 
 Gets the amount of collateral assets in a given Morpho market.
+`:marketId` must be a known market id. Returns `400` if malformed and `404` if the market is unsupported.
 
 #### Sample Response
 
 ```json
 {
   "collateralAssets": 219819281899
+}
+```
+
+### `GET /variable-stake/average-purchase-price/:address`
+
+Returns the user's average purchase price (in the vault asset's smallest unit, 18 decimals) for each known Vetro staking vault. Vaults where the user has no position return `"0"`.
+`:address` must be a well-formed Ethereum address. Returns `404` if malformed.
+
+#### Sample Response
+
+```jsonc
+{
+  "0x476310E34D2810f7d79C43A74E4D79405bd7a925": "1500000000000000000", // sVUSD
+  "0x0cB9D84d4bcEc8d3D5B2d99a6F07f4605325987e": "0", // sVetBTC, no position
 }
 ```
 
