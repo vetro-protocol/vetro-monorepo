@@ -81,4 +81,19 @@ describe("linearRegression", function () {
     });
     expect(result.a).toBeNaN();
   });
+
+  it("throws when x and y have different lengths", function () {
+    expect(() => linearRegression({ x: [1, 2, 3], y: [1, 2] })).toThrow(
+      "Cannot compute linear regression: x and y must have the same length",
+    );
+  });
+
+  it("throws when fewer than 2 data points are provided", function () {
+    expect(() => linearRegression({ x: [1], y: [2] })).toThrow(
+      "Cannot compute linear regression: at least 2 data points are required",
+    );
+    expect(() => linearRegression({ x: [], y: [] })).toThrow(
+      "Cannot compute linear regression: at least 2 data points are required",
+    );
+  });
 });
