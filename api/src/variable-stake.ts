@@ -19,6 +19,13 @@ import { findStakingVaultForPeggedToken } from "./staking-vault.ts";
 
 const secsPerDay = 86400;
 
+type VaultHistoryRow = {
+  shareValue: string;
+  stakingVaultAddress: Address;
+  timestamp: string;
+};
+type VaultHistoriesResponse = { vaultHistories: VaultHistoryRow[] };
+
 /**
  * Query the subgraph for the user's staking positions across all known vaults
  * and compute the average purchase price (totalCostBasis / shares) for each.
@@ -76,18 +83,26 @@ export async function getAveragePurchasePrice({
 }
 
 /**
- * Query the subgraph. Get the last 7 days of data. Compute the APY using a
- * linear regression and getting the slope.
+ * Query the subgraph. Get the last 7 days of data per configured staking
+ * vault. Compute the APY for each vault using a linear regression and getting
+ * the slope. Returns a record keyed by vault address; every configured vault
+ * is present in the response (with `{ "7d": 0 }` when there is not enough
+ * history to compute a slope).
  */
 export async function getApy({ url }: { url: string }) {
   const query = `
-    query ($end: BigInt!, $start: BigInt!) {
+    query ($end: BigInt!, $start: BigInt!, $vaults: [Bytes!]!) {
       vaultHistories(
         orderBy: timestamp
-        where: { timestamp_gte: $start, timestamp_lt: $end }
+        where: {
+          stakingVaultAddress_in: $vaults
+          timestamp_gte: $start
+          timestamp_lt: $end
+        }
       ) {
-        timestamp
         shareValue
+        stakingVaultAddress
+        timestamp
       }
     }`;
   const end = Math.floor(Date.now() / 1000);
@@ -95,36 +110,52 @@ export async function getApy({ url }: { url: string }) {
   const variables = {
     end: end.toString(),
     start: start.toString(),
+    vaults: stakingVaultAddresses.map((address) => address.toLowerCase()),
   };
-  const { vaultHistories } = await graphql.runQuery<{
-    vaultHistories: { timestamp: string; shareValue: string }[];
-  }>(url, query, variables);
+
+  const { vaultHistories } = await graphql.runQuery<VaultHistoriesResponse>(
+    url,
+    query,
+    variables,
+  );
   if (!Array.isArray(vaultHistories)) {
     throw new Error("Invalid subgraph response for vault history");
   }
-  if (!vaultHistories.length || vaultHistories.length < 2) {
-    return {
-      "7d": 0,
-    };
+
+  const historiesByVault = new Map<
+    string,
+    { shareValue: string; timestamp: string }[]
+  >();
+  for (const history of vaultHistories) {
+    const key = history.stakingVaultAddress.toLowerCase();
+    const existing = historiesByVault.get(key);
+    if (existing) {
+      existing.push(history);
+    } else {
+      historiesByVault.set(key, [history]);
+    }
   }
 
-  const days = vaultHistories.map((h) =>
-    Math.floor(Number.parseInt(h.timestamp) / secsPerDay),
-  );
-  const values = vaultHistories.map((h) =>
-    parseBigIntStringToNumber(h.shareValue, 18),
-  );
-  const delta = linearRegression(days, values).a;
-  if (Number.isNaN(delta)) {
-    return {
-      "7d": 0,
-    };
-  }
-
-  const apy = ((delta * 365) / values[values.length - 1]) * 100;
-  return {
-    "7d": apy,
-  };
+  return Object.fromEntries(
+    stakingVaultAddresses.map(function (vaultAddress) {
+      const histories = historiesByVault.get(vaultAddress.toLowerCase()) ?? [];
+      if (histories.length < 2) {
+        return [vaultAddress, { "7d": 0 }];
+      }
+      const days = histories.map((h) =>
+        Math.floor(Number.parseInt(h.timestamp) / secsPerDay),
+      );
+      const values = histories.map((h) =>
+        parseBigIntStringToNumber(h.shareValue, 18),
+      );
+      const delta = linearRegression(days, values).a;
+      if (Number.isNaN(delta)) {
+        return [vaultAddress, { "7d": 0 }];
+      }
+      const apy = ((delta * 365) / values[values.length - 1]) * 100;
+      return [vaultAddress, { "7d": apy }];
+    }),
+  ) as Record<Address, { "7d": number }>;
 }
 
 /**

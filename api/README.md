@@ -95,13 +95,18 @@ Gets the amount of collateral assets in a given Morpho market.
 
 ### `GET /variable-stake/apy`
 
-Returns the APY of the Vetro vault calculated using the share value variations over the last 7 days.
+Returns the APY for each supported staking vault, indexed by staking vault address, calculated using the share value variations over the last 7 days. Each supported staking vault has an entry in the response; vaults with insufficient history return `{ "7d": 0 }`.
 
 #### Sample Response
 
 ```jsonc
 {
-  "7d": 100, // 100 = 1%
+  "0x476310E34D2810f7d79C43A74E4D79405bd7a925": {
+    "7d": 4.21,
+  },
+  "0x0cB9D84d4bcEc8d3D5B2d99a6F07f4605325987e": {
+    "7d": 0,
+  },
 }
 ```
 

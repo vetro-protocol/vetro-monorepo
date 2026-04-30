@@ -8,6 +8,7 @@ import { describe, expect, it, vi } from "vitest";
 import * as graphql from "../src/graphql.ts";
 import * as merkl from "../src/merkl.ts";
 import {
+  getApy,
   getAveragePurchasePrice,
   getUserRewards,
 } from "../src/variable-stake.ts";
@@ -20,6 +21,117 @@ vi.mock("../src/merkl.ts", () => ({
   getOpportunityCampaigns: vi.fn(),
   getUserRewards: vi.fn(),
 }));
+
+describe("variable-stake/getApy", function () {
+  const url = "https://subgraph.example/v1";
+  const vaultA = sVusdAddress;
+  const vaultB = sVetBtcAddress;
+  const secsPerDay = 86400;
+
+  const buildHistory = ({
+    days,
+    shareValueWad,
+    stakingVaultAddress,
+  }: {
+    days: number[];
+    shareValueWad: bigint[];
+    stakingVaultAddress: string;
+  }) =>
+    days.map((d, i) => ({
+      shareValue: shareValueWad[i].toString(),
+      stakingVaultAddress: stakingVaultAddress.toLowerCase(),
+      timestamp: (d * secsPerDay).toString(),
+    }));
+
+  it("returns { '7d': 0 } for every configured vault when there is no history", async function () {
+    vi.mocked(graphql.runQuery).mockResolvedValue({ vaultHistories: [] });
+
+    const result = await getApy({
+      url,
+    });
+
+    expect(result).toEqual({
+      [vaultA]: { "7d": 0 },
+      [vaultB]: { "7d": 0 },
+    });
+  });
+
+  it("returns { '7d': 0 } for a vault with fewer than two history points", async function () {
+    vi.mocked(graphql.runQuery).mockResolvedValue({
+      vaultHistories: buildHistory({
+        days: [20000],
+        shareValueWad: [10n ** 18n],
+        stakingVaultAddress: vaultA,
+      }),
+    });
+
+    const result = await getApy({
+      url,
+    });
+
+    expect(result).toEqual({
+      [vaultA]: { "7d": 0 },
+      [vaultB]: { "7d": 0 },
+    });
+  });
+
+  it("computes APY independently for each vault from its own history", async function () {
+    // Vault A: shareValue grows by 0.001 per day on a base of 1.0 -> ~36.5% APY
+    // Vault B: shareValue grows by 0.0001 per day on a base of 1.0 -> ~3.65% APY
+    const day0 = 20000;
+    vi.mocked(graphql.runQuery).mockResolvedValue({
+      vaultHistories: [
+        ...buildHistory({
+          days: [day0, day0 + 1, day0 + 2],
+          shareValueWad: [
+            10n ** 18n,
+            10n ** 18n + 10n ** 15n,
+            10n ** 18n + 2n * 10n ** 15n,
+          ],
+          stakingVaultAddress: vaultA,
+        }),
+        ...buildHistory({
+          days: [day0, day0 + 1, day0 + 2],
+          shareValueWad: [
+            10n ** 18n,
+            10n ** 18n + 10n ** 14n,
+            10n ** 18n + 2n * 10n ** 14n,
+          ],
+          stakingVaultAddress: vaultB,
+        }),
+      ],
+    });
+
+    const result = await getApy({
+      url,
+    });
+
+    expect(result[vaultA]["7d"]).toBeCloseTo(36.43, 1);
+    expect(result[vaultB]["7d"]).toBeCloseTo(3.649, 1);
+  });
+
+  it("filters the subgraph query by the configured vaults (lowercased)", async function () {
+    vi.mocked(graphql.runQuery).mockResolvedValue({ vaultHistories: [] });
+
+    await getApy({ url });
+
+    const variables = vi.mocked(graphql.runQuery).mock.calls.at(-1)?.[2] as
+      | { vaults: string[] }
+      | undefined;
+    expect(variables?.vaults).toEqual([
+      vaultA.toLowerCase(),
+      vaultB.toLowerCase(),
+    ]);
+  });
+
+  it("throws when the subgraph response is malformed", async function () {
+    vi.mocked(graphql.runQuery).mockResolvedValue({
+      vaultHistories: undefined,
+    } as never);
+
+    await expect(getApy({ url })).rejects.toThrow(/Invalid subgraph response/);
+  });
+});
 
 describe("variable-stake/getUserRewards", function () {
   const userAddress = "0x0000000000000000000000000000000000000001" as const;
