@@ -1,8 +1,16 @@
 import { sVetBtcAddress, sVusdAddress } from "@vetro-protocol/earn";
 import { describe, expect, it, vi } from "vitest";
 
+import * as graphql from "../src/graphql.ts";
 import * as merkl from "../src/merkl.ts";
-import { getUserRewards } from "../src/variable-stake.ts";
+import {
+  getAveragePurchasePrice,
+  getUserRewards,
+} from "../src/variable-stake.ts";
+
+vi.mock("../src/graphql.ts", () => ({
+  runQuery: vi.fn(),
+}));
 
 vi.mock("../src/merkl.ts", () => ({
   getOpportunityCampaigns: vi.fn(),
@@ -176,5 +184,98 @@ describe("variable-stake/getUserRewards", function () {
 
     expect(result[vaultA]).toEqual([reward]);
     expect(result[vaultB]).toEqual([reward]);
+  });
+});
+
+describe("variable-stake/getAveragePurchasePrice", function () {
+  const userAddress = "0x0000000000000000000000000000000000000001";
+  const subgraphUrl = "https://subgraph.test";
+
+  it("returns '0' for all vaults when user has no positions", async function () {
+    vi.mocked(graphql.runQuery).mockResolvedValue({
+      userStakingPositions: [],
+    });
+
+    const result = await getAveragePurchasePrice({
+      address: userAddress,
+      url: subgraphUrl,
+    });
+
+    expect(result).toEqual({
+      [sVetBtcAddress]: 0n,
+      [sVusdAddress]: 0n,
+    });
+  });
+
+  it("returns '0' when shares is 0 (fully exited position)", async function () {
+    vi.mocked(graphql.runQuery).mockResolvedValue({
+      userStakingPositions: [
+        {
+          shares: "0",
+          stakingVaultAddress: sVusdAddress.toLowerCase(),
+          totalCostBasis: "0",
+        },
+      ],
+    });
+
+    const result = await getAveragePurchasePrice({
+      address: userAddress,
+      url: subgraphUrl,
+    });
+
+    expect(result[sVusdAddress]).toBe(0n);
+  });
+
+  it("computes totalCostBasis / shares for a position", async function () {
+    // totalCostBasis is WAD-scaled (36 decimals), shares has 18 decimals.
+    // 2 shares at 1.5 asset-units each: totalCostBasis = 3e36, shares = 2e18
+    // result = 3e36 / 2e18 = 1.5e18
+    const shares = (2n * 10n ** 18n).toString();
+    const totalCostBasis = (3n * 10n ** 36n).toString();
+
+    vi.mocked(graphql.runQuery).mockResolvedValue({
+      userStakingPositions: [
+        {
+          shares,
+          stakingVaultAddress: sVusdAddress.toLowerCase(),
+          totalCostBasis,
+        },
+      ],
+    });
+
+    const result = await getAveragePurchasePrice({
+      address: userAddress,
+      url: subgraphUrl,
+    });
+
+    expect(result[sVusdAddress]).toBe(15n * 10n ** 17n);
+    expect(result[sVetBtcAddress]).toBe(0n);
+  });
+
+  it("returns prices for multiple vaults", async function () {
+    vi.mocked(graphql.runQuery).mockResolvedValue({
+      userStakingPositions: [
+        {
+          shares: (10n ** 18n).toString(),
+          stakingVaultAddress: sVusdAddress.toLowerCase(),
+          totalCostBasis: (10n ** 36n).toString(),
+        },
+        {
+          shares: (4n * 10n ** 18n).toString(),
+          stakingVaultAddress: sVetBtcAddress.toLowerCase(),
+          totalCostBasis: (8n * 10n ** 36n).toString(),
+        },
+      ],
+    });
+
+    const result = await getAveragePurchasePrice({
+      address: userAddress,
+      url: subgraphUrl,
+    });
+
+    // 1e36 / 1e18 = 1e18
+    expect(result[sVusdAddress]).toBe(10n ** 18n);
+    // 8e36 / 4e18 = 2e18
+    expect(result[sVetBtcAddress]).toBe(2n * 10n ** 18n);
   });
 });

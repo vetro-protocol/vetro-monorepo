@@ -1,7 +1,14 @@
+import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { getPeggedToken } from "@vetro-protocol/gateway/actions";
 // @ts-expect-error Type declarations are not available for this dependency.
 import linearRegression from "simple-linear-regression";
-import { type Address, createPublicClient, type Hash, http } from "viem";
+import {
+  type Address,
+  createPublicClient,
+  checksumAddress,
+  type Hash,
+  http,
+} from "viem";
 import { mainnet } from "viem/chains";
 import { convertToAssets } from "viem-erc4626/actions";
 
@@ -11,6 +18,62 @@ import parseBigIntStringToNumber from "./parse-bigint-string-to-number.ts";
 import { findStakingVaultForPeggedToken } from "./staking-vault.ts";
 
 const secsPerDay = 86400;
+
+/**
+ * Query the subgraph for the user's staking positions across all known vaults
+ * and compute the average purchase price (totalCostBasis / shares) for each.
+ * Returns an object keyed by vault address with the price as a BigInt string
+ * in asset units (18 decimals). Defaults to "0" when the user has no position
+ * or zero shares.
+ */
+export async function getAveragePurchasePrice({
+  address,
+  url,
+}: {
+  address: string;
+  url: string;
+}) {
+  const query = `
+    query ($owner: Bytes!, $vaults: [Bytes!]!) {
+      userStakingPositions(
+        where: { owner: $owner, stakingVaultAddress_in: $vaults }
+      ) {
+        shares
+        stakingVaultAddress
+        totalCostBasis
+      }
+    }`;
+  const variables = {
+    owner: address.toLowerCase(),
+    vaults: stakingVaultAddresses.map((v) => v.toLowerCase()),
+  };
+  const { userStakingPositions } = await graphql.runQuery<{
+    userStakingPositions: {
+      shares: string;
+      stakingVaultAddress: `0x${string}`;
+      totalCostBasis: string;
+    }[];
+  }>(url, query, variables);
+  if (!Array.isArray(userStakingPositions)) {
+    throw new Error(
+      `Invalid subgraph response for staking positions of ${address}`,
+    );
+  }
+  // Pre-seed every known vault with "0" so the response shape is stable.
+  const result = Object.fromEntries(
+    stakingVaultAddresses.map((vault) => [vault, 0n]),
+  );
+  for (const position of userStakingPositions) {
+    const shares = BigInt(position.shares);
+    if (shares === 0n) {
+      continue;
+    }
+    const totalCostBasis = BigInt(position.totalCostBasis);
+    const averagePrice = totalCostBasis / shares;
+    result[checksumAddress(position.stakingVaultAddress)] = averagePrice;
+  }
+  return result;
+}
 
 /**
  * Query the subgraph. Get the last 7 days of data. Compute the APY using a

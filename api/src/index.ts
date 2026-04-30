@@ -138,6 +138,28 @@ app.get(
 );
 
 app.get(
+  "/variable-stake/average-purchase-price/:address",
+  validateAddress,
+  cache({
+    cacheControl: "max-age=300",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const address = c.req.param("address") as `0x${string}`;
+      const url = getSubgraphUrl(c.env);
+      const data = await variableStake.getAveragePurchasePrice({
+        address,
+        url,
+      });
+      return c.json(convertBigIntsToString(data));
+    } catch (error) {
+      throw new Error(`Failed to get average purchase price: ${error.message}`);
+    }
+  },
+);
+
+app.get(
   "/variable-stake/apy",
   cache({
     cacheControl: "max-age=3600",
