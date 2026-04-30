@@ -21,3 +21,7 @@
 - **Type vs Interface**: Prefer `type` over `interface`, except for module augmentation
 - **Running TypeScript files**: Use `node <path/to/file>.ts` directly — Node natively supports TypeScript execution
 - **Component Props naming**: When creating a type for component props, use generic name `Props` if they're the only props defined in the file. Otherwise, use `<ComponentName>Props`
+
+## API project
+
+When changing the API in `api/src/` in a way that affects external behavior — adding, removing, or modifying an endpoint's URL, params, response shape, sample data, or error semantics — review and update `api/README.md` in the same change. Code is the source of truth; the README must reflect it.
