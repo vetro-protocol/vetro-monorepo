@@ -15,5 +15,5 @@ export const useApy = (stakingVaultAddress: Address) =>
     queryKey: ["variable-stake-apy"],
     refetchInterval: 5 * 60 * 1000, // 5 minutes
     retry: 2,
-    select: (data) => data[stakingVaultAddress]?.["7d"] ?? 0,
+    select: (data) => data[stakingVaultAddress]["7d"],
   });
