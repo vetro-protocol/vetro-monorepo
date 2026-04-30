@@ -22,8 +22,9 @@ const secsPerDay = 86400;
 /**
  * Query the subgraph for the user's staking positions across all known vaults
  * and compute the average purchase price (totalCostBasis / shares) for each.
- * Returns an object keyed by vault address with the price as a bigint in asset
- * units (18 decimals). Defaults to 0n when the user has no position or zero
+ * Returns an object keyed by vault address with the price as a bigint in the
+ * underlying vault asset's native smallest unit (decimal precision depends on
+ * the underlying asset). Defaults to 0n when the user has no position or zero
  * shares.
  */
 export async function getAveragePurchasePrice({
