@@ -12,9 +12,9 @@
   "dependencies": {
     "@vetro-protocol/earn": "workspace:*",
     "@vetro-protocol/gateway": "workspace:*",
+    "@vetro-protocol/linear-least-squares-regression": "workspace:*",
     "@vetro-protocol/treasury": "workspace:*",
     "hono": "4.11.9",
-    "simple-linear-regression": "1.0.3",
     "tiny-fetch-json": "2.0.1",
     "tiny-post-json": "1.0.0",
     "viem": "2.44.4",
