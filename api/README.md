@@ -102,7 +102,7 @@ Returns the APY for each supported staking vault, indexed by staking vault addre
 ```jsonc
 {
   "0x476310E34D2810f7d79C43A74E4D79405bd7a925": {
-    "7d": 100, // 100 = 1%
+    "7d": 4.21,
   },
   "0x0cB9D84d4bcEc8d3D5B2d99a6F07f4605325987e": {
     "7d": 0,
