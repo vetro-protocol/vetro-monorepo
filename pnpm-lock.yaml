@@ -55,15 +55,15 @@ importers:
       '@vetro-protocol/gateway':
         specifier: workspace:*
         version: link:../packages/gateway
+      '@vetro-protocol/linear-least-squares-regression':
+        specifier: workspace:*
+        version: link:../packages/linear-least-squares-regression
       '@vetro-protocol/treasury':
         specifier: workspace:*
         version: link:../packages/treasury
       hono:
         specifier: 4.11.9
         version: 4.11.9
-      simple-linear-regression:
-        specifier: 1.0.3
-        version: 1.0.3
       tiny-fetch-json:
         specifier: 2.0.1
         version: 2.0.1
@@ -160,6 +160,21 @@ importers:
       viem:
         specifier: 2.44.4
         version: 2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)
+      vitest:
+        specifier: 4.0.18
+        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.0.9)(jiti@2.6.1)(lightningcss@1.30.2)(yaml@2.8.2)
+
+  packages/linear-least-squares-regression:
+    devDependencies:
+      '@tsconfig/node24':
+        specifier: 24.0.4
+        version: 24.0.4
+      '@vitest/coverage-v8':
+        specifier: 4.0.18
+        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.0.9)(jiti@2.6.1)(lightningcss@1.30.2)(yaml@2.8.2))
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
       vitest:
         specifier: 4.0.18
         version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.0.9)(jiti@2.6.1)(lightningcss@1.30.2)(yaml@2.8.2)
@@ -4048,9 +4063,6 @@ packages:
   core-util-is@1.0.3:
     resolution: {integrity: sha512-ZQBvi1DcpJ4GDqanjucZ2Hj3wEO5pZDS89BWbkcrvdxksJorwUDDZamX9ldFkp9aw2lmBDLgkObEA4DWNJ9FYQ==}
 
-  correlation-coefficient-r@1.0.0:
-    resolution: {integrity: sha512-q6nDV0KlQ/RPqncRYbG+2DW9eiARrA6SXlkq6sLluPRcBcugLqiTO+DyDeXW/gdmNrnwBic1sfptsJiG8DxQaQ==}
-
   cosmiconfig-typescript-loader@6.2.0:
     resolution: {integrity: sha512-GEN39v7TgdxgIoNcdkRE3uiAzQt3UXLyHbRHD6YoL048XAeOomyxaP+Hh/+2C6C2wYjxJ2onhJcsQp+L4YEkVQ==}
     engines: {node: '>=v18'}
@@ -5992,9 +6004,6 @@ packages:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
     engines: {node: '>= 0.4'}
 
-  math-standard-deviation@1.0.1:
-    resolution: {integrity: sha512-t9fugSSrlz6VVYg5EJDeqNkNjaNIBFWrGEdykkoT3iOfXn1t6Y63j6YVwFQAbyT9rJQf7royquyY/Rz/Od9SyA==}
-
   md5.js@1.3.5:
     resolution: {integrity: sha512-xitP+WxNPcTTOgnTJcrhM0xvdPepipPSf3I8EIpGKeFLjt3PlJLIDG3u8EX53ZIubkb+5U2+3rELYpEhHhzdkg==}
 
@@ -7104,9 +7113,6 @@ packages:
   signal-exit@4.1.0:
     resolution: {integrity: sha512-bzyZ1e88w9O1iNJbKnOlvYTrWPDl46O1bG0D3XInv+9tkPrxrN8jUUTiFlDkkmKWgn1M6CfIA13SuGqOa9Korw==}
     engines: {node: '>=14'}
-
-  simple-linear-regression@1.0.3:
-    resolution: {integrity: sha512-sEfJPNevHaHSSVhjTaJNsUPyUNVqNfRqY6pv4qlUKZ5mgXVbiKTFLCbGiy9wjbEYhvFmWI06ALcCP/LrEkQUpw==}
 
   slash@3.0.0:
     resolution: {integrity: sha512-g9Q1haeby36OSStwb4ntCGGGaKsaVSjQ68fBxoQcutl5fS1vuY18H3wSt3jFyFtrkx+Kz0V1G85A4MyAdDMi2Q==}
@@ -12885,10 +12891,6 @@ snapshots:
 
   core-util-is@1.0.3: {}
 
-  correlation-coefficient-r@1.0.0:
-    dependencies:
-      math-standard-deviation: 1.0.1
-
   cosmiconfig-typescript-loader@6.2.0(@types/node@25.0.9)(cosmiconfig@9.0.0(typescript@6.0.2))(typescript@6.0.2):
     dependencies:
       '@types/node': 25.0.9
@@ -13640,13 +13642,14 @@ snapshots:
       esquery: 1.7.0
       jsonc-eslint-parser: 2.4.2
 
-  eslint-module-utils@2.12.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@6.0.2))(eslint-import-resolver-node@0.3.9)(eslint@8.57.0):
+  eslint-module-utils@2.12.1(@typescript-eslint/parser@6.21.0(eslint@8.57.0)(typescript@6.0.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1)(eslint@8.57.0):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
-      '@typescript-eslint/parser': 8.53.1(eslint@8.57.0)(typescript@6.0.2)
+      '@typescript-eslint/parser': 6.21.0(eslint@8.57.0)(typescript@6.0.2)
       eslint: 8.57.0
       eslint-import-resolver-node: 0.3.9
+      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0)(eslint@8.57.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -13667,7 +13670,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 8.57.0
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.12.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@6.0.2))(eslint-import-resolver-node@0.3.9)(eslint@8.57.0)
+      eslint-module-utils: 2.12.1(@typescript-eslint/parser@6.21.0(eslint@8.57.0)(typescript@6.0.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1)(eslint@8.57.0)
       hasown: 2.0.2
       is-core-module: 2.16.1
       is-glob: 4.0.3
@@ -15152,8 +15155,6 @@ snapshots:
 
   math-intrinsics@1.1.0: {}
 
-  math-standard-deviation@1.0.1: {}
-
   md5.js@1.3.5:
     dependencies:
       hash-base: 3.0.5
@@ -16334,11 +16335,6 @@ snapshots:
   signal-exit@3.0.7: {}
 
   signal-exit@4.1.0: {}
-
-  simple-linear-regression@1.0.3:
-    dependencies:
-      correlation-coefficient-r: 1.0.0
-      math-standard-deviation: 1.0.1
 
   slash@3.0.0: {}
 
