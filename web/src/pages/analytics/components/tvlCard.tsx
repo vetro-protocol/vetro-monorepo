@@ -1,10 +1,10 @@
 import { useAnalyticsTotals } from "hooks/useAnalyticsTotals";
 import { useAnalyticsTreasury } from "hooks/useAnalyticsTreasury";
+import { usePrices } from "hooks/usePrices";
 import { useWhitelistedTokensByGateway } from "hooks/useWhitelistedTokensByGateway";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
-import { formatUsd } from "utils/currency";
-import { formatUnits } from "viem";
+import { formatTokenAmountUsd } from "utils/currency";
 
 import { DatabaseIcon } from "../icons/databaseIcon";
 import { toTvlItems } from "../utils";
@@ -31,23 +31,33 @@ export const TvlCard = function ({ peggedToken, peggedTokenError }: Props) {
     isError: isTotalsError,
     isLoading: isTotalsLoading,
   } = useAnalyticsTotals(peggedToken);
+  const { data: prices, isError: isPricesError } = usePrices();
 
-  const isError =
-    peggedTokenError ||
-    isWhitelistedTokensError ||
-    isTreasuryError ||
-    isTotalsError;
+  const isError = [
+    peggedTokenError,
+    isWhitelistedTokensError,
+    isTreasuryError,
+    isTotalsError,
+    isPricesError,
+  ].some(Boolean);
 
   const isLoading =
     !isError &&
-    (!peggedToken ||
-      isTreasuryLoading ||
-      isTotalsLoading ||
-      !whitelistedTokens);
+    [
+      !peggedToken,
+      isTreasuryLoading,
+      isTotalsLoading,
+      !whitelistedTokens,
+      !prices,
+    ].some(Boolean);
 
   const value =
-    peggedToken && totals
-      ? formatUsd(Number(formatUnits(totals.minted, peggedToken.decimals)))
+    peggedToken && totals && prices
+      ? formatTokenAmountUsd({
+          amount: totals.minted,
+          prices,
+          token: peggedToken,
+        })
       : "";
 
   return (
@@ -55,7 +65,15 @@ export const TvlCard = function ({ peggedToken, peggedTokenError }: Props) {
       icon={<DatabaseIcon />}
       isError={isError}
       isLoading={isLoading}
-      items={toTvlItems({ treasuryTokens: treasury, whitelistedTokens })}
+      items={
+        prices && treasury && whitelistedTokens
+          ? toTvlItems({
+              prices,
+              treasuryTokens: treasury,
+              whitelistedTokens,
+            })
+          : undefined
+      }
       label={t("pages.analytics.tvl-label")}
       value={value}
     />

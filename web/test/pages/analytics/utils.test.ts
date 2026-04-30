@@ -26,6 +26,9 @@ const baseTreasuryToken: TreasuryToken = {
   withdrawable: "0",
 };
 
+// USD prices keyed by uppercase symbol (shape returned by `usePrices`).
+const prices = { USDC: "1", USDT: "1" };
+
 const usdtToken = {
   address: USDT_ADDRESS,
   chainId: 1,
@@ -58,11 +61,18 @@ describe("pages/analytics/utils", function () {
 
   describe("toReserveBufferAmount", function () {
     it("returns 0 when treasuryTokens is empty", function () {
-      expect(toReserveBufferAmount({})).toBe(0);
+      expect(
+        toReserveBufferAmount({
+          prices,
+          treasuryTokens: [],
+          whitelistedTokens: [],
+        }),
+      ).toBe(0);
     });
 
     it("returns 0 when withdrawable equals totalDebt", function () {
       const result = toReserveBufferAmount({
+        prices,
         treasuryTokens: [
           {
             ...baseTreasuryToken,
@@ -78,6 +88,7 @@ describe("pages/analytics/utils", function () {
 
     it("returns 0 when buffer is negative", function () {
       const result = toReserveBufferAmount({
+        prices,
         treasuryTokens: [
           {
             ...baseTreasuryToken,
@@ -94,6 +105,7 @@ describe("pages/analytics/utils", function () {
     it("computes correct amount for a single token", function () {
       // withdrawable: 1000 USDT, totalDebt: 900 USDT → buffer: 100 USDT @ $1 = $100
       const result = toReserveBufferAmount({
+        prices,
         treasuryTokens: [
           {
             ...baseTreasuryToken,
@@ -110,6 +122,7 @@ describe("pages/analytics/utils", function () {
     it("sums buffer across multiple tokens", function () {
       // USDT buffer: $100, USDC buffer: $50 → total: $150
       const result = toReserveBufferAmount({
+        prices,
         treasuryTokens: [
           {
             ...baseTreasuryToken,
@@ -132,6 +145,7 @@ describe("pages/analytics/utils", function () {
     it("uses decimals from whitelistedTokens", function () {
       // 1 token with 18 decimals @ $1 → buffer: $1
       const result = toReserveBufferAmount({
+        prices,
         treasuryTokens: [
           { ...baseTreasuryToken, withdrawable: "1000000000000000000" },
         ],
@@ -141,30 +155,30 @@ describe("pages/analytics/utils", function () {
       expect(result).toBeCloseTo(1);
     });
 
-    it("falls back to 18 decimals for unknown tokens", function () {
-      const result = toReserveBufferAmount({
-        treasuryTokens: [
-          {
-            ...baseTreasuryToken,
-            tokenAddress: "0xunknown",
-            withdrawable: "1000000000000000000",
-          },
-        ],
-        whitelistedTokens: [],
-      });
-
-      expect(result).toBeCloseTo(1);
+    it("throws when a treasury token's address isn't whitelisted", function () {
+      expect(() =>
+        toReserveBufferAmount({
+          prices,
+          treasuryTokens: [
+            { ...baseTreasuryToken, tokenAddress: USDC_ADDRESS },
+          ],
+          whitelistedTokens: [usdtToken],
+        }),
+      ).toThrow(`Token not found in whitelist: ${USDC_ADDRESS}`);
     });
   });
 
   describe("toTvlItems", function () {
     it("returns empty array when no treasury tokens", function () {
-      expect(toTvlItems({})).toEqual([]);
+      expect(
+        toTvlItems({ prices, treasuryTokens: [], whitelistedTokens: [] }),
+      ).toEqual([]);
     });
 
     it("computes correct USD amount per token", function () {
       // 1000 USDT (6 decimals) @ $1 = $1000
       const items = toTvlItems({
+        prices,
         treasuryTokens: [{ ...baseTreasuryToken, withdrawable: "1000000000" }],
         whitelistedTokens: [usdtToken],
       });
@@ -174,29 +188,29 @@ describe("pages/analytics/utils", function () {
       expect(items[0]?.label).toBe("USDT");
     });
 
-    it("falls back to token address prefix when token is unknown", function () {
-      const items = toTvlItems({
-        treasuryTokens: [
-          {
-            ...baseTreasuryToken,
-            tokenAddress: "0xABCDEF123456",
-            withdrawable: "1000000000000000000",
-          },
-        ],
-        whitelistedTokens: [],
-      });
-
-      expect(items[0]?.label).toBe("0xABCD");
+    it("throws when a treasury token's address isn't whitelisted", function () {
+      expect(() =>
+        toTvlItems({
+          prices,
+          treasuryTokens: [
+            { ...baseTreasuryToken, tokenAddress: USDC_ADDRESS },
+          ],
+          whitelistedTokens: [usdtToken],
+        }),
+      ).toThrow(`Token not found in whitelist: ${USDC_ADDRESS}`);
     });
   });
 
   describe("toYieldItems", function () {
     it("returns empty array when no treasury tokens", function () {
-      expect(toYieldItems({})).toEqual([]);
+      expect(
+        toYieldItems({ prices, treasuryTokens: [], whitelistedTokens: [] }),
+      ).toEqual([]);
     });
 
     it("excludes strategies with zero amount", function () {
       const items = toYieldItems({
+        prices,
         treasuryTokens: [
           {
             ...baseTreasuryToken,
@@ -217,6 +231,7 @@ describe("pages/analytics/utils", function () {
 
     it("flattens strategies across multiple tokens", function () {
       const items = toYieldItems({
+        prices,
         treasuryTokens: [
           {
             ...baseTreasuryToken,
@@ -247,6 +262,7 @@ describe("pages/analytics/utils", function () {
     it("computes correct USD amount per strategy", function () {
       // 500 USDT (6 decimals) @ $1 = $500
       const items = toYieldItems({
+        prices,
         treasuryTokens: [
           {
             ...baseTreasuryToken,
@@ -259,6 +275,18 @@ describe("pages/analytics/utils", function () {
       });
 
       expect(items[0]?.amount).toBeCloseTo(500);
+    });
+
+    it("throws when a treasury token's address isn't whitelisted", function () {
+      expect(() =>
+        toYieldItems({
+          prices,
+          treasuryTokens: [
+            { ...baseTreasuryToken, tokenAddress: USDC_ADDRESS },
+          ],
+          whitelistedTokens: [usdtToken],
+        }),
+      ).toThrow(`Token not found in whitelist: ${USDC_ADDRESS}`);
     });
   });
 

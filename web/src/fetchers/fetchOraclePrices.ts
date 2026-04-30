@@ -61,7 +61,12 @@ export const fetchOraclePrices = async function ({
         }),
       ]);
 
-      const key = (token.extensions?.priceSymbol ?? token.symbol).toUpperCase();
+      // Each whitelisted token's oracle is denominated in the gateway's peg
+      // unit (e.g. WBTC/BTC for the vetBTC gateway). Key by the token's symbol
+      // so each entry is unique within the gateway dict — `priceSymbol` is only
+      // a downstream lookup alias (used by `getTokenPrice`) and would cause
+      // collisions here when several whitelisted tokens share the same alias.
+      const key = token.symbol.toUpperCase();
       return [key, formatUnits(latestAnswer, decimals)] as const;
     }),
   );

@@ -1,9 +1,9 @@
+import { usePrices } from "hooks/usePrices";
 import { useVariableStakeExitQueue } from "hooks/useVariableStakeExitQueue";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import type { TokenWithGateway } from "types";
-import { formatUsd } from "utils/currency";
-import { formatUnits } from "viem";
+import { formatTokenAmountUsd } from "utils/currency";
 
 import { ExitQueueIcon } from "../icons/exitQueueIcon";
 
@@ -25,15 +25,18 @@ export const ExitQueueCard = function ({
     isError: isExitQueueError,
     isLoading: isExitQueueLoading,
   } = useVariableStakeExitQueue(peggedToken?.gatewayAddress);
+  const { data: prices, isError: isPricesError } = usePrices();
 
-  const isError = peggedTokenError || isExitQueueError;
-  const isLoading = !isError && (!peggedToken || isExitQueueLoading);
+  const isError = peggedTokenError || isExitQueueError || isPricesError;
+  const isLoading = !isError && (!peggedToken || isExitQueueLoading || !prices);
 
   const value =
-    peggedToken && exitQueue
-      ? formatUsd(
-          Number(formatUnits(exitQueue.assetsInCooldown, peggedToken.decimals)),
-        )
+    peggedToken && exitQueue && prices
+      ? formatTokenAmountUsd({
+          amount: exitQueue.assetsInCooldown,
+          prices,
+          token: peggedToken,
+        })
       : "";
 
   const label = peggedToken ? (

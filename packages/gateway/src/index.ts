@@ -26,8 +26,12 @@ import {
 
 // Export ABI
 export { gatewayAbi } from "./abi/gatewayAbi.js";
-// Export gateway addresses
-export { gatewayAddresses } from "./gatewayAddresses.js";
+// Export gateway addresses and per-gateway peg-base metadata
+export {
+  type Gateway,
+  gatewayAddresses,
+  gateways,
+} from "./gatewayAddresses.js";
 
 export type { CancelRedeemRequestParams };
 

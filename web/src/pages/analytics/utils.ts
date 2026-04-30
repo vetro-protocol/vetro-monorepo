@@ -1,8 +1,11 @@
 import type { Token } from "types";
+import { tokenAmountToUsd } from "utils/currency";
 import { formatNumber } from "utils/format";
-import { formatUnits } from "viem";
+import { formatUnits, isAddressEqual, type Address } from "viem";
 
 import type { AllocationItem, TreasuryToken } from "./types";
+
+type Prices = Record<string, string>;
 
 const colorPalette = [
   "bg-blue-400",
@@ -18,64 +21,62 @@ const colorPalette = [
 export const assignColor = (index: number) =>
   colorPalette[index % colorPalette.length] ?? "bg-gray-400";
 
-const findToken = (tokenAddress: string, whitelistedTokens: Token[]) =>
-  whitelistedTokens.find(
-    (t) => t.address.toLowerCase() === tokenAddress.toLowerCase(),
+const findToken = function (tokenAddress: Address, whitelistedTokens: Token[]) {
+  const token = whitelistedTokens.find((t) =>
+    isAddressEqual(t.address, tokenAddress),
   );
+  if (!token) {
+    throw new Error(`Token not found in whitelist: ${tokenAddress}`);
+  }
+  return token;
+};
 
 // Transforms /analytics/treasury response into TVL allocation items.
-// amount: USD value = (withdrawable / 10^decimals) × (latestPrice / 10^priceDecimals)
 // withdrawable includes idle funds + deployed strategies (vs totalDebt = strategies only).
-// tokenDecimals sourced from whitelistedTokens; falls back to 18 for unknown tokens.
 export const toTvlItems = ({
-  treasuryTokens = [],
-  whitelistedTokens = [],
+  prices,
+  treasuryTokens,
+  whitelistedTokens,
 }: {
-  treasuryTokens?: TreasuryToken[];
-  whitelistedTokens?: Token[];
+  prices: Prices;
+  treasuryTokens: TreasuryToken[];
+  whitelistedTokens: Token[];
 }) =>
-  treasuryTokens.map(function (
-    { latestPrice, priceDecimals, tokenAddress, withdrawable },
-    index,
-  ) {
+  treasuryTokens.map(function ({ tokenAddress, withdrawable }, index) {
     const token = findToken(tokenAddress, whitelistedTokens);
-    const decimals = token?.decimals ?? 18;
-    const symbol = token?.symbol ?? tokenAddress.slice(0, 6);
+    const { decimals, symbol } = token;
+
     return {
-      amount:
-        Number(formatUnits(BigInt(withdrawable), decimals)) *
-        Number(formatUnits(BigInt(latestPrice), priceDecimals)),
+      amount: tokenAmountToUsd({ amount: BigInt(withdrawable), prices, token }),
       color: assignColor(index),
       label: symbol,
-      logoURI: token?.logoURI,
+      logoURI: token.logoURI,
       tooltip: `${formatNumber(formatUnits(BigInt(withdrawable), decimals))} ${symbol}`,
     };
   });
 
 // Transforms /analytics/treasury response into yield allocation items,
 // one item per active strategy across all tokens.
-// amount: USD value = (totalDebt / 10^decimals) × (latestPrice / 10^priceDecimals)
 export const toYieldItems = function ({
-  treasuryTokens = [],
-  whitelistedTokens = [],
+  prices,
+  treasuryTokens,
+  whitelistedTokens,
 }: {
-  treasuryTokens?: TreasuryToken[];
-  whitelistedTokens?: Token[];
+  prices: Prices;
+  treasuryTokens: TreasuryToken[];
+  whitelistedTokens: Token[];
 }) {
   const items: { amount: number; color: string; label: string }[] = [];
 
-  for (const {
-    activeStrategies,
-    latestPrice,
-    priceDecimals,
-    tokenAddress,
-  } of treasuryTokens) {
+  for (const { activeStrategies, tokenAddress } of treasuryTokens) {
     const token = findToken(tokenAddress, whitelistedTokens);
-    const decimals = token?.decimals ?? 18;
-    const price = Number(formatUnits(BigInt(latestPrice), priceDecimals));
 
     for (const { name, totalDebt } of activeStrategies) {
-      const amount = Number(formatUnits(BigInt(totalDebt), decimals)) * price;
+      const amount = tokenAmountToUsd({
+        amount: BigInt(totalDebt),
+        prices,
+        token,
+      });
       if (amount > 0) {
         items.push({ amount, color: assignColor(items.length), label: name });
       }
@@ -131,29 +132,24 @@ export const toCollateralizationItems = function (
 // Returns the reserve buffer amount in USD (idle funds not deployed to any strategy).
 // Returns 0 when there is no buffer. Color is intentionally omitted — callers assign it.
 export const toReserveBufferAmount = function ({
-  treasuryTokens = [],
-  whitelistedTokens = [],
+  prices,
+  treasuryTokens,
+  whitelistedTokens,
 }: {
-  treasuryTokens?: TreasuryToken[];
-  whitelistedTokens?: Token[];
+  prices: Prices;
+  treasuryTokens: TreasuryToken[];
+  whitelistedTokens: Token[];
 }) {
   let amount = 0;
 
-  for (const {
-    latestPrice,
-    priceDecimals,
-    tokenAddress,
-    totalDebt,
-    withdrawable,
-  } of treasuryTokens) {
+  for (const { tokenAddress, totalDebt, withdrawable } of treasuryTokens) {
     const token = findToken(tokenAddress, whitelistedTokens);
-    const decimals = token?.decimals ?? 18;
-    const price = Number(formatUnits(BigInt(latestPrice), priceDecimals));
 
-    amount +=
-      (Number(formatUnits(BigInt(withdrawable), decimals)) -
-        Number(formatUnits(BigInt(totalDebt), decimals))) *
-      price;
+    amount += tokenAmountToUsd({
+      amount: BigInt(withdrawable) - BigInt(totalDebt),
+      prices,
+      token,
+    });
   }
 
   return Math.max(0, amount);
