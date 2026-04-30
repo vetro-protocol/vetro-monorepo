@@ -3,17 +3,23 @@ import { Address, BigInt, dataSource, ethereum } from "@graphprotocol/graph-ts";
 import {
   ExitTicket,
   ExitTicketQueueSummary,
+  UserStakingPosition,
   VaultHistory,
 } from "../generated/schema";
 import {
+  Deposit,
   StakingVault,
+  Transfer,
   WithdrawCancelled,
   WithdrawClaimed,
   WithdrawRequested,
-} from "../generated/StakingVault/StakingVault";
+  // The code generated is the same for both vaults
+} from "../generated/sVusdStakingVault/StakingVault";
 
 const buildId = (vaultAddress: Address, suffix: string): string =>
   `${vaultAddress.toHexString()}-${suffix}`;
+
+const WAD = BigInt.fromI32(10).pow(18);
 
 function loadOrCreateQueueSummary(
   vaultAddress: Address,
@@ -50,6 +56,86 @@ export function handleBlock(block: ethereum.Block): void {
   entity.shareValue = shareValue;
 
   entity.save();
+}
+
+export function handleDeposit(event: Deposit): void {
+  const vaultAddress = dataSource.address();
+  const owner = event.params.owner;
+  const id = buildId(vaultAddress, owner.toHexString());
+
+  let entity = UserStakingPosition.load(id);
+  if (entity == null) {
+    entity = new UserStakingPosition(id);
+    entity.owner = owner;
+    entity.shares = BigInt.fromI32(0);
+    entity.stakingVaultAddress = vaultAddress;
+    entity.totalCostBasis = BigInt.fromI32(0);
+  }
+
+  entity.shares = entity.shares.plus(event.params.shares);
+  entity.totalCostBasis = entity.totalCostBasis.plus(
+    event.params.assets.times(WAD),
+  );
+
+  entity.save();
+}
+
+export function handleTransfer(event: Transfer): void {
+  // Skip mints as those are already handled by the Deposit event handler.
+  if (event.params.from.equals(Address.zero())) {
+    return;
+  }
+  // Self-transfers do not affect balances.
+  if (event.params.from.equals(event.params.to)) {
+    return;
+  }
+  // Zero-value transfers are no-ops.
+  if (event.params.value.equals(BigInt.fromI32(0))) {
+    return;
+  }
+
+  const vaultAddress = dataSource.address();
+  const value = event.params.value;
+
+  // Update the sending party: decrement shares and totalCostBasis proportionally.
+  const fromId = buildId(vaultAddress, event.params.from.toHexString());
+  const fromEntity = UserStakingPosition.load(fromId)!;
+
+  if (fromEntity.shares.equals(value)) {
+    // All shares transferred out: reset to zero.
+    fromEntity.shares = BigInt.fromI32(0);
+    fromEntity.totalCostBasis = BigInt.fromI32(0);
+  } else {
+    // Decrement totalCostBasis proportionally before decrementing shares.
+    const newShares = fromEntity.shares.minus(value);
+    fromEntity.totalCostBasis = fromEntity.totalCostBasis
+      .times(newShares)
+      .div(fromEntity.shares);
+    fromEntity.shares = newShares;
+  }
+
+  fromEntity.save();
+
+  // Burns (to zero address) only affect the sending party.
+  if (event.params.to.equals(Address.zero())) {
+    return;
+  }
+
+  // Update the receiving party: increment shares, keep totalCostBasis unchanged.
+  // Received shares are valued at 0, diluting the average price proportionally.
+  const toId = buildId(vaultAddress, event.params.to.toHexString());
+  let toEntity = UserStakingPosition.load(toId);
+  if (toEntity == null) {
+    toEntity = new UserStakingPosition(toId);
+    toEntity.owner = event.params.to;
+    toEntity.shares = BigInt.fromI32(0);
+    toEntity.stakingVaultAddress = vaultAddress;
+    toEntity.totalCostBasis = BigInt.fromI32(0);
+  }
+
+  toEntity.shares = toEntity.shares.plus(value);
+
+  toEntity.save();
 }
 
 export function handleWithdrawRequested(event: WithdrawRequested): void {
