@@ -18,12 +18,15 @@ Sentry.init({
       useLocation,
       useNavigationType,
     }),
-    Sentry.replayIntegration(),
+    Sentry.replayIntegration({
+      blockAllMedia: true,
+      maskAllInputs: true,
+      maskAllText: true,
+    }),
   ],
   // Capture 100% of error sessions, sample 10% of all sessions
   replaysOnErrorSampleRate: 1.0,
   replaysSessionSampleRate: 0.1,
-  sendDefaultPii: true,
   // Capture 100% of traces in dev, 20% in production
   tracesSampleRate: import.meta.env.DEV ? 1.0 : 0.2,
 });

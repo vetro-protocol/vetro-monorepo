@@ -12,10 +12,11 @@ import { Web3Provider } from "./providers/web3Provider";
 
 initializeI18n();
 
+const handleReactError = reactErrorHandler();
 ReactDOM.createRoot(document.getElementById("root")!, {
-  onCaughtError: reactErrorHandler(),
-  onRecoverableError: reactErrorHandler(),
-  onUncaughtError: reactErrorHandler(),
+  onCaughtError: handleReactError,
+  onRecoverableError: handleReactError,
+  onUncaughtError: handleReactError,
 }).render(
   <React.StrictMode>
     <Web3Provider>
