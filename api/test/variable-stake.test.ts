@@ -1,4 +1,8 @@
-import { sVetBtcAddress, sVusdAddress } from "@vetro-protocol/earn";
+import {
+  stakingVaultAddresses,
+  sVetBtcAddress,
+  sVusdAddress,
+} from "@vetro-protocol/earn";
 import { describe, expect, it, vi } from "vitest";
 
 import * as graphql from "../src/graphql.ts";
@@ -201,10 +205,9 @@ describe("variable-stake/getAveragePurchasePrice", function () {
       url: subgraphUrl,
     });
 
-    expect(result).toEqual({
-      [sVetBtcAddress]: 0n,
-      [sVusdAddress]: 0n,
-    });
+    expect(result).toEqual(
+      Object.fromEntries(stakingVaultAddresses.map((vault) => [vault, 0n])),
+    );
   });
 
   it("returns '0' when shares is 0 (fully exited position)", async function () {
