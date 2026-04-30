@@ -168,7 +168,9 @@ app.get(
   async function (c) {
     try {
       const url = getSubgraphUrl(c.env);
-      const data = await variableStake.getApy({ url });
+      const data = await variableStake.getApy({
+        url,
+      });
       return c.json(data);
     } catch (error) {
       throw new Error(`Failed to get APY: ${error.message}`);

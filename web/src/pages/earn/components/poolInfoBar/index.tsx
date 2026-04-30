@@ -22,7 +22,7 @@ export function PoolInfoBar({ stakingVaultAddress }: Props) {
   const { t } = useTranslation();
   const { data: peggedToken } = useVaultPeggedToken(stakingVaultAddress);
 
-  const { data: apy, isLoading: isLoadingApy } = useApy();
+  const { data: apy, isLoading: isLoadingApy } = useApy(stakingVaultAddress);
   const { data: poolDeposits, isLoading: isLoadingDeposits } =
     usePoolDeposits(stakingVaultAddress);
   const { data: prices, isError: isPricesError } = usePrices();
