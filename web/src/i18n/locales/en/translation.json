@@ -2,6 +2,13 @@
   "common": {
     "approve-10x": "Approve 10x",
     "approve-10x-tooltip": "Approves up to 10× your transaction amount, reducing future approval steps. You can revoke it anytime.",
+    "charts": {
+      "period-1-month": "1 month",
+      "period-1-week": "1 week",
+      "period-1-year": "1 year",
+      "period-3-month": "3 months",
+      "reload-chart": "Reload chart"
+    },
     "clear-search": "Clear search",
     "connect-wallet": "Connect wallet",
     "enter-amount": "Enter an amount",
@@ -99,10 +106,6 @@
       "no-positions-description": "Deposit collateral to borrow {{symbol}} and put your assets to work.",
       "no-positions-title": "No active borrow position yet",
       "per-day": "/ day",
-      "period-1-month": "1 month",
-      "period-1-week": "1 week",
-      "period-1-year": "1 year",
-      "period-3-month": "3 months",
       "pool-size": "Pool size",
       "position-at-risk": "Position at risk",
       "position-review": "Position review",
@@ -118,7 +121,6 @@
         "supply-collateral-title": "Supply collateral",
         "title": "Borrow in progress"
       },
-      "reload-chart": "Reload chart",
       "repay-loan": "Repay loan",
       "repay-loan-progress": {
         "approve-description": "Approve the loan token spending",

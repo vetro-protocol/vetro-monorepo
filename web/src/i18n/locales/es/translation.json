@@ -2,6 +2,13 @@
   "common": {
     "approve-10x": "Aprobar 10x",
     "approve-10x-tooltip": "Apruebe hasta 10× el monto de su transacción, reduciendo futuros pasos de aprobación. Puede revocarlo en cualquier momento.",
+    "charts": {
+      "period-1-month": "1 mes",
+      "period-1-week": "1 semana",
+      "period-1-year": "1 año",
+      "period-3-month": "3 meses",
+      "reload-chart": "Recargar gráfico"
+    },
     "clear-search": "Limpiar búsqueda",
     "connect-wallet": "Conectar billetera",
     "enter-amount": "Ingrese un monto",
@@ -99,10 +106,6 @@
       "no-positions-description": "Deposite garantía para pedir prestado {{symbol}} y poner sus activos a trabajar.",
       "no-positions-title": "Aún no hay posiciones de préstamos activos",
       "per-day": "/ día",
-      "period-1-month": "1 mes",
-      "period-1-week": "1 semana",
-      "period-1-year": "1 año",
-      "period-3-month": "3 meses",
       "pool-size": "Tamaño del fondo",
       "position-at-risk": "Posición en riesgo",
       "position-review": "Revisión de posición",
@@ -118,7 +121,6 @@
         "supply-collateral-title": "Depositar garantía",
         "title": "Préstamo en progreso"
       },
-      "reload-chart": "Recargar gráfico",
       "repay-loan": "Pagar préstamo",
       "repay-loan-progress": {
         "approve-description": "Apruebe el gasto del token de préstamo",
