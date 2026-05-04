@@ -38,9 +38,11 @@ export async function getShareValueHistory({
   url: string;
 }): Promise<{ shareValue: number; timestamp: number }[]> {
   const stakingVault = stakingVaultAddress.toLowerCase();
-  const start = (
-    Math.floor(Date.now() / 1000) - periodToStartOffset[period]
-  ).toString();
+  // Floor to the UTC day boundary so the filter always includes the snapshot
+  // exactly N days ago at 00:00 UTC, regardless of the time of day the request
+  // is made. VaultHistory entries are snapped to UTC day start by the indexer.
+  const todayStart = Math.floor(Date.now() / 1000 / secsPerDay) * secsPerDay;
+  const start = (todayStart - periodToStartOffset[period]).toString();
   const query = `
     query ($first: Int!, $skip: Int!, $stakingVault: Bytes!, $start: BigInt!) {
       vaultHistories(

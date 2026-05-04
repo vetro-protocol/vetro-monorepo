@@ -134,5 +134,15 @@ describe("share-value-history/getShareValueHistory", function () {
         );
       },
     );
+
+    it("floors start to the UTC day boundary even when called mid-day, so the snapshot from N days ago at 00:00 UTC is included", async function () {
+      vi.setSystemTime(new Date("2026-05-04T14:30:00Z"));
+
+      await fetchHistory("1w");
+
+      expect(lastCallVariables<{ start: string }>()?.start).toBe(
+        (nowSecs - 7 * secsPerDay).toString(),
+      );
+    });
   });
 });
