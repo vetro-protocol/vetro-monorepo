@@ -35,9 +35,13 @@ export const useShareValueHistory = function (
       );
       return data.map((entry) => ({ x: entry.timestamp, y: entry.shareValue }));
     },
+    // peggedToken.address is technically redundant — the gateway uniquely
+    // determines it via a 1:1 mapping. Included anyway to mirror every
+    // queryFn dependency in the cache key, per React Query's contract.
     queryKey: [
       "share-value-history",
       client?.chain?.id,
+      peggedToken?.address,
       peggedToken?.gatewayAddress,
       period,
     ],
