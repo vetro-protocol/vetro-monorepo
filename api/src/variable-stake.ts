@@ -1,7 +1,6 @@
 import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { getPeggedToken } from "@vetro-protocol/gateway/actions";
-// @ts-expect-error Type declarations are not available for this dependency.
-import linearRegression from "simple-linear-regression";
+import { linearRegression } from "@vetro-protocol/linear-least-squares-regression";
 import {
   type Address,
   createPublicClient,
@@ -149,7 +148,7 @@ export async function getApy({ url }: { url: string }) {
       const values = histories.map((h) =>
         parseBigIntStringToNumber(h.shareValue, 18),
       );
-      const delta = linearRegression(days, values).a;
+      const delta = linearRegression({ x: days, y: values }).a;
       if (Number.isNaN(delta)) {
         return [vaultAddress, { "7d": 0 }];
       }
