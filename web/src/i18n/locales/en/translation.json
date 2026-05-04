@@ -38,6 +38,7 @@
       "collateralization-ratio-label": "Collateralization ratio",
       "exit-queue-label": "Total {{symbol}} on withdrawn cooldown",
       "liquid-reserves-label": "Liquid Reserves",
+      "peg-stability-label": "Peg stability",
       "reserve-buffer-label": "Reserve buffer",
       "staked-label": "Total {{symbol}} staked",
       "strategic-reserves-label": "Strategic Reserves",

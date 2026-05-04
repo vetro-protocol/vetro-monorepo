@@ -38,6 +38,7 @@
       "collateralization-ratio-label": "Ratio de colateralización",
       "exit-queue-label": "Total {{symbol}} en período de espera de retiro",
       "liquid-reserves-label": "Reservas líquidas",
+      "peg-stability-label": "Estabilidad del peg",
       "reserve-buffer-label": "Reserva de liquidez",
       "staked-label": "Total {{symbol}} depositado",
       "strategic-reserves-label": "Reservas estratégicas",
