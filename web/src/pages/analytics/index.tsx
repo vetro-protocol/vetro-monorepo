@@ -74,7 +74,7 @@ export const Analytics = function () {
       <PageTitle value={t("pages.analytics.title")} />
       {/* only show the filter if there are 2 or more tokens to filter from */}
       {gatewayAddresses.length > 1 && !isPeggedTokensError && (
-        <div className="px-3 py-4 md:px-6">
+        <div className="border-y border-gray-200 bg-white px-3 py-4 md:px-6">
           <div className="mx-auto w-fit">
             {tokens && selectedToken ? (
               <TokenFilter
