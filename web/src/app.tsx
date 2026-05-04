@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react";
 import { AppLayout, MainContent } from "components/base/appLayout";
 import { AppViewport } from "components/base/appViewport";
 import { ErrorBoundary } from "components/base/errorBoundary";
@@ -23,6 +24,8 @@ import {
   Routes,
   useLocation,
 } from "react-router";
+
+const SentryRoutes = Sentry.withSentryReactRouterV7Routing(Routes);
 
 const AppNotifications = lazy(() =>
   import("components/appNotifications").then((m) => ({
@@ -98,7 +101,7 @@ export const App = () => (
   <BrowserRouter>
     <NuqsAdapter>
       <AppViewport>
-        <Routes>
+        <SentryRoutes>
           {/* Redirect root to English */}
           <Route element={<Navigate replace to="/en" />} path="/" />
 
@@ -107,7 +110,7 @@ export const App = () => (
 
           {/* Catch-all: redirect unknown paths to English */}
           <Route element={<Navigate replace to="/en" />} path="*" />
-        </Routes>
+        </SentryRoutes>
       </AppViewport>
     </NuqsAdapter>
   </BrowserRouter>
