@@ -17,9 +17,11 @@ import { YieldCard } from "./components/yieldCard";
 const AllocationRow = ({
   children,
   className = "",
+  isLast = false,
 }: {
   children: ReactNode;
   className?: string;
+  isLast?: boolean;
 }) => (
   <>
     <div
@@ -27,9 +29,11 @@ const AllocationRow = ({
     >
       {children}
     </div>
-    <div className="bg-gray-100">
-      <StripedDivider />
-    </div>
+    {!isLast && (
+      <div className="bg-gray-100">
+        <StripedDivider variant="small" />
+      </div>
+    )}
   </>
 );
 
@@ -70,7 +74,7 @@ export const Analytics = function () {
       <PageTitle value={t("pages.analytics.title")} />
       {/* only show the filter if there are 2 or more tokens to filter from */}
       {gatewayAddresses.length > 1 && !isPeggedTokensError && (
-        <div className="px-3 py-4 md:px-6">
+        <div className="border-y border-gray-200 bg-white px-3 py-4 md:px-6">
           <div className="mx-auto w-fit">
             {tokens && selectedToken ? (
               <TokenFilter
@@ -91,7 +95,7 @@ export const Analytics = function () {
           peggedToken={selectedToken}
           peggedTokenError={isPeggedTokensError}
         />
-        <YieldCard
+        <CollateralizationCard
           peggedToken={selectedToken}
           peggedTokenError={isPeggedTokensError}
         />
@@ -106,9 +110,9 @@ export const Analytics = function () {
           peggedTokenError={isPeggedTokensError}
         />
       </AllocationRow>
-      <AllocationRow className="md:justify-center">
+      <AllocationRow className="md:justify-center" isLast>
         <div className="md:w-1/2">
-          <CollateralizationCard
+          <YieldCard
             peggedToken={selectedToken}
             peggedTokenError={isPeggedTokensError}
           />
