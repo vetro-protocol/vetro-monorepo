@@ -12,8 +12,13 @@ import {
   validateAddress,
   validateGatewayAddress,
   validateParam,
+  validateStakingVaultAddress,
 } from "./param-validators.ts";
 import { securityHeaders } from "./security-headers.ts";
+import {
+  getShareValueHistory,
+  validPeriods as shareValueHistoryValidPeriods,
+} from "./share-value-history.ts";
 import { createOriginFn, parseOrigins } from "./validate-origin.ts";
 import * as variableStake from "./variable-stake.ts";
 
@@ -222,6 +227,31 @@ app.get(
     } catch (error) {
       console.log(error.stack);
       throw new Error(`Failed to get exit queue data: ${error.message}`);
+    }
+  },
+);
+
+app.get(
+  "/variable-stake/share-value-history/:stakingVaultAddress/:period",
+  validateStakingVaultAddress,
+  validateParam("period", shareValueHistoryValidPeriods),
+  cache({
+    cacheControl: "max-age=3600",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const stakingVaultAddress = c.get("stakingVaultAddress");
+      const url = getSubgraphUrl(c.env);
+      const period = c.req.param("period");
+      const data = await getShareValueHistory({
+        period,
+        stakingVaultAddress,
+        url,
+      });
+      return c.json(data);
+    } catch (error) {
+      throw new Error(`Failed to get share value history: ${error.message}`);
     }
   },
 );
