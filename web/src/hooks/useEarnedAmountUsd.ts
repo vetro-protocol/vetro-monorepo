@@ -2,8 +2,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { fetchEarnedAmountUsd } from "fetchers/fetchEarnedAmountUsd";
 import { useEthereumClient } from "hooks/useEthereumClient";
+import { isValidUrl } from "utils/url";
 import type { Address } from "viem";
 import { useAccount } from "wagmi";
+
+const apiUrl = import.meta.env.VITE_VETRO_API_URL;
 
 export const earnedAmountUsdQueryKey = ({
   account,
@@ -19,7 +22,8 @@ export function useEarnedAmountUsd() {
   const queryClient = useQueryClient();
 
   return useQuery({
-    enabled: !!client && !!account,
+    enabled:
+      apiUrl !== undefined && isValidUrl(apiUrl) && !!client && !!account,
     queryFn: () =>
       fetchEarnedAmountUsd({
         account: account!,
