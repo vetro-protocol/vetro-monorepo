@@ -12,10 +12,13 @@ type ApiEntry = { shareValue: number; timestamp: number };
 
 const apiUrl = import.meta.env.VITE_VETRO_API_URL;
 
-export const useShareValueHistory = function (
-  peggedToken: TokenWithGateway | undefined,
-  period: ShareValueHistoryPeriod,
-) {
+export const useShareValueHistory = function ({
+  peggedToken,
+  period,
+}: {
+  peggedToken: TokenWithGateway | undefined;
+  period: ShareValueHistoryPeriod;
+}) {
   const client = useEthereumClient();
   const queryClient = useQueryClient();
   return useQuery({

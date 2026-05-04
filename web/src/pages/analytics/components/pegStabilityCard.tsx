@@ -67,7 +67,7 @@ export function PegStabilityCard({ peggedToken, peggedTokenError }: Props) {
     data: chartData,
     isError: isHistoryError,
     refetch,
-  } = useShareValueHistory(peggedToken, period);
+  } = useShareValueHistory({ peggedToken, period });
 
   const isError = peggedTokenError || isHistoryError;
 
