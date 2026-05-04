@@ -95,9 +95,13 @@ export function PegStabilityCard({ peggedToken, peggedTokenError }: Props) {
       >
         {isError ? (
           <div className="flex h-full items-center justify-center">
-            <Button onClick={() => refetch()} size="xSmall" variant="primary">
-              {t("common.charts.reload-chart")}
-            </Button>
+            {isHistoryError ? (
+              <Button onClick={() => refetch()} size="xSmall" variant="primary">
+                {t("common.charts.reload-chart")}
+              </Button>
+            ) : (
+              <span className="text-gray-500">-</span>
+            )}
           </div>
         ) : chartData === undefined ? (
           <Skeleton height={chartHeight} />
