@@ -11,6 +11,8 @@ import type { Address } from "viem";
 import { useAccount } from "wagmi";
 
 import { analyticsTotalsQueryKey } from "./useAnalyticsTotals";
+import { averagePurchasePriceQueryKey } from "./useAveragePurchasePrice";
+import { earnedAmountUsdQueryKey } from "./useEarnedAmountUsd";
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { useMainnet } from "./useMainnet";
 import { poolDepositsQueryKey } from "./usePoolDeposits";
@@ -122,14 +124,16 @@ export const useCancelWithdraw = function ({
         queryKey: nativeBalanceKey,
       });
 
-      // Shares must be refetched before staked balance, because
-      // useStakedBalance uses ensureQueryData to read shares from cache.
-      // refetchQueries (not invalidateQueries) is required because the
-      // shares query has no mounted observer — invalidation alone would
-      // only mark it stale, and ensureQueryData returns stale cached data.
-      await queryClient.refetchQueries({
-        queryKey: sharesBalanceKey,
-      });
+      // Refetch (not just invalidate) the queries that downstream fetchers
+      // read via ensureQueryData: shares feed useStakedBalance, and avg
+      // purchase price feeds fetchEarnedAmountUsd. Neither has a mounted
+      // observer, so invalidation alone would leave them stale.
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: sharesBalanceKey }),
+        queryClient.refetchQueries({
+          queryKey: averagePurchasePriceQueryKey(account),
+        }),
+      ]);
 
       queryClient.invalidateQueries({
         queryKey: stakedKey,
@@ -137,6 +141,10 @@ export const useCancelWithdraw = function ({
 
       queryClient.invalidateQueries({
         queryKey: totalStakedUsdQueryKey({ account, chainId: chain.id }),
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: earnedAmountUsdQueryKey({ account, chainId: chain.id }),
       });
 
       queryClient.invalidateQueries({
