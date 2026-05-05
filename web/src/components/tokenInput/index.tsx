@@ -38,7 +38,9 @@ export const TokenInput = ({
       <div className="shrink-0">{tokenSelector}</div>
     </div>
     <div className="mt-2 flex items-center justify-between">
-      <span className="text-xsm text-gray-500">${fiatValue}</span>
+      <span className="text-xsm inline-flex items-center gap-x-1 text-gray-500">
+        ${fiatValue}
+      </span>
       {balance || maxButton ? (
         <div className="text-xsm flex items-center gap-1">
           {balance}

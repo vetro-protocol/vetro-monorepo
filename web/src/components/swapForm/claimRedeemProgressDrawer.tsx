@@ -11,7 +11,7 @@ import type { InputError } from "components/tokenInput/utils";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import type { ComponentProps } from "react";
 import { useTranslation } from "react-i18next";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 import { formatAmount } from "utils/token";
 import type { Address } from "viem";
 
@@ -32,20 +32,20 @@ type Props = {
   amountLocked: bigint;
   flowStatus: ClaimRedeemFlowStatus;
   fromAmount: string;
-  fromToken: Token;
+  fromToken: TokenWithGateway;
   inputError: InputError | undefined;
   onInputChange: (value: string) => void;
   onMaxClick: VoidFunction;
   onRetry?: VoidFunction;
   onSubmit: VoidFunction;
-  onTokenChange: (token: Token) => void;
+  onTokenChange: (token: TokenWithGateway) => void;
   oracleToken: Address;
   outputBigInt: bigint | undefined;
-  unitPreview: UnitPreview;
   outputValue: string;
   steps: Step[];
-  toToken: Token;
-  whitelistedTokens: Token[];
+  toToken: TokenWithGateway;
+  unitPreview: UnitPreview;
+  whitelistedTokens: TokenWithGateway[];
 } & Pick<
   ComponentProps<typeof SwapFees>,
   "networkFee" | "protocolFee" | "totalFees"
@@ -86,7 +86,7 @@ export function ClaimRedeemProgressDrawer({
   return (
     <div className="flex h-full flex-col">
       <DrawerTitle>
-        {t("pages.swap.redeem-vault.drawer-title", {
+        {t("pages.swap.redeem-queue.drawer-title", {
           symbol: fromToken.symbol,
         })}
       </DrawerTitle>
@@ -94,7 +94,7 @@ export function ClaimRedeemProgressDrawer({
         <TokenInput
           balance={
             <Balance
-              label={t("pages.swap.redeem-vault.available-to-redeem")}
+              label={t("pages.swap.redeem-queue.available-to-redeem")}
               value={formatAmount({
                 amount: amountLocked,
                 decimals: fromToken.decimals,
@@ -103,7 +103,7 @@ export function ClaimRedeemProgressDrawer({
             />
           }
           fiatValue={<RenderFiatValue token={fromToken} value={amountBigInt} />}
-          label={t("pages.swap.redeem-vault.enter-amount-to-redeem")}
+          label={t("pages.swap.redeem-queue.enter-amount-to-redeem")}
           maxButton={<MaxButton onClick={onMaxClick} />}
           onChange={onInputChange}
           tokenSelector={<TokenSelectorReadOnly {...fromToken} />}
@@ -113,7 +113,7 @@ export function ClaimRedeemProgressDrawer({
           balance={<ToTokenBalance token={toToken} />}
           disabled
           fiatValue={<RenderFiatValue token={toToken} value={outputBigInt} />}
-          label={t("pages.swap.form.you-will-receive")}
+          label={t("pages.swap.form.you-will-receive-estimated")}
           tokenSelector={
             <TokenDropdown
               onChange={onTokenChange}
@@ -132,14 +132,14 @@ export function ClaimRedeemProgressDrawer({
           variant="primary"
         >
           {inputError
-            ? t(`pages.swap.form.${inputError}`)
+            ? t(`common.${inputError}`)
             : renderRetry
               ? t("pages.swap.progress.retry")
-              : t("pages.swap.redeem-vault.redeem")}
+              : t("pages.swap.redeem-queue.redeem")}
         </Button>
       </div>
       <DrawerFeesContainer>
-        <TreasuryReserves />
+        <TreasuryReserves gatewayAddress={fromToken.gatewayAddress} />
       </DrawerFeesContainer>
       <DrawerFeesContainer>
         <SwapFees

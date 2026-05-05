@@ -1,5 +1,6 @@
-import { getGatewayAddress } from "@vetro-protocol/gateway";
-import { getTreasury } from "@vetro-protocol/gateway/actions";
+import { getYieldDistributor } from "@vetro-protocol/earn/actions";
+import { gatewayAddresses } from "@vetro-protocol/gateway";
+import { getPeggedToken, getTreasury } from "@vetro-protocol/gateway/actions";
 import {
   getTokenConfig,
   getWhitelistedTokens,
@@ -15,7 +16,7 @@ import { mainnet } from "viem/chains";
 import { balanceOf, previewRedeem } from "viem-erc4626/actions";
 
 import { getPrice } from "./chainlink.ts";
-import { getTotalAssets, getTotalSupply } from "./contracts.ts";
+import { findStakingVaultForPeggedToken } from "./staking-vault.ts";
 import {
   getStrategies,
   getStrategyConfig,
@@ -23,31 +24,10 @@ import {
   getVaultName,
 } from "./vesper.ts";
 import {
-  sVusdAddress,
   ummRoleAddress,
   vetroMultisigAddress,
-  vusdAddress,
   vusdMetaAddress,
-  yieldDistributorAddress,
 } from "./vusd.ts";
-
-/**
- * Get the total VUSD minted and staked to calculate the TVL in the protocol.
- */
-export async function getTotals({ url }: { url: string | undefined }) {
-  const client = createPublicClient({
-    chain: mainnet,
-    transport: http(url),
-  });
-  const [vusdMinted, vusdStaked] = await Promise.all([
-    getTotalSupply(client, vusdAddress),
-    getTotalAssets(client, sVusdAddress),
-  ]);
-  return {
-    vusdMinted,
-    vusdStaked,
-  };
-}
 
 /**
  * Get the composition of the treasury by whitelisted token. For each token, get
@@ -56,15 +36,16 @@ export async function getTotals({ url }: { url: string | undefined }) {
  * strategies in it, and draw compelling visualizations.
  */
 export async function getTreasuryComposition({
+  gatewayAddress,
   url,
 }: {
+  gatewayAddress: Address;
   url: string | undefined;
 }) {
   const client = createPublicClient({
     chain: mainnet,
     transport: http(url),
   });
-  const gatewayAddress = getGatewayAddress(mainnet.id);
   const treasuryAddress = await getTreasury(client, {
     address: gatewayAddress,
   });
@@ -117,69 +98,105 @@ export async function getTreasuryComposition({
 
 async function getStrategicReserves({
   client,
+  gatewayAddress,
   treasuryAddress,
 }: {
   client: PublicClient;
+  gatewayAddress: Address;
   treasuryAddress: Address;
 }) {
+  if (gatewayAddress !== gatewayAddresses[0]) {
+    return 0n;
+  }
   const strategicReserveAddresses = [
     treasuryAddress,
     ummRoleAddress,
     vetroMultisigAddress,
-  ] as `0x${string}`[];
-  const vusdMetaBalancePromises = strategicReserveAddresses.map((account) =>
-    balanceOf(client, { account, address: vusdMetaAddress }),
+  ] as Address[];
+  const metaBalances = await Promise.all(
+    strategicReserveAddresses.map((account) =>
+      balanceOf(client, { account, address: vusdMetaAddress }),
+    ),
   );
-  const vusdMetaBalances = await Promise.all(vusdMetaBalancePromises);
-  const totalVusdMetaBalance = vusdMetaBalances.reduce(
+  const totalMetaBalance = metaBalances.reduce(
     (acc, balance) => acc + balance,
     0n,
   );
   return previewRedeem(client, {
     address: vusdMetaAddress,
-    shares: totalVusdMetaBalance,
+    shares: totalMetaBalance,
   });
 }
 
 async function getSurplus({
   client,
+  peggedTokenAddress,
   treasuryAddress,
+  yieldDistributorAddress,
 }: {
   client: PublicClient;
+  peggedTokenAddress: Address;
   treasuryAddress: Address;
+  yieldDistributorAddress: Address;
 }) {
   const surplusAddresses = [
     treasuryAddress,
     ummRoleAddress,
     yieldDistributorAddress,
-  ] as `0x${string}`[];
-  const surplusBalancePromises = surplusAddresses.map((account) =>
-    balanceOf(client, { account, address: vusdAddress }),
+  ] as Address[];
+
+  const surplusBalances = await Promise.all(
+    surplusAddresses.map((account) =>
+      balanceOf(client, { account, address: peggedTokenAddress }),
+    ),
   );
-  const surplusBalances = await Promise.all(surplusBalancePromises);
   return surplusBalances.reduce((acc, balance) => acc + balance, 0n);
 }
 
 /**
- * The strategic reserves are the mark-to-market value of VUSDmeta receipts held
- * by the Treasury, the UMM role and the Operator (multisig). The protocol
- * surplus is any VUSD held in the Treasury or UMM or YieldDistributor.
+ * The strategic reserves are the mark-to-market value of yield-bearing
+ * receipts held by the Treasury, the UMM role and the Operator (multisig).
+ * The protocol surplus is any pegged token held in the Treasury, UMM or
+ * YieldDistributor.
  *
  * This is useful to understand the health of the protocol and its ability to
- * cover redemptions.
+ * cover redemptions for the given gateway's pegged token.
  */
-export async function getBackingVusd({ url }: { url: string | undefined }) {
+export async function getPeggedTokenBacking({
+  gatewayAddress,
+  url,
+}: {
+  gatewayAddress: Address;
+  url: string | undefined;
+}) {
   const client = createPublicClient({
     chain: mainnet,
     transport: http(url),
   });
-  const gatewayAddress = getGatewayAddress(mainnet.id);
-  const treasuryAddress = await getTreasury(client, {
-    address: gatewayAddress,
-  });
+  const [peggedTokenAddress, treasuryAddress] = await Promise.all([
+    getPeggedToken(client, { address: gatewayAddress }),
+    getTreasury(client, { address: gatewayAddress }),
+  ]);
+
   const [strategicReserves, surplus] = await Promise.all([
-    getStrategicReserves({ client, treasuryAddress }),
-    getSurplus({ client, treasuryAddress }),
+    getStrategicReserves({ client, gatewayAddress, treasuryAddress }),
+    findStakingVaultForPeggedToken({
+      client,
+      peggedTokenAddress,
+    })
+      .then((stakingVaultAddress) =>
+        getYieldDistributor(client, {
+          address: stakingVaultAddress,
+        }),
+      )
+      .then((yieldDistributorAddress) =>
+        getSurplus({
+          client,
+          peggedTokenAddress,
+          treasuryAddress,
+          yieldDistributorAddress,
+        }),
+      ),
   ]);
   return {
     strategicReserves,

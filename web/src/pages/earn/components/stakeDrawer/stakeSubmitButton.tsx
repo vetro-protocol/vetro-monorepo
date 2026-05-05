@@ -38,7 +38,7 @@ export function StakeSubmitButton({
         type="button"
         variant="primary"
       >
-        {connectWalletText ?? t("pages.swap.form.connect-wallet")}
+        {connectWalletText ?? t("common.connect-wallet")}
       </Button>
     );
   }
@@ -51,15 +51,13 @@ export function StakeSubmitButton({
       return actionText;
     }
     if (inputError === "enter-amount") {
-      return enterAmountText ?? t("pages.swap.form.enter-amount");
+      return enterAmountText ?? t("common.enter-amount");
     }
     if (inputError === "insufficient-balance") {
-      return (
-        insufficientBalanceText ?? t("pages.swap.form.insufficient-balance")
-      );
+      return insufficientBalanceText ?? t("common.insufficient-balance");
     }
     if (inputError === "insufficient-gas") {
-      return insufficientGasText ?? t("pages.swap.form.insufficient-gas");
+      return insufficientGasText ?? t("common.insufficient-gas");
     }
     return actionText;
   }

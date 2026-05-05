@@ -6,10 +6,10 @@ import { Dropdown } from "../base/dropdown";
 import { TokenDisplay } from "../tokenDisplay";
 import { TokenLogo } from "../tokenLogo";
 
-type Props = {
-  onChange: (token: Token) => void;
-  tokens: Token[];
-  value: Token;
+type Props<T extends Token = Token> = {
+  onChange: (token: T) => void;
+  tokens: T[];
+  value: T;
 };
 
 const renderItem = (token: Token) => (
@@ -22,7 +22,11 @@ const renderItem = (token: Token) => (
   </>
 );
 
-export const TokenDropdown = function ({ onChange, tokens, value }: Props) {
+export const TokenDropdown = function <T extends Token = Token>({
+  onChange,
+  tokens,
+  value,
+}: Props<T>) {
   const { t } = useTranslation();
 
   return (
@@ -35,7 +39,7 @@ export const TokenDropdown = function ({ onChange, tokens, value }: Props) {
       renderTrigger={(isOpen, triggerProps) => (
         <div
           {...triggerProps}
-          className={`button-secondary flex ${tokens.length > 1 ? "cursor-pointer text-gray-500! hover:bg-gray-50! hover:text-neutral-900!" : ""} items-center gap-1.5 rounded-full py-1.5 pr-2 pl-1.5`}
+          className={`flex items-center gap-1.5 rounded-full bg-white py-1.5 pr-2 pl-1.5 shadow-sm ${tokens.length > 1 ? "cursor-pointer text-gray-500 hover:bg-gray-50 hover:text-neutral-900" : ""}`}
         >
           <TokenDisplay logoURI={value.logoURI} symbol={value.symbol} />
           {tokens.length > 1 && (

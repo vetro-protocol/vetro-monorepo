@@ -6,21 +6,26 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { gatewayAbi, type RequestRedeemEvents } from "@vetro-protocol/gateway";
 import { requestRedeem } from "@vetro-protocol/gateway/actions";
 import type { EventEmitter } from "events";
-import { parseEventLogs } from "viem";
+import type { TokenWithGateway } from "types";
+import { type Address, parseEventLogs } from "viem";
 import { useAccount } from "wagmi";
 
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { redeemRequestQueryKey } from "./useGetRedeemRequest";
+import { redeemRequestsQueryKey } from "./useGetRedeemRequests";
 import { useMainnet } from "./useMainnet";
-import { useVusd } from "./useVusd";
 
 export const useRequestRedeem = function ({
   approveAmount,
+  gatewayAddress,
   onEmitter,
+  peggedToken,
   peggedTokenAmount,
 }: {
   approveAmount?: bigint;
+  gatewayAddress: Address;
   onEmitter?: (emitter: EventEmitter<RequestRedeemEvents>) => void;
+  peggedToken: TokenWithGateway;
   peggedTokenAmount: bigint;
 }) {
   const { address } = useAccount();
@@ -29,9 +34,8 @@ export const useRequestRedeem = function ({
   const ethereumChain = useMainnet();
   const { queryKey: nativeBalanceKey } = useNativeBalance(ethereumChain.id);
   const queryClient = useQueryClient();
-  const { data: vusd } = useVusd();
 
-  const vusdBalanceQueryKey = tokenBalanceQueryKey(vusd, address);
+  const peggedTokenBalanceQueryKey = tokenBalanceQueryKey(peggedToken, address);
 
   const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
     ethereumChain.id,
@@ -47,6 +51,7 @@ export const useRequestRedeem = function ({
 
       const { emitter, promise } = requestRedeem(walletClient!, {
         approveAmount,
+        gatewayAddress,
         peggedTokenAmount,
       });
 
@@ -56,7 +61,7 @@ export const useRequestRedeem = function ({
       emitter.on("request-redeem-transaction-succeeded", function (receipt) {
         updateNativeBalanceAfterReceipt(receipt);
         queryClient.setQueryData(
-          vusdBalanceQueryKey,
+          peggedTokenBalanceQueryKey,
           (old: bigint) => old - peggedTokenAmount,
         );
         // event is always emitted
@@ -71,6 +76,7 @@ export const useRequestRedeem = function ({
             redeemRequestQueryKey({
               address,
               chainId: ethereumChain.id,
+              gatewayAddress,
             }),
             // event includes the updated amount and claimableAt
             [args.amount, args.claimableAt] as [bigint, bigint],
@@ -90,10 +96,17 @@ export const useRequestRedeem = function ({
         queryKey: redeemRequestQueryKey({
           address,
           chainId: ethereumChain.id,
+          gatewayAddress,
         }),
       });
       queryClient.invalidateQueries({
-        queryKey: vusdBalanceQueryKey,
+        queryKey: redeemRequestsQueryKey({
+          address,
+          chainId: ethereumChain.id,
+        }),
+      });
+      queryClient.invalidateQueries({
+        queryKey: peggedTokenBalanceQueryKey,
       });
     },
   });

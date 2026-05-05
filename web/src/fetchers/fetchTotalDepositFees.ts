@@ -15,6 +15,7 @@ export const fetchTotalDepositFees = async function ({
   client,
   owner,
   queryClient,
+  stakingVaultAddress,
   token,
 }: {
   amount: bigint;
@@ -23,6 +24,7 @@ export const fetchTotalDepositFees = async function ({
   client: Client;
   owner: Address;
   queryClient: QueryClient;
+  stakingVaultAddress: Address;
   token: Token;
 }) {
   const gasUnits = await queryClient.ensureQueryData(
@@ -33,6 +35,7 @@ export const fetchTotalDepositFees = async function ({
       client,
       owner,
       queryClient,
+      stakingVaultAddress,
       token,
     }),
   );

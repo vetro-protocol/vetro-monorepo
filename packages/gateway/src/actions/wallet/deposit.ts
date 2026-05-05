@@ -13,12 +13,12 @@ import { waitForTransactionReceipt, writeContract } from "viem/actions";
 import { allowance, approve } from "viem-erc20/actions";
 
 import { gatewayAbi } from "../../abi/gatewayAbi.js";
-import { getGatewayAddress } from "../../getGatewayAddress.js";
 import type { DepositEvents } from "../../types.js";
 
 export type DepositParams = {
   amountIn: bigint;
   approveAmount?: bigint;
+  gatewayAddress: Address;
   minPeggedTokenOut: bigint;
   receiver: Address;
   tokenIn: Address;
@@ -28,6 +28,7 @@ const canDeposit = function ({
   amountIn,
   approveAmount,
   client,
+  gatewayAddress,
   minPeggedTokenOut,
   receiver,
   tokenIn,
@@ -35,6 +36,7 @@ const canDeposit = function ({
   amountIn: bigint;
   approveAmount: bigint;
   client: WalletClient;
+  gatewayAddress: Address;
   minPeggedTokenOut: bigint;
   receiver: Address;
   tokenIn: Address;
@@ -60,6 +62,19 @@ const canDeposit = function ({
     return {
       canDeposit: false,
       reason: "Client must have an account",
+    };
+  }
+  // Validate gateway address
+  if (!gatewayAddress || !isAddress(gatewayAddress)) {
+    return {
+      canDeposit: false,
+      reason: "Invalid gateway address",
+    };
+  }
+  if (isAddressEqual(gatewayAddress, zeroAddress)) {
+    return {
+      canDeposit: false,
+      reason: "Gateway address cannot be zero address",
     };
   }
   // Validate tokenIn address
@@ -134,6 +149,7 @@ const runDeposit = (
   {
     amountIn,
     approveAmount = amountIn,
+    gatewayAddress,
     minPeggedTokenOut,
     receiver,
     tokenIn,
@@ -145,6 +161,7 @@ const runDeposit = (
         amountIn,
         approveAmount,
         client: walletClient,
+        gatewayAddress,
         minPeggedTokenOut,
         receiver,
         tokenIn,
@@ -154,9 +171,6 @@ const runDeposit = (
         emitter.emit("deposit-failed-validation", reason!);
         return;
       }
-
-      // already validated
-      const gatewayAddress = getGatewayAddress(walletClient.chain!.id);
 
       // Check current allowance
       const currentAllowance = await allowance(walletClient, {
@@ -255,7 +269,7 @@ export const encodeDeposit = ({
   minPeggedTokenOut,
   receiver,
   tokenIn,
-}: DepositParams) =>
+}: Omit<DepositParams, "gatewayAddress">) =>
   encodeFunctionData({
     abi: gatewayAbi,
     args: [tokenIn, amountIn, minPeggedTokenOut, receiver],

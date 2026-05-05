@@ -1,4 +1,5 @@
 import type { QueryClient } from "@tanstack/react-query";
+import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import type { Token } from "types";
 import { type Client, zeroAddress } from "viem";
 import { sepolia } from "viem/chains";
@@ -61,6 +62,7 @@ describe("fetchTotalDepositFees", function () {
       client: mockClient,
       owner: mockOwner,
       queryClient: mockQueryClient,
+      stakingVaultAddress: stakingVaultAddresses[0],
       token: mockToken,
     });
 
@@ -81,6 +83,7 @@ describe("fetchTotalDepositFees", function () {
       client: mockClient,
       owner: mockOwner,
       queryClient: mockQueryClient,
+      stakingVaultAddress: stakingVaultAddresses[0],
       token: mockToken,
     });
 
@@ -100,6 +103,7 @@ describe("fetchTotalDepositFees", function () {
       client: mockClient,
       owner: mockOwner,
       queryClient: mockQueryClient,
+      stakingVaultAddress: stakingVaultAddresses[0],
       token: mockToken,
     });
 

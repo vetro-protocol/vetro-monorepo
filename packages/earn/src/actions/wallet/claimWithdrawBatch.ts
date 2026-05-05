@@ -12,22 +12,25 @@ import {
 import { waitForTransactionReceipt, writeContract } from "viem/actions";
 
 import { stakingVaultAbi } from "../../abi/stakingVaultAbi.js";
-import { getStakingVaultAddress } from "../../getStakingVaultAddress.js";
 import type { ClaimWithdrawBatchEvents } from "../../types.js";
+import { isAddressValid } from "../../utils/isAddressValid.js";
 
 export type ClaimWithdrawBatchParams = {
   receiver: Address;
   requestIds: readonly bigint[];
+  vaultAddress: Address;
 };
 
 const canClaimWithdrawBatch = function ({
   client,
   receiver,
   requestIds,
+  vaultAddress,
 }: {
   client: WalletClient;
   receiver: Address;
   requestIds: readonly bigint[];
+  vaultAddress: Address;
 }): {
   canClaimWithdrawBatch: boolean;
   reason?: string;
@@ -48,6 +51,12 @@ const canClaimWithdrawBatch = function ({
     return {
       canClaimWithdrawBatch: false,
       reason: "Client must have an account",
+    };
+  }
+  if (!isAddressValid(vaultAddress)) {
+    return {
+      canClaimWithdrawBatch: false,
+      reason: "Invalid StakingVault address",
     };
   }
 
@@ -90,7 +99,7 @@ const canClaimWithdrawBatch = function ({
 
 const runClaimWithdrawBatch = (
   walletClient: WalletClient,
-  { receiver, requestIds }: ClaimWithdrawBatchParams,
+  { receiver, requestIds, vaultAddress }: ClaimWithdrawBatchParams,
 ) =>
   async function (emitter: EventEmitter<ClaimWithdrawBatchEvents>) {
     try {
@@ -99,6 +108,7 @@ const runClaimWithdrawBatch = (
           client: walletClient,
           receiver,
           requestIds,
+          vaultAddress,
         });
 
       if (!canClaimWithdrawBatchFlag) {
@@ -106,16 +116,12 @@ const runClaimWithdrawBatch = (
         return;
       }
 
-      const stakingVaultAddress = getStakingVaultAddress(
-        walletClient.chain!.id,
-      );
-
       emitter.emit("pre-claim-withdraw-batch");
 
       const claimWithdrawBatchHash = await writeContract(walletClient, {
         abi: stakingVaultAbi,
         account: walletClient.account!,
-        address: stakingVaultAddress,
+        address: vaultAddress,
         args: [requestIds, receiver],
         chain: walletClient.chain,
         functionName: "claimWithdrawBatch",

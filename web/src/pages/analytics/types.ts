@@ -1,4 +1,5 @@
-// Represents a single item in an allocation card's chart and legend.
+import type { Address } from "viem";
+
 // `amount` is used for bar proportions (via CSS flex) and formatted by AllocationLegend.
 export type AllocationItem = {
   amount: number;
@@ -13,7 +14,7 @@ export type TreasuryToken = {
   activeStrategies: { name: string; totalDebt: string }[];
   latestPrice: string;
   priceDecimals: number;
-  tokenAddress: string;
+  tokenAddress: Address;
   totalDebt: string;
   withdrawable: string;
 };

@@ -1,3 +1,4 @@
+import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { describe, expect, it } from "vitest";
 
 import { swapFormReducer } from "../../../src/components/swapForm/swapFormReducer";
@@ -7,6 +8,7 @@ const mockToken1 = {
   address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" as const,
   chainId: 1,
   decimals: 6,
+  gatewayAddress: gatewayAddresses[0],
   logoURI: "https://example.com/usdc.svg",
   name: "USD Coin",
   symbol: "USDC",
@@ -16,6 +18,7 @@ const mockToken2 = {
   address: "0xdAC17F958D2ee523a2206206994597C13D831ec7" as const,
   chainId: 1,
   decimals: 6,
+  gatewayAddress: gatewayAddresses[0],
   logoURI: "https://example.com/usdt.svg",
   name: "Tether USD",
   symbol: "USDT",

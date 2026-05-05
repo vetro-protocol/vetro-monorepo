@@ -53,7 +53,11 @@ const mockWalletClient = {
   chain: sepolia,
 } as WalletClient;
 
+const mockGatewayAddress =
+  "0x3333333333333333333333333333333333333333" as Address;
+
 const validParameters = {
+  gatewayAddress: mockGatewayAddress,
   minAmountOut: BigInt(900),
   peggedTokenIn: BigInt(1000),
   receiver: "0x2222222222222222222222222222222222222222" as Address,
@@ -127,6 +131,54 @@ describe("redeem", function () {
 
     expect(onRedeemFailedValidation).toHaveBeenCalledExactlyOnceWith(
       "Chain is not defined on wallet client",
+    );
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("should emit 'redeem-failed-validation' if gateway address is not valid", async function () {
+    const parameters = {
+      ...validParameters,
+      gatewayAddress: "invalid_gateway",
+    };
+
+    const { emitter, promise } = redeem(
+      mockWalletClient,
+      // @ts-expect-error - Testing invalid input
+      parameters,
+    );
+
+    const onRedeemFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("redeem-failed-validation", onRedeemFailedValidation);
+    emitter.on("redeem-settled", onSettled);
+
+    await promise;
+
+    expect(onRedeemFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "Invalid gateway address",
+    );
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("should emit 'redeem-failed-validation' if gateway address is zero address", async function () {
+    const parameters = {
+      ...validParameters,
+      gatewayAddress: zeroAddress,
+    };
+
+    const { emitter, promise } = redeem(mockWalletClient, parameters);
+
+    const onRedeemFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("redeem-failed-validation", onRedeemFailedValidation);
+    emitter.on("redeem-settled", onSettled);
+
+    await promise;
+
+    expect(onRedeemFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "Gateway address cannot be zero address",
     );
     expect(onSettled).toHaveBeenCalledOnce();
   });

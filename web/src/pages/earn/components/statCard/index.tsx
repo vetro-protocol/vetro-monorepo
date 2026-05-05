@@ -2,13 +2,14 @@ import type { ReactNode } from "react";
 import Skeleton from "react-loading-skeleton";
 
 type Props = {
+  badge?: ReactNode;
   icon: ReactNode;
   isLoading?: boolean;
   label: string;
   value: string;
 };
 
-export function StatCard({ icon, isLoading, label, value }: Props) {
+export function StatCard({ badge, icon, isLoading, label, value }: Props) {
   const renderValue = function () {
     if (value) {
       return value;
@@ -26,6 +27,7 @@ export function StatCard({ icon, isLoading, label, value }: Props) {
         <div className="size-4">{icon}</div>
       </div>
       <h3 className="text-2xl font-semibold text-gray-900">{renderValue()}</h3>
+      {badge && <div className="self-start empty:hidden">{badge}</div>}
     </div>
   );
 }

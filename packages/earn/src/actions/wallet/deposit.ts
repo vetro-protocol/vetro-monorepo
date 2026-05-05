@@ -13,14 +13,15 @@ import { waitForTransactionReceipt, writeContract } from "viem/actions";
 import { allowance, approve } from "viem-erc20/actions";
 
 import { stakingVaultAbi } from "../../abi/stakingVaultAbi.js";
-import { getStakingVaultAddress } from "../../getStakingVaultAddress.js";
 import type { DepositEvents } from "../../types.js";
+import { isAddressValid } from "../../utils/isAddressValid.js";
 
 export type DepositParams = {
   approveAmount?: bigint;
   assets: bigint;
   receiver: Address;
   token: Address;
+  vaultAddress: Address;
 };
 
 const canDeposit = function ({
@@ -29,12 +30,14 @@ const canDeposit = function ({
   client,
   receiver,
   token,
+  vaultAddress,
 }: {
   approveAmount: bigint;
   assets: bigint;
   client: WalletClient;
   receiver: Address;
   token: Address;
+  vaultAddress: Address;
 }): {
   canDeposit: boolean;
   reason?: string;
@@ -55,6 +58,12 @@ const canDeposit = function ({
     return {
       canDeposit: false,
       reason: "Client must have an account",
+    };
+  }
+  if (!isAddressValid(vaultAddress)) {
+    return {
+      canDeposit: false,
+      reason: "Invalid StakingVault address",
     };
   }
   if (!token || !isAddress(token)) {
@@ -108,7 +117,7 @@ const canDeposit = function ({
 
 const runDeposit = (walletClient: WalletClient, params: DepositParams) =>
   async function (emitter: EventEmitter<DepositEvents>) {
-    const { assets, receiver, token } = params;
+    const { assets, receiver, token, vaultAddress } = params;
     const approveAmount = params.approveAmount ?? assets;
 
     try {
@@ -118,6 +127,7 @@ const runDeposit = (walletClient: WalletClient, params: DepositParams) =>
         client: walletClient,
         receiver,
         token,
+        vaultAddress,
       });
 
       if (!canDepositFlag) {
@@ -125,14 +135,10 @@ const runDeposit = (walletClient: WalletClient, params: DepositParams) =>
         return;
       }
 
-      const stakingVaultAddress = getStakingVaultAddress(
-        walletClient.chain!.id,
-      );
-
       const currentAllowance = await allowance(walletClient, {
         address: token,
         owner: walletClient.account!.address,
-        spender: stakingVaultAddress,
+        spender: vaultAddress,
       });
 
       if (currentAllowance < assets) {
@@ -141,7 +147,7 @@ const runDeposit = (walletClient: WalletClient, params: DepositParams) =>
         const approvalHash = await approve(walletClient, {
           address: token,
           amount: approveAmount,
-          spender: stakingVaultAddress,
+          spender: vaultAddress,
         }).catch(function (error: Error) {
           emitter.emit("user-signing-approval-error", error);
         });
@@ -175,7 +181,7 @@ const runDeposit = (walletClient: WalletClient, params: DepositParams) =>
       const depositHash = await writeContract(walletClient, {
         abi: stakingVaultAbi,
         account: walletClient.account!,
-        address: stakingVaultAddress,
+        address: vaultAddress,
         args: [assets, receiver],
         chain: walletClient.chain,
         functionName: "deposit",

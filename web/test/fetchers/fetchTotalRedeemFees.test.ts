@@ -2,7 +2,7 @@ import { estimateFeesQueryOptions } from "@hemilabs/react-hooks/useEstimateFees"
 import { pricesOptions } from "hooks/usePrices";
 import { redeemFeeOptions } from "hooks/useRedeemFee";
 import { redeemGasUnitsOptions } from "hooks/useSwapRedeemFees";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 import { zeroAddress, type Client } from "viem";
 import { sepolia } from "viem/chains";
 import { describe, expect, it, vi } from "vitest";
@@ -15,10 +15,6 @@ vi.mock("@hemilabs/react-hooks/useEstimateFees", () => ({
     queryFn: () => 0n,
     queryKey: ["estimate-fees"],
   }),
-}));
-
-vi.mock("@vetro-protocol/gateway", () => ({
-  getGatewayAddress: vi.fn().mockReturnValue(zeroAddress),
 }));
 
 vi.mock("hooks/usePrices", () => ({
@@ -53,8 +49,9 @@ describe("fetchTotalRedeemFees", function () {
   const mockToken = {
     address: zeroAddress,
     decimals: 6,
+    gatewayAddress: "0xDaD503f8B9d42bb7af3AfC588358D30163e4416F",
     symbol: "USDC",
-  } as Token;
+  } as TokenWithGateway;
   const mockTokenOut = zeroAddress;
 
   it("returns correct total fee in USD", async function () {

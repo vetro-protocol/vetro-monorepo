@@ -1,0 +1,20 @@
+diff --git a/src/index.js b/src/index.js
+index fc229490136ba643be385a65bdafd88cd8015a5e..661e1dc577ccd137021e406e0fcd43bf12ba4677 100644
+--- a/src/index.js
++++ b/src/index.js
+@@ -28,10 +28,11 @@
+ async function watchAsset(provider, account, token, storage) {
+   const { address, chainId, decimals, logoURI, symbol } = token;
+ 
+-  // The only wallet known so far with EIP-747 support is MetaMask.
+-  if (!provider.isMetaMask) {
+-    throw new Error("Wallet not supported");
+-  }
++  // Patched: disabled MetaMask-only check so wallet_watchAsset works with
++  // any EIP-747 compatible wallet (e.g. wagmi's WalletClient).
++  // if (!provider.isMetaMask) {
++  //   throw new Error("Wallet not supported");
++  // }
+ 
+   const storageKey = `watchedAssets:${account}`;
+   const watchedAssets = storage?.getItem(storageKey) || "";

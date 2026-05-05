@@ -27,6 +27,7 @@ export function FeesContainer({
   totalFees,
 }: Props) {
   const [isOpen, setIsOpen] = useState(false);
+  const toggleOpen = () => setIsOpen((prev) => !prev);
 
   // the network fee is unavoidable. So if it's the only one, we can use the "gas" icon
   const icon = Children.toArray(children).length === 1 ? gasSvg : feesSvg;
@@ -46,7 +47,13 @@ export function FeesContainer({
         aria-controls="fees-list"
         aria-expanded={isOpen}
         className={`text-xsm flex h-11 w-full cursor-pointer items-center justify-between ${sectionClassName}`}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={toggleOpen}
+        onKeyDown={function handleKeyDown(e) {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            toggleOpen();
+          }
+        }}
         role="button"
         tabIndex={0}
       >
@@ -94,7 +101,7 @@ export const FormSection = ({
   children: ReactNode;
   show: boolean;
 }) => (
-  <CollapsibleSection className="w-full md:max-w-md" show={show}>
+  <CollapsibleSection className="w-full max-w-md" show={show}>
     {children}
   </CollapsibleSection>
 );

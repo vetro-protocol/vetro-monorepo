@@ -1,8 +1,7 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { getGatewayAddress } from "@vetro-protocol/gateway";
 import { tokenConfigOptions } from "hooks/useTokenConfig";
-import { whitelistedTokensOptions } from "hooks/useWhitelistedTokens";
-import { type Client, formatUnits } from "viem";
+import { whitelistedTokensByGatewayOptions } from "hooks/useWhitelistedTokensByGateway";
+import { type Address, type Client, formatUnits } from "viem";
 import { readContract } from "viem/actions";
 
 const aggregatorV3Abi = [
@@ -24,16 +23,17 @@ const aggregatorV3Abi = [
 
 export const fetchOraclePrices = async function ({
   client,
+  gatewayAddress,
   queryClient,
 }: {
   client: Client;
+  gatewayAddress: Address;
   queryClient: QueryClient;
 }) {
   const chainId = client.chain!.id;
-  const gatewayAddress = getGatewayAddress(chainId);
 
   const whitelistedTokens = await queryClient.ensureQueryData(
-    whitelistedTokensOptions({ client, queryClient }),
+    whitelistedTokensByGatewayOptions({ client, gatewayAddress, queryClient }),
   );
 
   const entries = await Promise.all(
@@ -61,7 +61,12 @@ export const fetchOraclePrices = async function ({
         }),
       ]);
 
-      const key = (token.extensions?.priceSymbol ?? token.symbol).toUpperCase();
+      // Each whitelisted token's oracle is denominated in the gateway's peg
+      // unit (e.g. WBTC/BTC for the vetBTC gateway). Key by the token's symbol
+      // so each entry is unique within the gateway dict — `priceSymbol` is only
+      // a downstream lookup alias (used by `getTokenPrice`) and would cause
+      // collisions here when several whitelisted tokens share the same alias.
+      const key = token.symbol.toUpperCase();
       return [key, formatUnits(latestAnswer, decimals)] as const;
     }),
   );

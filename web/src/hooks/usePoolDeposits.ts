@@ -1,18 +1,35 @@
-import { useQuery } from "@tanstack/react-query";
-import { getStakingVaultAddress } from "@vetro-protocol/earn";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { useEthereumClient } from "hooks/useEthereumClient";
-import { useMainnet } from "hooks/useMainnet";
+import type { Address, Client } from "viem";
 import { totalAssets } from "viem-erc4626/actions";
 
-export function usePoolDeposits() {
-  const chain = useMainnet();
-  const client = useEthereumClient();
-  const stakingVaultAddress = getStakingVaultAddress(chain.id);
+export const poolDepositsQueryKey = ({
+  chainId,
+  stakingVaultAddress,
+}: {
+  chainId: number | undefined;
+  stakingVaultAddress: Address;
+}) => ["pool-deposits", chainId, stakingVaultAddress];
 
-  return useQuery({
+export const poolDepositsOptions = ({
+  client,
+  stakingVaultAddress,
+}: {
+  client: Client | undefined;
+  stakingVaultAddress: Address;
+}) =>
+  queryOptions({
     enabled: !!client,
     queryFn: () => totalAssets(client!, { address: stakingVaultAddress }),
-    queryKey: ["pool-deposits", chain.id, stakingVaultAddress],
+    queryKey: poolDepositsQueryKey({
+      chainId: client?.chain?.id,
+      stakingVaultAddress,
+    }),
     refetchInterval: 5 * 60 * 1000, // 5 minutes
   });
+
+export function usePoolDeposits(stakingVaultAddress: Address) {
+  const client = useEthereumClient();
+
+  return useQuery(poolDepositsOptions({ client, stakingVaultAddress }));
 }

@@ -3,10 +3,10 @@ import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
 import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpdateNativeBalanceAfterReceipt";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { getStakingVaultAddress } from "@vetro-protocol/earn";
 import { claimWithdraw } from "@vetro-protocol/earn/actions";
 import { exitTicketsQueryKey } from "pages/earn/hooks/useExitTickets";
 import type { ExitTicket } from "pages/earn/types";
+import type { Address } from "viem";
 import { useAccount } from "wagmi";
 
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
@@ -19,19 +19,21 @@ type Params = {
   onStatusChange: (status: ClaimWithdrawStatus) => void;
   onTransactionHash?: (hash: string) => void;
   requestId: bigint;
+  stakingVaultAddress: Address;
 };
 
 export const useClaimWithdraw = function ({
   onStatusChange,
   onTransactionHash,
   requestId,
+  stakingVaultAddress,
 }: Params) {
   const { address: account } = useAccount();
   const chain = useMainnet();
   const { data: walletClient } = useEthereumWalletClient();
   const ensureConnectedTo = useEnsureConnectedTo();
   const queryClient = useQueryClient();
-  const stakingVaultAddress = getStakingVaultAddress(chain.id);
+
   const { queryKey: nativeBalanceKey } = useNativeBalance(chain.id);
   const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
     chain.id,
@@ -59,6 +61,7 @@ export const useClaimWithdraw = function ({
       const { emitter, promise } = claimWithdraw(walletClient!, {
         receiver: account,
         requestId,
+        vaultAddress: stakingVaultAddress,
       });
 
       emitter.on("user-signed-claim-withdraw", function (hash) {

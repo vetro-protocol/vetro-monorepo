@@ -94,11 +94,11 @@ function ItemAnimation({
 
   return (
     <div
-      ref={ref}
       className={`transition-all duration-300 ease-out ${
         isVisible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
       }`}
       onTransitionEnd={handleTransitionEnd}
+      ref={ref}
     >
       {children}
     </div>
@@ -170,10 +170,10 @@ export function Stack({
 
           return (
             <li
-              key={item.id}
               className={
                 isFirst ? "relative" : "absolute right-0 bottom-0 left-0"
               }
+              key={item.id}
               style={{
                 transform,
                 transformOrigin: "bottom center",

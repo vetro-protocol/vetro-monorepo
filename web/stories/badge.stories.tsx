@@ -3,10 +3,16 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { Badge } from "../src/components/base/badge";
 
 const meta: Meta<typeof Badge> = {
+  args: {
+    hoverable: false,
+  },
   argTypes: {
+    hoverable: {
+      control: "boolean",
+    },
     variant: {
       control: "select",
-      options: ["blue", "gray", "red"],
+      options: ["blue", "gray", "green", "light-red", "red"],
     },
   },
   component: Badge,
@@ -27,6 +33,20 @@ export const Gray: Story = {
   args: {
     children: "Default",
     variant: "gray",
+  },
+};
+
+export const Green: Story = {
+  args: {
+    children: "Active",
+    variant: "green",
+  },
+};
+
+export const LightRed: Story = {
+  args: {
+    children: "Warning",
+    variant: "light-red",
   },
 };
 

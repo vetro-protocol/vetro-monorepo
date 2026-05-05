@@ -6,13 +6,13 @@ import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { TokenSelectorSkeleton } from "components/tokenSelectorSkeleton";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 
 import { SwapToggleButton } from "./swapToggleButton";
 import { TreasuryReserves } from "./treasuryReserves";
 
 type Props = {
-  fromToken: Token;
+  fromToken: TokenWithGateway;
 };
 
 export function RedeemSkeleton({ fromToken }: Props) {
@@ -28,7 +28,9 @@ export function RedeemSkeleton({ fromToken }: Props) {
                 <Balance label={t("pages.swap.form.balance")} value="-" />
               }
               disabled
-              fiatValue={<Skeleton className="ml-2" height={14} width={32} />}
+              fiatValue={
+                <Skeleton className="h-full" containerClassName="w-8" />
+              }
               label={t("pages.swap.form.you-are-swapping")}
               tokenSelector={<TokenSelectorReadOnly {...fromToken} />}
               value="0"
@@ -45,8 +47,10 @@ export function RedeemSkeleton({ fromToken }: Props) {
                 <Balance label={t("pages.swap.form.balance")} value="-" />
               }
               disabled
-              fiatValue={<Skeleton className="ml-2" height={14} width={32} />}
-              label={t("pages.swap.form.you-will-receive")}
+              fiatValue={
+                <Skeleton className="h-full" containerClassName="w-8" />
+              }
+              label={t("pages.swap.form.you-will-receive-estimated")}
               tokenSelector={<TokenSelectorSkeleton />}
               value="0"
             />
@@ -54,13 +58,13 @@ export function RedeemSkeleton({ fromToken }: Props) {
 
           <div className="mt-2 flex w-full flex-col border-t border-gray-200 px-2 py-3">
             <Button disabled size="xLarge" type="button">
-              {t("pages.swap.form.connect-wallet")}
+              {t("common.connect-wallet")}
             </Button>
           </div>
         </div>
       </div>
       <ApproveSection active={false} />
-      <TreasuryReserves />
+      <TreasuryReserves gatewayAddress={fromToken.gatewayAddress} />
     </>
   );
 }

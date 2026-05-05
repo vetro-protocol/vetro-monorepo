@@ -27,9 +27,9 @@ export const RenderCryptoValue = function ({
   if (value !== undefined) {
     return (
       <DisplayAmount
+        amount={value}
         amountContainer={amountContainer}
         container={container}
-        amount={value}
         showSymbol={showSymbol}
         token={token}
       />

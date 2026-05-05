@@ -2,7 +2,6 @@ import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { TokenInput } from "components/tokenInput";
 import { Balance } from "components/tokenInput/balance";
-import { useMainnet } from "hooks/useMainnet";
 import type { FormEvent, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
@@ -37,13 +36,12 @@ export function Form({
   onToggle,
   toSection,
 }: Props) {
-  const ethereumChain = useMainnet();
   const { t } = useTranslation();
 
   const { data: fromTokenBalance, isError: isFromTokenBalanceError } =
     useTokenBalance({
       address: fromToken.address,
-      chainId: ethereumChain.id,
+      chainId: fromToken.chainId,
     });
 
   return (

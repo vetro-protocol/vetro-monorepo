@@ -18,6 +18,7 @@ const totalDepositFeesOptions = ({
   client,
   owner,
   queryClient,
+  stakingVaultAddress,
   token,
 }: {
   amount: bigint;
@@ -26,6 +27,7 @@ const totalDepositFeesOptions = ({
   client: Client | undefined;
   owner: Address | undefined;
   queryClient: QueryClient;
+  stakingVaultAddress: Address;
   token: Token | undefined;
 }) =>
   queryOptions({
@@ -38,6 +40,7 @@ const totalDepositFeesOptions = ({
         client: client!,
         owner: owner!,
         queryClient,
+        stakingVaultAddress,
         token: token!,
       }),
     queryKey: [
@@ -46,16 +49,19 @@ const totalDepositFeesOptions = ({
       token?.address,
       owner,
       amount.toString(),
+      stakingVaultAddress,
     ],
   });
 
 export const useTotalDepositFees = function ({
   amount,
   approveAmount,
+  stakingVaultAddress,
   token,
 }: {
   amount: bigint;
   approveAmount: bigint | undefined;
+  stakingVaultAddress: Address;
   token: Token | undefined;
 }) {
   const { address: owner } = useAccount();
@@ -71,6 +77,7 @@ export const useTotalDepositFees = function ({
       client,
       owner,
       queryClient,
+      stakingVaultAddress,
       token,
     }),
   );

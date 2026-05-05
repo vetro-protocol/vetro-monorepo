@@ -4,7 +4,7 @@ import { Toast } from "components/base/toast";
 import { Tooltip } from "components/tooltip";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useClaimWithdraw } from "hooks/useClaimWithdraw";
-import { useVusd } from "hooks/useVusd";
+import { useVaultPeggedToken } from "hooks/useVaultPeggedToken";
 import { TrashIcon } from "pages/earn/icons/trashIcon";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -26,23 +26,23 @@ type Props = {
 type WithdrawButtonProps = {
   disabled: boolean;
   isWithdrawing: boolean;
-  onConnectWallet: VoidFunction | undefined;
   onWithdraw: VoidFunction;
 };
 
 function WithdrawButton({
   disabled,
   isWithdrawing,
-  onConnectWallet,
+
   onWithdraw,
 }: WithdrawButtonProps) {
+  const { openConnectModal } = useConnectModal();
   const { t } = useTranslation();
   const { isConnected } = useAccount();
 
   if (!isConnected) {
     return (
-      <Button onClick={onConnectWallet} size="xSmall" variant="primary">
-        {t("pages.swap.form.connect-wallet")}
+      <Button onClick={openConnectModal} size="xSmall" variant="primary">
+        {t("common.connect-wallet")}
       </Button>
     );
   }
@@ -73,8 +73,8 @@ export function ActionsCell({
   ticket,
 }: Props) {
   const { t } = useTranslation();
-  const { openConnectModal } = useConnectModal();
-  const { data: vusd } = useVusd();
+
+  const { data: peggedToken } = useVaultPeggedToken(ticket.stakingVaultAddress);
   const status = getTicketStatus(ticket);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
@@ -82,7 +82,7 @@ export function ActionsCell({
 
   const formattedAmount = formatAmount({
     amount: BigInt(ticket.assets),
-    decimals: vusd?.decimals ?? 18,
+    decimals: peggedToken?.decimals ?? 18,
     isError: false,
   });
 
@@ -91,7 +91,7 @@ export function ActionsCell({
       page: "earn",
       text: t("pages.earn.activity.claim-withdraw-text", {
         amount: formattedAmount,
-        symbol: vusd?.symbol,
+        symbol: peggedToken?.symbol,
       }),
       title: `${t("nav.earn")} · ${t("pages.earn.exit-tickets.withdraw")}`,
     });
@@ -116,6 +116,7 @@ export function ActionsCell({
     },
     onTransactionHash,
     requestId: BigInt(ticket.requestId),
+    stakingVaultAddress: ticket.stakingVaultAddress,
   });
 
   function handleWithdraw() {
@@ -132,7 +133,6 @@ export function ActionsCell({
             <WithdrawButton
               disabled={disabled}
               isWithdrawing={isWithdrawing}
-              onConnectWallet={openConnectModal}
               onWithdraw={handleWithdraw}
             />
           )}
@@ -149,10 +149,11 @@ export function ActionsCell({
           </Tooltip>
         </div>
       )}
-      {isModalOpen && (
+      {isModalOpen && peggedToken && (
         <DeleteTicketModal
           onClose={() => setIsModalOpen(false)}
           onSuccess={onDeleteSuccess}
+          peggedToken={peggedToken}
           ticket={ticket}
         />
       )}

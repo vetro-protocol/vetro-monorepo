@@ -3,12 +3,16 @@ import { useEnsureConnectedTo } from "@hemilabs/react-hooks/useEnsureConnectedTo
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
 import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpdateNativeBalanceAfterReceipt";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { type DepositEvents, getGatewayAddress } from "@vetro-protocol/gateway";
+import type { DepositEvents } from "@vetro-protocol/gateway";
 import { deposit } from "@vetro-protocol/gateway/actions";
 import type { EventEmitter } from "events";
+import type { TreasuryToken } from "pages/analytics/types";
+import type { TokenWithGateway } from "types";
 import { type Address, isAddressEqual } from "viem";
 import { useAccount } from "wagmi";
 
+import { analyticsTotalsQueryKey } from "./useAnalyticsTotals";
+import { analyticsTreasuryQueryKey } from "./useAnalyticsTreasury";
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { useMainnet } from "./useMainnet";
 import {
@@ -16,29 +20,30 @@ import {
   previewDepositTokenOptions,
 } from "./usePreviewDeposit";
 import { treasuryReservesQueryKey } from "./useTreasuryReserves";
-import { useVusd } from "./useVusd";
 
 export const useDeposit = function ({
   amountIn,
   approveAmount,
+  gatewayAddress,
   onEmitter,
+  peggedToken,
   tokenIn,
 }: {
   amountIn: bigint;
   approveAmount?: bigint;
+  gatewayAddress: Address;
   onEmitter?: (emitter: EventEmitter<DepositEvents>) => void;
+  peggedToken: TokenWithGateway;
   tokenIn: Address;
 }) {
   const { address: account } = useAccount();
   const { data: walletClient } = useEthereumWalletClient();
   const ensureConnectedTo = useEnsureConnectedTo();
   const ethereumChain = useMainnet();
-  const gatewayAddress = getGatewayAddress(ethereumChain.id);
   const queryClient = useQueryClient();
   const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
     ethereumChain.id,
   );
-  const { data: vusd } = useVusd();
 
   const allowanceKey = allowanceQueryKey({
     owner: account,
@@ -59,7 +64,16 @@ export const useDeposit = function ({
     gatewayAddress,
   });
 
-  const vusdBalanceQueryKey = tokenBalanceQueryKey(vusd, account);
+  const analyticsTotalsKey = analyticsTotalsQueryKey({
+    chainId: ethereumChain.id,
+    gatewayAddress: peggedToken.gatewayAddress,
+  });
+
+  const analyticsTreasuryKey = analyticsTreasuryQueryKey(
+    peggedToken.gatewayAddress,
+  );
+
+  const peggedTokenBalanceQueryKey = tokenBalanceQueryKey(peggedToken, account);
 
   return useMutation({
     async mutationFn() {
@@ -82,6 +96,7 @@ export const useDeposit = function ({
       const { emitter, promise } = deposit(walletClient!, {
         amountIn,
         approveAmount,
+        gatewayAddress,
         minPeggedTokenOut,
         receiver: account,
         tokenIn,
@@ -107,13 +122,13 @@ export const useDeposit = function ({
       emitter.on("deposit-transaction-succeeded", function (receipt) {
         updateNativeBalanceAfterReceipt(receipt);
 
-        // optimistically deduce the deposited token, and increase vusd balance
+        // optimistically deduce the deposited token, and increase PeggedToken balance
         queryClient.setQueryData(
           tokenInBalanceQueryKey,
           (old: bigint) => old - amountIn,
         );
         queryClient.setQueryData(
-          vusdBalanceQueryKey,
+          peggedTokenBalanceQueryKey,
           (old: bigint) => old + minPeggedTokenOut,
         );
         // optimistically increase treasury reserve for the deposited token
@@ -124,6 +139,29 @@ export const useDeposit = function ({
               isAddressEqual(reserve.token.address, tokenIn)
                 ? { ...reserve, amount: reserve.amount + amountIn }
                 : reserve,
+            ),
+        );
+        // optimistically bump the analytics TVL totals (minted pegged supply)
+        queryClient.setQueryData(
+          analyticsTotalsKey,
+          (old: { minted: bigint; staked: bigint } | undefined) =>
+            old ? { ...old, minted: old.minted + minPeggedTokenOut } : old,
+        );
+        // optimistically bump the analytics treasury allocation for tokenIn.
+        // The API is indexer-backed and may lag, so this keeps the UI in
+        // sync until the backend catches up.
+        queryClient.setQueryData(
+          analyticsTreasuryKey,
+          (old: TreasuryToken[] | undefined) =>
+            old?.map((item) =>
+              isAddressEqual(item.tokenAddress as Address, tokenIn)
+                ? {
+                    ...item,
+                    withdrawable: (
+                      BigInt(item.withdrawable) + amountIn
+                    ).toString(),
+                  }
+                : item,
             ),
         );
       });
@@ -140,11 +178,19 @@ export const useDeposit = function ({
       });
 
       queryClient.invalidateQueries({
-        queryKey: vusdBalanceQueryKey,
+        queryKey: peggedTokenBalanceQueryKey,
       });
 
       queryClient.invalidateQueries({
         queryKey: treasuryReservesKey,
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: analyticsTotalsKey,
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: analyticsTreasuryKey,
       });
 
       // Let's clear this query, as once the user inputs an amount

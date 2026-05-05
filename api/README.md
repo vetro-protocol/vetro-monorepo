@@ -4,9 +4,10 @@ Service that provides data to the Vetro web application.
 
 ## Data endpoints
 
-### `GET /analytics/backing-vusd`
+### `GET /analytics/pegged-token-backing/:gatewayAddress`
 
-Get the total strategic reserves and the total surplus.
+Get the total strategic reserves and the total surplus for a given gateway's pegged token.
+`:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway.
 
 #### Sample response
 
@@ -17,22 +18,10 @@ Get the total strategic reserves and the total surplus.
 }
 ```
 
-### `GET /analytics/totals`
+### `GET /analytics/treasury/:gatewayAddress`
 
-Get the total VUSD minted and staked to calculate the TVL in the protocol.
-
-#### Sample Response
-
-```json
-{
-  "vusdMinted": "3087191980362376717819",
-  "vusdStaked": "916500000000000000000"
-}
-```
-
-### `GET /analytics/treasury`
-
-Get the composition of the treasury by whitelisted token.
+Get the composition of the treasury by whitelisted token for a given gateway.
+`:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway.
 
 #### Sample Response
 
@@ -71,6 +60,7 @@ Get the composition of the treasury by whitelisted token.
 
 Returns the historical borrow APR for a given market and period.
 Valid periods are: "1w", "1m", "3m" and "1y".
+`:marketId` must be a known market id. Returns `400` if malformed and `404` if the market is unsupported.
 
 #### Sample Response for "1m"
 
@@ -95,6 +85,7 @@ Valid periods are: "1w", "1m", "3m" and "1y".
 ### `GET /borrow/:marketId/collateral-assets`
 
 Gets the amount of collateral assets in a given Morpho market.
+`:marketId` must be a known market id. Returns `400` if malformed and `404` if the market is unsupported.
 
 #### Sample Response
 
@@ -104,72 +95,114 @@ Gets the amount of collateral assets in a given Morpho market.
 }
 ```
 
-### `GET /variable-stake/apy`
+### `GET /variable-stake/average-purchase-price/:address`
 
-Returns the APY of the Vetro vault calculated using the share value variations over the last 7 days.
+Returns the user's average purchase price (in the vault asset's native smallest unit; decimal precision depends on the underlying vault asset) for each known Vetro staking vault. Vaults where the user has no position return `"0"`.
+`:address` must be a well-formed Ethereum address. Returns `404` if malformed.
 
 #### Sample Response
 
 ```jsonc
 {
-  "7d": 100, // 100 = 1%
+  "0x476310E34D2810f7d79C43A74E4D79405bd7a925": "1500000000000000000", // sVUSD
+  "0x0cB9D84d4bcEc8d3D5B2d99a6F07f4605325987e": "0", // sVetBTC, no position
 }
+```
+
+### `GET /variable-stake/apy`
+
+Returns the APY for each supported staking vault, indexed by staking vault address, calculated using the share value variations over the last 7 days. Each supported staking vault has an entry in the response; vaults with insufficient history return `{ "7d": 0 }`.
+
+#### Sample Response
+
+```jsonc
+{
+  "0x476310E34D2810f7d79C43A74E4D79405bd7a925": {
+    "7d": 4.21,
+  },
+  "0x0cB9D84d4bcEc8d3D5B2d99a6F07f4605325987e": {
+    "7d": 0,
+  },
+}
+```
+
+### `GET /variable-stake/share-value-history/:stakingVaultAddress/:period`
+
+Returns the historical share value for a staking vault over the given period (Earn token vs underlying pegged token, e.g. sVUSD per VUSD). One entry per UTC day. Results across multiple subgraph pages are concatenated, so long windows return their full history (e.g. `"1y"` may include up to ~366 entries).
+Valid periods are: `"1w"`, `"1m"`, `"3m"` and `"1y"`.
+`:stakingVaultAddress` must be a known staking vault. Returns `400` if malformed and `404` if the address is not a known staking vault.
+`shareValue` is a number with the 18-decimal wad already pre-scaled (e.g. `1.000412938421`). `timestamp` is the UTC day-start in milliseconds.
+
+#### Sample Response for "1w"
+
+```jsonc
+[
+  { "shareValue": 1.000412938421, "timestamp": 1707782400000 },
+  { "shareValue": 1.000506129482, "timestamp": 1707868800000 },
+  // ...more records...
+]
 ```
 
 ### `GET /variable-stake/rewards/:address`
 
-Returns all user's rewards from the Merkl campaigns related to Vetro.
-
-#### Sample Response
-
-```jsonc
-[
-  {
-    "amount": "1000000000000000000",
-    "breakdowns": [
-      // ...
-    ],
-    "claimed": "0",
-    "distributionChainId": 1,
-    "pending": "0",
-    "proofs": [
-      // ...
-    ],
-    "recipient": "0x0000000000000000000000000000000000000001",
-    "root": "0x...",
-    "token": {
-      "symbol": "sVUSD",
-      // All other token props
-    },
-  },
-  // ...more rewards
-]
-```
-
-### `GET /variable-stake/exit-queue`
-
-Returns a summary of the exit tickets queue: the total number of open exit tickets and their combined shares.
+Returns all user's rewards from the Merkl campaigns related to Vetro, indexed by staking vault address. Each supported staking vault has an entry in the response, with an empty array if the user has no rewards for that vault.
 
 #### Sample Response
 
 ```jsonc
 {
+  "0x476310E34D2810f7d79C43A74E4D79405bd7a925": [
+    {
+      "amount": "1000000000000000000",
+      "breakdowns": [
+        // ...
+      ],
+      "claimed": "0",
+      "distributionChainId": 1,
+      "pending": "0",
+      "proofs": [
+        // ...
+      ],
+      "recipient": "0x0000000000000000000000000000000000000001",
+      "root": "0x...",
+      "token": {
+        "symbol": "sVUSD",
+        // All other token props
+      },
+    },
+    // ...more rewards
+  ],
+  "0x0cB9D84d4bcEc8d3D5B2d99a6F07f4605325987e": [],
+}
+```
+
+### `GET /variable-stake/exit-queue/:gatewayAddress`
+
+Returns a summary of the exit tickets queue for the gateway's staking vault: the total number of open exit tickets and their combined value in the vault's underlying asset (shares are converted via the vault's exchange rate).
+`:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway.
+
+#### Sample Response
+
+```jsonc
+{
+  "assets": "4200000000000000000", // pegged token
   "openTickets": 1,
-  "shares": "4000000000000000000", // sVUSD
 }
 ```
 
 ### `GET /variable-stake/exit-tickets/:address`
 
-Returns all user's variable stake exit tickets to i.e. allow claiming the withdrawn VUSD.
+Returns all user's variable stake exit tickets to i.e. allow claiming the withdrawn pegged token.
 
 #### Sample Response
 
 ```jsonc
 [
   {
+    "id": "0x...",
     "requestId": "1",
     "requestTxHash": "0x0000000000000000000000000000000000000000000000000000000000000001",
+    "stakingVaultAddress": "0x0000000000000000000000000000000000000002",
     "owner": "0x0000000000000000000000000000000000000001",
     "assets": "1050000000000000000",
     "shares": "1000000000000000000",
@@ -184,14 +217,15 @@ Returns all user's variable stake exit tickets to i.e. allow claiming the withdr
 Environment variables are configured in `wrangler.jsonc`.
 Secrets are set separately using the Wrangler CLI.
 
-| Variable               | Description                                       | Default                 |
-| ---------------------- | ------------------------------------------------- | ----------------------- |
-| CUSTOM_RPC_URL_MAINNET | Ethereum RPC node URL. Overrides `viem`'s default |                         |
-| MERKL_OPPORTUNITY_ID   | The Merkl opportunity id to look for rewards.     |                         |
-| ORIGINS                | Comma-separated list of allowed origins. (1)      | `http://localhost:5173` |
-| SUBGRAPH_API_KEY       | The subgraph API key.                             |                         |
-| SUBGRAPH_ID            | The subgraph id.                                  |                         |
-| SUBGRAPH_URL_TEMPLATE  | The subgraph URL template. (2)                    | (localhost)             |
+| Variable                  | Description                                                                                           | Default                 |
+| ------------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------- |
+| CUSTOM_RPC_URL_MAINNET    | Ethereum RPC node URL. Overrides `viem`'s default                                                     |                         |
+| MERKL_OPPORTUNITY_SVETBTC | Merkl opportunity id for the sVetBTC staking vault. Optional; if unset, that vault yields no rewards. |                         |
+| MERKL_OPPORTUNITY_SVUSD   | Merkl opportunity id for the sVUSD staking vault. Optional; if unset, that vault yields no rewards.   |                         |
+| ORIGINS                   | Comma-separated list of allowed origins. (1)                                                          | `http://localhost:5173` |
+| SUBGRAPH_API_KEY          | The subgraph API key.                                                                                 |                         |
+| SUBGRAPH_ID               | The subgraph id.                                                                                      |                         |
+| SUBGRAPH_URL_TEMPLATE     | The subgraph URL template. (2)                                                                        | (localhost)             |
 
 (1) Globs with stars (`*`) are supported. I.e. `https://*.hemi.xyz` will match any subdomain or subdomain chain.
 (2) API key and id are replaced in the template at the `$API_KEY` and `$ID` positions.

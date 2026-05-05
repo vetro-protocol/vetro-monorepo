@@ -1,5 +1,7 @@
+import { type ReactNode } from "react";
+
 type SegmentOption<T extends string> = {
-  label: string;
+  label: ReactNode;
   value: T;
 };
 

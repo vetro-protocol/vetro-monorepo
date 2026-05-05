@@ -1,59 +1,28 @@
+import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { PageTitle } from "components/base/pageTitle";
 import { StripedDivider } from "components/stripedDivider";
-import { useAnalyticsTotals } from "hooks/useAnalyticsTotals";
-import { useAnalyticsTreasury } from "hooks/useAnalyticsTreasury";
-import { useCollateralizationRatio } from "hooks/useCollateralizationRatio";
-import { useVariableStakeExitQueue } from "hooks/useVariableStakeExitQueue";
-import { useVusd } from "hooks/useVusd";
-import { useWhitelistedTokens } from "hooks/useWhitelistedTokens";
+import { usePeggedTokensByGateway } from "hooks/usePeggedTokensByGateway";
+import { parseAsStringLiteral, useQueryState } from "nuqs";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { formatUsd } from "utils/currency";
-import { formatPercentage } from "utils/format";
-import { formatUnits } from "viem";
+import Skeleton from "react-loading-skeleton";
 
-import { AllocationCard } from "./components/allocationCard";
-import { DatabaseIcon } from "./icons/databaseIcon";
-import { ExitQueueIcon } from "./icons/exitQueueIcon";
-import { PieChartIcon } from "./icons/pieChartIcon";
-import { ShieldIcon } from "./icons/shieldIcon";
-import { StakingIcon } from "./icons/stakingIcon";
-import {
-  assignColor,
-  toCollateralizationItems,
-  toReserveBufferAmount,
-  toTvlItems,
-  toYieldItems,
-} from "./utils";
-
-type AnalyticsTotals = NonNullable<
-  ReturnType<typeof useAnalyticsTotals>["data"]
->;
-
-const toTotalsValues = function (
-  totals: AnalyticsTotals | undefined,
-  decimals: number,
-) {
-  if (!totals) return ["", ""];
-  return [
-    formatUsd(Number(formatUnits(BigInt(totals.vusdMinted), decimals))),
-    formatUsd(Number(formatUnits(BigInt(totals.vusdStaked), decimals))),
-  ];
-};
-
-const toCollateralizationValue = function (
-  data: { total: number; vusdSupply: number } | undefined,
-) {
-  if (!data || data.vusdSupply <= 0) return "";
-  return formatPercentage((data.total / data.vusdSupply) * 100);
-};
+import { CollateralizationCard } from "./components/collateralizationCard";
+import { ExitQueueCard } from "./components/exitQueueCard";
+import { PegStabilityCard } from "./components/pegStabilityCard";
+import { StakedCard } from "./components/stakedCard";
+import { TokenFilter } from "./components/tokenFilter";
+import { TvlCard } from "./components/tvlCard";
+import { YieldCard } from "./components/yieldCard";
 
 const AllocationRow = ({
   children,
   className = "",
+  isLast = false,
 }: {
   children: ReactNode;
   className?: string;
+  isLast?: boolean;
 }) => (
   <>
     <div
@@ -61,119 +30,98 @@ const AllocationRow = ({
     >
       {children}
     </div>
-    <div className="bg-gray-100">
-      <StripedDivider />
-    </div>
+    {!isLast && (
+      <div className="bg-gray-100">
+        <StripedDivider variant="small" />
+      </div>
+    )}
   </>
+);
+
+const TokenFilterSkeleton = () => (
+  <div className="flex gap-2">
+    {gatewayAddresses.map((gatewayAddress) => (
+      <Skeleton
+        borderRadius={9999}
+        height={32}
+        key={gatewayAddress}
+        width={88}
+      />
+    ))}
+  </div>
 );
 
 export const Analytics = function () {
   const { t } = useTranslation();
-  const {
-    data: treasury,
-    isError: isTreasuryError,
-    isLoading: isTreasuryLoading,
-  } = useAnalyticsTreasury();
-  const {
-    data: totals,
-    isError: isTotalsError,
-    isLoading: isTotalsLoading,
-  } = useAnalyticsTotals();
-  const {
-    data: exitQueue,
-    isError: isExitQueueError,
-    isLoading: isExitQueueLoading,
-  } = useVariableStakeExitQueue();
-  const { data: vusd } = useVusd();
-  const {
-    data: whitelistedTokens,
-    isError: isWhitelistedTokensError,
-    isLoading: isWhitelistedTokensLoading,
-  } = useWhitelistedTokens();
-  const {
-    data: collateralization,
-    isError: isCollateralizationError,
-    isLoading: isCollateralizationLoading,
-  } = useCollateralizationRatio();
+  const { data: peggedTokensByGateway, isError: isPeggedTokensError } =
+    usePeggedTokensByGateway();
+  const [selectedGatewayAddress, setSelectedGatewayAddress] = useQueryState(
+    "gateway",
+    parseAsStringLiteral(gatewayAddresses).withDefault(gatewayAddresses[0]),
+  );
 
-  const isTokensLoading = isTreasuryLoading || isWhitelistedTokensLoading;
-  const isTokensError = isTreasuryError || isWhitelistedTokensError;
-  const tokens = { treasuryTokens: treasury, whitelistedTokens };
+  const tokens = peggedTokensByGateway
+    ? gatewayAddresses
+        .map((gatewayAddress) => peggedTokensByGateway[gatewayAddress])
+        .filter(Boolean)
+    : undefined;
 
-  const [tvlValue, stakedValue] = toTotalsValues(totals, vusd.decimals);
-
-  const exitQueueValue = exitQueue
-    ? formatUsd(Number(formatUnits(exitQueue.vusdInCooldown, vusd.decimals)))
-    : "";
-
-  const yieldItems = toYieldItems(tokens);
-  const bufferAmount = toReserveBufferAmount(tokens);
-  const bufferItem =
-    bufferAmount > 0
-      ? {
-          amount: bufferAmount,
-          color: assignColor(yieldItems.length),
-          label: t("pages.analytics.reserve-buffer-label"),
-        }
-      : null;
-  const yieldValue = treasury
-    ? t("pages.analytics.yield-value", { count: yieldItems.length })
-    : "";
-
-  const collateralizationValue = toCollateralizationValue(collateralization);
-  const collateralizationItems = toCollateralizationItems(collateralization, {
-    liquidReserves: t("pages.analytics.liquid-reserves-label"),
-    strategicReserves: t("pages.analytics.strategic-reserves-label"),
-    surplus: t("pages.analytics.surplus-label"),
-  })?.map((item, index) => ({ ...item, color: assignColor(index) }));
+  const selectedToken = tokens?.find(
+    (token) => token.gatewayAddress === selectedGatewayAddress,
+  );
 
   return (
     <div className="flex flex-col">
       <PageTitle value={t("pages.analytics.title")} />
+      {/* only show the filter if there are 2 or more tokens to filter from */}
+      {gatewayAddresses.length > 1 && !isPeggedTokensError && (
+        <div className="border-y border-gray-200 bg-white px-3 py-4 md:px-6">
+          <div className="mx-auto w-fit">
+            {tokens && selectedToken ? (
+              <TokenFilter
+                onChange={(token) =>
+                  setSelectedGatewayAddress(token.gatewayAddress)
+                }
+                tokens={tokens}
+                value={selectedToken}
+              />
+            ) : (
+              <TokenFilterSkeleton />
+            )}
+          </div>
+        </div>
+      )}
       <AllocationRow className="md:divide-x md:divide-gray-200">
-        <AllocationCard
-          icon={<DatabaseIcon />}
-          isError={isTokensError || isTotalsError}
-          isLoading={isTokensLoading || isTotalsLoading}
-          items={toTvlItems(tokens)}
-          label={t("pages.analytics.tvl-label")}
-          value={tvlValue}
+        <TvlCard
+          peggedToken={selectedToken}
+          peggedTokenError={isPeggedTokensError}
         />
-        <AllocationCard
-          icon={<PieChartIcon />}
-          isError={isTokensError}
-          isLoading={isTokensLoading}
-          items={bufferItem ? [...yieldItems, bufferItem] : yieldItems}
-          label={t("pages.analytics.yield-label")}
-          value={yieldValue}
+        <CollateralizationCard
+          peggedToken={selectedToken}
+          peggedTokenError={isPeggedTokensError}
         />
       </AllocationRow>
       <AllocationRow className="md:divide-x md:divide-gray-200">
-        <AllocationCard
-          icon={<StakingIcon />}
-          isError={isTotalsError}
-          isLoading={isTotalsLoading}
-          label={t("pages.analytics.staked-label")}
-          value={stakedValue}
+        <StakedCard
+          peggedToken={selectedToken}
+          peggedTokenError={isPeggedTokensError}
         />
-        <AllocationCard
-          icon={<ExitQueueIcon />}
-          isError={isExitQueueError}
-          isLoading={isExitQueueLoading}
-          label={t("pages.analytics.exit-queue-label")}
-          value={exitQueueValue}
+        <ExitQueueCard
+          peggedToken={selectedToken}
+          peggedTokenError={isPeggedTokensError}
         />
       </AllocationRow>
-      <AllocationRow className="md:justify-center">
+      <AllocationRow>
+        <PegStabilityCard
+          peggedToken={selectedToken}
+          peggedTokenError={isPeggedTokensError}
+        />
+      </AllocationRow>
+      <AllocationRow className="md:justify-center" isLast>
         <div className="md:w-1/2">
-          <AllocationCard
-            formatAmount={formatPercentage}
-            icon={<ShieldIcon />}
-            isError={isCollateralizationError}
-            isLoading={isCollateralizationLoading}
-            items={collateralizationItems}
-            label={t("pages.analytics.collateralization-ratio-label")}
-            value={collateralizationValue}
+          <YieldCard
+            peggedToken={selectedToken}
+            peggedTokenError={isPeggedTokensError}
           />
         </div>
       </AllocationRow>

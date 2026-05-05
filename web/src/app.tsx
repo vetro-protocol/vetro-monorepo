@@ -1,12 +1,15 @@
+import * as Sentry from "@sentry/react";
 import { AppLayout, MainContent } from "components/base/appLayout";
 import { AppViewport } from "components/base/appViewport";
 import { ErrorBoundary } from "components/base/errorBoundary";
 import { Header } from "components/header";
+import { featureFlags } from "featureFlags";
 import { I18nInitializer } from "i18n/config";
 import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
 import { Analytics } from "pages/analytics";
 import { Borrow } from "pages/borrow";
 import { BorrowMarketDetails } from "pages/borrowMarketDetails";
+import { Bridge } from "pages/bridge";
 import { Earn } from "pages/earn";
 import { ErrorPage } from "pages/errorPage";
 import { Faq } from "pages/faq";
@@ -21,6 +24,8 @@ import {
   Routes,
   useLocation,
 } from "react-router";
+
+const SentryRoutes = Sentry.withSentryReactRouterV7Routing(Routes);
 
 const AppNotifications = lazy(() =>
   import("components/appNotifications").then((m) => ({
@@ -69,6 +74,9 @@ function LanguageRoutes() {
             <Route element={<Earn />} path="earn" />
             <Route element={<Borrow />} path="borrow" />
             <Route element={<BorrowMarketDetails />} path="borrow/:marketId" />
+            {featureFlags.bridgeEnabled && (
+              <Route element={<Bridge />} path="bridge" />
+            )}
             <Route element={<Analytics />} path="analytics" />
             <Route element={<Faq />} path="faq" />
           </Route>
@@ -93,16 +101,16 @@ export const App = () => (
   <BrowserRouter>
     <NuqsAdapter>
       <AppViewport>
-        <Routes>
+        <SentryRoutes>
           {/* Redirect root to English */}
-          <Route element={<Navigate to="/en" replace />} path="/" />
+          <Route element={<Navigate replace to="/en" />} path="/" />
 
           {/* Language-prefixed routes */}
           <Route element={<LanguageRoutes />} path="/:lang/*" />
 
           {/* Catch-all: redirect unknown paths to English */}
-          <Route element={<Navigate to="/en" replace />} path="*" />
-        </Routes>
+          <Route element={<Navigate replace to="/en" />} path="*" />
+        </SentryRoutes>
       </AppViewport>
     </NuqsAdapter>
   </BrowserRouter>

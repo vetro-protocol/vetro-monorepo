@@ -77,21 +77,21 @@ function SubmitButton({
   if (!address) {
     return (
       <Button disabled size="small" type="button" variant="primary">
-        {t("pages.swap.form.connect-wallet")}
+        {t("common.connect-wallet")}
       </Button>
     );
   }
   if (balancesLoaded && !sufficientGas) {
     return (
       <Button disabled size="small" type="button" variant="primary">
-        {t("pages.swap.form.insufficient-gas")}
+        {t("common.insufficient-gas")}
       </Button>
     );
   }
   if (balancesLoaded && inputError) {
     return (
       <Button disabled size="small" type="button" variant="primary">
-        {t(`pages.swap.form.${inputError}`)}
+        {t(`common.${inputError}`)}
       </Button>
     );
   }
@@ -149,6 +149,7 @@ function StepperOverlay({
           showStepper ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={isError ? onDismiss : undefined}
+        role="presentation"
       />
       <div
         className={`fixed right-0 bottom-0 z-30 w-full rounded-t-lg rounded-bl-lg bg-white shadow-md transition-transform duration-300 ease-out md:w-md ${
@@ -303,6 +304,7 @@ export function BorrowMoreForm({ market, onClose }: Props) {
     borrowApy: market.borrowApy,
     borrowInput,
     collateralToken,
+    frozen: isActive,
     loanToken,
     position: positionInfo,
   });

@@ -3,37 +3,38 @@ import { Button } from "components/base/button";
 import { Modal } from "components/base/modal";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useCancelRedeemRequest } from "hooks/useCancelRedeemRequest";
-import { useVusd } from "hooks/useVusd";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import type { TokenWithGateway } from "types";
 import { formatUnits } from "viem";
 import { useAccount } from "wagmi";
 
 type Props = {
   onClose: VoidFunction;
   onSuccess: VoidFunction;
+  peggedToken: TokenWithGateway;
   redeemableAmount: bigint;
 };
 
 export function CancelRedeemModal({
   onClose,
   onSuccess,
+  peggedToken,
   redeemableAmount,
 }: Props) {
   const { isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
   const [isCancelling, setIsCancelling] = useState(false);
   const { t } = useTranslation();
-  const { data: vusd } = useVusd();
 
   const { onCompleted, onFailed, onPending, onTransactionHash } =
     useActivityTracking({
       page: "swap",
       text: t("pages.swap.activity.cancel-redeem-text", {
-        amount: formatUnits(redeemableAmount, vusd.decimals),
-        symbol: vusd.symbol,
+        amount: formatUnits(redeemableAmount, peggedToken.decimals),
+        symbol: peggedToken.symbol,
       }),
-      title: `${t("nav.swap")} · ${t("pages.swap.redeem-vault.cancel-redeem")}`,
+      title: `${t("nav.swap")} · ${t("pages.swap.redeem-queue.cancel-redeem")}`,
     });
 
   const { mutate } = useCancelRedeemRequest({
@@ -65,6 +66,7 @@ export function CancelRedeemModal({
         setIsCancelling(false);
       });
     },
+    peggedToken,
     redeemableAmount,
   });
 
@@ -73,11 +75,11 @@ export function CancelRedeemModal({
       <div className="flex w-[448px] flex-col gap-6 rounded-lg bg-white p-6 shadow-xl">
         <div className="flex flex-col gap-y-1">
           <h4 className="text-gray-900">
-            {t("pages.swap.redeem-vault.cancel-redeem")}
+            {t("pages.swap.redeem-queue.cancel-redeem")}
           </h4>
           <p className="text-b-regular text-gray-500">
-            {t("pages.swap.redeem-vault.cancel-redeem-description", {
-              symbol: vusd.symbol,
+            {t("pages.swap.redeem-queue.cancel-redeem-description", {
+              symbol: peggedToken.symbol,
             })}
           </p>
         </div>
@@ -88,7 +90,7 @@ export function CancelRedeemModal({
             size="xSmall"
             variant="secondary"
           >
-            {t("pages.swap.redeem-vault.keep-redeem")}
+            {t("pages.swap.redeem-queue.keep-redeem")}
           </Button>
           {isConnected ? (
             <Button
@@ -98,12 +100,12 @@ export function CancelRedeemModal({
               variant="danger"
             >
               {isCancelling
-                ? t("pages.swap.redeem-vault.cancel-redeem-btn-cancelling")
-                : t("pages.swap.redeem-vault.cancel-redeem-btn-cancel")}
+                ? t("pages.swap.redeem-queue.cancel-redeem-btn-cancelling")
+                : t("pages.swap.redeem-queue.cancel-redeem-btn-cancel")}
             </Button>
           ) : (
             <Button onClick={openConnectModal} size="xSmall" variant="primary">
-              {t("pages.swap.form.connect-wallet")}
+              {t("common.connect-wallet")}
             </Button>
           )}
         </div>

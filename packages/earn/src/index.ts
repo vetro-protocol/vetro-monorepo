@@ -9,6 +9,7 @@ import {
   getPendingRequests,
   getRequestDetails,
   getTotalAssetsInCooldown,
+  getYieldDistributor,
 } from "./actions/public/index.js";
 import {
   type CancelWithdrawParams,
@@ -35,8 +36,12 @@ import {
 // Export ABI
 export { stakingVaultAbi } from "./abi/stakingVaultAbi.js";
 
-// Export staking vault address utility
-export { getStakingVaultAddress } from "./getStakingVaultAddress.js";
+// Export staking vault addresses
+export {
+  sVetBtcAddress,
+  sVusdAddress,
+  stakingVaultAddresses,
+} from "./stakingVaultAddresses.js";
 
 // Export types
 export type {
@@ -69,6 +74,8 @@ export const earnPublicActions = () => (client: Client) => ({
   getTotalAssetsInCooldown: (
     params: Parameters<typeof getTotalAssetsInCooldown>[1],
   ) => getTotalAssetsInCooldown(client, params),
+  getYieldDistributor: (params: Parameters<typeof getYieldDistributor>[1]) =>
+    getYieldDistributor(client, params),
 });
 
 export const earnWalletActions = () => (client: WalletClient) => ({

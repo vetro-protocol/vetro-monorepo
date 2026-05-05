@@ -2,6 +2,8 @@ import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { SegmentedControl } from "components/base/segmentedControl";
 import { useReducer } from "react";
 import { useTranslation } from "react-i18next";
+import { type TokenWithGateway } from "types";
+import type { Address } from "viem";
 
 import { StakeDepositForm } from "./stakeDepositForm";
 import {
@@ -22,9 +24,17 @@ type Props = {
   mode: StakeMode;
   onModeChange: (mode: StakeMode) => void;
   onSuccess: (toast: ToastData) => void;
+  peggedToken: TokenWithGateway;
+  stakingVaultAddress: Address;
 };
 
-export function StakeDrawerContent({ mode, onModeChange, onSuccess }: Props) {
+export function StakeDrawerContent({
+  mode,
+  onModeChange,
+  onSuccess,
+  peggedToken,
+  stakingVaultAddress,
+}: Props) {
   const { t } = useTranslation();
   const [state, dispatch] = useReducer(
     stakeDrawerReducer,
@@ -63,14 +73,16 @@ export function StakeDrawerContent({ mode, onModeChange, onSuccess }: Props) {
 
       {mode === "deposit" ? (
         <StakeDepositForm
-          approve10x={state.approve10x}
           approvalCompleted={state.approvalCompleted}
+          approve10x={state.approve10x}
           depositStep={state.depositStep}
           inputValue={state.inputValue}
           onApprove10xToggle={handleToggleApprove10x}
           onDepositStepChange={handleDepositStepChange}
           onInputChange={handleInputChange}
           onSuccess={onSuccess}
+          peggedToken={peggedToken}
+          stakingVaultAddress={stakingVaultAddress}
         />
       ) : (
         <StakeWithdrawForm
@@ -79,6 +91,8 @@ export function StakeDrawerContent({ mode, onModeChange, onSuccess }: Props) {
           onSuccess={onSuccess}
           onWithdrawStepChange={handleWithdrawStepChange}
           withdrawStep={state.withdrawStep}
+          peggedToken={peggedToken}
+          stakingVaultAddress={stakingVaultAddress}
         />
       )}
     </div>

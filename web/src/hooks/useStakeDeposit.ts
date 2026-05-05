@@ -4,15 +4,17 @@ import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
 import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpdateNativeBalanceAfterReceipt";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { getStakingVaultAddress } from "@vetro-protocol/earn";
 import { deposit } from "@vetro-protocol/earn/actions";
-import type { TransactionReceipt } from "viem";
+import type { TokenWithGateway } from "types";
+import type { Address, TransactionReceipt } from "viem";
 import { useAccount } from "wagmi";
 
+import { analyticsTotalsQueryKey } from "./useAnalyticsTotals";
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { useMainnet } from "./useMainnet";
+import { poolDepositsQueryKey } from "./usePoolDeposits";
 import { stakedBalanceQueryKey } from "./useStakedBalance";
-import { useVusd } from "./useVusd";
+import { totalStakedUsdQueryKey } from "./useTotalStakedUsd";
 
 type DepositStatus =
   | "approve-failed"
@@ -28,6 +30,8 @@ type Params = {
   onStatusChange?: (status: DepositStatus) => void;
   onSuccess?: VoidFunction;
   onTransactionHash?: (hash: string) => void;
+  peggedToken: TokenWithGateway;
+  stakingVaultAddress: Address;
 };
 
 export const useStakeDeposit = function ({
@@ -36,26 +40,26 @@ export const useStakeDeposit = function ({
   onStatusChange,
   onSuccess,
   onTransactionHash,
+  peggedToken,
+  stakingVaultAddress,
 }: Params) {
   const { address: account } = useAccount();
   const chain = useMainnet();
   const { data: walletClient } = useEthereumWalletClient();
   const ensureConnectedTo = useEnsureConnectedTo();
   const queryClient = useQueryClient();
-  const stakingVaultAddress = getStakingVaultAddress(chain.id);
   const { queryKey: nativeBalanceKey } = useNativeBalance(chain.id);
   const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
     chain.id,
   );
-  const { data: vusd } = useVusd();
 
   const allowanceKey = allowanceQueryKey({
     owner: account,
     spender: stakingVaultAddress,
-    token: { address: vusd?.address, chainId: chain.id },
+    token: { address: peggedToken.address, chainId: chain.id },
   });
 
-  const vusdBalanceKey = tokenBalanceQueryKey(vusd, account);
+  const peggedTokenBalanceKey = tokenBalanceQueryKey(peggedToken, account);
 
   const sharesBalanceKey = tokenBalanceQueryKey(
     { address: stakingVaultAddress, chainId: chain.id },
@@ -68,13 +72,20 @@ export const useStakeDeposit = function ({
     stakingVaultAddress,
   });
 
+  const poolDepositsKey = poolDepositsQueryKey({
+    chainId: chain.id,
+    stakingVaultAddress,
+  });
+
+  const analyticsTotalsKey = analyticsTotalsQueryKey({
+    chainId: chain.id,
+    gatewayAddress: peggedToken.gatewayAddress,
+  });
+
   return useMutation({
     async mutationFn() {
       if (!account) {
         throw new Error("No account connected");
-      }
-      if (!vusd) {
-        throw new Error("VUSD token not loaded");
       }
 
       await ensureConnectedTo(chain.id);
@@ -83,7 +94,8 @@ export const useStakeDeposit = function ({
         approveAmount,
         assets,
         receiver: account,
-        token: vusd.address,
+        token: peggedToken.address,
+        vaultAddress: stakingVaultAddress,
       });
 
       emitter.on("user-signed-approval", function () {
@@ -141,11 +153,18 @@ export const useStakeDeposit = function ({
           onSuccess?.();
 
           // Optimistically update balances
-          queryClient.setQueryData(vusdBalanceKey, (old: bigint | undefined) =>
-            old !== undefined ? old - assets : old,
+          queryClient.setQueryData(
+            peggedTokenBalanceKey,
+            (old: bigint | undefined) =>
+              old !== undefined ? old - assets : old,
           );
           queryClient.setQueryData(stakedKey, (old: bigint | undefined) =>
             old !== undefined ? old + assets : old,
+          );
+          queryClient.setQueryData(
+            poolDepositsKey,
+            (old: bigint | undefined) =>
+              old !== undefined ? old + assets : old,
           );
         },
       );
@@ -162,17 +181,32 @@ export const useStakeDeposit = function ({
       });
 
       queryClient.invalidateQueries({
-        queryKey: vusdBalanceKey,
+        queryKey: peggedTokenBalanceKey,
       });
 
       // Shares must be refetched before staked balance, because
-      // useStakedBalance uses ensureQueryData to read shares from cache
-      await queryClient.invalidateQueries({
+      // useStakedBalance uses ensureQueryData to read shares from cache.
+      // refetchQueries (not invalidateQueries) is required because the
+      // shares query has no mounted observer — invalidation alone would
+      // only mark it stale, and ensureQueryData returns stale cached data.
+      await queryClient.refetchQueries({
         queryKey: sharesBalanceKey,
       });
 
       queryClient.invalidateQueries({
         queryKey: stakedKey,
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: totalStakedUsdQueryKey({ account, chainId: chain.id }),
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: poolDepositsKey,
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: analyticsTotalsKey,
       });
     },
   });

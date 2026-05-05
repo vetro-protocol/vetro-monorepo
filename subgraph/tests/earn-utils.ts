@@ -2,10 +2,41 @@ import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { newMockEvent } from "matchstick-as";
 
 import {
+  Deposit,
+  Transfer,
   WithdrawCancelled,
   WithdrawClaimed,
   WithdrawRequested,
-} from "../generated/StakingVault/StakingVault";
+} from "../generated/sVusdStakingVault/StakingVault";
+
+export function createDepositEvent(
+  assets: BigInt,
+  owner: Address,
+  sender: Address,
+  shares: BigInt,
+): Deposit {
+  const event = changetype<Deposit>(newMockEvent());
+  event.parameters = [];
+  event.parameters.push(
+    new ethereum.EventParam("sender", ethereum.Value.fromAddress(sender)),
+  );
+  event.parameters.push(
+    new ethereum.EventParam("owner", ethereum.Value.fromAddress(owner)),
+  );
+  event.parameters.push(
+    new ethereum.EventParam(
+      "assets",
+      ethereum.Value.fromUnsignedBigInt(assets),
+    ),
+  );
+  event.parameters.push(
+    new ethereum.EventParam(
+      "shares",
+      ethereum.Value.fromUnsignedBigInt(shares),
+    ),
+  );
+  return event;
+}
 
 export function createMockBlock(
   number: BigInt,
@@ -16,6 +47,25 @@ export function createMockBlock(
   block.number = number;
   block.timestamp = timestamp;
   return block;
+}
+
+export function createTransferEvent(
+  from: Address,
+  to: Address,
+  value: BigInt,
+): Transfer {
+  const event = changetype<Transfer>(newMockEvent());
+  event.parameters = [];
+  event.parameters.push(
+    new ethereum.EventParam("from", ethereum.Value.fromAddress(from)),
+  );
+  event.parameters.push(
+    new ethereum.EventParam("to", ethereum.Value.fromAddress(to)),
+  );
+  event.parameters.push(
+    new ethereum.EventParam("value", ethereum.Value.fromUnsignedBigInt(value)),
+  );
+  return event;
 }
 
 export function createWithdrawCancelledEvent(

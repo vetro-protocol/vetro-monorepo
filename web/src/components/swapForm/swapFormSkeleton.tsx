@@ -1,6 +1,5 @@
-import { ApproveSection } from "components/approveSection";
 import { Button } from "components/base/button";
-import { FormSection, FormSectionItem } from "components/feesContainer";
+import { StripedDivider } from "components/stripedDivider";
 import { TokenInput } from "components/tokenInput";
 import { Balance } from "components/tokenInput/balance";
 import { TokenSelectorSkeleton } from "components/tokenSelectorSkeleton";
@@ -8,7 +7,6 @@ import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 
 import { SwapToggleButton } from "./swapToggleButton";
-import { TreasuryReserves } from "./treasuryReserves";
 
 export function SwapFormSkeleton() {
   const { t } = useTranslation();
@@ -23,7 +21,9 @@ export function SwapFormSkeleton() {
                 <Balance label={t("pages.swap.form.balance")} value="-" />
               }
               disabled
-              fiatValue={<Skeleton className="ml-2" height={14} width={32} />}
+              fiatValue={
+                <Skeleton className="h-full" containerClassName="w-8" />
+              }
               label={t("pages.swap.form.you-are-swapping")}
               tokenSelector={<TokenSelectorSkeleton />}
               value="0"
@@ -40,8 +40,10 @@ export function SwapFormSkeleton() {
                 <Balance label={t("pages.swap.form.balance")} value="-" />
               }
               disabled
-              fiatValue={<Skeleton className="ml-2" height={14} width={32} />}
-              label={t("pages.swap.form.you-will-receive")}
+              fiatValue={
+                <Skeleton className="h-full" containerClassName="w-8" />
+              }
+              label={t("pages.swap.form.you-will-receive-estimated")}
               tokenSelector={<TokenSelectorSkeleton />}
               value="0"
             />
@@ -49,19 +51,14 @@ export function SwapFormSkeleton() {
 
           <div className="mt-2 flex w-full flex-col border-t border-gray-200 px-2 py-3">
             <Button disabled size="xLarge" type="button">
-              {t("pages.swap.form.connect-wallet")}
+              {t("common.connect-wallet")}
             </Button>
           </div>
         </div>
       </div>
-      <FormSection show={false}>
-        <FormSectionItem>
-          <ApproveSection active={false} />
-        </FormSectionItem>
-        <FormSectionItem>
-          <TreasuryReserves />
-        </FormSectionItem>
-      </FormSection>
+      <div className="w-full border-y border-gray-200 bg-gray-100">
+        <StripedDivider />
+      </div>
     </>
   );
 }

@@ -13,7 +13,7 @@ type Props = {
   isError: boolean;
   isLoading: boolean;
   items?: AllocationItem[];
-  label: string;
+  label: ReactNode;
   value: string;
 };
 

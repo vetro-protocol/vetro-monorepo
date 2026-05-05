@@ -1,3 +1,8 @@
+import type { Token } from "types";
+import { formatUnits } from "viem";
+
+import { getTokenPrice } from "./token";
+
 export const formatUsd = (value: number) =>
   new Intl.NumberFormat("en-US", {
     currency: "USD",
@@ -5,6 +10,34 @@ export const formatUsd = (value: number) =>
     notation: "compact",
     style: "currency",
   }).format(value);
+
+type TokenAmountUsdArgs = {
+  amount: bigint;
+  prices: Record<string, string> | undefined;
+  token: Token;
+};
+
+// Multiplies a raw token amount (in smallest units) by the token's USD price
+// from `usePrices` / `getTokenPrice`. Returns a number, not a formatted string,
+// so callers can aggregate it (e.g. analytics chart proportions).
+export const tokenAmountToUsd = ({
+  amount,
+  prices,
+  token,
+}: TokenAmountUsdArgs) =>
+  Number(formatUnits(amount, token.decimals)) *
+  Number(getTokenPrice(token, prices));
+
+/**
+ * Formats a raw token amount (in smallest units) as a compact USD string by
+ * multiplying it by the token's USD price from `usePrices` / `getTokenPrice`.
+ *
+ * Use this for aggregate displays (TVL, totals) where the compact `$1.2M`
+ * notation of `formatUsd` is appropriate. For per-input fiat previews use
+ * `RenderFiatValue` instead — it formats with full precision.
+ */
+export const formatTokenAmountUsd = (args: TokenAmountUsdArgs) =>
+  formatUsd(tokenAmountToUsd(args));
 
 export function splitDecimalParts(value: number) {
   const formatted = new Intl.NumberFormat("en-US", {

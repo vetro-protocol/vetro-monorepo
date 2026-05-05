@@ -1,39 +1,54 @@
-import { BigInt, dataSource, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, dataSource, ethereum } from "@graphprotocol/graph-ts";
 
 import {
   ExitTicket,
   ExitTicketQueueSummary,
+  UserStakingPosition,
   VaultHistory,
 } from "../generated/schema";
 import {
+  Deposit,
   StakingVault,
+  Transfer,
   WithdrawCancelled,
   WithdrawClaimed,
   WithdrawRequested,
-} from "../generated/StakingVault/StakingVault";
+  // The code generated is the same for both vaults
+} from "../generated/sVusdStakingVault/StakingVault";
 
-function loadOrCreateQueueSummary(): ExitTicketQueueSummary {
-  let summary = ExitTicketQueueSummary.load("singleton");
+const buildId = (vaultAddress: Address, suffix: string): string =>
+  `${vaultAddress.toHexString()}-${suffix}`;
+
+const WAD = BigInt.fromI32(10).pow(18);
+
+function loadOrCreateQueueSummary(
+  vaultAddress: Address,
+): ExitTicketQueueSummary {
+  const id = vaultAddress.toHexString();
+  let summary = ExitTicketQueueSummary.load(id);
   if (summary == null) {
-    summary = new ExitTicketQueueSummary("singleton");
+    summary = new ExitTicketQueueSummary(id);
     summary.shares = BigInt.fromI32(0);
     summary.openTickets = 0;
+    summary.stakingVaultAddress = vaultAddress;
   }
   return summary;
 }
 
 export function handleBlock(block: ethereum.Block): void {
   const daySeconds = BigInt.fromI32(86400);
+  // Integer-divide then re-multiply to snap block.timestamp to the start of the UTC day (00:00:00).
   const dayTimestamp = block.timestamp.div(daySeconds).times(daySeconds);
 
-  const id = dayTimestamp.toString();
+  const vaultAddress = dataSource.address();
+  const id = buildId(vaultAddress, dayTimestamp.toString());
   let entity = VaultHistory.load(id);
   if (entity == null) {
     entity = new VaultHistory(id);
     entity.timestamp = dayTimestamp;
+    entity.stakingVaultAddress = vaultAddress;
   }
 
-  const vaultAddress = dataSource.address();
   const vault = StakingVault.bind(vaultAddress);
   const decimals = vault.decimals();
   const oneShare = BigInt.fromI32(10).pow(<u8>decimals);
@@ -43,8 +58,89 @@ export function handleBlock(block: ethereum.Block): void {
   entity.save();
 }
 
+export function handleDeposit(event: Deposit): void {
+  const vaultAddress = dataSource.address();
+  const owner = event.params.owner;
+  const id = buildId(vaultAddress, owner.toHexString());
+
+  let entity = UserStakingPosition.load(id);
+  if (entity == null) {
+    entity = new UserStakingPosition(id);
+    entity.owner = owner;
+    entity.shares = BigInt.fromI32(0);
+    entity.stakingVaultAddress = vaultAddress;
+    entity.totalCostBasis = BigInt.fromI32(0);
+  }
+
+  entity.shares = entity.shares.plus(event.params.shares);
+  entity.totalCostBasis = entity.totalCostBasis.plus(
+    event.params.assets.times(WAD),
+  );
+
+  entity.save();
+}
+
+export function handleTransfer(event: Transfer): void {
+  // Skip mints as those are already handled by the Deposit event handler.
+  if (event.params.from.equals(Address.zero())) {
+    return;
+  }
+  // Self-transfers do not affect balances.
+  if (event.params.from.equals(event.params.to)) {
+    return;
+  }
+  // Zero-value transfers are no-ops.
+  if (event.params.value.equals(BigInt.fromI32(0))) {
+    return;
+  }
+
+  const vaultAddress = dataSource.address();
+  const value = event.params.value;
+
+  // Update the sending party: decrement shares and totalCostBasis proportionally.
+  const fromId = buildId(vaultAddress, event.params.from.toHexString());
+  const fromEntity = UserStakingPosition.load(fromId)!;
+
+  if (fromEntity.shares.equals(value)) {
+    // All shares transferred out: reset to zero.
+    fromEntity.shares = BigInt.fromI32(0);
+    fromEntity.totalCostBasis = BigInt.fromI32(0);
+  } else {
+    // Decrement totalCostBasis proportionally before decrementing shares.
+    const newShares = fromEntity.shares.minus(value);
+    fromEntity.totalCostBasis = fromEntity.totalCostBasis
+      .times(newShares)
+      .div(fromEntity.shares);
+    fromEntity.shares = newShares;
+  }
+
+  fromEntity.save();
+
+  // Burns (to zero address) only affect the sending party.
+  if (event.params.to.equals(Address.zero())) {
+    return;
+  }
+
+  // Update the receiving party: increment shares, keep totalCostBasis unchanged.
+  // Received shares are valued at 0, diluting the average price proportionally.
+  const toId = buildId(vaultAddress, event.params.to.toHexString());
+  let toEntity = UserStakingPosition.load(toId);
+  if (toEntity == null) {
+    toEntity = new UserStakingPosition(toId);
+    toEntity.owner = event.params.to;
+    toEntity.shares = BigInt.fromI32(0);
+    toEntity.stakingVaultAddress = vaultAddress;
+    toEntity.totalCostBasis = BigInt.fromI32(0);
+  }
+
+  toEntity.shares = toEntity.shares.plus(value);
+
+  toEntity.save();
+}
+
 export function handleWithdrawRequested(event: WithdrawRequested): void {
-  const id = event.params.requestId.toString();
+  const vaultAddress = dataSource.address();
+  const id = buildId(vaultAddress, event.params.requestId.toString());
   const entity = new ExitTicket(id);
 
   entity.owner = event.params.owner;
@@ -52,12 +148,13 @@ export function handleWithdrawRequested(event: WithdrawRequested): void {
   entity.claimableAt = event.params.claimableAt;
   entity.requestId = event.params.requestId;
   entity.shares = event.params.shares;
+  entity.stakingVaultAddress = vaultAddress;
 
   entity.requestTxHash = event.transaction.hash;
 
   entity.save();
 
-  const summary = loadOrCreateQueueSummary();
+  const summary = loadOrCreateQueueSummary(vaultAddress);
 
   summary.shares = summary.shares.plus(event.params.shares);
   summary.openTickets = summary.openTickets + 1;
@@ -66,7 +163,8 @@ export function handleWithdrawRequested(event: WithdrawRequested): void {
 }
 
 export function handleWithdrawCancelled(event: WithdrawCancelled): void {
-  const id = event.params.requestId.toString();
+  const vaultAddress = dataSource.address();
+  const id = buildId(vaultAddress, event.params.requestId.toString());
   const entity = ExitTicket.load(id);
   if (entity == null) {
     return;
@@ -76,7 +174,7 @@ export function handleWithdrawCancelled(event: WithdrawCancelled): void {
 
   entity.save();
 
-  const summary = loadOrCreateQueueSummary();
+  const summary = loadOrCreateQueueSummary(vaultAddress);
 
   summary.shares = summary.shares.minus(entity.shares);
   summary.openTickets = summary.openTickets - 1;
@@ -85,7 +183,8 @@ export function handleWithdrawCancelled(event: WithdrawCancelled): void {
 }
 
 export function handleWithdrawClaimed(event: WithdrawClaimed): void {
-  const id = event.params.requestId.toString();
+  const vaultAddress = dataSource.address();
+  const id = buildId(vaultAddress, event.params.requestId.toString());
   const entity = ExitTicket.load(id);
   if (entity == null) {
     return;
@@ -95,7 +194,7 @@ export function handleWithdrawClaimed(event: WithdrawClaimed): void {
 
   entity.save();
 
-  const summary = loadOrCreateQueueSummary();
+  const summary = loadOrCreateQueueSummary(vaultAddress);
 
   summary.shares = summary.shares.minus(entity.shares);
   summary.openTickets = summary.openTickets - 1;

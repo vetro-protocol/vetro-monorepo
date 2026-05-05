@@ -1,13 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import { getStakingVaultAddress } from "@vetro-protocol/earn";
 import { getCooldownDuration } from "@vetro-protocol/earn/actions";
 import { useEthereumClient } from "hooks/useEthereumClient";
 import { useMainnet } from "hooks/useMainnet";
+import type { Address } from "viem";
 
-export function useCooldownDuration() {
+export function useCooldownDuration(stakingVaultAddress: Address) {
   const chain = useMainnet();
   const client = useEthereumClient();
-  const stakingVaultAddress = getStakingVaultAddress(chain.id);
 
   return useQuery({
     enabled: !!client,

@@ -22,19 +22,19 @@ type Props = {
 };
 
 const CheckIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none">
+  <svg fill="none" height="16" width="16" xmlns="http://www.w3.org/2000/svg">
     <g clipPath="url(#a65445a)">
-      <rect width={16} height={16} fill="#416BFF" rx={4} />
+      <rect fill="#416BFF" height={16} rx={4} width={16} />
       <path
+        clipRule="evenodd"
+        d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.739a.75.75 0 0 1 1.04-.208Z"
         fill="#EAF4FF"
         fillRule="evenodd"
-        d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.739a.75.75 0 0 1 1.04-.208Z"
-        clipRule="evenodd"
       />
     </g>
     <defs>
       <clipPath id="a65445a">
-        <rect width={16} height={16} fill="#fff" rx={4} />
+        <rect fill="#fff" height={16} rx={4} width={16} />
       </clipPath>
     </defs>
   </svg>

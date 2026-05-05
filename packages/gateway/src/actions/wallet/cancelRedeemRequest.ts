@@ -1,20 +1,29 @@
 import { EventEmitter } from "events";
 import { toPromiseEvent } from "to-promise-event";
 import {
+  type Address,
   type TransactionReceipt,
   type WalletClient,
   encodeFunctionData,
+  isAddress,
+  isAddressEqual,
+  zeroAddress,
 } from "viem";
 import { waitForTransactionReceipt, writeContract } from "viem/actions";
 
 import { gatewayAbi } from "../../abi/gatewayAbi.js";
-import { getGatewayAddress } from "../../getGatewayAddress.js";
 import type { CancelRedeemRequestEvents } from "../../types.js";
+
+export type CancelRedeemRequestParams = {
+  gatewayAddress: Address;
+};
 
 const canCancelRedeemRequest = function ({
   client,
+  gatewayAddress,
 }: {
   client: WalletClient;
+  gatewayAddress: Address;
 }): {
   canCancelRedeemRequest: boolean;
   reason?: string;
@@ -37,25 +46,39 @@ const canCancelRedeemRequest = function ({
       reason: "Client must have an account",
     };
   }
+  // Validate gateway address
+  if (!gatewayAddress || !isAddress(gatewayAddress)) {
+    return {
+      canCancelRedeemRequest: false,
+      reason: "Invalid gateway address",
+    };
+  }
+  if (isAddressEqual(gatewayAddress, zeroAddress)) {
+    return {
+      canCancelRedeemRequest: false,
+      reason: "Gateway address cannot be zero address",
+    };
+  }
 
   return { canCancelRedeemRequest: true };
 };
 
-const runCancelRedeemRequest = (walletClient: WalletClient) =>
+const runCancelRedeemRequest = (
+  walletClient: WalletClient,
+  { gatewayAddress }: CancelRedeemRequestParams,
+) =>
   async function (emitter: EventEmitter<CancelRedeemRequestEvents>) {
     try {
       const { canCancelRedeemRequest: canCancelRedeemRequestFlag, reason } =
         canCancelRedeemRequest({
           client: walletClient,
+          gatewayAddress,
         });
 
       if (!canCancelRedeemRequestFlag) {
         emitter.emit("cancel-redeem-request-failed-validation", reason!);
         return;
       }
-
-      // already validated
-      const gatewayAddress = getGatewayAddress(walletClient.chain!.id);
 
       emitter.emit("pre-cancel-redeem-request");
 

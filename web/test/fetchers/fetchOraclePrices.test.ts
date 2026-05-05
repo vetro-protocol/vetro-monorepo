@@ -1,5 +1,5 @@
 import { tokenConfigOptions } from "hooks/useTokenConfig";
-import { whitelistedTokensOptions } from "hooks/useWhitelistedTokens";
+import { whitelistedTokensByGatewayOptions } from "hooks/useWhitelistedTokensByGateway";
 import type { Token } from "types";
 import { type Address, type Client, zeroAddress } from "viem";
 import { readContract } from "viem/actions";
@@ -8,10 +8,6 @@ import { describe, expect, it, vi } from "vitest";
 import { fetchOraclePrices } from "../../src/fetchers/fetchOraclePrices";
 import { createTestQueryClient } from "../utils";
 
-vi.mock("@vetro-protocol/gateway", () => ({
-  getGatewayAddress: vi.fn().mockReturnValue(zeroAddress),
-}));
-
 vi.mock("hooks/useTokenConfig", () => ({
   tokenConfigOptions: vi.fn().mockReturnValue({
     queryFn: () => ({ oracle: zeroAddress }),
@@ -19,8 +15,8 @@ vi.mock("hooks/useTokenConfig", () => ({
   }),
 }));
 
-vi.mock("hooks/useWhitelistedTokens", () => ({
-  whitelistedTokensOptions: vi.fn().mockReturnValue({
+vi.mock("hooks/useWhitelistedTokensByGateway", () => ({
+  whitelistedTokensByGatewayOptions: vi.fn().mockReturnValue({
     queryFn: () => [],
     queryKey: ["whitelisted-tokens"],
   }),
@@ -56,7 +52,7 @@ describe("fetchOraclePrices", function () {
     );
     const queryClient = createTestQueryClient();
 
-    vi.mocked(whitelistedTokensOptions).mockReturnValue({
+    vi.mocked(whitelistedTokensByGatewayOptions).mockReturnValue({
       queryFn: () => [usdc],
       queryKey: ["whitelisted-tokens"],
     } as never);
@@ -72,13 +68,14 @@ describe("fetchOraclePrices", function () {
 
     const result = await fetchOraclePrices({
       client: mockClient,
+      gatewayAddress: "0xDaD503f8B9d42bb7af3AfC588358D30163e4416F",
       queryClient,
     });
 
     expect(result).toEqual({ USDC: "1" });
   });
 
-  it("uses priceSymbol from token extensions when available", async function () {
+  it("keys the oracle dict by token.symbol uppercased, ignoring priceSymbol", async function () {
     const hemiBtc = createMockToken(
       "hemiBTC",
       "0x3333333333333333333333333333333333333333",
@@ -86,7 +83,7 @@ describe("fetchOraclePrices", function () {
     );
     const queryClient = createTestQueryClient();
 
-    vi.mocked(whitelistedTokensOptions).mockReturnValue({
+    vi.mocked(whitelistedTokensByGatewayOptions).mockReturnValue({
       queryFn: () => [hemiBtc],
       queryKey: ["whitelisted-tokens"],
     } as never);
@@ -94,17 +91,18 @@ describe("fetchOraclePrices", function () {
       queryFn: () => ({ oracle: oracleAddress }),
       queryKey: ["token-config"],
     } as never);
-    // BTC price: $60,000 with 8 decimals
+    // hemiBTC/BTC at 1.0 with 8 decimals
     vi.mocked(readContract)
-      .mockResolvedValueOnce(6000000000000n)
+      .mockResolvedValueOnce(100000000n)
       .mockResolvedValueOnce(8);
 
     const result = await fetchOraclePrices({
       client: mockClient,
+      gatewayAddress: "0xCBA2Ffa0AC52d7871a4221a871793Eb788013faB",
       queryClient,
     });
 
-    expect(result).toEqual({ BTC: "60000" });
+    expect(result).toEqual({ HEMIBTC: "1" });
   });
 
   it("returns prices for multiple tokens", async function () {
@@ -118,7 +116,7 @@ describe("fetchOraclePrices", function () {
     );
     const queryClient = createTestQueryClient();
 
-    vi.mocked(whitelistedTokensOptions).mockReturnValue({
+    vi.mocked(whitelistedTokensByGatewayOptions).mockReturnValue({
       queryFn: () => [usdc, wbtc],
       queryKey: ["whitelisted-tokens"],
     } as never);
@@ -136,6 +134,7 @@ describe("fetchOraclePrices", function () {
 
     const result = await fetchOraclePrices({
       client: mockClient,
+      gatewayAddress: "0xDaD503f8B9d42bb7af3AfC588358D30163e4416F",
       queryClient,
     });
 
@@ -145,13 +144,14 @@ describe("fetchOraclePrices", function () {
   it("returns empty object when no whitelisted tokens", async function () {
     const queryClient = createTestQueryClient();
 
-    vi.mocked(whitelistedTokensOptions).mockReturnValue({
+    vi.mocked(whitelistedTokensByGatewayOptions).mockReturnValue({
       queryFn: () => [],
       queryKey: ["whitelisted-tokens"],
     } as never);
 
     const result = await fetchOraclePrices({
       client: mockClient,
+      gatewayAddress: "0xDaD503f8B9d42bb7af3AfC588358D30163e4416F",
       queryClient,
     });
 

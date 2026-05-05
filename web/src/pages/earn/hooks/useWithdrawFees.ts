@@ -8,12 +8,14 @@ export const withdrawGasUnitsOptions = ({
   chainId,
   client,
   queryClient,
+  stakingVaultAddress,
 }: {
   account: Address | undefined;
   amount: bigint;
   chainId: Chain["id"];
   client: Client | undefined;
   queryClient: QueryClient;
+  stakingVaultAddress: Address;
 }) =>
   queryOptions({
     enabled: !!client && !!account && amount > 0n,
@@ -23,6 +25,13 @@ export const withdrawGasUnitsOptions = ({
         amount,
         client: client!,
         queryClient,
+        stakingVaultAddress,
       }),
-    queryKey: ["earn-withdraw-gas-units", chainId, account, amount.toString()],
+    queryKey: [
+      "earn-withdraw-gas-units",
+      chainId,
+      account,
+      amount.toString(),
+      stakingVaultAddress,
+    ],
   });

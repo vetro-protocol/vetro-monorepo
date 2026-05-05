@@ -2,6 +2,7 @@ import {
   type Address,
   type TransactionReceipt,
   type WalletClient,
+  zeroAddress,
   zeroHash,
 } from "viem";
 import { waitForTransactionReceipt, writeContract } from "viem/actions";
@@ -9,6 +10,7 @@ import { sepolia } from "viem/chains";
 import { describe, expect, it, vi } from "vitest";
 
 import { cancelWithdraw } from "../../src/actions/wallet/cancelWithdraw";
+import { stakingVaultAddresses } from "../../src/stakingVaultAddresses";
 
 vi.mock("viem/actions", () => ({
   waitForTransactionReceipt: vi.fn(),
@@ -24,6 +26,7 @@ const mockWalletClient = {
 
 const validParameters = {
   requestId: BigInt(1),
+  vaultAddress: stakingVaultAddresses[0],
 };
 
 describe("cancelWithdraw", function () {
@@ -96,8 +99,30 @@ describe("cancelWithdraw", function () {
     expect(onSettled).toHaveBeenCalledOnce();
   });
 
+  it("should emit 'cancel-withdraw-failed-validation' if vault address is invalid", async function () {
+    const parameters = {
+      ...validParameters,
+      vaultAddress: zeroAddress,
+    };
+
+    const { emitter, promise } = cancelWithdraw(mockWalletClient, parameters);
+
+    const onFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("cancel-withdraw-failed-validation", onFailedValidation);
+    emitter.on("cancel-withdraw-settled", onSettled);
+
+    await promise;
+
+    expect(onFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "Invalid StakingVault address",
+    );
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
   it("should emit 'cancel-withdraw-failed-validation' if requestId is not a bigint", async function () {
-    const parameters = { requestId: 1 };
+    const parameters = { ...validParameters, requestId: 1 };
 
     const { emitter, promise } = cancelWithdraw(
       mockWalletClient,

@@ -1,5 +1,5 @@
 import { useStakedBalance } from "hooks/useStakedBalance";
-import { formatUnits } from "viem";
+import { type Address, formatUnits } from "viem";
 
 import { MaxButton } from "./base/maxButton";
 
@@ -7,14 +7,16 @@ type Props = {
   decimals: number;
   disabled?: boolean;
   onClick: (maxValue: string) => void;
+  stakingVaultAddress: Address;
 };
 
 export function SetMaxStakedBalance({
   decimals,
   disabled = false,
   onClick,
+  stakingVaultAddress,
 }: Props) {
-  const { data: stakedBalance } = useStakedBalance();
+  const { data: stakedBalance } = useStakedBalance(stakingVaultAddress);
 
   const isDisabled =
     disabled || stakedBalance === undefined || stakedBalance === 0n;

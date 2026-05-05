@@ -13,7 +13,10 @@ import {
   previewDeposit,
   previewRedeem,
 } from "./actions/public/index.js";
-import { cancelRedeemRequest } from "./actions/wallet/cancelRedeemRequest.js";
+import {
+  type CancelRedeemRequestParams,
+  cancelRedeemRequest,
+} from "./actions/wallet/cancelRedeemRequest.js";
 import { type DepositParams, deposit } from "./actions/wallet/deposit.js";
 import { type RedeemParams, redeem } from "./actions/wallet/redeem.js";
 import {
@@ -23,8 +26,14 @@ import {
 
 // Export ABI
 export { gatewayAbi } from "./abi/gatewayAbi.js";
-// Export gateway address utility
-export { getGatewayAddress } from "./getGatewayAddress.js";
+// Export gateway addresses and per-gateway peg-base metadata
+export {
+  type Gateway,
+  gatewayAddresses,
+  gateways,
+} from "./gatewayAddresses.js";
+
+export type { CancelRedeemRequestParams };
 
 export {
   type CancelRedeemRequestEvents,
@@ -62,7 +71,8 @@ export const gatewayPublicActions = () => (client: Client) => ({
 });
 
 export const gatewayWalletActions = () => (client: WalletClient) => ({
-  cancelRedeemRequest: () => cancelRedeemRequest(client),
+  cancelRedeemRequest: (params: CancelRedeemRequestParams) =>
+    cancelRedeemRequest(client, params),
   deposit: (params: DepositParams) => deposit(client, params),
   redeem: (params: RedeemParams) => redeem(client, params),
   requestRedeem: (params: RequestRedeemParams) => requestRedeem(client, params),

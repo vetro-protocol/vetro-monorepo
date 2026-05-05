@@ -1,14 +1,14 @@
 import { Modal } from "components/base/modal";
 import { StripedDivider } from "components/stripedDivider";
-import { useVusd } from "hooks/useVusd";
 import { useWithdrawalDelay } from "hooks/useWithdrawalDelay";
 import type { ReactNode } from "react";
 import { Trans, useTranslation } from "react-i18next";
-import type { Token } from "types";
+import type { Token, TokenWithGateway } from "types";
 import { getTokenListParams } from "utils/tokenList";
 
 type Props = {
   onClose: VoidFunction;
+  peggedToken: TokenWithGateway;
   whitelistedTokens: Token[];
 };
 
@@ -36,10 +36,14 @@ const StepSection = ({ badge, children, image }: StepSectionProps) => (
   </div>
 );
 
-export function RedeemTutorialModal({ onClose, whitelistedTokens }: Props) {
+export function RedeemTutorialModal({
+  onClose,
+  peggedToken,
+  whitelistedTokens,
+}: Props) {
   const { t } = useTranslation();
-  const { data: vusd } = useVusd();
   const { data: seconds } = useWithdrawalDelay({
+    gatewayAddress: peggedToken.gatewayAddress,
     select: (data) => Number(data),
   });
 
@@ -63,20 +67,26 @@ export function RedeemTutorialModal({ onClose, whitelistedTokens }: Props) {
         {/* Step 1 */}
         <StepSection
           badge={t("pages.swap.tutorial.step-1-badge")}
-          image={<img className="shadow-lg" src="/gatewayRedeem/step1.png" />}
+          image={
+            <img
+              alt={t("pages.swap.tutorial.step-1-image-alt")}
+              className="shadow-lg"
+              src="/gatewayRedeem/step1.png"
+            />
+          }
         >
           <p className="text-base font-semibold text-gray-500">
             <Trans
               components={{ strong: <span className="text-gray-900" /> }}
               i18nKey="pages.swap.tutorial.step-1-paragraph-1"
-              values={{ symbol: vusd.symbol }}
+              values={{ symbol: peggedToken.symbol }}
             />
           </p>
           <p className="text-base font-semibold text-gray-500">
             {t("pages.swap.tutorial.step-1-paragraph-2", {
               count: seconds,
               seconds,
-              symbol: vusd.symbol,
+              symbol: peggedToken.symbol,
             })}
           </p>
         </StepSection>
@@ -91,7 +101,12 @@ export function RedeemTutorialModal({ onClose, whitelistedTokens }: Props) {
         {/* Step 2 */}
         <StepSection
           badge={t("pages.swap.tutorial.step-2-badge")}
-          image={<img src="/gatewayRedeem/step2.png" />}
+          image={
+            <img
+              alt={t("pages.swap.tutorial.step-2-image-alt")}
+              src="/gatewayRedeem/step2.png"
+            />
+          }
         >
           <p className="text-base font-semibold text-gray-500">
             <Trans

@@ -3,16 +3,20 @@ import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
 import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpdateNativeBalanceAfterReceipt";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { getStakingVaultAddress, stakingVaultAbi } from "@vetro-protocol/earn";
+import { stakingVaultAbi } from "@vetro-protocol/earn";
 import { requestWithdraw } from "@vetro-protocol/earn/actions";
 import { exitTicketsQueryKey } from "pages/earn/hooks/useExitTickets";
 import type { ExitTicket } from "pages/earn/types";
-import { type TransactionReceipt, parseEventLogs } from "viem";
+import type { TokenWithGateway } from "types";
+import { type Address, type TransactionReceipt, parseEventLogs } from "viem";
 import { useAccount } from "wagmi";
 
+import { analyticsTotalsQueryKey } from "./useAnalyticsTotals";
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { useMainnet } from "./useMainnet";
+import { poolDepositsQueryKey } from "./usePoolDeposits";
 import { stakedBalanceQueryKey } from "./useStakedBalance";
+import { totalStakedUsdQueryKey } from "./useTotalStakedUsd";
 
 type WithdrawStatus = "completed" | "request-failed" | "requesting";
 
@@ -21,6 +25,8 @@ type Params = {
   onStatusChange?: (status: WithdrawStatus) => void;
   onSuccess?: VoidFunction;
   onTransactionHash?: (hash: string) => void;
+  peggedToken: TokenWithGateway;
+  stakingVaultAddress: Address;
 };
 
 export const useStakeWithdraw = function ({
@@ -28,13 +34,15 @@ export const useStakeWithdraw = function ({
   onStatusChange,
   onSuccess,
   onTransactionHash,
+  peggedToken,
+  stakingVaultAddress,
 }: Params) {
   const { address: account } = useAccount();
   const chain = useMainnet();
   const { data: walletClient } = useEthereumWalletClient();
   const ensureConnectedTo = useEnsureConnectedTo();
   const queryClient = useQueryClient();
-  const stakingVaultAddress = getStakingVaultAddress(chain.id);
+
   const { queryKey: nativeBalanceKey } = useNativeBalance(chain.id);
   const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
     chain.id,
@@ -51,6 +59,16 @@ export const useStakeWithdraw = function ({
     stakingVaultAddress,
   });
 
+  const poolDepositsKey = poolDepositsQueryKey({
+    chainId: chain.id,
+    stakingVaultAddress,
+  });
+
+  const analyticsTotalsKey = analyticsTotalsQueryKey({
+    chainId: chain.id,
+    gatewayAddress: peggedToken.gatewayAddress,
+  });
+
   return useMutation({
     async mutationFn() {
       if (!account) {
@@ -62,6 +80,7 @@ export const useStakeWithdraw = function ({
       const { emitter, promise } = requestWithdraw(walletClient!, {
         assets,
         owner: account,
+        vaultAddress: stakingVaultAddress,
       });
 
       emitter.on("user-signed-request-withdraw", function (hash) {
@@ -92,6 +111,12 @@ export const useStakeWithdraw = function ({
           queryClient.setQueryData(stakedKey, (old: bigint | undefined) =>
             old !== undefined ? old - assets : old,
           );
+          // Optimistically update pool deposits balance
+          queryClient.setQueryData(
+            poolDepositsKey,
+            (old: bigint | undefined) =>
+              old !== undefined ? old - assets : old,
+          );
 
           // Optimistically add exit ticket to cache
           const logs = parseEventLogs({
@@ -109,6 +134,7 @@ export const useStakeWithdraw = function ({
               requestId: args.requestId.toString(),
               requestTxHash: receipt.transactionHash,
               shares: args.shares.toString(),
+              stakingVaultAddress,
             };
 
             queryClient.setQueryData(
@@ -127,13 +153,28 @@ export const useStakeWithdraw = function ({
       });
 
       // Shares must be refetched before staked balance, because
-      // useStakedBalance uses ensureQueryData to read shares from cache
-      await queryClient.invalidateQueries({
+      // useStakedBalance uses ensureQueryData to read shares from cache.
+      // refetchQueries (not invalidateQueries) is required because the
+      // shares query has no mounted observer — invalidation alone would
+      // only mark it stale, and ensureQueryData returns stale cached data.
+      await queryClient.refetchQueries({
         queryKey: sharesBalanceKey,
       });
 
       queryClient.invalidateQueries({
         queryKey: stakedKey,
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: totalStakedUsdQueryKey({ account, chainId: chain.id }),
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: poolDepositsKey,
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: analyticsTotalsKey,
       });
     },
   });

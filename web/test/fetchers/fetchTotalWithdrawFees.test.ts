@@ -1,4 +1,5 @@
 import type { QueryClient } from "@tanstack/react-query";
+import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { type Client, zeroAddress } from "viem";
 import { sepolia } from "viem/chains";
 import { describe, expect, it, vi } from "vitest";
@@ -54,6 +55,7 @@ describe("fetchTotalWithdrawFees", function () {
       client: mockClient,
       owner: mockOwner,
       queryClient: mockQueryClient,
+      stakingVaultAddress: stakingVaultAddresses[0],
     });
 
     // 0.002 ETH * 2000 = $4
@@ -72,6 +74,7 @@ describe("fetchTotalWithdrawFees", function () {
       client: mockClient,
       owner: mockOwner,
       queryClient: mockQueryClient,
+      stakingVaultAddress: stakingVaultAddresses[0],
     });
 
     expect(result).toBe(0);
@@ -89,6 +92,7 @@ describe("fetchTotalWithdrawFees", function () {
       client: mockClient,
       owner: mockOwner,
       queryClient: mockQueryClient,
+      stakingVaultAddress: stakingVaultAddresses[0],
     });
 
     expect(result).toBe(0);

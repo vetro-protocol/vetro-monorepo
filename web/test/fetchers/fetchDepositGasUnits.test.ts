@@ -1,4 +1,5 @@
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
+import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import type { Token } from "types";
 import { type Client, zeroAddress } from "viem";
 import { estimateGas } from "viem/actions";
@@ -10,11 +11,6 @@ import { createTestQueryClient } from "../utils";
 
 vi.mock("../../src/fetchers/estimateApprovalGasUnits", () => ({
   estimateApprovalGasUnits: vi.fn(),
-}));
-
-vi.mock("@vetro-protocol/earn", async (importOriginal) => ({
-  ...(await importOriginal()),
-  getStakingVaultAddress: vi.fn().mockReturnValue(zeroAddress),
 }));
 
 vi.mock("viem/actions", () => ({
@@ -59,6 +55,7 @@ describe("fetchDepositGasUnits", function () {
       client: mockClient,
       owner: mockOwner,
       queryClient,
+      stakingVaultAddress: stakingVaultAddresses[0],
       token: mockToken,
     });
 
@@ -78,6 +75,7 @@ describe("fetchDepositGasUnits", function () {
       client: mockClient,
       owner: mockOwner,
       queryClient,
+      stakingVaultAddress: stakingVaultAddresses[0],
       token: mockToken,
     });
 
@@ -94,6 +92,7 @@ describe("fetchDepositGasUnits", function () {
         client: mockClient,
         owner: mockOwner,
         queryClient,
+        stakingVaultAddress: stakingVaultAddresses[0],
         token: mockToken,
       }),
     ).rejects.toThrow("Insufficient token balance");

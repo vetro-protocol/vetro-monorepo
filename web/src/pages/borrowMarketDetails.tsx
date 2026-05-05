@@ -1,23 +1,50 @@
+import { Breadcrumb } from "components/base/breadcrumb";
+import { Button, ButtonLink } from "components/base/button";
+import { ChevronIcon } from "components/base/chevronIcon";
+import { Dropdown } from "components/base/dropdown";
 import { BorrowForm } from "components/borrow/borrowForm";
 import { ExistingPositionNotice } from "components/borrow/existingPositionNotice";
 import { MarketHeader } from "components/borrow/marketHeader";
 import { MarketInfoCards } from "components/borrow/marketInfoCards";
+import { BorrowIcon } from "components/navbar/borrowIcon";
 import { StripedDivider } from "components/stripedDivider";
+import { TokenLogo } from "components/tokenLogo";
 import { marketIds } from "constants/borrow";
 import { type MarketData, useMarketData } from "hooks/borrow/useMarketData";
+import { useMarketsData } from "hooks/borrow/useMarketsData";
 import { usePositionInfo } from "hooks/borrow/usePositionInfo";
 import { useAmount } from "hooks/useAmount";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
-import { Navigate, useParams } from "react-router";
+import { Navigate, useNavigate, useParams } from "react-router";
 import { hasActivePosition } from "utils/borrowPosition";
 import { type Hash, isHash } from "viem";
+
+const renderMarketItem = (item: MarketData) => (
+  <>
+    <div className="flex items-center gap-2">
+      <TokenLogo
+        logoURI={item.collateralToken.logoURI}
+        size="small"
+        symbol={item.collateralToken.symbol}
+      />
+      <span>{item.collateralToken.symbol}</span>
+    </div>
+    <span className="text-gray-500">{item.loanToken.symbol}</span>
+  </>
+);
 
 const BorrowMarketDetailsLoaded = function ({
   market,
 }: {
   market: MarketData;
 }) {
+  const { lang } = useParams();
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+  const { data: allMarkets } = useMarketsData(marketIds);
+  const otherMarkets = allMarkets.filter((m) => m.marketId !== market.marketId);
   const { data: position } = usePositionInfo(market.marketId);
 
   const [borrowInput, onBorrowChange] = useAmount();
@@ -28,6 +55,42 @@ const BorrowMarketDetailsLoaded = function ({
 
   return (
     <div className="flex flex-col">
+      <Breadcrumb
+        items={[
+          {
+            menu: (
+              <ButtonLink href="/borrow" size="xSmall" variant="tertiary">
+                <BorrowIcon className="size-4 text-gray-400" />
+                {t("nav.borrow")}
+              </ButtonLink>
+            ),
+          },
+          {
+            menu: (
+              <Dropdown
+                getItemKey={(item) => item.marketId}
+                items={otherMarkets}
+                onChange={(item) =>
+                  navigate(`/${lang}/borrow/${item.marketId}`)
+                }
+                renderItem={renderMarketItem}
+                renderTrigger={(isOpen, triggerProps) => (
+                  <Button {...triggerProps} size="xSmall" variant="tertiary">
+                    <TokenLogo
+                      logoURI={market.collateralToken.logoURI}
+                      size="small"
+                      symbol={market.collateralToken.symbol}
+                    />
+                    {market.collateralToken.symbol}
+                    <ChevronIcon direction={isOpen ? "up" : "down"} />
+                  </Button>
+                )}
+                triggerId="breadcrumb-market-selector"
+              />
+            ),
+          },
+        ]}
+      />
       <MarketHeader
         collateralToken={market.collateralToken}
         loanToken={market.loanToken}

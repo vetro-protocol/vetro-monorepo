@@ -1,8 +1,8 @@
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 
 export type SwapFormState = {
   approve10x: boolean;
   fromInputValue: string;
-  fromToken: Token;
-  toToken: Token;
+  fromToken: TokenWithGateway;
+  toToken: TokenWithGateway;
 };

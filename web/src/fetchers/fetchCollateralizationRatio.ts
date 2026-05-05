@@ -1,37 +1,36 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { getGatewayAddress } from "@vetro-protocol/gateway";
-import { analyticsBackingVusdOptions } from "hooks/useAnalyticsBackingVusd";
 import { analyticsTotalsOptions } from "hooks/useAnalyticsTotals";
 import { analyticsTreasuryOptions } from "hooks/useAnalyticsTreasury";
+import { peggedTokenQueryOptions } from "hooks/usePeggedToken";
+import { peggedTokenBackingOptions } from "hooks/usePeggedTokenBacking";
 import { previewRedeemTokenOptions } from "hooks/usePreviewRedeem";
-import { vusdOptions } from "hooks/useVusd";
 import { type Address, type Client, formatUnits } from "viem";
 
-// Converts treasury token holdings to VUSD using on-chain previewRedeem prices.
+// Converts treasury token holdings to PeggedToken using on-chain previewRedeem prices.
 const fetchTreasuryTotal = async function ({
   chainId,
   client,
   gatewayAddress,
-  oneVusd,
+  oneUnit,
   queryClient,
 }: {
   chainId: number;
   client: Client;
   gatewayAddress: Address;
-  oneVusd: bigint;
+  oneUnit: bigint;
   queryClient: QueryClient;
 }) {
   const treasuryTokens = await queryClient.ensureQueryData(
-    analyticsTreasuryOptions(),
+    analyticsTreasuryOptions({ gatewayAddress }),
   );
-  const tokensPerVusd = await Promise.all(
+  const tokensPerPeggedToken = await Promise.all(
     treasuryTokens.map(({ tokenAddress }) =>
       queryClient.ensureQueryData(
         previewRedeemTokenOptions({
           chainId,
           client,
           gatewayAddress,
-          peggedTokenIn: oneVusd,
+          peggedTokenIn: oneUnit,
           tokenOut: tokenAddress as Address,
         }),
       ),
@@ -40,9 +39,9 @@ const fetchTreasuryTotal = async function ({
 
   let total = 0n;
   for (let i = 0; i < treasuryTokens.length; i++) {
-    const rate = tokensPerVusd[i];
+    const rate = tokensPerPeggedToken[i];
     if (rate > 0n) {
-      total += (BigInt(treasuryTokens[i].withdrawable) * oneVusd) / rate;
+      total += (BigInt(treasuryTokens[i].withdrawable) * oneUnit) / rate;
     }
   }
   return total;
@@ -50,30 +49,35 @@ const fetchTreasuryTotal = async function ({
 
 export const fetchCollateralizationRatio = async function ({
   client,
+  gatewayAddress,
   queryClient,
 }: {
   client: Client;
+  gatewayAddress: Address;
   queryClient: QueryClient;
 }) {
   const chainId = client.chain!.id;
-  const gatewayAddress = getGatewayAddress(chainId);
-  const vusd = await queryClient.ensureQueryData(
-    vusdOptions({ client, queryClient }),
+  const peggedToken = await queryClient.ensureQueryData(
+    peggedTokenQueryOptions({ client, gatewayAddress, queryClient }),
   );
-  const { decimals } = vusd;
-  const oneVusd = 10n ** BigInt(decimals);
+  const { decimals } = peggedToken;
+  const oneUnit = 10n ** BigInt(decimals);
 
-  const [backing, { vusdMinted }, treasuryTotal] = await Promise.all([
-    queryClient.ensureQueryData(analyticsBackingVusdOptions()).then((b) => ({
-      strategicReserves: BigInt(b.strategicReserves),
-      surplus: BigInt(b.surplus),
-    })),
-    queryClient.ensureQueryData(analyticsTotalsOptions()),
+  const [backing, { minted }, treasuryTotal] = await Promise.all([
+    queryClient
+      .ensureQueryData(peggedTokenBackingOptions({ gatewayAddress }))
+      .then((b) => ({
+        strategicReserves: BigInt(b.strategicReserves),
+        surplus: BigInt(b.surplus),
+      })),
+    queryClient.ensureQueryData(
+      analyticsTotalsOptions({ client, peggedToken, queryClient }),
+    ),
     fetchTreasuryTotal({
       chainId,
       client,
       gatewayAddress,
-      oneVusd,
+      oneUnit,
       queryClient,
     }),
   ]);
@@ -83,9 +87,9 @@ export const fetchCollateralizationRatio = async function ({
 
   return {
     strategicReserves: toNumber(backing.strategicReserves),
+    supply: toNumber(minted),
     surplus: toNumber(backing.surplus),
     total: toNumber(total),
     treasuryTotal: toNumber(treasuryTotal),
-    vusdSupply: toNumber(BigInt(vusdMinted)),
   };
 };

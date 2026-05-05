@@ -1,8 +1,8 @@
+import { useAddTokenToWallet } from "@hemilabs/react-hooks/useAddTokenToWallet";
 import { useAllowance } from "@hemilabs/react-hooks/useAllowance";
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
-import { getStakingVaultAddress } from "@vetro-protocol/earn";
 import { ApproveSection } from "components/approveSection";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { VerticalStepper, stepStatus } from "components/base/verticalStepper";
@@ -15,13 +15,14 @@ import { Balance } from "components/tokenInput/balance";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useMainnet } from "hooks/useMainnet";
+import { useShareToken } from "hooks/useShareToken";
 import { useStakeDeposit } from "hooks/useStakeDeposit";
-import { useVusd } from "hooks/useVusd";
 import { useTotalDepositFees } from "pages/earn/hooks/useTotalDepositFees";
 import { type FormEvent, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import type { TokenWithGateway } from "types";
 import { formatAmount } from "utils/token";
-import { parseUnits } from "viem";
+import { type Address, parseUnits, zeroAddress } from "viem";
 import { useAccount } from "wagmi";
 
 import type { DepositStep } from "./stakeDrawerReducer";
@@ -36,6 +37,8 @@ type Props = {
   onDepositStepChange: (step: DepositStep) => void;
   onInputChange: (value: string) => void;
   onSuccess: (toast: { description: string; title: string }) => void;
+  peggedToken: TokenWithGateway;
+  stakingVaultAddress: Address;
 };
 
 function getStakeErrors({
@@ -161,18 +164,30 @@ export function StakeDepositForm({
   onDepositStepChange,
   onInputChange,
   onSuccess,
+  peggedToken,
+  stakingVaultAddress,
 }: Props) {
   const { address: account, isConnected } = useAccount();
   const chain = useMainnet();
   const { openConnectModal } = useConnectModal();
   const { t } = useTranslation();
-  const { data: vusd } = useVusd();
-  const stakingVaultAddress = getStakingVaultAddress(chain.id);
+  const { data: shareToken } = useShareToken(stakingVaultAddress);
 
-  const { data: vusdBalance, isError: isVusdBalanceError } = useTokenBalance({
-    address: vusd?.address,
-    chainId: chain.id,
+  const { mutate: watchToken } = useAddTokenToWallet({
+    token: {
+      // By the time "watchToken" is called, the share token should have been loaded
+      // otherwise, submission wouldn't have happened
+      address: shareToken?.address ?? zeroAddress,
+      chainId: chain.id,
+      extensions: { logoURI: shareToken?.logoURI },
+    },
   });
+
+  const { data: peggedTokenBalance, isError: isPeggedTokenBalanceError } =
+    useTokenBalance({
+      address: peggedToken.address,
+      chainId: chain.id,
+    });
 
   const { data: nativeBalanceData } = useNativeBalance(chain.id);
   const nativeBalance = nativeBalanceData?.value;
@@ -180,10 +195,10 @@ export function StakeDepositForm({
   const { data: currentAllowance } = useAllowance({
     owner: account,
     spender: stakingVaultAddress,
-    token: vusd,
+    token: peggedToken,
   });
 
-  const amountBigInt = vusd ? parseUnits(inputValue, vusd.decimals) : 0n;
+  const amountBigInt = parseUnits(inputValue, peggedToken.decimals);
 
   const needsApproval =
     currentAllowance !== undefined && currentAllowance < amountBigInt;
@@ -195,7 +210,7 @@ export function StakeDepositForm({
       page: "earn",
       text: t("pages.earn.activity.deposit-text", {
         amount: inputValue,
-        symbol: vusd?.symbol,
+        symbol: peggedToken.symbol,
       }),
       title: `${t("nav.earn")} · ${t("pages.earn.stake.deposit")}`,
     });
@@ -219,8 +234,9 @@ export function StakeDepositForm({
         description: t("pages.earn.stake.deposit-toast-description"),
         title: t("pages.earn.stake.deposit-toast-title"),
       });
+      watchToken();
     },
-    [onSuccess, t],
+    [onSuccess, t, watchToken],
   );
 
   const depositMutation = useStakeDeposit({
@@ -229,28 +245,31 @@ export function StakeDepositForm({
     onStatusChange: handleDepositStepChange,
     onSuccess: handleDepositSuccess,
     onTransactionHash,
+    peggedToken,
+    stakingVaultAddress,
   });
 
   const depositFeesQuery = useTotalDepositFees({
     amount: amountBigInt,
     approveAmount,
-    token: vusd,
+    stakingVaultAddress,
+    token: peggedToken,
   });
 
   const inputError = getStakeErrors({
     amount: amountBigInt,
     nativeBalance,
-    tokenBalance: vusdBalance,
+    tokenBalance: peggedTokenBalance,
   });
 
   const formattedBalance = formatAmount({
-    amount: vusdBalance,
-    decimals: vusd.decimals,
-    isError: isVusdBalanceError,
+    amount: peggedTokenBalance,
+    decimals: peggedToken.decimals,
+    isError: isPeggedTokenBalanceError,
   });
 
   const balancesLoaded =
-    nativeBalance !== undefined && vusdBalance !== undefined;
+    nativeBalance !== undefined && peggedTokenBalance !== undefined;
 
   const actionText = needsApproval
     ? t("pages.earn.stake.approve-and-deposit")
@@ -283,13 +302,15 @@ export function StakeDepositForm({
             />
           }
           errorKey={balancesLoaded ? inputError : undefined}
-          fiatValue={<RenderFiatValue token={vusd} value={amountBigInt} />}
+          fiatValue={
+            <RenderFiatValue token={peggedToken} value={amountBigInt} />
+          }
           label={t("pages.earn.stake.you-will-stake")}
           maxButton={
-            <SetMaxErc20Balance onClick={handleMaxClick} token={vusd!} />
+            <SetMaxErc20Balance onClick={handleMaxClick} token={peggedToken} />
           }
           onChange={onInputChange}
-          tokenSelector={<TokenSelectorReadOnly {...vusd} />}
+          tokenSelector={<TokenSelectorReadOnly {...peggedToken} />}
           value={inputValue}
         />
       </div>
@@ -313,7 +334,7 @@ export function StakeDepositForm({
           <NetworkFees
             label={t("pages.earn.stake.fees-label", {
               amount: inputValue,
-              token: vusd.symbol,
+              token: peggedToken.symbol,
             })}
             networkFee={depositFeesQuery}
             sectionClassName="px-6"

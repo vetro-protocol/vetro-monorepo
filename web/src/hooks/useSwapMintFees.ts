@@ -6,7 +6,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { fetchMintGasUnits } from "fetchers/fetchMintGasUnits";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 import { type Address, type Chain, type Client } from "viem";
 import { useAccount } from "wagmi";
 
@@ -27,7 +27,7 @@ export const mintGasUnitsOptions = ({
   approveAmount: bigint | undefined;
   chainId: Chain["id"];
   client: Client | undefined;
-  fromToken: Token;
+  fromToken: TokenWithGateway;
   minPeggedTokenOut: bigint | undefined;
   owner: Address | undefined;
   queryClient: QueryClient;
@@ -52,6 +52,7 @@ export const mintGasUnitsOptions = ({
     queryKey: [
       "swap-mint-gas-units",
       chainId,
+      fromToken.gatewayAddress,
       fromToken.address,
       owner,
       amount.toString(),
@@ -67,7 +68,7 @@ export const useSwapMintFees = function ({
 }: {
   amount: bigint;
   approveAmount: bigint | undefined;
-  fromToken: Token;
+  fromToken: TokenWithGateway;
   minPeggedTokenOut: bigint | undefined;
 }) {
   const { address: owner } = useAccount();

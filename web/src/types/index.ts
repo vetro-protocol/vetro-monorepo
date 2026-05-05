@@ -14,3 +14,7 @@ export type Token = {
   name: string;
   symbol: string;
 };
+
+export type TokenWithGateway = Token & { gatewayAddress: Address };
+
+export type BridgeableToken = Token & { oftAdapterAddress?: Address };

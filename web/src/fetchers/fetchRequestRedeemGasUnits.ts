@@ -1,8 +1,7 @@
 import { tokenBalanceQueryOptions } from "@hemilabs/react-hooks/useTokenBalance";
 import type { QueryClient } from "@tanstack/react-query";
-import { getGatewayAddress } from "@vetro-protocol/gateway";
 import { encodeRequestRedeem } from "@vetro-protocol/gateway/actions";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 import { createErc20AllowanceStateOverride } from "utils/erc20StateOverride";
 import type { Address, Client } from "viem";
 import { estimateGas } from "viem/actions";
@@ -29,11 +28,8 @@ export const fetchRequestRedeemGasUnits = async function ({
   client: Client;
   owner: Address;
   queryClient: QueryClient;
-  token: Token;
+  token: TokenWithGateway;
 }) {
-  const chainId = client.chain!.id;
-  const gatewayAddress = getGatewayAddress(chainId);
-
   const balance = await queryClient.ensureQueryData(
     tokenBalanceQueryOptions({
       account: owner,
@@ -53,7 +49,7 @@ export const fetchRequestRedeemGasUnits = async function ({
       client,
       owner,
       queryClient,
-      spender: gatewayAddress,
+      spender: token.gatewayAddress,
       token,
     }),
     estimateGas(client, {
@@ -63,10 +59,10 @@ export const fetchRequestRedeemGasUnits = async function ({
       }),
       stateOverride: createErc20AllowanceStateOverride({
         owner,
-        spender: gatewayAddress,
+        spender: token.gatewayAddress,
         token,
       }),
-      to: gatewayAddress,
+      to: token.gatewayAddress,
     }),
   ]);
 

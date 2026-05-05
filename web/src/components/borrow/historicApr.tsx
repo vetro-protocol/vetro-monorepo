@@ -96,10 +96,10 @@ const EmptyChart = ({
 );
 
 const periodLabelKeys = {
-  "1m": "pages.borrow.period-1-month",
-  "1w": "pages.borrow.period-1-week",
-  "1y": "pages.borrow.period-1-year",
-  "3m": "pages.borrow.period-3-month",
+  "1m": "common.charts.period-1-month",
+  "1w": "common.charts.period-1-week",
+  "1y": "common.charts.period-1-year",
+  "3m": "common.charts.period-3-month",
 } as const;
 
 const ArrowPathIcon = () => (
@@ -227,7 +227,7 @@ export function HistoricApr({ marketId }: Props) {
                 <span className="opacity-72">
                   <ArrowPathIcon />
                 </span>
-                {t("pages.borrow.reload-chart")}
+                {t("common.charts.reload-chart")}
               </Button>
             </div>
           </>

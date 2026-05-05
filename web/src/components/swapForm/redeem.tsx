@@ -1,5 +1,5 @@
 import { useRedeemDelay } from "hooks/useRedeemDelay";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 import { useAccount } from "wagmi";
 
 import { OneStepRedeem } from "./oneStepRedeem";
@@ -11,19 +11,23 @@ type Props = {
   approve10x: boolean;
   approveAmount: bigint | undefined;
   fromInputValue: string;
-  fromToken: Token;
+  fromToken: TokenWithGateway;
+  onFromTokenChange: (token: TokenWithGateway) => void;
   onInputChange: (value: string) => void;
   onMaxClick: (maxValue: string) => void;
   onToggle: VoidFunction;
-  onTokenChange: (token: Token) => void;
+  onTokenChange: (token: TokenWithGateway) => void;
   onToggleApprove10x: VoidFunction;
-  toToken: Token;
-  whitelistedTokens: Token[];
+  peggedTokens: TokenWithGateway[];
+  toToken: TokenWithGateway;
+  whitelistedTokens: TokenWithGateway[];
 };
 
 export function Redeem(props: Props) {
   const { address } = useAccount();
-  const { data: redeemDelay, isLoading } = useRedeemDelay();
+  const { data: redeemDelay, isLoading } = useRedeemDelay(
+    props.fromToken.gatewayAddress,
+  );
 
   // If disconnected, show the most common case which is the 2-step redeem
   if (!address) {

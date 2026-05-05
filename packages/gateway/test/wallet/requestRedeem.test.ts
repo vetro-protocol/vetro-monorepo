@@ -38,7 +38,11 @@ const mockWalletClient = {
   chain: sepolia,
 } as WalletClient;
 
+const mockGatewayAddress =
+  "0x3333333333333333333333333333333333333333" as Address;
+
 const validParameters = {
+  gatewayAddress: mockGatewayAddress,
   peggedTokenAmount: BigInt(1000),
 };
 
@@ -113,8 +117,59 @@ describe("requestRedeem", function () {
     expect(onSettled).toHaveBeenCalledOnce();
   });
 
+  it("should emit 'request-redeem-failed-validation' if gateway address is not valid", async function () {
+    const parameters = {
+      ...validParameters,
+      gatewayAddress: "invalid_gateway",
+    };
+
+    const { emitter, promise } = requestRedeem(
+      mockWalletClient,
+      // @ts-expect-error - Testing invalid input
+      parameters,
+    );
+
+    const onFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("request-redeem-failed-validation", onFailedValidation);
+    emitter.on("request-redeem-settled", onSettled);
+
+    await promise;
+
+    expect(onFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "Invalid gateway address",
+    );
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("should emit 'request-redeem-failed-validation' if gateway address is zero address", async function () {
+    const parameters = {
+      ...validParameters,
+      gatewayAddress: zeroAddress,
+    };
+
+    const { emitter, promise } = requestRedeem(mockWalletClient, parameters);
+
+    const onFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("request-redeem-failed-validation", onFailedValidation);
+    emitter.on("request-redeem-settled", onSettled);
+
+    await promise;
+
+    expect(onFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "Gateway address cannot be zero address",
+    );
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
   it("should emit 'request-redeem-failed-validation' if peggedTokenAmount is not a bigint", async function () {
-    const parameters = { peggedTokenAmount: 1000 };
+    const parameters = {
+      gatewayAddress: mockGatewayAddress,
+      peggedTokenAmount: 1000,
+    };
 
     const { emitter, promise } = requestRedeem(
       mockWalletClient,
@@ -137,7 +192,10 @@ describe("requestRedeem", function () {
   });
 
   it("should emit 'request-redeem-failed-validation' if peggedTokenAmount is zero", async function () {
-    const parameters = { peggedTokenAmount: BigInt(0) };
+    const parameters = {
+      gatewayAddress: mockGatewayAddress,
+      peggedTokenAmount: BigInt(0),
+    };
 
     const { emitter, promise } = requestRedeem(mockWalletClient, parameters);
 
@@ -156,7 +214,10 @@ describe("requestRedeem", function () {
   });
 
   it("should emit 'request-redeem-failed-validation' if peggedTokenAmount is negative", async function () {
-    const parameters = { peggedTokenAmount: BigInt(-1) };
+    const parameters = {
+      gatewayAddress: mockGatewayAddress,
+      peggedTokenAmount: BigInt(-1),
+    };
 
     const { emitter, promise } = requestRedeem(mockWalletClient, parameters);
 
@@ -177,6 +238,7 @@ describe("requestRedeem", function () {
   it("should emit 'request-redeem-failed-validation' if approveAmount is less than peggedTokenAmount", async function () {
     const parameters = {
       approveAmount: BigInt(999),
+      gatewayAddress: mockGatewayAddress,
       peggedTokenAmount: BigInt(1000),
     };
 
@@ -203,6 +265,7 @@ describe("requestRedeem", function () {
 
     const parameters = {
       approveAmount: BigInt(10000),
+      gatewayAddress: mockGatewayAddress,
       peggedTokenAmount: BigInt(1000),
     };
 

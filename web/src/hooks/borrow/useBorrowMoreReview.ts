@@ -7,6 +7,7 @@ type Params = {
   borrowApy: number;
   borrowInput: string;
   collateralToken: Token;
+  frozen?: boolean;
   loanToken: Token;
   position: AccrualPosition | undefined;
 };
@@ -15,12 +16,14 @@ export const useBorrowMoreReview = ({
   borrowApy,
   borrowInput,
   collateralToken,
+  frozen,
   loanToken,
   position,
 }: Params) =>
   usePositionReview({
     borrowApy,
     collateralToken,
+    frozen,
     getUpdatedPosition: (pos, amount) => ({
       borrowShares: pos.market.toBorrowShares(
         pos.market.toBorrowAssets(pos.borrowShares) + amount,

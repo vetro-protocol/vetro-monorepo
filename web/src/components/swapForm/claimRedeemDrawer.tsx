@@ -5,7 +5,7 @@ import type { InputError } from "components/tokenInput/utils";
 import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
 import { type ComponentProps, Suspense, lazy } from "react";
 import { useTranslation } from "react-i18next";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 import type { Address } from "viem";
 
 import { type ClaimRedeemFlowStatus } from "./claimRedeemProgressDrawer";
@@ -31,19 +31,19 @@ type Props = {
   amountLocked: bigint;
   flowStatus: ClaimRedeemFlowStatus;
   fromAmount: string;
-  fromToken: Token;
+  fromToken: TokenWithGateway;
+  inputError: InputError | undefined;
   onClose: VoidFunction;
   onInputChange: (value: string) => void;
   onMaxClick: VoidFunction;
   onSubmit: VoidFunction;
-  onTokenChange: (token: Token) => void;
+  onTokenChange: (token: TokenWithGateway) => void;
   oracleToken: Address;
   outputBigInt: bigint | undefined;
   outputValue: string;
-  toToken: Token;
-  inputError: InputError | undefined;
+  toToken: TokenWithGateway;
   unitPreview: UnitPreview;
-  whitelistedTokens: Token[];
+  whitelistedTokens: TokenWithGateway[];
 } & Pick<
   ComponentProps<typeof SwapFees>,
   "networkFee" | "protocolFee" | "totalFees"
@@ -102,12 +102,12 @@ export function ClaimRedeemDrawer({
           onTokenChange={onTokenChange}
           oracleToken={oracleToken}
           outputBigInt={outputBigInt}
-          unitPreview={unitPreview}
           outputValue={outputValue}
           protocolFee={protocolFee}
           steps={steps}
           toToken={toToken}
           totalFees={totalFees}
+          unitPreview={unitPreview}
           whitelistedTokens={whitelistedTokens}
         />
       </Suspense>

@@ -1,20 +1,16 @@
-import { analyticsBackingVusdOptions } from "hooks/useAnalyticsBackingVusd";
 import { analyticsTotalsOptions } from "hooks/useAnalyticsTotals";
 import { analyticsTreasuryOptions } from "hooks/useAnalyticsTreasury";
+import { peggedTokenQueryOptions } from "hooks/usePeggedToken";
+import { peggedTokenBackingOptions } from "hooks/usePeggedTokenBacking";
 import { previewRedeemTokenOptions } from "hooks/usePreviewRedeem";
-import { vusdOptions } from "hooks/useVusd";
 import type { Client } from "viem";
 import { describe, expect, it, vi } from "vitest";
 
 import { fetchCollateralizationRatio } from "../../src/fetchers/fetchCollateralizationRatio";
 import { createTestQueryClient } from "../utils";
 
-vi.mock("@vetro-protocol/gateway", () => ({
-  getGatewayAddress: vi.fn().mockReturnValue("0xGateway"),
-}));
-
-vi.mock("hooks/useAnalyticsBackingVusd", () => ({
-  analyticsBackingVusdOptions: vi.fn(),
+vi.mock("hooks/usePeggedTokenBacking", () => ({
+  peggedTokenBackingOptions: vi.fn(),
 }));
 
 vi.mock("hooks/useAnalyticsTotals", () => ({
@@ -29,8 +25,8 @@ vi.mock("hooks/usePreviewRedeem", () => ({
   previewRedeemTokenOptions: vi.fn(),
 }));
 
-vi.mock("hooks/useVusd", () => ({
-  vusdOptions: vi.fn(),
+vi.mock("hooks/usePeggedToken", () => ({
+  peggedTokenQueryOptions: vi.fn(),
 }));
 
 const mockClient = { chain: { id: 1 } } as unknown as Client;
@@ -40,20 +36,20 @@ const e18 = 10n ** 18n;
 const setupMocks = function ({
   backing = { strategicReserves: "0", surplus: "0" },
   previewRedeem,
-  totals = { vusdMinted: "0" },
+  totals = { minted: 0n },
   treasury = [],
 }: {
   backing?: { strategicReserves: string; surplus: string };
   previewRedeem?: (tokenAddress: string) => bigint;
-  totals?: { vusdMinted: string };
+  totals?: { minted: bigint };
   treasury?: { tokenAddress: string; withdrawable: string }[];
 }) {
   const mock = (fn: unknown, queryFn: () => unknown, queryKey: string[]) =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.mocked(fn as any).mockReturnValue({ queryFn, queryKey });
 
-  mock(vusdOptions, () => vusd, ["vusd"]);
-  mock(analyticsBackingVusdOptions, () => backing, ["analytics-backing-vusd"]);
+  mock(peggedTokenQueryOptions, () => vusd, ["vusd"]);
+  mock(peggedTokenBackingOptions, () => backing, ["pegged-token-backing"]);
   mock(analyticsTotalsOptions, () => totals, ["analytics-totals"]);
   mock(analyticsTreasuryOptions, () => treasury, ["analytics-treasury"]);
   if (previewRedeem) {
@@ -74,11 +70,12 @@ describe("fetchCollateralizationRatio", function () {
         strategicReserves: (80n * e18).toString(),
         surplus: (20n * e18).toString(),
       },
-      totals: { vusdMinted: (100n * e18).toString() },
+      totals: { minted: 100n * e18 },
     });
 
     const result = await fetchCollateralizationRatio({
       client: mockClient,
+      gatewayAddress: "0xDaD503f8B9d42bb7af3AfC588358D30163e4416F",
       queryClient: createTestQueryClient(),
     });
 
@@ -86,7 +83,7 @@ describe("fetchCollateralizationRatio", function () {
     expect(result.surplus).toBe(20);
     expect(result.treasuryTotal).toBe(0);
     expect(result.total).toBe(100);
-    expect(result.vusdSupply).toBe(100);
+    expect(result.supply).toBe(100);
   });
 
   it("includes treasury total converted via previewRedeem", async function () {
@@ -99,7 +96,7 @@ describe("fetchCollateralizationRatio", function () {
       },
       // 1 VUSD buys 1 USDC (6 decimals)
       previewRedeem: () => 1n * 10n ** 6n,
-      totals: { vusdMinted: (100n * e18).toString() },
+      totals: { minted: 100n * e18 },
       // 40 USDC
       treasury: [
         {
@@ -111,6 +108,7 @@ describe("fetchCollateralizationRatio", function () {
 
     const result = await fetchCollateralizationRatio({
       client: mockClient,
+      gatewayAddress: "0xDaD503f8B9d42bb7af3AfC588358D30163e4416F",
       queryClient: createTestQueryClient(),
     });
 
@@ -118,7 +116,7 @@ describe("fetchCollateralizationRatio", function () {
     expect(result.surplus).toBe(10);
     expect(result.treasuryTotal).toBe(40);
     expect(result.total).toBe(100);
-    expect(result.vusdSupply).toBe(100);
+    expect(result.supply).toBe(100);
   });
 
   it("returns zero values when all inputs are zero", async function () {
@@ -126,6 +124,7 @@ describe("fetchCollateralizationRatio", function () {
 
     const result = await fetchCollateralizationRatio({
       client: mockClient,
+      gatewayAddress: "0xDaD503f8B9d42bb7af3AfC588358D30163e4416F",
       queryClient: createTestQueryClient(),
     });
 
@@ -133,7 +132,7 @@ describe("fetchCollateralizationRatio", function () {
     expect(result.surplus).toBe(0);
     expect(result.treasuryTotal).toBe(0);
     expect(result.total).toBe(0);
-    expect(result.vusdSupply).toBe(0);
+    expect(result.supply).toBe(0);
   });
 
   it("sums strategic reserves and surplus in bigint before converting", async function () {
@@ -142,11 +141,12 @@ describe("fetchCollateralizationRatio", function () {
         strategicReserves: "10000000000000000001",
         surplus: "10000000000000000002",
       },
-      totals: { vusdMinted: (100n * e18).toString() },
+      totals: { minted: 100n * e18 },
     });
 
     const result = await fetchCollateralizationRatio({
       client: mockClient,
+      gatewayAddress: "0xDaD503f8B9d42bb7af3AfC588358D30163e4416F",
       queryClient: createTestQueryClient(),
     });
 
@@ -166,7 +166,7 @@ describe("fetchCollateralizationRatio", function () {
       },
       // 1 VUSD buys 1 of each stablecoin (both 6 decimals)
       previewRedeem: () => 1n * 10n ** 6n,
-      totals: { vusdMinted: (100n * e18).toString() },
+      totals: { minted: 100n * e18 },
       treasury: [
         {
           tokenAddress: usdcAddress,
@@ -181,6 +181,7 @@ describe("fetchCollateralizationRatio", function () {
 
     const result = await fetchCollateralizationRatio({
       client: mockClient,
+      gatewayAddress: "0xDaD503f8B9d42bb7af3AfC588358D30163e4416F",
       queryClient: createTestQueryClient(),
     });
 
@@ -188,7 +189,7 @@ describe("fetchCollateralizationRatio", function () {
     expect(result.surplus).toBe(10);
     expect(result.treasuryTotal).toBe(60);
     expect(result.total).toBe(100);
-    expect(result.vusdSupply).toBe(100);
+    expect(result.supply).toBe(100);
   });
 
   it("skips treasury tokens where previewRedeem returns zero", async function () {
@@ -198,7 +199,7 @@ describe("fetchCollateralizationRatio", function () {
         surplus: (10n * e18).toString(),
       },
       previewRedeem: () => 0n,
-      totals: { vusdMinted: (100n * e18).toString() },
+      totals: { minted: 100n * e18 },
       treasury: [
         {
           tokenAddress: "0xToken",
@@ -209,6 +210,7 @@ describe("fetchCollateralizationRatio", function () {
 
     const result = await fetchCollateralizationRatio({
       client: mockClient,
+      gatewayAddress: "0xDaD503f8B9d42bb7af3AfC588358D30163e4416F",
       queryClient: createTestQueryClient(),
     });
 

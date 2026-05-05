@@ -1,5 +1,5 @@
 import type { QueryClient } from "@tanstack/react-query";
-import type { Token } from "types";
+import type { TokenWithGateway } from "types";
 import { zeroAddress, type Client } from "viem";
 import { sepolia } from "viem/chains";
 import { describe, expect, it, vi } from "vitest";
@@ -34,7 +34,8 @@ describe("fetchTotalRequestRedeemFees", function () {
   // @ts-expect-error - Only address is needed for these tests
   const mockToken = {
     address: zeroAddress,
-  } as Token;
+    gatewayAddress: "0xDaD503f8B9d42bb7af3AfC588358D30163e4416F",
+  } as TokenWithGateway;
 
   const mockQueryClient = {
     ensureQueryData: vi.fn(),

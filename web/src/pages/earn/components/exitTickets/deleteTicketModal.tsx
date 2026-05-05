@@ -3,9 +3,9 @@ import { Button } from "components/base/button";
 import { Modal } from "components/base/modal";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useCancelWithdraw } from "hooks/useCancelWithdraw";
-import { useVusd } from "hooks/useVusd";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import type { TokenWithGateway } from "types";
 import { formatAmount } from "utils/token";
 import { useAccount } from "wagmi";
 
@@ -14,19 +14,25 @@ import type { ExitTicket } from "../../types";
 type Props = {
   onClose: VoidFunction;
   onSuccess?: VoidFunction;
+  peggedToken: TokenWithGateway;
   ticket: ExitTicket;
 };
 
-export function DeleteTicketModal({ onClose, onSuccess, ticket }: Props) {
+export function DeleteTicketModal({
+  onClose,
+  onSuccess,
+  peggedToken,
+  ticket,
+}: Props) {
   const { t } = useTranslation();
   const { isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
-  const { data: vusd } = useVusd();
+
   const [isDeleting, setIsDeleting] = useState(false);
 
   const formattedAmount = formatAmount({
     amount: BigInt(ticket.assets),
-    decimals: vusd?.decimals ?? 18,
+    decimals: peggedToken.decimals,
     isError: false,
   });
 
@@ -35,7 +41,7 @@ export function DeleteTicketModal({ onClose, onSuccess, ticket }: Props) {
       page: "earn",
       text: t("pages.earn.activity.cancel-withdraw-text", {
         amount: formattedAmount,
-        symbol: vusd?.symbol,
+        symbol: peggedToken.symbol,
       }),
       title: `${t("nav.earn")} · ${t("pages.earn.exit-tickets.delete-title")}`,
     });
@@ -61,7 +67,9 @@ export function DeleteTicketModal({ onClose, onSuccess, ticket }: Props) {
       handlers[status]?.();
     },
     onTransactionHash,
+    peggedToken,
     requestId: BigInt(ticket.requestId),
+    stakingVaultAddress: ticket.stakingVaultAddress,
   });
 
   function handleDelete() {
@@ -102,7 +110,7 @@ export function DeleteTicketModal({ onClose, onSuccess, ticket }: Props) {
             </Button>
           ) : (
             <Button onClick={openConnectModal} size="xSmall" variant="primary">
-              {t("pages.swap.form.connect-wallet")}
+              {t("common.connect-wallet")}
             </Button>
           )}
         </div>

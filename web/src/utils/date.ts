@@ -1,3 +1,5 @@
+export const SECONDS_PER_DAY = 86400;
+
 export const unixNowTimestamp = () => Math.floor(Date.now() / 1000);
 
 const toDate = (timestamp: number | string) =>

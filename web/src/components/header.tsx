@@ -47,7 +47,7 @@ export function Header() {
             if (!mounted || !account || !chain) {
               return (
                 <Button onClick={openConnectModal} size="xSmall">
-                  {t("pages.swap.form.connect-wallet")}
+                  {t("common.connect-wallet")}
                 </Button>
               );
             }

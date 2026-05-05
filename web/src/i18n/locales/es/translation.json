@@ -2,8 +2,25 @@
   "common": {
     "approve-10x": "Aprobar 10x",
     "approve-10x-tooltip": "Apruebe hasta 10× el monto de su transacción, reduciendo futuros pasos de aprobación. Puede revocarlo en cualquier momento.",
+    "charts": {
+      "period-1-month": "1 mes",
+      "period-1-week": "1 semana",
+      "period-1-year": "1 año",
+      "period-3-month": "3 meses",
+      "reload-chart": "Recargar gráfico"
+    },
+    "clear-search": "Limpiar búsqueda",
+    "connect-wallet": "Conectar billetera",
+    "enter-amount": "Ingrese un monto",
+    "exceeds-debt": "El monto excede la deuda",
+    "insufficient-balance": "Saldo insuficiente",
+    "insufficient-collateral": "Garantía insuficiente",
+    "insufficient-gas": "ETH insuficiente para gas",
+    "insufficient-liquidity": "Liquidez insuficiente",
+    "insufficient-treasury": "Saldo insuficiente en la tesorería",
     "network-fee": "Tarifa de Red",
-    "oracle": "Oráculo"
+    "oracle": "Oráculo",
+    "search": "Buscar"
   },
   "language": {
     "switch-to": "Cambiar a Inglés"
@@ -11,6 +28,7 @@
   "nav": {
     "analytics": "Analíticas",
     "borrow": "Préstamos",
+    "bridge": "Puente",
     "earn": "Earn",
     "open-menu": "Abrir menú de navegación",
     "swap": "Intercambios"
@@ -18,10 +36,11 @@
   "pages": {
     "analytics": {
       "collateralization-ratio-label": "Ratio de colateralización",
-      "exit-queue-label": "Total VUSD en período de espera de retiro",
+      "exit-queue-label": "Total {{symbol}} en período de espera de retiro",
       "liquid-reserves-label": "Reservas líquidas",
+      "peg-stability-label": "Estabilidad del peg",
       "reserve-buffer-label": "Reserva de liquidez",
-      "staked-label": "Total VUSD depositado",
+      "staked-label": "Total {{symbol}} depositado",
       "strategic-reserves-label": "Reservas estratégicas",
       "surplus-label": "Excedente",
       "title": "Monitorear analíticas del protocolo",
@@ -57,10 +76,13 @@
       "borrowing-review": "Resumen del préstamo",
       "collateral": "Garantía",
       "collateral-tooltip": "El activo que deposita para garantizar su préstamo. Su valor determina cuánto puede pedir prestado y mantiene su posición saludable.",
+      "connect-button": "Conectar",
       "current": "Actual",
       "daily-interest-cost": "Costo de interés diario",
       "daily-interest-cost-tooltip": "Cuánto interés acumula por día basado en su monto prestado y la tasa efectiva. Le da una idea real del costo diario de mantener este préstamo.",
       "daily-interest-per-day": "${{value}} / día",
+      "disconnected-description": "Conecte su billetera para ver sus posiciones de préstamo.",
+      "disconnected-title": "Billetera no conectada",
       "drop-from-price": "{{percentage}} desde ${{price}}",
       "effective-interest": "Interés efectivo",
       "effective-interest-tooltip": "La tasa anual real que paga después de descuentos. Es la tasa base menos cualquier reembolso al que califique.",
@@ -85,10 +107,6 @@
       "no-positions-description": "Deposite garantía para pedir prestado {{symbol}} y poner sus activos a trabajar.",
       "no-positions-title": "Aún no hay posiciones de préstamos activos",
       "per-day": "/ día",
-      "period-1-month": "1 mes",
-      "period-1-week": "1 semana",
-      "period-1-year": "1 año",
-      "period-3-month": "3 meses",
       "pool-size": "Tamaño del fondo",
       "position-at-risk": "Posición en riesgo",
       "position-review": "Revisión de posición",
@@ -104,7 +122,6 @@
         "supply-collateral-title": "Depositar garantía",
         "title": "Préstamo en progreso"
       },
-      "reload-chart": "Recargar gráfico",
       "repay-loan": "Pagar préstamo",
       "repay-loan-progress": {
         "approve-description": "Apruebe el gasto del token de préstamo",
@@ -155,6 +172,17 @@
       },
       "you-are-borrowing": "Está pidiendo prestado",
       "you-are-depositing": "Está depositando como garantía"
+    },
+    "bridge": {
+      "form": {
+        "action": "Transferir",
+        "you-are-sending": "Estás enviando",
+        "you-will-receive": "Recibirás"
+      },
+      "select-chain": "Seleccionar red",
+      "select-from-chain": "Seleccionar red de origen",
+      "select-to-chain": "Seleccionar red de destino",
+      "title": "Transfiera activos entre redes"
     },
     "earn": {
       "activity": {
@@ -209,7 +237,7 @@
         "withdraw-all-toast-title": "Todos los retiros completados",
         "withdraw-toast-description": "Sus fondos han sido retirados exitosamente a su billetera.",
         "withdraw-toast-title": "Retiro completado",
-        "withdrawal-amount": "{{amount}} vUSD",
+        "withdrawal-amount": "{{amount}} {{symbol}}",
         "withdrawal-tx": "Retiro:",
         "withdrawing": "Retirando...",
         "withdrawn": "Retirado"
@@ -267,10 +295,12 @@
       },
       "stats": {
         "earned-amount": "Su monto ganado",
+        "from-pools": "De {{count}} fondo",
+        "from-pools_other": "De {{count}} fondos",
         "rewards": "Sus recompensas",
         "staked-balance": "Su balance stakeado"
       },
-      "title": "Haga stake de VUSD para ganar un rendimiento variable."
+      "title": "Haga stake de activos para ganar un rendimiento variable."
     },
     "faq": {
       "title": "Hola FAQ"
@@ -289,7 +319,7 @@
       "activity": {
         "cancel-redeem-text": "{{amount}} {{symbol}} devuelto a la billetera",
         "claim-redeem-text": "{{fromAmount}} {{fromSymbol}} canjeado por {{toAmount}} {{toSymbol}}",
-        "request-redeem-text": "{{amount}} {{symbol}} enviado al vault de canje",
+        "request-redeem-text": "{{amount}} {{symbol}} enviado a la cola de canje",
         "swap-text": "{{fromAmount}} {{fromSymbol}} a {{toAmount}} {{toSymbol}}"
       },
       "fees": {
@@ -299,25 +329,16 @@
       "form": {
         "allowance-error": "No se pudo cargar el monto autorizado",
         "balance": "Saldo",
-        "connect-wallet": "Conectar billetera",
-        "enter-amount": "Ingrese un monto",
-        "exceeds-debt": "El monto excede la deuda",
-        "insufficient-balance": "Saldo insuficiente",
-        "insufficient-collateral": "Garantía insuficiente",
-        "insufficient-gas": "ETH insuficiente para gas",
-        "insufficient-liquidity": "Liquidez insuficiente",
-        "insufficient-treasury": "Saldo insuficiente en la tesorería",
         "preview-error": "No se pudo calcular el monto a recibir",
+        "queue-info_one": "{{peggedToken}} ingresará a una cola con un período de espera de {{seconds}} segundos. Una vez completado, podrá canjearlo por {{firstSymbol}}.",
+        "queue-info_other": "{{peggedToken}} ingresará a una cola con un período de espera de {{seconds}} segundos. Una vez completado, podrá canjearlo por {{allButLast}}, o {{lastSymbol}}.",
         "redeem": "Canjear",
         "redeemable-for_one": "Intercambiable por {{firstSymbol}}",
         "redeemable-for_other": "Intercambiable por {{allButLast}} y {{lastSymbol}}",
-        "send-to-vault": "Enviar a la bóveda",
+        "send-to-queue": "Enviar a la cola",
         "swap": "Intercambiar",
-        "vault-info_one": "{{vusd}} ingresará a una bóveda con un período de espera de {{seconds}} segundos. Una vez completado, podrá canjearlo por {{firstSymbol}}.",
-        "vault-info_other": "{{vusd}} ingresará a una bóveda con un período de espera de {{seconds}} segundos. Una vez completado, podrá canjearlo por {{allButLast}}, o {{lastSymbol}}.",
         "you-are-swapping": "Vas a intercambiar",
-        "you-will-receive": "Vas a recibir",
-        "you-will-receive-approximately": "Vas a recibir (aproximadamente)"
+        "you-will-receive-estimated": "Va a recibir (estimado)"
       },
       "progress": {
         "approve-description": "Esto permite que la app use este token para su intercambio.",
@@ -328,25 +349,24 @@
         "swap-progress": "Progreso del intercambio",
         "title": "Intercambio en progreso"
       },
-      "redeem-vault": {
+      "redeem-queue": {
         "action": "Acción",
         "available-to-redeem": "Disponible para canjear",
         "cancel-redeem": "Cancelar canje",
         "cancel-redeem-btn-cancel": "Cancelar canje",
         "cancel-redeem-btn-cancelling": "Cancelando...",
-        "cancel-redeem-description": "Al cancelar este canje, sus {{symbol}} volverán a su saldo disponible y se eliminarán de la bóveda. Puede volver a depositar {{symbol}} en cualquier momento para canjear por stablecoins.",
+        "cancel-redeem-description": "Al cancelar este canje, sus {{symbol}} volverán a su saldo disponible y se eliminarán de la cola. Puede volver a depositar {{symbol}} en cualquier momento para canjear por stablecoins.",
         "cancel-redeem-toast-description": "Sus {{symbol}} han sido devueltos a su saldo disponible.",
         "cancel-redeem-toast-title": "Canje cancelado",
         "cooldown-in-progress": "Período de espera en curso",
         "drawer-title": "Canjee su {{symbol}}",
-        "empty-step-1-description": "Ingrese cuánto {{symbol}} desea convertir de vuelta a stablecoins.",
-        "empty-step-1-title": "Comience con {{symbol}}",
-        "empty-step-2-description_one": "Su {{symbol}} se deposita aquí y comienza un período de espera de seguridad de {{seconds}} segundo.",
-        "empty-step-2-description_other": "Su {{symbol}} se deposita aquí y comienza un período de espera de seguridad de {{seconds}} segundos.",
-        "empty-step-2-title": "{{symbol}} va a la bóveda de canje",
-        "empty-step-3-description_one": "Cuando termine el período de espera, canjee a {{firstSymbol}}.",
-        "empty-step-3-description_other": "Cuando termine el período de espera, elija {{allButLast}} o {{lastSymbol}} para canjear.",
-        "empty-step-3-title": "Canjear a una stablecoin",
+        "empty-step-1-description": "Ingrese cuánto desea convertir de vuelta.",
+        "empty-step-1-title": "Comience con sus activos",
+        "empty-step-2-description_one": "Sus activos se depositan aquí y comienzan un período de espera de seguridad de {{seconds}} segundo.",
+        "empty-step-2-description_other": "Sus activos se depositan aquí y comienzan un período de espera de seguridad de {{seconds}} segundos.",
+        "empty-step-2-title": "Los activos van a la cola de canje",
+        "empty-step-3-description": "Cuando termine el período de espera, canjee al token de su preferencia.",
+        "empty-step-3-title": "Complete su canje",
         "enter-amount-to-redeem": "Ingrese el monto a canjear",
         "keep-redeem": "Mantener canje",
         "ready-on": "Listo en {{time}}",
@@ -357,14 +377,14 @@
         "redeemable-balance": "Saldo canjeable",
         "status": "Estado",
         "swap-confirmed-description": "Su {{symbol}} ahora está disponible en su billetera",
-        "title": "Bóveda"
+        "title": "Cola de Canje"
       },
       "select-option": "Seleccione el token a intercambiar",
-      "title": "Intercambie stablecoins por VUSD y viceversa",
+      "title": "Intercambie sus tokens por activos de Vetro",
       "toast": {
         "deposit-description": "VUSD disponible en su billetera",
         "deposit-title": "Depósito confirmado",
-        "deposited-to-vault": "{{symbol}} depositado en la bóveda",
+        "deposited-to-queue": "{{symbol}} depositado en la cola",
         "your-cooldown-period-has-started_one": "Su período de espera de {{seconds}} segundo ha comenzado.",
         "your-cooldown-period-has-started_other": "Su período de espera de {{seconds}} segundos ha comenzado."
       },
@@ -373,11 +393,13 @@
         "breadcrumb": "Tutoriales Vetro · Intercambios",
         "learn-button": "Aprenda cómo canjear {{symbol}} a stables",
         "step-1-badge": "Paso 1",
-        "step-1-paragraph-1": "Ingrese la cantidad de {{symbol}} que desea intercambiar de vuelta a stables y haga clic en “<strong>Enviar a la bóveda.</strong>”",
-        "step-1-paragraph-2_one": "Su {{symbol}} se depositará en la bóveda, donde ingresa a un breve período de espera de seguridad de {{seconds}} segundo antes de que sea canjeable.",
-        "step-1-paragraph-2_other": "Su {{symbol}} se depositará en la bóveda, donde ingresa a un breve período de espera de seguridad de {{seconds}} segundos antes de que sea canjeable.",
+        "step-1-image-alt": "Paso 1: Ingrese el monto a canjear",
+        "step-1-paragraph-1": "Ingrese la cantidad de {{symbol}} que desea intercambiar de vuelta a stables y haga clic en “<strong>Enviar a la cola.</strong>”",
+        "step-1-paragraph-2_one": "Su {{symbol}} se depositará en la cola, donde ingresa a un breve período de espera de seguridad de {{seconds}} segundo antes de que sea canjeable.",
+        "step-1-paragraph-2_other": "Su {{symbol}} se depositará en la cola, donde ingresa a un breve período de espera de seguridad de {{seconds}} segundos antes de que sea canjeable.",
         "step-2-badge": "Paso 2",
-        "step-2-paragraph-1": "Una vez que termine el período de espera, <strong>su saldo aparecerá como listo para canjear en la tabla de la Bóveda.</strong>",
+        "step-2-image-alt": "Paso 2: Seleccione un token de la lista",
+        "step-2-paragraph-1": "Una vez que termine el período de espera, <strong>su saldo aparecerá como listo para canjear en la tabla de la Cola de Canje.</strong>",
         "step-2-paragraph-2_one": "Haga clic en Canjear y elija el monto que desea recibir.",
         "step-2-paragraph-2_other": "Haga clic en Canjear, elija el monto y seleccione la stablecoin ({{allButLast}} o {{lastSymbol}}) que desea recibir.",
         "title": "Cómo canjear VUSD a stables"

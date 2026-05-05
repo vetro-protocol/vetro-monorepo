@@ -1,5 +1,4 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import { getGatewayAddress } from "@vetro-protocol/gateway";
 import { previewRedeem } from "@vetro-protocol/gateway/actions";
 import type { Address, Chain, Client } from "viem";
 
@@ -56,15 +55,16 @@ export const previewRedeemTokenOptions = ({
   });
 
 export const usePreviewRedeem = function ({
+  gatewayAddress,
   peggedTokenIn,
   tokenOut,
 }: {
+  gatewayAddress: Address;
   peggedTokenIn: bigint;
   tokenOut: Address;
 }) {
   const ethereumChain = useMainnet();
   const client = useEthereumClient();
-  const gatewayAddress = getGatewayAddress(ethereumChain.id);
 
   return useQuery(
     previewRedeemTokenOptions({

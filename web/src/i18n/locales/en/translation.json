@@ -2,8 +2,25 @@
   "common": {
     "approve-10x": "Approve 10x",
     "approve-10x-tooltip": "Approves up to 10× your transaction amount, reducing future approval steps. You can revoke it anytime.",
+    "charts": {
+      "period-1-month": "1 month",
+      "period-1-week": "1 week",
+      "period-1-year": "1 year",
+      "period-3-month": "3 months",
+      "reload-chart": "Reload chart"
+    },
+    "clear-search": "Clear search",
+    "connect-wallet": "Connect wallet",
+    "enter-amount": "Enter an amount",
+    "exceeds-debt": "Amount exceeds debt",
+    "insufficient-balance": "Insufficient balance",
+    "insufficient-collateral": "Insufficient collateral",
+    "insufficient-gas": "Insufficient ETH for gas",
+    "insufficient-liquidity": "Insufficient liquidity",
+    "insufficient-treasury": "Not enough balance in treasury",
     "network-fee": "Network Fee",
-    "oracle": "Oracle"
+    "oracle": "Oracle",
+    "search": "Search"
   },
   "language": {
     "switch-to": "Switch to Spanish"
@@ -11,6 +28,7 @@
   "nav": {
     "analytics": "Analytics",
     "borrow": "Borrow",
+    "bridge": "Bridge",
     "earn": "Earn",
     "open-menu": "Open navigation menu",
     "swap": "Swap"
@@ -18,10 +36,11 @@
   "pages": {
     "analytics": {
       "collateralization-ratio-label": "Collateralization ratio",
-      "exit-queue-label": "Total VUSD on withdrawn cooldown",
+      "exit-queue-label": "Total {{symbol}} on withdrawn cooldown",
       "liquid-reserves-label": "Liquid Reserves",
+      "peg-stability-label": "Peg stability",
       "reserve-buffer-label": "Reserve buffer",
-      "staked-label": "Total VUSD staked",
+      "staked-label": "Total {{symbol}} staked",
       "strategic-reserves-label": "Strategic Reserves",
       "surplus-label": "Surplus",
       "title": "Monitor protocol analytics",
@@ -57,10 +76,13 @@
       "borrowing-review": "Borrowing review",
       "collateral": "Collateral",
       "collateral-tooltip": "The asset you deposit to secure your loan. Its value determines how much you can borrow and keeps your position healthy.",
+      "connect-button": "Connect",
       "current": "Current",
       "daily-interest-cost": "Daily interest cost",
       "daily-interest-cost-tooltip": "How much interest you accrue per day based on your borrowed amount and the effective rate. Gives you a real sense of the daily cost of holding this loan.",
       "daily-interest-per-day": "${{value}} / day",
+      "disconnected-description": "Connect your wallet to view your borrow positions.",
+      "disconnected-title": "No wallet connected",
       "drop-from-price": "{{percentage}} from ${{price}}",
       "effective-interest": "Effective Interest",
       "effective-interest-tooltip": "The actual annual rate you pay after discounts. It's the base rate minus any rebates you qualify for.",
@@ -85,10 +107,6 @@
       "no-positions-description": "Deposit collateral to borrow {{symbol}} and put your assets to work.",
       "no-positions-title": "No active borrow position yet",
       "per-day": "/ day",
-      "period-1-month": "1 month",
-      "period-1-week": "1 week",
-      "period-1-year": "1 year",
-      "period-3-month": "3 months",
       "pool-size": "Pool size",
       "position-at-risk": "Position at risk",
       "position-review": "Position review",
@@ -104,7 +122,6 @@
         "supply-collateral-title": "Supply collateral",
         "title": "Borrow in progress"
       },
-      "reload-chart": "Reload chart",
       "repay-loan": "Repay loan",
       "repay-loan-progress": {
         "approve-description": "Approve the loan token spending",
@@ -155,6 +172,17 @@
       },
       "you-are-borrowing": "You are borrowing",
       "you-are-depositing": "You are depositing as collateral"
+    },
+    "bridge": {
+      "form": {
+        "action": "Bridge",
+        "you-are-sending": "You are sending",
+        "you-will-receive": "You will receive"
+      },
+      "select-chain": "Select chain",
+      "select-from-chain": "Select source chain",
+      "select-to-chain": "Select destination chain",
+      "title": "Bridge assets across chains"
     },
     "earn": {
       "activity": {
@@ -207,7 +235,7 @@
         "withdraw-all-toast-title": "All withdrawals complete",
         "withdraw-toast-description": "Your funds have been successfully withdrawn to your wallet.",
         "withdraw-toast-title": "Withdrawal complete",
-        "withdrawal-amount": "{{amount}} vUSD",
+        "withdrawal-amount": "{{amount}} {{symbol}}",
         "withdrawal-tx": "Withdrawal:",
         "withdrawing": "Withdrawing...",
         "withdrawn": "Withdrawn"
@@ -262,10 +290,12 @@
       },
       "stats": {
         "earned-amount": "Your earned amount",
+        "from-pools": "From {{count}} pool",
+        "from-pools_other": "From {{count}} pools",
         "rewards": "Your rewards",
         "staked-balance": "Your staked balance"
       },
-      "title": "Stake VUSD to earn variable yield."
+      "title": "Stake assets to earn variable yield."
     },
     "faq": {
       "title": "Hello Faq"
@@ -284,7 +314,7 @@
       "activity": {
         "cancel-redeem-text": "{{amount}} {{symbol}} sent back to wallet",
         "claim-redeem-text": "{{fromAmount}} {{fromSymbol}} redeemed for {{toAmount}} {{toSymbol}}",
-        "request-redeem-text": "{{amount}} {{symbol}} sent to redeem vault",
+        "request-redeem-text": "{{amount}} {{symbol}} sent to redeem queue",
         "swap-text": "{{fromAmount}} {{fromSymbol}} to {{toAmount}} {{toSymbol}}"
       },
       "fees": {
@@ -294,25 +324,16 @@
       "form": {
         "allowance-error": "Error loading allowance",
         "balance": "Balance",
-        "connect-wallet": "Connect wallet",
-        "enter-amount": "Enter an amount",
-        "exceeds-debt": "Amount exceeds debt",
-        "insufficient-balance": "Insufficient balance",
-        "insufficient-collateral": "Insufficient collateral",
-        "insufficient-gas": "Insufficient ETH for gas",
-        "insufficient-liquidity": "Insufficient liquidity",
-        "insufficient-treasury": "Not enough balance in treasury",
         "preview-error": "Failed to calculate amount to receive",
+        "queue-info_one": "{{peggedToken}} will enter a queue with a {{seconds}}-second cooldown. Once complete, you can redeem it for {{firstSymbol}}.",
+        "queue-info_other": "{{peggedToken}} will enter a queue with a {{seconds}}-second cooldown. Once complete, you can redeem it for {{allButLast}} or {{lastSymbol}}.",
         "redeem": "Redeem",
         "redeemable-for_one": "Redeemable for {{firstSymbol}}",
         "redeemable-for_other": "Redeemable for {{allButLast}} and {{lastSymbol}}",
-        "send-to-vault": "Send to vault",
+        "send-to-queue": "Send to queue",
         "swap": "Swap",
-        "vault-info_one": "{{vusd}} will enter a vault with a {{seconds}}-second cooldown. Once complete, you can redeem it for {{firstSymbol}}.",
-        "vault-info_other": "{{vusd}} will enter a vault with a {{seconds}}-second cooldown. Once complete, you can redeem it for {{allButLast}} or {{lastSymbol}}.",
         "you-are-swapping": "You are swapping",
-        "you-will-receive": "You will receive",
-        "you-will-receive-approximately": "You will receive (approximately)"
+        "you-will-receive-estimated": "You will receive (estimated)"
       },
       "progress": {
         "approve-description": "This allows the app to use this token for your swap.",
@@ -323,24 +344,23 @@
         "swap-progress": "Swap progress",
         "title": "Swap in progress"
       },
-      "redeem-vault": {
+      "redeem-queue": {
         "action": "Action",
         "available-to-redeem": "Available to redeem",
         "cancel-redeem": "Cancel redeem",
         "cancel-redeem-btn-cancel": "Cancel redeem",
         "cancel-redeem-btn-cancelling": "Cancelling...",
-        "cancel-redeem-description": "Canceling this redemption will return your {{symbol}} to your available balance and remove them from the vault. You can redeposit {{symbol}} at any time to redeem for stables.",
+        "cancel-redeem-description": "Canceling this redemption will return your {{symbol}} to your available balance and remove them from the queue. You can redeposit {{symbol}} at any time to redeem for stables.",
         "cancel-redeem-toast-description": "Your {{symbol}} has been returned to your available balance.",
         "cancel-redeem-toast-title": "Redeem cancelled",
         "cooldown-in-progress": "Cooldown in progress",
         "drawer-title": "Redeem your {{symbol}}",
-        "empty-step-1-description": "Enter how much {{symbol}} you want to convert back to stablecoins.",
-        "empty-step-1-title": "Start with {{symbol}}",
-        "empty-step-2-description": "Your {{symbol}} is deposited here and starts a {{seconds}}-second security cooldown.",
-        "empty-step-2-title": "{{symbol}} goes to the Redeem Vault",
-        "empty-step-3-description_one": "When the cooldown ends, redeem to {{firstSymbol}}.",
-        "empty-step-3-description_other": "When the cooldown ends, choose {{allButLast}} or {{lastSymbol}} to redeem.",
-        "empty-step-3-title": "Redeem to a stablecoin",
+        "empty-step-1-description": "Enter how much you want to convert back.",
+        "empty-step-1-title": "Start with your assets",
+        "empty-step-2-description": "Your assets are deposited here and start a {{seconds}}-second security cooldown.",
+        "empty-step-2-title": "Assets go to the Redeem Queue",
+        "empty-step-3-description": "When the cooldown ends, redeem to your preferred token.",
+        "empty-step-3-title": "Complete your redemption",
         "enter-amount-to-redeem": "Enter amount to redeem",
         "keep-redeem": "Keep redeem",
         "ready-on": "Ready on {{time}}",
@@ -351,14 +371,14 @@
         "redeemable-balance": "Redeemable balance",
         "status": "Status",
         "swap-confirmed-description": "Your {{symbol}} is now available in your wallet",
-        "title": "Vault"
+        "title": "Redeem Queue"
       },
       "select-option": "Select token to swap",
-      "title": "Swap stablecoins for VUSD and back",
+      "title": "Swap your tokens with Vetro assets",
       "toast": {
         "deposit-description": "VUSD is now available in your wallet",
         "deposit-title": "Deposit confirmed",
-        "deposited-to-vault": "{{symbol}} deposited to vault",
+        "deposited-to-queue": "{{symbol}} deposited to queue",
         "your-cooldown-period-has-started": "Your {{seconds}}-second cooldown has started."
       },
       "treasury-reserves": "Treasury reserves",
@@ -366,10 +386,12 @@
         "breadcrumb": "Vetro tutorials · Swap",
         "learn-button": "Learn how to redeem {{symbol}} to stables",
         "step-1-badge": "Step 1",
-        "step-1-paragraph-1": "Enter the amount of {{symbol}} you want to swap back to stables and click “<strong>Send to Vault.</strong>”",
-        "step-1-paragraph-2": "Your {{symbol}} will be deposited into the vault, where it enters a short {{seconds}}-second security cooldown before it becomes redeemable.",
+        "step-1-image-alt": "Step 1: Enter the amount to redeem",
+        "step-1-paragraph-1": "Enter the amount of {{symbol}} you want to swap back to stables and click “<strong>Send to Queue.</strong>”",
+        "step-1-paragraph-2": "Your {{symbol}} will be deposited into the queue, where it enters a short {{seconds}}-second security cooldown before it becomes redeemable.",
         "step-2-badge": "Step 2",
-        "step-2-paragraph-1": "Once the cooldown ends, <strong>your balance will appear as ready to redeem in the Vault table.</strong>",
+        "step-2-image-alt": "Step 2: Select a token from the whitelist",
+        "step-2-paragraph-1": "Once the cooldown ends, <strong>your balance will appear as ready to redeem in the Redeem Queue table.</strong>",
         "step-2-paragraph-2_one": "Click Redeem, and choose the amount you want to receive.",
         "step-2-paragraph-2_other": "Click Redeem, choose the amount, and select the stablecoin ({{allButLast}}, or {{lastSymbol}}) you want to receive.",
         "title": "How to redeem VUSD to stables"
