@@ -12,7 +12,7 @@ pnpm add @vetro-protocol/bridge viem viem-erc20
 
 - Works with both pure OFT contracts and OFTAdapter contracts.
 - Approval is auto-detected via on-chain `approvalRequired()`. When required, the underlying ERC20 is read from `token()` and the standard allowance/approve flow runs before the send.
-- Caller owns chain/contract addressing; the package only knows the `chainId → LayerZero EID` mapping (see `layerZeroEids`).
+- Caller owns chain/contract addressing; the package only knows the `chainId → LayerZero EID` mapping (see the table below).
 - Slippage defaults to zero (`minAmountLD === amount`); pass `minAmount` to opt in to a tolerance.
 
 Supported chains (chainId → LayerZero EID):
@@ -98,7 +98,5 @@ The `send` wallet action emits the following events through the `EventEmitter`:
 - `send(walletClient, params)` — wallet action; runs the full bridge flow (auto-approval + send) and returns `{ emitter, promise }`.
 - `encodeSend(params)` — synchronous helper that returns the encoded `send` calldata. The caller must pre-quote the LayerZero fee (e.g. with `quoteSend`) and pass it in.
 - `bridgePublicActions()` / `bridgeWalletActions()` — viem extension factories that wire the same actions onto a client via `.extend()`.
-- `getLayerZeroEid(chainId)`, `layerZeroEids` — chainId → EID lookup helpers.
-- `addressToBytes32(addr)` — pads an address to bytes32 for LayerZero `to` fields.
 - `oftAbi` — the minimal ABI subset used by the package (`send`, `quoteSend`, `approvalRequired`, `token`).
-- Types: `SendEvents`, `ApprovalEvents`, `CommonEvents`, `MessagingFee`, `SendParams`, `QuoteSendParams`.
+- Types: `SendEvents`.
