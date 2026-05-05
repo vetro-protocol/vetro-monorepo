@@ -1,4 +1,4 @@
-export type ActivityPage = "borrow" | "earn" | "swap";
+export type ActivityPage = "borrow" | "bridge" | "earn" | "swap";
 
 export type ActivityStatus = "completed" | "failed" | "pending";
 
