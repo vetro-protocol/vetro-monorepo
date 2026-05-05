@@ -12,6 +12,13 @@ const unknownChain = {
 } as unknown as Chain;
 
 const meta: Meta<typeof ChainLogo> = {
+  args: { size: "base" },
+  argTypes: {
+    size: {
+      control: "select",
+      options: ["base", "large", "small", "xLarge"],
+    },
+  },
   component: ChainLogo,
   title: "Components/ChainLogo",
 };
@@ -45,4 +52,20 @@ export const Bsc: Story = {
 
 export const UnknownChain: Story = {
   args: { chain: unknownChain },
+};
+
+export const Small: Story = {
+  args: { chain: hemi, size: "small" },
+};
+
+export const Large: Story = {
+  args: { chain: hemi, size: "large" },
+};
+
+export const XLarge: Story = {
+  args: { chain: hemi, size: "xLarge" },
+};
+
+export const UnknownChainLarge: Story = {
+  args: { chain: unknownChain, size: "large" },
 };
