@@ -370,9 +370,9 @@ describe("send", function () {
     vi.mocked(approve).mockResolvedValue(zeroHash);
     vi.mocked(simulateContract).mockResolvedValue({ request: {} } as never);
     vi.mocked(writeContract).mockResolvedValue(zeroHash);
-    vi.mocked(waitForTransactionReceipt).mockResolvedValue({
-      status: "success",
-    } as TransactionReceipt);
+    vi.mocked(waitForTransactionReceipt)
+      .mockResolvedValueOnce({ status: "success" } as TransactionReceipt)
+      .mockResolvedValueOnce({ status: "success" } as TransactionReceipt);
 
     const { emitter, promise } = send(mockWalletClient, {
       ...validParameters,
