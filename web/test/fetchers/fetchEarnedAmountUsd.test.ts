@@ -1,5 +1,5 @@
 import { tokenBalanceQueryOptions } from "@hemilabs/react-hooks/useTokenBalance";
-import { averagePurchasePriceQueryOptions } from "hooks/useAveragePurchasePrice";
+import { costBasisQueryOptions } from "hooks/useCostBasis";
 import { pricesOptions } from "hooks/usePrices";
 import { stakedBalanceQueryOptions } from "hooks/useStakedBalance";
 import { vaultPeggedTokenQueryOptions } from "hooks/useVaultPeggedToken";
@@ -57,10 +57,10 @@ describe("fetchEarnedAmountUsd", function () {
       }).queryKey,
       12n * 10n ** 18n,
     );
-    // avgPrice = 1 vUSD per share → costBasis = 10 vUSD → earned = 2 vUSD.
+    // costBasis = 10 vUSD → earned = 2 vUSD.
     queryClient.setQueryData(
-      averagePurchasePriceQueryOptions({ address: account }).queryKey,
-      { [vault1]: 10n ** 18n } as Record<Address, bigint>,
+      costBasisQueryOptions({ address: account }).queryKey,
+      { [vault1]: 10n * 10n ** 18n } as Record<Address, bigint>,
     );
     queryClient.setQueryData(pricesOptions({ client, queryClient }).queryKey, {
       USDT: "1",
@@ -106,8 +106,8 @@ describe("fetchEarnedAmountUsd", function () {
       8n * 10n ** 18n,
     );
     queryClient.setQueryData(
-      averagePurchasePriceQueryOptions({ address: account }).queryKey,
-      { [vault1]: 10n ** 18n } as Record<Address, bigint>,
+      costBasisQueryOptions({ address: account }).queryKey,
+      { [vault1]: 10n * 10n ** 18n } as Record<Address, bigint>,
     );
     queryClient.setQueryData(pricesOptions({ client, queryClient }).queryKey, {
       USDT: "1",
@@ -178,10 +178,10 @@ describe("fetchEarnedAmountUsd", function () {
       (21n * 10n ** 18n) / 10n,
     );
     queryClient.setQueryData(
-      averagePurchasePriceQueryOptions({ address: account }).queryKey,
+      costBasisQueryOptions({ address: account }).queryKey,
       {
-        [vault1]: 10n ** 18n,
-        [vault2]: 10n ** 18n,
+        [vault1]: 5n * 10n ** 18n,
+        [vault2]: 2n * 10n ** 18n,
       } as Record<Address, bigint>,
     );
     queryClient.setQueryData(pricesOptions({ client, queryClient }).queryKey, {
@@ -230,7 +230,7 @@ describe("fetchEarnedAmountUsd", function () {
       0n,
     );
     queryClient.setQueryData(
-      averagePurchasePriceQueryOptions({ address: account }).queryKey,
+      costBasisQueryOptions({ address: account }).queryKey,
       { [vault1]: 0n } as Record<Address, bigint>,
     );
     queryClient.setQueryData(pricesOptions({ client, queryClient }).queryKey, {
@@ -247,7 +247,7 @@ describe("fetchEarnedAmountUsd", function () {
     expect(result).toBe(0);
   });
 
-  it("contributes 0 when avg purchase price is missing for a vault with shares", async function () {
+  it("contributes 0 when cost basis is missing for a vault with shares", async function () {
     const queryClient = createTestQueryClient();
     queryClient.setQueryData(
       vaultPeggedTokenQueryOptions({
@@ -277,7 +277,7 @@ describe("fetchEarnedAmountUsd", function () {
     );
     // Subgraph not yet synced — API returns 0n for the vault.
     queryClient.setQueryData(
-      averagePurchasePriceQueryOptions({ address: account }).queryKey,
+      costBasisQueryOptions({ address: account }).queryKey,
       { [vault1]: 0n } as Record<Address, bigint>,
     );
     queryClient.setQueryData(pricesOptions({ client, queryClient }).queryKey, {

@@ -1,13 +1,11 @@
 import { tokenBalanceQueryOptions } from "@hemilabs/react-hooks/useTokenBalance";
 import type { QueryClient } from "@tanstack/react-query";
-import { averagePurchasePriceQueryOptions } from "hooks/useAveragePurchasePrice";
+import { costBasisQueryOptions } from "hooks/useCostBasis";
 import { pricesOptions } from "hooks/usePrices";
 import { stakedBalanceQueryOptions } from "hooks/useStakedBalance";
 import { vaultPeggedTokenQueryOptions } from "hooks/useVaultPeggedToken";
 import { tokenAmountToUsd } from "utils/currency";
 import type { Address, Client } from "viem";
-
-const WAD = 10n ** 18n;
 
 export const fetchEarnedAmountUsd = async function ({
   account,
@@ -25,11 +23,9 @@ export const fetchEarnedAmountUsd = async function ({
     throw new Error("Client is missing a chain");
   }
 
-  const [prices, averagePurchasePrices] = await Promise.all([
+  const [prices, costBases] = await Promise.all([
     queryClient.ensureQueryData(pricesOptions({ client, queryClient })),
-    queryClient.ensureQueryData(
-      averagePurchasePriceQueryOptions({ address: account }),
-    ),
+    queryClient.ensureQueryData(costBasisQueryOptions({ address: account })),
   ]);
 
   const perVaultUsd = await Promise.all(
@@ -64,13 +60,12 @@ export const fetchEarnedAmountUsd = async function ({
         return 0;
       }
 
-      const averagePrice = averagePurchasePrices[stakingVaultAddress] ?? 0n;
-      if (averagePrice === 0n) {
+      const costBasis = costBases[stakingVaultAddress] ?? 0n;
+      if (costBasis === 0n) {
         return 0;
       }
 
-      const costBasisAssets = (userShares * averagePrice) / WAD;
-      const earnedAssets = userStakedAssets - costBasisAssets;
+      const earnedAssets = userStakedAssets - costBasis;
       return tokenAmountToUsd({
         amount: earnedAssets,
         prices,

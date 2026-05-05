@@ -11,7 +11,7 @@ import type { Address } from "viem";
 import { useAccount } from "wagmi";
 
 import { analyticsTotalsQueryKey } from "./useAnalyticsTotals";
-import { averagePurchasePriceQueryKey } from "./useAveragePurchasePrice";
+import { costBasisQueryKey } from "./useCostBasis";
 import { earnedAmountUsdQueryKey } from "./useEarnedAmountUsd";
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { useMainnet } from "./useMainnet";
@@ -125,13 +125,13 @@ export const useCancelWithdraw = function ({
       });
 
       // Refetch (not just invalidate) the queries that downstream fetchers
-      // read via ensureQueryData: shares feed useStakedBalance, and avg
-      // purchase price feeds fetchEarnedAmountUsd. Neither has a mounted
-      // observer, so invalidation alone would leave them stale.
+      // read via ensureQueryData: shares feed useStakedBalance, and cost
+      // basis feeds fetchEarnedAmountUsd. Neither has a mounted observer,
+      // so invalidation alone would leave them stale.
       await Promise.all([
         queryClient.refetchQueries({ queryKey: sharesBalanceKey }),
         queryClient.refetchQueries({
-          queryKey: averagePurchasePriceQueryKey(account),
+          queryKey: costBasisQueryKey(account),
         }),
       ]);
 

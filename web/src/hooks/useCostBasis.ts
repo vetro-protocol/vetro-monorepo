@@ -5,12 +5,12 @@ import type { Address } from "viem";
 
 const apiUrl = import.meta.env.VITE_VETRO_API_URL;
 
-export const averagePurchasePriceQueryKey = (address: Address | undefined) => [
-  "average-purchase-price",
+export const costBasisQueryKey = (address: Address | undefined) => [
+  "cost-basis",
   address,
 ];
 
-export const averagePurchasePriceQueryOptions = ({
+export const costBasisQueryOptions = ({
   address,
 }: {
   address: Address | undefined;
@@ -20,13 +20,14 @@ export const averagePurchasePriceQueryOptions = ({
       apiUrl !== undefined && isValidUrl(apiUrl) && address !== undefined,
     async queryFn() {
       const data = (await fetch(
-        `${apiUrl}/variable-stake/average-purchase-price/${address}`,
+        `${apiUrl}/variable-stake/cost-basis/${address}`,
       )) as Record<Address, string>;
       return Object.fromEntries(
         Object.entries(data).map(
-          ([vault, price]) => [vault as Address, BigInt(price)] as const,
+          ([vault, costBasis]) =>
+            [vault as Address, BigInt(costBasis)] as const,
         ),
       ) as Record<Address, bigint>;
     },
-    queryKey: averagePurchasePriceQueryKey(address),
+    queryKey: costBasisQueryKey(address),
   });

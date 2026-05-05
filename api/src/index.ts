@@ -143,7 +143,7 @@ app.get(
 );
 
 app.get(
-  "/variable-stake/average-purchase-price/:address",
+  "/variable-stake/cost-basis/:address",
   validateAddress,
   cache({
     cacheControl: "max-age=300",
@@ -153,13 +153,13 @@ app.get(
     try {
       const address = c.req.param("address") as `0x${string}`;
       const url = getSubgraphUrl(c.env);
-      const data = await variableStake.getAveragePurchasePrice({
+      const data = await variableStake.getCostBasis({
         address,
         url,
       });
       return c.json(convertBigIntsToString(data));
     } catch (error) {
-      throw new Error(`Failed to get average purchase price: ${error.message}`);
+      throw new Error(`Failed to get cost basis: ${error.message}`);
     }
   },
 );
