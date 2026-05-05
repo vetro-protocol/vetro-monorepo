@@ -95,9 +95,9 @@ Gets the amount of collateral assets in a given Morpho market.
 }
 ```
 
-### `GET /variable-stake/average-purchase-price/:address`
+### `GET /variable-stake/cost-basis/:address`
 
-Returns the user's average purchase price (in the vault asset's native smallest unit; decimal precision depends on the underlying vault asset) for each known Vetro staking vault. Vaults where the user has no position return `"0"`.
+Returns the user's cost basis (in the vault asset's native smallest unit; decimal precision depends on the underlying vault asset) for each known Vetro staking vault. Vaults where the user has no position return `"0"`.
 `:address` must be a well-formed Ethereum address. Returns `404` if malformed.
 
 #### Sample Response
