@@ -126,6 +126,23 @@ Returns the APY for each supported staking vault, indexed by staking vault addre
 }
 ```
 
+### `GET /variable-stake/share-value-history/:stakingVaultAddress/:period`
+
+Returns the historical share value for a staking vault over the given period (Earn token vs underlying pegged token, e.g. sVUSD per VUSD). One entry per UTC day. Results across multiple subgraph pages are concatenated, so long windows return their full history (e.g. `"1y"` may include up to ~366 entries).
+Valid periods are: `"1w"`, `"1m"`, `"3m"` and `"1y"`.
+`:stakingVaultAddress` must be a known staking vault. Returns `400` if malformed and `404` if the address is not a known staking vault.
+`shareValue` is a number with the 18-decimal wad already pre-scaled (e.g. `1.000412938421`). `timestamp` is the UTC day-start in milliseconds.
+
+#### Sample Response for "1w"
+
+```jsonc
+[
+  { "shareValue": 1.000412938421, "timestamp": 1707782400000 },
+  { "shareValue": 1.000506129482, "timestamp": 1707868800000 },
+  // ...more records...
+]
+```
+
 ### `GET /variable-stake/rewards/:address`
 
 Returns all user's rewards from the Merkl campaigns related to Vetro, indexed by staking vault address. Each supported staking vault has an entry in the response, with an empty array if the user has no rewards for that vault.

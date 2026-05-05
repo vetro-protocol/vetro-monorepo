@@ -9,6 +9,7 @@ import Skeleton from "react-loading-skeleton";
 
 import { CollateralizationCard } from "./components/collateralizationCard";
 import { ExitQueueCard } from "./components/exitQueueCard";
+import { PegStabilityCard } from "./components/pegStabilityCard";
 import { StakedCard } from "./components/stakedCard";
 import { TokenFilter } from "./components/tokenFilter";
 import { TvlCard } from "./components/tvlCard";
@@ -106,6 +107,12 @@ export const Analytics = function () {
           peggedTokenError={isPeggedTokensError}
         />
         <ExitQueueCard
+          peggedToken={selectedToken}
+          peggedTokenError={isPeggedTokensError}
+        />
+      </AllocationRow>
+      <AllocationRow>
+        <PegStabilityCard
           peggedToken={selectedToken}
           peggedTokenError={isPeggedTokensError}
         />
