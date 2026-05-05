@@ -214,6 +214,23 @@ describe("send", function () {
     );
   });
 
+  it("should emit 'send-failed-validation' if approveAmount is not a bigint", async function () {
+    const { emitter, promise } = send(mockWalletClient, {
+      ...validParameters,
+      // @ts-expect-error - Testing invalid input
+      approveAmount: 1000,
+    });
+
+    const onSendFailedValidation = vi.fn();
+    emitter.on("send-failed-validation", onSendFailedValidation);
+
+    await promise;
+
+    expect(onSendFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "Approve amount must be a bigint",
+    );
+  });
+
   it("should emit 'send-failed-validation' if approveAmount is less than amount", async function () {
     const { emitter, promise } = send(mockWalletClient, {
       ...validParameters,

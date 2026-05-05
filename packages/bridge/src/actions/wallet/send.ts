@@ -77,6 +77,9 @@ const canSend = function ({
       };
     }
   }
+  if (typeof approveAmount !== "bigint") {
+    return { canSend: false, reason: "Approve amount must be a bigint" };
+  }
   if (approveAmount < amount) {
     return {
       canSend: false,
