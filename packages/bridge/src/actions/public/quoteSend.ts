@@ -38,6 +38,18 @@ export async function quoteSend(
     throw new Error("Amount must be greater than 0");
   }
 
+  if (minAmount !== undefined) {
+    if (typeof minAmount !== "bigint") {
+      throw new Error("Min amount must be a bigint");
+    }
+    if (minAmount <= 0n) {
+      throw new Error("Min amount must be greater than 0");
+    }
+    if (minAmount > amount) {
+      throw new Error("Min amount must be less than or equal to amount");
+    }
+  }
+
   const sendParam = {
     amountLD: amount,
     composeMsg: "0x" as const,

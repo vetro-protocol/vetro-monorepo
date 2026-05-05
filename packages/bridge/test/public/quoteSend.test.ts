@@ -79,6 +79,31 @@ describe("quoteSend", function () {
     );
   });
 
+  it("should throw an error if minAmount is not a bigint", async function () {
+    const parameters = { ...validParameters, minAmount: 1000 };
+    // @ts-expect-error - Testing invalid input
+    await expect(quoteSend(client, parameters)).rejects.toThrow(
+      "Min amount must be a bigint",
+    );
+  });
+
+  it("should throw an error if minAmount is zero", async function () {
+    const parameters = { ...validParameters, minAmount: 0n };
+    await expect(quoteSend(client, parameters)).rejects.toThrow(
+      "Min amount must be greater than 0",
+    );
+  });
+
+  it("should throw an error if minAmount is greater than amount", async function () {
+    const parameters = {
+      ...validParameters,
+      minAmount: validParameters.amount + 1n,
+    };
+    await expect(quoteSend(client, parameters)).rejects.toThrow(
+      "Min amount must be less than or equal to amount",
+    );
+  });
+
   it("should throw an error if destinationChainId has no LayerZero EID", async function () {
     const parameters = { ...validParameters, destinationChainId: 999_999 };
     await expect(quoteSend(client, parameters)).rejects.toThrow(
