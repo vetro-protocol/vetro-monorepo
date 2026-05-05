@@ -87,6 +87,24 @@ describe("send", function () {
     expect(onSettled).toHaveBeenCalledOnce();
   });
 
+  it("should emit 'send-failed-validation' and 'send-settled' if params is not defined", async function () {
+    const { emitter, promise } = send(
+      mockWalletClient,
+      // @ts-expect-error - Testing invalid input
+      undefined,
+    );
+
+    const onSendFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+    emitter.on("send-failed-validation", onSendFailedValidation);
+    emitter.on("send-settled", onSettled);
+
+    await promise;
+
+    expect(onSendFailedValidation).toHaveBeenCalledOnce();
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
   it("should emit 'send-failed-validation' if client.chain is not defined", async function () {
     const clientWithoutChain = {
       account: { address: account },

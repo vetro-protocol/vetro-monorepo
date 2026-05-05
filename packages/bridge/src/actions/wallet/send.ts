@@ -101,9 +101,10 @@ const canSend = function ({
 
 const runSend = (walletClient: WalletClient, params: SendParams) =>
   async function (emitter: EventEmitter<SendEvents>) {
-    const { amount, destinationChainId, oftAddress, recipient } = params;
-    const approveAmount = params.approveAmount ?? amount;
-    const minAmount = params.minAmount ?? amount;
+    const { amount, destinationChainId, oftAddress, recipient } =
+      params ?? ({} as SendParams);
+    const approveAmount = params?.approveAmount ?? amount;
+    const minAmount = params?.minAmount ?? amount;
 
     try {
       const { canSend: canSendFlag, reason } = canSend({
@@ -111,7 +112,7 @@ const runSend = (walletClient: WalletClient, params: SendParams) =>
         approveAmount,
         client: walletClient,
         destinationChainId,
-        minAmount: params.minAmount,
+        minAmount: params?.minAmount,
         oftAddress,
         recipient,
       });
