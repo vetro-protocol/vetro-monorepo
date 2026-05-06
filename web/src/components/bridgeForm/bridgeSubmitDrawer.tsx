@@ -7,7 +7,7 @@ import {
   stepStatus,
 } from "components/base/verticalStepper";
 import { DrawerFeesContainer } from "components/feesContainer";
-import { allChains } from "networks";
+import { getChainById } from "networks";
 import { type ComponentProps } from "react";
 import { useTranslation } from "react-i18next";
 import type { BridgeableToken } from "types";
@@ -84,8 +84,8 @@ export function BridgeSubmitDrawer({
 }: Props) {
   const { t } = useTranslation();
 
-  const fromChain = allChains.find((c) => c.id === fromToken.chainId);
-  const toChain = allChains.find((c) => c.id === toToken.chainId);
+  const fromChain = getChainById(fromToken.chainId);
+  const toChain = getChainById(toToken.chainId);
 
   const isError = flowStatus === "approve-error" || flowStatus === "send-error";
 
@@ -127,11 +127,9 @@ export function BridgeSubmitDrawer({
               </p>
               <TokenChainLogo size="large" token={fromToken} />
             </div>
-            {fromChain && (
-              <p className="text-xsm text-gray-500">
-                {t("pages.bridge.form.from-chain", { chain: fromChain.name })}
-              </p>
-            )}
+            <p className="text-xsm text-gray-500">
+              {t("pages.bridge.form.from-chain", { chain: fromChain.name })}
+            </p>
           </div>
 
           <div className="flex flex-col gap-2">
@@ -145,11 +143,9 @@ export function BridgeSubmitDrawer({
               </p>
               <TokenChainLogo size="large" token={toToken} />
             </div>
-            {toChain && (
-              <p className="text-xsm text-gray-500">
-                {t("pages.bridge.form.on-chain", { chain: toChain.name })}
-              </p>
-            )}
+            <p className="text-xsm text-gray-500">
+              {t("pages.bridge.form.on-chain", { chain: toChain.name })}
+            </p>
           </div>
         </div>
 

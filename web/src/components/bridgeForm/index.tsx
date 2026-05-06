@@ -15,7 +15,7 @@ import { useBridgeableTokens } from "hooks/useBridgeableTokens";
 import { useBridgeLayerZeroFee } from "hooks/useBridgeLayerZeroFee";
 import { useBridgeNetworkFee } from "hooks/useBridgeNetworkFee";
 import { useTotalBridgeSendFees } from "hooks/useTotalBridgeSendFees";
-import { allChains } from "networks";
+import { getChainById } from "networks";
 import { type FormEvent, useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { BridgeableToken } from "types";
@@ -130,17 +130,17 @@ function BridgeFormContent({ tokens }: ContentProps) {
     tokenBalance: fromTokenBalance,
   });
 
-  const fromChain = allChains.find((c) => c.id === fromToken.chainId);
-  const toChain = allChains.find((c) => c.id === toToken.chainId);
+  const fromChain = getChainById(fromToken.chainId);
+  const toChain = getChainById(toToken.chainId);
 
   const { onCompleted, onFailed, onPending, onTransactionHash } =
     useActivityTracking({
       page: "bridge",
       text: t("pages.bridge.activity.bridge-text", {
         amount: fromInputValue,
-        fromChain: fromChain?.name ?? "",
+        fromChain: fromChain.name,
         symbol: fromToken.symbol,
-        toChain: toChain?.name ?? "",
+        toChain: toChain.name,
       }),
       title: t("nav.bridge"),
     });
