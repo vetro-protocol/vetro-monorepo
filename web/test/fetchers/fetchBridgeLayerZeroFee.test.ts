@@ -21,7 +21,10 @@ const oftAddress: Address = "0xFc8Acf5ef1E8839Ec94151740CfEd95D7E579Afb";
 describe("fetchBridgeLayerZeroFee", function () {
   const mockRecipient = zeroAddress;
 
-  function createPrepopulatedQueryClient(nativeFee: bigint) {
+  function createPrepopulatedQueryClient(
+    nativeFee: bigint,
+    chainId: number = sourceChainId,
+  ) {
     const queryClient = createTestQueryClient();
     queryClient.setQueryData(
       previewBridgeQueryKey({
@@ -29,7 +32,7 @@ describe("fetchBridgeLayerZeroFee", function () {
         destinationChainId,
         oftAddress,
         recipient: mockRecipient,
-        sourceChainId,
+        sourceChainId: chainId,
       }),
       { lzTokenFee: 0n, nativeFee },
     );
@@ -64,7 +67,7 @@ describe("fetchBridgeLayerZeroFee", function () {
 
   it("prices in BNB on BSC source chain", async function () {
     const nativeFee = parseUnits("0.002", bsc.nativeCurrency.decimals);
-    const queryClient = createPrepopulatedQueryClient(nativeFee);
+    const queryClient = createPrepopulatedQueryClient(nativeFee, bsc.id);
     // ETH price intentionally set wildly different to prove BNB is used.
     mockPrices({ BNB: "300", ETH: "2000" });
 
@@ -75,7 +78,7 @@ describe("fetchBridgeLayerZeroFee", function () {
       oftAddress,
       queryClient,
       recipient: mockRecipient,
-      sourceChainId,
+      sourceChainId: bsc.id,
     });
 
     // 0.002 BNB * $300 = $0.6
