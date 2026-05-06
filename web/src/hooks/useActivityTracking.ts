@@ -1,5 +1,5 @@
 import { useCallback, useRef } from "react";
-import { useAccount, useChainId } from "wagmi";
+import { useAccount } from "wagmi";
 
 import type { ActivityPage } from "../components/base/activityList/types";
 import { addActivity, updateActivity } from "../stores/activityStore";
@@ -13,7 +13,6 @@ type Params = {
 
 export function useActivityTracking({ page, text, title }: Params) {
   const { address: account } = useAccount();
-  const chainId = useChainId();
   const txHashRef = useRef<string | undefined>(undefined);
 
   const onPending = useCallback(
@@ -21,7 +20,7 @@ export function useActivityTracking({ page, text, title }: Params) {
       if (!account || !txHashRef.current) {
         return;
       }
-      addActivity(account, chainId, {
+      addActivity(account, {
         date: unixNowTimestamp(),
         page,
         status: "pending",
@@ -30,7 +29,7 @@ export function useActivityTracking({ page, text, title }: Params) {
         txHash: txHashRef.current,
       });
     },
-    [account, chainId, page, text, title],
+    [account, page, text, title],
   );
 
   const onCompleted = useCallback(
@@ -38,12 +37,12 @@ export function useActivityTracking({ page, text, title }: Params) {
       if (!txHashRef.current || !account) {
         return;
       }
-      updateActivity(account, chainId, txHashRef.current, {
+      updateActivity(account, txHashRef.current, {
         status: "completed",
       });
       txHashRef.current = undefined;
     },
-    [account, chainId],
+    [account],
   );
 
   const onFailed = useCallback(
@@ -51,12 +50,12 @@ export function useActivityTracking({ page, text, title }: Params) {
       if (!txHashRef.current || !account) {
         return;
       }
-      updateActivity(account, chainId, txHashRef.current, {
+      updateActivity(account, txHashRef.current, {
         status: "failed",
       });
       txHashRef.current = undefined;
     },
-    [account, chainId],
+    [account],
   );
 
   const onTransactionHash = useCallback(function onTransactionHash(
