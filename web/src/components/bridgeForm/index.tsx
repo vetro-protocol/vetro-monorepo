@@ -123,6 +123,7 @@ function BridgeFormContent({ tokens }: ContentProps) {
 
   const balancesLoaded =
     nativeBalance !== undefined && fromTokenBalance !== undefined;
+  const dataReady = balancesLoaded && needsApproval !== undefined;
 
   const inputError = getInputError({
     amount: amountBigInt,
@@ -233,7 +234,7 @@ function BridgeFormContent({ tokens }: ContentProps) {
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!inputError && account) {
+    if (!inputError && account && dataReady) {
       setStartedWithApproval(!!needsApproval);
       setFlowStatus(needsApproval ? "approving" : "send-ready");
       bridgeMutation.mutate();
@@ -282,6 +283,7 @@ function BridgeFormContent({ tokens }: ContentProps) {
       >
         <BridgeSubmitButton
           inputError={inputError}
+          isLoadingData={!!account && !dataReady}
           isPending={bridgeMutation.isPending}
           isPreviewError={isTotalFeeError}
         />

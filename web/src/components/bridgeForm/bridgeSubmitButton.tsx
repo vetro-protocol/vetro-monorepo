@@ -14,12 +14,14 @@ const Container = ({ children }: { children: ReactNode }) => (
 
 type Props = {
   inputError: InputError | undefined;
+  isLoadingData?: boolean;
   isPending?: boolean;
   isPreviewError?: boolean;
 };
 
 export function BridgeSubmitButton({
   inputError,
+  isLoadingData,
   isPending,
   isPreviewError,
 }: Props) {
@@ -56,6 +58,16 @@ export function BridgeSubmitButton({
       <Container>
         <Button disabled size="xLarge" type="button">
           {t("pages.bridge.form.preview-error")}
+        </Button>
+      </Container>
+    );
+  }
+
+  if (isLoadingData) {
+    return (
+      <Container>
+        <Button disabled size="xLarge" type="button">
+          <Spinner />
         </Button>
       </Container>
     );
