@@ -46,3 +46,14 @@
     opacity 100ms ease,
     transform 100ms ease;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .vetro-tooltip-appear .rc-tooltip-content,
+  .vetro-tooltip-enter .rc-tooltip-content,
+  .vetro-tooltip-appear-active .rc-tooltip-content,
+  .vetro-tooltip-enter-active .rc-tooltip-content,
+  .vetro-tooltip-leave-active .rc-tooltip-content {
+    transform: none;
+    transition: none;
+  }
+}
