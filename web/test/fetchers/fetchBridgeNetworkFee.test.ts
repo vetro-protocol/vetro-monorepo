@@ -65,14 +65,12 @@ describe("fetchBridgeNetworkFee", function () {
 
   function createPrepopulatedQueryClient({
     balance = 1000n,
+    chainId = sourceChainId,
     nativeFee = 5n,
-  }: { balance?: bigint; nativeFee?: bigint } = {}) {
+  }: { balance?: bigint; chainId?: number; nativeFee?: bigint } = {}) {
     const queryClient = createTestQueryClient();
     queryClient.setQueryData(
-      tokenBalanceQueryKey(
-        { address: zeroAddress, chainId: sourceChainId },
-        mockOwner,
-      ),
+      tokenBalanceQueryKey({ address: zeroAddress, chainId }, mockOwner),
       balance,
     );
     queryClient.setQueryData(
@@ -81,7 +79,7 @@ describe("fetchBridgeNetworkFee", function () {
         destinationChainId,
         oftAddress,
         recipient: mockRecipient,
-        sourceChainId,
+        sourceChainId: chainId,
       }),
       { lzTokenFee: 0n, nativeFee },
     );
@@ -205,7 +203,12 @@ describe("fetchBridgeNetworkFee", function () {
   it("prices in BNB on BSC source chain", async function () {
     const sendGas = 200_000n;
     const networkFeeWei = parseEther("0.01");
-    const queryClient = createPrepopulatedQueryClient();
+    const queryClient = createPrepopulatedQueryClient({ chainId: bsc.id });
+    // @ts-expect-error - only address and chainId are needed for these tests
+    const bscToken = {
+      address: zeroAddress,
+      chainId: bsc.id,
+    } as BridgeableToken;
 
     vi.mocked(readContract).mockResolvedValue(false);
     vi.mocked(estimateGas).mockResolvedValue(sendGas);
@@ -224,8 +227,8 @@ describe("fetchBridgeNetworkFee", function () {
       owner: mockOwner,
       queryClient,
       recipient: mockRecipient,
-      sourceChainId,
-      sourceToken: mockToken,
+      sourceChainId: bsc.id,
+      sourceToken: bscToken,
     });
 
     // 0.01 BNB * $300 = $3
