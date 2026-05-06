@@ -283,7 +283,7 @@ function BridgeFormContent({ tokens }: ContentProps) {
         <BridgeSubmitButton
           inputError={inputError}
           isPending={bridgeMutation.isPending}
-          isPreviewError={isLayerZeroFeeError}
+          isPreviewError={isTotalFeeError}
         />
       </Form>
       <FormSection show={amountBigInt !== 0n}>
