@@ -29,7 +29,7 @@ export default defineConfig({
       project: "vetro-app",
       release: {
         deploy: {
-          env: process.env.VITE_DEPLOY_ENV!,
+          env: process.env.VITE_DEPLOY_ENV || "development",
         },
       },
       telemetry: false,
