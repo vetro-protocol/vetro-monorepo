@@ -10,7 +10,7 @@ import {
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
   enabled: !!import.meta.env.VITE_SENTRY_DSN,
-  environment: import.meta.env.MODE,
+  environment: import.meta.env.VITE_DEPLOY_ENV,
   integrations: [
     Sentry.reactRouterV7BrowserTracingIntegration({
       createRoutesFromChildren,

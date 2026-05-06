@@ -11,7 +11,7 @@ export default defineConfig({
     // "hidden" generates source maps for Sentry but strips sourceMappingURL
     // from the output so browsers can't discover them. "true" also serves them
     // publicly.
-    sourcemap: process.env.DEPLOY_ENV === "production" ? "hidden" : true,
+    sourcemap: process.env.VITE_DEPLOY_ENV === "production" ? "hidden" : true,
   },
   plugins: [
     react(),
@@ -19,12 +19,20 @@ export default defineConfig({
     nodePolyfills({
       include: ["http", "https"],
     }),
+    tailwindcss(),
+    tsconfigPaths(),
+    // Sentry plugin should be last to ensures source maps are generated
+    // correctly and tree-shaking doesn't remove Sentry's instrumentation.
     sentryVitePlugin({
       authToken: process.env.SENTRY_AUTH_TOKEN,
       org: "hemi-labs",
       project: "vetro-app",
+      release: {
+        deploy: {
+          env: process.env.VITE_DEPLOY_ENV!,
+        },
+      },
+      telemetry: false,
     }),
-    tailwindcss(),
-    tsconfigPaths(),
   ],
 });
