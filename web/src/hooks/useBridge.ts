@@ -82,9 +82,8 @@ export const useBridge = function ({
         updateNativeBalanceAfterReceipt(receipt);
 
         // optimistically deduct the bridged amount from the source balance
-        queryClient.setQueryData(
-          sourceBalanceKey,
-          (old: bigint) => old - amount,
+        queryClient.setQueryData(sourceBalanceKey, (old: bigint | undefined) =>
+          old === undefined ? old : old - amount,
         );
       });
 
