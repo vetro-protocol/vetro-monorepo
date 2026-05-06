@@ -51,10 +51,13 @@ export const useBridge = function ({
       if (!account) {
         throw new Error("No account connected");
       }
+      if (!walletClient) {
+        throw new Error("Wallet client is not ready");
+      }
 
       await ensureConnectedTo(sourceChainId);
 
-      const { emitter, promise } = send(walletClient!, {
+      const { emitter, promise } = send(walletClient, {
         amount,
         approveAmount,
         destinationChainId,
