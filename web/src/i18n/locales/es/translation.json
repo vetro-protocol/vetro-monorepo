@@ -174,15 +174,39 @@
       "you-are-depositing": "Está depositando como garantía"
     },
     "bridge": {
+      "activity": {
+        "bridge-text": "{{amount}} {{symbol}} de {{fromChain}} a {{toChain}}"
+      },
+      "fees": {
+        "layerzero-fee": "Tarifa LayerZero"
+      },
       "form": {
         "action": "Transferir",
+        "from-chain": "desde {{chain}}",
+        "on-chain": "en {{chain}}",
+        "preview-error": "No se pudo estimar la tarifa",
         "you-are-sending": "Estás enviando",
         "you-will-receive": "Recibirás"
+      },
+      "progress": {
+        "approve-description": "Esto permite al contrato del puente gastar este token.",
+        "approve-title": "Aprobar en la billetera",
+        "bridge-progress": "Progreso del puente",
+        "retry": "Reintentar",
+        "send-description": "Revise los detalles y confirme la transferencia en su billetera.",
+        "send-title": "Confirmar en la billetera",
+        "title": "Transferencia en curso",
+        "waiting-description": "Estamos esperando que los fondos lleguen desde la red de origen — esto puede tardar unos minutos.",
+        "waiting-title": "Esperando que lleguen los fondos"
       },
       "select-chain": "Seleccionar red",
       "select-from-chain": "Seleccionar red de origen",
       "select-to-chain": "Seleccionar red de destino",
-      "title": "Transfiera activos entre redes"
+      "title": "Transfiera activos entre redes",
+      "toast": {
+        "bridge-description": "Sus tokens están en camino a la red de destino.",
+        "bridge-title": "Transferencia confirmada"
+      }
     },
     "earn": {
       "activity": {

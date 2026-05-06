@@ -1,5 +1,6 @@
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { Button } from "components/base/button";
+import { Spinner } from "components/base/spinner";
 import type { InputError } from "components/tokenInput/utils";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
@@ -13,9 +14,15 @@ const Container = ({ children }: { children: ReactNode }) => (
 
 type Props = {
   inputError: InputError | undefined;
+  isPending?: boolean;
+  isPreviewError?: boolean;
 };
 
-export function BridgeSubmitButton({ inputError }: Props) {
+export function BridgeSubmitButton({
+  inputError,
+  isPending,
+  isPreviewError,
+}: Props) {
   const { address } = useAccount();
   const { openConnectModal } = useConnectModal();
   const { t } = useTranslation();
@@ -39,6 +46,26 @@ export function BridgeSubmitButton({ inputError }: Props) {
       <Container>
         <Button disabled size="xLarge" type="button">
           {t(`common.${inputError}`)}
+        </Button>
+      </Container>
+    );
+  }
+
+  if (isPreviewError) {
+    return (
+      <Container>
+        <Button disabled size="xLarge" type="button">
+          {t("pages.bridge.form.preview-error")}
+        </Button>
+      </Container>
+    );
+  }
+
+  if (isPending) {
+    return (
+      <Container>
+        <Button disabled size="xLarge" type="button">
+          <Spinner />
         </Button>
       </Container>
     );
