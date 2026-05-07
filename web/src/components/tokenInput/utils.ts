@@ -1,4 +1,4 @@
-export const inputErrors = [
+const inputErrors = [
   "enter-amount",
   "exceeds-debt",
   "insufficient-balance",

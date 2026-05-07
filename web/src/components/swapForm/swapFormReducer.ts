@@ -3,7 +3,7 @@ import { sanitizeAmount } from "utils/sanitizeAmount";
 
 import type { SwapFormState } from "./types";
 
-export type SwapFormAction =
+type SwapFormAction =
   | { payload: string; type: "SET_FROM_INPUT_VALUE" }
   | { payload: TokenWithGateway; type: "SET_FROM_TOKEN" }
   | { payload: TokenWithGateway; type: "SET_TO_TOKEN" }

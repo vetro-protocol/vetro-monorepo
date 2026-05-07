@@ -1,10 +1,10 @@
 import type { Hash, TransactionReceipt } from "viem";
 
-export type CommonEvents = {
+type CommonEvents = {
   "unexpected-error": [Error];
 };
 
-export type ApprovalEvents = {
+type ApprovalEvents = {
   "approve-transaction-reverted": [TransactionReceipt];
   "approve-transaction-succeeded": [TransactionReceipt];
   "pre-approve": [];

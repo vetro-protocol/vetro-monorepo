@@ -1,6 +1,6 @@
 {
   "ignore": ["landing/**", "web/scripts/*"],
-  "ignoreDependencies": ["eslint-config-prettier"],
+  "ignoreDependencies": ["@vitest/coverage-v8", "eslint-config-prettier"],
   "workspaces": {
     "subgraph": {
       "entry": ["src/earn.ts", "tests/*.test.ts"],

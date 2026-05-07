@@ -17,7 +17,7 @@ export type WithdrawStep =
   | "requesting"
   | "withdrawing";
 
-export type StakeDrawerState = {
+type StakeDrawerState = {
   approve10x: boolean;
   approvalCompleted: boolean;
   depositStep: DepositStep;
@@ -25,7 +25,7 @@ export type StakeDrawerState = {
   withdrawStep: WithdrawStep;
 };
 
-export type StakeDrawerAction =
+type StakeDrawerAction =
   | { payload: DepositStep; type: "SET_DEPOSIT_STEP" }
   | { payload: string; type: "SET_INPUT_VALUE" }
   | { payload: WithdrawStep; type: "SET_WITHDRAW_STEP" }

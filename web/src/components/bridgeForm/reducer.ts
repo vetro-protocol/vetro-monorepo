@@ -14,7 +14,7 @@ type SetTokenPayload = {
   tokens: BridgeableToken[];
 };
 
-export type BridgeFormAction =
+type BridgeFormAction =
   | { payload: SetTokenPayload; type: "SET_FROM_TOKEN" }
   | { payload: SetTokenPayload; type: "SET_TO_TOKEN" }
   | { payload: string; type: "SET_FROM_INPUT_VALUE" }
