@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import type { Address, Chain } from "viem";
+import type { Address } from "viem";
 
 import type { Activity } from "../components/base/activityList/types";
 
@@ -14,11 +14,11 @@ function notify() {
 
 const normalize = (address: Address) => address.toLowerCase();
 
-const storageKey = (address: Address, chainId: Chain["id"]) =>
-  `${storageKeyPrefix}${chainId}:${normalize(address)}`;
+const storageKey = (address: Address) =>
+  `${storageKeyPrefix}${normalize(address)}`;
 
-function read(address: Address, chainId: Chain["id"]) {
-  const key = storageKey(address, chainId);
+function read(address: Address) {
+  const key = storageKey(address);
   if (cache.has(key)) {
     return cache.get(key)!;
   }
@@ -32,8 +32,8 @@ function read(address: Address, chainId: Chain["id"]) {
   }
 }
 
-function write(address: Address, chainId: Chain["id"], activities: Activity[]) {
-  const key = storageKey(address, chainId);
+function write(address: Address, activities: Activity[]) {
+  const key = storageKey(address);
   cache.set(key, activities);
   try {
     localStorage.setItem(key, JSON.stringify(activities));
@@ -43,26 +43,18 @@ function write(address: Address, chainId: Chain["id"], activities: Activity[]) {
   notify();
 }
 
-export function addActivity(
-  address: Address,
-  chainId: Chain["id"],
-  activity: Activity,
-) {
-  write(address, chainId, [activity, ...read(address, chainId)]);
+export function addActivity(address: Address, activity: Activity) {
+  write(address, [activity, ...read(address)]);
 }
 
 export function updateActivity(
   address: Address,
-  chainId: Chain["id"],
   txHash: string,
   updates: Partial<Omit<Activity, "txHash">>,
 ) {
   write(
     address,
-    chainId,
-    read(address, chainId).map((a) =>
-      a.txHash === txHash ? { ...a, ...updates } : a,
-    ),
+    read(address).map((a) => (a.txHash === txHash ? { ...a, ...updates } : a)),
   );
 }
 
@@ -71,12 +63,9 @@ function subscribe(cb: () => void) {
   return () => subscribers.delete(cb);
 }
 
-export const useActivities = (
-  address: Address | undefined,
-  chainId: Chain["id"],
-): Activity[] =>
+export const useActivities = (address: Address | undefined): Activity[] =>
   useSyncExternalStore(
     subscribe,
-    () => (address ? read(address, chainId) : empty),
+    () => (address ? read(address) : empty),
     () => empty,
   );

@@ -139,11 +139,13 @@ function BridgeFormContent({ tokens }: ContentProps) {
       page: "bridge",
       text: t("pages.bridge.activity.bridge-text", {
         amount: fromInputValue,
-        fromChain: fromChain.name,
+        count: Number(fromInputValue),
         symbol: fromToken.symbol,
-        toChain: toChain.name,
       }),
-      title: t("nav.bridge"),
+      title: `${t("nav.bridge")} · ${t("pages.bridge.activity.bridge-title", {
+        fromChain: fromChain.name,
+        toChain: toChain.name,
+      })}`,
     });
 
   const bridgeMutation = useBridge({
