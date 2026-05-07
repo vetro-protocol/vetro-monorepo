@@ -175,7 +175,8 @@
     },
     "bridge": {
       "activity": {
-        "bridge-text": "{{amount}} {{symbol}} from {{fromChain}} to {{toChain}}"
+        "bridge-text": "{{amount}} {{symbol}} bridged",
+        "bridge-title": "{{fromChain}} → {{toChain}}"
       },
       "fees": {
         "layerzero-fee": "LayerZero fee"
