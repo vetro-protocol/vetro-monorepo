@@ -1,6 +1,6 @@
 import { ChevronIcon } from "components/base/chevronIcon";
 import { Dropdown } from "components/base/dropdown";
-import { allChains } from "networks";
+import { getChainById } from "networks";
 import { useTranslation } from "react-i18next";
 import type { BridgeableToken } from "types";
 
@@ -14,14 +14,14 @@ type Props = {
 };
 
 const renderItem = function (token: BridgeableToken) {
-  const chain = allChains.find((c) => c.id === token.chainId);
+  const chain = getChainById(token.chainId);
   return (
     <>
       <div className="flex items-center gap-2">
         <TokenChainLogo token={token} />
         <span>{token.symbol}</span>
       </div>
-      <span className="text-gray-500">{chain?.name ?? token.name}</span>
+      <span className="text-gray-500">{chain.name}</span>
     </>
   );
 };

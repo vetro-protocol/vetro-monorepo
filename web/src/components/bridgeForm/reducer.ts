@@ -1,4 +1,5 @@
 import type { BridgeableToken } from "types";
+import { pickCounterpartToken } from "utils/bridge";
 import { sanitizeAmount } from "utils/sanitizeAmount";
 
 export type BridgeFormState = {
@@ -8,10 +9,15 @@ export type BridgeFormState = {
   toToken: BridgeableToken;
 };
 
+type SetTokenPayload = {
+  token: BridgeableToken;
+  tokens: BridgeableToken[];
+};
+
 export type BridgeFormAction =
+  | { payload: SetTokenPayload; type: "SET_FROM_TOKEN" }
+  | { payload: SetTokenPayload; type: "SET_TO_TOKEN" }
   | { payload: string; type: "SET_FROM_INPUT_VALUE" }
-  | { payload: BridgeableToken; type: "SET_FROM_TOKEN" }
-  | { payload: BridgeableToken; type: "SET_TO_TOKEN" }
   | { type: "TOGGLE_APPROVE_10X" }
   | { type: "TOGGLE_TOKENS" };
 
@@ -27,10 +33,28 @@ export function bridgeFormReducer(
       }
       return { ...state, fromInputValue: result.value };
     }
-    case "SET_FROM_TOKEN":
-      return { ...state, fromToken: action.payload };
-    case "SET_TO_TOKEN":
-      return { ...state, toToken: action.payload };
+    case "SET_FROM_TOKEN": {
+      const { token, tokens } = action.payload;
+      if (token.chainId === state.toToken.chainId) {
+        return {
+          ...state,
+          fromToken: token,
+          toToken: pickCounterpartToken({ token, tokens }),
+        };
+      }
+      return { ...state, fromToken: token };
+    }
+    case "SET_TO_TOKEN": {
+      const { token, tokens } = action.payload;
+      if (token.chainId === state.fromToken.chainId) {
+        return {
+          ...state,
+          fromToken: pickCounterpartToken({ token, tokens }),
+          toToken: token,
+        };
+      }
+      return { ...state, toToken: token };
+    }
     case "TOGGLE_APPROVE_10X":
       return { ...state, approve10x: !state.approve10x };
     case "TOGGLE_TOKENS":

@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { getSwapErrors } from "../../../src/components/swapForm/validation";
+import { getInputError } from "../../src/utils/inputError";
 
-describe("getSwapErrors", function () {
+describe("getInputError", function () {
   it("returns 'enter-amount' when amount is 0", function () {
-    const result = getSwapErrors({
+    const result = getInputError({
       amount: 0n,
       nativeBalance: 100n,
       tokenBalance: 1000n,
@@ -13,7 +13,7 @@ describe("getSwapErrors", function () {
   });
 
   it("returns 'insufficient-balance' when amount exceeds tokenBalance", function () {
-    const result = getSwapErrors({
+    const result = getInputError({
       amount: 2000n,
       nativeBalance: 100n,
       tokenBalance: 1000n,
@@ -22,7 +22,7 @@ describe("getSwapErrors", function () {
   });
 
   it("returns 'insufficient-gas' when nativeBalance is 0", function () {
-    const result = getSwapErrors({
+    const result = getInputError({
       amount: 500n,
       nativeBalance: 0n,
       tokenBalance: 1000n,
@@ -31,7 +31,7 @@ describe("getSwapErrors", function () {
   });
 
   it("returns undefined when all conditions are valid", function () {
-    const result = getSwapErrors({
+    const result = getInputError({
       amount: 500n,
       nativeBalance: 100n,
       tokenBalance: 1000n,
@@ -40,7 +40,7 @@ describe("getSwapErrors", function () {
   });
 
   it("returns undefined when tokenBalance is undefined and amount is valid", function () {
-    const result = getSwapErrors({
+    const result = getInputError({
       amount: 500n,
       nativeBalance: 100n,
       tokenBalance: undefined,
@@ -49,7 +49,7 @@ describe("getSwapErrors", function () {
   });
 
   it("returns undefined when nativeBalance is undefined and amount is valid", function () {
-    const result = getSwapErrors({
+    const result = getInputError({
       amount: 500n,
       nativeBalance: undefined,
       tokenBalance: 1000n,
@@ -58,7 +58,7 @@ describe("getSwapErrors", function () {
   });
 
   it("returns undefined when both balances are undefined and amount is valid", function () {
-    const result = getSwapErrors({
+    const result = getInputError({
       amount: 500n,
       nativeBalance: undefined,
       tokenBalance: undefined,
@@ -67,7 +67,7 @@ describe("getSwapErrors", function () {
   });
 
   it("returns undefined when amount equals tokenBalance", function () {
-    const result = getSwapErrors({
+    const result = getInputError({
       amount: 1000n,
       nativeBalance: 100n,
       tokenBalance: 1000n,
@@ -76,7 +76,7 @@ describe("getSwapErrors", function () {
   });
 
   it("returns 'insufficient-balance' when amount is 1 unit more than balance", function () {
-    const result = getSwapErrors({
+    const result = getInputError({
       amount: 1001n,
       nativeBalance: 100n,
       tokenBalance: 1000n,
@@ -85,7 +85,7 @@ describe("getSwapErrors", function () {
   });
 
   it("returns 'insufficient-gas' when nativeBalance is 0 and tokenBalance is undefined", function () {
-    const result = getSwapErrors({
+    const result = getInputError({
       amount: 500n,
       nativeBalance: 0n,
       tokenBalance: undefined,
@@ -94,7 +94,7 @@ describe("getSwapErrors", function () {
   });
 
   it("returns 'insufficient-treasury' when redeemPreview exceeds maxWithdraw", function () {
-    const result = getSwapErrors({
+    const result = getInputError({
       amount: 500n,
       maxWithdraw: 100n,
       nativeBalance: 100n,
@@ -105,7 +105,7 @@ describe("getSwapErrors", function () {
   });
 
   it("returns undefined when redeemPreview does not exceed maxWithdraw", function () {
-    const result = getSwapErrors({
+    const result = getInputError({
       amount: 500n,
       maxWithdraw: 300n,
       nativeBalance: 100n,
@@ -116,7 +116,7 @@ describe("getSwapErrors", function () {
   });
 
   it("returns undefined when maxWithdraw is undefined", function () {
-    const result = getSwapErrors({
+    const result = getInputError({
       amount: 500n,
       maxWithdraw: undefined,
       nativeBalance: 100n,
@@ -127,7 +127,7 @@ describe("getSwapErrors", function () {
   });
 
   it("returns undefined when redeemPreview is undefined", function () {
-    const result = getSwapErrors({
+    const result = getInputError({
       amount: 500n,
       maxWithdraw: 100n,
       nativeBalance: 100n,
@@ -138,7 +138,7 @@ describe("getSwapErrors", function () {
   });
 
   it("returns 'insufficient-balance' before 'insufficient-treasury' when both apply", function () {
-    const result = getSwapErrors({
+    const result = getInputError({
       amount: 2000n,
       maxWithdraw: 100n,
       nativeBalance: 100n,

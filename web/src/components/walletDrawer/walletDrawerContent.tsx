@@ -51,7 +51,7 @@ function useBalanceInUsd() {
   return { isLoading: true };
 }
 
-const allFilters = ["borrow", "completed", "earn", "failed", "swap"];
+const allFilters = ["borrow", "bridge", "completed", "earn", "failed", "swap"];
 
 export function WalletDrawerContent() {
   const { address } = useAccount();
@@ -72,7 +72,10 @@ export function WalletDrawerContent() {
 
   const itemsWithHref = filteredActivities.map((a) => ({
     ...a,
-    href: `${explorerBaseUrl}/tx/${a.txHash}`,
+    href:
+      a.page === "bridge"
+        ? `https://layerzeroscan.com/tx/${a.txHash}`
+        : `${explorerBaseUrl}/tx/${a.txHash}`,
   }));
 
   const balanceParts = usd !== undefined ? splitDecimalParts(usd) : undefined;
@@ -120,6 +123,7 @@ export function WalletDrawerContent() {
                 label: t("pages.wallet.view-operations-from"),
                 options: [
                   { label: t("nav.borrow"), value: "borrow" },
+                  { label: t("nav.bridge"), value: "bridge" },
                   { label: t("nav.earn"), value: "earn" },
                   { label: t("nav.swap"), value: "swap" },
                 ],

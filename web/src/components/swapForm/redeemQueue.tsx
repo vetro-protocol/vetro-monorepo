@@ -17,6 +17,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
 import { applyBps } from "utils/fees";
+import { getInputError } from "utils/inputError";
 import { formatAmount, parseTokenUnits } from "utils/token";
 import { formatUnits, isAddressEqual, parseUnits } from "viem";
 
@@ -26,7 +27,6 @@ import { type ClaimRedeemFlowStatus } from "./claimRedeemProgressDrawer";
 import { RedeemQueueEmptyState } from "./redeemQueueEmptyState";
 import { RedeemQueueTable } from "./redeemQueueTable";
 import { RedeemQueueToasts } from "./redeemQueueToasts";
-import { getSwapErrors } from "./validation";
 
 type Props = {
   peggedToken: TokenWithGateway;
@@ -98,7 +98,7 @@ function ActiveRedeemDrawer({
     isError: isPreviewError,
   });
 
-  const inputError = getSwapErrors({
+  const inputError = getInputError({
     amount: amountBigInt,
     maxWithdraw,
     nativeBalance,

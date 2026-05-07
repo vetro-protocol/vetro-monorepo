@@ -22,6 +22,7 @@ import { type FormEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
 import { applyBps } from "utils/fees";
+import { getInputError } from "utils/inputError";
 import { formatAmount } from "utils/token";
 import { parseUnits } from "viem";
 
@@ -33,7 +34,6 @@ import { type DepositFlowStatus, SwapDepositDrawer } from "./swapDepositDrawer";
 import { SwapFees } from "./swapFees";
 import { ToTokenBalance } from "./toTokenBalance";
 import { TreasuryReserves } from "./treasuryReserves";
-import { getSwapErrors } from "./validation";
 
 type Props = {
   amountBigInt: bigint;
@@ -175,7 +175,7 @@ export function Deposit({
 
   const nativeBalance = nativeBalanceData?.value;
 
-  const inputError = getSwapErrors({
+  const inputError = getInputError({
     amount: amountBigInt,
     nativeBalance,
     tokenBalance: fromTokenBalance,
