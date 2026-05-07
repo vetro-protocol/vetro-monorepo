@@ -175,7 +175,8 @@
     },
     "bridge": {
       "activity": {
-        "bridge-text": "{{amount}} {{symbol}} bridged",
+        "bridge-text_one": "{{amount}} {{symbol}} transferido",
+        "bridge-text_other": "{{amount}} {{symbol}} transferidos",
         "bridge-title": "{{fromChain}} → {{toChain}}"
       },
       "fees": {

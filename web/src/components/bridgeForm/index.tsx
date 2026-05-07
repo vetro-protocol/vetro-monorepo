@@ -139,6 +139,7 @@ function BridgeFormContent({ tokens }: ContentProps) {
       page: "bridge",
       text: t("pages.bridge.activity.bridge-text", {
         amount: fromInputValue,
+        count: Number(fromInputValue),
         symbol: fromToken.symbol,
       }),
       title: `${t("nav.bridge")} · ${t("pages.bridge.activity.bridge-title", {
