@@ -1,4 +1,3 @@
-import { featureFlags } from "featureFlags";
 import { useTranslation } from "react-i18next";
 
 import { I18nLink } from "../base/i18nLink";
@@ -11,11 +10,7 @@ import { SwapIcon } from "./swapIcon";
 
 export const navLinks = [
   { href: "/swap", Icon: SwapIcon, translationKey: "nav.swap" },
-  ...(featureFlags.bridgeEnabled
-    ? ([
-        { href: "/bridge", Icon: BridgeIcon, translationKey: "nav.bridge" },
-      ] as const)
-    : ([] as const)),
+  { href: "/bridge", Icon: BridgeIcon, translationKey: "nav.bridge" },
   { href: "/earn", Icon: EarnIcon, translationKey: "nav.earn" },
   { href: "/borrow", Icon: BorrowIcon, translationKey: "nav.borrow" },
   { href: "/analytics", Icon: AnalyticsIcon, translationKey: "nav.analytics" },
