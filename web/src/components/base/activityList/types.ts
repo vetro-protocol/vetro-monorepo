@@ -1,6 +1,6 @@
 export type ActivityPage = "borrow" | "bridge" | "earn" | "swap";
 
-export type ActivityStatus = "completed" | "failed" | "pending";
+type ActivityStatus = "completed" | "failed" | "pending";
 
 export type Activity = {
   date: number;
