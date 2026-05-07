@@ -11,6 +11,9 @@ type Props = {
 };
 
 const getTooltipContainer = (node: HTMLElement) => node.parentElement!;
+// motionName is the prefix rc-motion uses to toggle the
+// `vetro-tooltip-{appear,enter,leave}[-active]` classes that tooltip.css targets.
+const motion = { motionName: "vetro-tooltip" };
 
 export const Tooltip = ({
   children,
@@ -20,6 +23,7 @@ export const Tooltip = ({
 }: Props) => (
   <RcTooltip
     getTooltipContainer={useParentContainer ? getTooltipContainer : undefined}
+    motion={motion}
     overlay={
       <div className="text-b-medium max-w-xs rounded-md bg-gray-900 px-1.5 py-1 text-white">
         {content}
