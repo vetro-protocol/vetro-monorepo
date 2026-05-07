@@ -63,17 +63,7 @@ export function BridgeSubmitButton({
     );
   }
 
-  if (isLoadingData) {
-    return (
-      <Container>
-        <Button disabled size="xLarge" type="button">
-          <Spinner />
-        </Button>
-      </Container>
-    );
-  }
-
-  if (isPending) {
+  if (isLoadingData || isPending) {
     return (
       <Container>
         <Button disabled size="xLarge" type="button">
