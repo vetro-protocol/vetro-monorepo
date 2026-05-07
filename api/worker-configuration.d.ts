@@ -6,20 +6,20 @@ declare namespace Cloudflare {
 		mainModule: typeof import("./src/index");
 	}
 	interface StagingEnv {
+		CUSTOM_RPC_URL_MAINNET: string;
 		ORIGINS: "https://vetro.letshamsterdance.xyz,https://*-vetro-web-staging.hemilabs.workers.dev";
 		SUBGRAPH_ID: "7vnTMFYNE6Nv7RTeoaog4QgqQ3bwZTFoPUGv2gcmTxJ6";
 		SUBGRAPH_URL_TEMPLATE: "https://gateway.thegraph.com/api/$API_KEY/subgraphs/id/$ID";
-		CUSTOM_RPC_URL_MAINNET: string;
 	}
 	interface ProductionEnv {
-		ORIGINS: "https://app.vetro.org,https://demo.vetro.org";
+		CUSTOM_RPC_URL_MAINNET: string;
+		ORIGINS: "https://app.vetro.org,https://beta.vetro.org";
 		SUBGRAPH_ID: "7vnTMFYNE6Nv7RTeoaog4QgqQ3bwZTFoPUGv2gcmTxJ6";
 		SUBGRAPH_URL_TEMPLATE: "https://gateway.thegraph.com/api/$API_KEY/subgraphs/id/$ID";
-		CUSTOM_RPC_URL_MAINNET: string;
 	}
 	interface Env {
 		CUSTOM_RPC_URL_MAINNET: string;
-		ORIGINS: "https://vetro.letshamsterdance.xyz,https://*-vetro-web-staging.hemilabs.workers.dev" | "https://app.vetro.org,https://demo.vetro.org" | "http://localhost:5173";
+		ORIGINS: "https://vetro.letshamsterdance.xyz,https://*-vetro-web-staging.hemilabs.workers.dev" | "https://app.vetro.org,https://beta.vetro.org" | "http://localhost:5173";
 		SUBGRAPH_ID?: "7vnTMFYNE6Nv7RTeoaog4QgqQ3bwZTFoPUGv2gcmTxJ6";
 		SUBGRAPH_URL_TEMPLATE: "https://gateway.thegraph.com/api/$API_KEY/subgraphs/id/$ID" | "http://localhost:8000/subgraphs/name/vetro-app-subgraph";
 		MERKL_OPPORTUNITY_SVETBTC?: "";
