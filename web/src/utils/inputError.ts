@@ -1,6 +1,6 @@
 import type { InputError } from "components/tokenInput/utils";
 
-export function getSwapErrors({
+export function getInputError({
   amount,
   maxWithdraw,
   nativeBalance,

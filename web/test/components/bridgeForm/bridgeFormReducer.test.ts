@@ -25,6 +25,17 @@ const mockToken2: BridgeableToken = {
   symbol: "VUSD",
 };
 
+const mockToken3: BridgeableToken = {
+  address: "0x8a654093e21703afc8d038FF253A3c974C5C2957",
+  chainId: 8453,
+  decimals: 18,
+  logoURI: "https://example.com/vusd.svg",
+  name: "Vetro USD",
+  symbol: "VUSD",
+};
+
+const tokens = [mockToken1, mockToken2, mockToken3];
+
 const createInitialState = (): BridgeFormState => ({
   approve10x: false,
   fromInputValue: "0",
@@ -69,26 +80,49 @@ describe("bridgeFormReducer", function () {
     expect(result.fromInputValue).toBe("0");
   });
 
-  it("SET_FROM_TOKEN changes source token", function () {
+  it("SET_FROM_TOKEN changes source token when chains do not conflict", function () {
     const state = createInitialState();
-    const newToken: BridgeableToken = { ...mockToken2, chainId: 8453 };
     const result = bridgeFormReducer(state, {
-      payload: newToken,
+      payload: { token: mockToken3, tokens },
       type: "SET_FROM_TOKEN",
     });
-    expect(result.fromToken).toBe(newToken);
+    expect(result.fromToken).toBe(mockToken3);
     expect(result.toToken).toBe(mockToken2);
   });
 
-  it("SET_TO_TOKEN changes target token", function () {
+  it("SET_FROM_TOKEN picks a counterpart for toToken when chains conflict", function () {
     const state = createInitialState();
-    const newToken: BridgeableToken = { ...mockToken1, chainId: 8453 };
+    // mockToken2 lives on the same chain as the current toToken (also mockToken2).
     const result = bridgeFormReducer(state, {
-      payload: newToken,
+      payload: { token: mockToken2, tokens },
+      type: "SET_FROM_TOKEN",
+    });
+    expect(result.fromToken).toBe(mockToken2);
+    // toToken must be reassigned to a token on a different chain.
+    expect(result.toToken.chainId).not.toBe(mockToken2.chainId);
+    expect(result.toToken.symbol).toBe(mockToken2.symbol);
+  });
+
+  it("SET_TO_TOKEN changes target token when chains do not conflict", function () {
+    const state = createInitialState();
+    const result = bridgeFormReducer(state, {
+      payload: { token: mockToken3, tokens },
       type: "SET_TO_TOKEN",
     });
-    expect(result.toToken).toBe(newToken);
+    expect(result.toToken).toBe(mockToken3);
     expect(result.fromToken).toBe(mockToken1);
+  });
+
+  it("SET_TO_TOKEN picks a counterpart for fromToken when chains conflict", function () {
+    const state = createInitialState();
+    // mockToken1 lives on the same chain as the current fromToken (also mockToken1).
+    const result = bridgeFormReducer(state, {
+      payload: { token: mockToken1, tokens },
+      type: "SET_TO_TOKEN",
+    });
+    expect(result.toToken).toBe(mockToken1);
+    expect(result.fromToken.chainId).not.toBe(mockToken1.chainId);
+    expect(result.fromToken.symbol).toBe(mockToken1.symbol);
   });
 
   it("TOGGLE_TOKENS swaps tokens and preserves input value", function () {

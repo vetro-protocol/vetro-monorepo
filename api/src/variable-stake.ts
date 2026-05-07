@@ -17,6 +17,7 @@ import parseBigIntStringToNumber from "./parse-bigint-string-to-number.ts";
 import { findStakingVaultForPeggedToken } from "./staking-vault.ts";
 
 const secsPerDay = 86400;
+const WAD = 10n ** 18n;
 
 type VaultHistoryRow = {
   shareValue: string;
@@ -27,13 +28,12 @@ type VaultHistoriesResponse = { vaultHistories: VaultHistoryRow[] };
 
 /**
  * Query the subgraph for the user's staking positions across all known vaults
- * and compute the average purchase price (totalCostBasis / shares) for each.
- * Returns an object keyed by vault address with the price as a bigint in the
- * underlying vault asset's native smallest unit (decimal precision depends on
- * the underlying asset). Defaults to 0n when the user has no position or zero
- * shares.
+ * and return the cost basis (in pegged-token asset units) for each. The
+ * subgraph stores `totalCostBasis` as a WAD-scaled sum of deposits, so this
+ * scales it back down to asset units. Defaults to 0n when the user has no
+ * position for a vault.
  */
-export async function getAveragePurchasePrice({
+export async function getCostBasis({
   address,
   url,
 }: {
@@ -45,7 +45,6 @@ export async function getAveragePurchasePrice({
       userStakingPositions(
         where: { owner: $owner, stakingVaultAddress_in: $vaults }
       ) {
-        shares
         stakingVaultAddress
         totalCostBasis
       }
@@ -56,7 +55,6 @@ export async function getAveragePurchasePrice({
   };
   const { userStakingPositions } = await graphql.runQuery<{
     userStakingPositions: {
-      shares: string;
       stakingVaultAddress: `0x${string}`;
       totalCostBasis: string;
     }[];
@@ -71,13 +69,9 @@ export async function getAveragePurchasePrice({
     stakingVaultAddresses.map((vault) => [vault, 0n]),
   );
   for (const position of userStakingPositions) {
-    const shares = BigInt(position.shares);
-    if (shares === 0n) {
-      continue;
-    }
     const totalCostBasis = BigInt(position.totalCostBasis);
-    const averagePrice = totalCostBasis / shares;
-    result[checksumAddress(position.stakingVaultAddress)] = averagePrice;
+    result[checksumAddress(position.stakingVaultAddress)] =
+      totalCostBasis / WAD;
   }
   return result;
 }

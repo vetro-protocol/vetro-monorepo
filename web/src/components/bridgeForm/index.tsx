@@ -1,21 +1,35 @@
 import { useDebounce } from "@hemilabs/react-hooks/useDebounce";
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
+import { useNeedsApproval } from "@hemilabs/react-hooks/useNeedsApproval";
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
 import { ApproveSection } from "components/approveSection";
 import { RenderFiatValue } from "components/base/fiatValue";
+import { Toast } from "components/base/toast";
 import { FormSection, FormSectionItem } from "components/feesContainer";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { ToTokenBalance } from "components/swapForm/toTokenBalance";
-import { getSwapErrors } from "components/swapForm/validation";
 import { TokenInput } from "components/tokenInput";
+import { useActivityTracking } from "hooks/useActivityTracking";
+import { useBridge } from "hooks/useBridge";
 import { useBridgeableTokens } from "hooks/useBridgeableTokens";
-import { type FormEvent, useReducer } from "react";
+import { useBridgeLayerZeroFee } from "hooks/useBridgeLayerZeroFee";
+import { useBridgeNetworkFee } from "hooks/useBridgeNetworkFee";
+import { useTotalBridgeSendFees } from "hooks/useTotalBridgeSendFees";
+import { getChainById } from "networks";
+import { type FormEvent, useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { BridgeableToken } from "types";
 import { pickCounterpartToken } from "utils/bridge";
+import { getInputError } from "utils/inputError";
 import { parseTokenUnits } from "utils/token";
+import { useAccount } from "wagmi";
 
+import { BridgeFees } from "./bridgeFees";
 import { BridgeSubmitButton } from "./bridgeSubmitButton";
+import {
+  type BridgeFlowStatus,
+  BridgeSubmitDrawer,
+} from "./bridgeSubmitDrawer";
 import { BridgeTokenDropdown } from "./bridgeTokenDropdown";
 import { Form } from "./form";
 import { bridgeFormReducer, type BridgeFormState } from "./reducer";
@@ -36,6 +50,7 @@ type ContentProps = {
 
 function BridgeFormContent({ tokens }: ContentProps) {
   const { t } = useTranslation();
+  const { address: account } = useAccount();
   const [state, dispatch] = useReducer(
     bridgeFormReducer,
     tokens,
@@ -43,8 +58,16 @@ function BridgeFormContent({ tokens }: ContentProps) {
   );
   const { approve10x, fromInputValue, fromToken, toToken } = state;
 
+  const [flowStatus, setFlowStatus] = useState<BridgeFlowStatus>("idle");
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [startedWithApproval, setStartedWithApproval] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+
   const debouncedInputValue = useDebounce(fromInputValue);
   const amountBigInt = parseTokenUnits(debouncedInputValue, fromToken);
+
+  const oftAddress = fromToken.oftAdapterAddress ?? fromToken.address;
+  const approveAmount = approve10x ? amountBigInt * 10n : undefined;
 
   const { data: fromTokenBalance } = useTokenBalance({
     address: fromToken.address,
@@ -53,13 +76,122 @@ function BridgeFormContent({ tokens }: ContentProps) {
   const { data: nativeBalanceData } = useNativeBalance(fromToken.chainId);
   const nativeBalance = nativeBalanceData?.value;
 
+  const { data: needsApproval } = useNeedsApproval({
+    amount: amountBigInt,
+    spender: oftAddress,
+    token: { address: fromToken.address, chainId: fromToken.chainId },
+  });
+
+  const { data: nativeFeeUsd, isError: isLayerZeroFeeError } =
+    useBridgeLayerZeroFee({
+      amount: amountBigInt,
+      destinationChainId: toToken.chainId,
+      oftAddress,
+      sourceChainId: fromToken.chainId,
+    });
+
+  const { data: networkFeeUsd, isError: isNetworkFeeError } =
+    useBridgeNetworkFee({
+      amount: amountBigInt,
+      approveAmount,
+      destinationChainId: toToken.chainId,
+      sourceToken: fromToken,
+    });
+
+  const { data: totalFeeUsd, isError: isTotalFeeError } =
+    useTotalBridgeSendFees({
+      amount: amountBigInt,
+      approveAmount,
+      destinationChainId: toToken.chainId,
+      sourceToken: fromToken,
+    });
+
+  const layerZeroFee = {
+    data: nativeFeeUsd,
+    isError: isLayerZeroFeeError,
+  };
+
+  const networkFee = {
+    data: networkFeeUsd,
+    isError: isNetworkFeeError,
+  };
+
+  const total = {
+    data: totalFeeUsd,
+    isError: isTotalFeeError,
+  };
+
   const balancesLoaded =
     nativeBalance !== undefined && fromTokenBalance !== undefined;
+  const dataReady = balancesLoaded && needsApproval !== undefined;
 
-  const inputError = getSwapErrors({
+  const inputError = getInputError({
     amount: amountBigInt,
     nativeBalance,
     tokenBalance: fromTokenBalance,
+  });
+
+  const fromChain = getChainById(fromToken.chainId);
+  const toChain = getChainById(toToken.chainId);
+
+  const { onCompleted, onFailed, onPending, onTransactionHash } =
+    useActivityTracking({
+      page: "bridge",
+      text: t("pages.bridge.activity.bridge-text", {
+        amount: fromInputValue,
+        fromChain: fromChain.name,
+        symbol: fromToken.symbol,
+        toChain: toChain.name,
+      }),
+      title: t("nav.bridge"),
+    });
+
+  const bridgeMutation = useBridge({
+    amount: amountBigInt,
+    approveAmount,
+    destinationChainId: toToken.chainId,
+    oftAddress,
+    onEmitter(emitter) {
+      emitter.on("user-signed-approval", () => setFlowStatus("approving"));
+      emitter.on("approve-transaction-succeeded", () =>
+        setFlowStatus("approved"),
+      );
+      emitter.on("approve-transaction-reverted", () =>
+        setFlowStatus("approve-error"),
+      );
+      emitter.on("user-signing-approval-error", () =>
+        setFlowStatus("approve-error"),
+      );
+      emitter.on("pre-send", () => setFlowStatus("send-ready"));
+      emitter.on("user-signed-send", function (hash) {
+        onTransactionHash(hash);
+        onPending();
+        setFlowStatus("sending");
+      });
+      emitter.on("send-transaction-succeeded", function () {
+        onCompleted();
+        setFlowStatus("sent");
+        setShowToast(true);
+      });
+      emitter.on("send-transaction-reverted", function () {
+        onFailed();
+        setFlowStatus("send-error");
+      });
+      emitter.on("user-signing-send-error", function () {
+        onFailed();
+        setFlowStatus("send-error");
+      });
+      emitter.on("send-failed", function () {
+        onFailed();
+        setFlowStatus("send-error");
+      });
+      emitter.on("send-failed-validation", function () {
+        onFailed();
+        setFlowStatus("send-error");
+      });
+    },
+    sourceChainId: fromToken.chainId,
+    sourceTokenAddress: fromToken.address,
   });
 
   const fromTokens = tokens.filter(
@@ -72,19 +204,11 @@ function BridgeFormContent({ tokens }: ContentProps) {
   );
 
   function handleFromTokenChange(token: BridgeableToken) {
-    dispatch({ payload: token, type: "SET_FROM_TOKEN" });
-    if (token.chainId === toToken.chainId) {
-      const nextTo = pickCounterpartToken({ token, tokens });
-      dispatch({ payload: nextTo, type: "SET_TO_TOKEN" });
-    }
+    dispatch({ payload: { token, tokens }, type: "SET_FROM_TOKEN" });
   }
 
   function handleToTokenChange(token: BridgeableToken) {
-    dispatch({ payload: token, type: "SET_TO_TOKEN" });
-    if (token.chainId === fromToken.chainId) {
-      const nextFrom = pickCounterpartToken({ token, tokens });
-      dispatch({ payload: nextFrom, type: "SET_FROM_TOKEN" });
-    }
+    dispatch({ payload: { token, tokens }, type: "SET_TO_TOKEN" });
   }
 
   function handleInputChange(value: string) {
@@ -103,8 +227,19 @@ function BridgeFormContent({ tokens }: ContentProps) {
     dispatch({ type: "TOGGLE_APPROVE_10X" });
   }
 
+  function handleRetry() {
+    setFlowStatus(startedWithApproval ? "approving" : "send-ready");
+    bridgeMutation.mutate();
+  }
+
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (!inputError && account && dataReady) {
+      setStartedWithApproval(!!needsApproval);
+      setFlowStatus(needsApproval ? "approving" : "send-ready");
+      bridgeMutation.mutate();
+      setIsDrawerOpen(true);
+    }
   }
 
   return (
@@ -146,7 +281,12 @@ function BridgeFormContent({ tokens }: ContentProps) {
           />
         }
       >
-        <BridgeSubmitButton inputError={inputError} />
+        <BridgeSubmitButton
+          inputError={inputError}
+          isLoadingData={!!account && !dataReady}
+          isPending={bridgeMutation.isPending}
+          isPreviewError={isTotalFeeError}
+        />
       </Form>
       <FormSection show={amountBigInt !== 0n}>
         <FormSectionItem>
@@ -155,7 +295,36 @@ function BridgeFormContent({ tokens }: ContentProps) {
             onToggle={handleToggleApprove10x}
           />
         </FormSectionItem>
+        <BridgeFees
+          layerZeroFee={layerZeroFee}
+          networkFee={networkFee}
+          sectionClassName="max-md:px-4 md:px-2"
+          total={total}
+        />
       </FormSection>
+      {isDrawerOpen && flowStatus !== "idle" && (
+        <BridgeSubmitDrawer
+          flowStatus={flowStatus}
+          fromAmount={fromInputValue}
+          fromToken={fromToken}
+          layerZeroFee={layerZeroFee}
+          networkFee={networkFee}
+          onClose={() => setIsDrawerOpen(false)}
+          onRetry={handleRetry}
+          showApproveStep={startedWithApproval}
+          total={total}
+          toToken={toToken}
+        />
+      )}
+      {showToast && (
+        <Toast
+          autoCloseMs={5000}
+          closable
+          description={t("pages.bridge.toast.bridge-description")}
+          onClose={() => setShowToast(false)}
+          title={t("pages.bridge.toast.bridge-title")}
+        />
+      )}
     </>
   );
 }

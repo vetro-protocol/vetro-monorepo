@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 
 import { formatShortDate } from "../../../utils/date";
 import { BorrowIcon } from "../../navbar/borrowIcon";
+import { BridgeIcon } from "../../navbar/bridgeIcon";
 import { EarnIcon } from "../../navbar/earnIcon";
 import { SwapIcon } from "../../navbar/swapIcon";
 import { ExternalLink } from "../externalLink";
@@ -13,6 +14,7 @@ import type { Activity } from "./types";
 
 const pageIcons = {
   borrow: BorrowIcon,
+  bridge: BridgeIcon,
   earn: EarnIcon,
   swap: SwapIcon,
 } as const;

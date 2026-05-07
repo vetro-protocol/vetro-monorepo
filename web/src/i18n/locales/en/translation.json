@@ -174,15 +174,39 @@
       "you-are-depositing": "You are depositing as collateral"
     },
     "bridge": {
+      "activity": {
+        "bridge-text": "{{amount}} {{symbol}} from {{fromChain}} to {{toChain}}"
+      },
+      "fees": {
+        "layerzero-fee": "LayerZero fee"
+      },
       "form": {
         "action": "Bridge",
+        "from-chain": "from {{chain}}",
+        "on-chain": "on {{chain}}",
+        "preview-error": "Could not estimate fee",
         "you-are-sending": "You are sending",
         "you-will-receive": "You will receive"
+      },
+      "progress": {
+        "approve-description": "This lets the bridge contract spend this token.",
+        "approve-title": "Approve in wallet",
+        "bridge-progress": "Bridge progress",
+        "retry": "Retry",
+        "send-description": "Review the details and confirm the bridge in your wallet.",
+        "send-title": "Confirm in wallet",
+        "title": "Bridge in progress",
+        "waiting-description": "We're waiting for funds to arrive from the source chain — this can take a few minutes.",
+        "waiting-title": "Waiting for funds to arrive"
       },
       "select-chain": "Select chain",
       "select-from-chain": "Select source chain",
       "select-to-chain": "Select destination chain",
-      "title": "Bridge assets across chains"
+      "title": "Bridge assets across chains",
+      "toast": {
+        "bridge-description": "Your tokens are on their way to the destination chain.",
+        "bridge-title": "Bridge confirmed"
+      }
     },
     "earn": {
       "activity": {

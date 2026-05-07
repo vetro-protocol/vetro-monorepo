@@ -18,3 +18,42 @@
   min-height: 0;
   padding: 0;
 }
+
+/* Transform targets the inner content, not .rc-tooltip itself: rc-trigger
+   re-aligns the wrapper via getBoundingClientRect after motion ends, and a
+   wrapper-level translateY shifts that rect, causing a post-animation snap. */
+.vetro-tooltip-appear .rc-tooltip-content,
+.vetro-tooltip-enter .rc-tooltip-content {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+.vetro-tooltip-appear-active .rc-tooltip-content,
+.vetro-tooltip-enter-active .rc-tooltip-content {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.vetro-tooltip-leave-active .rc-tooltip-content {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+.vetro-tooltip-appear-active .rc-tooltip-content,
+.vetro-tooltip-enter-active .rc-tooltip-content,
+.vetro-tooltip-leave-active .rc-tooltip-content {
+  transition:
+    opacity 100ms ease,
+    transform 100ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vetro-tooltip-appear .rc-tooltip-content,
+  .vetro-tooltip-enter .rc-tooltip-content,
+  .vetro-tooltip-appear-active .rc-tooltip-content,
+  .vetro-tooltip-enter-active .rc-tooltip-content,
+  .vetro-tooltip-leave-active .rc-tooltip-content {
+    transform: none;
+    transition: none;
+  }
+}

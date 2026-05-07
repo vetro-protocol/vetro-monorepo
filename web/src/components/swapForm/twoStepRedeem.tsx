@@ -19,6 +19,7 @@ import { useWithdrawalDelay } from "hooks/useWithdrawalDelay";
 import { type FormEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
+import { getInputError } from "utils/inputError";
 import { getTokenListParams } from "utils/tokenList";
 import { isAddressEqual } from "viem";
 
@@ -32,7 +33,6 @@ import {
   SwapRequestRedeemDrawer,
 } from "./swapRequestRedeemDrawer";
 import { TreasuryReserves } from "./treasuryReserves";
-import { getSwapErrors } from "./validation";
 
 type Props = {
   amountBigInt: bigint;
@@ -157,7 +157,7 @@ export function TwoStepRedeem({
     peggedTokenAmount: amountBigInt,
   });
 
-  const inputError = getSwapErrors({
+  const inputError = getInputError({
     amount: amountBigInt,
     nativeBalance,
     tokenBalance: fromTokenBalance,
