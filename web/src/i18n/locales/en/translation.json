@@ -248,6 +248,8 @@
         "hours_other": "{{count}} Hours",
         "minutes": "{{count}} Minute",
         "minutes_other": "{{count}} Minutes",
+        "notification": "Exit ticket — Ready to withdraw",
+        "notification_other": "Exit tickets — Ready to withdraw",
         "pending-withdrawals": "Pending withdrawals",
         "ready-to-withdraw": "Ready to withdraw",
         "request-withdrawal-tx": "Request withdrawal:",

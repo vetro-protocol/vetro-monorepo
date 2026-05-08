@@ -225,7 +225,7 @@ export function ExitTickets() {
   }
 
   return (
-    <div>
+    <div id="exit-tickets">
       {/* Title row */}
       <TopSection title={t("pages.earn.exit-tickets.title")}>
         <div className="flex items-center gap-3">
