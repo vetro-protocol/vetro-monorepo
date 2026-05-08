@@ -4,17 +4,16 @@ import { ChevronIcon } from "components/base/chevronIcon";
 import { type StackItem, Stack } from "components/base/stack";
 import { useAtRiskPositions } from "hooks/borrow/useAtRiskPositions";
 import { useGetRedeemRequests } from "hooks/useGetRedeemRequests";
+import { useI18nNavigate } from "hooks/useI18nNavigate";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams } from "react-router";
 import type { TokenWithGateway } from "types";
 import { unixNowTimestamp } from "utils/date";
 import { formatAmount } from "utils/token";
 
 function useLiquidationItems(): StackItem[] {
   const { data: positions = [] } = useAtRiskPositions();
-  const { lang } = useParams();
-  const navigate = useNavigate();
+  const navigate = useI18nNavigate();
   const { t } = useTranslation();
 
   function handleClick() {
@@ -22,7 +21,7 @@ function useLiquidationItems(): StackItem[] {
     if (el) {
       el.scrollIntoView({ behavior: "smooth" });
     } else {
-      navigate(`/${lang}/borrow#borrow-positions`);
+      navigate("/borrow#borrow-positions");
     }
   }
 
@@ -53,8 +52,7 @@ function RedeemNotification({
   amountLocked: bigint;
   peggedToken: TokenWithGateway;
 }) {
-  const { lang } = useParams();
-  const navigate = useNavigate();
+  const navigate = useI18nNavigate();
   const { t } = useTranslation();
 
   const formattedAmount = formatAmount({
@@ -70,7 +68,7 @@ function RedeemNotification({
       // if we're already on the swap page, scroll to the redeem queue section
       el.scrollIntoView({ behavior: "smooth" });
     } else {
-      navigate(`/${lang}/swap#redeem-queue`);
+      navigate("/swap#redeem-queue");
     }
   }
 
