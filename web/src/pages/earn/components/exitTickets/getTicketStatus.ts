@@ -1,3 +1,5 @@
+import { unixNowTimestamp } from "utils/date";
+
 import type { ExitTicket } from "../../types";
 
 export function getTicketStatus(ticket: ExitTicket) {
@@ -7,8 +9,7 @@ export function getTicketStatus(ticket: ExitTicket) {
   if (ticket.claimTxHash) {
     return "withdrawn";
   }
-  const now = Math.floor(Date.now() / 1000);
-  if (Number(ticket.claimableAt) <= now) {
+  if (Number(ticket.claimableAt) <= unixNowTimestamp()) {
     return "ready";
   }
   return "cooldown";
