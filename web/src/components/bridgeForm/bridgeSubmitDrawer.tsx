@@ -64,6 +64,7 @@ type Props = {
   onClose: VoidFunction;
   onRetry: VoidFunction;
   showApproveStep: boolean;
+  toAmount: string;
   toToken: BridgeableToken;
 } & Pick<
   ComponentProps<typeof BridgeFees>,
@@ -79,6 +80,7 @@ export function BridgeSubmitDrawer({
   onClose,
   onRetry,
   showApproveStep,
+  toAmount,
   total,
   toToken,
 }: Props) {
@@ -138,7 +140,7 @@ export function BridgeSubmitDrawer({
             </p>
             <div className="flex items-center gap-3">
               <p className="flex items-center gap-x-2 text-4xl leading-10 font-semibold tracking-tight text-gray-900">
-                <span>{fromAmount}</span>
+                <span>{toAmount}</span>
                 <span className="text-gray-500">{toToken.symbol}</span>
               </p>
               <TokenChainLogo size="large" token={toToken} />

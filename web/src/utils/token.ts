@@ -1,4 +1,4 @@
-import type { Token } from "types";
+import type { BridgeableToken, Token } from "types";
 import { formatUnits, parseUnits as viemParseUnits } from "viem";
 
 export const getTokenPrice = function (
@@ -27,6 +27,25 @@ export const parseTokenUnits = function (amount: string, token: Token) {
     : whole;
   return viemParseUnits(normalizedAmount, token.decimals);
 };
+
+// Trims an amount to the boundary the source OFT applies via `_removeDust`
+// before sending. Pre-trimming client-side keeps "you will receive" honest
+// and lets the bridge package's default `minAmountLD = amount` slippage
+// check pass on-chain (without the trim, any non-zero dust reverts with
+// SlippageExceeded). Assumes 1:1 bridging (no token-level OFT fees in
+// `oftFeeDetails`); if a token with such fees is added, replace this with
+// an on-chain `quoteOFT` call.
+export function removeOftDust({
+  amount,
+  token,
+}: {
+  amount: bigint;
+  token: Pick<BridgeableToken, "decimals" | "sharedDecimals">;
+}) {
+  if (token.decimals <= token.sharedDecimals) return amount;
+  const conversionRate = 10n ** BigInt(token.decimals - token.sharedDecimals);
+  return (amount / conversionRate) * conversionRate;
+}
 
 type FormatAmountParams = {
   amount: bigint | undefined;
