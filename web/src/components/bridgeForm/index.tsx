@@ -166,8 +166,8 @@ function BridgeFormContent({ tokens }: ContentProps) {
     useActivityTracking({
       page: "bridge",
       text: t("pages.bridge.activity.bridge-text", {
-        amount: fromInputValue,
-        count: Number(fromInputValue),
+        amount: toAmountDisplay,
+        count: Number(toAmountDisplay),
         symbol: fromToken.symbol,
       }),
       title: `${t("nav.bridge")} · ${t("pages.bridge.activity.bridge-title", {
