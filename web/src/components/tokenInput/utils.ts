@@ -1,4 +1,5 @@
 const inputErrors = [
+  "amount-too-small-to-bridge",
   "enter-amount",
   "exceeds-debt",
   "insufficient-balance",

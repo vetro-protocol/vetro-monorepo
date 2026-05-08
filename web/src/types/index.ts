@@ -17,4 +17,7 @@ export type Token = {
 
 export type TokenWithGateway = Token & { gatewayAddress: Address };
 
-export type BridgeableToken = Token & { oftAdapterAddress?: Address };
+export type BridgeableToken = Token & {
+  oftAdapterAddress?: Address;
+  sharedDecimals: number;
+};

@@ -21,7 +21,8 @@ import { useTranslation } from "react-i18next";
 import type { BridgeableToken } from "types";
 import { pickCounterpartToken } from "utils/bridge";
 import { getInputError } from "utils/inputError";
-import { parseTokenUnits } from "utils/token";
+import { parseTokenUnits, removeOftDust } from "utils/token";
+import { formatUnits } from "viem";
 import { useAccount } from "wagmi";
 
 import { BridgeFees } from "./bridgeFees";
@@ -44,6 +45,27 @@ function getInitialState(tokens: BridgeableToken[]): BridgeFormState {
   };
 }
 
+function getBridgeInputError({
+  amountBigInt,
+  fromTokenBalance,
+  nativeBalance,
+  parsedAmount,
+}: {
+  amountBigInt: bigint;
+  fromTokenBalance: bigint | undefined;
+  nativeBalance: bigint | undefined;
+  parsedAmount: bigint;
+}) {
+  if (parsedAmount > 0n && amountBigInt === 0n) {
+    return "amount-too-small-to-bridge" as const;
+  }
+  return getInputError({
+    amount: amountBigInt,
+    nativeBalance,
+    tokenBalance: fromTokenBalance,
+  });
+}
+
 type ContentProps = {
   tokens: BridgeableToken[];
 };
@@ -64,7 +86,12 @@ function BridgeFormContent({ tokens }: ContentProps) {
   const [showToast, setShowToast] = useState(false);
 
   const debouncedInputValue = useDebounce(fromInputValue);
-  const amountBigInt = parseTokenUnits(debouncedInputValue, fromToken);
+  const parsedAmount = parseTokenUnits(debouncedInputValue, fromToken);
+  const amountBigInt = removeOftDust({
+    amount: parsedAmount,
+    token: fromToken,
+  });
+  const toAmountDisplay = formatUnits(amountBigInt, fromToken.decimals);
 
   const oftAddress = fromToken.oftAdapterAddress ?? fromToken.address;
   const approveAmount = approve10x ? amountBigInt * 10n : undefined;
@@ -125,10 +152,11 @@ function BridgeFormContent({ tokens }: ContentProps) {
     nativeBalance !== undefined && fromTokenBalance !== undefined;
   const dataReady = balancesLoaded && needsApproval !== undefined;
 
-  const inputError = getInputError({
-    amount: amountBigInt,
+  const inputError = getBridgeInputError({
+    amountBigInt,
+    fromTokenBalance,
     nativeBalance,
-    tokenBalance: fromTokenBalance,
+    parsedAmount,
   });
 
   const fromChain = getChainById(fromToken.chainId);
@@ -138,8 +166,8 @@ function BridgeFormContent({ tokens }: ContentProps) {
     useActivityTracking({
       page: "bridge",
       text: t("pages.bridge.activity.bridge-text", {
-        amount: fromInputValue,
-        count: Number(fromInputValue),
+        amount: toAmountDisplay,
+        count: Number(toAmountDisplay),
         symbol: fromToken.symbol,
       }),
       title: `${t("nav.bridge")} · ${t("pages.bridge.activity.bridge-title", {
@@ -279,7 +307,7 @@ function BridgeFormContent({ tokens }: ContentProps) {
                 value={toToken}
               />
             }
-            value={fromInputValue}
+            value={toAmountDisplay}
           />
         }
       >
@@ -314,8 +342,9 @@ function BridgeFormContent({ tokens }: ContentProps) {
           onClose={() => setIsDrawerOpen(false)}
           onRetry={handleRetry}
           showApproveStep={startedWithApproval}
-          total={total}
+          toAmount={toAmountDisplay}
           toToken={toToken}
+          total={total}
         />
       )}
       {showToast && (

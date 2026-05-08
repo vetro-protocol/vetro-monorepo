@@ -13,6 +13,7 @@ const mockToken1: BridgeableToken = {
   logoURI: "https://example.com/vusd.svg",
   name: "Vetro USD",
   oftAdapterAddress: "0xFc8Acf5ef1E8839Ec94151740CfEd95D7E579Afb",
+  sharedDecimals: 6,
   symbol: "VUSD",
 };
 
@@ -22,6 +23,7 @@ const mockToken2: BridgeableToken = {
   decimals: 18,
   logoURI: "https://example.com/vusd.svg",
   name: "Vetro USD",
+  sharedDecimals: 6,
   symbol: "VUSD",
 };
 
@@ -31,6 +33,7 @@ const mockToken3: BridgeableToken = {
   decimals: 18,
   logoURI: "https://example.com/vusd.svg",
   name: "Vetro USD",
+  sharedDecimals: 6,
   symbol: "VUSD",
 };
 

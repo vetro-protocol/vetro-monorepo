@@ -1,5 +1,10 @@
 import type { Token } from "types";
-import { formatAmount, getTokenPrice, parseTokenUnits } from "utils/token";
+import {
+  formatAmount,
+  getTokenPrice,
+  parseTokenUnits,
+  removeOftDust,
+} from "utils/token";
 import { parseUnits as viemParseUnits } from "viem";
 import { describe, expect, it } from "vitest";
 
@@ -228,6 +233,52 @@ describe("utils/token", function () {
         token.decimals,
       );
       expect(parseTokenUnits(largeDecimalAmount, token)).toEqual(expected);
+    });
+  });
+
+  describe("removeOftDust", function () {
+    it("returns the amount unchanged when decimals equal sharedDecimals", function () {
+      const amount = viemParseUnits("1.234567", 6);
+      expect(
+        removeOftDust({ amount, token: { decimals: 6, sharedDecimals: 6 } }),
+      ).toEqual(amount);
+    });
+
+    it("returns the amount unchanged when decimals are less than sharedDecimals", function () {
+      const amount = 1234n;
+      expect(
+        removeOftDust({ amount, token: { decimals: 4, sharedDecimals: 6 } }),
+      ).toEqual(amount);
+    });
+
+    it("trims sub-shared-decimal dust on an 18-decimal token", function () {
+      const amount = viemParseUnits("1.000000000000000123", 18);
+      const expected = viemParseUnits("1", 18);
+      expect(
+        removeOftDust({ amount, token: { decimals: 18, sharedDecimals: 6 } }),
+      ).toEqual(expected);
+    });
+
+    it("trims sub-shared-decimal dust on an 8-decimal token", function () {
+      const amount = viemParseUnits("1.23456789", 8);
+      const expected = viemParseUnits("1.234567", 8);
+      expect(
+        removeOftDust({ amount, token: { decimals: 8, sharedDecimals: 6 } }),
+      ).toEqual(expected);
+    });
+
+    it("returns 0n when the entire amount is below the dust threshold", function () {
+      const amount = 100_000n; // 1e5 wei on an 18-decimal token
+      expect(
+        removeOftDust({ amount, token: { decimals: 18, sharedDecimals: 6 } }),
+      ).toEqual(0n);
+    });
+
+    it("preserves clean values that need no trimming", function () {
+      const amount = viemParseUnits("1.5", 18);
+      expect(
+        removeOftDust({ amount, token: { decimals: 18, sharedDecimals: 6 } }),
+      ).toEqual(amount);
     });
   });
 });
