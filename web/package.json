@@ -44,6 +44,7 @@
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.23.1",
+    "@cloudflare/workers-types": "4.20260504.1",
     "@sentry/vite-plugin": "5.2.0",
     "@storybook/react": "10.2.1",
     "@storybook/react-vite": "10.2.1",

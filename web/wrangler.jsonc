@@ -1,5 +1,6 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
+  "main": "src/index.ts",
   "name": "vetro-web-staging",
   "compatibility_date": "2026-02-06",
   "workers_dev": false,
@@ -14,6 +15,7 @@
     },
   },
   "assets": {
+    "binding": "ASSETS",
     "not_found_handling": "single-page-application",
   },
   "env": {
