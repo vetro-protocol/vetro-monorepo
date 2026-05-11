@@ -252,6 +252,8 @@
         "hours_other": "{{count}} Horas",
         "minutes": "{{count}} Minuto",
         "minutes_other": "{{count}} Minutos",
+        "notification": "{{count}} Ticket de salida de Earn",
+        "notification_other": "{{count}} Tickets de salida de Earn",
         "pending-withdrawals": "Retiros pendientes",
         "ready-to-withdraw": "Listo para retirar",
         "request-withdrawal-tx": "Solicitud de retiro:",
