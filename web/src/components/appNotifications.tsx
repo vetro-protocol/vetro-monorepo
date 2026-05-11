@@ -162,7 +162,7 @@ function useRedeemItems(): StackItem[] {
     }));
 }
 
-function ExitTicketsNotification({ count }: { count: number }) {
+function EarnExitTicketsNotification({ count }: { count: number }) {
   const navigate = useI18nNavigate();
   const { t } = useTranslation();
 
@@ -183,15 +183,19 @@ function ExitTicketsNotification({ count }: { count: number }) {
         type="button"
         variant="primary"
       >
-        <Badge variant="blue">{count}</Badge>
-        {t("pages.earn.exit-tickets.notification", { count })}
+        <Badge variant="blue">
+          <span className="mr-1">
+            {t("pages.earn.exit-tickets.notification", { count })}
+          </span>
+        </Badge>
+        <span>{t("pages.earn.exit-tickets.ready-to-withdraw")}</span>
         <ChevronIcon direction="right" />
       </Button>
     </div>
   );
 }
 
-function useExitTicketItems(): StackItem[] {
+function useEarnExitTicketItems(): StackItem[] {
   const { data: tickets } = useExitTickets();
   useNowTickingPast(tickets, (ticket) =>
     ticket.cancelTxHash || ticket.claimTxHash
@@ -213,7 +217,7 @@ function useExitTicketItems(): StackItem[] {
 
   return [
     {
-      content: <ExitTicketsNotification count={readyCount} />,
+      content: <EarnExitTicketsNotification count={readyCount} />,
       id: "exit-tickets-ready",
     },
   ];
@@ -222,7 +226,7 @@ function useExitTicketItems(): StackItem[] {
 export function AppNotifications() {
   const liquidationItems = useLiquidationItems();
   const redeemItems = useRedeemItems();
-  const exitTicketItems = useExitTicketItems();
+  const exitTicketItems = useEarnExitTicketItems();
 
   const items = [...liquidationItems, ...redeemItems, ...exitTicketItems];
 
