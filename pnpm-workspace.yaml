@@ -22,3 +22,5 @@ patchedDependencies:
 # https://github.com/microsoft/vscode-eslint/issues/1986#issuecomment-2799868163
 publicHoistPattern:
   - "*eslint*"
+
+trustPolicy: no-downgrade
