@@ -6,6 +6,8 @@ minimumReleaseAgeExclude:
   - "viem-erc20"
   - "viem-erc4626"
 
+onlyBuiltDependencies: []
+
 packages:
   - "api"
   - "landing"
