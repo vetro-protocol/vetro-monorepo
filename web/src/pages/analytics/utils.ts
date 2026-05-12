@@ -21,15 +21,8 @@ const colorPalette = [
 export const assignColor = (index: number) =>
   colorPalette[index % colorPalette.length] ?? "bg-gray-400";
 
-const findToken = function (tokenAddress: Address, whitelistedTokens: Token[]) {
-  const token = whitelistedTokens.find((t) =>
-    isAddressEqual(t.address, tokenAddress),
-  );
-  if (!token) {
-    throw new Error(`Token not found in whitelist: ${tokenAddress}`);
-  }
-  return token;
-};
+const findToken = (tokenAddress: Address, whitelistedTokens: Token[]) =>
+  whitelistedTokens.find((t) => isAddressEqual(t.address, tokenAddress));
 
 // Transforms /analytics/treasury response into TVL allocation items.
 // withdrawable includes idle funds + deployed strategies (vs totalDebt = strategies only).
@@ -42,17 +35,26 @@ export const toTvlItems = ({
   treasuryTokens: TreasuryToken[];
   whitelistedTokens: Token[];
 }) =>
-  treasuryTokens.map(function ({ tokenAddress, withdrawable }, index) {
+  treasuryTokens.flatMap(function ({ tokenAddress, withdrawable }, index) {
     const token = findToken(tokenAddress, whitelistedTokens);
+    if (!token) {
+      return [];
+    }
     const { decimals, symbol } = token;
 
-    return {
-      amount: tokenAmountToUsd({ amount: BigInt(withdrawable), prices, token }),
-      color: assignColor(index),
-      label: symbol,
-      logoURI: token.logoURI,
-      tooltip: `${formatNumber(formatUnits(BigInt(withdrawable), decimals))} ${symbol}`,
-    };
+    return [
+      {
+        amount: tokenAmountToUsd({
+          amount: BigInt(withdrawable),
+          prices,
+          token,
+        }),
+        color: assignColor(index),
+        label: symbol,
+        logoURI: token.logoURI,
+        tooltip: `${formatNumber(formatUnits(BigInt(withdrawable), decimals))} ${symbol}`,
+      },
+    ];
   });
 
 // Transforms /analytics/treasury response into yield allocation items,
@@ -70,6 +72,9 @@ export const toYieldItems = function ({
 
   for (const { activeStrategies, tokenAddress } of treasuryTokens) {
     const token = findToken(tokenAddress, whitelistedTokens);
+    if (!token) {
+      continue;
+    }
 
     for (const { name, totalDebt } of activeStrategies) {
       const amount = tokenAmountToUsd({
@@ -144,6 +149,7 @@ export const toReserveBufferAmount = function ({
 
   for (const { tokenAddress, totalDebt, withdrawable } of treasuryTokens) {
     const token = findToken(tokenAddress, whitelistedTokens);
+    if (!token) continue;
 
     amount += tokenAmountToUsd({
       amount: BigInt(withdrawable) - BigInt(totalDebt),
