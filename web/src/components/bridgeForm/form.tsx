@@ -1,5 +1,4 @@
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
-import { RenderFiatValue } from "components/base/fiatValue";
 import { SwapToggleButton } from "components/swapForm/swapToggleButton";
 import { TokenInput } from "components/tokenInput";
 import { Balance } from "components/tokenInput/balance";
@@ -7,6 +6,8 @@ import type { FormEvent, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 import { formatAmount } from "utils/token";
+
+import { BridgeTokenFiatValue } from "./bridgeTokenFiatValue";
 
 type Props = {
   amountBigInt: bigint;
@@ -63,7 +64,7 @@ export function Form({
             }
             errorKey={errorKey}
             fiatValue={
-              <RenderFiatValue token={fromToken} value={amountBigInt} />
+              <BridgeTokenFiatValue token={fromToken} value={amountBigInt} />
             }
             label={t("pages.bridge.form.you-are-sending")}
             maxButton={maxButton}

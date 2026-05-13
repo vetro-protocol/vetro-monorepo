@@ -37,7 +37,34 @@ const mockToken3: BridgeableToken = {
   symbol: "VUSD",
 };
 
-const tokens = [mockToken1, mockToken2, mockToken3];
+const mockSvusdToken1: BridgeableToken = {
+  address: "0x476310E34D2810f7d79C43A74E4D79405bd7a925",
+  chainId: 1,
+  decimals: 18,
+  logoURI: "https://example.com/svusd.svg",
+  name: "Staked Vetro USD",
+  oftAdapterAddress: "0x968563eeD04e0289ccC79d7029bFc79F040605f0",
+  sharedDecimals: 6,
+  symbol: "sVUSD",
+};
+
+const mockSvusdToken2: BridgeableToken = {
+  address: "0x50c580227764b621c0433bB6Ab756C781c495ce7",
+  chainId: 42161,
+  decimals: 18,
+  logoURI: "https://example.com/svusd.svg",
+  name: "Staked Vetro USD",
+  sharedDecimals: 6,
+  symbol: "sVUSD",
+};
+
+const tokens = [
+  mockToken1,
+  mockToken2,
+  mockToken3,
+  mockSvusdToken1,
+  mockSvusdToken2,
+];
 
 const createInitialState = (): BridgeFormState => ({
   approve10x: false,
@@ -106,6 +133,21 @@ describe("bridgeFormReducer", function () {
     expect(result.toToken.symbol).toBe(mockToken2.symbol);
   });
 
+  it("SET_FROM_TOKEN picks a counterpart for toToken when symbol differs even if chains do not conflict", function () {
+    // Start with VUSD on chain 1 (from) / VUSD on chain 42161 (to).
+    // Switch from-token to sVUSD on chain 8453 — chains don't collide with
+    // the current toToken (42161), but the symbol no longer matches.
+    const state = createInitialState();
+    const newFrom: BridgeableToken = { ...mockSvusdToken2, chainId: 8453 };
+    const result = bridgeFormReducer(state, {
+      payload: { token: newFrom, tokens },
+      type: "SET_FROM_TOKEN",
+    });
+    expect(result.fromToken).toBe(newFrom);
+    expect(result.toToken.symbol).toBe("sVUSD");
+    expect(result.toToken.chainId).not.toBe(newFrom.chainId);
+  });
+
   it("SET_TO_TOKEN changes target token when chains do not conflict", function () {
     const state = createInitialState();
     const result = bridgeFormReducer(state, {
@@ -126,6 +168,21 @@ describe("bridgeFormReducer", function () {
     expect(result.toToken).toBe(mockToken1);
     expect(result.fromToken.chainId).not.toBe(mockToken1.chainId);
     expect(result.fromToken.symbol).toBe(mockToken1.symbol);
+  });
+
+  it("SET_TO_TOKEN picks a counterpart for fromToken when symbol differs even if chains do not conflict", function () {
+    // Start with VUSD on chain 1 (from) / VUSD on chain 42161 (to).
+    // Switch to-token to sVUSD on chain 8453 — chains don't collide with the
+    // current fromToken (1), but the symbol no longer matches.
+    const state = createInitialState();
+    const newTo: BridgeableToken = { ...mockSvusdToken2, chainId: 8453 };
+    const result = bridgeFormReducer(state, {
+      payload: { token: newTo, tokens },
+      type: "SET_TO_TOKEN",
+    });
+    expect(result.toToken).toBe(newTo);
+    expect(result.fromToken.symbol).toBe("sVUSD");
+    expect(result.fromToken.chainId).not.toBe(newTo.chainId);
   });
 
   it("TOGGLE_TOKENS swaps tokens and preserves input value", function () {

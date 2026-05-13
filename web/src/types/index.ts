@@ -7,6 +7,10 @@ export type Token = {
   extensions?: {
     allowanceSlot?: bigint;
     balanceSlot?: number;
+    // When true, the token's fiat value is computed by converting shares to
+    // the vault's underlying asset (ERC-4626 convertToAssets) on the chain
+    // where the staking vault lives, then pricing the resulting asset.
+    isVaultShare?: boolean;
     // Use this to map which symbol should be used to map prices
     priceSymbol?: string;
   };

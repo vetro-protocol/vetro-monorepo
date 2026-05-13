@@ -17,12 +17,12 @@ const RenderFiatValueUnsafe = function ({
 }: {
   customFormatter?: (amount: string) => string;
   queryStatus?: QueryStatus;
-  token: Token;
+  token: Token | undefined;
   value: bigint | undefined;
 }) {
   const { data: pricesData, status: pricesStatus } = usePrices();
 
-  if (value !== undefined && pricesData !== undefined) {
+  if (value !== undefined && pricesData !== undefined && token !== undefined) {
     const stringBalance = formatUnits(value, token.decimals);
     const price = getTokenPrice(token, pricesData);
 
