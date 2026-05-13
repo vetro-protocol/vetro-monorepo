@@ -3,7 +3,6 @@ import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { useNeedsApproval } from "@hemilabs/react-hooks/useNeedsApproval";
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
 import { ApproveSection } from "components/approveSection";
-import { RenderFiatValue } from "components/base/fiatValue";
 import { Toast } from "components/base/toast";
 import { FormSection, FormSectionItem } from "components/feesContainer";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
@@ -32,6 +31,7 @@ import {
   BridgeSubmitDrawer,
 } from "./bridgeSubmitDrawer";
 import { BridgeTokenDropdown } from "./bridgeTokenDropdown";
+import { BridgeTokenFiatValue } from "./bridgeTokenFiatValue";
 import { Form } from "./form";
 import { bridgeFormReducer, type BridgeFormState } from "./reducer";
 
@@ -225,7 +225,8 @@ function BridgeFormContent({ tokens }: ContentProps) {
   });
 
   const fromTokens = tokens.filter(
-    (token) => token.chainId !== fromToken.chainId,
+    (token) =>
+      token.chainId !== fromToken.chainId || token.symbol !== fromToken.symbol,
   );
 
   const toTokens = tokens.filter(
@@ -297,7 +298,9 @@ function BridgeFormContent({ tokens }: ContentProps) {
           <TokenInput
             balance={<ToTokenBalance token={toToken} />}
             disabled
-            fiatValue={<RenderFiatValue token={toToken} value={amountBigInt} />}
+            fiatValue={
+              <BridgeTokenFiatValue token={toToken} value={amountBigInt} />
+            }
             label={t("pages.bridge.form.you-will-receive")}
             tokenSelector={
               <BridgeTokenDropdown

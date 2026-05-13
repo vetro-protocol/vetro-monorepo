@@ -5,10 +5,10 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import { convertToAssetsQueryOptions } from "hooks/useConvertToAssets";
 import { useEthereumClient } from "hooks/useEthereumClient";
 import { useMainnet } from "hooks/useMainnet";
 import type { Address, Client } from "viem";
-import { convertToAssets } from "viem-erc4626/actions";
 import { useAccount } from "wagmi";
 
 export const stakedBalanceQueryKey = ({
@@ -44,10 +44,13 @@ export const stakedBalanceQueryOptions = ({
           token: { address: stakingVaultAddress, chainId },
         }),
       );
-      return convertToAssets(client!, {
-        address: stakingVaultAddress,
-        shares,
-      });
+      return queryClient.ensureQueryData(
+        convertToAssetsQueryOptions({
+          client,
+          shares,
+          stakingVaultAddress,
+        }),
+      );
     },
     queryKey: stakedBalanceQueryKey({
       account: account!,
