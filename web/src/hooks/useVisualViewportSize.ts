@@ -2,7 +2,11 @@ import { useSyncExternalStore } from "react";
 
 function subscribe(callback: (this: VisualViewport, ev: Event) => unknown) {
   window.visualViewport?.addEventListener("resize", callback);
-  return () => window.visualViewport?.removeEventListener("resize", callback);
+  window.visualViewport?.addEventListener("scroll", callback);
+  return function cleanup() {
+    window.visualViewport?.removeEventListener("resize", callback);
+    window.visualViewport?.removeEventListener("scroll", callback);
+  };
 }
 
 const getHeightSnapshot = () =>
