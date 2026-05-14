@@ -11,6 +11,7 @@
       "reload-chart": "Reload chart"
     },
     "clear-search": "Clear search",
+    "close": "Close",
     "connect-wallet": "Connect wallet",
     "enter-amount": "Enter an amount",
     "exceeds-debt": "Amount exceeds debt",
@@ -20,8 +21,12 @@
     "insufficient-liquidity": "Insufficient liquidity",
     "insufficient-treasury": "Not enough balance in treasury",
     "network-fee": "Network Fee",
+    "no-results-found": "No tokens found",
     "oracle": "Oracle",
-    "search": "Search"
+    "search": "Search",
+    "search-token-placeholder": "Search by name or symbol",
+    "select-token": "Select a token",
+    "try-different-search": "Try searching with a different term"
   },
   "language": {
     "switch-to": "Switch to Spanish"

@@ -8,6 +8,7 @@ import { FormSection, FormSectionItem } from "components/feesContainer";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { ToTokenBalance } from "components/swapForm/toTokenBalance";
 import { TokenInput } from "components/tokenInput";
+import { TokenSelectorModal } from "components/tokenSelectorModal";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useBridge } from "hooks/useBridge";
 import { useBridgeableTokens } from "hooks/useBridgeableTokens";
@@ -30,7 +31,6 @@ import {
   type BridgeFlowStatus,
   BridgeSubmitDrawer,
 } from "./bridgeSubmitDrawer";
-import { BridgeTokenDropdown } from "./bridgeTokenDropdown";
 import { BridgeTokenFiatValue } from "./bridgeTokenFiatValue";
 import { Form } from "./form";
 import { bridgeFormReducer, type BridgeFormState } from "./reducer";
@@ -281,8 +281,9 @@ function BridgeFormContent({ tokens }: ContentProps) {
         fromInputValue={fromInputValue}
         fromToken={fromToken}
         fromTokenSelector={
-          <BridgeTokenDropdown
+          <TokenSelectorModal
             onChange={handleFromTokenChange}
+            showChainLogo
             tokens={fromTokens}
             triggerLabel={t("pages.bridge.select-from-chain")}
             value={fromToken}
@@ -303,8 +304,9 @@ function BridgeFormContent({ tokens }: ContentProps) {
             }
             label={t("pages.bridge.form.you-will-receive")}
             tokenSelector={
-              <BridgeTokenDropdown
+              <TokenSelectorModal
                 onChange={handleToTokenChange}
+                showChainLogo
                 tokens={toTokens}
                 triggerLabel={t("pages.bridge.select-to-chain")}
                 value={toToken}

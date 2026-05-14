@@ -49,7 +49,7 @@ export function RedeemTutorialModal({
 
   return (
     <Modal onClose={onClose}>
-      <div className="flex max-h-[85vh] max-w-3xl flex-col overflow-y-auto rounded-lg bg-white shadow-xl">
+      <div className="flex max-h-[85vh] max-w-3xl flex-col overflow-y-auto">
         {/* Breadcrumb */}
         <div className="px-12">
           <p className="text-b-medium border-x border-gray-200 px-12 py-3.5 text-center text-blue-500">
