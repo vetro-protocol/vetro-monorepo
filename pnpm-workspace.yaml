@@ -9,6 +9,18 @@ minimumReleaseAgeExclude:
 
 onlyBuiltDependencies: []
 
+# @walletconnect/relay-auth@1.1.0 (pulled in transitively via wagmi) exact-pins
+# @noble/hashes@1.7.0 and @noble/curves@1.8.0. Both were published on
+# 2025-01-03 without provenance attestation (earlier releases had it), so
+# our `trustPolicy: no-downgrade` rejects them. The next patches (1.7.1 /
+# 1.8.1, both published 2025-01-18) restored attestation. We redirect to
+# attested versions already present elsewhere in the tree.
+# Remove this once relay-auth ships a release that doesn't pin those:
+# https://github.com/WalletConnect/walletconnect-utils/pull/244
+overrides:
+  "@noble/hashes@1.7.0": "1.8.0"
+  "@noble/curves@1.8.0": "1.8.1"
+
 packages:
   - "api"
   - "landing"
