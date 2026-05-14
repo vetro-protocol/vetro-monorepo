@@ -12,9 +12,9 @@ type Props = {
 export const TokenChainLogo = function ({ size, token }: Props) {
   const chain = getChainById(token.chainId);
   return (
-    <div className="relative">
+    <div className="relative pr-1 pb-1">
       <TokenLogo logoURI={token.logoURI} size={size} symbol={token.symbol} />
-      <div className="absolute -right-1 -bottom-1">
+      <div className="absolute right-0 bottom-0">
         <ChainLogo chain={chain} size={size} />
       </div>
     </div>

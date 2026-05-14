@@ -5,6 +5,7 @@ import type { Token } from "types";
 const sizeClasses = {
   base: "size-5",
   large: "size-8",
+  medium: "size-6",
   small: "size-4",
   xLarge: "size-11",
 };
