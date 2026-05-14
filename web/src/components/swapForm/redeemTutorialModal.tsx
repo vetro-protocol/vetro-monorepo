@@ -48,7 +48,7 @@ export function RedeemTutorialModal({
   });
 
   return (
-    <Modal onClose={onClose}>
+    <Modal ariaLabel={t("pages.swap.tutorial.title")} onClose={onClose}>
       <div className="flex max-h-[85vh] max-w-3xl flex-col overflow-y-auto">
         {/* Breadcrumb */}
         <div className="px-12">

@@ -71,7 +71,10 @@ export function CancelRedeemModal({
   });
 
   return (
-    <Modal onClose={onClose}>
+    <Modal
+      ariaLabel={t("pages.swap.redeem-queue.cancel-redeem")}
+      onClose={onClose}
+    >
       <div className="flex w-full flex-col gap-6 p-6 md:w-[448px]">
         <div className="flex flex-col gap-y-1">
           <h4 className="text-gray-900">

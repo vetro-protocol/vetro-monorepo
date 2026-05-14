@@ -4,12 +4,13 @@ import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 
 type Props = {
+  ariaLabel?: string;
   ariaLabelledBy?: string;
   children: ReactNode;
   onClose: VoidFunction;
 };
 
-export function Modal({ ariaLabelledBy, children, onClose }: Props) {
+export function Modal({ ariaLabel, ariaLabelledBy, children, onClose }: Props) {
   const { handleTransitionEnd, isOpen, ref } =
     useOverlay<HTMLDivElement>(onClose);
   const { height: viewportHeight, offsetTop } = useVisualViewportSize();
@@ -28,6 +29,7 @@ export function Modal({ ariaLabelledBy, children, onClose }: Props) {
         style={{ paddingBottom: keyboardOffset }}
       >
         <div
+          aria-label={ariaLabel}
           aria-labelledby={ariaLabelledBy}
           aria-modal="true"
           className={`w-full rounded-t-2xl bg-white shadow-xl transition-all duration-300 md:w-auto md:rounded-2xl ${

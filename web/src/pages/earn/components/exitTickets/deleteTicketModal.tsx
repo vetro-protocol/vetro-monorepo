@@ -78,7 +78,10 @@ export function DeleteTicketModal({
   }
 
   return (
-    <Modal onClose={onClose}>
+    <Modal
+      ariaLabel={t("pages.earn.exit-tickets.delete-title")}
+      onClose={onClose}
+    >
       <div className="flex w-full flex-col gap-6 p-6 md:w-[448px]">
         <div className="flex flex-col gap-2">
           <h4 className="text-base font-semibold tracking-tight text-gray-900">
