@@ -7,9 +7,9 @@ import { CollateralCell } from "components/borrow/collateralCell";
 import { TokenValueCell } from "components/borrow/tokenValueCell";
 import { TokenLogo } from "components/tokenLogo";
 import { type MarketData, useMarketsData } from "hooks/borrow/useMarketsData";
+import { useI18nNavigate } from "hooks/useI18nNavigate";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams } from "react-router";
 import { type Hash, formatUnits } from "viem";
 
 type Props = {
@@ -17,13 +17,12 @@ type Props = {
 };
 
 export function MarketsTable({ marketIds }: Props) {
-  const { lang } = useParams();
-  const navigate = useNavigate();
+  const navigate = useI18nNavigate();
   const { t } = useTranslation();
   const { data, isLoading } = useMarketsData(marketIds);
 
   const handleRowClick = (row: MarketData) =>
-    navigate(`/${lang}/borrow/${row.marketId}`);
+    navigate(`/borrow/${row.marketId}`);
 
   const columns = useMemo(
     (): ColumnDef<MarketData>[] => [

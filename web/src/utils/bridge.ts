@@ -1,13 +1,22 @@
 import type { BridgeableToken } from "types";
 
+const isValidCounterpart = ({
+  candidate,
+  token,
+}: {
+  candidate: BridgeableToken;
+  token: BridgeableToken;
+}) => candidate.symbol === token.symbol && candidate.chainId !== token.chainId;
+
 export const pickCounterpartToken = ({
+  current,
   token,
   tokens,
 }: {
+  current?: BridgeableToken;
   token: BridgeableToken;
   tokens: BridgeableToken[];
 }) =>
-  tokens.find(
-    (candidate) =>
-      candidate.symbol === token.symbol && candidate.chainId !== token.chainId,
-  )!;
+  current && isValidCounterpart({ candidate: current, token })
+    ? current
+    : tokens.find((candidate) => isValidCounterpart({ candidate, token }))!;

@@ -14,7 +14,7 @@ type SetTokenPayload = {
   tokens: BridgeableToken[];
 };
 
-export type BridgeFormAction =
+type BridgeFormAction =
   | { payload: SetTokenPayload; type: "SET_FROM_TOKEN" }
   | { payload: SetTokenPayload; type: "SET_TO_TOKEN" }
   | { payload: string; type: "SET_FROM_INPUT_VALUE" }
@@ -35,25 +35,27 @@ export function bridgeFormReducer(
     }
     case "SET_FROM_TOKEN": {
       const { token, tokens } = action.payload;
-      if (token.chainId === state.toToken.chainId) {
-        return {
-          ...state,
-          fromToken: token,
-          toToken: pickCounterpartToken({ token, tokens }),
-        };
-      }
-      return { ...state, fromToken: token };
+      return {
+        ...state,
+        fromToken: token,
+        toToken: pickCounterpartToken({
+          current: state.toToken,
+          token,
+          tokens,
+        }),
+      };
     }
     case "SET_TO_TOKEN": {
       const { token, tokens } = action.payload;
-      if (token.chainId === state.fromToken.chainId) {
-        return {
-          ...state,
-          fromToken: pickCounterpartToken({ token, tokens }),
-          toToken: token,
-        };
-      }
-      return { ...state, toToken: token };
+      return {
+        ...state,
+        fromToken: pickCounterpartToken({
+          current: state.fromToken,
+          token,
+          tokens,
+        }),
+        toToken: token,
+      };
     }
     case "TOGGLE_APPROVE_10X":
       return { ...state, approve10x: !state.approve10x };

@@ -11,11 +11,12 @@ export const useBridgeableTokens = () =>
         address,
         chainId,
         oftAdapterAddress,
+        sharedDecimals,
       }) {
         const token = knownTokens.find(
           (t) => isAddressEqual(t.address, address) && t.chainId === chainId,
         );
-        return token ? [{ ...token, oftAdapterAddress }] : [];
+        return token ? [{ ...token, oftAdapterAddress, sharedDecimals }] : [];
       }),
     [],
   );

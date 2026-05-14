@@ -61,7 +61,7 @@ export function WalletDrawerContent() {
   const { t } = useTranslation();
   const [selectedFilters, setSelectedFilters] = useState(allFilters);
 
-  const activities = useActivities(address, chain.id);
+  const activities = useActivities(address);
   const explorerBaseUrl = chain.blockExplorers!.default.url;
 
   const filteredActivities = activities.filter(

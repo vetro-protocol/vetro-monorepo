@@ -44,4 +44,35 @@ describe("pickCounterpartToken", function () {
       first,
     );
   });
+
+  it("preserves the current counterpart when it is still valid", function () {
+    const token = makeToken("VUSD", 1);
+    const current = makeToken("VUSD", 8453);
+    const otherChain = makeToken("VUSD", 42161);
+    expect(
+      pickCounterpartToken({
+        current,
+        token,
+        tokens: [otherChain, current],
+      }),
+    ).toBe(current);
+  });
+
+  it("re-picks when the current counterpart's symbol no longer matches", function () {
+    const token = makeToken("sVUSD", 42161);
+    const current = makeToken("VUSD", 8453);
+    const match = makeToken("sVUSD", 1);
+    expect(
+      pickCounterpartToken({ current, token, tokens: [current, match] }),
+    ).toBe(match);
+  });
+
+  it("re-picks when the current counterpart is on the same chain as the source", function () {
+    const token = makeToken("VUSD", 8453);
+    const current = makeToken("VUSD", 8453);
+    const match = makeToken("VUSD", 42161);
+    expect(
+      pickCounterpartToken({ current, token, tokens: [current, match] }),
+    ).toBe(match);
+  });
 });

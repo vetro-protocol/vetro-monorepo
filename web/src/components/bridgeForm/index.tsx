@@ -3,7 +3,6 @@ import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { useNeedsApproval } from "@hemilabs/react-hooks/useNeedsApproval";
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
 import { ApproveSection } from "components/approveSection";
-import { RenderFiatValue } from "components/base/fiatValue";
 import { Toast } from "components/base/toast";
 import { FormSection, FormSectionItem } from "components/feesContainer";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
@@ -21,7 +20,8 @@ import { useTranslation } from "react-i18next";
 import type { BridgeableToken } from "types";
 import { pickCounterpartToken } from "utils/bridge";
 import { getInputError } from "utils/inputError";
-import { parseTokenUnits } from "utils/token";
+import { parseTokenUnits, removeOftDust } from "utils/token";
+import { formatUnits } from "viem";
 import { useAccount } from "wagmi";
 
 import { BridgeFees } from "./bridgeFees";
@@ -31,6 +31,7 @@ import {
   BridgeSubmitDrawer,
 } from "./bridgeSubmitDrawer";
 import { BridgeTokenDropdown } from "./bridgeTokenDropdown";
+import { BridgeTokenFiatValue } from "./bridgeTokenFiatValue";
 import { Form } from "./form";
 import { bridgeFormReducer, type BridgeFormState } from "./reducer";
 
@@ -42,6 +43,27 @@ function getInitialState(tokens: BridgeableToken[]): BridgeFormState {
     fromToken,
     toToken: pickCounterpartToken({ token: fromToken, tokens }),
   };
+}
+
+function getBridgeInputError({
+  amountBigInt,
+  fromTokenBalance,
+  nativeBalance,
+  parsedAmount,
+}: {
+  amountBigInt: bigint;
+  fromTokenBalance: bigint | undefined;
+  nativeBalance: bigint | undefined;
+  parsedAmount: bigint;
+}) {
+  if (parsedAmount > 0n && amountBigInt === 0n) {
+    return "amount-too-small-to-bridge" as const;
+  }
+  return getInputError({
+    amount: amountBigInt,
+    nativeBalance,
+    tokenBalance: fromTokenBalance,
+  });
 }
 
 type ContentProps = {
@@ -64,7 +86,12 @@ function BridgeFormContent({ tokens }: ContentProps) {
   const [showToast, setShowToast] = useState(false);
 
   const debouncedInputValue = useDebounce(fromInputValue);
-  const amountBigInt = parseTokenUnits(debouncedInputValue, fromToken);
+  const parsedAmount = parseTokenUnits(debouncedInputValue, fromToken);
+  const amountBigInt = removeOftDust({
+    amount: parsedAmount,
+    token: fromToken,
+  });
+  const toAmountDisplay = formatUnits(amountBigInt, fromToken.decimals);
 
   const oftAddress = fromToken.oftAdapterAddress ?? fromToken.address;
   const approveAmount = approve10x ? amountBigInt * 10n : undefined;
@@ -125,10 +152,11 @@ function BridgeFormContent({ tokens }: ContentProps) {
     nativeBalance !== undefined && fromTokenBalance !== undefined;
   const dataReady = balancesLoaded && needsApproval !== undefined;
 
-  const inputError = getInputError({
-    amount: amountBigInt,
+  const inputError = getBridgeInputError({
+    amountBigInt,
+    fromTokenBalance,
     nativeBalance,
-    tokenBalance: fromTokenBalance,
+    parsedAmount,
   });
 
   const fromChain = getChainById(fromToken.chainId);
@@ -138,12 +166,14 @@ function BridgeFormContent({ tokens }: ContentProps) {
     useActivityTracking({
       page: "bridge",
       text: t("pages.bridge.activity.bridge-text", {
-        amount: fromInputValue,
-        fromChain: fromChain.name,
+        amount: toAmountDisplay,
+        count: Number(toAmountDisplay),
         symbol: fromToken.symbol,
-        toChain: toChain.name,
       }),
-      title: t("nav.bridge"),
+      title: `${t("nav.bridge")} · ${t("pages.bridge.activity.bridge-title", {
+        fromChain: fromChain.name,
+        toChain: toChain.name,
+      })}`,
     });
 
   const bridgeMutation = useBridge({
@@ -195,7 +225,8 @@ function BridgeFormContent({ tokens }: ContentProps) {
   });
 
   const fromTokens = tokens.filter(
-    (token) => token.chainId !== fromToken.chainId,
+    (token) =>
+      token.chainId !== fromToken.chainId || token.symbol !== fromToken.symbol,
   );
 
   const toTokens = tokens.filter(
@@ -267,7 +298,9 @@ function BridgeFormContent({ tokens }: ContentProps) {
           <TokenInput
             balance={<ToTokenBalance token={toToken} />}
             disabled
-            fiatValue={<RenderFiatValue token={toToken} value={amountBigInt} />}
+            fiatValue={
+              <BridgeTokenFiatValue token={toToken} value={amountBigInt} />
+            }
             label={t("pages.bridge.form.you-will-receive")}
             tokenSelector={
               <BridgeTokenDropdown
@@ -277,7 +310,7 @@ function BridgeFormContent({ tokens }: ContentProps) {
                 value={toToken}
               />
             }
-            value={fromInputValue}
+            value={toAmountDisplay}
           />
         }
       >
@@ -312,8 +345,9 @@ function BridgeFormContent({ tokens }: ContentProps) {
           onClose={() => setIsDrawerOpen(false)}
           onRetry={handleRetry}
           showApproveStep={startedWithApproval}
-          total={total}
+          toAmount={toAmountDisplay}
           toToken={toToken}
+          total={total}
         />
       )}
       {showToast && (

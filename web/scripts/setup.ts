@@ -29,7 +29,7 @@ const setupSymbols = [
 ];
 
 const tokens = knownTokens
-  .filter((t) => setupSymbols.includes(t.symbol))
+  .filter((t) => t.chainId === mainnet.id && setupSymbols.includes(t.symbol))
   .map((t) => ({
     address: t.address,
     balanceSlot: t.extensions!.balanceSlot!,

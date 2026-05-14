@@ -1,6 +1,6 @@
-import { tokenBalanceQueryOptions } from "@hemilabs/react-hooks/useTokenBalance";
 import type { QueryClient } from "@tanstack/react-query";
 import { stakingVaultAbi } from "@vetro-protocol/earn";
+import { stakedBalanceQueryOptions } from "hooks/useStakedBalance";
 import { canInstantWithdrawOptions } from "pages/earn/hooks/useCanInstantWithdraw";
 import {
   type Address,
@@ -9,7 +9,6 @@ import {
   encodeFunctionData,
 } from "viem";
 import { estimateGas } from "viem/actions";
-import { convertToAssets } from "viem-erc4626/actions";
 
 /**
  * Estimates gas units for an earn withdraw. Reads the instant withdraw
@@ -40,20 +39,15 @@ export const fetchWithdrawGasUnits = async function ({
         stakingVaultAddress,
       }),
     ),
-    queryClient
-      .ensureQueryData(
-        tokenBalanceQueryOptions({
-          account,
-          client,
-          token: { address: stakingVaultAddress, chainId },
-        }),
-      )
-      .then((shares) =>
-        convertToAssets(client, {
-          address: stakingVaultAddress,
-          shares,
-        }),
-      ),
+    queryClient.ensureQueryData(
+      stakedBalanceQueryOptions({
+        account,
+        chainId,
+        client,
+        queryClient,
+        stakingVaultAddress,
+      }),
+    ),
   ]);
 
   if (amount > stakedBalance) {

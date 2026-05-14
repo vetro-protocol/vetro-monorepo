@@ -1,5 +1,6 @@
 {
   "common": {
+    "amount-too-small-to-bridge": "Amount too small to bridge",
     "approve-10x": "Approve 10x",
     "approve-10x-tooltip": "Approves up to 10× your transaction amount, reducing future approval steps. You can revoke it anytime.",
     "charts": {
@@ -175,7 +176,8 @@
     },
     "bridge": {
       "activity": {
-        "bridge-text": "{{amount}} {{symbol}} from {{fromChain}} to {{toChain}}"
+        "bridge-text": "{{amount}} {{symbol}} bridged",
+        "bridge-title": "{{fromChain}} → {{toChain}}"
       },
       "fees": {
         "layerzero-fee": "LayerZero fee"
@@ -247,6 +249,8 @@
         "hours_other": "{{count}} Hours",
         "minutes": "{{count}} Minute",
         "minutes_other": "{{count}} Minutes",
+        "notification": "{{count}} Earn exit ticket",
+        "notification_other": "{{count}} Earn exit tickets",
         "pending-withdrawals": "Pending withdrawals",
         "ready-to-withdraw": "Ready to withdraw",
         "request-withdrawal-tx": "Request withdrawal:",

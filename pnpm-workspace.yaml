@@ -1,9 +1,25 @@
+blockExoticSubdeps: true
+lockfileIncludeTarballUrl: true
 minimumReleaseAge: 10080 # 7 days in minutes
 minimumReleaseAgeExclude:
   - "@hemilabs/*"
   - "@vetro-protocol/*"
   - "viem-erc20"
   - "viem-erc4626"
+
+onlyBuiltDependencies: []
+
+# @walletconnect/relay-auth@1.1.0 (pulled in transitively via wagmi) exact-pins
+# @noble/hashes@1.7.0 and @noble/curves@1.8.0. Both were published on
+# 2025-01-03 without provenance attestation (earlier releases had it), so
+# our `trustPolicy: no-downgrade` rejects them. The next patches (1.7.1 /
+# 1.8.1, both published 2025-01-18) restored attestation. We redirect to
+# attested versions already present elsewhere in the tree.
+# Remove this once relay-auth ships a release that doesn't pin those:
+# https://github.com/WalletConnect/walletconnect-utils/pull/244
+overrides:
+  "@noble/hashes@1.7.0": "1.8.0"
+  "@noble/curves@1.8.0": "1.8.1"
 
 packages:
   - "api"
@@ -18,3 +34,5 @@ patchedDependencies:
 # https://github.com/microsoft/vscode-eslint/issues/1986#issuecomment-2799868163
 publicHoistPattern:
   - "*eslint*"
+
+trustPolicy: no-downgrade

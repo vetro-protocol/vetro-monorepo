@@ -155,16 +155,27 @@ describe("pages/analytics/utils", function () {
       expect(result).toBeCloseTo(1);
     });
 
-    it("throws when a treasury token's address isn't whitelisted", function () {
-      expect(() =>
-        toReserveBufferAmount({
-          prices,
-          treasuryTokens: [
-            { ...baseTreasuryToken, tokenAddress: USDC_ADDRESS },
-          ],
-          whitelistedTokens: [usdtToken],
-        }),
-      ).toThrow(`Token not found in whitelist: ${USDC_ADDRESS}`);
+    it("skips treasury tokens missing from the whitelist", function () {
+      // USDT contributes $100; the unknown USDC entry is ignored.
+      const result = toReserveBufferAmount({
+        prices,
+        treasuryTokens: [
+          {
+            ...baseTreasuryToken,
+            totalDebt: "900000000",
+            withdrawable: "1000000000",
+          },
+          {
+            ...baseTreasuryToken,
+            tokenAddress: USDC_ADDRESS,
+            totalDebt: "0",
+            withdrawable: "1000000000",
+          },
+        ],
+        whitelistedTokens: [usdtToken],
+      });
+
+      expect(result).toBeCloseTo(100);
     });
   });
 
@@ -188,16 +199,23 @@ describe("pages/analytics/utils", function () {
       expect(items[0]?.label).toBe("USDT");
     });
 
-    it("throws when a treasury token's address isn't whitelisted", function () {
-      expect(() =>
-        toTvlItems({
-          prices,
-          treasuryTokens: [
-            { ...baseTreasuryToken, tokenAddress: USDC_ADDRESS },
-          ],
-          whitelistedTokens: [usdtToken],
-        }),
-      ).toThrow(`Token not found in whitelist: ${USDC_ADDRESS}`);
+    it("skips treasury tokens missing from the whitelist", function () {
+      // USDT yields one item; the unknown USDC entry is omitted from the output.
+      const items = toTvlItems({
+        prices,
+        treasuryTokens: [
+          { ...baseTreasuryToken, withdrawable: "1000000000" },
+          {
+            ...baseTreasuryToken,
+            tokenAddress: USDC_ADDRESS,
+            withdrawable: "1000000000",
+          },
+        ],
+        whitelistedTokens: [usdtToken],
+      });
+
+      expect(items).toHaveLength(1);
+      expect(items[0]?.label).toBe("USDT");
     });
   });
 
@@ -277,16 +295,34 @@ describe("pages/analytics/utils", function () {
       expect(items[0]?.amount).toBeCloseTo(500);
     });
 
-    it("throws when a treasury token's address isn't whitelisted", function () {
-      expect(() =>
-        toYieldItems({
-          prices,
-          treasuryTokens: [
-            { ...baseTreasuryToken, tokenAddress: USDC_ADDRESS },
-          ],
-          whitelistedTokens: [usdtToken],
-        }),
-      ).toThrow(`Token not found in whitelist: ${USDC_ADDRESS}`);
+    it("skips treasury tokens missing from the whitelist", function () {
+      // USDT yields one strategy; the unknown USDC entry's strategies are skipped.
+      const items = toYieldItems({
+        prices,
+        treasuryTokens: [
+          {
+            ...baseTreasuryToken,
+            activeStrategies: [
+              { name: "USDT Strategy", totalDebt: "500000000" },
+            ],
+            totalDebt: "500000000",
+            withdrawable: "500000000",
+          },
+          {
+            ...baseTreasuryToken,
+            activeStrategies: [
+              { name: "USDC Strategy", totalDebt: "200000000" },
+            ],
+            tokenAddress: USDC_ADDRESS,
+            totalDebt: "200000000",
+            withdrawable: "200000000",
+          },
+        ],
+        whitelistedTokens: [usdtToken],
+      });
+
+      expect(items).toHaveLength(1);
+      expect(items[0]?.label).toBe("USDT Strategy");
     });
   });
 

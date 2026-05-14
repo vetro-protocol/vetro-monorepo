@@ -90,9 +90,9 @@ export function StakeDrawerContent({
           onInputChange={handleInputChange}
           onSuccess={onSuccess}
           onWithdrawStepChange={handleWithdrawStepChange}
-          withdrawStep={state.withdrawStep}
           peggedToken={peggedToken}
           stakingVaultAddress={stakingVaultAddress}
+          withdrawStep={state.withdrawStep}
         />
       )}
     </div>

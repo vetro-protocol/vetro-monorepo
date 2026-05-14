@@ -14,10 +14,11 @@ import { type MarketData, useMarketData } from "hooks/borrow/useMarketData";
 import { useMarketsData } from "hooks/borrow/useMarketsData";
 import { usePositionInfo } from "hooks/borrow/usePositionInfo";
 import { useAmount } from "hooks/useAmount";
+import { useI18nNavigate } from "hooks/useI18nNavigate";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
-import { Navigate, useNavigate, useParams } from "react-router";
+import { Navigate, useParams } from "react-router";
 import { hasActivePosition } from "utils/borrowPosition";
 import { type Hash, isHash } from "viem";
 
@@ -40,8 +41,7 @@ const BorrowMarketDetailsLoaded = function ({
 }: {
   market: MarketData;
 }) {
-  const { lang } = useParams();
-  const navigate = useNavigate();
+  const navigate = useI18nNavigate();
   const { t } = useTranslation();
   const { data: allMarkets } = useMarketsData(marketIds);
   const otherMarkets = allMarkets.filter((m) => m.marketId !== market.marketId);
@@ -70,9 +70,7 @@ const BorrowMarketDetailsLoaded = function ({
               <Dropdown
                 getItemKey={(item) => item.marketId}
                 items={otherMarkets}
-                onChange={(item) =>
-                  navigate(`/${lang}/borrow/${item.marketId}`)
-                }
+                onChange={(item) => navigate(`/borrow/${item.marketId}`)}
                 renderItem={renderMarketItem}
                 renderTrigger={(isOpen, triggerProps) => (
                   <Button {...triggerProps} size="xSmall" variant="tertiary">

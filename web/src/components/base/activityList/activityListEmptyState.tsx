@@ -1,7 +1,7 @@
 import { Button } from "components/base/button";
 import { useWalletDrawer } from "components/walletDrawer/walletDrawerContext";
+import { useI18nNavigate } from "hooks/useI18nNavigate";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams } from "react-router";
 
 import { ActivityEmptyIcon } from "./icons/activityEmptyIcon";
 
@@ -14,14 +14,13 @@ export function ActivityListEmptyState({
   hasTransactions,
   onResetFilters,
 }: Props) {
-  const { lang } = useParams();
-  const navigate = useNavigate();
+  const navigate = useI18nNavigate();
   const { close } = useWalletDrawer();
   const { t } = useTranslation();
 
   function handleStartSwapping() {
     close();
-    navigate(`/${lang}/swap`);
+    navigate("/swap");
   }
 
   return (

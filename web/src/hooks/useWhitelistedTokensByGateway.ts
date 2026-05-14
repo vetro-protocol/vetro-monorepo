@@ -27,7 +27,7 @@ export const whitelistedTokensByGatewayOptions = ({
         queryClient,
       }),
     queryKey: ["whitelisted-tokens", client?.chain?.id, gatewayAddress],
-    staleTime: Infinity,
+    staleTime: 60 * 60 * 1000, // 1 hour
   });
 
 export const useWhitelistedTokensByGateway = function (

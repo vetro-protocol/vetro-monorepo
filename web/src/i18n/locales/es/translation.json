@@ -1,5 +1,6 @@
 {
   "common": {
+    "amount-too-small-to-bridge": "Cantidad demasiado pequeña para transferir",
     "approve-10x": "Aprobar 10x",
     "approve-10x-tooltip": "Apruebe hasta 10× el monto de su transacción, reduciendo futuros pasos de aprobación. Puede revocarlo en cualquier momento.",
     "charts": {
@@ -175,7 +176,9 @@
     },
     "bridge": {
       "activity": {
-        "bridge-text": "{{amount}} {{symbol}} de {{fromChain}} a {{toChain}}"
+        "bridge-text_one": "{{amount}} {{symbol}} transferido",
+        "bridge-text_other": "{{amount}} {{symbol}} transferidos",
+        "bridge-title": "{{fromChain}} → {{toChain}}"
       },
       "fees": {
         "layerzero-fee": "Tarifa LayerZero"
@@ -249,6 +252,8 @@
         "hours_other": "{{count}} Horas",
         "minutes": "{{count}} Minuto",
         "minutes_other": "{{count}} Minutos",
+        "notification": "{{count}} Ticket de salida de Earn",
+        "notification_other": "{{count}} Tickets de salida de Earn",
         "pending-withdrawals": "Retiros pendientes",
         "ready-to-withdraw": "Listo para retirar",
         "request-withdrawal-tx": "Solicitud de retiro:",

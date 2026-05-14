@@ -160,6 +160,9 @@ export const knownTokens: Token[] = [
     address: sVetBtcAddress,
     chainId: mainnet.id,
     decimals: 18,
+    extensions: {
+      isVaultShare: true,
+    },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/svetbtc.svg",
     name: "Staked Vetro BTC",
     symbol: "svetBTC",
@@ -168,6 +171,77 @@ export const knownTokens: Token[] = [
     address: sVusdAddress,
     chainId: mainnet.id,
     decimals: 18,
+    extensions: {
+      // The sVUSD vault is an OZ 5.x upgradeable contract, which stores ERC20
+      // state in an ERC-7201 namespace ("openzeppelin.storage.ERC20") instead
+      // of at small sequential slots. Inside that struct, _balances is at
+      // offset 0 and _allowances at offset 1, so the slot below is
+      // `ERC20StorageLocation + 1` (see `ERC20Upgradeable.sol` in
+      // @openzeppelin/contracts-upgradeable v5).
+      allowanceSlot:
+        0x52c63247e1f47db19d5ce0460030c497f067ca4cebf71ba98eeadabe20bace01n,
+      isVaultShare: true,
+    },
+    logoURI: "https://hemilabs.github.io/token-list/l1Logos/svusd.svg",
+    name: "Staked Vetro USD",
+    symbol: "sVUSD",
+  },
+  {
+    address: "0x50c580227764b621c0433bB6Ab756C781c495ce7",
+    chainId: arbitrum.id,
+    decimals: 18,
+    extensions: {
+      allowanceSlot: 6n,
+      isVaultShare: true,
+    },
+    logoURI: "https://hemilabs.github.io/token-list/l1Logos/svusd.svg",
+    name: "Staked Vetro USD",
+    symbol: "sVUSD",
+  },
+  {
+    address: "0xb174750002068862Dfe7DF38F974a950F189386a",
+    chainId: base.id,
+    decimals: 18,
+    extensions: {
+      allowanceSlot: 6n,
+      isVaultShare: true,
+    },
+    logoURI: "https://hemilabs.github.io/token-list/l1Logos/svusd.svg",
+    name: "Staked Vetro USD",
+    symbol: "sVUSD",
+  },
+  {
+    address: "0xC141B66eE4262Ba46Ea29578955C274fD4A96515",
+    chainId: bsc.id,
+    decimals: 18,
+    extensions: {
+      allowanceSlot: 6n,
+      isVaultShare: true,
+    },
+    logoURI: "https://hemilabs.github.io/token-list/l1Logos/svusd.svg",
+    name: "Staked Vetro USD",
+    symbol: "sVUSD",
+  },
+  {
+    address: "0xfe875CC86cC6BC2E93ab330D6b2c408C3Cd79710",
+    chainId: hemi.id,
+    decimals: 18,
+    extensions: {
+      allowanceSlot: 6n,
+      isVaultShare: true,
+    },
+    logoURI: "https://hemilabs.github.io/token-list/l1Logos/svusd.svg",
+    name: "Staked Vetro USD",
+    symbol: "sVUSD",
+  },
+  {
+    address: "0x92273Ca3356379C2fe870FE3805cc5e7aB6d19c6",
+    chainId: optimism.id,
+    decimals: 18,
+    extensions: {
+      allowanceSlot: 6n,
+      isVaultShare: true,
+    },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/svusd.svg",
     name: "Staked Vetro USD",
     symbol: "sVUSD",
