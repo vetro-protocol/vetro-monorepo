@@ -129,16 +129,16 @@ If text-4xl is 2.25 rem => 4, then here 2.5 rem => 4.4 */
 }
 
 @utility text-h1 {
-  @apply text-4.4xl font-semibold tracking-[-1.6px];
+  @apply text-4.4xl font-medium tracking-[-1.6px];
 }
 
 @utility text-h2 {
-  @apply text-4xl font-semibold tracking-[-0.72px];
+  @apply text-4xl font-medium tracking-[-0.72px];
 }
 
 @utility text-h3 {
   /* override line height from tailwind */
-  @apply text-2xl leading-[28px] font-semibold tracking-[-0.24px];
+  @apply text-2xl leading-[28px] font-medium tracking-[-0.24px];
 }
 
 @utility text-h4 {
