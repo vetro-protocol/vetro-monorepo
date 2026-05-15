@@ -6,12 +6,12 @@ import { createPortal } from "react-dom";
 type Props = {
   ariaLabel?: string;
   ariaLabelledBy?: string;
-  children: ReactNode;
+  children: (args: { close: VoidFunction }) => ReactNode;
   onClose: VoidFunction;
 };
 
 export function Modal({ ariaLabel, ariaLabelledBy, children, onClose }: Props) {
-  const { handleTransitionEnd, isOpen, ref } =
+  const { handleClose, handleTransitionEnd, isOpen, ref } =
     useOverlay<HTMLDivElement>(onClose);
   const { height: viewportHeight, offsetTop } = useVisualViewportSize();
   const keyboardOffset =
@@ -41,7 +41,7 @@ export function Modal({ ariaLabel, ariaLabelledBy, children, onClose }: Props) {
           ref={ref}
           role="dialog"
         >
-          {children}
+          {children({ close: handleClose })}
         </div>
       </div>
     </>,

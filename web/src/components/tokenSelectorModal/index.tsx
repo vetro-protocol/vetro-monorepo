@@ -197,11 +197,6 @@ export function TokenSelectorModal<T extends Token = Token>({
     [isOpen],
   );
 
-  function handleSelect(token: T) {
-    onChange(token);
-    setIsOpen(false);
-  }
-
   return (
     <>
       <button
@@ -229,13 +224,18 @@ export function TokenSelectorModal<T extends Token = Token>({
 
       {isOpen && (
         <Modal ariaLabelledBy={titleId} onClose={() => setIsOpen(false)}>
-          <ModalContent
-            onClose={() => setIsOpen(false)}
-            onSelect={handleSelect}
-            showChainLogo={showChainLogo}
-            titleId={titleId}
-            tokens={tokens}
-          />
+          {({ close }) => (
+            <ModalContent
+              onClose={close}
+              onSelect={function (token) {
+                onChange(token);
+                close();
+              }}
+              showChainLogo={showChainLogo}
+              titleId={titleId}
+              tokens={tokens}
+            />
+          )}
         </Modal>
       )}
     </>

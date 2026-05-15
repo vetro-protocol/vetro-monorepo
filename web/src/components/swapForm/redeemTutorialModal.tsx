@@ -49,82 +49,84 @@ export function RedeemTutorialModal({
 
   return (
     <Modal ariaLabel={t("pages.swap.tutorial.title")} onClose={onClose}>
-      <div className="flex max-h-[85vh] max-w-3xl flex-col overflow-y-auto">
-        {/* Breadcrumb */}
-        <div className="px-12">
-          <p className="text-b-medium border-x border-gray-200 px-12 py-3.5 text-center text-blue-500">
-            {t("pages.swap.tutorial.breadcrumb")}
-          </p>
-        </div>
+      {() => (
+        <div className="flex max-h-[85vh] max-w-3xl flex-col overflow-y-auto">
+          {/* Breadcrumb */}
+          <div className="px-12">
+            <p className="text-b-medium border-x border-gray-200 px-12 py-3.5 text-center text-blue-500">
+              {t("pages.swap.tutorial.breadcrumb")}
+            </p>
+          </div>
 
-        {/* Title */}
-        <div className="border-y border-dashed border-gray-200 px-12">
-          <div className="flex items-center justify-center border-x border-gray-200 bg-gray-50 px-40 py-10">
-            <h2 className="text-center">{t("pages.swap.tutorial.title")}</h2>
+          {/* Title */}
+          <div className="border-y border-dashed border-gray-200 px-12">
+            <div className="flex items-center justify-center border-x border-gray-200 bg-gray-50 px-40 py-10">
+              <h2 className="text-center">{t("pages.swap.tutorial.title")}</h2>
+            </div>
+          </div>
+
+          {/* Step 1 */}
+          <StepSection
+            badge={t("pages.swap.tutorial.step-1-badge")}
+            image={
+              <img
+                alt={t("pages.swap.tutorial.step-1-image-alt")}
+                className="shadow-lg"
+                src="/gatewayRedeem/step1.png"
+              />
+            }
+          >
+            <p className="text-base font-semibold text-gray-500">
+              <Trans
+                components={{ strong: <span className="text-gray-900" /> }}
+                i18nKey="pages.swap.tutorial.step-1-paragraph-1"
+                values={{ symbol: peggedToken.symbol }}
+              />
+            </p>
+            <p className="text-base font-semibold text-gray-500">
+              {t("pages.swap.tutorial.step-1-paragraph-2", {
+                count: seconds,
+                seconds,
+                symbol: peggedToken.symbol,
+              })}
+            </p>
+          </StepSection>
+
+          {/* Striped divider */}
+          <div className="px-12">
+            <div className="w-full border-x border-t border-gray-200 bg-gray-50">
+              <StripedDivider />
+            </div>
+          </div>
+
+          {/* Step 2 */}
+          <StepSection
+            badge={t("pages.swap.tutorial.step-2-badge")}
+            image={
+              <img
+                alt={t("pages.swap.tutorial.step-2-image-alt")}
+                src="/gatewayRedeem/step2.png"
+              />
+            }
+          >
+            <p className="text-base font-semibold text-gray-500">
+              <Trans
+                components={{ strong: <span className="text-gray-900" /> }}
+                i18nKey="pages.swap.tutorial.step-2-paragraph-1"
+              />
+            </p>
+            <p className="text-base font-semibold text-gray-500">
+              {t(
+                "pages.swap.tutorial.step-2-paragraph-2",
+                getTokenListParams(whitelistedTokens),
+              )}
+            </p>
+          </StepSection>
+          <div className="shrink-0 px-12">
+            <div className="h-12 w-full border-x border-t border-gray-200" />
           </div>
         </div>
-
-        {/* Step 1 */}
-        <StepSection
-          badge={t("pages.swap.tutorial.step-1-badge")}
-          image={
-            <img
-              alt={t("pages.swap.tutorial.step-1-image-alt")}
-              className="shadow-lg"
-              src="/gatewayRedeem/step1.png"
-            />
-          }
-        >
-          <p className="text-base font-semibold text-gray-500">
-            <Trans
-              components={{ strong: <span className="text-gray-900" /> }}
-              i18nKey="pages.swap.tutorial.step-1-paragraph-1"
-              values={{ symbol: peggedToken.symbol }}
-            />
-          </p>
-          <p className="text-base font-semibold text-gray-500">
-            {t("pages.swap.tutorial.step-1-paragraph-2", {
-              count: seconds,
-              seconds,
-              symbol: peggedToken.symbol,
-            })}
-          </p>
-        </StepSection>
-
-        {/* Striped divider */}
-        <div className="px-12">
-          <div className="w-full border-x border-t border-gray-200 bg-gray-50">
-            <StripedDivider />
-          </div>
-        </div>
-
-        {/* Step 2 */}
-        <StepSection
-          badge={t("pages.swap.tutorial.step-2-badge")}
-          image={
-            <img
-              alt={t("pages.swap.tutorial.step-2-image-alt")}
-              src="/gatewayRedeem/step2.png"
-            />
-          }
-        >
-          <p className="text-base font-semibold text-gray-500">
-            <Trans
-              components={{ strong: <span className="text-gray-900" /> }}
-              i18nKey="pages.swap.tutorial.step-2-paragraph-1"
-            />
-          </p>
-          <p className="text-base font-semibold text-gray-500">
-            {t(
-              "pages.swap.tutorial.step-2-paragraph-2",
-              getTokenListParams(whitelistedTokens),
-            )}
-          </p>
-        </StepSection>
-        <div className="shrink-0 px-12">
-          <div className="h-12 w-full border-x border-t border-gray-200" />
-        </div>
-      </div>
+      )}
     </Modal>
   );
 }
