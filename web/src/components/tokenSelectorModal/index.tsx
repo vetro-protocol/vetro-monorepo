@@ -93,8 +93,8 @@ function ModalContent<T extends Token>({
 
   return (
     <div
-      className="flex h-[90vh] flex-col p-6 md:h-144 md:w-[400px]"
-      style={useDynamicHeight ? { height: viewportHeight } : undefined}
+      className="flex h-[calc(100vh-104px)] flex-col p-6 md:h-144 md:w-[400px]"
+      style={useDynamicHeight ? { height: viewportHeight - 104 } : undefined}
     >
       <div className="flex items-center justify-between pb-4">
         <h4 className="max-md:text-h3 text-gray-900" id={titleId}>
