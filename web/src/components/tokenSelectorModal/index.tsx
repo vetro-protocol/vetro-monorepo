@@ -1,3 +1,4 @@
+import { useVisualViewportSize } from "@hemilabs/react-hooks/useVisualViewportSize";
 import { useWindowSize } from "@hemilabs/react-hooks/useWindowSize";
 import { ChevronIcon } from "components/base/chevronIcon";
 import { Modal } from "components/base/modal";
@@ -5,7 +6,6 @@ import { SearchInput } from "components/base/searchInput";
 import { TokenChainLogo } from "components/bridgeForm/tokenChainLogo";
 import { CloseIcon } from "components/icons/closeIcon";
 import { TokenLogo } from "components/tokenLogo";
-import { useVisualViewportSize } from "hooks/useVisualViewportSize";
 import { getChainById } from "networks";
 import {
   type ComponentProps,
