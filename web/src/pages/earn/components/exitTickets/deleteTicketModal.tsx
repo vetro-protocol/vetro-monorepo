@@ -78,43 +78,52 @@ export function DeleteTicketModal({
   }
 
   return (
-    <Modal onClose={onClose}>
-      <div className="flex w-[448px] flex-col gap-6 rounded-lg bg-white p-6 shadow-xl">
-        <div className="flex flex-col gap-2">
-          <h4 className="text-base font-semibold tracking-tight text-gray-900">
-            {t("pages.earn.exit-tickets.delete-title")}
-          </h4>
-          <p className="text-xsm font-normal text-gray-500">
-            {t("pages.earn.exit-tickets.delete-description")}
-          </p>
-        </div>
-        <div className="flex gap-3 *:flex-1">
-          <Button
-            disabled={isDeleting}
-            onClick={onClose}
-            size="xSmall"
-            variant="secondary"
-          >
-            {t("pages.earn.exit-tickets.delete-btn-cancel")}
-          </Button>
-          {isConnected ? (
+    <Modal
+      ariaLabel={t("pages.earn.exit-tickets.delete-title")}
+      onClose={onClose}
+    >
+      {({ close }) => (
+        <div className="flex w-full flex-col gap-6 p-6 md:w-[448px]">
+          <div className="flex flex-col gap-2">
+            <h4 className="text-base font-semibold tracking-tight text-gray-900">
+              {t("pages.earn.exit-tickets.delete-title")}
+            </h4>
+            <p className="text-xsm font-normal text-gray-500">
+              {t("pages.earn.exit-tickets.delete-description")}
+            </p>
+          </div>
+          <div className="flex gap-3 *:flex-1">
             <Button
               disabled={isDeleting}
-              onClick={handleDelete}
+              onClick={close}
               size="xSmall"
-              variant="danger"
+              variant="secondary"
             >
-              {isDeleting
-                ? t("pages.earn.exit-tickets.delete-btn-deleting")
-                : t("pages.earn.exit-tickets.delete-btn")}
+              {t("pages.earn.exit-tickets.delete-btn-cancel")}
             </Button>
-          ) : (
-            <Button onClick={openConnectModal} size="xSmall" variant="primary">
-              {t("common.connect-wallet")}
-            </Button>
-          )}
+            {isConnected ? (
+              <Button
+                disabled={isDeleting}
+                onClick={handleDelete}
+                size="xSmall"
+                variant="danger"
+              >
+                {isDeleting
+                  ? t("pages.earn.exit-tickets.delete-btn-deleting")
+                  : t("pages.earn.exit-tickets.delete-btn")}
+              </Button>
+            ) : (
+              <Button
+                onClick={openConnectModal}
+                size="xSmall"
+                variant="primary"
+              >
+                {t("common.connect-wallet")}
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </Modal>
   );
 }

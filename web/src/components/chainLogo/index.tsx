@@ -21,6 +21,7 @@ const chainIcons = {
 const sizeClasses = {
   base: "size-3",
   large: "size-5",
+  medium: "size-4",
   small: "size-2.5",
   xLarge: "size-7",
 };
@@ -28,6 +29,7 @@ const sizeClasses = {
 const fallbackSizes = {
   base: "xSmall",
   large: "base",
+  medium: "small",
   small: "xSmall",
   xLarge: "large",
 } as const;

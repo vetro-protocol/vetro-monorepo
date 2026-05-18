@@ -71,45 +71,54 @@ export function CancelRedeemModal({
   });
 
   return (
-    <Modal onClose={onClose}>
-      <div className="flex w-[448px] flex-col gap-6 rounded-lg bg-white p-6 shadow-xl">
-        <div className="flex flex-col gap-y-1">
-          <h4 className="text-gray-900">
-            {t("pages.swap.redeem-queue.cancel-redeem")}
-          </h4>
-          <p className="text-b-regular text-gray-500">
-            {t("pages.swap.redeem-queue.cancel-redeem-description", {
-              symbol: peggedToken.symbol,
-            })}
-          </p>
-        </div>
-        <div className="flex gap-3 *:flex-1">
-          <Button
-            disabled={isCancelling}
-            onClick={onClose}
-            size="xSmall"
-            variant="secondary"
-          >
-            {t("pages.swap.redeem-queue.keep-redeem")}
-          </Button>
-          {isConnected ? (
+    <Modal
+      ariaLabel={t("pages.swap.redeem-queue.cancel-redeem")}
+      onClose={onClose}
+    >
+      {({ close }) => (
+        <div className="flex w-full flex-col gap-6 p-6 md:w-[448px]">
+          <div className="flex flex-col gap-y-1">
+            <h4 className="text-gray-900">
+              {t("pages.swap.redeem-queue.cancel-redeem")}
+            </h4>
+            <p className="text-b-regular text-gray-500">
+              {t("pages.swap.redeem-queue.cancel-redeem-description", {
+                symbol: peggedToken.symbol,
+              })}
+            </p>
+          </div>
+          <div className="flex gap-3 *:flex-1">
             <Button
               disabled={isCancelling}
-              onClick={() => mutate()}
+              onClick={close}
               size="xSmall"
-              variant="danger"
+              variant="secondary"
             >
-              {isCancelling
-                ? t("pages.swap.redeem-queue.cancel-redeem-btn-cancelling")
-                : t("pages.swap.redeem-queue.cancel-redeem-btn-cancel")}
+              {t("pages.swap.redeem-queue.keep-redeem")}
             </Button>
-          ) : (
-            <Button onClick={openConnectModal} size="xSmall" variant="primary">
-              {t("common.connect-wallet")}
-            </Button>
-          )}
+            {isConnected ? (
+              <Button
+                disabled={isCancelling}
+                onClick={() => mutate()}
+                size="xSmall"
+                variant="danger"
+              >
+                {isCancelling
+                  ? t("pages.swap.redeem-queue.cancel-redeem-btn-cancelling")
+                  : t("pages.swap.redeem-queue.cancel-redeem-btn-cancel")}
+              </Button>
+            ) : (
+              <Button
+                onClick={openConnectModal}
+                size="xSmall"
+                variant="primary"
+              >
+                {t("common.connect-wallet")}
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </Modal>
   );
 }

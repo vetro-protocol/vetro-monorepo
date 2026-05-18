@@ -103,6 +103,11 @@ If text-4xl is 2.25 rem => 4, then here 2.5 rem => 4.4 */
   line-height: 44px;
 }
 
+@utility scrollbar-thin {
+  scrollbar-color: rgb(212, 212, 212) transparent;
+  scrollbar-width: thin;
+}
+
 @utility animate-page-in {
   animation: page-fade-in 300ms ease-out;
 }
