@@ -202,7 +202,7 @@ export function TokenSelectorModal<T extends Token = Token>({
       <button
         aria-haspopup="dialog"
         aria-label={triggerLabel}
-        className={`flex items-center gap-1.5 rounded-full bg-white py-1.5 pr-2 pl-1.5 shadow-sm ${
+        className={`flex items-center gap-1.5 rounded-full bg-white p-1.5 pr-2 shadow-sm ${
           hasMultiple
             ? "cursor-pointer text-gray-500 hover:bg-gray-50 hover:text-neutral-900"
             : ""
