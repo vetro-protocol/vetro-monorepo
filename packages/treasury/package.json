@@ -1,8 +1,21 @@
 {
   "name": "@vetro-protocol/treasury",
-  "version": "1.0.0",
+  "version": "1.0.0-beta",
+  "description": "Vetro Protocol treasury actions for viem.",
+  "license": "MIT",
+  "files": [
+    "LICENSE",
+    "README.md",
+    "_esm",
+    "_types",
+    "src"
+  ],
   "scripts": {
     "build": "tsc --noEmit",
+    "build:esm": "tsc -p tsconfig.build.json --outDir ./_esm --sourceMap",
+    "build:types": "tsc -p tsconfig.build.json --declarationDir ./_types --emitDeclarationOnly --declaration --declarationMap",
+    "clean": "rm -rf ./_esm ./_types",
+    "prepublishOnly": "pnpm clean && pnpm build:esm && pnpm build:types",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage"
   },
@@ -16,7 +29,27 @@
   "peerDependencies": {
     "viem": "^2.x"
   },
-  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "private": false,
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "default": "./_esm/index.js",
+        "types": "./_types/index.d.ts"
+      },
+      "./actions": {
+        "default": "./_esm/actions/index.js",
+        "types": "./_types/actions/index.d.ts"
+      },
+      "./package.json": "./package.json"
+    },
+    "main": "./_esm/index.js",
+    "provenance": true,
+    "types": "./_types/index.d.ts"
+  },
   "type": "module",
   "exports": {
     ".": {
@@ -26,6 +59,8 @@
     "./actions": {
       "types": "./src/actions/index.ts",
       "default": "./src/actions/index.ts"
-    }
-  }
+    },
+    "./package.json": "./package.json"
+  },
+  "sideEffects": false
 }
