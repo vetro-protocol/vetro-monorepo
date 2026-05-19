@@ -12,6 +12,9 @@ build/
 .next/
 out/
 storybook-static/
+_esm/
+_types/
+packages/*/LICENSE
 
 # Landing TailwindCSS generated stylesheet
 landing/public/style.css
