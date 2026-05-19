@@ -16,7 +16,18 @@ if ! command -v jq >/dev/null 2>&1; then
   exit 1
 fi
 
-LAST_RELEASE_TAG=$(git describe --tags --abbrev=0 --match "[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_*" 2>/dev/null || echo "")
+# Source of truth for release tags is the remote — don't assume local has them.
+LAST_RELEASE_TAG=$(git ls-remote --tags --refs origin \
+  | awk '{sub(/^refs\/tags\//, "", $2); print $2}' \
+  | grep -E '^[0-9]{8}_[0-9]+$' \
+  | sort -V \
+  | tail -1 || true)
+
+# Fetch the tag's commit locally so `git show <tag>:` and `git log <tag>..HEAD` work below.
+if [ -n "$LAST_RELEASE_TAG" ]; then
+  git fetch origin --quiet --force "refs/tags/${LAST_RELEASE_TAG}:refs/tags/${LAST_RELEASE_TAG}"
+fi
+
 NOTES=""
 CHANGED=()
 
@@ -84,7 +95,9 @@ fi
 DATE=$(date -u +%Y%m%d)
 N=1
 NEW_TAG="${DATE}_${N}"
-while git rev-parse -q --verify "refs/tags/${NEW_TAG}" >/dev/null; do
+# Check tag collisions against the remote, not local, so concurrent releases by
+# other maintainers (whose tags haven't been fetched locally) don't slip past.
+while git ls-remote --tags --exit-code origin "refs/tags/${NEW_TAG}" >/dev/null 2>&1; do
   N=$((N + 1))
   NEW_TAG="${DATE}_${N}"
 done
