@@ -15,6 +15,7 @@
     "build:esm": "tsc -p tsconfig.build.json --outDir ./_esm --sourceMap",
     "build:types": "tsc -p tsconfig.build.json --declarationDir ./_types --emitDeclarationOnly --declaration --declarationMap",
     "clean": "rm -rf ./_esm ./_types",
+    "prepack": "cp ../../LICENSE LICENSE",
     "prepublishOnly": "pnpm clean && pnpm build:esm && pnpm build:types",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage"
