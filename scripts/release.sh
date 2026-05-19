@@ -96,7 +96,7 @@ echo "Notes:"
 echo "$NOTES"
 echo
 read -rp "Create draft release ${NEW_TAG}? [y/N] " ok
-[ "$ok" = "y" ] || exit 1
+[ "$ok" = "y" ] || exit 0
 
 git tag "${NEW_TAG}"
 git push origin "${NEW_TAG}"
