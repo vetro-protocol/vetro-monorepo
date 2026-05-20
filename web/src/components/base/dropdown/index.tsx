@@ -1,15 +1,15 @@
 import { useOnClickOutside } from "@hemilabs/react-hooks/useOnClickOutside";
+import { useMenuPosition } from "hooks/useMenuPosition";
 import {
   Fragment,
   type KeyboardEvent,
   type ReactNode,
+  type TransitionEvent,
   useEffect,
   useRef,
   useState,
 } from "react";
 import { createPortal } from "react-dom";
-
-import { useMenuPosition } from "../../../hooks/useMenuPosition";
 
 type DropdownSection<T> = {
   items: T[];
@@ -83,6 +83,8 @@ const isNavigation = <T,>(
   props: DropdownProps<T>,
 ): props is NavigationProps<T> => !("onChange" in props);
 
+const opacityClass = (show: boolean) => (show ? "opacity-100" : "opacity-0");
+
 export function Dropdown<T>(props: DropdownProps<T>) {
   const {
     getItemKey,
@@ -98,6 +100,7 @@ export function Dropdown<T>(props: DropdownProps<T>) {
 
   const items = sections ? sections.flatMap((s) => s.items) : (itemsProp ?? []);
 
+  const [isMounted, setIsMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const triggerRef = useRef<HTMLElement>(null);
@@ -117,13 +120,13 @@ export function Dropdown<T>(props: DropdownProps<T>) {
     setIsOpen(false);
   });
 
-  useMenuPosition({ isOpen, listRef, triggerRef });
+  useMenuPosition({ isOpen: isMounted, listRef, triggerRef });
 
   useEffect(
     function applyTriggerWidth() {
       if (
         !matchTriggerWidth ||
-        !isOpen ||
+        !isMounted ||
         !triggerRef.current ||
         !listRef.current
       ) {
@@ -132,7 +135,18 @@ export function Dropdown<T>(props: DropdownProps<T>) {
       const triggerRect = triggerRef.current.getBoundingClientRect();
       listRef.current.style.width = `${triggerRect.width}px`;
     },
-    [isOpen, matchTriggerWidth],
+    [isMounted, matchTriggerWidth],
+  );
+
+  useEffect(
+    function fadeInAfterMount() {
+      if (!isMounted) {
+        return undefined;
+      }
+      const rafId = requestAnimationFrame(() => setIsOpen(true));
+      return () => cancelAnimationFrame(rafId);
+    },
+    [isMounted],
   );
 
   function isItemSelected(item: T) {
@@ -150,8 +164,22 @@ export function Dropdown<T>(props: DropdownProps<T>) {
     if (!canOpenMenu) {
       return;
     }
-    setIsOpen(!isOpen);
+    if (isMounted) {
+      setIsOpen(!isOpen);
+    } else {
+      setIsMounted(true);
+    }
     setFocusedIndex(-1);
+  }
+
+  function handleTransitionEnd(event: TransitionEvent) {
+    if (event.target !== event.currentTarget) {
+      return;
+    }
+    if (!isOpen) {
+      setIsMounted(false);
+      setFocusedIndex(-1);
+    }
   }
 
   function handleItemClick(item: T) {
@@ -299,13 +327,14 @@ export function Dropdown<T>(props: DropdownProps<T>) {
         tabIndex: 0,
       })}
 
-      {isOpen &&
+      {isMounted &&
         createPortal(
           <div
             aria-labelledby={triggerId}
-            className="fixed z-30 min-w-3xs overflow-y-auto rounded-lg bg-white p-1 shadow-xl"
+            className={`fixed z-30 min-w-3xs overflow-y-auto rounded-lg bg-white p-1 shadow-xl transition-opacity duration-300 ${opacityClass(isOpen)}`}
             onKeyDown={handleKeyDown}
             onMouseDown={(e) => e.stopPropagation()}
+            onTransitionEnd={handleTransitionEnd}
             ref={listRef}
             role={listRole}
           >
