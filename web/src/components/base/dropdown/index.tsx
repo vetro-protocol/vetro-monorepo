@@ -175,11 +175,17 @@ export function Dropdown<T>(props: DropdownProps<T>) {
     if (focusedIndex < 0 || focusedIndex >= items.length) {
       return;
     }
-    event.preventDefault();
     if (isNavigation(props)) {
-      itemRefs.current[focusedIndex]?.click();
+      // Let Enter fall through to the focused anchor's native activation so
+      // modifier keys (e.g. Cmd+Enter to open in a new tab) are preserved.
+      // Space doesn't activate anchors natively, so trigger it ourselves.
+      if (event.key === " ") {
+        event.preventDefault();
+        itemRefs.current[focusedIndex]?.click();
+      }
       return;
     }
+    event.preventDefault();
     handleItemClick(items[focusedIndex]);
   }
 
