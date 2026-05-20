@@ -2,6 +2,7 @@ import type { ComponentProps } from "react";
 
 export const ExternalLinkIcon = (props: ComponentProps<"svg">) => (
   <svg
+    aria-hidden="true"
     fill="none"
     height={8}
     viewBox="0 0 8 8"

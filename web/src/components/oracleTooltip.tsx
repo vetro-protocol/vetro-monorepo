@@ -74,7 +74,7 @@ export function OracleTooltip({
           <span className="ml-5 text-gray-400 transition-colors group-hover:text-gray-500">
             {formatEvmAddress(oracle)}
           </span>
-          <ExternalLinkIcon aria-hidden="true" />
+          <ExternalLinkIcon />
         </ExternalLink>
       }
       useParentContainer={useParentContainer}
