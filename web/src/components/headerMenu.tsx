@@ -71,7 +71,7 @@ export function HeaderMenu() {
 
   return (
     <Dropdown
-      getItemKey={(item) => item.label}
+      getItemKey={(item) => item.href ?? item.to}
       renderItem={(item) => (
         <>
           {item.icon}
