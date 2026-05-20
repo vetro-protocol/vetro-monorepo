@@ -65,7 +65,7 @@ export const ButtonIcon = ({
   ...props
 }: ButtonProps) => (
   <button
-    className={`button--base ${buttonSizePresets[size].icon} ${variants[variant]}`}
+    className={`button--base ${buttonSizePresets[size].icon} ${variants[variant]} group`}
     {...props}
   />
 );

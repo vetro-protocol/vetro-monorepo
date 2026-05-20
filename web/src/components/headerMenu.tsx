@@ -124,7 +124,7 @@ export function HeaderMenu() {
           aria-label={t("nav.header-menu.open")}
           variant="secondary"
         >
-          <EllipsisHorizontalIcon className="size-4 text-gray-500" />
+          <EllipsisHorizontalIcon className="size-4 text-gray-500 group-hover:text-gray-900 group-aria-expanded:text-gray-900" />
         </ButtonIcon>
       )}
       sections={sections}

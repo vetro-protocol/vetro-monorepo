@@ -14,7 +14,7 @@
 }
 
 .button-secondary {
-  @apply bg-white text-gray-900 shadow-sm hover:bg-gray-50;
+  @apply bg-white text-gray-900 shadow-sm hover:bg-gray-50 aria-expanded:bg-gray-50;
 }
 
 .button-secondary:focus-visible {
