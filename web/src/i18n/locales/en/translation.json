@@ -36,6 +36,15 @@
     "borrow": "Borrow",
     "bridge": "Bridge",
     "earn": "Earn",
+    "header-menu": {
+      "company": "Company",
+      "homepage": "Homepage",
+      "linkedin": "LinkedIn",
+      "open": "Open menu",
+      "socials": "Socials",
+      "terms-and-services": "Terms and Services",
+      "x": "X"
+    },
     "open-menu": "Open navigation menu",
     "swap": "Swap"
   },
@@ -429,6 +438,9 @@
         "step-2-paragraph-2_other": "Click Redeem, choose the amount, and select the stablecoin ({{allButLast}}, or {{lastSymbol}}) you want to receive.",
         "title": "How to redeem VUSD to stables"
       }
+    },
+    "terms-and-services": {
+      "title": "Vetro Terms Of Use"
     },
     "wallet": {
       "activity-empty-description-filtered": "Try adjusting your filters.",

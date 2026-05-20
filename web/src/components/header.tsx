@@ -6,6 +6,7 @@ import { useAccount } from "wagmi";
 
 import { Button, ButtonIcon } from "./base/button";
 import { I18nLink } from "./base/i18nLink";
+import { HeaderMenu } from "./headerMenu";
 import hamburgerIcon from "./icons/hamburger.svg";
 import vetroLogo from "./icons/vetroLogo.svg";
 import vetroLogoMobile from "./icons/vetroLogoMobile.svg";
@@ -13,11 +14,14 @@ import { MobileNavMenu } from "./mobileNavMenu";
 import { NavBarLinks } from "./navbar/links";
 import { WalletDrawer } from "./walletDrawer";
 
-const VetroLogo = () => (
-  <I18nLink className="mr-auto flex items-center" to="/">
-    <img alt="Vetro Logo" className="md:hidden" src={vetroLogoMobile} />
-    <img alt="Vetro Logo" className="max-md:hidden" src={vetroLogo} />
-  </I18nLink>
+const HeaderStart = () => (
+  <div className="mr-auto flex items-center gap-x-3">
+    <I18nLink className="flex items-center" to="/">
+      <img alt="Vetro Logo" className="md:hidden" src={vetroLogoMobile} />
+      <img alt="Vetro Logo" className="max-md:hidden" src={vetroLogo} />
+    </I18nLink>
+    <HeaderMenu />
+  </div>
 );
 
 export function Header() {
@@ -38,7 +42,7 @@ export function Header() {
   return (
     <>
       <div className="flex h-16 items-center gap-x-3 border-b border-gray-200 px-6 md:justify-between">
-        <VetroLogo />
+        <HeaderStart />
         <div className="hidden flex-1 justify-center xl:flex">
           <NavBarLinks />
         </div>

@@ -36,6 +36,15 @@
     "borrow": "Préstamos",
     "bridge": "Puente",
     "earn": "Earn",
+    "header-menu": {
+      "company": "Empresa",
+      "homepage": "Inicio",
+      "linkedin": "LinkedIn",
+      "open": "Abrir menú",
+      "socials": "Redes sociales",
+      "terms-and-services": "Términos y condiciones",
+      "x": "X"
+    },
     "open-menu": "Abrir menú de navegación",
     "swap": "Intercambios"
   },
@@ -438,6 +447,9 @@
         "step-2-paragraph-2_other": "Haga clic en Canjear, elija el monto y seleccione la stablecoin ({{allButLast}} o {{lastSymbol}}) que desea recibir.",
         "title": "Cómo canjear VUSD a stables"
       }
+    },
+    "terms-and-services": {
+      "title": "Términos de uso de Vetro"
     },
     "wallet": {
       "activity-empty-description-filtered": "Intente ajustar sus filtros.",
