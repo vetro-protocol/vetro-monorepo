@@ -311,7 +311,7 @@ export function Dropdown<T>(props: DropdownProps<T>) {
           >
             {menuLabel && (
               <div
-                className="text-xsm px-3 py-2 font-medium text-gray-500"
+                className="text-b-medium px-3 py-2 text-gray-500"
                 role="presentation"
               >
                 {menuLabel}
@@ -322,7 +322,7 @@ export function Dropdown<T>(props: DropdownProps<T>) {
                   <div key={section.label ?? sectionIndex}>
                     {section.label && (
                       <div
-                        className="text-xsm px-3 py-2 font-medium text-gray-500"
+                        className="text-b-medium h-7 px-3 py-1 text-gray-500"
                         role="presentation"
                       >
                         {section.label}

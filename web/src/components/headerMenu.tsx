@@ -15,7 +15,7 @@ import { XIcon } from "./icons/xIcon";
 const triggerId = "header-menu-trigger";
 
 const itemClassName =
-  "text-xsm group flex h-8 items-center gap-1.5 rounded px-3 py-2 font-medium text-gray-900 hover:bg-gray-50";
+  "text-b-medium group flex h-8 items-center gap-1.5 rounded px-3 py-2 text-gray-900 hover:bg-gray-50";
 
 const itemIconClassName = "size-4 text-gray-500 group-hover:text-gray-900";
 
