@@ -10,7 +10,7 @@ export const TermsAndServices = function () {
       <PageTitle value={t("pages.terms-and-services.title")} />
       <div className="text-b-regular flex w-full items-center justify-center gap-x-3 border-y border-gray-200 bg-gray-100 py-4 text-gray-500">
         <p>{t("pages.terms-and-services.published-by")}</p>
-        <span>·</span>
+        <span aria-hidden="true">·</span>
         <p>{t("pages.terms-and-services.last-updated")}</p>
       </div>
       <div className="text-b-regular flex flex-col gap-y-4 bg-white p-4 text-gray-500 md:px-20 md:py-12 lg:px-30">
