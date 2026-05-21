@@ -1,16 +1,24 @@
 #!/usr/bin/env bash
-# Usage: ./scripts/publish-package.sh <package-name>
+# Usage: ./scripts/publish-package.sh <package-name> <expected-version>
 # Reads packages/<pkg>/package.json for the version and publishes to npm.
+# Fails if <expected-version> (the release tag's version) doesn't match
+# package.json — guards against a manually-created tag drifting from source.
 # Idempotent: skips if the version is already on npm.
 set -euo pipefail
 
 command -v jq >/dev/null || { echo "Missing required tool: jq"; exit 1; }
 
-PKG="${1:?Usage: $0 <package-name>}"
+PKG="${1:?Usage: $0 <package-name> <expected-version>}"
+EXPECTED_VERSION="${2:?Usage: $0 <package-name> <expected-version>}"
 PKG_DIR="packages/${PKG}"
 
 PKG_NAME=$(jq -r .name "${PKG_DIR}/package.json")
 LOCAL_VERSION=$(jq -r .version "${PKG_DIR}/package.json")
+
+if [ "$EXPECTED_VERSION" != "$LOCAL_VERSION" ]; then
+  echo "Tag version (${EXPECTED_VERSION}) does not match ${PKG_DIR}/package.json version (${LOCAL_VERSION})"
+  exit 1
+fi
 
 existing=$(npm view "${PKG_NAME}@${LOCAL_VERSION}" version 2>/dev/null || echo "")
 if [ "$existing" = "$LOCAL_VERSION" ]; then
