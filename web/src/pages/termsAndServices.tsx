@@ -1,8 +1,8 @@
 import { PageTitle } from "components/base/pageTitle";
 import { useTranslation } from "react-i18next";
 
-// Terms are a legal document so they can't be translated
-// that's why they're presented in English only.
+// The body of the Terms is a legal document so it can't be translated
+// and is presented in English only.
 export const TermsAndServices = function () {
   const { t } = useTranslation();
   return (
