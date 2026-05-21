@@ -24,5 +24,4 @@ jobs:
       - name: Publish package
         run: ./scripts/publish-package.sh "${TAG%@*}"
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           TAG: ${{ github.event.release.tag_name }}

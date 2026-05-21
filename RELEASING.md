@@ -45,12 +45,13 @@ The publish script is **idempotent**: if `<name>@<version>` is already on npm, i
 
 So `pnpm add @vetro-protocol/<pkg>` always pulls the latest stable. Beta users opt in with `@vetro-protocol/<pkg>@beta`.
 
-### Provenance
+### Authentication & provenance
 
-The workflow has `id-token: write` so npm provenance attestations are generated when `publishConfig.provenance` is `true` in a package's `package.json`. Manual local publishes don't get provenance (no OIDC token outside CI).
+The workflow does not use an `NPM_TOKEN`. It authenticates to npm via **trusted publishing**: each package on npmjs.com has a trusted-publisher entry pointing at this repo and `.github/workflows/publish.yml`, and `pnpm publish` exchanges the GitHub Actions OIDC token for a short-lived registry token at publish time. That same `id-token: write` permission also signs the npm provenance attestation when `publishConfig.provenance` is `true` in a package's `package.json`.
 
 ## Adding a new publishable package
 
-1. Set `"private": false` in its `package.json` and add `publishConfig` (mirror an existing publishable package).
-2. Add its name to the `if:` allowlist in `.github/workflows/publish.yml`.
-3. First publish: either run `./scripts/release.sh <pkg>` on `master`, or do a one-time manual `pnpm -F @vetro-protocol/<pkg> publish` to claim the name on npm.
+1. On npmjs.com, configure a trusted publisher for the new package: org = `vetro-protocol` (GitHub), repo = this repo, workflow = `publish.yml`. Without this the CI publish will fail authentication.
+2. Set `"private": false` in its `package.json` and add `publishConfig` (mirror an existing publishable package).
+3. Add its name to the `if:` allowlist in `.github/workflows/publish.yml`.
+4. First publish: either run `./scripts/release.sh <pkg>` on `master`, or do a one-time manual `pnpm -F @vetro-protocol/<pkg> publish` to claim the name on npm.
