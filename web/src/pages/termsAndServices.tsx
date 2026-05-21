@@ -1002,7 +1002,7 @@ export const TermsAndServices = function () {
           <p className="italic">
             A company incorporated under the laws of the British Virgin Islands
           </p>
-          <p className="">https://vetro.org | https://app.vetro.org</p>
+          <p>https://vetro.org | https://app.vetro.org</p>
         </div>
       </div>
     </div>
