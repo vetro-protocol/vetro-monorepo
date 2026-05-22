@@ -106,7 +106,8 @@ const commonHeaders = {
 // CSP is stricter for HTML responses so it overrides the commonHeaders CSP.
 const htmlHeaders = {
   "Content-Security-Policy": csp,
-  "Cross-Origin-Opener-Policy": "same-origin",
+  // See https://docs.base.org/smart-wallet/quickstart#cross-origin-opener-policy
+  "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
   "Origin-Agent-Cluster": "?1",
   "Permissions-Policy": permissionsPolicy,
   "X-DNS-Prefetch-Control": "off",
