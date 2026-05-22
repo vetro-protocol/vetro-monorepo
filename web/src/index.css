@@ -50,7 +50,7 @@
   --spacing-17: 4.25rem; /* 68px */
   --spacing-18: 4.5rem; /* 72px */
   --spacing-26: 6.5rem; /* 104px */
-
+  --spacing-30: 7.5rem; /* 120px */
   --width-22-5: 5.625rem; /* 90px */
 }
 
@@ -101,6 +101,11 @@ If text-4xl is 2.25 rem => 4, then here 2.5 rem => 4.4 */
 @utility text-4.4xl {
   font-size: 2.5rem;
   line-height: 44px;
+}
+
+@utility scrollbar-thin {
+  scrollbar-color: rgb(212, 212, 212) transparent;
+  scrollbar-width: thin;
 }
 
 @utility animate-page-in {

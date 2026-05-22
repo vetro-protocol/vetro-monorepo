@@ -3,6 +3,7 @@ const sizeClasses = {
   xSmall: "size-3",
   small: "size-4",
   base: "size-5",
+  medium: "size-6",
   large: "size-8",
   xLarge: "size-11",
 };

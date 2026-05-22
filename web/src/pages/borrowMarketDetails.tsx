@@ -2,6 +2,7 @@ import { Breadcrumb } from "components/base/breadcrumb";
 import { Button, ButtonLink } from "components/base/button";
 import { ChevronIcon } from "components/base/chevronIcon";
 import { Dropdown } from "components/base/dropdown";
+import { I18nLink } from "components/base/i18nLink";
 import { BorrowForm } from "components/borrow/borrowForm";
 import { ExistingPositionNotice } from "components/borrow/existingPositionNotice";
 import { MarketHeader } from "components/borrow/marketHeader";
@@ -14,7 +15,6 @@ import { type MarketData, useMarketData } from "hooks/borrow/useMarketData";
 import { useMarketsData } from "hooks/borrow/useMarketsData";
 import { usePositionInfo } from "hooks/borrow/usePositionInfo";
 import { useAmount } from "hooks/useAmount";
-import { useI18nNavigate } from "hooks/useI18nNavigate";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
@@ -41,7 +41,6 @@ const BorrowMarketDetailsLoaded = function ({
 }: {
   market: MarketData;
 }) {
-  const navigate = useI18nNavigate();
   const { t } = useTranslation();
   const { data: allMarkets } = useMarketsData(marketIds);
   const otherMarkets = allMarkets.filter((m) => m.marketId !== market.marketId);
@@ -67,11 +66,25 @@ const BorrowMarketDetailsLoaded = function ({
           },
           {
             menu: (
-              <Dropdown
+              <Dropdown<MarketData>
                 getItemKey={(item) => item.marketId}
                 items={otherMarkets}
-                onChange={(item) => navigate(`/borrow/${item.marketId}`)}
                 renderItem={renderMarketItem}
+                renderItemWrapper={(
+                  { isFocused, item, onActivate, ref, tabIndex },
+                  children,
+                ) => (
+                  <I18nLink
+                    className={`text-xsm flex w-full items-center justify-between gap-2 rounded px-3 py-2 font-medium text-gray-900 focus-visible:outline-0 ${isFocused ? "bg-gray-100" : "hover:bg-gray-50"}`}
+                    onClick={onActivate}
+                    ref={ref}
+                    role="menuitem"
+                    tabIndex={tabIndex}
+                    to={`/borrow/${item.marketId}`}
+                  >
+                    {children}
+                  </I18nLink>
+                )}
                 renderTrigger={(isOpen, triggerProps) => (
                   <Button {...triggerProps} size="xSmall" variant="tertiary">
                     <TokenLogo
