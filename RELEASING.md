@@ -32,7 +32,7 @@ Nothing has hit npm yet. Review the draft on GitHub and edit the notes if you wa
 
 1. Allowlists tag prefixes `bridge@`, `earn@`, `gateway@`, `treasury@` at the job level — non-package releases (e.g. `web@<date>`, `vetro-app-subgraph@<version>`) are ignored here.
 2. Extracts the package name from the tag (`bridge@1.0.1` → `bridge`).
-3. Runs `./scripts/publish-package.sh <pkg>`, which reads the version from `packages/<pkg>/package.json` and runs `pnpm publish` (with `prepublishOnly` chaining the clean + emit step).
+3. Runs `./scripts/publish-package.sh <pkg> <version>` (both derived from the tag), which fails fast if `<version>` doesn't match `packages/<pkg>/package.json`, then runs `pnpm publish` (with `prepublishOnly` chaining the clean + emit step).
 
 The publish script is **idempotent**: if `<name>@<version>` is already on npm, it logs a skip and exits 0. Re-running a workflow on the same release is a no-op.
 
