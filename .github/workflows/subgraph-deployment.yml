@@ -1,9 +1,9 @@
 name: Subgraph Deployment
 
 on:
-  push:
-    tags:
-      - "vetro-app-subgraph@*"
+  release:
+    types:
+      - published
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
@@ -13,6 +13,7 @@ jobs:
   deploy-subgraph:
     permissions:
       contents: read
+    if: startsWith(github.event.release.tag_name, 'vetro-app-subgraph@')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5

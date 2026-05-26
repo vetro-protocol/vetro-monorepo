@@ -61,7 +61,8 @@ Sample response:
 
 ## Deployment
 
-The first deployment has to be done manually by [@jcvernaleo](https://github.com/jcvernaleo).
+The first deployment was done manually by [@jcvernaleo](https://github.com/jcvernaleo).
 
 For subsequent deployments, apply a `vetro-app-subgraph@[version]` tag to the proper commit in the `master` branch by running `pnpm run tag` and push it.
-Once the subgraph is deployed and indexed, ask [@jcvernaleo](https://github.com/jcvernaleo) for publishing.
+Then create and publish a new release.
+Once the subgraph is deployed, ask [@jcvernaleo](https://github.com/jcvernaleo) to publish it.
