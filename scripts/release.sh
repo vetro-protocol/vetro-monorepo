@@ -69,9 +69,11 @@ echo
 read -rp "Create draft release ${TAG}? [y/N] " ok
 [ "$ok" = "y" ] || exit 1
 
-git tag "${TAG}"
-git push origin "${TAG}"
-gh release create "${TAG}" --title "${TAG}" --notes "$NOTES" --draft
+# Don't create the tag now: a draft release holds the tag NAME and only
+# materializes the git ref on publish. --target pins which commit the tag will
+# point at (the workflows trigger on 'release: published' and check out the tag).
+# This way, abandoning the draft leaves no orphan tag on origin.
+gh release create "${TAG}" --title "${TAG}" --notes "$NOTES" --draft --target "$(git rev-parse HEAD)"
 
 echo
 echo "Draft release created. Review at:"
