@@ -5,7 +5,7 @@ import react from "@vitejs/plugin-react";
 import { defineConfig, type UserConfig } from "vite";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 
-const config: UserConfig = {
+const config = {
   build: {
     // "hidden" generates source maps for Sentry but strips sourceMappingURL
     // from the output so browsers can't discover them. "true" also serves them
@@ -24,12 +24,12 @@ const config: UserConfig = {
   resolve: {
     tsconfigPaths: true,
   },
-};
+} satisfies UserConfig;
 
 if (process.env.VITE_DEPLOY_ENV) {
   // Sentry plugin shall be last to ensure source maps are generated correctly
   // and tree-shaking doesn't remove Sentry's instrumentation.
-  config.plugins?.push(
+  config.plugins.push(
     sentryVitePlugin({
       authToken: process.env.SENTRY_AUTH_TOKEN,
       org: "hemi-labs",
