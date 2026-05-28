@@ -1,6 +1,6 @@
 {
   "name": "@vetro-protocol/treasury",
-  "version": "1.0.0-beta",
+  "version": "1.0.0",
   "description": "Vetro Protocol treasury actions for viem.",
   "license": "MIT",
   "files": [

@@ -1,6 +1,6 @@
 {
   "name": "@vetro-protocol/bridge",
-  "version": "1.0.0-beta",
+  "version": "1.0.0",
   "description": "Vetro Protocol bridge actions for viem (LayerZero V2 OFT).",
   "license": "MIT",
   "files": [
