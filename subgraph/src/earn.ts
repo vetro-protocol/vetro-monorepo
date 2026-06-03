@@ -54,6 +54,7 @@ export function handleBlock(block: ethereum.Block): void {
   const oneShare = BigInt.fromI32(10).pow(<u8>decimals);
   const shareValue = vault.convertToAssets(oneShare);
   entity.shareValue = shareValue;
+  entity.totalAssets = vault.totalAssets();
 
   entity.save();
 }
