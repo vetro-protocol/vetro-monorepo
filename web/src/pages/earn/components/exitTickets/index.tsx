@@ -9,11 +9,10 @@ import { Table } from "components/base/table";
 import { Header } from "components/base/table/header";
 import { TopSection } from "components/base/table/topSection";
 import { Toast } from "components/base/toast";
-import { useActivityTracking } from "hooks/useActivityTracking";
-import { useClaimWithdrawBatch } from "hooks/useClaimWithdrawBatch";
 import { TableCellsIcon } from "pages/earn/icons/tableCellsIcon";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import type { Address } from "viem";
 import { useAccount } from "wagmi";
 
 import { useExitTickets } from "../../hooks/useExitTickets";
@@ -26,6 +25,7 @@ import { EmptyState } from "./emptyState";
 import { getTicketStatus } from "./getTicketStatus";
 import { TxsCell } from "./txsCell";
 import { WithdrawalCell } from "./withdrawalCell";
+import { type VaultWithdrawal, WithdrawAllDrawer } from "./withdrawAllDrawer";
 
 const statusLabels = {
   cooldown: "pages.earn.exit-tickets.cooldown-in-progress",
@@ -102,20 +102,79 @@ const getColumns = ({
   },
 ];
 
-// TODO we'll update this in the next PR to add support to
-// exit tickets from multiple vaults - hardcoding to one for the time being
+// The empty-state CTA is not vault-specific; it just needs a vault to link to.
 const stakingVaultAddress = stakingVaultAddresses[0];
+
+type WithdrawAllButtonProps = {
+  count: number;
+  disabled: boolean;
+  isWithdrawing: boolean;
+  onWithdrawAll: VoidFunction;
+};
+
+function WithdrawAllButton({
+  count,
+  disabled,
+  isWithdrawing,
+  onWithdrawAll,
+}: WithdrawAllButtonProps) {
+  const { isConnected } = useAccount();
+  const { openConnectModal } = useConnectModal();
+  const { t } = useTranslation();
+
+  if (!isConnected) {
+    return (
+      <Button onClick={openConnectModal} size="xSmall" variant="primary">
+        {t("common.connect-wallet")}
+      </Button>
+    );
+  }
+
+  return (
+    <Button
+      disabled={disabled}
+      onClick={onWithdrawAll}
+      size="xSmall"
+      variant="primary"
+    >
+      <span className="invisible flex items-center gap-x-1">
+        {t("pages.earn.exit-tickets.withdraw-all")}
+        {count > 0 && <Badge variant="blue">{count}</Badge>}
+      </span>
+      <span className="absolute flex items-center gap-x-1">
+        {isWithdrawing
+          ? t("pages.earn.exit-tickets.withdrawing")
+          : t("pages.earn.exit-tickets.withdraw-all")}
+        {!isWithdrawing && count > 0 && <Badge variant="blue">{count}</Badge>}
+      </span>
+    </Button>
+  );
+}
+
+// Group ready tickets by staking vault: one claim transaction per vault.
+function groupByVault(readyTickets: ExitTicket[]) {
+  const map = new Map<Address, VaultWithdrawal>();
+  for (const ticket of readyTickets) {
+    const entry = map.get(ticket.stakingVaultAddress) ?? {
+      amount: 0n,
+      requestIds: [],
+      stakingVaultAddress: ticket.stakingVaultAddress,
+    };
+    entry.amount += BigInt(ticket.assets);
+    entry.requestIds.push(BigInt(ticket.requestId));
+    map.set(ticket.stakingVaultAddress, entry);
+  }
+  return [...map.values()];
+}
 
 export function ExitTickets() {
   const { data, isLoading } = useExitTickets();
   const { t } = useTranslation();
-  const { isConnected } = useAccount();
-  const { openConnectModal } = useConnectModal();
   const [selectedFilters, setSelectedFilters] = useState([
     "completed",
     "pending",
   ]);
-  const [isWithdrawingAll, setIsWithdrawingAll] = useState(false);
+  const [isWithdrawAllDrawerOpen, setIsWithdrawAllDrawerOpen] = useState(false);
   const [showDeleteToast, setShowDeleteToast] = useState(false);
   const [showWithdrawAllToast, setShowWithdrawAllToast] = useState(false);
   const [withdrawingSingleCount, setWithdrawingSingleCount] = useState(0);
@@ -124,38 +183,6 @@ export function ExitTickets() {
     () => (data ?? []).filter((ticket) => getTicketStatus(ticket) === "ready"),
     [data],
   );
-
-  const readyRequestIds = useMemo(
-    () => readyTickets.map((ticket) => BigInt(ticket.requestId)),
-    [readyTickets],
-  );
-
-  const { onCompleted, onFailed, onPending, onTransactionHash } =
-    useActivityTracking({
-      page: "earn",
-      text: t("pages.earn.activity.claim-withdraw-batch-text"),
-      title: `${t("nav.earn")} · ${t("pages.earn.exit-tickets.withdraw-all")}`,
-    });
-
-  const { mutate: claimWithdrawBatch } = useClaimWithdrawBatch({
-    onStatusChange(status) {
-      const handlers: Partial<Record<typeof status, () => void>> = {
-        claiming: onPending,
-        completed() {
-          onCompleted();
-          setIsWithdrawingAll(false);
-          setShowWithdrawAllToast(true);
-        },
-        failed() {
-          onFailed();
-          setIsWithdrawingAll(false);
-        },
-      };
-      handlers[status]?.();
-    },
-    onTransactionHash,
-    requestIds: readyRequestIds,
-  });
 
   const filterOptions = useMemo(
     () => [
@@ -174,7 +201,7 @@ export function ExitTickets() {
   const columns = useMemo(
     () =>
       getColumns({
-        isWithdrawingAll,
+        isWithdrawingAll: isWithdrawAllDrawerOpen,
         onDeleteSuccess() {
           setShowDeleteToast(true);
         },
@@ -183,7 +210,7 @@ export function ExitTickets() {
         },
         t,
       }),
-    [isWithdrawingAll, t],
+    [isWithdrawAllDrawerOpen, t],
   );
 
   // Filter and sort data based on selected filters and ticket status
@@ -219,11 +246,6 @@ export function ExitTickets() {
     [data, selectedFilters],
   );
 
-  function handleWithdrawAll() {
-    setIsWithdrawingAll(true);
-    claimWithdrawBatch();
-  }
-
   return (
     <div id="exit-tickets">
       {/* Title row */}
@@ -242,37 +264,16 @@ export function ExitTickets() {
             selectedValues={selectedFilters}
           />
           <div className="h-3 w-0.5 rounded-full bg-gray-200" />
-          {isConnected ? (
-            <Button
-              disabled={
-                readyTickets.length === 0 ||
-                isWithdrawingAll ||
-                withdrawingSingleCount > 0
-              }
-              onClick={handleWithdrawAll}
-              size="xSmall"
-              variant="primary"
-            >
-              <span className="invisible flex items-center gap-x-1">
-                {t("pages.earn.exit-tickets.withdraw-all")}
-                {readyTickets.length > 0 && (
-                  <Badge variant="blue">{readyTickets.length}</Badge>
-                )}
-              </span>
-              <span className="absolute flex items-center gap-x-1">
-                {isWithdrawingAll
-                  ? t("pages.earn.exit-tickets.withdrawing")
-                  : t("pages.earn.exit-tickets.withdraw-all")}
-                {!isWithdrawingAll && readyTickets.length > 0 && (
-                  <Badge variant="blue">{readyTickets.length}</Badge>
-                )}
-              </span>
-            </Button>
-          ) : (
-            <Button onClick={openConnectModal} size="xSmall" variant="primary">
-              {t("common.connect-wallet")}
-            </Button>
-          )}
+          <WithdrawAllButton
+            count={readyTickets.length}
+            disabled={
+              readyTickets.length === 0 ||
+              isWithdrawAllDrawerOpen ||
+              withdrawingSingleCount > 0
+            }
+            isWithdrawing={isWithdrawAllDrawerOpen}
+            onWithdrawAll={() => setIsWithdrawAllDrawerOpen(true)}
+          />
         </div>
       </TopSection>
       {/* Table */}
@@ -285,6 +286,13 @@ export function ExitTickets() {
         placeholder={<EmptyState stakingVaultAddress={stakingVaultAddress} />}
         priorityColumnIdsOnSmall={["actions"]}
       />
+      {isWithdrawAllDrawerOpen && (
+        <WithdrawAllDrawer
+          onClose={() => setIsWithdrawAllDrawerOpen(false)}
+          onSuccess={() => setShowWithdrawAllToast(true)}
+          withdrawals={groupByVault(readyTickets)}
+        />
+      )}
       {showDeleteToast && (
         <Toast
           closable
