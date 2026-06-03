@@ -88,6 +88,19 @@ export const useClaimWithdrawBatch = function ({
 
         let failed = false;
 
+        // The action never rejects: it funnels every failure through an event
+        // and resolves the promise regardless. So each terminal failure must be
+        // flagged here, otherwise the loop would treat the vault as successful,
+        // advance to the next one, and report the whole batch as complete.
+        const markFailed = function () {
+          failed = true;
+          onStatusChange({
+            peggedToken,
+            stakingVaultAddress,
+            status: "failed",
+          });
+        };
+
         emitter.on("user-signed-claim-withdraw-batch", function (hash) {
           onTransactionHash?.({ hash, stakingVaultAddress });
           onStatusChange({
@@ -97,25 +110,16 @@ export const useClaimWithdrawBatch = function ({
           });
         });
 
-        emitter.on("user-signing-claim-withdraw-batch-error", function () {
-          failed = true;
-          onStatusChange({
-            peggedToken,
-            stakingVaultAddress,
-            status: "failed",
-          });
-        });
+        emitter.on("user-signing-claim-withdraw-batch-error", markFailed);
+        emitter.on("claim-withdraw-batch-failed", markFailed);
+        emitter.on("claim-withdraw-batch-failed-validation", markFailed);
+        emitter.on("unexpected-error", markFailed);
 
         emitter.on(
           "claim-withdraw-batch-transaction-reverted",
           function (receipt) {
-            failed = true;
             updateNativeBalanceAfterReceipt(receipt);
-            onStatusChange({
-              peggedToken,
-              stakingVaultAddress,
-              status: "failed",
-            });
+            markFailed();
           },
         );
 
