@@ -36,7 +36,11 @@ const receiverAddress = Address.fromString(receiverAddressString);
 
 const daySeconds = BigInt.fromI32(86400);
 
-function mockVaultCalls(decimals: i32, shareValue: BigInt): void {
+function mockVaultCalls(
+  decimals: i32,
+  shareValue: BigInt,
+  totalAssets: BigInt,
+): void {
   createMockedFunction(vaultAddress, "decimals", "decimals():(uint8)")
     .withArgs([])
     .returns([ethereum.Value.fromI32(decimals)]);
@@ -49,6 +53,10 @@ function mockVaultCalls(decimals: i32, shareValue: BigInt): void {
   )
     .withArgs([ethereum.Value.fromUnsignedBigInt(oneShare)])
     .returns([ethereum.Value.fromUnsignedBigInt(shareValue)]);
+
+  createMockedFunction(vaultAddress, "totalAssets", "totalAssets():(uint256)")
+    .withArgs([])
+    .returns([ethereum.Value.fromUnsignedBigInt(totalAssets)]);
 }
 
 describe("handleBlock", function () {
@@ -60,9 +68,10 @@ describe("handleBlock", function () {
   test("creates VaultHistory for day timestamp", function () {
     const decimals = 18;
     const currentShareValue = BigInt.fromString("1050000000000000000"); // 1.05 assets per share
+    const currentTotalAssets = BigInt.fromString("5000000000000000000000"); // 5000 assets
     const timestamp = BigInt.fromI32(1769731200); // 2026-01-30 00:00:00 UTC
 
-    mockVaultCalls(decimals, currentShareValue);
+    mockVaultCalls(decimals, currentShareValue, currentTotalAssets);
     const block = createMockBlock(BigInt.fromI32(100), timestamp);
     handleBlock(block);
 
@@ -84,6 +93,12 @@ describe("handleBlock", function () {
     assert.fieldEquals(
       "VaultHistory",
       id,
+      "totalAssets",
+      currentTotalAssets.toString(),
+    );
+    assert.fieldEquals(
+      "VaultHistory",
+      id,
       "stakingVaultAddress",
       vaultAddressString,
     );
@@ -93,10 +108,12 @@ describe("handleBlock", function () {
     const decimals = 18;
     const initialShareValue = BigInt.fromString("1050000000000000000");
     const updatedShareValue = BigInt.fromString("1060000000000000000");
+    const initialTotalAssets = BigInt.fromString("5000000000000000000000");
+    const updatedTotalAssets = BigInt.fromString("6000000000000000000000");
     const timestamp1 = BigInt.fromI32(1769734800); // 2026-01-30 01:00:00 UTC
     const timestamp2 = BigInt.fromI32(1769774400); // 2026-01-30 12:00:00 UTC
 
-    mockVaultCalls(decimals, initialShareValue);
+    mockVaultCalls(decimals, initialShareValue, initialTotalAssets);
     const block1 = createMockBlock(BigInt.fromI32(100), timestamp1);
     handleBlock(block1);
 
@@ -104,7 +121,7 @@ describe("handleBlock", function () {
     const id = `${vaultAddressString}-${dayTimestamp.toString()}`;
     assert.entityCount("VaultHistory", 1);
 
-    mockVaultCalls(decimals, updatedShareValue);
+    mockVaultCalls(decimals, updatedShareValue, updatedTotalAssets);
     const block2 = createMockBlock(BigInt.fromI32(200), timestamp2);
     handleBlock(block2);
 
@@ -114,6 +131,12 @@ describe("handleBlock", function () {
       id,
       "shareValue",
       updatedShareValue.toString(),
+    );
+    assert.fieldEquals(
+      "VaultHistory",
+      id,
+      "totalAssets",
+      updatedTotalAssets.toString(),
     );
     assert.fieldEquals(
       "VaultHistory",
