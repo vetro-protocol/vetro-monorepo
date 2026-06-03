@@ -137,11 +137,7 @@ function WithdrawAllButton({
       size="xSmall"
       variant="primary"
     >
-      <span className="invisible flex items-center gap-x-1">
-        {t("pages.earn.exit-tickets.withdraw-all")}
-        {count > 0 && <Badge variant="blue">{count}</Badge>}
-      </span>
-      <span className="absolute flex items-center gap-x-1">
+      <span className="flex items-center gap-x-1">
         {isWithdrawing
           ? t("pages.earn.exit-tickets.withdrawing")
           : t("pages.earn.exit-tickets.withdraw-all")}
