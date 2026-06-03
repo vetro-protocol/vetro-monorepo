@@ -3,32 +3,44 @@ import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
 import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpdateNativeBalanceAfterReceipt";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { claimWithdrawBatch } from "@vetro-protocol/earn/actions";
 import { exitTicketsQueryKey } from "pages/earn/hooks/useExitTickets";
 import type { ExitTicket } from "pages/earn/types";
+import type { TokenWithGateway } from "types";
+import type { Address } from "viem";
 import { useAccount } from "wagmi";
 
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { useMainnet } from "./useMainnet";
 import { stakedBalanceQueryKey } from "./useStakedBalance";
+import { vaultPeggedTokenQueryOptions } from "./useVaultPeggedToken";
 
 type ClaimWithdrawBatchStatus = "claiming" | "completed" | "failed";
 
-type Params = {
-  onStatusChange: (status: ClaimWithdrawBatchStatus) => void;
-  onTransactionHash?: (hash: string) => void;
+type Withdrawal = {
   requestIds: bigint[];
+  stakingVaultAddress: Address;
 };
 
-// TODO using the only staking vault address to simplify this PR
-// we will handle multiple addresses in the next PR
-const stakingVaultAddress = stakingVaultAddresses[0];
+type Params = {
+  onStatusChange: (args: {
+    peggedToken: TokenWithGateway;
+    stakingVaultAddress: Address;
+    status: ClaimWithdrawBatchStatus;
+  }) => void;
+  // Fires once the whole batch claims without any vault failing: the mutationFn
+  // throws on the first failure, so a successful settle means every vault is done.
+  onSuccess?: VoidFunction;
+  onTransactionHash?: (args: {
+    hash: string;
+    stakingVaultAddress: Address;
+  }) => void;
+};
 
 export const useClaimWithdrawBatch = function ({
   onStatusChange,
+  onSuccess,
   onTransactionHash,
-  requestIds,
 }: Params) {
   const { address: account } = useAccount();
   const chain = useMainnet();
@@ -41,83 +53,140 @@ export const useClaimWithdrawBatch = function ({
     chain.id,
   );
 
-  const sharesBalanceKey = tokenBalanceQueryKey(
-    { address: stakingVaultAddress, chainId: chain.id },
-    account,
-  );
-
-  const stakedKey = stakedBalanceQueryKey({
-    account: account!,
-    chainId: chain.id,
-    stakingVaultAddress,
-  });
-
-  const requestIdStrings = requestIds.map((id) => id.toString());
-
   return useMutation({
-    async mutationFn() {
+    async mutationFn(withdrawals: Withdrawal[]) {
       if (!account) {
         throw new Error("No account connected");
+      }
+      if (!walletClient) {
+        throw new Error("No wallet client");
       }
 
       await ensureConnectedTo(chain.id);
 
-      const { emitter, promise } = claimWithdrawBatch(walletClient!, {
-        receiver: account,
-        requestIds,
-        vaultAddress: stakingVaultAddress,
-      });
+      // One transaction per staking vault, run sequentially so the drawer can
+      // reflect progress step by step and so each transaction lands as its own
+      // activity entry.
+      for (const { requestIds, stakingVaultAddress } of withdrawals) {
+        // Resolve the vault's pegged token before claiming so every status
+        // change (and the activity entry it drives) has the token metadata.
+        const peggedToken = await queryClient.ensureQueryData(
+          vaultPeggedTokenQueryOptions({
+            client: walletClient,
+            queryClient,
+            stakingVaultAddress,
+          }),
+        );
 
-      emitter.on("user-signed-claim-withdraw-batch", function (hash) {
-        onTransactionHash?.(hash);
-        onStatusChange("claiming");
-      });
+        const { emitter, promise } = claimWithdrawBatch(walletClient, {
+          receiver: account,
+          requestIds,
+          vaultAddress: stakingVaultAddress,
+        });
 
-      emitter.on("user-signing-claim-withdraw-batch-error", function () {
-        onStatusChange("failed");
-      });
+        let failed = false;
 
-      emitter.on(
-        "claim-withdraw-batch-transaction-reverted",
-        function (receipt) {
-          updateNativeBalanceAfterReceipt(receipt);
-          onStatusChange("failed");
-        },
-      );
+        // The action never rejects: it funnels every failure through an event
+        // and resolves the promise regardless. So each terminal failure must be
+        // flagged here, otherwise the loop would treat the vault as successful,
+        // advance to the next one, and report the whole batch as complete.
+        const markFailed = function () {
+          failed = true;
+          onStatusChange({
+            peggedToken,
+            stakingVaultAddress,
+            status: "failed",
+          });
+        };
 
-      emitter.on(
-        "claim-withdraw-batch-transaction-succeeded",
-        function (receipt) {
-          updateNativeBalanceAfterReceipt(receipt);
-          onStatusChange("completed");
+        emitter.on("user-signed-claim-withdraw-batch", function (hash) {
+          onTransactionHash?.({ hash, stakingVaultAddress });
+          onStatusChange({
+            peggedToken,
+            stakingVaultAddress,
+            status: "claiming",
+          });
+        });
 
-          // Optimistically mark all claimed tickets as withdrawn
-          queryClient.setQueryData(
-            exitTicketsQueryKey(account),
-            (old: ExitTicket[] | undefined) =>
-              (old ?? []).map((t) =>
-                requestIdStrings.includes(t.requestId)
-                  ? { ...t, claimTxHash: receipt.transactionHash }
-                  : t,
-              ),
+        emitter.on("user-signing-claim-withdraw-batch-error", markFailed);
+        emitter.on("claim-withdraw-batch-failed", markFailed);
+        emitter.on("claim-withdraw-batch-failed-validation", markFailed);
+        emitter.on("unexpected-error", markFailed);
+
+        emitter.on(
+          "claim-withdraw-batch-transaction-reverted",
+          function (receipt) {
+            updateNativeBalanceAfterReceipt(receipt);
+            markFailed();
+          },
+        );
+
+        emitter.on(
+          "claim-withdraw-batch-transaction-succeeded",
+          function (receipt) {
+            updateNativeBalanceAfterReceipt(receipt);
+            onStatusChange({
+              peggedToken,
+              stakingVaultAddress,
+              status: "completed",
+            });
+
+            const requestIdStrings = requestIds.map((id) => id.toString());
+
+            // Optimistically mark this vault's claimed tickets as withdrawn so
+            // they leave the ready list even if a later vault fails.
+            queryClient.setQueryData(
+              exitTicketsQueryKey(account),
+              (old: ExitTicket[] | undefined) =>
+                (old ?? []).map((t) =>
+                  requestIdStrings.includes(t.requestId)
+                    ? { ...t, claimTxHash: receipt.transactionHash }
+                    : t,
+                ),
+            );
+          },
+        );
+
+        await promise;
+
+        // Stop the flow on failure so the user can retry the remaining vaults.
+        if (failed) {
+          throw new Error(
+            `Claim withdraw batch failed for vault ${stakingVaultAddress}`,
           );
-        },
-      );
-
-      return promise;
+        }
+      }
     },
-    async onSettled() {
+    async onSettled(_data, _error, withdrawals) {
       queryClient.invalidateQueries({
         queryKey: nativeBalanceKey,
       });
 
-      await queryClient.invalidateQueries({
-        queryKey: sharesBalanceKey,
-      });
+      // Refetch (not just invalidate) each vault's shares balance: it feeds
+      // useStakedBalance via ensureQueryData and has no mounted observer, so
+      // invalidation alone would leave the staked balance recomputing from
+      // stale shares.
+      await Promise.all(
+        withdrawals.map(({ stakingVaultAddress }) =>
+          queryClient.refetchQueries({
+            queryKey: tokenBalanceQueryKey(
+              { address: stakingVaultAddress, chainId: chain.id },
+              account,
+            ),
+          }),
+        ),
+      );
 
-      queryClient.invalidateQueries({
-        queryKey: stakedKey,
-      });
+      withdrawals.forEach(({ stakingVaultAddress }) =>
+        queryClient.invalidateQueries({
+          queryKey: stakedBalanceQueryKey({
+            account: account!,
+            chainId: chain.id,
+            stakingVaultAddress,
+          }),
+        }),
+      );
     },
+    onSuccess,
   });
 };
