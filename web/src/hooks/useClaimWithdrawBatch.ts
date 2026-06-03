@@ -162,9 +162,13 @@ export const useClaimWithdrawBatch = function ({
         queryKey: nativeBalanceKey,
       });
 
+      // Refetch (not just invalidate) each vault's shares balance: it feeds
+      // useStakedBalance via ensureQueryData and has no mounted observer, so
+      // invalidation alone would leave the staked balance recomputing from
+      // stale shares.
       await Promise.all(
         withdrawals.map(({ stakingVaultAddress }) =>
-          queryClient.invalidateQueries({
+          queryClient.refetchQueries({
             queryKey: tokenBalanceQueryKey(
               { address: stakingVaultAddress, chainId: chain.id },
               account,
