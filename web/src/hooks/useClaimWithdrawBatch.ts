@@ -10,7 +10,6 @@ import type { TokenWithGateway } from "types";
 import type { Address } from "viem";
 import { useAccount } from "wagmi";
 
-import { useEthereumClient } from "./useEthereumClient";
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { useMainnet } from "./useMainnet";
 import { stakedBalanceQueryKey } from "./useStakedBalance";
@@ -45,7 +44,6 @@ export const useClaimWithdrawBatch = function ({
 }: Params) {
   const { address: account } = useAccount();
   const chain = useMainnet();
-  const client = useEthereumClient();
   const { data: walletClient } = useEthereumWalletClient();
   const ensureConnectedTo = useEnsureConnectedTo();
   const queryClient = useQueryClient();
@@ -74,7 +72,7 @@ export const useClaimWithdrawBatch = function ({
         // change (and the activity entry it drives) has the token metadata.
         const peggedToken = await queryClient.ensureQueryData(
           vaultPeggedTokenQueryOptions({
-            client,
+            client: walletClient,
             queryClient,
             stakingVaultAddress,
           }),
