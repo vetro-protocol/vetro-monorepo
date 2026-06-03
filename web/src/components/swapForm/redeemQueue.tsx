@@ -23,10 +23,10 @@ import { formatUnits, isAddressEqual, parseUnits } from "viem";
 
 import { CancelRedeemModal } from "./cancelRedeemModal";
 import { ClaimRedeemDrawer } from "./claimRedeemDrawer";
-import { type ClaimRedeemFlowStatus } from "./claimRedeemProgressDrawer";
 import { RedeemQueueEmptyState } from "./redeemQueueEmptyState";
 import { RedeemQueueTable } from "./redeemQueueTable";
 import { RedeemQueueToasts } from "./redeemQueueToasts";
+import { type ClaimRedeemFlowStatus } from "./types";
 
 type Props = {
   peggedToken: TokenWithGateway;

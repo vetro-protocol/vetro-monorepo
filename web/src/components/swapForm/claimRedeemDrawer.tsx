@@ -8,9 +8,9 @@ import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
 import type { Address } from "viem";
 
-import { type ClaimRedeemFlowStatus } from "./claimRedeemProgressDrawer";
 import type { UnitPreview } from "./outputLabel";
 import type { SwapFees } from "./swapFees";
+import { type ClaimRedeemFlowStatus } from "./types";
 
 const ClaimRedeemProgressDrawer = lazy(() =>
   import("./claimRedeemProgressDrawer").then((m) => ({
