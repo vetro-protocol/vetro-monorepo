@@ -221,7 +221,7 @@ export function WithdrawAllProgressDrawer({
       <div className="flex-1" />
 
       <div className="flex flex-col gap-2 px-6 pb-6">
-        <p className="text-[11px] leading-4 font-medium tracking-wide text-gray-500">
+        <p className="text-caption text-gray-500">
           {t("pages.earn.exit-tickets.withdraw-all-progress.progress-label")}
         </p>
         <div className="border-t border-gray-200">
