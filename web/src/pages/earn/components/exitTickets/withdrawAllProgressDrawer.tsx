@@ -75,8 +75,8 @@ type RowProps = {
 
 const Row = ({ amount, peggedToken, status }: RowProps) => (
   <div
-    className={`flex items-start justify-between p-6 ${
-      status === "pending" ? "opacity-50" : ""
+    className={`flex items-start justify-between bg-gray-50 p-6 ${
+      status === "pending" ? "opacity-40" : ""
     }`}
   >
     <div className="flex flex-col gap-y-2">
@@ -89,13 +89,7 @@ const Row = ({ amount, peggedToken, status }: RowProps) => (
               isError: false,
             })}
           </span>
-          <span
-            className={
-              status === "completed" ? "text-gray-500" : "text-gray-900"
-            }
-          >
-            {peggedToken.symbol}
-          </span>
+          <span className="text-gray-500">{peggedToken.symbol}</span>
         </p>
         <TokenLogo {...peggedToken} size="large" />
       </div>
@@ -121,7 +115,7 @@ function VaultRow({ amount, stakingVaultAddress, status }: VaultRowProps) {
 
   if (isError) {
     return (
-      <div className="flex items-center justify-between p-6">
+      <div className="flex items-center justify-between bg-gray-50 p-6">
         <span className="text-4xl leading-10 font-semibold text-gray-300">
           -
         </span>
@@ -132,7 +126,7 @@ function VaultRow({ amount, stakingVaultAddress, status }: VaultRowProps) {
 
   if (!peggedToken) {
     return (
-      <div className="flex items-center justify-between p-6">
+      <div className="flex items-center justify-between bg-gray-50 p-6">
         <Skeleton className="h-10 w-40" />
       </div>
     );
@@ -207,7 +201,7 @@ export function WithdrawAllProgressDrawer({
         {t("pages.earn.exit-tickets.withdraw-all-progress.title")}
       </DrawerTitle>
 
-      <div className="divide-y divide-gray-200 border-y border-gray-200 bg-gray-50">
+      <div className="divide-y divide-gray-200 border-y border-gray-200">
         {vaults.map((vault) => (
           <VaultRow
             amount={vault.amount}
