@@ -145,6 +145,30 @@ describe("handleBlock", function () {
       dayTimestamp.toString(),
     );
   });
+
+  test("skips the block when convertToAssets reverts (empty vault)", function () {
+    // An empty vault (zero total supply) makes convertToAssets revert with a
+    // divide-by-zero panic. The handler must skip the block, not abort.
+    const decimals = 18;
+    const oneShare = BigInt.fromI32(10).pow(<u8>decimals);
+    const timestamp = BigInt.fromI32(1769731200); // 2026-01-30 00:00:00 UTC
+
+    createMockedFunction(vaultAddress, "decimals", "decimals():(uint8)")
+      .withArgs([])
+      .returns([ethereum.Value.fromI32(decimals)]);
+    createMockedFunction(
+      vaultAddress,
+      "convertToAssets",
+      "convertToAssets(uint256):(uint256)",
+    )
+      .withArgs([ethereum.Value.fromUnsignedBigInt(oneShare)])
+      .reverts();
+
+    const block = createMockBlock(BigInt.fromI32(100), timestamp);
+    handleBlock(block);
+
+    assert.entityCount("VaultHistory", 0);
+  });
 });
 
 describe("handleDeposit", function () {
@@ -764,6 +788,42 @@ describe("handleTransfer", function () {
     );
 
     const id = `${vaultAddressString}-${ownerAddressString}`;
+    assert.fieldEquals("UserStakingPosition", id, "shares", "0");
+    assert.fieldEquals("UserStakingPosition", id, "totalCostBasis", "0");
+  });
+
+  test("keeps shares at 0 on transfer-out from a zero-share position (no divide-by-zero)", function () {
+    // Setup: owner deposits then transfers everything out, leaving a position
+    // with shares=0. A further non-zero transfer-out (tracked shares diverged
+    // from on-chain balance) must reset to zero instead of dividing by zero.
+    handleDeposit(
+      createDepositEvent(
+        BigInt.fromString("120000000000000000000"),
+        ownerAddress,
+        ownerAddress,
+        BigInt.fromString("100000000000000000000"),
+      ),
+    );
+    handleTransfer(
+      createTransferEvent(
+        ownerAddress,
+        receiverAddress,
+        BigInt.fromString("100000000000000000000"),
+      ),
+    );
+
+    const id = `${vaultAddressString}-${ownerAddressString}`;
+    assert.fieldEquals("UserStakingPosition", id, "shares", "0");
+
+    // Transfer-out of 30 while tracked shares are 0.
+    handleTransfer(
+      createTransferEvent(
+        ownerAddress,
+        receiverAddress,
+        BigInt.fromString("30000000000000000000"),
+      ),
+    );
+
     assert.fieldEquals("UserStakingPosition", id, "shares", "0");
     assert.fieldEquals("UserStakingPosition", id, "totalCostBasis", "0");
   });
