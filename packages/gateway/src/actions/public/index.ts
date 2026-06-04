@@ -1,3 +1,4 @@
+export * from "./getGateway.js";
 export * from "./getMaxWithdraw.js";
 export * from "./getMintFee.js";
 export * from "./getPeggedToken.js";

@@ -1,6 +1,7 @@
 import type { Client, WalletClient } from "viem";
 
 import {
+  getGateway,
   getMaxWithdraw,
   getMintFee,
   getPeggedToken,
@@ -45,6 +46,8 @@ export {
 
 // Export factory functions for .extend() pattern
 export const gatewayPublicActions = () => (client: Client) => ({
+  getGateway: (params: Parameters<typeof getGateway>[1]) =>
+    getGateway(client, params),
   getMaxWithdraw: (params: Parameters<typeof getMaxWithdraw>[1]) =>
     getMaxWithdraw(client, params),
   getMintFee: (params: Parameters<typeof getMintFee>[1]) =>
