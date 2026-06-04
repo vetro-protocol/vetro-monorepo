@@ -12,6 +12,7 @@ import {
   isInstantRedeemWhitelisted,
   previewDeposit,
   previewRedeem,
+  previewWithdraw,
 } from "./actions/public/index.js";
 import {
   type CancelRedeemRequestParams,
@@ -68,6 +69,8 @@ export const gatewayPublicActions = () => (client: Client) => ({
     previewDeposit(client, params),
   previewRedeem: (params: Parameters<typeof previewRedeem>[1]) =>
     previewRedeem(client, params),
+  previewWithdraw: (params: Parameters<typeof previewWithdraw>[1]) =>
+    previewWithdraw(client, params),
 });
 
 export const gatewayWalletActions = () => (client: WalletClient) => ({
