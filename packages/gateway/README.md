@@ -61,6 +61,7 @@ The same actions are also available via `.extend()` factories (`gatewayPublicAct
 - Public actions (reads):
   - `previewDeposit(client, params)` — expected pegged-token output for a deposit.
   - `previewRedeem(client, params)` — expected underlying output for a redeem.
+  - `previewWithdraw(client, params)` — pegged-token input required to withdraw an exact `amountOut` of the underlying (inverse of `previewRedeem`, with `redeemFee` applied on-chain).
   - `getMintFee(client, params)` / `getRedeemFee(client, params)` — current fees.
   - `getMaxWithdraw(client, params)` — maximum withdrawable amount.
   - `getPeggedToken(client, params)` — pegged-token address minted by the gateway.

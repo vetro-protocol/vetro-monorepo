@@ -9,3 +9,4 @@ export * from "./getWithdrawalDelayEnabled.js";
 export * from "./isInstantRedeemWhitelisted.js";
 export * from "./previewDeposit.js";
 export * from "./previewRedeem.js";
+export * from "./previewWithdraw.js";
