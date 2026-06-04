@@ -19,13 +19,7 @@ import { OutputLabel, type UnitPreview } from "./outputLabel";
 import { SwapFees } from "./swapFees";
 import { ToTokenBalance } from "./toTokenBalance";
 import { TreasuryReserves } from "./treasuryReserves";
-
-export type ClaimRedeemFlowStatus =
-  | "idle"
-  | "redeem-error"
-  | "redeem-ready"
-  | "redeemed"
-  | "redeeming";
+import type { ClaimRedeemFlowStatus } from "./types";
 
 type Props = {
   amountBigInt: bigint;

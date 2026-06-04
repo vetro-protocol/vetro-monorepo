@@ -149,7 +149,7 @@ function ModalContent<T extends Token>({
         </>
       )}
       <div
-        className="scrollbar-thin mt-4 -mr-4 -mb-6 flex flex-1 flex-col overflow-y-auto pt-px pr-4 pl-px md:-mr-6 md:pr-6"
+        className="mt-4 -mr-4 -mb-6 flex flex-1 scrollbar-thin flex-col overflow-y-auto pt-px pr-4 pl-px md:-mr-6 md:pr-6"
         onScroll={(event) => setIsScrolled(event.currentTarget.scrollTop > 0)}
       >
         {showEmpty ? (

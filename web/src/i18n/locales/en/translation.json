@@ -227,7 +227,6 @@
     "earn": {
       "activity": {
         "cancel-withdraw-text": "{{amount}} {{symbol}} exit ticket deleted",
-        "claim-withdraw-batch-text": "All withdrawals claimed",
         "claim-withdraw-text": "{{amount}} {{symbol}} withdrawn",
         "deposit-text": "{{amount}} {{symbol}} staked",
         "instant-withdraw-text": "{{amount}} {{symbol}} withdrawn",
@@ -273,6 +272,12 @@
         "view-settings": "View settings",
         "withdraw": "Withdraw",
         "withdraw-all": "Withdraw all",
+        "withdraw-all-progress": {
+          "progress-label": "Withdraw progress",
+          "step-description": "Review the details and confirm the withdrawal in your wallet.",
+          "step-title": "Confirm {{symbol}} withdrawal",
+          "title": "Withdrawing all exit tickets"
+        },
         "withdraw-all-toast-description": "All ready exit tickets have been withdrawn to your wallet.",
         "withdraw-all-toast-title": "All withdrawals complete",
         "withdraw-toast-description": "Your funds have been successfully withdrawn to your wallet.",

@@ -3,6 +3,7 @@ type VaultHistory @entity(immutable: false) {
   shareValue: BigInt!
   stakingVaultAddress: Bytes!
   timestamp: BigInt! # Timestamp fixed to YYYY-MM-DD 00:00:00 UTC
+  totalAssets: BigInt! # Total underlying assets held by the vault (ERC4626 totalAssets)
 }
 
 type ExitTicket @entity(immutable: false) {

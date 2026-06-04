@@ -1,6 +1,6 @@
 {
   "name": "@vetro-protocol/bridge",
-  "version": "1.0.0-beta",
+  "version": "1.0.0",
   "description": "Vetro Protocol bridge actions for viem (LayerZero V2 OFT).",
   "license": "MIT",
   "files": [
@@ -10,6 +10,11 @@
     "_types",
     "src"
   ],
+  "repository": {
+    "directory": "packages/bridge",
+    "type": "git",
+    "url": "git+https://github.com/vetro-protocol/vetro-monorepo.git"
+  },
   "scripts": {
     "build": "tsc --noEmit",
     "build:esm": "tsc -p tsconfig.build.json --outDir ./_esm --sourceMap",
