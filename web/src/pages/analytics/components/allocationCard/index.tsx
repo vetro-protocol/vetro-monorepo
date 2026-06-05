@@ -38,7 +38,7 @@ export const AllocationCard = function ({
   return (
     <div className="flex flex-1 flex-col only:border-x only:border-gray-200">
       <div className="px-6 md:px-14">
-        <div className="flex flex-col gap-3 border-t border-blue-500 py-6">
+        <div className="flex -translate-y-px flex-col gap-3 border-t border-blue-500 py-6">
           <div className="flex items-center justify-between">
             <span className="text-b-medium text-gray-900">{label}</span>
             <div className="size-4">{icon}</div>
