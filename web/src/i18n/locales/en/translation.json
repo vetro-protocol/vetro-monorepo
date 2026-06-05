@@ -42,7 +42,7 @@
       "linkedin": "LinkedIn",
       "open": "Open menu",
       "socials": "Socials",
-      "terms-and-services": "Terms and Services",
+      "terms-of-use": "Terms of Use",
       "x": "X"
     },
     "open-menu": "Open navigation menu",
@@ -444,7 +444,7 @@
         "title": "How to redeem VUSD to stables"
       }
     },
-    "terms-and-services": {
+    "terms-of-use": {
       "last-updated": "Last updated: May 18th, 2026",
       "published-by": "Published by Vetro Service & Support Ltd.",
       "title": "Vetro Terms Of Use"
