@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 import { formatFiatNumber } from "utils/format";
 
-const DollarSign = () => <span className="mr-1">$</span>;
+const DollarSign = () => <span>$</span>;
 
 type FeeData = {
   data: bigint | undefined;
