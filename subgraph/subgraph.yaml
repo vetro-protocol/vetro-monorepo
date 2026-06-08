@@ -37,6 +37,9 @@ dataSources:
           handler: handleWithdrawRequested
       blockHandlers:
         - handler: handleBlock
+          filter:
+            kind: polling
+            every: 300 # blocks in 1h
       file: ./src/earn.ts
   - kind: ethereum
     name: sVetBTCStakingVault
@@ -71,4 +74,7 @@ dataSources:
           handler: handleWithdrawRequested
       blockHandlers:
         - handler: handleBlock
+          filter:
+            kind: polling
+            every: 300 # blocks in 1h
       file: ./src/earn.ts
