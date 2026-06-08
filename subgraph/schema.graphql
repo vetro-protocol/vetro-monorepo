@@ -34,3 +34,8 @@ type UserStakingPosition @entity(immutable: false) {
   stakingVaultAddress: Bytes!
   totalCostBasis: BigInt! # WAD-scaled (36 decimals when asset has 18 decimals)
 }
+
+type VaultConfig @entity(immutable: true) {
+  id: Bytes! # vault address
+  decimals: Int!
+}

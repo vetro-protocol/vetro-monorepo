@@ -4,6 +4,7 @@ import {
   ExitTicket,
   ExitTicketQueueSummary,
   UserStakingPosition,
+  VaultConfig,
   VaultHistory,
 } from "../generated/schema";
 import {
@@ -41,10 +42,22 @@ export function handleBlock(block: ethereum.Block): void {
   const dayTimestamp = block.timestamp.div(daySeconds).times(daySeconds);
 
   const vaultAddress = dataSource.address();
-
   const vault = StakingVault.bind(vaultAddress);
-  const decimals = vault.decimals();
-  const oneShare = BigInt.fromI32(10).pow(<u8>decimals);
+
+  // Calling decimals() on the StakingVault contract will always result in the
+  // same value. It is set on initialize() and cannot be changed afterwards.
+  // Caching it in its own entity avoids calling decimals() on every block,
+  // speeding up the handler and reducing sync time. The contract is upgradeable
+  // but changing the decimals is highly unlikely as it would break many other
+  // things downstream.
+  let vaultConfig = VaultConfig.load(vaultAddress);
+  if (vaultConfig == null) {
+    vaultConfig = new VaultConfig(vaultAddress);
+    vaultConfig.decimals = vault.decimals();
+    vaultConfig.save();
+  }
+
+  const oneShare = BigInt.fromI32(10).pow(<u8>vaultConfig.decimals);
   const shareValueResult = vault.try_convertToAssets(oneShare);
   // Empty vault (zero total supply): convertToAssets reverts with a divide-by-zero
   // panic. Skip recording history for this block rather than aborting the handler.

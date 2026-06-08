@@ -19,6 +19,7 @@ dataSources:
         - ExitTicket
         - ExitTicketQueueSummary
         - UserStakingPosition
+        - VaultConfig
         - VaultHistory
       abis:
         - name: StakingVault
@@ -52,6 +53,7 @@ dataSources:
         - ExitTicket
         - ExitTicketQueueSummary
         - UserStakingPosition
+        - VaultConfig
         - VaultHistory
       abis:
         - name: StakingVault

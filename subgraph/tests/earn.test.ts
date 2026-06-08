@@ -169,6 +169,39 @@ describe("handleBlock", function () {
 
     assert.entityCount("VaultHistory", 0);
   });
+
+  test("creates VaultConfig on first block and reuses it on subsequent blocks", function () {
+    const decimals = 18;
+    const shareValue = BigInt.fromString("1050000000000000000");
+    const totalAssets = BigInt.fromString("5000000000000000000000");
+    const timestamp1 = BigInt.fromI32(1769731200); // day 1
+    const timestamp2 = BigInt.fromI32(1769817600); // day 2
+
+    mockVaultCalls(decimals, shareValue, totalAssets);
+    const block1 = createMockBlock(BigInt.fromI32(100), timestamp1);
+    handleBlock(block1);
+
+    // VaultConfig entity should be created with the correct decimals
+    assert.entityCount("VaultConfig", 1);
+    assert.fieldEquals(
+      "VaultConfig",
+      vaultAddressString,
+      "decimals",
+      decimals.toString(),
+    );
+
+    // Second block: decimals() mock is not needed anymore since VaultConfig is cached.
+    // Re-mock only convertToAssets and totalAssets for the second block.
+    const updatedShareValue = BigInt.fromString("1060000000000000000");
+    const updatedTotalAssets = BigInt.fromString("6000000000000000000000");
+    mockVaultCalls(decimals, updatedShareValue, updatedTotalAssets);
+    const block2 = createMockBlock(BigInt.fromI32(200), timestamp2);
+    handleBlock(block2);
+
+    // Still only one VaultConfig entity
+    assert.entityCount("VaultConfig", 1);
+    assert.entityCount("VaultHistory", 2);
+  });
 });
 
 describe("handleDeposit", function () {
