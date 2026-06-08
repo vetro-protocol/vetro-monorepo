@@ -3,15 +3,15 @@ import { useTranslation } from "react-i18next";
 
 // The body of the Terms is a legal document so it can't be translated
 // and is presented in English only.
-export const TermsAndServices = function () {
+export const TermsOfUse = function () {
   const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center">
-      <PageTitle value={t("pages.terms-and-services.title")} />
+      <PageTitle value={t("pages.terms-of-use.title")} />
       <div className="text-b-regular flex w-full items-center justify-center gap-x-3 border-y border-gray-200 bg-gray-100 py-4 text-gray-500">
-        <p>{t("pages.terms-and-services.published-by")}</p>
+        <p>{t("pages.terms-of-use.published-by")}</p>
         <span aria-hidden="true">·</span>
-        <p>{t("pages.terms-and-services.last-updated")}</p>
+        <p>{t("pages.terms-of-use.last-updated")}</p>
       </div>
       <div className="text-b-regular flex flex-col gap-y-4 bg-white p-4 text-gray-500 md:px-20 md:py-12 lg:px-30">
         <p>
