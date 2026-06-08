@@ -1,4 +1,4 @@
-type VaultHistory @entity(immutable: false) {
+type VaultHistory @entity(immutable: true) {
   id: ID!
   shareValue: BigInt!
   stakingVaultAddress: Bytes!
