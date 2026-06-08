@@ -286,10 +286,10 @@ importers:
         version: 1.0.2(patch_hash=933b0ee20c3f95b39d12cd9f25e1175fef9353a7ef2d91378cafd55f2efec0fc)
       '@morpho-org/blue-sdk':
         specifier: 6.0.1
-        version: 6.0.1(@morpho-org/morpho-ts@2.5.0)
+        version: 6.0.1(@morpho-org/morpho-ts@2.5.3)
       '@morpho-org/blue-sdk-viem':
         specifier: 5.0.1
-        version: 5.0.1(@morpho-org/blue-sdk@6.0.1(@morpho-org/morpho-ts@2.5.0))(@morpho-org/morpho-ts@2.5.0)(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
+        version: 5.0.1(@morpho-org/blue-sdk@6.0.1(@morpho-org/morpho-ts@2.5.3))(@morpho-org/morpho-ts@2.5.3)(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
       '@rainbow-me/rainbowkit':
         specifier: 2.2.10
         version: 2.2.10(@tanstack/react-query@5.90.19(react@19.2.3))(@types/react@19.2.9)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@5.9.3)(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))(wagmi@2.19.5(@tanstack/query-core@5.90.19)(@tanstack/react-query@5.90.19(react@19.2.3))(@types/react@19.2.9)(bufferutil@4.1.0)(encoding@0.1.13)(react@19.2.3)(typescript@5.9.3)(utf-8-validate@5.0.10)(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))(zod@4.3.5))
@@ -1785,8 +1785,8 @@ packages:
     peerDependencies:
       '@morpho-org/morpho-ts': ^2.5.1
 
-  '@morpho-org/morpho-ts@2.5.0':
-    resolution: {integrity: sha512-eU0DYR5fJoacOEfHVNdQxt5wYCwjF7/YXGudPhpBrzd3M4ejPS0Gv3Gkr3imUiMKeIA6IBzRLuw7qiFAsqXvxA==, tarball: https://registry.npmjs.org/@morpho-org/morpho-ts/-/morpho-ts-2.5.0.tgz}
+  '@morpho-org/morpho-ts@2.5.3':
+    resolution: {integrity: sha512-DA6D8fx2ZdUogI7+lE0QY9PpnGPfc9bNbO02fovhuMHtSnNgjjBd4eNLgm9TmuShXJQ1wWxNxP2I7AoZ9ItTFg==, tarball: https://registry.npmjs.org/@morpho-org/morpho-ts/-/morpho-ts-2.5.3.tgz}
 
   '@multiformats/dns@1.0.13':
     resolution: {integrity: sha512-yr4bxtA3MbvJ+2461kYIYMsiiZj/FIqKI64hE4SdvWJUdWF9EtZLar38juf20Sf5tguXKFUruluswAO6JsjS2w==, tarball: https://registry.npmjs.org/@multiformats/dns/-/dns-1.0.13.tgz}
@@ -10358,22 +10358,22 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@morpho-org/blue-sdk-viem@5.0.1(@morpho-org/blue-sdk@6.0.1(@morpho-org/morpho-ts@2.5.0))(@morpho-org/morpho-ts@2.5.0)(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))':
+  '@morpho-org/blue-sdk-viem@5.0.1(@morpho-org/blue-sdk@6.0.1(@morpho-org/morpho-ts@2.5.3))(@morpho-org/morpho-ts@2.5.3)(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))':
     dependencies:
-      '@morpho-org/blue-sdk': 6.0.1(@morpho-org/morpho-ts@2.5.0)
-      '@morpho-org/morpho-ts': 2.5.0
+      '@morpho-org/blue-sdk': 6.0.1(@morpho-org/morpho-ts@2.5.3)
+      '@morpho-org/morpho-ts': 2.5.3
       viem: 2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)
 
-  '@morpho-org/blue-sdk@6.0.1(@morpho-org/morpho-ts@2.5.0)':
+  '@morpho-org/blue-sdk@6.0.1(@morpho-org/morpho-ts@2.5.3)':
     dependencies:
-      '@morpho-org/morpho-ts': 2.5.0
+      '@morpho-org/morpho-ts': 2.5.3
       '@noble/hashes': 2.2.0
       '@types/lodash.isplainobject': 4.0.9
       '@types/lodash.mergewith': 4.6.9
       lodash.isplainobject: 4.0.6
       lodash.mergewith: 4.6.2
 
-  '@morpho-org/morpho-ts@2.5.0': {}
+  '@morpho-org/morpho-ts@2.5.3': {}
 
   '@multiformats/dns@1.0.13':
     dependencies:
