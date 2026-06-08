@@ -72,81 +72,87 @@ export function PegStabilityCard({ peggedToken, peggedTokenError }: Props) {
   const isError = peggedTokenError || isHistoryError;
 
   return (
-    <div className="flex-1 px-3 py-6 md:px-14">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <span className="text-b-medium text-gray-900">
-          {t("pages.analytics.peg-stability-label")}
-        </span>
-        <SegmentedControl
-          onChange={setPeriod}
-          options={shareValueHistoryPeriods.map((p) => ({
-            label: t(periodLabelKeys[p]),
-            value: p,
-          }))}
-          size="xs"
-          value={period}
-          variant="pill"
-        />
-      </div>
-      <div
-        className="relative mt-6 md:mt-8"
-        ref={chartContainerRef}
-        style={{ height: chartHeight }}
-      >
-        {isError ? (
-          <div className="flex h-full items-center justify-center">
-            {isHistoryError ? (
-              <Button onClick={() => refetch()} size="xSmall" variant="primary">
-                {t("common.charts.reload-chart")}
-              </Button>
-            ) : (
-              <span className="text-gray-500">-</span>
-            )}
-          </div>
-        ) : chartData === undefined ? (
-          <Skeleton height={chartHeight} />
-        ) : (
-          <VictoryChart
-            containerComponent={
-              <VictoryVoronoiContainer
-                labelComponent={
-                  <VictoryTooltip
-                    constrainToVisibleArea
-                    cornerRadius={8}
-                    flyoutPadding={{ bottom: 8, left: 12, right: 12, top: 8 }}
-                    flyoutStyle={{ fill: "white", stroke: "#E5E7EB" }}
-                    pointerLength={0}
-                    style={{ fontSize: 11 }}
-                  />
-                }
-                labels={({ datum }: { datum: { x: number; y: number } }) =>
-                  `${formatDate(datum.x / 1000, i18n.language)}  ${formatShareValue(datum.y)}`
+    <div className="flex-1 px-3 md:px-14">
+      <div className="-translate-y-px border-t border-blue-500 py-6">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <span className="text-b-medium text-gray-900">
+            {t("pages.analytics.peg-stability-label")}
+          </span>
+          <SegmentedControl
+            onChange={setPeriod}
+            options={shareValueHistoryPeriods.map((p) => ({
+              label: t(periodLabelKeys[p]),
+              value: p,
+            }))}
+            size="xs"
+            value={period}
+            variant="pill"
+          />
+        </div>
+        <div
+          className="relative mt-6 md:mt-8"
+          ref={chartContainerRef}
+          style={{ height: chartHeight }}
+        >
+          {isError ? (
+            <div className="flex h-full items-center justify-center">
+              {isHistoryError ? (
+                <Button
+                  onClick={() => refetch()}
+                  size="xSmall"
+                  variant="primary"
+                >
+                  {t("common.charts.reload-chart")}
+                </Button>
+              ) : (
+                <span className="text-gray-500">-</span>
+              )}
+            </div>
+          ) : chartData === undefined ? (
+            <Skeleton height={chartHeight} />
+          ) : (
+            <VictoryChart
+              containerComponent={
+                <VictoryVoronoiContainer
+                  labelComponent={
+                    <VictoryTooltip
+                      constrainToVisibleArea
+                      cornerRadius={8}
+                      flyoutPadding={{ bottom: 8, left: 12, right: 12, top: 8 }}
+                      flyoutStyle={{ fill: "white", stroke: "#E5E7EB" }}
+                      pointerLength={0}
+                      style={{ fontSize: 11 }}
+                    />
+                  }
+                  labels={({ datum }: { datum: { x: number; y: number } }) =>
+                    `${formatDate(datum.x / 1000, i18n.language)}  ${formatShareValue(datum.y)}`
+                  }
+                />
+              }
+              height={chartHeight}
+              padding={chartPadding}
+              width={chartWidth || undefined}
+            >
+              <VictoryAxis
+                style={xAxisStyle}
+                tickCount={4}
+                tickFormat={(tick: number) =>
+                  formatShortDate(tick / 1000, i18n.language)
                 }
               />
-            }
-            height={chartHeight}
-            padding={chartPadding}
-            width={chartWidth || undefined}
-          >
-            <VictoryAxis
-              style={xAxisStyle}
-              tickCount={4}
-              tickFormat={(tick: number) =>
-                formatShortDate(tick / 1000, i18n.language)
-              }
-            />
-            <VictoryAxis
-              dependentAxis
-              style={yAxisStyle}
-              tickFormat={formatShareValue}
-            />
-            <VictoryLine
-              data={chartData}
-              interpolation="linear"
-              style={{ data: { stroke: "#416BFF", strokeWidth: 2 } }}
-            />
-          </VictoryChart>
-        )}
+              <VictoryAxis
+                dependentAxis
+                style={yAxisStyle}
+                tickFormat={formatShareValue}
+              />
+              <VictoryLine
+                data={chartData}
+                interpolation="linear"
+                style={{ data: { stroke: "#416BFF", strokeWidth: 2 } }}
+              />
+            </VictoryChart>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -42,7 +42,7 @@
       "linkedin": "LinkedIn",
       "open": "Abrir menú",
       "socials": "Redes sociales",
-      "terms-and-services": "Términos y condiciones",
+      "terms-of-use": "Términos de uso",
       "x": "X"
     },
     "open-menu": "Abrir menú de navegación",
@@ -281,8 +281,8 @@
           "step-title": "Confirmar retiro de {{symbol}}",
           "title": "Retirando todos los tickets de salida"
         },
-        "withdraw-all-toast-description": "Todos los tickets de salida listos han sido retirados a su billetera.",
-        "withdraw-all-toast-title": "Todos los retiros completados",
+        "withdraw-all-toast-description": "Sus tickets de salida han sido retirados exitosamente.",
+        "withdraw-all-toast-title": "Todos los tickets de salida retirados",
         "withdraw-toast-description": "Sus fondos han sido retirados exitosamente a su billetera.",
         "withdraw-toast-title": "Retiro completado",
         "withdrawal-amount": "{{amount}} {{symbol}}",
@@ -453,7 +453,7 @@
         "title": "Cómo canjear VUSD a stables"
       }
     },
-    "terms-and-services": {
+    "terms-of-use": {
       "last-updated": "Última actualización: 18 de mayo de 2026",
       "published-by": "Publicado por Vetro Service & Support Ltd.",
       "title": "Términos de uso de Vetro"

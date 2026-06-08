@@ -1,6 +1,7 @@
 import type { Client, WalletClient } from "viem";
 
 import {
+  getGateway,
   getMaxWithdraw,
   getMintFee,
   getPeggedToken,
@@ -12,6 +13,7 @@ import {
   isInstantRedeemWhitelisted,
   previewDeposit,
   previewRedeem,
+  previewWithdraw,
 } from "./actions/public/index.js";
 import {
   type CancelRedeemRequestParams,
@@ -44,6 +46,8 @@ export {
 
 // Export factory functions for .extend() pattern
 export const gatewayPublicActions = () => (client: Client) => ({
+  getGateway: (params: Parameters<typeof getGateway>[1]) =>
+    getGateway(client, params),
   getMaxWithdraw: (params: Parameters<typeof getMaxWithdraw>[1]) =>
     getMaxWithdraw(client, params),
   getMintFee: (params: Parameters<typeof getMintFee>[1]) =>
@@ -68,6 +72,8 @@ export const gatewayPublicActions = () => (client: Client) => ({
     previewDeposit(client, params),
   previewRedeem: (params: Parameters<typeof previewRedeem>[1]) =>
     previewRedeem(client, params),
+  previewWithdraw: (params: Parameters<typeof previewWithdraw>[1]) =>
+    previewWithdraw(client, params),
 });
 
 export const gatewayWalletActions = () => (client: WalletClient) => ({

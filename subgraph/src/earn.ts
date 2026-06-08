@@ -41,6 +41,17 @@ export function handleBlock(block: ethereum.Block): void {
   const dayTimestamp = block.timestamp.div(daySeconds).times(daySeconds);
 
   const vaultAddress = dataSource.address();
+
+  const vault = StakingVault.bind(vaultAddress);
+  const decimals = vault.decimals();
+  const oneShare = BigInt.fromI32(10).pow(<u8>decimals);
+  const shareValueResult = vault.try_convertToAssets(oneShare);
+  // Empty vault (zero total supply): convertToAssets reverts with a divide-by-zero
+  // panic. Skip recording history for this block rather than aborting the handler.
+  if (shareValueResult.reverted) {
+    return;
+  }
+
   const id = buildId(vaultAddress, dayTimestamp.toString());
   let entity = VaultHistory.load(id);
   if (entity == null) {
@@ -49,11 +60,7 @@ export function handleBlock(block: ethereum.Block): void {
     entity.stakingVaultAddress = vaultAddress;
   }
 
-  const vault = StakingVault.bind(vaultAddress);
-  const decimals = vault.decimals();
-  const oneShare = BigInt.fromI32(10).pow(<u8>decimals);
-  const shareValue = vault.convertToAssets(oneShare);
-  entity.shareValue = shareValue;
+  entity.shareValue = shareValueResult.value;
   entity.totalAssets = vault.totalAssets();
 
   entity.save();
@@ -102,8 +109,10 @@ export function handleTransfer(event: Transfer): void {
   const fromId = buildId(vaultAddress, event.params.from.toHexString());
   const fromEntity = UserStakingPosition.load(fromId)!;
 
-  if (fromEntity.shares.equals(value)) {
-    // All shares transferred out: reset to zero.
+  if (fromEntity.shares.le(value)) {
+    // All shares transferred out (or tracked shares already at/below the
+    // transferred amount): reset to zero. Guarding with `<=` also keeps the
+    // proportional branch below from dividing by a zero `fromEntity.shares`.
     fromEntity.shares = BigInt.fromI32(0);
     fromEntity.totalCostBasis = BigInt.fromI32(0);
   } else {

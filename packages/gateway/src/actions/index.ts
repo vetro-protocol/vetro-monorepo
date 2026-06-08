@@ -1,4 +1,5 @@
 // Export all public actions
+export * from "./public/getGateway.js";
 export * from "./public/getMaxWithdraw.js";
 export * from "./public/getPeggedToken.js";
 export * from "./public/getMintFee.js";
@@ -10,6 +11,7 @@ export * from "./public/getWithdrawalDelay.js";
 export * from "./public/isInstantRedeemWhitelisted.js";
 export * from "./public/previewDeposit.js";
 export * from "./public/previewRedeem.js";
+export * from "./public/previewWithdraw.js";
 
 // Export all wallet actions
 export * from "./wallet/cancelRedeemRequest.js";

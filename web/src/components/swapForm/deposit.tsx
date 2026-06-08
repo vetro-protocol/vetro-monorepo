@@ -294,6 +294,7 @@ export function Deposit({
       </FormSection>
       <RedeemQueueSection
         peggedToken={toToken}
+        showTopBorder={amountBigInt !== 0n}
         whitelistedTokens={whitelistedTokens}
       />
       {isDrawerOpen && flowStatus !== "idle" && (

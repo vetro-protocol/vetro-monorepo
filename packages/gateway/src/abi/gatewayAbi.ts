@@ -100,6 +100,16 @@ export const gatewayAbi = [
     type: "function",
   },
   {
+    inputs: [
+      { name: "tokenOut_", type: "address" },
+      { name: "amountOut_", type: "uint256" },
+    ],
+    name: "previewWithdraw",
+    outputs: [{ type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "cancelRedeemRequest",
     outputs: [],

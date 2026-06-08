@@ -61,8 +61,8 @@ export function HeaderMenu() {
       items: [
         {
           icon: <DocumentIcon className={itemIconClassName} />,
-          label: t("nav.header-menu.terms-and-services"),
-          to: "/terms-and-services",
+          label: t("nav.header-menu.terms-of-use"),
+          to: "/terms-of-use",
         },
       ],
       label: t("nav.header-menu.company"),
