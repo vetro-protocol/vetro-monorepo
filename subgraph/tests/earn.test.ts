@@ -122,6 +122,29 @@ describe("handleBlock", function () {
     const id = `${vaultAddressString}-${previousDayTimestamp.toString()}`;
     assert.entityCount("VaultHistory", 1);
 
+    // Re-mock with different values so that if the handler skips the
+    // early-return and re-runs RPC calls, it would overwrite the entity and
+    // break the assertions below.
+    const oneShare = BigInt.fromI32(10).pow(<u8>decimals);
+    createMockedFunction(
+      vaultAddress,
+      "convertToAssets",
+      "convertToAssets(uint256):(uint256)",
+    )
+      .withArgs([ethereum.Value.fromUnsignedBigInt(oneShare)])
+      .returns([
+        ethereum.Value.fromUnsignedBigInt(
+          BigInt.fromString("1100000000000000000"),
+        ),
+      ]);
+    createMockedFunction(vaultAddress, "totalAssets", "totalAssets():(uint256)")
+      .withArgs([])
+      .returns([
+        ethereum.Value.fromUnsignedBigInt(
+          BigInt.fromString("6000000000000000000000"),
+        ),
+      ]);
+
     // Second block on the same day: early-returns without RPC calls
     const block2 = createMockBlock(BigInt.fromI32(200), timestamp2);
     handleBlock(block2);
