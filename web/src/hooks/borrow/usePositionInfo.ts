@@ -1,5 +1,5 @@
 import { type MarketId } from "@morpho-org/blue-sdk";
-import { AccrualPosition } from "@morpho-org/blue-sdk-viem/lib/augment/Position";
+import { fetchAccrualPosition } from "@morpho-org/blue-sdk-viem";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import type { Address, Chain, Client, Hash } from "viem";
 import { useAccount } from "wagmi";
@@ -31,7 +31,7 @@ export const positionInfoOptions = ({
   queryOptions({
     enabled: !!client && !!account,
     queryFn: () =>
-      AccrualPosition.fetch(account!, marketId as MarketId, client!),
+      fetchAccrualPosition(account!, marketId as MarketId, client!),
     queryKey: positionInfoQueryKey({ account, chainId, marketId }),
   });
 

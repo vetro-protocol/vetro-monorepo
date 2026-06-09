@@ -36,3 +36,12 @@ publicHoistPattern:
   - "*eslint*"
 
 trustPolicy: no-downgrade
+
+# semver@6.3.1 (pulled in transitively via @sentry/vite-plugin ->
+# @babel/core -> @babel/helper-compilation-targets) was published without
+# provenance attestation, while earlier 6.x releases had it, so our
+# `trustPolicy: no-downgrade` rejects it. It is a widely-used, long-published
+# version already present in the committed lockfile; allowlist it so installs
+# can resolve.
+trustPolicyExclude:
+  - "semver@6.3.1"
