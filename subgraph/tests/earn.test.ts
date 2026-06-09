@@ -211,10 +211,11 @@ describe("handleBlock", function () {
     );
 
     // Second block on a new day: VaultConfig is reused from the store.
-    // Intentionally omit decimals() mock — if the if (vaultConfig == null)
-    // guard were removed, the handler would call decimals() again and fail with
-    // a missing-mock error, making this test a true regression guard for the
-    // cache.
+    // Override the existing decimals() mock to revert; if handleBlock calls
+    // decimals() again instead of using the cached VaultConfig, the test fails.
+    createMockedFunction(vaultAddress, "decimals", "decimals():(uint8)")
+      .withArgs([])
+      .reverts();
     const updatedShareValue = BigInt.fromString("1060000000000000000");
     const updatedTotalAssets = BigInt.fromString("6000000000000000000000");
     const oneShare = BigInt.fromI32(10).pow(<u8>decimals);
