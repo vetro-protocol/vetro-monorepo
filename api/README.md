@@ -143,6 +143,23 @@ Valid periods are: `"1w"`, `"1m"`, `"3m"` and `"1y"`.
 ]
 ```
 
+### `GET /variable-stake/total-deposits-history/:stakingVaultAddress/:period`
+
+Returns the historical total deposits for a staking vault over the given period — the vault's total underlying pegged token holdings (ERC4626 `totalAssets`), i.e. the same value shown as "Pool deposits" on the Earn page. One entry per UTC day. Results across multiple subgraph pages are concatenated, so long windows return their full history (e.g. `"1y"` may include up to ~366 entries).
+Valid periods are: `"1w"`, `"1m"`, `"3m"` and `"1y"`.
+`:stakingVaultAddress` must be a known staking vault. Returns `400` if malformed and `404` if the address is not a known staking vault.
+`totalDeposits` is the raw `uint256` amount in the pegged token's base units (not pre-scaled); format it with the token's decimals on the client. `timestamp` is the UTC day-start in milliseconds.
+
+#### Sample Response for "1w"
+
+```jsonc
+[
+  { "totalDeposits": "5000000000000000000000", "timestamp": 1707782400000 },
+  { "totalDeposits": "5100000000000000000000", "timestamp": 1707868800000 },
+  // ...more records...
+]
+```
+
 ### `GET /variable-stake/rewards/:address`
 
 Returns all user's rewards from the Merkl campaigns related to Vetro, indexed by staking vault address. Each supported staking vault has an entry in the response, with an empty array if the user has no rewards for that vault.

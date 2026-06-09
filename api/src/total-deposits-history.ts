@@ -1,16 +1,17 @@
-import { type Address, formatUnits } from "viem";
+import { type Address } from "viem";
 
 import { paginateSubgraphQuery } from "./paginate-subgraph-query.ts";
 import { getPeriodStart } from "./vault-history-period.ts";
 
-type Row = { shareValue: string; timestamp: string };
+type Row = { timestamp: string; totalAssets: string };
 
 /**
- * Query the subgraph for the share value history of a staking vault over the
+ * Query the subgraph for the total deposits (ERC4626 totalAssets, i.e. the
+ * vault's underlying pegged token balance) history of a staking vault over the
  * given period. Paginates over the subgraph's 100-result page cap so that long
  * windows (e.g. "1y", up to ~366 daily entries) are returned in full.
  */
-export async function getShareValueHistory({
+export async function getTotalDepositsHistory({
   period,
   stakingVaultAddress,
   url,
@@ -18,7 +19,7 @@ export async function getShareValueHistory({
   period: string;
   stakingVaultAddress: Address;
   url: string;
-}): Promise<{ shareValue: number; timestamp: number }[]> {
+}): Promise<{ timestamp: number; totalDeposits: string }[]> {
   const stakingVault = stakingVaultAddress.toLowerCase();
   const start = getPeriodStart(period);
   const query = `
@@ -33,8 +34,8 @@ export async function getShareValueHistory({
           timestamp_gte: $start
         }
       ) {
-        shareValue
         timestamp
+        totalAssets
       }
     }`;
 
@@ -50,7 +51,7 @@ export async function getShareValueHistory({
   });
 
   return all.map((h) => ({
-    shareValue: Number(formatUnits(BigInt(h.shareValue), 18)),
     timestamp: Number.parseInt(h.timestamp, 10) * 1000,
+    totalDeposits: h.totalAssets,
   }));
 }
