@@ -65,7 +65,7 @@ describe("handleBlock", function () {
     dataSourceMock.setAddress(vaultAddressString);
   });
 
-  test("creates VaultHistory for day timestamp", function () {
+  test("creates VaultHistory for previous day timestamp", function () {
     const decimals = 18;
     const currentShareValue = BigInt.fromString("1050000000000000000"); // 1.05 assets per share
     const currentTotalAssets = BigInt.fromString("5000000000000000000000"); // 5000 assets
@@ -75,14 +75,16 @@ describe("handleBlock", function () {
     const block = createMockBlock(BigInt.fromI32(100), timestamp);
     handleBlock(block);
 
+    // Entity is stored under the previous day's timestamp
     const dayTimestamp = timestamp.div(daySeconds).times(daySeconds);
-    const id = `${vaultAddressString}-${dayTimestamp.toString()}`;
+    const previousDayTimestamp = dayTimestamp.minus(daySeconds);
+    const id = `${vaultAddressString}-${previousDayTimestamp.toString()}`;
     assert.entityCount("VaultHistory", 1);
     assert.fieldEquals(
       "VaultHistory",
       id,
       "timestamp",
-      dayTimestamp.toString(),
+      previousDayTimestamp.toString(),
     );
     assert.fieldEquals(
       "VaultHistory",
@@ -104,12 +106,10 @@ describe("handleBlock", function () {
     );
   });
 
-  test("updates VaultHistory on same day", function () {
+  test("skips subsequent blocks on the same day", function () {
     const decimals = 18;
     const initialShareValue = BigInt.fromString("1050000000000000000");
-    const updatedShareValue = BigInt.fromString("1060000000000000000");
     const initialTotalAssets = BigInt.fromString("5000000000000000000000");
-    const updatedTotalAssets = BigInt.fromString("6000000000000000000000");
     const timestamp1 = BigInt.fromI32(1769734800); // 2026-01-30 01:00:00 UTC
     const timestamp2 = BigInt.fromI32(1769774400); // 2026-01-30 12:00:00 UTC
 
@@ -118,31 +118,50 @@ describe("handleBlock", function () {
     handleBlock(block1);
 
     const dayTimestamp = timestamp1.div(daySeconds).times(daySeconds);
-    const id = `${vaultAddressString}-${dayTimestamp.toString()}`;
+    const previousDayTimestamp = dayTimestamp.minus(daySeconds);
+    const id = `${vaultAddressString}-${previousDayTimestamp.toString()}`;
     assert.entityCount("VaultHistory", 1);
 
-    mockVaultCalls(decimals, updatedShareValue, updatedTotalAssets);
+    // Re-mock with different values so that if the handler skips the
+    // early-return and re-runs RPC calls, it would overwrite the entity and
+    // break the assertions below.
+    const oneShare = BigInt.fromI32(10).pow(<u8>decimals);
+    createMockedFunction(
+      vaultAddress,
+      "convertToAssets",
+      "convertToAssets(uint256):(uint256)",
+    )
+      .withArgs([ethereum.Value.fromUnsignedBigInt(oneShare)])
+      .returns([
+        ethereum.Value.fromUnsignedBigInt(
+          BigInt.fromString("1100000000000000000"),
+        ),
+      ]);
+    createMockedFunction(vaultAddress, "totalAssets", "totalAssets():(uint256)")
+      .withArgs([])
+      .returns([
+        ethereum.Value.fromUnsignedBigInt(
+          BigInt.fromString("6000000000000000000000"),
+        ),
+      ]);
+
+    // Second block on the same day: early-returns without RPC calls
     const block2 = createMockBlock(BigInt.fromI32(200), timestamp2);
     handleBlock(block2);
 
+    // Still only one entity with the original values
     assert.entityCount("VaultHistory", 1);
     assert.fieldEquals(
       "VaultHistory",
       id,
       "shareValue",
-      updatedShareValue.toString(),
+      initialShareValue.toString(),
     );
     assert.fieldEquals(
       "VaultHistory",
       id,
       "totalAssets",
-      updatedTotalAssets.toString(),
-    );
-    assert.fieldEquals(
-      "VaultHistory",
-      id,
-      "timestamp",
-      dayTimestamp.toString(),
+      initialTotalAssets.toString(),
     );
   });
 
@@ -168,6 +187,54 @@ describe("handleBlock", function () {
     handleBlock(block);
 
     assert.entityCount("VaultHistory", 0);
+  });
+
+  test("creates VaultConfig on first block and reuses it on subsequent blocks", function () {
+    const decimals = 18;
+    const shareValue = BigInt.fromString("1050000000000000000");
+    const totalAssets = BigInt.fromString("5000000000000000000000");
+    // Two timestamps on different days so both produce a VaultHistory entity
+    const timestamp1 = BigInt.fromI32(1769731200); // 2026-01-30 00:00:00 UTC
+    const timestamp2 = BigInt.fromI32(1769817600); // 2026-01-31 00:00:00 UTC
+
+    mockVaultCalls(decimals, shareValue, totalAssets);
+    const block1 = createMockBlock(BigInt.fromI32(100), timestamp1);
+    handleBlock(block1);
+
+    // VaultConfig entity should be created with the correct decimals
+    assert.entityCount("VaultConfig", 1);
+    assert.fieldEquals(
+      "VaultConfig",
+      vaultAddressString,
+      "decimals",
+      decimals.toString(),
+    );
+
+    // Second block on a new day: VaultConfig is reused from the store.
+    // Override the existing decimals() mock to revert; if handleBlock calls
+    // decimals() again instead of using the cached VaultConfig, the test fails.
+    createMockedFunction(vaultAddress, "decimals", "decimals():(uint8)")
+      .withArgs([])
+      .reverts();
+    const updatedShareValue = BigInt.fromString("1060000000000000000");
+    const updatedTotalAssets = BigInt.fromString("6000000000000000000000");
+    const oneShare = BigInt.fromI32(10).pow(<u8>decimals);
+    createMockedFunction(
+      vaultAddress,
+      "convertToAssets",
+      "convertToAssets(uint256):(uint256)",
+    )
+      .withArgs([ethereum.Value.fromUnsignedBigInt(oneShare)])
+      .returns([ethereum.Value.fromUnsignedBigInt(updatedShareValue)]);
+    createMockedFunction(vaultAddress, "totalAssets", "totalAssets():(uint256)")
+      .withArgs([])
+      .returns([ethereum.Value.fromUnsignedBigInt(updatedTotalAssets)]);
+    const block2 = createMockBlock(BigInt.fromI32(200), timestamp2);
+    handleBlock(block2);
+
+    // Still only one VaultConfig entity, two VaultHistory entities (one per day)
+    assert.entityCount("VaultConfig", 1);
+    assert.entityCount("VaultHistory", 2);
   });
 });
 

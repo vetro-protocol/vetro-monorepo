@@ -1,4 +1,4 @@
-type VaultHistory @entity(immutable: false) {
+type VaultHistory @entity(immutable: true) {
   id: ID!
   shareValue: BigInt!
   stakingVaultAddress: Bytes!
@@ -33,4 +33,9 @@ type UserStakingPosition @entity(immutable: false) {
   shares: BigInt!
   stakingVaultAddress: Bytes!
   totalCostBasis: BigInt! # WAD-scaled (36 decimals when asset has 18 decimals)
+}
+
+type VaultConfig @entity(immutable: true) {
+  id: Bytes! # vault address
+  decimals: Int!
 }
