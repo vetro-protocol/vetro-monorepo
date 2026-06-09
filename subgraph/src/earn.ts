@@ -40,10 +40,11 @@ export function handleBlock(block: ethereum.Block): void {
   const vaultAddress = dataSource.address();
   const vault = StakingVault.bind(vaultAddress);
 
-  // To speed up the sync process, minimize the RPC calls and amount of entities
-  // saved, history records are only saved with the first block of each day. Use
-  // integer-divide then re-multiply to snap block.timestamp to the start of the
-  // UTC day (00:00:00).
+  // To speed up the sync process, minimize RPC calls and entity writes, only
+  // save one history record per day (the first time this handler runs for that
+  // day). Return early if the record for the current day already exists.
+  // Use integer-divide then re-multiply to snap block.timestamp to the start of
+  // the UTC day (00:00:00).
   const daySeconds = BigInt.fromI32(86400);
   const dayTimestamp = block.timestamp.div(daySeconds).times(daySeconds);
   // Then to keep the records aligned with the prior implementation which saved
