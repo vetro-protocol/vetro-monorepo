@@ -50,7 +50,7 @@ function createWallet({
   });
   return {
     async request({ method, params }) {
-      if (method in staticResponses) {
+      if (Object.hasOwn(staticResponses, method)) {
         return staticResponses[method];
       }
       switch (method) {
