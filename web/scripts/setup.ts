@@ -1,43 +1,7 @@
 import { parseArgs } from "node:util";
-import {
-  createPublicClient,
-  createTestClient,
-  encodePacked,
-  formatEther,
-  http,
-  isAddress,
-  keccak256,
-  pad,
-  parseEther,
-  toHex,
-} from "viem";
-import { getBalance, setBalance, setStorageAt } from "viem/actions";
-import { mainnet } from "viem/chains";
-import { balanceOf } from "viem-erc20/actions";
+import { isAddress } from "viem";
 
-import { knownTokens } from "../src/utils/tokenList.ts";
-
-const setupSymbols = [
-  "cbBTC",
-  "hemiBTC",
-  "USDC",
-  "USDT",
-  "vetBTC",
-  "VUSD",
-  "WBTC",
-  "WETH",
-];
-
-const tokens = knownTokens
-  .filter((t) => t.chainId === mainnet.id && setupSymbols.includes(t.symbol))
-  .map((t) => ({
-    address: t.address,
-    balanceSlot: t.extensions!.balanceSlot!,
-    decimals: t.decimals,
-    symbol: t.symbol,
-  }));
-
-const amount = 100n;
+import { fundAccount } from "./fundAccount.ts";
 
 const { values } = parseArgs({
   options: {
@@ -47,8 +11,6 @@ const { values } = parseArgs({
   strict: true,
 });
 
-const forkUrl = values["fork-url"] ?? "http://127.0.0.1:8545";
-
 if (!values.address || !isAddress(values.address, { strict: false })) {
   console.error(
     "Address is invalid. Usage: node web/scripts/setup.ts --address 0xYourAddress",
@@ -56,57 +18,7 @@ if (!values.address || !isAddress(values.address, { strict: false })) {
   process.exit(1);
 }
 
-const { address } = values;
-
-const transport = http(forkUrl);
-
-const publicClient = createPublicClient({
-  chain: mainnet,
-  transport,
+await fundAccount({
+  address: values.address,
+  forkUrl: values["fork-url"],
 });
-
-const testClient = createTestClient({
-  chain: mainnet,
-  mode: "anvil",
-  transport,
-});
-
-// Fund 1 ETH for gas
-const ethBalanceBefore = await getBalance(publicClient, { address });
-await setBalance(testClient, { address, value: parseEther("1") });
-const ethBalanceAfter = await getBalance(publicClient, { address });
-console.log(
-  `ETH: ${formatEther(ethBalanceBefore)} -> ${formatEther(ethBalanceAfter)}`,
-);
-
-for (const token of tokens) {
-  const balanceBefore = await balanceOf(publicClient, {
-    account: address,
-    address: token.address,
-  });
-
-  const value = amount * 10n ** BigInt(token.decimals);
-
-  // keccak256(abi.encode(address, slot)) - standard Solidity mapping layout
-  const storageKey = keccak256(
-    encodePacked(
-      ["bytes32", "bytes32"],
-      [pad(address), pad(toHex(token.balanceSlot))],
-    ),
-  );
-
-  await setStorageAt(testClient, {
-    address: token.address,
-    index: storageKey,
-    value: pad(toHex(value)),
-  });
-
-  const balanceAfter = await balanceOf(publicClient, {
-    account: address,
-    address: token.address,
-  });
-
-  console.log(
-    `${token.symbol}: ${balanceBefore} -> ${balanceAfter} (${amount} tokens)`,
-  );
-}
