@@ -5,6 +5,13 @@
     "resolveJsonModule": true,
     "types": ["node"]
   },
-  "include": ["reset.d.ts", "scripts", "src", "test"],
+  "include": [
+    "e2e",
+    "playwright.config.ts",
+    "reset.d.ts",
+    "scripts",
+    "src",
+    "test"
+  ],
   "exclude": ["node_modules", "dist"]
 }
