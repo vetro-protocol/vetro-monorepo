@@ -15,6 +15,7 @@ export default defineConfig({
   // (failures are already printed to the console by the list reporter).
   reporter: [
     ["list"],
+    ["github"],
     ["html", { open: process.env.CI ? "never" : "on-failure" }],
   ],
   testDir: "./e2e",
