@@ -28,7 +28,7 @@ jobs:
       - run: pnpm --filter @vetro-protocol/web exec playwright install chromium
         env:
           DEBUG: pw:install
-      - run: pnpm --filter @vetro-protocol/web run test:e2e
+      - run: pnpm --filter @vetro-protocol/web exec playwright test
         env:
           DEBUG: pw:webserver
       - if: ${{ !cancelled() }}
