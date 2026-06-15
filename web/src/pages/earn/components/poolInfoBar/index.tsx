@@ -76,7 +76,7 @@ export function PoolInfoBar({ stakingVaultAddress }: Props) {
         <PoolInfoItem label="Token" value={peggedToken?.symbol} />
         <PoolInfoItem label={t("pages.earn.pool-info.pool-contract")}>
           <ExternalLink
-            className="text-xsm flex items-center gap-1 font-semibold text-gray-700 transition-colors hover:text-gray-900 [&:hover>svg]:text-gray-900 [&>svg]:text-gray-900 [&>svg]:transition-colors"
+            className="text-xsm flex items-center gap-1 font-semibold text-gray-700 transition-colors hover:text-gray-900 [&:hover>svg]:text-gray-900 [&>svg]:text-gray-700 [&>svg]:transition-colors"
             href={`${explorerBaseUrl}/address/${stakingVaultAddress}`}
           >
             {formatEvmAddress(stakingVaultAddress)}
