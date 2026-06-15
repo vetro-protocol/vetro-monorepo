@@ -1,5 +1,7 @@
+import { ExternalLink } from "components/base/externalLink";
 import { TokenLogo } from "components/tokenLogo";
 import { useApy } from "hooks/useApy";
+import { useMainnet } from "hooks/useMainnet";
 import { usePoolDeposits } from "hooks/usePoolDeposits";
 import { usePrices } from "hooks/usePrices";
 import { useUserRewards } from "hooks/useUserRewards";
@@ -19,8 +21,11 @@ type Props = {
 };
 
 export function PoolInfoBar({ stakingVaultAddress }: Props) {
+  const chain = useMainnet();
   const { t } = useTranslation();
   const { data: peggedToken } = useVaultPeggedToken(stakingVaultAddress);
+
+  const explorerBaseUrl = chain.blockExplorers!.default.url;
 
   const { data: apy, isLoading: isLoadingApy } = useApy(stakingVaultAddress);
   const { data: poolDeposits, isLoading: isLoadingDeposits } =
@@ -68,10 +73,14 @@ export function PoolInfoBar({ stakingVaultAddress }: Props) {
           <Skeleton borderRadius={8} height={40} width={40} />
         )}
         <PoolInfoItem label="Token" value={peggedToken?.symbol} />
-        <PoolInfoItem
-          label={t("pages.earn.pool-info.pool-contract")}
-          value={formatEvmAddress(stakingVaultAddress)}
-        />
+        <PoolInfoItem label={t("pages.earn.pool-info.pool-contract")}>
+          <ExternalLink
+            className="text-xsm font-semibold text-gray-600 transition-colors hover:text-gray-900"
+            href={`${explorerBaseUrl}/address/${stakingVaultAddress}`}
+          >
+            {formatEvmAddress(stakingVaultAddress)}
+          </ExternalLink>
+        </PoolInfoItem>
         <PoolInfoItem
           isLoading={isLoadingDeposits || (!prices && !isPricesError)}
           label={t("pages.earn.pool-info.pool-deposits")}
