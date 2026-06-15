@@ -6,16 +6,11 @@ import {
   getWhitelistedTokens,
   getWithdrawable,
 } from "@vetro-protocol/treasury/actions";
-import {
-  type Address,
-  createPublicClient,
-  http,
-  type PublicClient,
-} from "viem";
-import { mainnet } from "viem/chains";
+import { type Address, type PublicClient } from "viem";
 import { balanceOf, previewRedeem } from "viem-erc4626/actions";
 
 import { getPrice } from "./chainlink.ts";
+import { createMainnetClient } from "./mainnet-client.ts";
 import { findStakingVaultForPeggedToken } from "./staking-vault.ts";
 import {
   getStrategies,
@@ -42,10 +37,7 @@ export async function getTreasuryComposition({
   gatewayAddress: Address;
   url: string | undefined;
 }) {
-  const client = createPublicClient({
-    chain: mainnet,
-    transport: http(url),
-  });
+  const client = createMainnetClient(url);
   const treasuryAddress = await getTreasury(client, {
     address: gatewayAddress,
   });
@@ -169,10 +161,7 @@ export async function getPeggedTokenBacking({
   gatewayAddress: Address;
   url: string | undefined;
 }) {
-  const client = createPublicClient({
-    chain: mainnet,
-    transport: http(url),
-  });
+  const client = createMainnetClient(url);
   const [peggedTokenAddress, treasuryAddress] = await Promise.all([
     getPeggedToken(client, { address: gatewayAddress }),
     getTreasury(client, { address: gatewayAddress }),

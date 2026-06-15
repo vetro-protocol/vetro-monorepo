@@ -260,7 +260,7 @@ app.get(
   validateStakingVaultAddress,
   validateParam("period", vaultHistoryValidPeriods),
   cache({
-    cacheControl: "max-age=3600",
+    cacheControl: "max-age=300",
     cacheName: "vetro-api",
   }),
   async function (c) {
@@ -270,6 +270,7 @@ app.get(
       const period = c.req.param("period");
       const data = await getTotalDepositsHistory({
         period,
+        rpcUrl: c.env.CUSTOM_RPC_URL_MAINNET,
         stakingVaultAddress,
         url,
       });
