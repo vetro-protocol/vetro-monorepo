@@ -7,8 +7,6 @@ import { getPeriodStart } from "./vault-history-period.ts";
 
 type Row = { timestamp: string; totalAssets: string };
 
-type Point = { timestamp: number; totalDeposits: string };
-
 /**
  * Read the vault's current ERC4626 totalAssets live from the chain and return
  * it as a synthetic "now" point. The subgraph only writes a VaultHistory entry
@@ -23,7 +21,7 @@ async function getLiveTotalDepositsPoint({
 }: {
   rpcUrl: string | undefined;
   stakingVaultAddress: Address;
-}): Promise<Point | null> {
+}) {
   try {
     const client = createMainnetClient(rpcUrl);
     const liveTotalAssets = await totalAssets(client, {
@@ -56,7 +54,7 @@ export async function getTotalDepositsHistory({
   rpcUrl: string | undefined;
   stakingVaultAddress: Address;
   url: string;
-}): Promise<Point[]> {
+}) {
   const stakingVault = stakingVaultAddress.toLowerCase();
   const start = getPeriodStart(period);
   const query = `
