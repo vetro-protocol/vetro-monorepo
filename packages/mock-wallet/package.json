@@ -1,0 +1,25 @@
+{
+  "name": "@vetro-protocol/mock-wallet",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.60.0",
+    "@tsconfig/node24": "24.0.4",
+    "typescript": "5.9.3",
+    "viem": "2.44.4"
+  },
+  "peerDependencies": {
+    "@playwright/test": "^1.x",
+    "viem": "^2.x"
+  },
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  }
+}

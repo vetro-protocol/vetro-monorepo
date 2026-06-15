@@ -74,6 +74,13 @@ export const gatewayAbi = [
   },
   {
     inputs: [{ name: "account_", type: "address" }],
+    name: "addToInstantRedeemWhitelist",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [{ name: "account_", type: "address" }],
     name: "removeFromInstantRedeemWhitelist",
     outputs: [],
     stateMutability: "nonpayable",

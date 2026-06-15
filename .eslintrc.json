@@ -49,6 +49,18 @@
       }
     },
     {
+      "files": ["web/e2e/**/*.ts"],
+      "rules": {
+        "@vitest/require-hook": "off"
+      }
+    },
+    {
+      "files": ["packages/mock-wallet/**/*.ts"],
+      "rules": {
+        "camelcase": ["warn", { "allow": ["^eth_", "^personal_", "^wallet_"] }]
+      }
+    },
+    {
       "files": ["landing/**/*.ts", "packages/**/*.{js,ts,tsx}"],
       "rules": {
         "complexity": ["warn", { "max": 20 }]
