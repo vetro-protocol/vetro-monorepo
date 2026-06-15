@@ -1,5 +1,4 @@
 import { ExternalLink } from "components/base/externalLink";
-import { ExternalLinkIcon } from "components/icons/externalLinkIcon";
 import { TokenLogo } from "components/tokenLogo";
 import { useApy } from "hooks/useApy";
 import { useMainnet } from "hooks/useMainnet";
@@ -76,11 +75,10 @@ export function PoolInfoBar({ stakingVaultAddress }: Props) {
         <PoolInfoItem label="Token" value={peggedToken?.symbol} />
         <PoolInfoItem label={t("pages.earn.pool-info.pool-contract")}>
           <ExternalLink
-            className="text-xsm flex items-center gap-1 font-semibold text-gray-700 transition-colors hover:text-gray-900 [&:hover>svg]:text-gray-900 [&>svg]:text-gray-700 [&>svg]:transition-colors"
+            className="text-xsm font-semibold text-gray-600 transition-colors hover:text-gray-900"
             href={`${explorerBaseUrl}/address/${stakingVaultAddress}`}
           >
             {formatEvmAddress(stakingVaultAddress)}
-            <ExternalLinkIcon />
           </ExternalLink>
         </PoolInfoItem>
         <PoolInfoItem
