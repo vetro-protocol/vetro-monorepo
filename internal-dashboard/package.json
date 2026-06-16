@@ -2,7 +2,7 @@
   "name": "@vetro-protocol/internal-dashboard",
   "version": "1.0.0",
   "scripts": {
-    "build": "vite build",
+    "build": "tsc && vite build",
     "dev": "vite",
     "prepreview": "pnpm run build",
     "preview": "vite preview",
