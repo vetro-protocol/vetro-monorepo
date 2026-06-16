@@ -317,9 +317,14 @@ export function Deposit({
       {showToast && (
         <Toast
           closable
-          description={t("pages.swap.toast.deposit-description")}
+          description={t("pages.swap.toast.swap-success-description", {
+            fromAmount: fromInputValue,
+            fromSymbol: fromToken.symbol,
+            toAmount: outputValue,
+            toSymbol: toToken.symbol,
+          })}
           onClose={() => setShowToast(false)}
-          title={t("pages.swap.toast.deposit-title")}
+          title={t("pages.swap.toast.swap-success-title")}
         />
       )}
     </>

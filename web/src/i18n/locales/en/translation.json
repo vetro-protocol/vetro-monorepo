@@ -423,10 +423,10 @@
       "select-option": "Select token to swap",
       "title": "Swap your tokens with Vetro assets",
       "toast": {
-        "deposit-description": "VUSD is now available in your wallet",
-        "deposit-title": "Deposit confirmed",
-        "deposited-to-queue": "{{symbol}} deposited to queue",
-        "your-cooldown-period-has-started": "Your {{seconds}}-second cooldown has started."
+        "redeem-queued-description": "You'll be able to redeem it once the cooldown ends.",
+        "redeem-queued-title": "{{amount}} {{symbol}} sent to queue",
+        "swap-success-description": "{{fromAmount}} {{fromSymbol}} converted to {{toAmount}} {{toSymbol}}.",
+        "swap-success-title": "Swap successful"
       },
       "treasury-reserves": "Treasury reserves",
       "tutorial": {
