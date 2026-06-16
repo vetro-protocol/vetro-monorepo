@@ -72,15 +72,19 @@ export function PoolInfoBar({ stakingVaultAddress }: Props) {
         ) : (
           <Skeleton borderRadius={8} height={40} width={40} />
         )}
-        <PoolInfoItem label="Token" value={peggedToken?.symbol} />
-        <PoolInfoItem label={t("pages.earn.pool-info.pool-contract")}>
-          <ExternalLink
-            className="text-xsm font-semibold text-gray-600 transition-colors hover:text-gray-900"
-            href={`${explorerBaseUrl}/address/${stakingVaultAddress}`}
-          >
-            {formatEvmAddress(stakingVaultAddress)}
-          </ExternalLink>
-        </PoolInfoItem>
+        <div className="contents md:*:w-16">
+          <PoolInfoItem label="Token" value={peggedToken?.symbol} />
+        </div>
+        <div className="contents md:*:w-32">
+          <PoolInfoItem label={t("pages.earn.pool-info.pool-contract")}>
+            <ExternalLink
+              className="text-xsm font-semibold text-gray-600 transition-colors hover:text-gray-900"
+              href={`${explorerBaseUrl}/address/${stakingVaultAddress}`}
+            >
+              {formatEvmAddress(stakingVaultAddress)}
+            </ExternalLink>
+          </PoolInfoItem>
+        </div>
         <PoolInfoItem
           isLoading={isLoadingDeposits || (!prices && !isPricesError)}
           label={t("pages.earn.pool-info.pool-deposits")}
