@@ -68,21 +68,27 @@ test("swap USDC → VUSD via the gateway", async function ({ page }) {
     page.getByRole("button", { name: /^0x[a-f0-9]{4}/i }),
   ).toBeVisible({ timeout: 30_000 });
 
-  // Pick USDC as the input token. The trigger opens a modal dialog where
-  // tokens are listed as buttons (pinned grid + rows), not ARIA options.
-  await page
+  // Pick USDC as the input token. The default input is whitelistedTokens[0],
+  // whose ordering isn't guaranteed (anvil forks at the latest block, so the
+  // set/order can differ between local and CI), and clicking an already
+  // selected token won't close the modal. So only open the picker while USDC
+  // isn't selected, and retry if a click doesn't register.
+  const fromTokenSelector = page
     .getByRole("button", { name: "Select token to swap" })
-    .first()
-    .click();
-  const tokenDialog = page.getByRole("dialog");
-  // The modal fades in via an opacity transition. Playwright's visibility
-  // check ignores opacity, so it would otherwise click a token mid-animation
-  // and race the open/close state, leaving the modal stuck open and blocking
-  // the Swap click. Wait for the entrance to finish before selecting.
-  await expect(tokenDialog).toHaveCSS("opacity", "1");
-  await tokenDialog.getByRole("button", { name: /USDC/ }).first().click();
+    .first();
+  await expect(fromTokenSelector).toBeVisible();
+  await expect(async function () {
+    if ((await fromTokenSelector.textContent())?.includes("USDC")) return;
+    await fromTokenSelector.click();
+    const tokenDialog = page.getByRole("dialog");
+    // The modal fades in via an opacity transition. Playwright's visibility
+    // check ignores opacity, so wait for the entrance to finish before clicking.
+    await expect(tokenDialog).toHaveCSS("opacity", "1");
+    await tokenDialog.getByRole("button", { name: /USDC/ }).first().click();
+    await expect(fromTokenSelector).toContainText("USDC", { timeout: 5_000 });
+  }).toPass({ timeout: 20_000 });
   // Ensure the modal is gone before interacting with the form underneath.
-  await expect(tokenDialog).toBeHidden();
+  await expect(page.getByRole("dialog")).toBeHidden();
 
   await page
     .locator('input[type="text"]:not([disabled])')
