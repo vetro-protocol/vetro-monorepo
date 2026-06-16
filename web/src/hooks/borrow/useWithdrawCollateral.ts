@@ -1,8 +1,7 @@
 import { useEnsureConnectedTo } from "@hemilabs/react-hooks/useEnsureConnectedTo";
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
 import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpdateNativeBalanceAfterReceipt";
-import { getChainAddresses } from "@morpho-org/blue-sdk";
-import type { AccrualPosition } from "@morpho-org/blue-sdk-viem/lib/augment/Position";
+import { type AccrualPosition, getChainAddresses } from "@morpho-org/blue-sdk";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { WithdrawCollateralEvents } from "@vetro-protocol/morpho-blue-market";
 import { withdrawCollateral } from "@vetro-protocol/morpho-blue-market/actions";

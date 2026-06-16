@@ -1,32 +1,14 @@
 import { type Address, formatUnits } from "viem";
 
-import * as graphql from "./graphql.ts";
-
-const secsPerDay = 86400;
-
-/* eslint-disable sort-keys */
-const periodToStartOffset: Record<string, number> = {
-  "1w": 7 * secsPerDay,
-  "1m": 30 * secsPerDay,
-  "3m": 90 * secsPerDay,
-  "1y": 366 * secsPerDay,
-};
-/* eslint-enable sort-keys */
-
-export const validPeriods = Object.keys(periodToStartOffset);
-
-const pageSize = 100;
-// To prevent infinite loops in the case of a misbehaving subgraph, we set a hard cap
-// but we shouldn't load more than 4 pages per year
-const hardCap = 4 * pageSize;
+import { paginateSubgraphQuery } from "./paginate-subgraph-query.ts";
+import { getPeriodStart } from "./vault-history-period.ts";
 
 type Row = { shareValue: string; timestamp: string };
 
 /**
  * Query the subgraph for the share value history of a staking vault over the
  * given period. Paginates over the subgraph's 100-result page cap so that long
- * windows (e.g. "1y", up to ~366 daily entries) are returned in full. Stops
- * defensively at hardCap rows to bound the loop.
+ * windows (e.g. "1y", up to ~366 daily entries) are returned in full.
  */
 export async function getShareValueHistory({
   period,
@@ -38,11 +20,7 @@ export async function getShareValueHistory({
   url: string;
 }): Promise<{ shareValue: number; timestamp: number }[]> {
   const stakingVault = stakingVaultAddress.toLowerCase();
-  // Floor to the UTC day boundary so the filter always includes the snapshot
-  // exactly N days ago at 00:00 UTC, regardless of the time of day the request
-  // is made. VaultHistory entries are snapped to UTC day start by the indexer.
-  const todayStart = Math.floor(Date.now() / 1000 / secsPerDay) * secsPerDay;
-  const start = (todayStart - periodToStartOffset[period]).toString();
+  const start = getPeriodStart(period);
   const query = `
     query ($first: Int!, $skip: Int!, $stakingVault: Bytes!, $start: BigInt!) {
       vaultHistories(
@@ -60,21 +38,16 @@ export async function getShareValueHistory({
       }
     }`;
 
-  const all: Row[] = [];
-  let skip = 0;
-  while (skip < hardCap) {
-    const { vaultHistories } = await graphql.runQuery<{
-      vaultHistories: Row[];
-    }>(url, query, { first: pageSize, skip, stakingVault, start });
-    if (!Array.isArray(vaultHistories)) {
-      throw new Error(
-        `Invalid subgraph response for vault history of ${stakingVaultAddress}`,
-      );
-    }
-    all.push(...vaultHistories);
-    if (vaultHistories.length < pageSize) break;
-    skip += pageSize;
-  }
+  const all = await paginateSubgraphQuery<Row>({
+    cursor: {
+      getValue: (row) => row.timestamp,
+      variable: "start",
+    },
+    field: "vaultHistories",
+    query,
+    url,
+    variables: { stakingVault, start },
+  });
 
   return all.map((h) => ({
     shareValue: Number(formatUnits(BigInt(h.shareValue), 18)),

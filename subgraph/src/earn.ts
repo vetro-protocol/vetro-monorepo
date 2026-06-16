@@ -4,6 +4,7 @@ import {
   ExitTicket,
   ExitTicketQueueSummary,
   UserStakingPosition,
+  VaultConfig,
   VaultHistory,
 } from "../generated/schema";
 import {
@@ -36,15 +37,38 @@ function loadOrCreateQueueSummary(
 }
 
 export function handleBlock(block: ethereum.Block): void {
-  const daySeconds = BigInt.fromI32(86400);
-  // Integer-divide then re-multiply to snap block.timestamp to the start of the UTC day (00:00:00).
-  const dayTimestamp = block.timestamp.div(daySeconds).times(daySeconds);
-
   const vaultAddress = dataSource.address();
-
   const vault = StakingVault.bind(vaultAddress);
-  const decimals = vault.decimals();
-  const oneShare = BigInt.fromI32(10).pow(<u8>decimals);
+
+  // To speed up the sync process, minimize RPC calls and entity writes, only
+  // save one history record per day (the first time this handler runs for that
+  // day). Return early if the record for the current day already exists.
+  // Use integer-divide then re-multiply to snap block.timestamp to the start of
+  // the UTC day (00:00:00).
+  const daySeconds = BigInt.fromI32(86400);
+  const dayTimestamp = block.timestamp.div(daySeconds).times(daySeconds);
+  // Then to keep the records aligned with the prior implementation which saved
+  // the entity at the end of each day, compute the previous day's timestamp.
+  const previousDayTimestamp = dayTimestamp.minus(daySeconds);
+  const id = buildId(vaultAddress, previousDayTimestamp.toString());
+  if (VaultHistory.load(id) != null) {
+    return;
+  }
+
+  // Calling decimals() on the StakingVault contract will always result in the
+  // same value. It is set on initialize() and cannot be changed afterwards.
+  // Caching it in its own entity avoids calling decimals() on every block,
+  // speeding up the handler and reducing sync time. The contract is upgradeable
+  // but changing the decimals is highly unlikely as it would break many other
+  // things downstream.
+  let vaultConfig = VaultConfig.load(vaultAddress);
+  if (vaultConfig == null) {
+    vaultConfig = new VaultConfig(vaultAddress);
+    vaultConfig.decimals = vault.decimals();
+    vaultConfig.save();
+  }
+
+  const oneShare = BigInt.fromI32(10).pow(<u8>vaultConfig.decimals);
   const shareValueResult = vault.try_convertToAssets(oneShare);
   // Empty vault (zero total supply): convertToAssets reverts with a divide-by-zero
   // panic. Skip recording history for this block rather than aborting the handler.
@@ -52,14 +76,9 @@ export function handleBlock(block: ethereum.Block): void {
     return;
   }
 
-  const id = buildId(vaultAddress, dayTimestamp.toString());
-  let entity = VaultHistory.load(id);
-  if (entity == null) {
-    entity = new VaultHistory(id);
-    entity.timestamp = dayTimestamp;
-    entity.stakingVaultAddress = vaultAddress;
-  }
-
+  const entity = new VaultHistory(id);
+  entity.timestamp = previousDayTimestamp;
+  entity.stakingVaultAddress = vaultAddress;
   entity.shareValue = shareValueResult.value;
   entity.totalAssets = vault.totalAssets();
 

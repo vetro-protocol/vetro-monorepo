@@ -1,17 +1,12 @@
 import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { getPeggedToken } from "@vetro-protocol/gateway/actions";
 import { linearRegression } from "@vetro-protocol/linear-least-squares-regression";
-import {
-  type Address,
-  createPublicClient,
-  checksumAddress,
-  type Hash,
-  http,
-} from "viem";
+import { type Address, checksumAddress, type Hash } from "viem";
 import { mainnet } from "viem/chains";
 import { convertToAssets } from "viem-erc4626/actions";
 
 import * as graphql from "./graphql.ts";
+import { createMainnetClient } from "./mainnet-client.ts";
 import * as merkl from "./merkl.ts";
 import parseBigIntStringToNumber from "./parse-bigint-string-to-number.ts";
 import { findStakingVaultForPeggedToken } from "./staking-vault.ts";
@@ -310,10 +305,7 @@ export async function getExitTicketQueueSize({
   rpcUrl: string | undefined;
   subgraphUrl: string;
 }) {
-  const client = createPublicClient({
-    chain: mainnet,
-    transport: http(rpcUrl),
-  });
+  const client = createMainnetClient(rpcUrl);
   const peggedTokenAddress = await getPeggedToken(client, {
     address: gatewayAddress,
   });

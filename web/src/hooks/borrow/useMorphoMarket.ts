@@ -1,5 +1,5 @@
 import { type MarketId } from "@morpho-org/blue-sdk";
-import { Market } from "@morpho-org/blue-sdk-viem/lib/augment/Market";
+import { fetchMarket } from "@morpho-org/blue-sdk-viem";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { unixNowTimestamp } from "utils/date";
 import type { Chain, Client, Hash } from "viem";
@@ -27,7 +27,7 @@ export const morphoMarketOptions = ({
   queryOptions({
     enabled: !!client,
     queryFn: () =>
-      Market.fetch(marketId as MarketId, client!).then((market) =>
+      fetchMarket(marketId as MarketId, client!).then((market) =>
         market.accrueInterest(BigInt(unixNowTimestamp())),
       ),
     queryKey: morphoMarketQueryKey({ chainId, marketId }),

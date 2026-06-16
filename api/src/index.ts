@@ -15,12 +15,11 @@ import {
   validateStakingVaultAddress,
 } from "./param-validators.ts";
 import { securityHeaders } from "./security-headers.ts";
-import {
-  getShareValueHistory,
-  validPeriods as shareValueHistoryValidPeriods,
-} from "./share-value-history.ts";
+import { getShareValueHistory } from "./share-value-history.ts";
+import { getTotalDepositsHistory } from "./total-deposits-history.ts";
 import { createOriginFn, parseOrigins } from "./validate-origin.ts";
 import * as variableStake from "./variable-stake.ts";
+import { validPeriods as vaultHistoryValidPeriods } from "./vault-history-period.ts";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -234,7 +233,7 @@ app.get(
 app.get(
   "/variable-stake/share-value-history/:stakingVaultAddress/:period",
   validateStakingVaultAddress,
-  validateParam("period", shareValueHistoryValidPeriods),
+  validateParam("period", vaultHistoryValidPeriods),
   cache({
     cacheControl: "max-age=3600",
     cacheName: "vetro-api",
@@ -252,6 +251,32 @@ app.get(
       return c.json(data);
     } catch (error) {
       throw new Error(`Failed to get share value history: ${error.message}`);
+    }
+  },
+);
+
+app.get(
+  "/variable-stake/total-deposits-history/:stakingVaultAddress/:period",
+  validateStakingVaultAddress,
+  validateParam("period", vaultHistoryValidPeriods),
+  cache({
+    cacheControl: "max-age=300",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const stakingVaultAddress = c.get("stakingVaultAddress");
+      const url = getSubgraphUrl(c.env);
+      const period = c.req.param("period");
+      const data = await getTotalDepositsHistory({
+        period,
+        rpcUrl: c.env.CUSTOM_RPC_URL_MAINNET,
+        stakingVaultAddress,
+        url,
+      });
+      return c.json(data);
+    } catch (error) {
+      throw new Error(`Failed to get total deposits history: ${error.message}`);
     }
   },
 );
