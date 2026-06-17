@@ -324,6 +324,8 @@ import {
 } from "@tanstack/react-query";
 import fetch from "fetch-plus-plus";
 
+const apiUrl = import.meta.env.VITE_PORTAL_API_URL;
+
 type Prices = Record<string, string>;
 
 type QueryOptions<TSelect = Prices> = Omit<
