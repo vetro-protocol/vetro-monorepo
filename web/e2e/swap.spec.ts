@@ -50,45 +50,37 @@ test("swap USDC → VUSD via the gateway", async function ({ page }) {
 
   await page.goto("/swap");
 
-  // Two "Connect wallet" buttons: header trigger + form submit (disabled).
-  await page
-    .getByRole("button", { name: /connect wallet/i })
-    .first()
-    .click();
-
-  // The mock wallet announces EIP-6963 with rdns "com.example.mock-wallet".
-  // The modal occasionally re-renders as new providers announce, so click
-  // with force to bypass the stability check.
-  await page
-    .getByTestId("rk-wallet-option-com.example.mock-wallet")
-    .click({ force: true });
-
-  // Header button switches from "Connect wallet" to a 0x… short address.
+  // The mock wallet auto-connects silently via EIP-6963 (see fixtures/wallet),
+  // so don't open the RainbowKit connect modal here: useOverlay.handleClose
+  // no-ops while connectModalOpen is true, so a stale "connect modal open"
+  // state would stop the token picker from closing. Just wait for the header
+  // button to switch from "Connect wallet" to the 0x… short address.
   await expect(
     page.getByRole("button", { name: /^0x[a-f0-9]{4}/i }),
   ).toBeVisible({ timeout: 30_000 });
 
   // Pick USDC as the input token. The default input is whitelistedTokens[0],
   // whose ordering isn't guaranteed (anvil forks at the latest block, so the
-  // set/order can differ between local and CI), and clicking an already
-  // selected token won't close the modal. So only open the picker while USDC
-  // isn't selected, and retry if a click doesn't register.
+  // set/order can differ between local and CI). Selecting any token closes the
+  // picker, so we can unconditionally open it and pick USDC — re-selecting it
+  // when it's already the default is a harmless no-op that still closes.
   const fromTokenSelector = page
     .getByRole("button", { name: "Select token to swap" })
     .first();
-  await expect(fromTokenSelector).toBeVisible();
-  await expect(async function () {
-    if ((await fromTokenSelector.textContent())?.includes("USDC")) return;
-    await fromTokenSelector.click();
-    const tokenDialog = page.getByRole("dialog");
-    // The modal fades in via an opacity transition. Playwright's visibility
-    // check ignores opacity, so wait for the entrance to finish before clicking.
-    await expect(tokenDialog).toHaveCSS("opacity", "1");
-    await tokenDialog.getByRole("button", { name: /USDC/ }).first().click();
-    await expect(fromTokenSelector).toContainText("USDC", { timeout: 5_000 });
-  }).toPass({ timeout: 20_000 });
-  // Ensure the modal is gone before interacting with the form underneath.
-  await expect(page.getByRole("dialog")).toBeHidden();
+  await fromTokenSelector.click();
+
+  // Wait for the picker to actually open before clicking inside it.
+  const fromTokenDialog = page.getByRole("dialog", { name: "Select a token" });
+  await expect(fromTokenDialog).toBeVisible();
+
+  // Auto-waits for the USDC row, covering the CI race where the token list is
+  // still loading when the dialog opens.
+  await fromTokenDialog.getByRole("button", { name: /USDC/ }).first().click();
+
+  await expect(fromTokenSelector).toContainText("USDC");
+  // Selecting a token closes the picker; ensure it's gone before interacting
+  // with the form underneath.
+  await expect(fromTokenDialog).toBeHidden();
 
   await page
     .locator('input[type="text"]:not([disabled])')
@@ -187,23 +179,23 @@ test("redeem VUSD → USDC via the gateway (instant redeem)", async function ({
     .locator("..")
     .getByRole("button", { name: "Select token to swap" });
   await expect(toTokenSelector).toBeVisible();
-  // Switch the output to USDC. Re-check inside toPass: a late form re-init can
-  // flip the default output, and clicking an already-selected token won't close
-  // the modal — so only open it while USDC isn't selected, and retry if a click
-  // doesn't register.
-  await expect(async function () {
-    if ((await toTokenSelector.textContent())?.includes("USDC")) return;
-    await toTokenSelector.click();
-    const tokenDialog = page.getByRole("dialog");
-    // The modal fades in via an opacity transition. Playwright's visibility
-    // check ignores opacity, so wait for the entrance to finish before clicking.
-    await expect(tokenDialog).toHaveCSS("opacity", "1");
-    await tokenDialog.getByRole("button", { name: /USDC/ }).first().click();
-    await expect(toTokenSelector).toContainText("USDC", { timeout: 5_000 });
-  }).toPass({ timeout: 20_000 });
-  // The modal closes via a CSS transition; ensure it's gone before interacting
+  // Switch the output to USDC. Selecting any token closes the picker, so we can
+  // unconditionally open it and pick USDC — re-selecting it when it's already
+  // the default is a harmless no-op that still closes.
+  await toTokenSelector.click();
+
+  // Wait for the picker to actually open before clicking inside it.
+  const toTokenDialog = page.getByRole("dialog", { name: "Select a token" });
+  await expect(toTokenDialog).toBeVisible();
+
+  // Auto-waits for the USDC row, covering the CI race where the token list is
+  // still loading when the dialog opens.
+  await toTokenDialog.getByRole("button", { name: /USDC/ }).first().click();
+
+  await expect(toTokenSelector).toContainText("USDC");
+  // Selecting a token closes the picker; ensure it's gone before interacting
   // with the form underneath.
-  await expect(page.getByRole("dialog")).toBeHidden();
+  await expect(toTokenDialog).toBeHidden();
 
   await page
     .locator('input[type="text"]:not([disabled])')
