@@ -598,7 +598,7 @@ When this skill is invoked:
 5. **Always**:
    - Use Read tool before Write/Edit
    - Use proper TypeScript types
-   - Follow project style (no semicolons, single quotes)
+   - Follow project style (semicolons, double quotes — enforced by Prettier)
    - Create a `queryOptions` function (export only when another query/fetcher needs it)
    - Export a `[name]QueryKey` function whenever mutations will invalidate or update the query
 
