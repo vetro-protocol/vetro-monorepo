@@ -38,15 +38,25 @@ app.get(
     cacheName: "vetro-api",
   }),
   async function (c) {
+    let response;
     try {
-      const response = await fetch(new URL("/prices", c.env.PORTAL_API_URL));
-      if (!response.ok) {
-        throw new Error(`upstream returned ${response.status}`);
-      }
+      response = await fetch(new URL("/prices", c.env.PORTAL_API_URL));
+    } catch (error) {
+      console.error("Hemi Portal API unreachable:", error.message);
+      return c.json({ error: "Service Unavailable" }, 503);
+    }
+
+    if (!response.ok) {
+      console.warn(`Hemi Portal API returned ${response.status}`);
+      return c.json({ error: "Bad Gateway" }, 502);
+    }
+
+    try {
       const data = await response.json();
       return c.json(data);
     } catch (error) {
-      throw new Error(`Failed to get token prices: ${error.message}`);
+      console.warn("Hemi Portal API returned invalid JSON:", error.message);
+      return c.json({ error: "Bad Gateway" }, 502);
     }
   },
 );
