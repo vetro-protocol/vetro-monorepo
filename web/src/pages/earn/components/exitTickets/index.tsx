@@ -33,7 +33,7 @@ const statusLabels = {
   withdrawn: "pages.earn.exit-tickets.withdrawn",
 } as const;
 
-const getColumns = ({
+export const getColumns = ({
   isWithdrawingAll,
   onDeleteSuccess,
   onWithdrawingChange,

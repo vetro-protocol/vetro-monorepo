@@ -17,6 +17,7 @@ export function useShowExitTickets() {
     // requires the non-instant request flow that produces exit tickets.
     combine: (results) => ({
       data: results.some((result) => result.data === false),
+      isLoading: results.some((result) => result.isLoading),
     }),
     queries: stakingVaultAddresses.map((stakingVaultAddress) =>
       canInstantWithdrawOptions({
