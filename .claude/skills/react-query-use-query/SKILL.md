@@ -150,7 +150,7 @@ export const [fetcherName] = async function ({
 
 4. **Create Hook**:
    - File: `web/src/hooks/[hookName].ts`
-   - Generate exported `queryOptions` function
+   - Generate a `queryOptions` function (export only when another query/fetcher needs it)
    - If the query is invalidated/updated by any mutation, also export a `[name]QueryKey` function and reuse it inside `[name]Options`
    - Use correct template based on dependencies
    - Apply proper TypeScript types
