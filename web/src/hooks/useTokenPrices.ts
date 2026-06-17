@@ -4,6 +4,7 @@ import {
   useQuery,
 } from "@tanstack/react-query";
 import fetch from "fetch-plus-plus";
+import { isValidUrl } from "utils/url";
 
 const apiUrl = import.meta.env.VITE_VETRO_API_URL;
 
@@ -20,6 +21,7 @@ export const tokenPricesOptions = <TSelect = Prices>(
   options: QueryOptions<TSelect> = {} as QueryOptions<TSelect>,
 ) =>
   queryOptions({
+    enabled: apiUrl !== undefined && isValidUrl(apiUrl),
     queryFn: () =>
       fetch(`${apiUrl}/prices`).then(({ prices }) => prices as Prices),
     queryKey: tokenPricesQueryKey(),

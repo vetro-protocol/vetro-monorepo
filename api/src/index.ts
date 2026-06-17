@@ -39,7 +39,7 @@ app.get(
   }),
   async function (c) {
     try {
-      const response = await fetch(`${c.env.PORTAL_API_URL}/prices`);
+      const response = await fetch(new URL("/prices", c.env.PORTAL_API_URL));
       if (!response.ok) {
         throw new Error(`upstream returned ${response.status}`);
       }
