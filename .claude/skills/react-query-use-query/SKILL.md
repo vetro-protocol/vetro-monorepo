@@ -22,7 +22,7 @@ This skill helps you CREATE, MODIFY, and VALIDATE React Query `useQuery` hooks f
 These practices MUST be followed:
 
 1. **Use @tanstack/react-query**: Custom hooks use `useQuery` and return the output directly for flexibility
-2. **One file, one function, one useQuery**: Each file contains only one function with one `useQuery` call, unless input depends on other hooks
+2. **One file, one query**: Each file defines a single query — its `queryOptions` factory, the hook that wraps it, and an optional `[name]QueryKey` function — with only one `useQuery` call, unless input depends on other hooks
 3. **Single object parameter**: Hooks accept one parameter which is an object containing all needed variables
 4. **queryKey naming**: Keys start with a kebab-case string representing the key name, sorted from generic to specific
    - Example: `['user-balance', listVariable, detailVariable, filterVariable]`
