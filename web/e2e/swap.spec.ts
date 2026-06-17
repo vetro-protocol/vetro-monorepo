@@ -50,20 +50,11 @@ test("swap USDC → VUSD via the gateway", async function ({ page }) {
 
   await page.goto("/swap");
 
-  // Two "Connect wallet" buttons: header trigger + form submit (disabled).
-  await page
-    .getByRole("button", { name: /connect wallet/i })
-    .first()
-    .click();
-
-  // The mock wallet announces EIP-6963 with rdns "com.example.mock-wallet".
-  // The modal occasionally re-renders as new providers announce, so click
-  // with force to bypass the stability check.
-  await page
-    .getByTestId("rk-wallet-option-com.example.mock-wallet")
-    .click({ force: true });
-
-  // Header button switches from "Connect wallet" to a 0x… short address.
+  // The mock wallet auto-connects silently via EIP-6963 (see fixtures/wallet),
+  // so don't open the RainbowKit connect modal here: useOverlay.handleClose
+  // no-ops while connectModalOpen is true, so a stale "connect modal open"
+  // state would stop the token picker from closing. Just wait for the header
+  // button to switch from "Connect wallet" to the 0x… short address.
   await expect(
     page.getByRole("button", { name: /^0x[a-f0-9]{4}/i }),
   ).toBeVisible({ timeout: 30_000 });
