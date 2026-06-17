@@ -32,6 +32,26 @@ app.use("*", async function (c, next) {
 app.use("*", securityHeaders);
 
 app.get(
+  "/prices",
+  cache({
+    cacheControl: "max-age=60",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const response = await fetch(`${c.env.PORTAL_API_URL}/prices`);
+      if (!response.ok) {
+        throw new Error(`upstream returned ${response.status}`);
+      }
+      const data = await response.json();
+      return c.json(data);
+    } catch (error) {
+      throw new Error(`Failed to get token prices: ${error.message}`);
+    }
+  },
+);
+
+app.get(
   "/analytics/pegged-token-backing/:gatewayAddress",
   validateGatewayAddress,
   cache({

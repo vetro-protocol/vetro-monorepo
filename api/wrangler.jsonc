@@ -15,6 +15,7 @@
     "MERKL_OPPORTUNITY_SVETBTC": "",
     "MERKL_OPPORTUNITY_SVUSD": "",
     "ORIGINS": "http://localhost:3000,http://localhost:5173",
+    "PORTAL_API_URL": "https://portal-api.hemi.xyz",
     "SUBGRAPH_URL_TEMPLATE": "http://localhost:8000/subgraphs/name/vetro-app-subgraph",
   },
   "env": {
@@ -23,6 +24,7 @@
       "vars": {
         "CUSTOM_RPC_URL_MAINNET": "https://eth.drpc.org",
         "ORIGINS": "https://*.letshamsterdance.xyz,https://*-vetro-web-staging.hemilabs.workers.dev",
+        "PORTAL_API_URL": "https://portal-api.hemi.xyz",
         "SUBGRAPH_ID": "7vnTMFYNE6Nv7RTeoaog4QgqQ3bwZTFoPUGv2gcmTxJ6",
         "SUBGRAPH_URL_TEMPLATE": "https://gateway.thegraph.com/api/$API_KEY/subgraphs/id/$ID",
       },
@@ -41,6 +43,7 @@
       "vars": {
         "CUSTOM_RPC_URL_MAINNET": "https://eth.drpc.org",
         "ORIGINS": "https://app.vetro.org,https://beta.vetro.org,https://*.hemi.xyz",
+        "PORTAL_API_URL": "https://portal-api.hemi.xyz",
         "SUBGRAPH_ID": "7vnTMFYNE6Nv7RTeoaog4QgqQ3bwZTFoPUGv2gcmTxJ6",
         "SUBGRAPH_URL_TEMPLATE": "https://gateway.thegraph.com/api/$API_KEY/subgraphs/id/$ID",
       },

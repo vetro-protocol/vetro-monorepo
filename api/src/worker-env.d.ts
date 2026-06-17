@@ -6,6 +6,7 @@ interface Env {
   MERKL_OPPORTUNITY_SVETBTC?: string;
   MERKL_OPPORTUNITY_SVUSD?: string;
   ORIGINS: string;
+  PORTAL_API_URL: string;
   SUBGRAPH_API_KEY?: string;
   SUBGRAPH_ID?: string;
   SUBGRAPH_URL_TEMPLATE: string;
