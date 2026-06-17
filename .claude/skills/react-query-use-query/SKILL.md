@@ -271,6 +271,7 @@ export const fetchTotalMintFees = async function ({
   chain,
   client,
   fromToken,
+  gatewayAddress,
   owner,
   queryClient,
 }: {
@@ -278,6 +279,7 @@ export const fetchTotalMintFees = async function ({
   chain: Chain;
   client: Client;
   fromToken: Token;
+  gatewayAddress: Address;
   owner: Address;
   queryClient: QueryClient;
 }) {
@@ -299,7 +301,6 @@ export const fetchTotalMintFees = async function ({
     ),
     queryClient.ensureQueryData(
       mintFeeOptions({
-        chainId: chain.id,
         client,
         gatewayAddress,
         token: fromToken.address,
