@@ -2,17 +2,23 @@
   "extends": ["bloq", "prettier"],
   "ignorePatterns": [
     "api/.wrangler/**/*",
+    "internal-dashboard/dist/**/*",
     "landing/.wrangler/**/*",
     "web/dist/**/*",
     "web/storybook-static/**/*"
   ],
   "overrides": [
     {
-      "excludedFiles": ["subgraph/generated/**/*", "web/dist/**/*"],
+      "excludedFiles": [
+        "internal-dashboard/dist/**/*",
+        "subgraph/generated/**/*",
+        "web/dist/**/*"
+      ],
       "extends": ["bloq/esm", "bloq/typescript", "prettier"],
       "files": [
         "*.{js,mjs}",
         "api/**/*.ts",
+        "internal-dashboard/**/*.{js,ts,tsx}",
         "landing/**/*.ts",
         "packages/**/*.{js,ts,tsx}",
         "subgraph/**/*.ts",
