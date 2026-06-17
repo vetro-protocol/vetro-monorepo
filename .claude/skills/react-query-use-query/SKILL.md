@@ -361,7 +361,7 @@ Use this checklist when validating hooks:
 - [ ] Single object parameter with typed properties
 - [ ] `queryKey` is an array starting with kebab-case string
 - [ ] `queryKey` ordered generic to specific
-- [ ] Exported `queryOptions` function exists (named `[featureName]Options`)
+- [ ] `queryOptions` function exists (named `[featureName]Options`; exported only when another query/fetcher needs it)
 - [ ] Hook calls `useQuery([name]Options({...}))` — not inline `useQuery({...})`
 - [ ] When `queryFn` needs the `QueryClient`, it reads it from the queryFn context (`async queryFn({ client: queryClient })`) — not via a threaded `queryClient` param or `useQueryClient()` in the hook
 - [ ] If the query is invalidated/updated by any mutation, a standalone `[name]QueryKey` function is also exported and reused inside `[name]Options`
