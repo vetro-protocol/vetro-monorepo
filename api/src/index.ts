@@ -38,7 +38,7 @@ app.get(
     cacheName: "vetro-api",
   }),
   async function (c) {
-    let response;
+    let response: Response;
     try {
       response = await fetch(new URL("/prices", c.env.PORTAL_API_URL));
     } catch (error) {

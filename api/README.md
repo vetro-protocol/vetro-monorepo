@@ -6,7 +6,7 @@ Service that provides data to the Vetro web application.
 
 ### `GET /prices`
 
-Proxies the portal API token prices endpoint. Returns the upstream response as-is.
+Proxies the portal API token prices endpoint. Returns the upstream response as-is on success.
 
 #### Sample response
 
