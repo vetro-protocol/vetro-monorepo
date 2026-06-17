@@ -161,7 +161,7 @@ export const [fetcherName] = async function ({
 1. **Read Existing Hook**: Use Read tool to get current implementation
 2. **Identify Changes**: Understand what needs modification
 3. **Preserve Patterns**: Keep existing naming conventions and structure
-4. **Ensure queryOptions**: Maintain or add exported `queryOptions` function
+4. **Ensure queryOptions**: Maintain or add a `queryOptions` function (export only when another query/fetcher needs it)
 5. **Re-validate**: Check against all best practices
 6. **Apply Changes**: Use Edit tool for precise modifications
 
