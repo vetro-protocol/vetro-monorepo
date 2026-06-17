@@ -291,7 +291,6 @@ export const fetchTotalMintFees = async function ({
       client,
       fromToken,
       owner,
-      queryClient,
     }),
   );
 
