@@ -175,7 +175,7 @@ export const [fetcherName] = async function ({
    - ✓ Single object parameter
    - ✓ queryKey array starts with kebab-case string
    - ✓ queryKey ordered generic to specific
-   - ✓ Exported `queryOptions` function exists
+   - ✓ `queryOptions` function exists (exported only when another query/fetcher needs it)
    - ✓ Hook calls `useQuery([name]Options({...}))`
    - ✓ queryFn reads the `QueryClient` from its context (`queryFn({ client: queryClient })`), not a threaded `queryClient` param or `useQueryClient()`
    - ✓ queryFn is simple inline call
