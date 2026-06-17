@@ -398,6 +398,13 @@ Fetchers can accept `queryClient: QueryClient` and use `queryClient.ensureQueryD
 const prices = await queryClient.ensureQueryData(tokenPricesOptions());
 ```
 
+> **Footgun:** `ensureQueryData` bypasses `enabled` — it always runs
+> `queryFn` when data isn't cached, regardless of `enabled: false`. A
+> `queryOptions` factory's `enabled: !!client` guard does **not** protect
+> against `ensureQueryData` calling it with undefined inputs. Fetchers
+> composing via `ensureQueryData` must validate required inputs themselves
+> (assert/throw early) rather than relying on `enabled`.
+
 ### Handling Optional Parameters
 
 Use `enabled` condition in the `queryOptions` function:
