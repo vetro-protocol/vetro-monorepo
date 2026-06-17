@@ -571,7 +571,7 @@ When this skill is invoked:
    - Determine if fetcher is needed
    - Create fetcher file first if needed at `web/src/fetchers/[name].ts`
    - Create hook file at `web/src/hooks/[hookName].ts`
-   - Always create an exported `queryOptions` function
+   - Always create a `queryOptions` function (export only when another query/fetcher needs it)
    - Hook must call `useQuery([name]Options({...}))`
    - Follow template structure
    - Ensure all best practices are met
