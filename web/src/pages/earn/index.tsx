@@ -30,7 +30,7 @@ export function Earn() {
           <div className="border-b border-gray-200 bg-gray-100">
             <StripedDivider />
           </div>
-          {isLoading ? <ExitTicketsSkeleton /> : <ExitTickets />}
+          {showExitTickets ? <ExitTickets /> : <ExitTicketsSkeleton />}
         </>
       )}
     </>
