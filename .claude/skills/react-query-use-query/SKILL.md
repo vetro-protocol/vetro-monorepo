@@ -26,7 +26,8 @@ These practices MUST be followed:
 3. **Single object parameter**: Hooks accept one parameter which is an object containing all needed variables
 4. **queryKey naming**: Keys start with a kebab-case string representing the key name, sorted from generic to specific
    - Example: `['user-balance', listVariable, detailVariable, filterVariable]`
-5. **Exportable queryKey function**: Always create a `queryKey` function for consistency. Export it only if it will be used elsewhere (e.g., for query invalidation with `queryClient` in mutations)
+5. **Always create a `queryOptions` function**: Create a function that returns `queryOptions({...})` from `@tanstack/react-query`. This encapsulates `queryKey`, `queryFn`, and `enabled` together. The hook then calls `useQuery(myOptions({...}))`. **Scope of use**: `queryOptions` functions are consumed only by `useQuery` and by other queries'/fetchers' `queryFn` via `queryClient.ensureQueryData(myOptions({...}))`. **Mutations must not import or call a `queryOptions` function** — when a mutation needs to invalidate or update a query's cache, it should use a separately exported `[name]QueryKey` function (see best practice 5a). Export `queryOptions` only when another query/fetcher needs it.
+   - **5a. Export `[name]QueryKey` for mutation invalidation**: When a query will be invalidated or updated by a mutation, also export a standalone `[name]QueryKey({...})` function that accepts only the identity params (no `client`, no `queryClient`). Mutations call `queryClient.invalidateQueries({ queryKey: [name]QueryKey({...}) })` or `queryClient.setQueryData([name]QueryKey({...}), ...)`. Have the `queryOptions` function reuse this `queryKey` function so the key stays in one place.
 6. **Always use arrays**: Use arrays for `queryKey` even if only one parameter
 7. **Simple queryFn**: Keep `queryFn` simple (one inline call). Complex logic goes in `web/src/fetchers/`
 
@@ -45,66 +46,82 @@ Detect the mode based on user's request:
 Use when the hook doesn't depend on data from other hooks. Note: In web3/blockchain contexts, most hooks need at least a client hook (like `usePublicClient`), which would make them Template B.
 
 ```typescript
-import { useQuery } from '@tanstack/react-query'
-import type { Address } from 'viem'
+import { queryOptions, useQuery } from "@tanstack/react-query"
+import type { Address } from "viem"
 
-export const [hookName]QueryKey = ({ [params] }: { [params]: [Type] }) => [
-  '[kebab-case-name]',
-  [params],
-]
+// Export only if used elsewhere (e.g., in fetchers via queryClient.ensureQueryData)
+const [featureName]Options = ({ [params] }: { [params]: [Type] }) =>
+  queryOptions({
+    queryFn: () => [fetcherCall]([params]),
+    queryKey: ["[kebab-case-name]", [params]],
+  })
 
 export const [hookName] = ({ [params] }: { [params]: [Type] }) =>
-  useQuery({
-    queryKey: [hookName]QueryKey({ [params] }),
-    queryFn: () => [fetcherCall]([params]),
-  })
+  useQuery([featureName]Options({ [params] }))
 ```
 
-### Template B: Hook with Dependencies
+### Template B: Hook with Query Dependencies
 
-Use when the hook needs data from other hooks (e.g., `usePublicClient`, `useAccount`). Most web3 hooks follow this pattern.
+Use when the hook's `queryFn` needs data from other queries. Instead of calling dependency hooks and passing their data down, use `queryClient.ensureQueryData(dependencyOptions())` inside `queryFn` to resolve dependent query data. Context hooks (wagmi's `usePublicClient`, `useAccount`, etc.) are still called directly since they provide React context values, not query data.
+
+**Access the `QueryClient` via the `queryFn` context.** React Query passes a context object to `queryFn` whose `client` property is the `QueryClient`. Destructure it there instead of calling `useQueryClient()` in the hook and threading a `queryClient` param through the `queryOptions` function. Always rename it on destructure (`{ client: queryClient }`): in this codebase `client` conventionally refers to an RPC client (e.g. a viem `Client`), so leaving the `QueryClient` named `client` is confusing and collides whenever a viem `client` is also in scope.
 
 ```typescript
-import { useQuery } from '@tanstack/react-query'
-import { [dependencyHook] } from 'hooks/[dependencyHook]'
+import { queryOptions, useQuery } from "@tanstack/react-query"
+import { [dependencyOptions] } from "hooks/[dependencyHook]"
 
-export const [hookName]QueryKey = ({
+export const [featureName]Options = ({
+  [contextValues],
   [params],
-  [dependentData]
 }: {
+  [contextValues]: [Type]
   [params]: [Type]
-  [dependentData]: [Type]
-}) => [
-  '[kebab-case-name]',
-  [params],
-  [dependentData],
-]
-
-export const [hookName] = function({ [params] }: { [params]: [Type] }) {
-  const { data: [dependentData] } = [dependencyHook]()
-
-  return useQuery({
-    queryKey: [hookName]QueryKey({ [params], [dependentData]: [dependentData]! }),
-    queryFn: () => [fetcherCall]({ [params], [dependentData]: [dependentData]! }),
-    enabled: !![dependentData],
+}) =>
+  queryOptions({
+    // Gate on any context value that may be undefined (e.g. client, account)
+    enabled: !![contextValues],
+    // The QueryClient is the `client` on the queryFn context — no need to
+    // call useQueryClient() or pass a queryClient param.
+    async queryFn({ client: queryClient }) {
+      const dependentData = await queryClient.ensureQueryData(
+        [dependencyOptions]({ [relevant params] }),
+      )
+      return [fetcherCall]({ [params], dependentData })
+    },
+    queryKey: ["[kebab-case-name]", [params], [contextValues]],
   })
+
+export const [hookName] = function ({ [params] }: { [params]: [Type] }) {
+  // Context hooks (wagmi, etc.) are called directly
+  const [contextValue] = [useContextHook]()
+
+  return useQuery([featureName]Options({ [contextValues], [params] }))
 }
 ```
 
 ### Template C: Fetcher (Complex Logic)
 
-Use when queryFn would be too complex. Place in `web/src/fetchers/[fetcherName].ts`.
+Use when queryFn would be too complex. Place in `web/src/fetchers/[fetcherName].ts`. Fetchers can accept `queryClient` and use `queryClient.ensureQueryData()` to read data from other queries' caches.
 
 ```typescript
-import type { Address, Client } from 'viem'
+import type { QueryClient } from "@tanstack/react-query"
+import { someOtherOptions } from "hooks/useSomeOther"
+import type { Address, Client } from "viem"
 
-export const [fetcherName] = async function({
+export const [fetcherName] = async function ({
   client,
   [params],
+  queryClient,
 }: {
   client: Client
   [params]: [Type]
+  queryClient: QueryClient
 }) {
+  // Read cached data from another query
+  const cachedValue = await queryClient.ensureQueryData(
+    someOtherOptions({ [relevant params] }),
+  )
+
   // Complex logic: multiple operations, data transformations
   return result
 }
@@ -127,12 +144,14 @@ export const [fetcherName] = async function({
 3. **Create Fetcher** (if needed):
    - File: `web/src/fetchers/[fetcherName].ts`
    - Use proper TypeScript types
+   - Accept `queryClient` if it needs to read other queries' caches
    - Handle multiple async operations
    - Return transformed data
 
 4. **Create Hook**:
    - File: `web/src/hooks/[hookName].ts`
-   - Generate exportable `queryKey` function
+   - Generate exported `queryOptions` function
+   - If the query is invalidated/updated by any mutation, also export a `[name]QueryKey` function and reuse it inside `[name]Options`
    - Use correct template based on dependencies
    - Apply proper TypeScript types
    - Add `enabled` conditions for optional dependencies
@@ -142,7 +161,7 @@ export const [fetcherName] = async function({
 1. **Read Existing Hook**: Use Read tool to get current implementation
 2. **Identify Changes**: Understand what needs modification
 3. **Preserve Patterns**: Keep existing naming conventions and structure
-4. **Ensure Exportability**: Maintain or add exportable `queryKey` function
+4. **Ensure queryOptions**: Maintain or add exported `queryOptions` function
 5. **Re-validate**: Check against all best practices
 6. **Apply Changes**: Use Edit tool for precise modifications
 
@@ -156,7 +175,9 @@ export const [fetcherName] = async function({
    - ✓ Single object parameter
    - ✓ queryKey array starts with kebab-case string
    - ✓ queryKey ordered generic to specific
-   - ✓ Exportable queryKey function exists
+   - ✓ Exported `queryOptions` function exists
+   - ✓ Hook calls `useQuery([name]Options({...}))`
+   - ✓ queryFn reads the `QueryClient` from its context (`queryFn({ client: queryClient })`), not a threaded `queryClient` param or `useQueryClient()`
    - ✓ queryFn is simple inline call
 3. **Report Violations**: List issues with line references
 4. **Suggest Fixes**: Provide specific code changes
@@ -166,7 +187,8 @@ export const [fetcherName] = async function({
 | Element             | Pattern                         | Example                 |
 | ------------------- | ------------------------------- | ----------------------- |
 | Hook name           | `use[Feature][Action]`          | `useMintFee`            |
-| Query key function  | `[Feature][Action]QueryKey`     | `mintFeeQueryKey`       |
+| Options function    | `[feature][Action]Options`      | `mintFeeOptions`        |
+| QueryKey function   | `[feature][Action]QueryKey`     | `stakedBalanceQueryKey` |
 | Fetcher name        | `fetch[Feature][Action]`        | `fetchUserPortfolio`    |
 | Query key string    | `[feature]-[action]` kebab-case | `'mint-fee'`            |
 | File name (hook)    | `use[Feature][Action].ts`       | `useMintFee.ts`         |
@@ -174,141 +196,171 @@ export const [fetcherName] = async function({
 
 ## Examples
 
-### Example 1: Hook with Another Hook Dependency
+### Example 1: Hook with queryOptions and Custom Select Support
 
 ```typescript
 // File: web/src/hooks/useMintFee.ts
-import { useQuery } from "@tanstack/react-query";
+import {
+  type UseQueryOptions,
+  queryOptions,
+  useQuery,
+} from "@tanstack/react-query";
 import { getMintFee } from "@vetro-protocol/gateway/actions";
-import type { Address } from "viem";
-import { usePublicClient } from "wagmi";
+import type { Address, Client } from "viem";
 
-export const mintFeeQueryKey = ({
-  gatewayAddress,
-}: {
-  gatewayAddress: Address;
-}) => ["mint-fee", gatewayAddress];
+import { useEthereumClient } from "./useEthereumClient";
 
-export const useMintFee = function ({
-  gatewayAddress,
-}: {
-  gatewayAddress: Address;
-}) {
-  const client = usePublicClient();
+type QueryOptions<TSelect = bigint> = Omit<
+  UseQueryOptions<bigint, Error, TSelect>,
+  "enabled" | "queryFn" | "queryKey"
+>;
 
-  return useQuery({
-    enabled: !!client,
-    queryKey: mintFeeQueryKey({ gatewayAddress }),
-    queryFn: () => getMintFee(client!, { address: gatewayAddress }),
-  });
-};
-```
-
-### Example 2: Hook with Complex Logic (Needs Fetcher)
-
-```typescript
-// File: web/src/fetchers/fetchUserPortfolio.ts
-import { getMintFee, getRedeemFee } from "@vetro-protocol/gateway/actions";
-import type { Address, PublicClient } from "viem";
-
-export const fetchUserPortfolio = async function ({
+export const mintFeeOptions = <TSelect = bigint>({
   client,
   gatewayAddress,
+  token,
+  ...options
 }: {
-  client: PublicClient;
+  client: Client | undefined;
   gatewayAddress: Address;
-}) {
-  const mintFee = await getMintFee(client, { address: gatewayAddress });
-  const redeemFee = await getRedeemFee(client, {
-    address: gatewayAddress,
-    mintFee,
-  });
-
-  return { mintFee, redeemFee };
-};
-
-// File: web/src/hooks/useUserPortfolio.ts
-import { useQuery } from "@tanstack/react-query";
-import { fetchUserPortfolio } from "fetchers/fetchUserPortfolio";
-import type { Address } from "viem";
-import { usePublicClient } from "wagmi";
-
-export const useUserPortfolioQueryKey = ({
-  gatewayAddress,
-}: {
-  gatewayAddress: Address;
-}) => ["user-portfolio", gatewayAddress];
-
-export const useUserPortfolio = function ({
-  gatewayAddress,
-}: {
-  gatewayAddress: Address;
-}) {
-  const client = usePublicClient();
-
-  return useQuery({
-    queryKey: useUserPortfolioQueryKey({ gatewayAddress }),
-    queryFn: () =>
-      fetchUserPortfolio({
-        client: client!,
-        gatewayAddress,
-      }),
+  token: Address;
+} & QueryOptions<TSelect>) =>
+  queryOptions({
+    ...options,
     enabled: !!client,
+    queryFn: () => getMintFee(client!, { address: gatewayAddress, token }),
+    queryKey: ["mint-fee", client?.chain?.id, gatewayAddress, token],
   });
+
+export const useMintFee = function <TSelect = bigint>({
+  gatewayAddress,
+  token,
+  ...options
+}: {
+  gatewayAddress: Address;
+  token: Address;
+} & QueryOptions<TSelect>) {
+  const client = useEthereumClient();
+
+  return useQuery(
+    mintFeeOptions({
+      ...options,
+      client,
+      gatewayAddress,
+      token,
+    }),
+  );
 };
 ```
 
-### Example 3: Hook with Dependencies
+### Example 2: Fetcher using queryClient.ensureQueryData
 
 ```typescript
-// File: web/src/hooks/useUserBalanceDetails.ts
-import { useQuery } from "@tanstack/react-query";
-import { getBalanceDetails } from "@vetro-protocol/gateway/actions";
-import type { Address } from "viem";
-import { useAccount, usePublicClient } from "wagmi";
+// File: web/src/fetchers/fetchTotalMintFees.ts
+import { estimateFeesQueryOptions } from "@hemilabs/react-hooks/useEstimateFees";
+import type { QueryClient } from "@tanstack/react-query";
+import { mintFeeOptions } from "hooks/useMintFee";
+import { mintGasUnitsOptions } from "hooks/useSwapMintFees";
+import { tokenPricesOptions } from "hooks/useTokenPrices";
+import type { Token } from "types";
+import { applyBps } from "utils/fees";
+import { type Address, type Chain, type Client, formatUnits } from "viem";
 
-export const useUserBalanceDetailsQueryKey = ({
-  account,
-  gatewayAddress,
+export const fetchTotalMintFees = async function ({
+  amount,
+  chain,
+  client,
+  fromToken,
+  owner,
+  queryClient,
 }: {
-  account: Address;
-  gatewayAddress: Address;
-}) => ["user-balance-details", gatewayAddress, account];
-
-export const useUserBalanceDetails = ({
-  gatewayAddress,
-}: {
-  gatewayAddress: Address;
-}) => {
-  const { address: account } = useAccount();
-  const client = usePublicClient();
-
-  return useQuery({
-    queryKey: useUserBalanceDetailsQueryKey({
-      account: account!,
-      gatewayAddress,
+  amount: bigint;
+  chain: Chain;
+  client: Client;
+  fromToken: Token;
+  owner: Address;
+  queryClient: QueryClient;
+}) {
+  // Reuse other queries via ensureQueryData — reads from cache if available
+  const gasUnits = await queryClient.ensureQueryData(
+    mintGasUnitsOptions({
+      amount,
+      chainId: chain.id,
+      client,
+      fromToken,
+      owner,
+      queryClient,
     }),
-    queryFn: () =>
-      getBalanceDetails(client!, {
-        address: gatewayAddress,
-        args: [account!],
+  );
+
+  const [networkFeeWei, protocolFeeBps, prices] = await Promise.all([
+    queryClient.ensureQueryData(
+      estimateFeesQueryOptions({ chainId: chain.id, gasUnits }),
+    ),
+    queryClient.ensureQueryData(
+      mintFeeOptions({
+        chainId: chain.id,
+        client,
+        gatewayAddress,
+        token: fromToken.address,
       }),
-    enabled: !!client && !!account,
-  });
+    ),
+    queryClient.ensureQueryData(tokenPricesOptions()),
+  ]);
+
+  // Combine and return calculated result
+  return calculateTotalFees(networkFeeWei, protocolFeeBps, prices);
 };
+```
+
+### Example 3: Simple queryOptions Hook
+
+```typescript
+// File: web/src/hooks/useTokenPrices.ts
+import {
+  type UseQueryOptions,
+  queryOptions,
+  useQuery,
+} from "@tanstack/react-query";
+import fetch from "fetch-plus-plus";
+
+type Prices = Record<string, string>;
+
+type QueryOptions<TSelect = Prices> = Omit<
+  UseQueryOptions<Prices, Error, TSelect>,
+  "queryKey" | "queryFn"
+>;
+
+export const tokenPricesOptions = <TSelect = Prices>(
+  options: QueryOptions<TSelect> = {} as QueryOptions<TSelect>,
+) =>
+  queryOptions({
+    queryFn: () =>
+      fetch(`${apiUrl}/prices`).then(({ prices }) => prices as Prices),
+    queryKey: ["token-price"] as const,
+    refetchInterval: 60 * 1000,
+    ...options,
+  });
+
+export const useTokenPrices = <TSelect = Prices>(
+  options: QueryOptions<TSelect> = {} as QueryOptions<TSelect>,
+) => useQuery(tokenPricesOptions(options));
 ```
 
 ## Validation Checklist
 
 Use this checklist when validating hooks:
 
-- [ ] Import from '@tanstack/react-query'
+- [ ] Import `queryOptions` and `useQuery` from '@tanstack/react-query'
 - [ ] Hook returns `useQuery` result directly (not destructured)
 - [ ] Only one `useQuery` per file (or dependencies justified)
 - [ ] Single object parameter with typed properties
 - [ ] `queryKey` is an array starting with kebab-case string
 - [ ] `queryKey` ordered generic to specific
-- [ ] `queryKey` function exists (named `[hookName]QueryKey`). Always create it for consistency, export it only if used elsewhere for query invalidation.
+- [ ] Exported `queryOptions` function exists (named `[featureName]Options`)
+- [ ] Hook calls `useQuery([name]Options({...}))` — not inline `useQuery({...})`
+- [ ] When `queryFn` needs the `QueryClient`, it reads it from the queryFn context (`async queryFn({ client: queryClient })`) — not via a threaded `queryClient` param or `useQueryClient()` in the hook
+- [ ] If the query is invalidated/updated by any mutation, a standalone `[name]QueryKey` function is also exported and reused inside `[name]Options`
 - [ ] `queryFn` is single inline call (or fetcher created for complex logic)
 - [ ] Proper TypeScript types (import from 'viem', etc.)
 - [ ] Proper `enabled` conditions for optional dependencies
@@ -324,6 +376,7 @@ Create a fetcher in `web/src/fetchers/` when:
 - Data transformation/mapping required
 - Complex conditional logic
 - Multiple API/contract calls that need to be combined or processed
+- Need to compose data from multiple queries via `queryClient.ensureQueryData()`
 
 Keep `queryFn` simple when:
 
@@ -332,30 +385,120 @@ Keep `queryFn` simple when:
 - Direct data return with no transformation
 - Only a few independent calls that can run all in parallel (e.g., `Promise.all([call1(), call2()])` with simple return)
 
-### Handling Optional Parameters
+### Fetcher Composition with queryClient
 
-Use `enabled` condition:
+Fetchers can accept `queryClient: QueryClient` and use `queryClient.ensureQueryData(someOptions({...}))` to read data from other queries' caches. This avoids prop drilling and enables cache deduplication:
 
 ```typescript
-return useQuery({
-  enabled: !!value, // Only run when value exists
-  queryKey: useMyHookQueryKey({ value: value! }),
-  queryFn: () => fetchData(value!),
-});
+// Instead of passing `tokenPrice` as a parameter:
+const prices = await queryClient.ensureQueryData(tokenPricesOptions());
+```
+
+### Handling Optional Parameters
+
+Use `enabled` condition in the `queryOptions` function:
+
+```typescript
+export const myOptions = ({ value }: { value: string | undefined }) =>
+  queryOptions({
+    enabled: !!value,
+    queryFn: () => fetchData(value!),
+    queryKey: ["my-data", value],
+  });
 ```
 
 ### Dependent Queries
 
-When query depends on data from another hook:
+When a query depends on data from another query, use `queryClient.ensureQueryData()` inside `queryFn` instead of calling the dependency hook. Get the `QueryClient` from the `queryFn` context's `client` property — there's no need to call `useQueryClient()` or pass a `queryClient` param:
 
 ```typescript
-const { data: dependency } = useDependency();
+export const myOptions = () =>
+  queryOptions({
+    queryFn: async ({ client: queryClient }) => {
+      const dependency = await queryClient.ensureQueryData(
+        dependencyOptions({
+          /* params */
+        }),
+      );
+      return fetchData({ dependency });
+    },
+    queryKey: ["my-data"],
+  });
 
-return useQuery({
-  queryKey: useMyHookQueryKey({ dependency: dependency! }),
-  queryFn: () => fetchData(dependency!),
-  enabled: !!dependency, // Wait for dependency
+export const useMyData = function () {
+  return useQuery(myOptions());
+};
+```
+
+### Exporting a queryKey Function for Mutations
+
+`queryOptions` factories carry `queryFn`, `enabled`, and the params they need to build them (e.g. `client`). A mutation that only needs to invalidate or update a query's cache should not have to construct any of that. When a query is going to be invalidated or updated by a mutation, export a standalone `[name]QueryKey` function from the hook file and have the `queryOptions` function call it so the key lives in one place:
+
+```typescript
+export const stakedBalanceQueryKey = ({
+  account,
+  chainId,
+  stakingVaultAddress,
+}: {
+  account: Address;
+  chainId: number;
+  stakingVaultAddress: Address;
+}) => ["staked-balance", chainId, stakingVaultAddress, account];
+
+export const stakedBalanceQueryOptions = ({
+  account,
+  chainId,
+  client,
+  stakingVaultAddress,
+}: {
+  account: Address | undefined;
+  chainId: number;
+  client: Client | undefined;
+  stakingVaultAddress: Address;
+}) =>
+  queryOptions({
+    enabled: !!client && !!account,
+    // The QueryClient comes from the queryFn context, not a param.
+    async queryFn({ client: queryClient }) {
+      /* ...queryClient.ensureQueryData(...) */
+    },
+    queryKey: stakedBalanceQueryKey({
+      account: account!,
+      chainId,
+      stakingVaultAddress,
+    }),
+  });
+```
+
+A mutation then invalidates with the key alone — no `client`, no `queryClient` plumbing:
+
+```typescript
+queryClient.invalidateQueries({
+  queryKey: stakedBalanceQueryKey({ account, chainId, stakingVaultAddress }),
 });
+```
+
+**Do not** have mutations import `stakedBalanceQueryOptions(...).queryKey` as a shortcut — it forces the mutation to pass every option-only param just to derive a key.
+
+### Custom Select Support
+
+When a hook needs to support custom `select` transformations, use a generic `QueryOptions` type:
+
+```typescript
+type QueryOptions<TSelect = MyType> = Omit<
+  UseQueryOptions<MyType, Error, TSelect>,
+  "enabled" | "queryFn" | "queryKey"
+>;
+
+export const myOptions = <TSelect = MyType>({
+  param,
+  ...options
+}: { param: string } & QueryOptions<TSelect>) =>
+  queryOptions({
+    ...options,
+    queryFn: () => fetchData(param),
+    queryKey: ["my-data", param],
+  });
 ```
 
 ### Error Handling
@@ -372,12 +515,14 @@ return useQuery({
 
 ### Common Dependencies
 
-Frequently used hooks from wagmi:
+**Context hooks** (called directly in the hook body, values passed to `queryOptions`):
 
-- `usePublicClient()`: For read operations
-- `useWalletClient()`: For write operations (but not in useQuery)
-- `useAccount()`: For user address
-- `useChainId()`: For current chain
+- `usePublicClient()`: For read operations (wagmi)
+- `useWalletClient()`: For write operations, not in useQuery (wagmi)
+- `useAccount()`: For user address (wagmi)
+- `useChainId()`: For current chain (wagmi)
+
+**Query dependencies** (other queries whose data this query needs) are accessed via `queryClient.ensureQueryData(otherOptions({...}))` inside `queryFn`. Get the `QueryClient` from the `queryFn` context (`async queryFn({ client: queryClient }) { ... }`) rather than calling `useQueryClient()` in the hook and threading a `queryClient` param through `queryOptions`. Never call dependency hooks (e.g. `useOtherQuery()`) from within a hook that wraps a `useQuery` — import the dependency's exported `queryOptions` function instead.
 
 ### Common Types
 
@@ -422,6 +567,8 @@ When this skill is invoked:
    - Determine if fetcher is needed
    - Create fetcher file first if needed at `web/src/fetchers/[name].ts`
    - Create hook file at `web/src/hooks/[hookName].ts`
+   - Always create an exported `queryOptions` function
+   - Hook must call `useQuery([name]Options({...}))`
    - Follow template structure
    - Ensure all best practices are met
    - Use proper naming conventions
@@ -432,12 +579,14 @@ When this skill is invoked:
    - Understand requested changes
    - Preserve existing patterns
    - Make minimal changes
+   - If hook uses inline `useQuery({...})`, refactor to use `queryOptions` function
    - Ensure compliance with best practices
    - Re-validate after changes
 
 4. **VALIDATE Mode**:
    - Read specified file(s) or scan hooks directory
    - Check against all 7 best practices
+   - Flag hooks that use inline `useQuery({...})` without a `queryOptions` function
    - Report violations with file:line references
    - Suggest specific fixes with code examples
    - Provide severity (error vs warning)
@@ -446,7 +595,8 @@ When this skill is invoked:
    - Use Read tool before Write/Edit
    - Use proper TypeScript types
    - Follow project style (no semicolons, single quotes)
-   - Create queryKey functions always, export only if needed for query invalidation
+   - Create a `queryOptions` function (export only when another query/fetcher needs it)
+   - Export a `[name]QueryKey` function whenever mutations will invalidate or update the query
 
 ## Example Invocations
 
@@ -460,7 +610,7 @@ When this skill is invoked:
 
 - "Update useMintFee to also accept chainId parameter"
 - "Change useUserBalance to use a fetcher instead"
-- "Modify useGatewayInfo to export its queryKey"
+- "Extract queryOptions from useGatewayInfo"
 
 **VALIDATE Examples**:
 
