@@ -13,7 +13,6 @@
   "dependencies": {
     "@vetro-protocol/earn": "workspace:*",
     "@vetro-protocol/gateway": "workspace:*",
-    "@vetro-protocol/linear-least-squares-regression": "workspace:*",
     "@vetro-protocol/treasury": "workspace:*",
     "hono": "4.11.9",
     "tiny-fetch-json": "2.0.1",

@@ -59,9 +59,6 @@ importers:
       '@vetro-protocol/gateway':
         specifier: workspace:*
         version: link:../packages/gateway
-      '@vetro-protocol/linear-least-squares-regression':
-        specifier: workspace:*
-        version: link:../packages/linear-least-squares-regression
       '@vetro-protocol/treasury':
         specifier: workspace:*
         version: link:../packages/treasury
