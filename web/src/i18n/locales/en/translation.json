@@ -288,7 +288,7 @@
         "withdrawn": "Withdrawn"
       },
       "pool-info": {
-        "apy": "Current 7-Day APY",
+        "apy": "APY",
         "deposit": "Deposit",
         "pool-contract": "Pool contract",
         "pool-deposits": "Pool deposits",
