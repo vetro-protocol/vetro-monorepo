@@ -158,9 +158,8 @@ export const useRedeem = function ({
           logs: receipt.logs,
         });
         const actualAmount =
-          transferLogs.find((log) =>
-            isAddressEqual(log.args.from, peggedToken.gatewayAddress),
-          )?.args.value ?? minAmountOut;
+          transferLogs.find((log) => isAddressEqual(log.args.to, account))?.args
+            .value ?? minAmountOut;
 
         if (hasDelay) {
           // if there's a delay, the PeggedToken was burned from the Gateway vault
