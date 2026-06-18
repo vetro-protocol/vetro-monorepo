@@ -11,7 +11,6 @@ import type { Address } from "viem";
 
 import { OutputLabel, type UnitPreview } from "./outputLabel";
 import { SwapFees } from "./swapFees";
-import { TreasuryReserves } from "./treasuryReserves";
 
 type Props = {
   fromAmount: string;
@@ -87,9 +86,6 @@ export function SwapProgressDrawer({
             </div>
           )}
         </div>
-        <DrawerFeesContainer>
-          <TreasuryReserves gatewayAddress={fromToken.gatewayAddress} />
-        </DrawerFeesContainer>
         <DrawerFeesContainer>
           <SwapFees
             fromToken={fromToken}

@@ -18,7 +18,6 @@ import type { Address } from "viem";
 import { OutputLabel, type UnitPreview } from "./outputLabel";
 import { SwapFees } from "./swapFees";
 import { ToTokenBalance } from "./toTokenBalance";
-import { TreasuryReserves } from "./treasuryReserves";
 import type { ClaimRedeemFlowStatus } from "./types";
 
 type Props = {
@@ -132,9 +131,6 @@ export function ClaimRedeemProgressDrawer({
               : t("pages.swap.redeem-queue.redeem")}
         </Button>
       </div>
-      <DrawerFeesContainer>
-        <TreasuryReserves gatewayAddress={fromToken.gatewayAddress} />
-      </DrawerFeesContainer>
       <DrawerFeesContainer>
         <SwapFees
           fromToken={fromToken}
