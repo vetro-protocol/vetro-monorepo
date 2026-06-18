@@ -32,6 +32,36 @@ app.use("*", async function (c, next) {
 app.use("*", securityHeaders);
 
 app.get(
+  "/prices",
+  cache({
+    cacheControl: "max-age=60",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    let response: Response;
+    try {
+      response = await fetch(new URL("/prices", c.env.PORTAL_API_URL));
+    } catch (error) {
+      console.error("Hemi Portal API unreachable:", error.message);
+      return c.json({ error: "Service Unavailable" }, 503);
+    }
+
+    if (!response.ok) {
+      console.warn(`Hemi Portal API returned ${response.status}`);
+      return c.json({ error: "Bad Gateway" }, 502);
+    }
+
+    try {
+      const data = await response.json();
+      return c.json(data);
+    } catch (error) {
+      console.warn("Hemi Portal API returned invalid JSON:", error.message);
+      return c.json({ error: "Bad Gateway" }, 502);
+    }
+  },
+);
+
+app.get(
   "/analytics/pegged-token-backing/:gatewayAddress",
   validateGatewayAddress,
   cache({
