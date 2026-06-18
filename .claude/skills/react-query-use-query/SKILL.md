@@ -208,7 +208,7 @@ import {
 import { getMintFee } from "@vetro-protocol/gateway/actions";
 import type { Address, Client } from "viem";
 
-import { useEthereumClient } from "./useEthereumClient";
+import { useEthereumClient } from "hooks/useEthereumClient";
 
 type QueryOptions<TSelect = bigint> = Omit<
   UseQueryOptions<bigint, Error, TSelect>,
