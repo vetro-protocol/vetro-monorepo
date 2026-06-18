@@ -1,14 +1,18 @@
 import { TEST_ADDRESS } from "@hemilabs/anvil-fork-setup/utils";
 import { expect } from "@playwright/test";
-import { createPublicClient, http, parseUnits } from "viem";
+import { parseUnits } from "viem";
+import { getBlock, readContract } from "viem/actions";
 import { mainnet } from "viem/chains";
 import { balanceOf } from "viem-erc20/actions";
 
+import { gatewayAbi } from "../../packages/gateway/src/abi/gatewayAbi.ts";
 import { gatewayAddresses } from "../../packages/gateway/src/gatewayAddresses.ts";
+import { fastForwardTime } from "../scripts/fastForwardTime.ts";
+import { setRedeemDelay } from "../scripts/redeemDelay.ts";
 import { whitelistInstantRedeem } from "../scripts/whitelistInstantRedeem.ts";
 import { knownTokens } from "../src/utils/tokenList.ts";
 
-import { ANVIL_URL } from "./anvil";
+import { ANVIL_URL, createEthereumClient } from "./anvil";
 import { test } from "./fixtures/wallet";
 
 function getMainnetToken(symbol: string) {
@@ -32,10 +36,7 @@ const REDEEM_AMOUNT_DISPLAY = "2";
 const REDEEM_AMOUNT = parseUnits(REDEEM_AMOUNT_DISPLAY, vusd.decimals);
 
 test("swap USDC → VUSD via the gateway", async function ({ page }) {
-  const publicClient = createPublicClient({
-    chain: mainnet,
-    transport: http(ANVIL_URL),
-  });
+  const publicClient = createEthereumClient();
 
   const [usdcBefore, vusdBefore] = await Promise.all([
     balanceOf(publicClient, {
@@ -117,10 +118,7 @@ test("swap USDC → VUSD via the gateway", async function ({ page }) {
 test("redeem VUSD → USDC via the gateway (instant redeem)", async function ({
   page,
 }) {
-  const publicClient = createPublicClient({
-    chain: mainnet,
-    transport: http(ANVIL_URL),
-  });
+  const publicClient = createEthereumClient();
 
   // Whitelist the test account for instant redeem so the redeem takes the
   // one-step path (otherwise the gateway's withdrawal delay forces the
@@ -226,4 +224,166 @@ test("redeem VUSD → USDC via the gateway (instant redeem)", async function ({
     address: vusd.address,
   });
   expect(vusdAfter).toBe(vusdBefore - REDEEM_AMOUNT);
+});
+
+test("redeem VUSD via the gateway (two-step queue redeem)", async function ({
+  page,
+}) {
+  const publicClient = createEthereumClient();
+
+  // Enable the gateway's withdrawal delay and ensure the test account is NOT
+  // whitelisted for instant redeem, forcing the two-step (request → wait →
+  // claim) path. The per-test snapshot/revert already isolates any whitelisting
+  // done by the instant-redeem test, but we set this explicitly so the test is
+  // self-contained.
+  await setRedeemDelay({
+    address: TEST_ADDRESS,
+    enableDelay: true,
+    forkUrl: ANVIL_URL,
+    gateway: gatewayAddresses[0],
+  });
+
+  const vusdBefore = await balanceOf(publicClient, {
+    account: TEST_ADDRESS,
+    address: vusd.address,
+  });
+
+  await page.goto("/swap");
+
+  // Wait for the interactive form before toggling — the loading skeleton's
+  // toggle button is a no-op (see the instant-redeem test for the full
+  // rationale).
+  await expect(
+    page.getByRole("button", { name: "Select token to swap" }).first(),
+  ).toBeVisible();
+
+  // Toggle to redeem BEFORE connecting and wait for the mode to land in the URL,
+  // so the connect-triggered remount re-initialises in redeem mode.
+  await page.getByRole("button", { name: "Toggle swap direction" }).click();
+  await expect(page).toHaveURL(/[?&]mode=redeem/);
+
+  // The mock wallet auto-connects silently via EIP-6963 — just wait for the
+  // header button to switch to the 0x… short address.
+  await expect(
+    page.getByRole("button", { name: /^0x[a-f0-9]{4}/i }),
+  ).toBeVisible({ timeout: 30_000 });
+
+  // Step 1 — request redeem. The two-step form has no output-token selector (the
+  // output is chosen later in the claim drawer); the input defaults to VUSD.
+  await page
+    .locator('input[type="text"]:not([disabled])')
+    .first()
+    .fill(REDEEM_AMOUNT_DISPLAY);
+
+  await page.getByRole("button", { name: /send to queue/i }).click();
+
+  // The toast confirms the VUSD reached the queue (covers approval + request).
+  await expect(page.getByText(/sent to queue/i)).toBeVisible({
+    timeout: 60_000,
+  });
+
+  // The VUSD is now locked in the gateway, so the wallet balance already dropped.
+  await expect
+    .poll(
+      async () =>
+        balanceOf(publicClient, {
+          account: TEST_ADDRESS,
+          address: vusd.address,
+        }),
+      { timeout: 20_000 },
+    )
+    .toBe(vusdBefore - REDEEM_AMOUNT);
+
+  // The queue now lists the request we just created — assert the
+  // redeemable-balance column shows the locked amount and pegged-token symbol.
+  const redeemQueue = page.locator("#redeem-queue");
+  await expect(
+    redeemQueue.getByText(`${REDEEM_AMOUNT_DISPLAY} ${vusd.symbol}`),
+  ).toBeVisible({ timeout: 20_000 });
+
+  // Skip the cooldown without waiting. Read claimableAt from the fork, then
+  // advance BOTH clocks past it:
+  //  - the fork's block.timestamp, by fast-forwarding past the cooldown, so the
+  //    claim tx passes the contract's `block.timestamp >= claimableAt` check
+  //    (Gateway._handleRedeemOrWithdraw),
+  //  - the browser clock, so the queue row's Date.now-based countdown
+  //    (useCountdown) reaches zero and enables the Redeem button.
+  const [, claimableAt] = await readContract(publicClient, {
+    abi: gatewayAbi,
+    address: gatewayAddresses[0],
+    args: [TEST_ADDRESS],
+    functionName: "getRedeemRequest",
+  });
+  // Fail loudly if the request wasn't recorded (claimableAt 0) instead of
+  // silently under-advancing the clock below.
+  expect(claimableAt).toBeGreaterThan(0n);
+
+  const { timestamp: chainNow } = await getBlock(publicClient);
+  // Mirror the fork's actual post-fast-forward timestamp onto the browser clock
+  // (rather than re-deriving an estimate) so the on-chain check and the UI
+  // countdown stay in sync.
+  const newTimestamp = await fastForwardTime({
+    forkUrl: ANVIL_URL,
+    seconds: Number(claimableAt - chainNow),
+  });
+  await page.clock.setFixedTime(Number(newTimestamp) * 1000);
+
+  // Step 2 — claim the now-redeemable position from the queue. The cooldown has
+  // elapsed, so the row's status flips to "Ready to redeem" and its Redeem
+  // button enables.
+  await expect(redeemQueue.getByText(/ready to redeem/i)).toBeVisible({
+    timeout: 20_000,
+  });
+  const queueRedeemButton = redeemQueue.getByRole("button", {
+    name: /^redeem$/i,
+  });
+  await expect(queueRedeemButton).toBeEnabled();
+  await queueRedeemButton.click();
+
+  // The claim drawer slides in ("Redeem your VUSD"). Scope to it by its title
+  // heading's container rather than brittle layout classes — the heading's
+  // parent holds the whole drawer body (amount input, token selector, buttons).
+  const drawerTitle = page.getByRole("heading", { name: /redeem your/i });
+  await expect(drawerTitle).toBeVisible();
+  const drawer = drawerTitle.locator("..");
+
+  // Redeem to the drawer's default output token. Switching it via the token
+  // modal would dismiss the drawer — the modal renders in its own portal, so the
+  // selection click registers as an outside-click for the drawer's
+  // click-outside handler — so read which stablecoin the default is and assert
+  // against that one.
+  const outputSymbol = (
+    await drawer
+      .getByRole("button", { name: "Select token to swap" })
+      .innerText()
+  ).trim();
+  const outputToken = getMainnetToken(outputSymbol);
+  const outputBefore = await balanceOf(publicClient, {
+    account: TEST_ADDRESS,
+    address: outputToken.address,
+  });
+
+  // Redeem the full locked amount.
+  await drawer.getByRole("button", { name: "MAX" }).click();
+  await drawer.getByRole("button", { name: /^redeem$/i }).click();
+
+  // The claim settled on the fork: the output stablecoin was received, and VUSD
+  // stays at its post-step-1 value (the locked balance was burned, not the
+  // wallet's).
+  await expect
+    .poll(
+      async () =>
+        balanceOf(publicClient, {
+          account: TEST_ADDRESS,
+          address: outputToken.address,
+        }),
+      { timeout: 20_000 },
+    )
+    .toBeGreaterThan(outputBefore);
+
+  const vusdAfterClaim = await balanceOf(publicClient, {
+    account: TEST_ADDRESS,
+    address: vusd.address,
+  });
+  expect(vusdAfterClaim).toBe(vusdBefore - REDEEM_AMOUNT);
 });
