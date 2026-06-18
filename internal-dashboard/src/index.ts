@@ -2,31 +2,11 @@
 
 /// <reference types="@cloudflare/workers-types" />
 
-import { allChains } from "networks";
-import { getUrlOrigin } from "utils/url";
-
 type Env = {
   ASSETS: Fetcher;
 };
 
-// Extract unique RPC URLs
-const rpcUrls = allChains.flatMap((chain) => chain.rpcUrls.default.http);
-
-const allUrls: (string | undefined)[] = [
-  import.meta.env.VITE_VETRO_API_URL,
-  ...rpcUrls,
-  import.meta.env.VITE_SENTRY_DSN,
-];
-
-// Build connect-src dynamically from env vars baked in at build time.
-const connectSrc = [
-  "'self'",
-  ...allUrls.map(getUrlOrigin).filter(Boolean),
-].join(" ");
-
-const workerSrc = import.meta.env.VITE_SENTRY_DSN ? "blob:" : "'none'";
-
-// Deny all permissions – mirrors api/src/security-headers.ts.
+// Deny all permissions – mirrors web/src/index.ts.
 const permissionsPolicy = [
   "accelerometer",
   "ambient-light-sensor",
@@ -80,17 +60,18 @@ const permissionsPolicy = [
 
 const csp = [
   "base-uri 'none'",
-  `connect-src ${connectSrc}`,
+  // Extend with external origins (e.g. the Curve API) as tabs start fetching data.
+  "connect-src 'self'",
   "default-src 'none'",
-  "font-src 'self' https://fonts.gstatic.com",
+  "font-src 'self'",
   "form-action 'none'",
   "frame-ancestors 'none'",
-  "img-src 'self' data: https://hemilabs.github.io",
+  "img-src 'self' data:",
   "script-src 'self'",
   // Tailwind v4 injects styles via a <style> tag, so 'unsafe-inline' is needed.
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "style-src 'self' 'unsafe-inline'",
   "upgrade-insecure-requests",
-  `worker-src ${workerSrc}`,
+  "worker-src 'none'",
 ].join("; ");
 
 // Applied to all responses – these have meaningful effect on sub-resources.
@@ -105,8 +86,7 @@ const commonHeaders = {
 // CSP is stricter for HTML responses so it overrides the commonHeaders CSP.
 const htmlHeaders = {
   "Content-Security-Policy": csp,
-  // See https://docs.base.org/smart-wallet/quickstart#cross-origin-opener-policy
-  "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
+  "Cross-Origin-Opener-Policy": "same-origin",
   "Origin-Agent-Cluster": "?1",
   "Permissions-Policy": permissionsPolicy,
   "X-DNS-Prefetch-Control": "off",

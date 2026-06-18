@@ -312,12 +312,10 @@ export function TwoStepRedeem({
       {showToast && (
         <Toast
           closable
-          description={t("pages.swap.toast.your-cooldown-period-has-started", {
-            count: seconds,
-            seconds,
-          })}
+          description={t("pages.swap.toast.redeem-queued-description")}
           onClose={() => setShowToast(false)}
-          title={t("pages.swap.toast.deposited-to-queue", {
+          title={t("pages.swap.toast.redeem-queued-title", {
+            amount: fromInputValue,
             symbol: fromToken.symbol,
           })}
         />

@@ -430,11 +430,10 @@
       "select-option": "Seleccione el token a intercambiar",
       "title": "Intercambie sus tokens por activos de Vetro",
       "toast": {
-        "deposit-description": "VUSD disponible en su billetera",
-        "deposit-title": "Depósito confirmado",
-        "deposited-to-queue": "{{symbol}} depositado en la cola",
-        "your-cooldown-period-has-started_one": "Su período de espera de {{seconds}} segundo ha comenzado.",
-        "your-cooldown-period-has-started_other": "Su período de espera de {{seconds}} segundos ha comenzado."
+        "redeem-queued-description": "Podrá canjearlo una vez que finalice el período de espera.",
+        "redeem-queued-title": "{{amount}} {{symbol}} enviado a la cola",
+        "swap-success-description": "{{fromAmount}} {{fromSymbol}} convertido a {{toAmount}} {{toSymbol}}.",
+        "swap-success-title": "Intercambio exitoso"
       },
       "treasury-reserves": "Reservas del tesoro",
       "tutorial": {

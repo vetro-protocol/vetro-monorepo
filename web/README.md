@@ -11,7 +11,6 @@ Vite only exposes variables prefixed with `VITE_` to the client bundle. Set thes
 | Variable               | Required | Description                                                                                    |
 | ---------------------- | -------- | ---------------------------------------------------------------------------------------------- |
 | `VITE_DEPLOY_ENV`      | No       | Set to `"production"` to hide source maps from browsers. Any other value serves them publicly. |
-| `VITE_PORTAL_API_URL`  | Yes      | Hemi Portal API base URL (used for token prices).                                              |
 | `VITE_RPC_URL_MAINNET` | No       | RPC URL for Ethereum mainnet. Falls back to viem's default when unset.                         |
 | `VITE_SENTRY_DSN`      | No       | Sentry DSN. When unset, Sentry is disabled.                                                    |
 | `VITE_VETRO_API_URL`   | Yes      | Vetro backend API base URL (analytics, APR history, exit tickets, rewards, etc.).              |
