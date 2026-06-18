@@ -145,10 +145,10 @@ Returns the APY for each supported staking vault, indexed by staking vault addre
 
 ### `GET /variable-stake/share-value-history/:stakingVaultAddress/:period`
 
-Returns the historical share value for a staking vault over the given period (Earn token vs underlying pegged token, e.g. sVUSD per VUSD). One entry per UTC day. Results across multiple subgraph pages are concatenated, so long windows return their full history (e.g. `"1y"` may include up to ~366 entries).
+Returns the historical share value for a staking vault over the given period (Earn token vs underlying pegged token, e.g. sVUSD per VUSD). One entry per UTC day from the subgraph, plus a final point read live from the vault's on-chain `convertToAssets` (one whole share) at request time. The subgraph writes its history once per UTC day, so its latest point can lag the actual share value by up to ~24h; the appended live point keeps the last value in sync with the current exchange rate. Results across multiple subgraph pages are concatenated, so long windows return their full history (e.g. `"1y"` may include up to ~366 entries plus the live point). If the live read fails the series is returned without the appended point.
 Valid periods are: `"1w"`, `"1m"`, `"3m"` and `"1y"`.
 `:stakingVaultAddress` must be a known staking vault. Returns `400` if malformed and `404` if the address is not a known staking vault.
-`shareValue` is a number with the 18-decimal wad already pre-scaled (e.g. `1.000412938421`). `timestamp` is the UTC day-start in milliseconds.
+`shareValue` is a number already pre-scaled by the underlying asset's decimals to a human-readable exchange rate (e.g. `1.000412938421`). `timestamp` is in milliseconds (UTC day-start for subgraph entries, current time for the live point).
 
 #### Sample Response for "1w"
 
