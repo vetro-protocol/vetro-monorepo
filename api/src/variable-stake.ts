@@ -1,25 +1,21 @@
 import { stakingVaultAddresses } from "@vetro-protocol/earn";
+import {
+  getPeriodFinish,
+  getRewardRate,
+  getYieldDistributor,
+} from "@vetro-protocol/earn/actions";
 import { getPeggedToken } from "@vetro-protocol/gateway/actions";
-import { linearRegression } from "@vetro-protocol/linear-least-squares-regression";
 import { type Address, checksumAddress, type Hash } from "viem";
 import { mainnet } from "viem/chains";
-import { convertToAssets } from "viem-erc4626/actions";
+import { convertToAssets, totalAssets } from "viem-erc4626/actions";
 
 import * as graphql from "./graphql.ts";
 import { createMainnetClient } from "./mainnet-client.ts";
 import * as merkl from "./merkl.ts";
-import parseBigIntStringToNumber from "./parse-bigint-string-to-number.ts";
 import { findStakingVaultForPeggedToken } from "./staking-vault.ts";
 
-const secsPerDay = 86400;
 const WAD = 10n ** 18n;
-
-type VaultHistoryRow = {
-  shareValue: string;
-  stakingVaultAddress: Address;
-  timestamp: string;
-};
-type VaultHistoriesResponse = { vaultHistories: VaultHistoryRow[] };
+const SECONDS_PER_YEAR = 31_536_000n; // 365 days
 
 /**
  * Query the subgraph for the user's staking positions across all known vaults
@@ -72,79 +68,69 @@ export async function getCostBasis({
 }
 
 /**
- * Query the subgraph. Get the last 7 days of data per configured staking
- * vault. Compute the APY for each vault using a linear regression and getting
- * the slope. Returns a record keyed by vault address; every configured vault
- * is present in the response (with `{ "7d": 0 }` when there is not enough
- * history to compute a slope).
+ * Compute a forward-looking APY for each configured staking vault by reading
+ * the current `rewardRate` from the vault's `YieldDistributor` contract and
+ * annualizing it over the vault's `totalAssets()`. Yield is dripped into the
+ * vault's asset balance (raising the ERC4626 share price), so the reward and
+ * staked asset are the same token and no price conversion is needed.
+ *
+ * The vault auto-compounds continuously, so the annualized rate (APR) is turned
+ * into a continuous-compounding APY via `e^apr - 1`. Returns a record keyed by
+ * checksummed vault address. A vault is included with `{ apy: 0 }` when its
+ * reads succeed but no drip is active (period ended, zero rate, or empty vault);
+ * a vault whose on-chain reads fail is omitted entirely so the frontend can
+ * render "-" for it, distinct from a genuine 0% APY.
  */
-export async function getApy({ url }: { url: string }) {
-  const query = `
-    query ($end: BigInt!, $start: BigInt!, $vaults: [Bytes!]!) {
-      vaultHistories(
-        orderBy: timestamp
-        where: {
-          stakingVaultAddress_in: $vaults
-          timestamp_gte: $start
-          timestamp_lt: $end
+export async function getApy({ rpcUrl }: { rpcUrl: string | undefined }) {
+  const client = createMainnetClient(rpcUrl);
+  const now = BigInt(Math.floor(Date.now() / 1000));
+
+  const entries = await Promise.all(
+    stakingVaultAddresses.map(async function (vaultAddress) {
+      try {
+        const totalAssetsPromise = totalAssets(client, {
+          address: vaultAddress,
+        });
+        const distributorReadsPromise = getYieldDistributor(client, {
+          address: vaultAddress,
+        }).then((distributorAddress) =>
+          Promise.all([
+            getPeriodFinish(client, { address: distributorAddress }),
+            getRewardRate(client, { address: distributorAddress }),
+          ]),
+        );
+        const [[periodFinish, rewardRate], assets] = await Promise.all([
+          distributorReadsPromise,
+          totalAssetsPromise,
+        ]);
+
+        let apy = 0;
+        if (periodFinish >= now && rewardRate > 0n && assets > 0n) {
+          // rewardRate is WAD-scaled reward per second. Annualize it and
+          // divide by assets, keeping a WAD fixed-point scale.
+          // The WAD scale cancels the rewardRate's own WAD scaling, so
+          // aprWad = apr * WAD = (rewardRate * SECONDS_PER_YEAR) / assets.
+          const aprWad = (rewardRate * SECONDS_PER_YEAR) / assets;
+          const apr = Number(aprWad) / Number(WAD);
+          // continuous compounding
+          apy = Math.expm1(apr) * 100;
         }
-      ) {
-        shareValue
-        stakingVaultAddress
-        timestamp
+        return [vaultAddress, { apy }] as const;
+      } catch (error) {
+        // Omit this vault from the response so the frontend shows "-" rather
+        // than a misleading 0%. A single vault's failed on-chain reads (e.g.
+        // an unconfigured distributor or RPC error) must not affect the rest.
+        console.warn(
+          `Failed to compute APY for vault ${vaultAddress}: ${error.message}`,
+        );
+        return null;
       }
-    }`;
-  const end = Math.floor(Date.now() / 1000);
-  const start = end - (7 + 1) * secsPerDay + 1; // Window is 8 days to get 7 data points
-  const variables = {
-    end: end.toString(),
-    start: start.toString(),
-    vaults: stakingVaultAddresses.map((address) => address.toLowerCase()),
-  };
-
-  const { vaultHistories } = await graphql.runQuery<VaultHistoriesResponse>(
-    url,
-    query,
-    variables,
+    }),
   );
-  if (!Array.isArray(vaultHistories)) {
-    throw new Error("Invalid subgraph response for vault history");
-  }
-
-  const historiesByVault = new Map<
-    string,
-    { shareValue: string; timestamp: string }[]
-  >();
-  for (const history of vaultHistories) {
-    const key = history.stakingVaultAddress.toLowerCase();
-    const existing = historiesByVault.get(key);
-    if (existing) {
-      existing.push(history);
-    } else {
-      historiesByVault.set(key, [history]);
-    }
-  }
 
   return Object.fromEntries(
-    stakingVaultAddresses.map(function (vaultAddress) {
-      const histories = historiesByVault.get(vaultAddress.toLowerCase()) ?? [];
-      if (histories.length < 2) {
-        return [vaultAddress, { "7d": 0 }];
-      }
-      const days = histories.map((h) =>
-        Math.floor(Number.parseInt(h.timestamp) / secsPerDay),
-      );
-      const values = histories.map((h) =>
-        parseBigIntStringToNumber(h.shareValue, 18),
-      );
-      const delta = linearRegression({ x: days, y: values }).a;
-      if (Number.isNaN(delta)) {
-        return [vaultAddress, { "7d": 0 }];
-      }
-      const apy = ((delta * 365) / values[values.length - 1]) * 100;
-      return [vaultAddress, { "7d": apy }];
-    }),
-  ) as Record<Address, { "7d": number }>;
+    entries.filter((entry) => entry !== null),
+  ) as Record<Address, { apy: number }>;
 }
 
 /**

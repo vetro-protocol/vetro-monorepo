@@ -196,13 +196,14 @@ app.get(
 app.get(
   "/variable-stake/apy",
   cache({
-    cacheControl: "max-age=3600",
+    cacheControl: "max-age=600",
     cacheName: "vetro-api",
   }),
   async function (c) {
     try {
-      const url = getSubgraphUrl(c.env);
-      const data = await variableStake.getApy({ url });
+      const data = await variableStake.getApy({
+        rpcUrl: c.env.CUSTOM_RPC_URL_MAINNET,
+      });
       return c.json(data);
     } catch (error) {
       throw new Error(`Failed to get APY: ${error.message}`);

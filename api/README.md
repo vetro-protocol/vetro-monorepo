@@ -128,17 +128,17 @@ Returns the user's cost basis (in the vault asset's native smallest unit; decima
 
 ### `GET /variable-stake/apy`
 
-Returns the APY for each supported staking vault, indexed by staking vault address, calculated using the share value variations over the last 7 days. Each supported staking vault has an entry in the response; vaults with insufficient history return `{ "7d": 0 }`.
+Returns the APY for each supported staking vault, indexed by staking vault address. This is a forward-looking figure computed from the current `rewardRate` read directly from each vault's `YieldDistributor` contract, annualized over the vault's `totalAssets()` and expressed as a continuous-compounding APY. A vault whose drip has ended (or whose rate or total assets are zero) returns a genuine `{ "apy": 0 }`. A vault whose on-chain reads fail (e.g. RPC error or an unconfigured distributor) is **omitted** from the response rather than returned as `0`, so clients can render "-" for it — distinct from a real 0% APY. If every vault's reads fail, the response is `{}`.
 
 #### Sample Response
 
 ```jsonc
 {
   "0x476310E34D2810f7d79C43A74E4D79405bd7a925": {
-    "7d": 4.21,
+    "apy": 9.95,
   },
   "0x0cB9D84d4bcEc8d3D5B2d99a6F07f4605325987e": {
-    "7d": 0,
+    "apy": 0,
   },
 }
 ```

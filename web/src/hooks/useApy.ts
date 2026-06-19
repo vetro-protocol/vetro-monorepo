@@ -5,7 +5,7 @@ import type { Address } from "viem";
 
 const apiUrl = import.meta.env.VITE_VETRO_API_URL;
 
-type ApyResponse = Record<Address, { "7d": number }>;
+type ApyResponse = Partial<Record<Address, { apy: number }>>;
 
 export const useApy = (stakingVaultAddress: Address) =>
   useQuery({
@@ -15,5 +15,7 @@ export const useApy = (stakingVaultAddress: Address) =>
     queryKey: ["variable-stake-apy"],
     refetchInterval: 5 * 60 * 1000, // 5 minutes
     retry: 2,
-    select: (data) => data[stakingVaultAddress]["7d"],
+    // A vault whose reads failed is omitted from the response, so this can be
+    // undefined; callers render "-" in that case.
+    select: (data) => data[stakingVaultAddress]?.apy,
   });

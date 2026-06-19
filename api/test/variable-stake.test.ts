@@ -3,6 +3,13 @@ import {
   sVetBtcAddress,
   sVusdAddress,
 } from "@vetro-protocol/earn";
+import {
+  getPeriodFinish,
+  getRewardRate,
+  getYieldDistributor,
+} from "@vetro-protocol/earn/actions";
+import { type Address } from "viem";
+import { totalAssets } from "viem-erc4626/actions";
 import { describe, expect, it, vi } from "vitest";
 
 import * as graphql from "../src/graphql.ts";
@@ -18,114 +25,202 @@ vi.mock("../src/merkl.ts", () => ({
   getUserRewards: vi.fn(),
 }));
 
+vi.mock("../src/mainnet-client.ts", () => ({
+  createMainnetClient: vi.fn(() => ({})),
+}));
+
+vi.mock("@vetro-protocol/earn/actions", () => ({
+  getPeriodFinish: vi.fn(),
+  getRewardRate: vi.fn(),
+  getYieldDistributor: vi.fn(),
+}));
+
+vi.mock("viem-erc4626/actions", () => ({
+  totalAssets: vi.fn(),
+}));
+
 describe("variable-stake/getApy", function () {
-  const url = "https://subgraph.example/v1";
+  const rpcUrl = "https://rpc.example";
   const vaultA = sVusdAddress;
   const vaultB = sVetBtcAddress;
-  const secsPerDay = 86400;
+  const distributorA: Address = "0x55745265Ba172378cf45d224F09F0673cB470cef";
+  const distributorB: Address = "0x1111111111111111111111111111111111111111";
+  const distributorByVault: Record<string, Address> = {
+    [vaultA]: distributorA,
+    [vaultB]: distributorB,
+  };
+  // A periodFinish comfortably in the future so the drip is always active.
+  const activePeriodFinish = BigInt(Math.floor(Date.now() / 1000)) + 86_400n;
 
-  const buildHistory = ({
-    days,
-    shareValueWad,
-    stakingVaultAddress,
-  }: {
-    days: number[];
-    shareValueWad: bigint[];
-    stakingVaultAddress: string;
-  }) =>
-    days.map((d, i) => ({
-      shareValue: shareValueWad[i].toString(),
-      stakingVaultAddress: stakingVaultAddress.toLowerCase(),
-      timestamp: (d * secsPerDay).toString(),
-    }));
-
-  it("returns { '7d': 0 } for every configured vault when there is no history", async function () {
-    vi.mocked(graphql.runQuery).mockResolvedValue({ vaultHistories: [] });
-
-    const result = await getApy({
-      url,
+  // Drives getPeriodFinish/getRewardRate/totalAssets per address. Defaults to
+  // an active period and zero rate/assets unless a vault is configured below.
+  function setVaultState(
+    states: Partial<
+      Record<
+        string,
+        { periodFinish?: bigint; rewardRate: bigint; totalAssets: bigint }
+      >
+    >,
+  ) {
+    vi.mocked(getYieldDistributor).mockImplementation(
+      async (_client, { address }) => distributorByVault[address],
+    );
+    vi.mocked(getPeriodFinish).mockImplementation(async function (
+      _client,
+      { address },
+    ) {
+      const vault = address === distributorA ? vaultA : vaultB;
+      return states[vault]?.periodFinish ?? activePeriodFinish;
     });
+    vi.mocked(getRewardRate).mockImplementation(async function (
+      _client,
+      { address },
+    ) {
+      const vault = address === distributorA ? vaultA : vaultB;
+      return states[vault]?.rewardRate ?? 0n;
+    });
+    vi.mocked(totalAssets).mockImplementation(
+      async (_client, { address }) => states[address]?.totalAssets ?? 0n,
+    );
+  }
+
+  it("returns { apy: 0 } for every configured vault when the reward rate is zero", async function () {
+    setVaultState({
+      [vaultA]: { rewardRate: 0n, totalAssets: 10n ** 18n },
+      [vaultB]: { rewardRate: 0n, totalAssets: 10n ** 18n },
+    });
+
+    const result = await getApy({ rpcUrl });
 
     expect(result).toEqual({
-      [vaultA]: { "7d": 0 },
-      [vaultB]: { "7d": 0 },
+      [vaultA]: { apy: 0 },
+      [vaultB]: { apy: 0 },
     });
   });
 
-  it("returns { '7d': 0 } for a vault with fewer than two history points", async function () {
-    vi.mocked(graphql.runQuery).mockResolvedValue({
-      vaultHistories: buildHistory({
-        days: [20000],
-        shareValueWad: [10n ** 18n],
-        stakingVaultAddress: vaultA,
-      }),
+  it("zeroes a vault whose drip has ended without affecting an active vault", async function () {
+    const past = BigInt(Math.floor(Date.now() / 1000)) - 86_400n;
+    setVaultState({
+      [vaultA]: {
+        periodFinish: past,
+        rewardRate: 132275132275132275132275132275132n,
+        totalAssets: 43983990448825662118175n,
+      },
+      [vaultB]: {
+        rewardRate: 132275132275132275132275132275132n,
+        totalAssets: 43983990448825662118175n,
+      },
     });
 
-    const result = await getApy({
-      url,
-    });
+    const result = await getApy({ rpcUrl });
 
-    expect(result).toEqual({
-      [vaultA]: { "7d": 0 },
-      [vaultB]: { "7d": 0 },
-    });
+    expect(result[vaultA].apy).toBe(0);
+    expect(result[vaultB].apy).toBeCloseTo(9.95, 1);
   });
 
-  it("computes APY independently for each vault from its own history", async function () {
-    // Vault A: shareValue grows by 0.001 per day on a base of 1.0 -> ~36.5% APY
-    // Vault B: shareValue grows by 0.0001 per day on a base of 1.0 -> ~3.65% APY
-    const day0 = 20000;
-    vi.mocked(graphql.runQuery).mockResolvedValue({
-      vaultHistories: [
-        ...buildHistory({
-          days: [day0, day0 + 1, day0 + 2],
-          shareValueWad: [
-            10n ** 18n,
-            10n ** 18n + 10n ** 15n,
-            10n ** 18n + 2n * 10n ** 15n,
-          ],
-          stakingVaultAddress: vaultA,
-        }),
-        ...buildHistory({
-          days: [day0, day0 + 1, day0 + 2],
-          shareValueWad: [
-            10n ** 18n,
-            10n ** 18n + 10n ** 14n,
-            10n ** 18n + 2n * 10n ** 14n,
-          ],
-          stakingVaultAddress: vaultB,
-        }),
-      ],
+  it("computes a forward continuous-compounding APY from the reward rate", async function () {
+    // Mainnet sVUSD example from the issue: 80 VUSD over a 7-day drip.
+    setVaultState({
+      [vaultA]: {
+        rewardRate: 132275132275132275132275132275132n,
+        totalAssets: 43983990448825662118175n,
+      },
+      [vaultB]: { rewardRate: 0n, totalAssets: 0n },
     });
 
-    const result = await getApy({
-      url,
+    const result = await getApy({ rpcUrl });
+
+    expect(result[vaultA].apy).toBeCloseTo(9.95, 1);
+    expect(result[vaultB].apy).toBe(0);
+  });
+
+  it("computes APY independently for each vault", async function () {
+    setVaultState({
+      [vaultA]: {
+        rewardRate: 132275132275132275132275132275132n,
+        totalAssets: 43983990448825662118175n,
+      },
+      [vaultB]: {
+        rewardRate: 132275132275132275132275132275132n,
+        totalAssets: 2n * 43983990448825662118175n,
+      },
     });
 
-    expect(result[vaultA]["7d"]).toBeCloseTo(36.43, 1);
-    expect(result[vaultB]["7d"]).toBeCloseTo(3.649, 1);
+    const result = await getApy({ rpcUrl });
+
+    // Vault B has twice the assets for the same reward rate, so ~half the APR.
+    expect(result[vaultA].apy).toBeCloseTo(9.95, 1);
+    expect(result[vaultB].apy).toBeCloseTo(4.86, 1);
   });
 
-  it("filters the subgraph query by the configured vaults (lowercased)", async function () {
-    vi.mocked(graphql.runQuery).mockResolvedValue({ vaultHistories: [] });
+  it("omits a vault whose on-chain reads fail without breaking others", async function () {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    setVaultState({
+      [vaultA]: {
+        rewardRate: 132275132275132275132275132275132n,
+        totalAssets: 43983990448825662118175n,
+      },
+    });
+    // Vault B's distributor read reverts (e.g. no distributor configured).
+    vi.mocked(getYieldDistributor).mockImplementation(async function (
+      _client,
+      { address },
+    ) {
+      if (address === vaultB) {
+        throw new Error("execution reverted");
+      }
+      return distributorByVault[address];
+    });
 
-    await getApy({ url });
+    const result = await getApy({ rpcUrl });
 
-    const variables = vi.mocked(graphql.runQuery).mock.calls.at(-1)?.[2] as
-      | { vaults: string[] }
-      | undefined;
-    expect(variables?.vaults).toEqual([
-      vaultA.toLowerCase(),
-      vaultB.toLowerCase(),
-    ]);
+    expect(result[vaultA].apy).toBeCloseTo(9.95, 1);
+    // The failed vault is omitted entirely (frontend renders "-"), not zeroed.
+    expect(result).not.toHaveProperty(vaultB);
+    warn.mockRestore();
   });
 
-  it("throws when the subgraph response is malformed", async function () {
-    vi.mocked(graphql.runQuery).mockResolvedValue({
-      vaultHistories: undefined,
-    } as never);
+  it("omits a vault whose reward-rate read fails (not just the distributor lookup)", async function () {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    setVaultState({
+      [vaultA]: {
+        rewardRate: 132275132275132275132275132275132n,
+        totalAssets: 43983990448825662118175n,
+      },
+      [vaultB]: {
+        rewardRate: 132275132275132275132275132275132n,
+        totalAssets: 43983990448825662118175n,
+      },
+    });
+    // Vault B's distributor resolves, but reading its reward rate reverts.
+    vi.mocked(getRewardRate).mockImplementation(async function (
+      _client,
+      { address },
+    ) {
+      if (address === distributorB) {
+        throw new Error("execution reverted");
+      }
+      return 132275132275132275132275132275132n;
+    });
 
-    await expect(getApy({ url })).rejects.toThrow(/Invalid subgraph response/);
+    const result = await getApy({ rpcUrl });
+
+    expect(result[vaultA].apy).toBeCloseTo(9.95, 1);
+    expect(result).not.toHaveProperty(vaultB);
+    warn.mockRestore();
+  });
+
+  it("returns {} when every vault's reads fail (e.g. a bad RPC url)", async function () {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    // Simulate an unreachable RPC: every distributor lookup rejects.
+    vi.mocked(getYieldDistributor).mockRejectedValue(
+      new Error("HTTP request failed"),
+    );
+
+    const result = await getApy({ rpcUrl });
+
+    expect(result).toEqual({});
+    warn.mockRestore();
   });
 });
 
