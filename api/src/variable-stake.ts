@@ -91,12 +91,16 @@ export async function getApy({ rpcUrl }: { rpcUrl: string | undefined }) {
         const totalAssetsPromise = totalAssets(client, {
           address: vaultAddress,
         });
-        const distributorAddress = await getYieldDistributor(client, {
+        const distributorReadsPromise = getYieldDistributor(client, {
           address: vaultAddress,
-        });
-        const [periodFinish, rewardRate, assets] = await Promise.all([
-          getPeriodFinish(client, { address: distributorAddress }),
-          getRewardRate(client, { address: distributorAddress }),
+        }).then((distributorAddress) =>
+          Promise.all([
+            getPeriodFinish(client, { address: distributorAddress }),
+            getRewardRate(client, { address: distributorAddress }),
+          ]),
+        );
+        const [[periodFinish, rewardRate], assets] = await Promise.all([
+          distributorReadsPromise,
           totalAssetsPromise,
         ]);
 
