@@ -1,6 +1,10 @@
+import { mainnet } from "viem/chains";
+
 import * as graphql from "./graphql.ts";
 
 const morphoApiUrl = "https://api.morpho.org/graphql";
+
+const chainId = mainnet.id;
 
 export async function getLoanAssetAddress({
   marketId,
@@ -8,24 +12,25 @@ export async function getLoanAssetAddress({
   marketId: string;
 }): Promise<string> {
   const query = `
-    query ($marketId: String!) {
-      marketByUniqueKey(uniqueKey: $marketId) {
+    query ($chainId: Int!, $marketId: String!) {
+      marketById(marketId: $marketId, chainId: $chainId) {
         loanAsset {
           address
         }
       }
     }`;
   const variables = {
+    chainId,
     marketId,
   };
-  const { marketByUniqueKey } = await graphql.runQuery<{
-    marketByUniqueKey: {
+  const { marketById } = await graphql.runQuery<{
+    marketById: {
       loanAsset: {
         address: string;
       };
     };
   }>(morphoApiUrl, query, variables);
-  return marketByUniqueKey.loanAsset.address;
+  return marketById.loanAsset.address;
 }
 
 export async function getHistoricalBorrowApy({
@@ -43,8 +48,8 @@ export async function getHistoricalBorrowApy({
   }[]
 > {
   const query = `
-    query ($marketId: String!, $options: TimeseriesOptions) {
-      marketByUniqueKey(uniqueKey: $marketId) {
+    query ($chainId: Int!, $marketId: String!, $options: TimeseriesOptions) {
+      marketById(marketId: $marketId, chainId: $chainId) {
         historicalState {
           borrowApy(options: $options) {
             x
@@ -54,14 +59,15 @@ export async function getHistoricalBorrowApy({
       }
     }`;
   const variables = {
+    chainId,
     marketId,
     options: {
       interval,
       startTimestamp,
     },
   };
-  const { marketByUniqueKey } = await graphql.runQuery<{
-    marketByUniqueKey: {
+  const { marketById } = await graphql.runQuery<{
+    marketById: {
       historicalState: {
         borrowApy: {
           x: number;
@@ -70,7 +76,7 @@ export async function getHistoricalBorrowApy({
       };
     };
   }>(morphoApiUrl, query, variables);
-  return marketByUniqueKey.historicalState.borrowApy;
+  return marketById.historicalState.borrowApy;
 }
 
 export async function getCollateralAssets({
@@ -79,22 +85,23 @@ export async function getCollateralAssets({
   marketId: string;
 }): Promise<number> {
   const query = `
-    query ($marketId: String!) {
-      marketByUniqueKey(uniqueKey: $marketId) {
+    query ($chainId: Int!, $marketId: String!) {
+      marketById(marketId: $marketId, chainId: $chainId) {
         state {
           collateralAssets
         }
       }
     }`;
   const variables = {
+    chainId,
     marketId,
   };
-  const { marketByUniqueKey } = await graphql.runQuery<{
-    marketByUniqueKey: {
+  const { marketById } = await graphql.runQuery<{
+    marketById: {
       state: {
         collateralAssets: number;
       };
     };
   }>(morphoApiUrl, query, variables);
-  return marketByUniqueKey.state.collateralAssets;
+  return marketById.state.collateralAssets;
 }
