@@ -5,7 +5,7 @@ import type { Address } from "viem";
 
 const apiUrl = import.meta.env.VITE_VETRO_API_URL;
 
-type ApyResponse = Record<Address, { apy: number }>;
+type ApyResponse = Partial<Record<Address, { apy: number }>>;
 
 export const useApy = (stakingVaultAddress: Address) =>
   useQuery({
