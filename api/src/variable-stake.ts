@@ -102,10 +102,12 @@ export async function getApy({ rpcUrl }: { rpcUrl: string | undefined }) {
 
         let apy = 0;
         if (periodFinish >= now && rewardRate > 0n && assets > 0n) {
-          // rewardRate is scaled by 1e18 (WAD); cancel it against the
-          // WAD-scaled math so the result is a plain ratio (APR).
-          const apr =
-            Number((rewardRate * SECONDS_PER_YEAR) / WAD) / Number(assets);
+          // rewardRate is WAD-scaled reward per second. Annualize it and
+          // divide by assets, keeping a WAD fixed-point scale.
+          // The WAD scale cancels the rewardRate's own WAD scaling, so
+          // aprWad = apr * WAD = (rewardRate * SECONDS_PER_YEAR) / assets.
+          const aprWad = (rewardRate * SECONDS_PER_YEAR) / assets;
+          const apr = Number(aprWad) / Number(WAD);
           // continuous compounding
           apy = Math.expm1(apr) * 100;
         }
