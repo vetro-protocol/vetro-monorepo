@@ -7,7 +7,9 @@ import {
   getCooldownEnabled,
   getInstantWithdrawWhitelist,
   getPendingRequests,
+  getPeriodFinish,
   getRequestDetails,
+  getRewardRate,
   getTotalAssetsInCooldown,
   getYieldDistributor,
 } from "./actions/public/index.js";
@@ -69,8 +71,12 @@ export const earnPublicActions = () => (client: Client) => ({
   ) => getInstantWithdrawWhitelist(client, params),
   getPendingRequests: (params: Parameters<typeof getPendingRequests>[1]) =>
     getPendingRequests(client, params),
+  getPeriodFinish: (params: Parameters<typeof getPeriodFinish>[1]) =>
+    getPeriodFinish(client, params),
   getRequestDetails: (params: Parameters<typeof getRequestDetails>[1]) =>
     getRequestDetails(client, params),
+  getRewardRate: (params: Parameters<typeof getRewardRate>[1]) =>
+    getRewardRate(client, params),
   getTotalAssetsInCooldown: (
     params: Parameters<typeof getTotalAssetsInCooldown>[1],
   ) => getTotalAssetsInCooldown(client, params),

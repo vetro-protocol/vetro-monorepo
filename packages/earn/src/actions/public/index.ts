@@ -4,6 +4,8 @@ export * from "./getCooldownDuration.js";
 export * from "./getCooldownEnabled.js";
 export * from "./getInstantWithdrawWhitelist.js";
 export * from "./getPendingRequests.js";
+export * from "./getPeriodFinish.js";
 export * from "./getRequestDetails.js";
+export * from "./getRewardRate.js";
 export * from "./getTotalAssetsInCooldown.js";
 export * from "./getYieldDistributor.js";

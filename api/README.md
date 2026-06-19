@@ -128,27 +128,27 @@ Returns the user's cost basis (in the vault asset's native smallest unit; decima
 
 ### `GET /variable-stake/apy`
 
-Returns the APY for each supported staking vault, indexed by staking vault address, calculated using the share value variations over the last 7 days. Each supported staking vault has an entry in the response; vaults with insufficient history return `{ "7d": 0 }`.
+Returns the APY for each supported staking vault, indexed by staking vault address. This is a forward-looking figure computed from the current `rewardRate` read directly from each vault's `YieldDistributor` contract, annualized over the vault's `totalAssets()` and expressed as a continuous-compounding APY. A vault whose drip has ended (or whose rate or total assets are zero) returns a genuine `{ "apy": 0 }`. A vault whose on-chain reads fail (e.g. RPC error or an unconfigured distributor) is **omitted** from the response rather than returned as `0`, so clients can render "-" for it — distinct from a real 0% APY. If every vault's reads fail, the response is `{}`.
 
 #### Sample Response
 
 ```jsonc
 {
   "0x476310E34D2810f7d79C43A74E4D79405bd7a925": {
-    "7d": 4.21,
+    "apy": 9.95,
   },
   "0x0cB9D84d4bcEc8d3D5B2d99a6F07f4605325987e": {
-    "7d": 0,
+    "apy": 0,
   },
 }
 ```
 
 ### `GET /variable-stake/share-value-history/:stakingVaultAddress/:period`
 
-Returns the historical share value for a staking vault over the given period (Earn token vs underlying pegged token, e.g. sVUSD per VUSD). One entry per UTC day. Results across multiple subgraph pages are concatenated, so long windows return their full history (e.g. `"1y"` may include up to ~366 entries).
+Returns the historical share value for a staking vault over the given period (Earn token vs underlying pegged token, e.g. sVUSD per VUSD). One entry per UTC day from the subgraph, plus a final point read live from the vault's on-chain `convertToAssets` (one whole share) at request time. The subgraph writes its history once per UTC day, so its latest point can lag the actual share value by up to ~24h; the appended live point keeps the last value in sync with the current exchange rate. Results across multiple subgraph pages are concatenated, so long windows return their full history (e.g. `"1y"` may include up to ~366 entries plus the live point). If the live read fails the series is returned without the appended point.
 Valid periods are: `"1w"`, `"1m"`, `"3m"` and `"1y"`.
 `:stakingVaultAddress` must be a known staking vault. Returns `400` if malformed and `404` if the address is not a known staking vault.
-`shareValue` is a number with the 18-decimal wad already pre-scaled (e.g. `1.000412938421`). `timestamp` is the UTC day-start in milliseconds.
+`shareValue` is a number already pre-scaled by the underlying asset's decimals to a human-readable exchange rate (e.g. `1.000412938421`). `timestamp` is in milliseconds (UTC day-start for subgraph entries, current time for the live point).
 
 #### Sample Response for "1w"
 
