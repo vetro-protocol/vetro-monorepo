@@ -2,6 +2,13 @@
 
 A pnpm-based monorepo for the Vetro project.
 
+## Documentation
+
+New to the protocol? Start here:
+
+- [`docs/DOMAIN.md`](./docs/DOMAIN.md) — what VETRO is and how each `web/` page works, including how the contracts fit together and how pricing works.
+- [`docs/glossary.md`](./docs/glossary.md) — quick lookups for the core vocabulary.
+
 ## Prerequisites
 
 - Node.js v24 (specified in `.nvmrc`)
