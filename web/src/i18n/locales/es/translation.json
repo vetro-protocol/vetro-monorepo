@@ -295,7 +295,6 @@
         "deposit": "Depositar",
         "pool-contract": "Contrato del fondo",
         "pool-deposits": "Depósitos del fondo",
-        "potential-rewards": "Recompensas potenciales",
         "withdraw": "Retirar"
       },
       "stake": {
@@ -345,7 +344,6 @@
         "earned-amount": "Su monto ganado",
         "from-pools": "De {{count}} fondo",
         "from-pools_other": "De {{count}} fondos",
-        "rewards": "Sus recompensas",
         "staked-balance": "Su balance stakeado"
       },
       "title": "Haga stake de activos para ganar un rendimiento variable."
