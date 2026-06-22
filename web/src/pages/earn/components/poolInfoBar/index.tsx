@@ -4,7 +4,6 @@ import { useApy } from "hooks/useApy";
 import { useMainnet } from "hooks/useMainnet";
 import { usePoolDeposits } from "hooks/usePoolDeposits";
 import { usePrices } from "hooks/usePrices";
-import { useUserRewards } from "hooks/useUserRewards";
 import { useVaultPeggedToken } from "hooks/useVaultPeggedToken";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
@@ -14,7 +13,6 @@ import type { Address } from "viem";
 
 import { PoolInfoButtons } from "./poolInfoButtons";
 import { PoolInfoItem } from "./poolInfoItem";
-import { TokenIconStack } from "./tokenIconStack";
 
 type Props = {
   stakingVaultAddress: Address;
@@ -31,12 +29,6 @@ export function PoolInfoBar({ stakingVaultAddress }: Props) {
   const { data: poolDeposits, isLoading: isLoadingDeposits } =
     usePoolDeposits(stakingVaultAddress);
   const { data: prices, isError: isPricesError } = usePrices();
-  const { data: userRewards } = useUserRewards(stakingVaultAddress);
-
-  const rewardTokens =
-    userRewards?.map((reward) => ({
-      symbol: reward.token.symbol,
-    })) ?? [];
 
   function formatPoolDeposits() {
     if (poolDeposits !== undefined && peggedToken && prices) {
@@ -90,9 +82,6 @@ export function PoolInfoBar({ stakingVaultAddress }: Props) {
           label={t("pages.earn.pool-info.pool-deposits")}
           value={formatPoolDeposits()}
         />
-        <PoolInfoItem label={t("pages.earn.pool-info.potential-rewards")}>
-          <TokenIconStack tokens={rewardTokens} />
-        </PoolInfoItem>
         <PoolInfoItem
           isLoading={isLoadingApy}
           label={t("pages.earn.pool-info.apy")}
@@ -101,7 +90,6 @@ export function PoolInfoBar({ stakingVaultAddress }: Props) {
             <span className="text-xsm font-semibold text-gray-900">
               {formatApy() ?? "-"}
             </span>
-            <TokenIconStack tokens={rewardTokens} />
           </div>
         </PoolInfoItem>
       </div>

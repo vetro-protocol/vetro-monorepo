@@ -292,7 +292,6 @@
         "deposit": "Deposit",
         "pool-contract": "Pool contract",
         "pool-deposits": "Pool deposits",
-        "potential-rewards": "Potential rewards",
         "withdraw": "Withdraw"
       },
       "stake": {
@@ -339,7 +338,6 @@
         "earned-amount": "Your earned amount",
         "from-pools": "From {{count}} pool",
         "from-pools_other": "From {{count}} pools",
-        "rewards": "Your rewards",
         "staked-balance": "Your staked balance"
       },
       "title": "Stake assets to earn variable yield."
