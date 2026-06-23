@@ -41,7 +41,6 @@
         },
       },
       "vars": {
-        "CUSTOM_RPC_URL_MAINNET": "https://eth.drpc.org",
         "ORIGINS": "https://app.vetro.org,https://beta.vetro.org,https://*.hemi.xyz",
         "PORTAL_API_URL": "https://portal-api.hemi.xyz",
         "SUBGRAPH_ID": "7vnTMFYNE6Nv7RTeoaog4QgqQ3bwZTFoPUGv2gcmTxJ6",
