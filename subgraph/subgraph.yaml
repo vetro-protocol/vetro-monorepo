@@ -19,11 +19,14 @@ dataSources:
         - ExitTicket
         - ExitTicketQueueSummary
         - UserStakingPosition
+        - VaultApyHistory
         - VaultConfig
         - VaultHistory
       abis:
         - name: StakingVault
           file: ./abis/StakingVault.json
+        - name: YieldDistributor
+          file: ./abis/YieldDistributor.json
       eventHandlers:
         - event: Deposit(indexed address,indexed address,uint256,uint256)
           handler: handleDeposit
@@ -56,11 +59,14 @@ dataSources:
         - ExitTicket
         - ExitTicketQueueSummary
         - UserStakingPosition
+        - VaultApyHistory
         - VaultConfig
         - VaultHistory
       abis:
         - name: StakingVault
           file: ./abis/StakingVault.json
+        - name: YieldDistributor
+          file: ./abis/YieldDistributor.json
       eventHandlers:
         - event: Deposit(indexed address,indexed address,uint256,uint256)
           handler: handleDeposit
