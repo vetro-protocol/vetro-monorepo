@@ -51,7 +51,6 @@ The monorepo contains the following workspaces:
 
 - `api` - Service that provides data to the Vetro web application
 - `internal-dashboard` - Internal-facing dashboard for operational metrics
-- `landing` - Static waitlist landing page served via Cloudflare Workers
 - `packages/*` - Shared packages
 - `subgraph` - Subgraph indexing Ethereum mainnet events for the API
 - `web` - Web application

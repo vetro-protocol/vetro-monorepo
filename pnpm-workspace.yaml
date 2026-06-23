@@ -24,7 +24,6 @@ overrides:
 packages:
   - "api"
   - "internal-dashboard"
-  - "landing"
   - "packages/*"
   - "subgraph"
   - "web"

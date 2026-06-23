@@ -16,9 +16,6 @@ _esm/
 _types/
 packages/*/LICENSE
 
-# Landing TailwindCSS generated stylesheet
-landing/public/style.css
-
 # Environment files
 .env.local
 .env.*.local
