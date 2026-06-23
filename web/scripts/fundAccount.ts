@@ -18,6 +18,7 @@ import { knownTokens } from "../src/utils/tokenList.ts";
 
 export const defaultSetupSymbols = [
   "cbBTC",
+  "frxUSD",
   "hemiBTC",
   "USDC",
   "USDT",

@@ -29,6 +29,18 @@ export const knownTokens: Token[] = [
     symbol: "USDC",
   },
   {
+    address: "0xCAcd6fd266aF91b8AeD52aCCc382b4e165586E29",
+    chainId: mainnet.id,
+    decimals: 18,
+    extensions: {
+      allowanceSlot: 1n,
+      balanceSlot: 0,
+    },
+    logoURI: "https://hemilabs.github.io/token-list/l1Logos/frxusd.svg",
+    name: "Frax USD",
+    symbol: "frxUSD",
+  },
+  {
     address: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
     chainId: mainnet.id,
     decimals: 8,
