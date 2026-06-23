@@ -1,18 +1,25 @@
-# Coding Conventions
+# Domain
 
-## CSS
+VETRO is a protocol for minting and managing pegged tokens and putting them to work for yield.
+The `web/` app exposes the Swap, Earn, Borrow, Bridge, and Analytics pages. The glossary below is always available; when working on a specific feature, read `docs/DOMAIN.md` for the full per-page flows.
+
+@docs/glossary.md
+
+## Coding Conventions
+
+### CSS
 
 - Use tailwind v4 classes
 - If setting width and height to the same value (like `w-2 h-2`), use the alternative class `size-*`. For example: `size-2`.
 
-## JavaScript/TypeScript
+### JavaScript/TypeScript
 
 - **Alphabetical sorting**: Sort object properties, function parameters, imports and types properties alphabetically
 - **Function declarations**: Use full function expressions, not arrow functions. Exception: single-expression arrow functions with implicit returns are allowed (e.g., `const foo = () => 0;` or `array.filter(element => element > 45)`)
 - **Variable naming**: Use camelCase for variables
 - **Function parameters**: Use an object for functions requiring 2+ parameters. Exception: facade/adapter functions may maintain their original signature
 
-## TypeScript
+### TypeScript
 
 - **Array syntax**: Prefer `T[]` over `Array<T>`
 - **Avoid `as any`**: Only use as a last resort when alternatives are significantly more complex
@@ -22,6 +29,6 @@
 - **Running TypeScript files**: Use `node <path/to/file>.ts` directly — Node natively supports TypeScript execution
 - **Component Props naming**: When creating a type for component props, use generic name `Props` if they're the only props defined in the file. Otherwise, use `<ComponentName>Props`
 
-## API project
+### API project
 
 When changing the API in `api/src/` in a way that affects external behavior — adding, removing, or modifying an endpoint's URL, params, response shape, sample data, or error semantics — review and update `api/README.md` in the same change. Code is the source of truth; the README must reflect it.
