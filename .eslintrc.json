@@ -3,7 +3,6 @@
   "ignorePatterns": [
     "api/.wrangler/**/*",
     "internal-dashboard/dist/**/*",
-    "landing/.wrangler/**/*",
     "web/dist/**/*",
     "web/storybook-static/**/*"
   ],
@@ -19,7 +18,6 @@
         "*.{js,mjs}",
         "api/**/*.ts",
         "internal-dashboard/**/*.{js,ts,tsx}",
-        "landing/**/*.ts",
         "packages/**/*.{js,ts,tsx}",
         "subgraph/**/*.ts",
         "web/**/*.{js,ts,tsx}"
@@ -67,23 +65,15 @@
       }
     },
     {
-      "files": ["landing/**/*.ts", "packages/**/*.{js,ts,tsx}"],
+      "files": ["packages/**/*.{js,ts,tsx}"],
       "rules": {
         "complexity": ["warn", { "max": 20 }]
       }
     },
     {
-      "files": ["api/**/*.ts", "landing/**/*.ts", "web/scripts/**/*.ts"],
+      "files": ["api/**/*.ts", "web/scripts/**/*.ts"],
       "rules": {
         "no-console": "off"
-      }
-    },
-    {
-      "files": ["landing/public/**/*.js"],
-      "globals": {
-        "document": "readonly",
-        "fetch": "readonly",
-        "setTimeout": "readonly"
       }
     }
   ],

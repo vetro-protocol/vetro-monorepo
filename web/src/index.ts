@@ -13,6 +13,7 @@ type Env = {
 const rpcUrls = allChains.flatMap((chain) => chain.rpcUrls.default.http);
 
 const allUrls: (string | undefined)[] = [
+  import.meta.env.VITE_PORTAL_API_URL,
   import.meta.env.VITE_VETRO_API_URL,
   ...rpcUrls,
   import.meta.env.VITE_SENTRY_DSN,

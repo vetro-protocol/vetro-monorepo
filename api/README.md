@@ -4,23 +4,6 @@ Service that provides data to the Vetro web application.
 
 ## Data endpoints
 
-### `GET /prices`
-
-Proxies the portal API token prices endpoint. Returns the upstream response as-is on success.
-
-#### Sample response
-
-```json
-{
-  "prices": {
-    "ETH": "2450.12",
-    "BTC": "65000.00",
-    "USDT": "0.999881",
-    "USDC": "1.00009"
-  }
-}
-```
-
 ### `GET /analytics/pegged-token-backing/:gatewayAddress`
 
 Get the total strategic reserves and the total surplus for a given gateway's pegged token.
@@ -251,16 +234,15 @@ Returns all user's variable stake exit tickets to i.e. allow claiming the withdr
 Environment variables are configured in `wrangler.jsonc`.
 Secrets are set separately using the Wrangler CLI.
 
-| Variable                  | Description                                                                                           | Default                 |
-| ------------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------- |
-| CUSTOM_RPC_URL_MAINNET    | Ethereum RPC node URL. Overrides `viem`'s default                                                     |                         |
-| MERKL_OPPORTUNITY_SVETBTC | Merkl opportunity id for the sVetBTC staking vault. Optional; if unset, that vault yields no rewards. |                         |
-| MERKL_OPPORTUNITY_SVUSD   | Merkl opportunity id for the sVUSD staking vault. Optional; if unset, that vault yields no rewards.   |                         |
-| ORIGINS                   | Comma-separated list of allowed origins. (1)                                                          | `http://localhost:5173` |
-| PORTAL_API_URL            | Upstream portal API base URL for token prices.                                                        | (see wrangler.jsonc)    |
-| SUBGRAPH_API_KEY          | The subgraph API key.                                                                                 |                         |
-| SUBGRAPH_ID               | The subgraph id.                                                                                      |                         |
-| SUBGRAPH_URL_TEMPLATE     | The subgraph URL template. (2)                                                                        | (localhost)             |
+| Variable                  | Description                                                                                                   | Default                 |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| CUSTOM_RPC_URL_MAINNET    | Ethereum RPC node URL(s). Overrides `viem`'s default. Several URLs joined by `+` become a fallback transport. |                         |
+| MERKL_OPPORTUNITY_SVETBTC | Merkl opportunity id for the sVetBTC staking vault. Optional; if unset, that vault yields no rewards.         |                         |
+| MERKL_OPPORTUNITY_SVUSD   | Merkl opportunity id for the sVUSD staking vault. Optional; if unset, that vault yields no rewards.           |                         |
+| ORIGINS                   | Comma-separated list of allowed origins. (1)                                                                  | `http://localhost:5173` |
+| SUBGRAPH_API_KEY          | The subgraph API key.                                                                                         |                         |
+| SUBGRAPH_ID               | The subgraph id.                                                                                              |                         |
+| SUBGRAPH_URL_TEMPLATE     | The subgraph URL template. (2)                                                                                | (localhost)             |
 
 (1) Globs with stars (`*`) are supported. I.e. `https://*.hemi.xyz` will match any subdomain or subdomain chain.
 (2) API key and id are replaced in the template at the `$API_KEY` and `$ID` positions.
