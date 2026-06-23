@@ -87,7 +87,7 @@ app.get(
   "/analytics/treasury/:gatewayAddress",
   validateGatewayAddress,
   cache({
-    cacheControl: "max-age=15, stale-while-revalidate=45",
+    cacheControl: "max-age=60",
     cacheName: "vetro-api",
   }),
   async function (c) {
