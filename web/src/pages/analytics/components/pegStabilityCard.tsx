@@ -70,14 +70,31 @@ export function PegStabilityCard({ peggedToken, peggedTokenError }: Props) {
   } = useShareValueHistory({ peggedToken, period });
 
   const isError = peggedTokenError || isHistoryError;
+  // The API appends the current on-chain share value as the final point, so the last
+  // datapoint is the current value (share token measured in pegged tokens) shown on
+  // top of the card.
+  const currentShareValue = chartData?.at(-1)?.y;
 
   return (
     <div className="flex-1 px-3 md:px-14">
       <div className="-translate-y-px border-t border-blue-500 py-6">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <span className="text-b-medium text-gray-900">
-            {t("pages.analytics.peg-stability-label")}
-          </span>
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div className="flex flex-col gap-1">
+            <span className="text-b-medium text-gray-900">
+              {t("pages.analytics.peg-stability-label")}
+            </span>
+            {isError ? (
+              <span className="text-2xl font-semibold text-gray-900">-</span>
+            ) : chartData === undefined ? (
+              <Skeleton height={32} width={96} />
+            ) : (
+              <span className="text-2xl font-semibold text-gray-900">
+                {currentShareValue !== undefined && peggedToken
+                  ? `${formatShareValue(currentShareValue)} ${peggedToken.symbol}`
+                  : "-"}
+              </span>
+            )}
+          </div>
           <SegmentedControl
             onChange={setPeriod}
             options={shareValueHistoryPeriods.map((p) => ({
@@ -125,7 +142,7 @@ export function PegStabilityCard({ peggedToken, peggedTokenError }: Props) {
                     />
                   }
                   labels={({ datum }: { datum: { x: number; y: number } }) =>
-                    `${formatDate(datum.x / 1000, i18n.language)}  ${formatShareValue(datum.y)}`
+                    `${formatDate(datum.x / 1000, i18n.language)}  ${formatShareValue(datum.y)} ${peggedToken?.symbol ?? ""}`
                   }
                 />
               }
