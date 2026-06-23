@@ -1,5 +1,5 @@
 {
-  "ignore": ["landing/**", "web/scripts/*"],
+  "ignore": ["web/scripts/*"],
   "ignoreDependencies": ["@vitest/coverage-v8", "eslint-config-prettier"],
   "workspaces": {
     "subgraph": {

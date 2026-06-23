@@ -7,7 +7,7 @@ This monorepo publishes four packages to npm under `@vetro-protocol/*`:
 - `@vetro-protocol/gateway`
 - `@vetro-protocol/treasury`
 
-A package is publishable only if its `package.json` literally contains `"private": false`. Apps (`web`, `api`, `landing`, `subgraph`) stay private and never publish.
+A package is publishable only if its `package.json` literally contains `"private": false`. Apps (`web`, `api`, `subgraph`) stay private and never publish.
 
 ## Versioning
 
