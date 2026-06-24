@@ -35,6 +35,13 @@ type UserStakingPosition @entity(immutable: false) {
   totalCostBasis: BigInt! # WAD-scaled (36 decimals when asset has 18 decimals)
 }
 
+type VaultAprHistory @entity(immutable: false) {
+  id: ID!
+  apr: BigInt! # WAD-scaled annualized reward rate; daily maximum. APY = e^(apr/1e18) - 1
+  stakingVaultAddress: Bytes!
+  timestamp: BigInt! # UTC day start (00:00:00) of the day the APR was observed
+}
+
 type VaultConfig @entity(immutable: true) {
   id: Bytes! # vault address
   decimals: Int!

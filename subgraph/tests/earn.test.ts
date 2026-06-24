@@ -33,8 +33,11 @@ const ownerAddressString = "0x1111111111111111111111111111111111111111";
 const ownerAddress = Address.fromString(ownerAddressString);
 const receiverAddressString = "0x2222222222222222222222222222222222222222";
 const receiverAddress = Address.fromString(receiverAddressString);
+const distributorAddressString = "0x3333333333333333333333333333333333333333";
+const distributorAddress = Address.fromString(distributorAddressString);
 
 const daySeconds = BigInt.fromI32(86400);
+const secondsPerYear = BigInt.fromI32(31536000);
 
 function mockVaultCalls(
   decimals: i32,
@@ -59,6 +62,33 @@ function mockVaultCalls(
     .returns([ethereum.Value.fromUnsignedBigInt(totalAssets)]);
 }
 
+// Mock the reads handleDailyApr performs: yieldDistributor() on the vault, then
+// rewardRate()/periodFinish() on the distributor. totalAssets() is mocked separately
+// (mockVaultCalls / each test) since the VaultHistory path reads it too.
+function mockDistributorCalls(rewardRate: BigInt, periodFinish: BigInt): void {
+  createMockedFunction(
+    vaultAddress,
+    "yieldDistributor",
+    "yieldDistributor():(address)",
+  )
+    .withArgs([])
+    .returns([ethereum.Value.fromAddress(distributorAddress)]);
+  createMockedFunction(
+    distributorAddress,
+    "rewardRate",
+    "rewardRate():(uint256)",
+  )
+    .withArgs([])
+    .returns([ethereum.Value.fromUnsignedBigInt(rewardRate)]);
+  createMockedFunction(
+    distributorAddress,
+    "periodFinish",
+    "periodFinish():(uint256)",
+  )
+    .withArgs([])
+    .returns([ethereum.Value.fromUnsignedBigInt(periodFinish)]);
+}
+
 describe("handleBlock", function () {
   beforeEach(function () {
     clearStore();
@@ -72,6 +102,7 @@ describe("handleBlock", function () {
     const timestamp = BigInt.fromI32(1769731200); // 2026-01-30 00:00:00 UTC
 
     mockVaultCalls(decimals, currentShareValue, currentTotalAssets);
+    mockDistributorCalls(BigInt.fromI32(0), BigInt.fromI32(0));
     const block = createMockBlock(BigInt.fromI32(100), timestamp);
     handleBlock(block);
 
@@ -114,6 +145,7 @@ describe("handleBlock", function () {
     const timestamp2 = BigInt.fromI32(1769774400); // 2026-01-30 12:00:00 UTC
 
     mockVaultCalls(decimals, initialShareValue, initialTotalAssets);
+    mockDistributorCalls(BigInt.fromI32(0), BigInt.fromI32(0));
     const block1 = createMockBlock(BigInt.fromI32(100), timestamp1);
     handleBlock(block1);
 
@@ -182,6 +214,11 @@ describe("handleBlock", function () {
     )
       .withArgs([ethereum.Value.fromUnsignedBigInt(oneShare)])
       .reverts();
+    // An empty vault reports zero totalAssets, so handleDailyApr records apr 0.
+    createMockedFunction(vaultAddress, "totalAssets", "totalAssets():(uint256)")
+      .withArgs([])
+      .returns([ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(0))]);
+    mockDistributorCalls(BigInt.fromI32(0), BigInt.fromI32(0));
 
     const block = createMockBlock(BigInt.fromI32(100), timestamp);
     handleBlock(block);
@@ -198,6 +235,7 @@ describe("handleBlock", function () {
     const timestamp2 = BigInt.fromI32(1769817600); // 2026-01-31 00:00:00 UTC
 
     mockVaultCalls(decimals, shareValue, totalAssets);
+    mockDistributorCalls(BigInt.fromI32(0), BigInt.fromI32(0));
     const block1 = createMockBlock(BigInt.fromI32(100), timestamp1);
     handleBlock(block1);
 
@@ -235,6 +273,147 @@ describe("handleBlock", function () {
     // Still only one VaultConfig entity, two VaultHistory entities (one per day)
     assert.entityCount("VaultConfig", 1);
     assert.entityCount("VaultHistory", 2);
+  });
+});
+
+describe("handleDailyApr", function () {
+  beforeEach(function () {
+    clearStore();
+    dataSourceMock.setAddress(vaultAddressString);
+  });
+
+  test("records the daily maximum APR across same-day blocks", function () {
+    const decimals = 18;
+    const shareValue = BigInt.fromString("1050000000000000000");
+    const totalAssets = BigInt.fromString("5000000000000000000000"); // 5000e18
+    const rewardRateLow = BigInt.fromString("10000000000000000000000000000"); // 1e28
+    const rewardRateMid = BigInt.fromString("20000000000000000000000000000"); // 2e28
+    const rewardRateHigh = BigInt.fromString("30000000000000000000000000000"); // 3e28
+    // Three timestamps on the same UTC day (2026-01-30).
+    const timestamp1 = BigInt.fromI32(1769734800); // 01:00
+    const timestamp2 = BigInt.fromI32(1769745600); // 04:00
+    const timestamp3 = BigInt.fromI32(1769760000); // 08:00
+    const dayTimestamp = timestamp1.div(daySeconds).times(daySeconds);
+    const periodFinish = dayTimestamp.plus(daySeconds); // active all day
+    const id = `${vaultAddressString}-${dayTimestamp.toString()}`;
+
+    mockVaultCalls(decimals, shareValue, totalAssets);
+
+    // Block 1: mid reward rate establishes the record.
+    mockDistributorCalls(rewardRateMid, periodFinish);
+    handleBlock(createMockBlock(BigInt.fromI32(100), timestamp1));
+    const expectedMid = rewardRateMid.times(secondsPerYear).div(totalAssets);
+    assert.entityCount("VaultAprHistory", 1);
+    assert.fieldEquals("VaultAprHistory", id, "apr", expectedMid.toString());
+    assert.fieldEquals(
+      "VaultAprHistory",
+      id,
+      "timestamp",
+      dayTimestamp.toString(),
+    );
+    assert.fieldEquals(
+      "VaultAprHistory",
+      id,
+      "stakingVaultAddress",
+      vaultAddressString,
+    );
+
+    // Block 2: a lower reward rate the same day is ignored (max kept).
+    mockDistributorCalls(rewardRateLow, periodFinish);
+    handleBlock(createMockBlock(BigInt.fromI32(200), timestamp2));
+    assert.entityCount("VaultAprHistory", 1);
+    assert.fieldEquals("VaultAprHistory", id, "apr", expectedMid.toString());
+
+    // Block 3: a higher reward rate the same day overwrites the max.
+    mockDistributorCalls(rewardRateHigh, periodFinish);
+    handleBlock(createMockBlock(BigInt.fromI32(300), timestamp3));
+    const expectedHigh = rewardRateHigh.times(secondsPerYear).div(totalAssets);
+    assert.entityCount("VaultAprHistory", 1);
+    assert.fieldEquals("VaultAprHistory", id, "apr", expectedHigh.toString());
+  });
+
+  test("records apr 0 when the reward period has finished", function () {
+    const decimals = 18;
+    const shareValue = BigInt.fromString("1050000000000000000");
+    const totalAssets = BigInt.fromString("5000000000000000000000");
+    const rewardRate = BigInt.fromString("20000000000000000000000000000");
+    const timestamp = BigInt.fromI32(1769734800);
+    const dayTimestamp = timestamp.div(daySeconds).times(daySeconds);
+    // periodFinish in the past -> no active drip -> apr 0.
+    const periodFinish = timestamp.minus(BigInt.fromI32(1));
+    const id = `${vaultAddressString}-${dayTimestamp.toString()}`;
+
+    mockVaultCalls(decimals, shareValue, totalAssets);
+    mockDistributorCalls(rewardRate, periodFinish);
+    handleBlock(createMockBlock(BigInt.fromI32(100), timestamp));
+
+    assert.entityCount("VaultAprHistory", 1);
+    assert.fieldEquals("VaultAprHistory", id, "apr", "0");
+  });
+
+  test("records apr 0 when the vault has no yield distributor", function () {
+    const decimals = 18;
+    const shareValue = BigInt.fromString("1050000000000000000");
+    const totalAssets = BigInt.fromString("5000000000000000000000");
+    const timestamp = BigInt.fromI32(1769734800);
+    const dayTimestamp = timestamp.div(daySeconds).times(daySeconds);
+    const id = `${vaultAddressString}-${dayTimestamp.toString()}`;
+
+    mockVaultCalls(decimals, shareValue, totalAssets);
+    // yieldDistributor() returns the zero address -> no drip configured. The reward
+    // rate / period finish are intentionally left unmocked: the handler must not read
+    // them for a zero distributor.
+    createMockedFunction(
+      vaultAddress,
+      "yieldDistributor",
+      "yieldDistributor():(address)",
+    )
+      .withArgs([])
+      .returns([ethereum.Value.fromAddress(Address.zero())]);
+
+    handleBlock(createMockBlock(BigInt.fromI32(100), timestamp));
+
+    assert.entityCount("VaultAprHistory", 1);
+    assert.fieldEquals("VaultAprHistory", id, "apr", "0");
+  });
+
+  test("creates a separate record per UTC day", function () {
+    const decimals = 18;
+    const shareValue = BigInt.fromString("1050000000000000000");
+    const totalAssets = BigInt.fromString("5000000000000000000000");
+    const rewardRate = BigInt.fromString("20000000000000000000000000000");
+    const periodFinish = BigInt.fromI32(1900000000); // far future
+    const timestamp1 = BigInt.fromI32(1769734800); // 2026-01-30 01:00
+    const timestamp2 = BigInt.fromI32(1769821200); // 2026-01-31 01:00
+
+    mockVaultCalls(decimals, shareValue, totalAssets);
+    mockDistributorCalls(rewardRate, periodFinish);
+    handleBlock(createMockBlock(BigInt.fromI32(100), timestamp1));
+    handleBlock(createMockBlock(BigInt.fromI32(200), timestamp2));
+
+    assert.entityCount("VaultAprHistory", 2);
+  });
+
+  test("skips recording when a required on-chain read reverts", function () {
+    const decimals = 18;
+    const shareValue = BigInt.fromString("1050000000000000000");
+    const totalAssets = BigInt.fromString("5000000000000000000000");
+    const timestamp = BigInt.fromI32(1769734800);
+
+    mockVaultCalls(decimals, shareValue, totalAssets);
+    // yieldDistributor() reverts -> readVaultApr returns null, so the handler
+    // skips the update entirely instead of recording a bogus apr 0.
+    createMockedFunction(
+      vaultAddress,
+      "yieldDistributor",
+      "yieldDistributor():(address)",
+    )
+      .withArgs([])
+      .reverts();
+
+    handleBlock(createMockBlock(BigInt.fromI32(100), timestamp));
+
+    assert.entityCount("VaultAprHistory", 0);
   });
 });
 
