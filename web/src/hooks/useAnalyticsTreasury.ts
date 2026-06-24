@@ -10,7 +10,7 @@ export const analyticsTreasuryQueryKey = (
   gatewayAddress: Address | undefined,
 ) => ["analytics-treasury", gatewayAddress];
 
-export const analyticsTreasuryOptions = ({
+const analyticsTreasuryOptions = ({
   gatewayAddress,
 }: {
   gatewayAddress: Address | undefined;

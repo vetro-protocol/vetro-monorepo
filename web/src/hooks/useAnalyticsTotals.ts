@@ -17,7 +17,7 @@ export const analyticsTotalsQueryKey = ({
   gatewayAddress: Address | undefined;
 }) => ["analytics-totals", chainId, gatewayAddress];
 
-export const analyticsTotalsOptions = ({
+const analyticsTotalsOptions = ({
   client,
   peggedToken,
   queryClient,
