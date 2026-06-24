@@ -383,7 +383,7 @@
         "redeemable-for_other": "Intercambiable por {{allButLast}} y {{lastSymbol}}",
         "send-to-queue": "Enviar a la cola",
         "swap": "Intercambiar",
-        "you-are-swapping": "Va a intercambiar",
+        "you-are-swapping": "Está intercambiando",
         "you-will-receive-estimated": "Va a recibir (estimado)"
       },
       "progress": {
