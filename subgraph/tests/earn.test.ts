@@ -393,6 +393,28 @@ describe("handleDailyApr", function () {
 
     assert.entityCount("VaultApyHistory", 2);
   });
+
+  test("skips recording when a required on-chain read reverts", function () {
+    const decimals = 18;
+    const shareValue = BigInt.fromString("1050000000000000000");
+    const totalAssets = BigInt.fromString("5000000000000000000000");
+    const timestamp = BigInt.fromI32(1769734800);
+
+    mockVaultCalls(decimals, shareValue, totalAssets);
+    // yieldDistributor() reverts -> readVaultApr returns null, so the handler
+    // skips the update entirely instead of recording a bogus apr 0.
+    createMockedFunction(
+      vaultAddress,
+      "yieldDistributor",
+      "yieldDistributor():(address)",
+    )
+      .withArgs([])
+      .reverts();
+
+    handleBlock(createMockBlock(BigInt.fromI32(100), timestamp));
+
+    assert.entityCount("VaultApyHistory", 0);
+  });
 });
 
 describe("handleDeposit", function () {
