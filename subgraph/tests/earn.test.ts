@@ -62,7 +62,7 @@ function mockVaultCalls(
     .returns([ethereum.Value.fromUnsignedBigInt(totalAssets)]);
 }
 
-// Mock the reads handleDailyApy performs: yieldDistributor() on the vault, then
+// Mock the reads handleDailyApr performs: yieldDistributor() on the vault, then
 // rewardRate()/periodFinish() on the distributor. totalAssets() is mocked separately
 // (mockVaultCalls / each test) since the VaultHistory path reads it too.
 function mockDistributorCalls(rewardRate: BigInt, periodFinish: BigInt): void {
@@ -214,7 +214,7 @@ describe("handleBlock", function () {
     )
       .withArgs([ethereum.Value.fromUnsignedBigInt(oneShare)])
       .reverts();
-    // An empty vault reports zero totalAssets, so handleDailyApy records apr 0.
+    // An empty vault reports zero totalAssets, so handleDailyApr records apr 0.
     createMockedFunction(vaultAddress, "totalAssets", "totalAssets():(uint256)")
       .withArgs([])
       .returns([ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(0))]);
@@ -276,7 +276,7 @@ describe("handleBlock", function () {
   });
 });
 
-describe("handleDailyApy", function () {
+describe("handleDailyApr", function () {
   beforeEach(function () {
     clearStore();
     dataSourceMock.setAddress(vaultAddressString);

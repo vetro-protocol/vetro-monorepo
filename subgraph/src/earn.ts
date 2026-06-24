@@ -73,7 +73,7 @@ function readVaultApr(
  * daily maximum APY; the API converts apr -> apy. Runs on every polling block (no early
  * return) so intra-day fluctuations are captured.
  */
-function handleDailyApy(
+function handleDailyApr(
   vaultAddress: Address,
   vault: StakingVault,
   block: ethereum.Block,
@@ -118,8 +118,8 @@ export function handleBlock(block: ethereum.Block): void {
   const vault = StakingVault.bind(vaultAddress);
 
   // Record the daily-maximum APY. Runs on every polling block (no early return) so
-  // intra-day APY changes are captured; see handleDailyApy.
-  handleDailyApy(vaultAddress, vault, block);
+  // intra-day APY changes are captured; see handleDailyApr.
+  handleDailyApr(vaultAddress, vault, block);
 
   // To speed up the sync process, minimize RPC calls and entity writes, only
   // save one history record per day (the first time this handler runs for that
