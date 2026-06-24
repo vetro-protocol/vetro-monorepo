@@ -96,10 +96,10 @@ export const toYieldItems = function ({
 export const toCollateralizationItems = function (
   data:
     | {
-        strategicReserves: number;
-        surplus: number;
-        total: number;
-        treasuryTotal: number;
+        strategicReserves: string;
+        surplus: string;
+        total: string;
+        treasuryTotal: string;
       }
     | undefined,
   labels: {
@@ -108,21 +108,22 @@ export const toCollateralizationItems = function (
     surplus: string;
   },
 ): Omit<AllocationItem, "color">[] | undefined {
-  if (!data || data.total <= 0) {
+  if (!data || Number(data.total) <= 0) {
     return undefined;
   }
+  const total = Number(data.total);
   const round = (n: number) => Number(n.toFixed(2));
   const items = [
     {
-      amount: round((data.strategicReserves / data.total) * 100),
+      amount: round((Number(data.strategicReserves) / total) * 100),
       label: labels.strategicReserves,
     },
     {
-      amount: round((data.treasuryTotal / data.total) * 100),
+      amount: round((Number(data.treasuryTotal) / total) * 100),
       label: labels.liquidReserves,
     },
     {
-      amount: round((data.surplus / data.total) * 100),
+      amount: round((Number(data.surplus) / total) * 100),
       label: labels.surplus,
     },
   ].sort((a, b) => b.amount - a.amount);

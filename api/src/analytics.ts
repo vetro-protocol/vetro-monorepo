@@ -1,12 +1,17 @@
 import { getYieldDistributor } from "@vetro-protocol/earn/actions";
 import { gatewayAddresses } from "@vetro-protocol/gateway";
-import { getPeggedToken, getTreasury } from "@vetro-protocol/gateway/actions";
+import {
+  getPeggedToken,
+  getTreasury,
+  previewRedeem as previewGatewayRedeem,
+} from "@vetro-protocol/gateway/actions";
 import {
   getTokenConfig,
   getWhitelistedTokens,
   getWithdrawable,
 } from "@vetro-protocol/treasury/actions";
-import { type Address, type PublicClient } from "viem";
+import { type Address, formatUnits, type PublicClient } from "viem";
+import { decimals, totalSupply } from "viem-erc20/actions";
 import { balanceOf, previewRedeem } from "viem-erc4626/actions";
 
 import { getPrice } from "./chainlink.ts";
@@ -145,28 +150,17 @@ async function getSurplus({
   return surplusBalances.reduce((acc, balance) => acc + balance, 0n);
 }
 
-/**
- * The strategic reserves are the mark-to-market value of yield-bearing
- * receipts held by the Treasury, the UMM role and the Operator (multisig).
- * The protocol surplus is any pegged token held in the Treasury, UMM or
- * YieldDistributor.
- *
- * This is useful to understand the health of the protocol and its ability to
- * cover redemptions for the given gateway's pegged token.
- */
-export async function getPeggedTokenBacking({
+async function getBacking({
+  client,
   gatewayAddress,
-  url,
+  peggedTokenAddress,
+  treasuryAddress,
 }: {
+  client: PublicClient;
   gatewayAddress: Address;
-  url: string | undefined;
+  peggedTokenAddress: Address;
+  treasuryAddress: Address;
 }) {
-  const client = createMainnetClient(url);
-  const [peggedTokenAddress, treasuryAddress] = await Promise.all([
-    getPeggedToken(client, { address: gatewayAddress }),
-    getTreasury(client, { address: gatewayAddress }),
-  ]);
-
   const [strategicReserves, surplus] = await Promise.all([
     getStrategicReserves({ client, gatewayAddress, treasuryAddress }),
     findStakingVaultForPeggedToken({
@@ -190,5 +184,125 @@ export async function getPeggedTokenBacking({
   return {
     strategicReserves,
     surplus,
+  };
+}
+
+/**
+ * The strategic reserves are the mark-to-market value of yield-bearing
+ * receipts held by the Treasury, the UMM role and the Operator (multisig).
+ * The protocol surplus is any pegged token held in the Treasury, UMM or
+ * YieldDistributor.
+ *
+ * This is useful to understand the health of the protocol and its ability to
+ * cover redemptions for the given gateway's pegged token.
+ */
+export async function getPeggedTokenBacking({
+  gatewayAddress,
+  url,
+}: {
+  gatewayAddress: Address;
+  url: string | undefined;
+}) {
+  const client = createMainnetClient(url);
+  const [peggedTokenAddress, treasuryAddress] = await Promise.all([
+    getPeggedToken(client, { address: gatewayAddress }),
+    getTreasury(client, { address: gatewayAddress }),
+  ]);
+  return getBacking({
+    client,
+    gatewayAddress,
+    peggedTokenAddress,
+    treasuryAddress,
+  });
+}
+
+// Converts the Treasury's whitelisted-token holdings into their pegged-token
+// equivalent using the gateway's on-chain previewRedeem rate, mirroring the
+// frontend's previous client-side calculation. A token whose redeem rate is
+// zero is skipped to avoid dividing by zero.
+async function getTreasuryTotal({
+  client,
+  gatewayAddress,
+  oneUnit,
+  treasuryAddress,
+}: {
+  client: PublicClient;
+  gatewayAddress: Address;
+  oneUnit: bigint;
+  treasuryAddress: Address;
+}) {
+  const whitelistedTokens = await getWhitelistedTokens(client, {
+    address: treasuryAddress,
+  });
+  const amounts = await Promise.all(
+    whitelistedTokens.map(async function (token) {
+      const [withdrawable, rate] = await Promise.all([
+        getWithdrawable(client, { address: treasuryAddress, token }),
+        previewGatewayRedeem(client, {
+          address: gatewayAddress,
+          peggedTokenIn: oneUnit,
+          tokenOut: token,
+        }),
+      ]);
+      return rate > 0n ? (withdrawable * oneUnit) / rate : 0n;
+    }),
+  );
+  return amounts.reduce((acc, amount) => acc + amount, 0n);
+}
+
+/**
+ * The collateralization ratio is the total backing value of a gateway's pegged
+ * token divided by its circulating supply, expressed as a percentage. The
+ * backing is the sum of the strategic reserves, the protocol surplus and the
+ * liquid Treasury reserves (whitelisted holdings valued in the pegged token).
+ *
+ * Monetary fields are returned as raw bigints in the pegged token's base units;
+ * only `ratio` is a number (a percentage). This moves the calculation
+ * previously done on the frontend into the API so it can be cached and shared.
+ */
+export async function getCollateralizationRatio({
+  gatewayAddress,
+  url,
+}: {
+  gatewayAddress: Address;
+  url: string | undefined;
+}) {
+  const client = createMainnetClient(url);
+  const [peggedTokenAddress, treasuryAddress] = await Promise.all([
+    getPeggedToken(client, { address: gatewayAddress }),
+    getTreasury(client, { address: gatewayAddress }),
+  ]);
+  const peggedTokenDecimals = await decimals(client, {
+    address: peggedTokenAddress,
+  });
+  const oneUnit = 10n ** BigInt(peggedTokenDecimals);
+
+  const [{ strategicReserves, surplus }, supply, treasuryTotal] =
+    await Promise.all([
+      getBacking({
+        client,
+        gatewayAddress,
+        peggedTokenAddress,
+        treasuryAddress,
+      }),
+      totalSupply(client, { address: peggedTokenAddress }),
+      getTreasuryTotal({ client, gatewayAddress, oneUnit, treasuryAddress }),
+    ]);
+
+  const total = strategicReserves + surplus + treasuryTotal;
+  const ratio =
+    supply > 0n
+      ? (Number(formatUnits(total, peggedTokenDecimals)) /
+          Number(formatUnits(supply, peggedTokenDecimals))) *
+        100
+      : 0;
+
+  return {
+    ratio,
+    strategicReserves,
+    supply,
+    surplus,
+    total,
+    treasuryTotal,
   };
 }

@@ -28,10 +28,8 @@ export const CollateralizationCard = function ({
   const isLoading = !isError && (!peggedToken || isCollateralizationLoading);
 
   const value =
-    collateralization && collateralization.supply > 0
-      ? formatPercentage(
-          (collateralization.total / collateralization.supply) * 100,
-        )
+    collateralization && BigInt(collateralization.supply) > 0n
+      ? formatPercentage(collateralization.ratio)
       : "";
 
   const items = toCollateralizationItems(collateralization, {
