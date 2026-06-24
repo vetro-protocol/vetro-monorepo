@@ -61,7 +61,7 @@ function readVaultApr(
   const rewardRate = rewardRateResult.value;
   const periodFinish = periodFinishResult.value;
   const totalAssets = totalAssetsResult.value;
-  if (periodFinish.lt(block.timestamp) || totalAssets.le(BigInt.fromI32(0))) {
+  if (periodFinish.lt(block.timestamp) || totalAssets.isZero()) {
     return BigInt.fromI32(0);
   }
   return rewardRate.times(SECONDS_PER_YEAR).div(totalAssets);
