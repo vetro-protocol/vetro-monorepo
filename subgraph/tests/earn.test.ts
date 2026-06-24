@@ -303,16 +303,16 @@ describe("handleDailyApr", function () {
     mockDistributorCalls(rewardRateMid, periodFinish);
     handleBlock(createMockBlock(BigInt.fromI32(100), timestamp1));
     const expectedMid = rewardRateMid.times(secondsPerYear).div(totalAssets);
-    assert.entityCount("VaultApyHistory", 1);
-    assert.fieldEquals("VaultApyHistory", id, "apr", expectedMid.toString());
+    assert.entityCount("VaultAprHistory", 1);
+    assert.fieldEquals("VaultAprHistory", id, "apr", expectedMid.toString());
     assert.fieldEquals(
-      "VaultApyHistory",
+      "VaultAprHistory",
       id,
       "timestamp",
       dayTimestamp.toString(),
     );
     assert.fieldEquals(
-      "VaultApyHistory",
+      "VaultAprHistory",
       id,
       "stakingVaultAddress",
       vaultAddressString,
@@ -321,15 +321,15 @@ describe("handleDailyApr", function () {
     // Block 2: a lower reward rate the same day is ignored (max kept).
     mockDistributorCalls(rewardRateLow, periodFinish);
     handleBlock(createMockBlock(BigInt.fromI32(200), timestamp2));
-    assert.entityCount("VaultApyHistory", 1);
-    assert.fieldEquals("VaultApyHistory", id, "apr", expectedMid.toString());
+    assert.entityCount("VaultAprHistory", 1);
+    assert.fieldEquals("VaultAprHistory", id, "apr", expectedMid.toString());
 
     // Block 3: a higher reward rate the same day overwrites the max.
     mockDistributorCalls(rewardRateHigh, periodFinish);
     handleBlock(createMockBlock(BigInt.fromI32(300), timestamp3));
     const expectedHigh = rewardRateHigh.times(secondsPerYear).div(totalAssets);
-    assert.entityCount("VaultApyHistory", 1);
-    assert.fieldEquals("VaultApyHistory", id, "apr", expectedHigh.toString());
+    assert.entityCount("VaultAprHistory", 1);
+    assert.fieldEquals("VaultAprHistory", id, "apr", expectedHigh.toString());
   });
 
   test("records apr 0 when the reward period has finished", function () {
@@ -347,8 +347,8 @@ describe("handleDailyApr", function () {
     mockDistributorCalls(rewardRate, periodFinish);
     handleBlock(createMockBlock(BigInt.fromI32(100), timestamp));
 
-    assert.entityCount("VaultApyHistory", 1);
-    assert.fieldEquals("VaultApyHistory", id, "apr", "0");
+    assert.entityCount("VaultAprHistory", 1);
+    assert.fieldEquals("VaultAprHistory", id, "apr", "0");
   });
 
   test("records apr 0 when the vault has no yield distributor", function () {
@@ -373,8 +373,8 @@ describe("handleDailyApr", function () {
 
     handleBlock(createMockBlock(BigInt.fromI32(100), timestamp));
 
-    assert.entityCount("VaultApyHistory", 1);
-    assert.fieldEquals("VaultApyHistory", id, "apr", "0");
+    assert.entityCount("VaultAprHistory", 1);
+    assert.fieldEquals("VaultAprHistory", id, "apr", "0");
   });
 
   test("creates a separate record per UTC day", function () {
@@ -391,7 +391,7 @@ describe("handleDailyApr", function () {
     handleBlock(createMockBlock(BigInt.fromI32(100), timestamp1));
     handleBlock(createMockBlock(BigInt.fromI32(200), timestamp2));
 
-    assert.entityCount("VaultApyHistory", 2);
+    assert.entityCount("VaultAprHistory", 2);
   });
 
   test("skips recording when a required on-chain read reverts", function () {
@@ -413,7 +413,7 @@ describe("handleDailyApr", function () {
 
     handleBlock(createMockBlock(BigInt.fromI32(100), timestamp));
 
-    assert.entityCount("VaultApyHistory", 0);
+    assert.entityCount("VaultAprHistory", 0);
   });
 });
 

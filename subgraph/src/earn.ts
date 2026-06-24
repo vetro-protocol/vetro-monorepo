@@ -4,7 +4,7 @@ import {
   ExitTicket,
   ExitTicketQueueSummary,
   UserStakingPosition,
-  VaultApyHistory,
+  VaultAprHistory,
   VaultConfig,
   VaultHistory,
 } from "../generated/schema";
@@ -68,7 +68,7 @@ function readVaultApr(
 }
 
 /**
- * Record the daily maximum APR in VaultApyHistory. Continuous-compounding APY is a
+ * Record the daily maximum APR in VaultAprHistory. Continuous-compounding APY is a
  * strictly increasing function of APR, so tracking the daily maximum APR captures the
  * daily maximum APY; the API converts apr -> apy. Runs on every polling block (no early
  * return) so intra-day fluctuations are captured.
@@ -86,9 +86,9 @@ function handleDailyApr(
   const daySeconds = BigInt.fromI32(86400);
   const dayTimestamp = block.timestamp.div(daySeconds).times(daySeconds);
   const id = buildId(vaultAddress, dayTimestamp.toString());
-  let entity = VaultApyHistory.load(id);
+  let entity = VaultAprHistory.load(id);
   if (entity == null) {
-    entity = new VaultApyHistory(id);
+    entity = new VaultAprHistory(id);
     entity.timestamp = dayTimestamp;
     entity.stakingVaultAddress = vaultAddress;
     entity.apr = apr;
