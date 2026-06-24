@@ -19,7 +19,7 @@ dataSources:
         - ExitTicket
         - ExitTicketQueueSummary
         - UserStakingPosition
-        - VaultApyHistory
+        - VaultAprHistory
         - VaultConfig
         - VaultHistory
       abis:
@@ -59,7 +59,7 @@ dataSources:
         - ExitTicket
         - ExitTicketQueueSummary
         - UserStakingPosition
-        - VaultApyHistory
+        - VaultAprHistory
         - VaultConfig
         - VaultHistory
       abis:
