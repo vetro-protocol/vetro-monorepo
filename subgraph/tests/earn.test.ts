@@ -824,13 +824,27 @@ describe("handleWithdrawClaimed", function () {
   });
 });
 
+// Mock convertToAssets for a specific share amount at a 1.2:1 rate (each
+// share is worth 1.2 underlying assets). Mirrors the vault's exchange rate.
+function mockConvertToAssetsForAmount(shares: BigInt): void {
+  // 1.2:1 rate: assets = shares * 12 / 10
+  const assets = shares.times(BigInt.fromI32(12)).div(BigInt.fromI32(10));
+  createMockedFunction(
+    vaultAddress,
+    "convertToAssets",
+    "convertToAssets(uint256):(uint256)",
+  )
+    .withArgs([ethereum.Value.fromUnsignedBigInt(shares)])
+    .returns([ethereum.Value.fromUnsignedBigInt(assets)]);
+}
+
 describe("handleTransfer", function () {
   beforeEach(function () {
     clearStore();
     dataSourceMock.setAddress(vaultAddressString);
   });
 
-  test("updates shares on transfer-in, keeps totalCostBasis unchanged", function () {
+  test("updates shares and totalCostBasis at FMV on transfer-in", function () {
     // t0: Deposit 120 VUSD -> 100 sVUSD. shares=100e18, totalCostBasis=120e36
     handleDeposit(
       createDepositEvent(
@@ -851,8 +865,11 @@ describe("handleTransfer", function () {
       ),
     );
 
-    // t1: Receive 50 sVUSD via transfer. shares=150e18, totalCostBasis=120e36 (unchanged)
-    // averagePrice = 120e36 / 150e18 = 0.8e18
+    // Mock convertToAssets(50e18) → 60e18 (1.2:1 rate)
+    mockConvertToAssetsForAmount(BigInt.fromString("50000000000000000000"));
+
+    // t1: Receive 50 sVUSD via transfer. shares=150e18
+    // totalCostBasis = 120e36 + 60e18*WAD = 120e36 + 60e36 = 180e36
     handleTransfer(
       createTransferEvent(
         receiverAddress,
@@ -872,7 +889,7 @@ describe("handleTransfer", function () {
       "UserStakingPosition",
       id,
       "totalCostBasis",
-      "120000000000000000000000000000000000000",
+      "180000000000000000000000000000000000000",
     );
   });
 
@@ -897,7 +914,11 @@ describe("handleTransfer", function () {
       ),
     );
 
-    // t1: Receive 50 sVUSD. shares=150e18, totalCostBasis=120e36. avg=0.8e18
+    // Mock convertToAssets for both transfer amounts at 1.2:1
+    mockConvertToAssetsForAmount(BigInt.fromString("50000000000000000000"));
+    mockConvertToAssetsForAmount(BigInt.fromString("150000000000000000000"));
+
+    // t1: Receive 50 sVUSD. FMV = 60e18. totalCostBasis = 120e36 + 60e36 = 180e36
     handleTransfer(
       createTransferEvent(
         receiverAddress,
@@ -906,7 +927,7 @@ describe("handleTransfer", function () {
       ),
     );
 
-    // t2: Receive 150 sVUSD. shares=300e18, totalCostBasis=120e36. avg=0.4e18
+    // t2: Receive 150 sVUSD. FMV = 180e18. totalCostBasis = 180e36 + 180e36 = 360e36
     handleTransfer(
       createTransferEvent(
         receiverAddress,
@@ -926,11 +947,11 @@ describe("handleTransfer", function () {
       "UserStakingPosition",
       id,
       "totalCostBasis",
-      "120000000000000000000000000000000000000",
+      "360000000000000000000000000000000000000",
     );
   });
 
-  test("sets shares to transferred amount and totalCostBasis to 0 for new user", function () {
+  test("sets shares and totalCostBasis at FMV for new user on transfer-in", function () {
     // Give receiverAddress shares so it can transfer them
     handleDeposit(
       createDepositEvent(
@@ -941,7 +962,10 @@ describe("handleTransfer", function () {
       ),
     );
 
-    // User with no prior position receives 100 sVUSD
+    // Mock convertToAssets(100e18) → 120e18 (1.2:1 rate)
+    mockConvertToAssetsForAmount(BigInt.fromString("100000000000000000000"));
+
+    // User with no prior position receives 100 sVUSD at FMV = 120e18
     handleTransfer(
       createTransferEvent(
         receiverAddress,
@@ -958,7 +982,12 @@ describe("handleTransfer", function () {
       "shares",
       "100000000000000000000",
     );
-    assert.fieldEquals("UserStakingPosition", id, "totalCostBasis", "0");
+    assert.fieldEquals(
+      "UserStakingPosition",
+      id,
+      "totalCostBasis",
+      "120000000000000000000000000000000000000",
+    );
     assert.fieldEquals("UserStakingPosition", id, "owner", ownerAddressString);
   });
 
@@ -972,6 +1001,9 @@ describe("handleTransfer", function () {
         BigInt.fromString("100000000000000000000"),
       ),
     );
+
+    // Mock convertToAssets(30e18) → 36e18 (1.2:1 rate) for receiver's FMV
+    mockConvertToAssetsForAmount(BigInt.fromString("30000000000000000000"));
 
     // Transfer 30 sVUSD out. Remaining: 70e18 shares.
     // totalCostBasis = 120e36 * 70/100 = 84e36. avg = 84e36/70e18 = 1.2e18 (unchanged)
@@ -997,7 +1029,7 @@ describe("handleTransfer", function () {
       "84000000000000000000000000000000000000",
     );
 
-    // Receiver gets shares with totalCostBasis unchanged (0 for new user)
+    // Receiver gets shares with totalCostBasis at FMV: 36e18 * WAD = 36e36
     const receiverId = `${vaultAddressString}-${receiverAddressString}`;
     assert.fieldEquals(
       "UserStakingPosition",
@@ -1009,7 +1041,7 @@ describe("handleTransfer", function () {
       "UserStakingPosition",
       receiverId,
       "totalCostBasis",
-      "0",
+      "36000000000000000000000000000000000000",
     );
   });
 
@@ -1023,6 +1055,9 @@ describe("handleTransfer", function () {
         BigInt.fromString("100000000000000000000"),
       ),
     );
+
+    // Mock convertToAssets(100e18) → 120e18 for receiver's FMV
+    mockConvertToAssetsForAmount(BigInt.fromString("100000000000000000000"));
 
     // Transfer all 100 sVUSD out.
     handleTransfer(
@@ -1042,6 +1077,8 @@ describe("handleTransfer", function () {
     // Setup: owner deposits then transfers everything out, leaving a position
     // with shares=0. A further non-zero transfer-out (tracked shares diverged
     // from on-chain balance) must reset to zero instead of dividing by zero.
+    mockConvertToAssetsForAmount(BigInt.fromString("100000000000000000000"));
+    mockConvertToAssetsForAmount(BigInt.fromString("30000000000000000000"));
     handleDeposit(
       createDepositEvent(
         BigInt.fromString("120000000000000000000"),
@@ -1217,6 +1254,55 @@ describe("handleTransfer", function () {
       id,
       "totalCostBasis",
       "120000000000000000000000000000000000000",
+    );
+  });
+
+  test("falls back to 1:1 when convertToAssets reverts on transfer-in", function () {
+    // Give receiverAddress shares so it can transfer them
+    handleDeposit(
+      createDepositEvent(
+        BigInt.fromString("100000000000000000000"),
+        receiverAddress,
+        receiverAddress,
+        BigInt.fromString("100000000000000000000"),
+      ),
+    );
+
+    // Explicitly make convertToAssets revert for this transfer amount
+    createMockedFunction(
+      vaultAddress,
+      "convertToAssets",
+      "convertToAssets(uint256):(uint256)",
+    )
+      .withArgs([
+        ethereum.Value.fromUnsignedBigInt(
+          BigInt.fromString("100000000000000000000"),
+        ),
+      ])
+      .reverts();
+
+    // Transfer 100 sVUSD to owner. convertToAssets reverts, so the handler
+    // falls back to 1:1: assetValue = value = 100e18, totalCostBasis = 100e36
+    handleTransfer(
+      createTransferEvent(
+        receiverAddress,
+        ownerAddress,
+        BigInt.fromString("100000000000000000000"),
+      ),
+    );
+
+    const id = `${vaultAddressString}-${ownerAddressString}`;
+    assert.fieldEquals(
+      "UserStakingPosition",
+      id,
+      "shares",
+      "100000000000000000000",
+    );
+    assert.fieldEquals(
+      "UserStakingPosition",
+      id,
+      "totalCostBasis",
+      "100000000000000000000000000000000000000",
     );
   });
 });

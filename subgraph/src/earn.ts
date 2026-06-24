@@ -207,7 +207,13 @@ export function handleTransfer(event: Transfer): void {
 
   // Update the sending party: decrement shares and totalCostBasis proportionally.
   const fromId = buildId(vaultAddress, event.params.from.toHexString());
-  const fromEntity = UserStakingPosition.load(fromId)!;
+  // Defensive: the entity should always exist (created by handleDeposit or a
+  // prior transfer-in), but the contract is upgradeable — bail out gracefully
+  // if a future code path mints shares without emitting Deposit.
+  const fromEntity = UserStakingPosition.load(fromId);
+  if (fromEntity == null) {
+    return;
+  }
 
   if (fromEntity.shares.le(value)) {
     // All shares transferred out (or tracked shares already at/below the
@@ -231,8 +237,15 @@ export function handleTransfer(event: Transfer): void {
     return;
   }
 
-  // Update the receiving party: increment shares, keep totalCostBasis unchanged.
-  // Received shares are valued at 0, diluting the average price proportionally.
+  // Update the receiving party: increment shares and totalCostBasis at FMV.
+  // Value incoming shares at their current underlying asset value
+  // (convertToAssets) so that transfers — including DeFi round-trips through
+  // LP pools, routers, etc. — don't artificially deflate cost basis. If
+  // convertToAssets reverts (empty vault edge case), fall back to 1:1.
+  const vault = StakingVault.bind(vaultAddress);
+  const assetValueResult = vault.try_convertToAssets(value);
+  const assetValue = assetValueResult.reverted ? value : assetValueResult.value;
+
   const toId = buildId(vaultAddress, event.params.to.toHexString());
   let toEntity = UserStakingPosition.load(toId);
   if (toEntity == null) {
@@ -244,6 +257,7 @@ export function handleTransfer(event: Transfer): void {
   }
 
   toEntity.shares = toEntity.shares.plus(value);
+  toEntity.totalCostBasis = toEntity.totalCostBasis.plus(assetValue.times(WAD));
 
   toEntity.save();
 }
