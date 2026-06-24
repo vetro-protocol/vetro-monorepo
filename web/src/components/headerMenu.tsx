@@ -60,9 +60,9 @@ export function HeaderMenu() {
     {
       items: [
         {
+          href: "https://vetro.org/terms-of-use",
           icon: <DocumentIcon className={itemIconClassName} />,
           label: t("nav.header-menu.terms-of-use"),
-          to: "/terms-of-use",
         },
       ],
       label: t("nav.header-menu.company"),
