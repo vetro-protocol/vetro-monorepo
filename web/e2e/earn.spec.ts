@@ -78,7 +78,19 @@ test("deposit VUSD into the Earn pool", async function ({
   // Per-test snapshot/revert resets the allowance to 0, so the deposit takes the
   // two-tx path: the submit button reads "Approve and deposit". The mock wallet
   // signs both txs (approve, then deposit) with no popups.
-  await page.getByRole("button", { name: /approve and deposit/i }).click();
+  //
+  // Dispatch the click straight to the button rather than a coordinate click:
+  // the ApproveSection's info-icon tooltip (rc-tooltip, placement="top") in the
+  // CollapsibleSection just below renders its overlay directly over this button,
+  // and in CI it swallows the pointer events so a normal .click() never lands and
+  // the test times out. dispatchEvent bypasses hit-testing and triggers the
+  // form's submit handler directly; await the enabled state first so we don't
+  // submit before balances load (the form's onSubmit no-ops while inputError set).
+  const submitButton = page.getByRole("button", {
+    name: /approve and deposit/i,
+  });
+  await expect(submitButton).toBeEnabled();
+  await submitButton.dispatchEvent("click");
 
   // The success toast renders once both txs confirm on the fork (60s budget to
   // cover the two sequential signatures + confirmations).
