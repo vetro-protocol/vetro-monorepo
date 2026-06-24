@@ -207,13 +207,7 @@ export function handleTransfer(event: Transfer): void {
 
   // Update the sending party: decrement shares and totalCostBasis proportionally.
   const fromId = buildId(vaultAddress, event.params.from.toHexString());
-  // Defensive: the entity should always exist (created by handleDeposit or a
-  // prior transfer-in), but the contract is upgradeable — bail out gracefully
-  // if a future code path mints shares without emitting Deposit.
-  const fromEntity = UserStakingPosition.load(fromId);
-  if (fromEntity == null) {
-    return;
-  }
+  const fromEntity = UserStakingPosition.load(fromId)!;
 
   if (fromEntity.shares.le(value)) {
     // All shares transferred out (or tracked shares already at/below the
