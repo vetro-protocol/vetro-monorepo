@@ -117,8 +117,8 @@ export function handleBlock(block: ethereum.Block): void {
   const vaultAddress = dataSource.address();
   const vault = StakingVault.bind(vaultAddress);
 
-  // Record the daily-maximum APY. Runs on every polling block (no early return) so
-  // intra-day APY changes are captured; see handleDailyApr.
+  // Record the daily-maximum APR. Runs on every polling block (no early return) so
+  // intra-day APR changes are captured; see handleDailyApr.
   handleDailyApr(vaultAddress, vault, block);
 
   // To speed up the sync process, minimize RPC calls and entity writes, only
