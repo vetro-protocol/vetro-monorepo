@@ -202,8 +202,8 @@
         "from-chain": "desde {{chain}}",
         "on-chain": "en {{chain}}",
         "preview-error": "No se pudo estimar la tarifa",
-        "you-are-sending": "Estás enviando",
-        "you-will-receive": "Recibirás"
+        "you-are-sending": "Está enviando",
+        "you-will-receive": "Va a recibir"
       },
       "progress": {
         "approve-description": "Esto permite al contrato del puente gastar este token.",
@@ -383,7 +383,7 @@
         "redeemable-for_other": "Intercambiable por {{allButLast}} y {{lastSymbol}}",
         "send-to-queue": "Enviar a la cola",
         "swap": "Intercambiar",
-        "you-are-swapping": "Vas a intercambiar",
+        "you-are-swapping": "Va a intercambiar",
         "you-will-receive-estimated": "Va a recibir (estimado)"
       },
       "progress": {
