@@ -26,7 +26,8 @@
     "search": "Buscar",
     "search-token-placeholder": "Buscar por nombre o símbolo",
     "select-token": "Seleccionar un token",
-    "try-different-search": "Intente con un término de búsqueda diferente"
+    "try-different-search": "Intente con un término de búsqueda diferente",
+    "wallet-disclaimer": "Al conectar una billetera, usted acepta los <terms>Términos de uso</terms> de Vetro y consiente su <privacy>Política de privacidad</privacy>."
   },
   "language": {
     "switch-to": "Cambiar a Inglés"
