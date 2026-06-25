@@ -339,10 +339,10 @@ describe("pages/analytics/utils", function () {
 
     it("returns undefined when total is 0", function () {
       const data = {
-        strategicReserves: 0,
-        surplus: 0,
-        total: 0,
-        treasuryTotal: 0,
+        strategicReserves: "0",
+        surplus: "0",
+        total: "0",
+        treasuryTotal: "0",
       };
       expect(toCollateralizationItems(data, labels)).toBeUndefined();
     });
@@ -350,10 +350,10 @@ describe("pages/analytics/utils", function () {
     it("computes correct percentages", function () {
       // 100/200 = 50%, 80/200 = 40%, 20/200 = 10%
       const data = {
-        strategicReserves: 100,
-        surplus: 20,
-        total: 200,
-        treasuryTotal: 80,
+        strategicReserves: "100",
+        surplus: "20",
+        total: "200",
+        treasuryTotal: "80",
       };
       const items = toCollateralizationItems(data, labels)!;
 
@@ -365,10 +365,10 @@ describe("pages/analytics/utils", function () {
 
     it("sorts items by percentage descending", function () {
       const data = {
-        strategicReserves: 10,
-        surplus: 50,
-        total: 100,
-        treasuryTotal: 40,
+        strategicReserves: "10",
+        surplus: "50",
+        total: "100",
+        treasuryTotal: "40",
       };
       const items = toCollateralizationItems(data, labels)!;
 
@@ -381,10 +381,10 @@ describe("pages/analytics/utils", function () {
       // 200/300 = 66.67%, 70/300 = 23.33%, 30/300 = 10% → sum = 100%
       // rounding remainder (0.01) is added to the largest item (66.67 → 66.67)
       const data = {
-        strategicReserves: 30,
-        surplus: 70,
-        total: 300,
-        treasuryTotal: 200,
+        strategicReserves: "30",
+        surplus: "70",
+        total: "300",
+        treasuryTotal: "200",
       };
       const items = toCollateralizationItems(data, labels)!;
       const sum = items.reduce((acc, item) => acc + item.amount, 0);
@@ -401,10 +401,10 @@ describe("pages/analytics/utils", function () {
 
     it("handles case where one component is 0", function () {
       const data = {
-        strategicReserves: 80,
-        surplus: 0,
-        total: 100,
-        treasuryTotal: 20,
+        strategicReserves: "80",
+        surplus: "0",
+        total: "100",
+        treasuryTotal: "20",
       };
       const items = toCollateralizationItems(data, labels)!;
 

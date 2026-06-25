@@ -54,6 +54,30 @@ app.get(
 );
 
 app.get(
+  "/analytics/collateralization-ratio/:gatewayAddress",
+  validateGatewayAddress,
+  cache({
+    cacheControl: "max-age=300",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const url = c.env.CUSTOM_RPC_URL_MAINNET;
+      const gatewayAddress = c.get("gatewayAddress");
+      const data = await analytics.getCollateralizationRatio({
+        gatewayAddress,
+        url,
+      });
+      return c.json(convertBigIntsToString(data));
+    } catch (error) {
+      throw new Error(
+        `Failed to get collateralization ratio: ${error.message}`,
+      );
+    }
+  },
+);
+
+app.get(
   "/analytics/treasury/:gatewayAddress",
   validateGatewayAddress,
   cache({
