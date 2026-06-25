@@ -157,7 +157,7 @@ const buildCsp = (nonce: string) =>
     // (bot management / Turnstile) render in iframes.
     `frame-src 'self' ${walletFrameSrc} https://challenges.cloudflare.com`,
     `img-src 'self' data: https://hemilabs.github.io ${walletImgSrc}`,
-    `script-src ${scriptSrc} nonce-${nonce}`,
+    `script-src ${scriptSrc} 'nonce-${nonce}'`,
     // Tailwind v4 injects styles via a <style> tag, so 'unsafe-inline' is needed.
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     `worker-src ${workerSrc}`,
