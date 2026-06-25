@@ -12,11 +12,54 @@ type Env = {
 // Extract unique RPC URLs
 const rpcUrls = allChains.flatMap((chain) => chain.rpcUrls.default.http);
 
+// WalletConnect / Reown AppKit + Coinbase Wallet endpoints.
+// https://docs.reown.com/advanced/security/content-security-policy
+const walletConnectUrls = [
+  "https://rpc.walletconnect.com",
+  "https://rpc.walletconnect.org",
+  "https://relay.walletconnect.com",
+  "https://relay.walletconnect.org",
+  "wss://relay.walletconnect.com",
+  "wss://relay.walletconnect.org",
+  "https://pulse.walletconnect.com",
+  "https://pulse.walletconnect.org",
+  "https://api.web3modal.com",
+  "https://api.web3modal.org",
+  "https://keys.walletconnect.com",
+  "https://keys.walletconnect.org",
+  "wss://www.walletlink.org",
+  "https://cca-lite.coinbase.com",
+  "https://keys.coinbase.com",
+];
+
+// CSP img-src values required for WalletConnect / Reown Appkit.
+// https://docs.reown.com/advanced/security/content-security-policy
+const walletImgSrc = [
+  "https://walletconnect.com",
+  "https://walletconnect.org",
+  "https://secure.walletconnect.com",
+  "https://secure.walletconnect.org",
+  "https://api.web3modal.com",
+  "https://api.web3modal.org",
+].join(" ");
+
+// CSP frame-src values required for WalletConnect / Reown Appkit + Coinbase.
+// https://docs.reown.com/advanced/security/content-security-policy
+const walletFrameSrc = [
+  "https://verify.walletconnect.com",
+  "https://verify.walletconnect.org",
+  "https://secure.walletconnect.com",
+  "https://secure.walletconnect.org",
+  "https://keys.coinbase.com",
+].join(" ");
+
 const allUrls: (string | undefined)[] = [
   import.meta.env.VITE_PORTAL_API_URL,
   import.meta.env.VITE_VETRO_API_URL,
   ...rpcUrls,
+  ...walletConnectUrls,
   import.meta.env.VITE_SENTRY_DSN,
+  "https://cloudflareinsights.com", // Cloudflare Web Beacon analytics.
 ];
 
 // Build connect-src dynamically from env vars baked in at build time.
@@ -86,17 +129,29 @@ const csp = [
   "font-src 'self' https://fonts.gstatic.com",
   "form-action 'none'",
   "frame-ancestors 'none'",
-  "img-src 'self' data: https://hemilabs.github.io",
-  "script-src 'self'",
+  // WalletConnect verify + Coinbase smart wallet + Cloudflare challenges
+  // (bot management / Turnstile) render in iframes.
+  `frame-src 'self' ${walletFrameSrc} https://challenges.cloudflare.com`,
+  `img-src 'self' data: https://hemilabs.github.io ${walletImgSrc}`,
+  // static.cloudflareinsights.com: Web Analytics beacon.
+  // challenges.cloudflare.com: Cloudflare bot management / challenge widget.
+  "script-src 'self' https://static.cloudflareinsights.com https://challenges.cloudflare.com",
   // Tailwind v4 injects styles via a <style> tag, so 'unsafe-inline' is needed.
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "upgrade-insecure-requests",
   `worker-src ${workerSrc}`,
+  "upgrade-insecure-requests",
 ].join("; ");
 
 // Applied to all responses – these have meaningful effect on sub-resources.
 const commonHeaders = {
-  "Content-Security-Policy": "default-src 'none'",
+  "Content-Security-Policy": [
+    "default-src 'none'",
+    "base-uri 'none'",
+    "frame-ancestors 'none'",
+    "form-action 'none'",
+    "block-all-mixed-content",
+    "require-trusted-types-for 'script'",
+  ].join("; "),
   "Cross-Origin-Resource-Policy": "same-origin",
   "Referrer-Policy": "strict-origin-when-cross-origin",
   "X-Content-Type-Options": "nosniff",
