@@ -1,48 +1,35 @@
-import {
-  type QueryClient,
-  queryOptions,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
-import { fetchCollateralizationRatio } from "fetchers/fetchCollateralizationRatio";
+import { queryOptions, useQuery } from "@tanstack/react-query";
+import fetch from "fetch-plus-plus";
 import { isValidUrl } from "utils/url";
-import type { Address, Client } from "viem";
-
-import { useEthereumClient } from "./useEthereumClient";
+import type { Address } from "viem";
 
 const apiUrl = import.meta.env.VITE_VETRO_API_URL;
 
-const collateralizationRatioOptions = ({
-  client,
-  gatewayAddress,
-  queryClient,
-}: {
-  client: Client | undefined;
-  gatewayAddress: Address | undefined;
-  queryClient: QueryClient;
-}) =>
+type CollateralizationRatio = {
+  ratio: number;
+  strategicReserves: string;
+  supply: string;
+  surplus: string;
+  total: string;
+  treasuryTotal: string;
+};
+
+const collateralizationRatioOptions = (gatewayAddress: Address | undefined) =>
   queryOptions({
     enabled:
       apiUrl !== undefined &&
       isValidUrl(apiUrl) &&
-      !!client &&
       gatewayAddress !== undefined,
     queryFn: () =>
-      fetchCollateralizationRatio({
-        client: client!,
-        gatewayAddress: gatewayAddress!,
-        queryClient,
-      }),
-    queryKey: ["collateralization-ratio", client?.chain?.id, gatewayAddress],
+      fetch(
+        `${apiUrl}/analytics/collateralization-ratio/${gatewayAddress}`,
+      ) as Promise<CollateralizationRatio>,
+    queryKey: ["collateralization-ratio", gatewayAddress],
     refetchInterval: 5 * 60 * 1000, // 5 minutes
     retry: 2,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-export function useCollateralizationRatio(gatewayAddress: Address | undefined) {
-  const client = useEthereumClient();
-  const queryClient = useQueryClient();
-
-  return useQuery(
-    collateralizationRatioOptions({ client, gatewayAddress, queryClient }),
-  );
-}
+export const useCollateralizationRatio = (
+  gatewayAddress: Address | undefined,
+) => useQuery(collateralizationRatioOptions(gatewayAddress));

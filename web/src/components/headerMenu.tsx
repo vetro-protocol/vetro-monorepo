@@ -6,10 +6,10 @@ import { Dropdown } from "./base/dropdown";
 import { ExternalLink } from "./base/externalLink";
 import { I18nLink } from "./base/i18nLink";
 import { DocumentIcon } from "./icons/documentIcon";
-import { EllipsisHorizontalIcon } from "./icons/ellipsisHorizontalIcon";
 import { ExternalLinkIcon } from "./icons/externalLinkIcon";
 import { HomeIcon } from "./icons/homeIcon";
 import { LinkedInIcon } from "./icons/linkedInIcon";
+import { QuestionMarkCircleIcon } from "./icons/questionMarkCircleIcon";
 import { XIcon } from "./icons/xIcon";
 
 const triggerId = "header-menu-trigger";
@@ -40,6 +40,11 @@ export function HeaderMenu() {
           icon: <HomeIcon className={itemIconClassName} />,
           label: t("nav.header-menu.homepage"),
         },
+        {
+          href: "https://docs.vetro.org/",
+          icon: <DocumentIcon className={itemIconClassName} />,
+          label: t("nav.header-menu.docs"),
+        },
       ],
     },
     {
@@ -60,9 +65,14 @@ export function HeaderMenu() {
     {
       items: [
         {
+          href: "https://vetro.org/terms-of-use",
           icon: <DocumentIcon className={itemIconClassName} />,
           label: t("nav.header-menu.terms-of-use"),
-          to: "/terms-of-use",
+        },
+        {
+          href: "https://vetro.org/privacy-policy",
+          icon: <DocumentIcon className={itemIconClassName} />,
+          label: t("nav.header-menu.privacy-policy"),
         },
       ],
       label: t("nav.header-menu.company"),
@@ -124,7 +134,7 @@ export function HeaderMenu() {
           aria-label={t("nav.header-menu.open")}
           variant="secondary"
         >
-          <EllipsisHorizontalIcon className="size-4 text-gray-500 group-hover:text-gray-900 group-aria-expanded:text-gray-900" />
+          <QuestionMarkCircleIcon className="size-4 text-gray-500 group-hover:text-gray-900 group-aria-expanded:text-gray-900" />
         </ButtonIcon>
       )}
       sections={sections}

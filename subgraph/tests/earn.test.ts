@@ -33,8 +33,11 @@ const ownerAddressString = "0x1111111111111111111111111111111111111111";
 const ownerAddress = Address.fromString(ownerAddressString);
 const receiverAddressString = "0x2222222222222222222222222222222222222222";
 const receiverAddress = Address.fromString(receiverAddressString);
+const distributorAddressString = "0x3333333333333333333333333333333333333333";
+const distributorAddress = Address.fromString(distributorAddressString);
 
 const daySeconds = BigInt.fromI32(86400);
+const secondsPerYear = BigInt.fromI32(31536000);
 
 function mockVaultCalls(
   decimals: i32,
@@ -59,6 +62,33 @@ function mockVaultCalls(
     .returns([ethereum.Value.fromUnsignedBigInt(totalAssets)]);
 }
 
+// Mock the reads handleDailyApr performs: yieldDistributor() on the vault, then
+// rewardRate()/periodFinish() on the distributor. totalAssets() is mocked separately
+// (mockVaultCalls / each test) since the VaultHistory path reads it too.
+function mockDistributorCalls(rewardRate: BigInt, periodFinish: BigInt): void {
+  createMockedFunction(
+    vaultAddress,
+    "yieldDistributor",
+    "yieldDistributor():(address)",
+  )
+    .withArgs([])
+    .returns([ethereum.Value.fromAddress(distributorAddress)]);
+  createMockedFunction(
+    distributorAddress,
+    "rewardRate",
+    "rewardRate():(uint256)",
+  )
+    .withArgs([])
+    .returns([ethereum.Value.fromUnsignedBigInt(rewardRate)]);
+  createMockedFunction(
+    distributorAddress,
+    "periodFinish",
+    "periodFinish():(uint256)",
+  )
+    .withArgs([])
+    .returns([ethereum.Value.fromUnsignedBigInt(periodFinish)]);
+}
+
 describe("handleBlock", function () {
   beforeEach(function () {
     clearStore();
@@ -72,6 +102,7 @@ describe("handleBlock", function () {
     const timestamp = BigInt.fromI32(1769731200); // 2026-01-30 00:00:00 UTC
 
     mockVaultCalls(decimals, currentShareValue, currentTotalAssets);
+    mockDistributorCalls(BigInt.fromI32(0), BigInt.fromI32(0));
     const block = createMockBlock(BigInt.fromI32(100), timestamp);
     handleBlock(block);
 
@@ -114,6 +145,7 @@ describe("handleBlock", function () {
     const timestamp2 = BigInt.fromI32(1769774400); // 2026-01-30 12:00:00 UTC
 
     mockVaultCalls(decimals, initialShareValue, initialTotalAssets);
+    mockDistributorCalls(BigInt.fromI32(0), BigInt.fromI32(0));
     const block1 = createMockBlock(BigInt.fromI32(100), timestamp1);
     handleBlock(block1);
 
@@ -182,6 +214,11 @@ describe("handleBlock", function () {
     )
       .withArgs([ethereum.Value.fromUnsignedBigInt(oneShare)])
       .reverts();
+    // An empty vault reports zero totalAssets, so handleDailyApr records apr 0.
+    createMockedFunction(vaultAddress, "totalAssets", "totalAssets():(uint256)")
+      .withArgs([])
+      .returns([ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(0))]);
+    mockDistributorCalls(BigInt.fromI32(0), BigInt.fromI32(0));
 
     const block = createMockBlock(BigInt.fromI32(100), timestamp);
     handleBlock(block);
@@ -198,6 +235,7 @@ describe("handleBlock", function () {
     const timestamp2 = BigInt.fromI32(1769817600); // 2026-01-31 00:00:00 UTC
 
     mockVaultCalls(decimals, shareValue, totalAssets);
+    mockDistributorCalls(BigInt.fromI32(0), BigInt.fromI32(0));
     const block1 = createMockBlock(BigInt.fromI32(100), timestamp1);
     handleBlock(block1);
 
@@ -235,6 +273,147 @@ describe("handleBlock", function () {
     // Still only one VaultConfig entity, two VaultHistory entities (one per day)
     assert.entityCount("VaultConfig", 1);
     assert.entityCount("VaultHistory", 2);
+  });
+});
+
+describe("handleDailyApr", function () {
+  beforeEach(function () {
+    clearStore();
+    dataSourceMock.setAddress(vaultAddressString);
+  });
+
+  test("records the daily maximum APR across same-day blocks", function () {
+    const decimals = 18;
+    const shareValue = BigInt.fromString("1050000000000000000");
+    const totalAssets = BigInt.fromString("5000000000000000000000"); // 5000e18
+    const rewardRateLow = BigInt.fromString("10000000000000000000000000000"); // 1e28
+    const rewardRateMid = BigInt.fromString("20000000000000000000000000000"); // 2e28
+    const rewardRateHigh = BigInt.fromString("30000000000000000000000000000"); // 3e28
+    // Three timestamps on the same UTC day (2026-01-30).
+    const timestamp1 = BigInt.fromI32(1769734800); // 01:00
+    const timestamp2 = BigInt.fromI32(1769745600); // 04:00
+    const timestamp3 = BigInt.fromI32(1769760000); // 08:00
+    const dayTimestamp = timestamp1.div(daySeconds).times(daySeconds);
+    const periodFinish = dayTimestamp.plus(daySeconds); // active all day
+    const id = `${vaultAddressString}-${dayTimestamp.toString()}`;
+
+    mockVaultCalls(decimals, shareValue, totalAssets);
+
+    // Block 1: mid reward rate establishes the record.
+    mockDistributorCalls(rewardRateMid, periodFinish);
+    handleBlock(createMockBlock(BigInt.fromI32(100), timestamp1));
+    const expectedMid = rewardRateMid.times(secondsPerYear).div(totalAssets);
+    assert.entityCount("VaultAprHistory", 1);
+    assert.fieldEquals("VaultAprHistory", id, "apr", expectedMid.toString());
+    assert.fieldEquals(
+      "VaultAprHistory",
+      id,
+      "timestamp",
+      dayTimestamp.toString(),
+    );
+    assert.fieldEquals(
+      "VaultAprHistory",
+      id,
+      "stakingVaultAddress",
+      vaultAddressString,
+    );
+
+    // Block 2: a lower reward rate the same day is ignored (max kept).
+    mockDistributorCalls(rewardRateLow, periodFinish);
+    handleBlock(createMockBlock(BigInt.fromI32(200), timestamp2));
+    assert.entityCount("VaultAprHistory", 1);
+    assert.fieldEquals("VaultAprHistory", id, "apr", expectedMid.toString());
+
+    // Block 3: a higher reward rate the same day overwrites the max.
+    mockDistributorCalls(rewardRateHigh, periodFinish);
+    handleBlock(createMockBlock(BigInt.fromI32(300), timestamp3));
+    const expectedHigh = rewardRateHigh.times(secondsPerYear).div(totalAssets);
+    assert.entityCount("VaultAprHistory", 1);
+    assert.fieldEquals("VaultAprHistory", id, "apr", expectedHigh.toString());
+  });
+
+  test("records apr 0 when the reward period has finished", function () {
+    const decimals = 18;
+    const shareValue = BigInt.fromString("1050000000000000000");
+    const totalAssets = BigInt.fromString("5000000000000000000000");
+    const rewardRate = BigInt.fromString("20000000000000000000000000000");
+    const timestamp = BigInt.fromI32(1769734800);
+    const dayTimestamp = timestamp.div(daySeconds).times(daySeconds);
+    // periodFinish in the past -> no active drip -> apr 0.
+    const periodFinish = timestamp.minus(BigInt.fromI32(1));
+    const id = `${vaultAddressString}-${dayTimestamp.toString()}`;
+
+    mockVaultCalls(decimals, shareValue, totalAssets);
+    mockDistributorCalls(rewardRate, periodFinish);
+    handleBlock(createMockBlock(BigInt.fromI32(100), timestamp));
+
+    assert.entityCount("VaultAprHistory", 1);
+    assert.fieldEquals("VaultAprHistory", id, "apr", "0");
+  });
+
+  test("records apr 0 when the vault has no yield distributor", function () {
+    const decimals = 18;
+    const shareValue = BigInt.fromString("1050000000000000000");
+    const totalAssets = BigInt.fromString("5000000000000000000000");
+    const timestamp = BigInt.fromI32(1769734800);
+    const dayTimestamp = timestamp.div(daySeconds).times(daySeconds);
+    const id = `${vaultAddressString}-${dayTimestamp.toString()}`;
+
+    mockVaultCalls(decimals, shareValue, totalAssets);
+    // yieldDistributor() returns the zero address -> no drip configured. The reward
+    // rate / period finish are intentionally left unmocked: the handler must not read
+    // them for a zero distributor.
+    createMockedFunction(
+      vaultAddress,
+      "yieldDistributor",
+      "yieldDistributor():(address)",
+    )
+      .withArgs([])
+      .returns([ethereum.Value.fromAddress(Address.zero())]);
+
+    handleBlock(createMockBlock(BigInt.fromI32(100), timestamp));
+
+    assert.entityCount("VaultAprHistory", 1);
+    assert.fieldEquals("VaultAprHistory", id, "apr", "0");
+  });
+
+  test("creates a separate record per UTC day", function () {
+    const decimals = 18;
+    const shareValue = BigInt.fromString("1050000000000000000");
+    const totalAssets = BigInt.fromString("5000000000000000000000");
+    const rewardRate = BigInt.fromString("20000000000000000000000000000");
+    const periodFinish = BigInt.fromI32(1900000000); // far future
+    const timestamp1 = BigInt.fromI32(1769734800); // 2026-01-30 01:00
+    const timestamp2 = BigInt.fromI32(1769821200); // 2026-01-31 01:00
+
+    mockVaultCalls(decimals, shareValue, totalAssets);
+    mockDistributorCalls(rewardRate, periodFinish);
+    handleBlock(createMockBlock(BigInt.fromI32(100), timestamp1));
+    handleBlock(createMockBlock(BigInt.fromI32(200), timestamp2));
+
+    assert.entityCount("VaultAprHistory", 2);
+  });
+
+  test("skips recording when a required on-chain read reverts", function () {
+    const decimals = 18;
+    const shareValue = BigInt.fromString("1050000000000000000");
+    const totalAssets = BigInt.fromString("5000000000000000000000");
+    const timestamp = BigInt.fromI32(1769734800);
+
+    mockVaultCalls(decimals, shareValue, totalAssets);
+    // yieldDistributor() reverts -> readVaultApr returns null, so the handler
+    // skips the update entirely instead of recording a bogus apr 0.
+    createMockedFunction(
+      vaultAddress,
+      "yieldDistributor",
+      "yieldDistributor():(address)",
+    )
+      .withArgs([])
+      .reverts();
+
+    handleBlock(createMockBlock(BigInt.fromI32(100), timestamp));
+
+    assert.entityCount("VaultAprHistory", 0);
   });
 });
 
@@ -645,13 +824,27 @@ describe("handleWithdrawClaimed", function () {
   });
 });
 
+// Mock convertToAssets for a specific share amount at a 1.2:1 rate (each
+// share is worth 1.2 underlying assets). Mirrors the vault's exchange rate.
+function mockConvertToAssetsForAmount(shares: BigInt): void {
+  // 1.2:1 rate: assets = shares * 12 / 10
+  const assets = shares.times(BigInt.fromI32(12)).div(BigInt.fromI32(10));
+  createMockedFunction(
+    vaultAddress,
+    "convertToAssets",
+    "convertToAssets(uint256):(uint256)",
+  )
+    .withArgs([ethereum.Value.fromUnsignedBigInt(shares)])
+    .returns([ethereum.Value.fromUnsignedBigInt(assets)]);
+}
+
 describe("handleTransfer", function () {
   beforeEach(function () {
     clearStore();
     dataSourceMock.setAddress(vaultAddressString);
   });
 
-  test("updates shares on transfer-in, keeps totalCostBasis unchanged", function () {
+  test("updates shares and totalCostBasis at FMV on transfer-in", function () {
     // t0: Deposit 120 VUSD -> 100 sVUSD. shares=100e18, totalCostBasis=120e36
     handleDeposit(
       createDepositEvent(
@@ -672,8 +865,11 @@ describe("handleTransfer", function () {
       ),
     );
 
-    // t1: Receive 50 sVUSD via transfer. shares=150e18, totalCostBasis=120e36 (unchanged)
-    // averagePrice = 120e36 / 150e18 = 0.8e18
+    // Mock convertToAssets(50e18) → 60e18 (1.2:1 rate)
+    mockConvertToAssetsForAmount(BigInt.fromString("50000000000000000000"));
+
+    // t1: Receive 50 sVUSD via transfer. shares=150e18
+    // totalCostBasis = 120e36 + 60e18*WAD = 120e36 + 60e36 = 180e36
     handleTransfer(
       createTransferEvent(
         receiverAddress,
@@ -693,7 +889,7 @@ describe("handleTransfer", function () {
       "UserStakingPosition",
       id,
       "totalCostBasis",
-      "120000000000000000000000000000000000000",
+      "180000000000000000000000000000000000000",
     );
   });
 
@@ -718,7 +914,11 @@ describe("handleTransfer", function () {
       ),
     );
 
-    // t1: Receive 50 sVUSD. shares=150e18, totalCostBasis=120e36. avg=0.8e18
+    // Mock convertToAssets for both transfer amounts at 1.2:1
+    mockConvertToAssetsForAmount(BigInt.fromString("50000000000000000000"));
+    mockConvertToAssetsForAmount(BigInt.fromString("150000000000000000000"));
+
+    // t1: Receive 50 sVUSD. FMV = 60e18. totalCostBasis = 120e36 + 60e36 = 180e36
     handleTransfer(
       createTransferEvent(
         receiverAddress,
@@ -727,7 +927,7 @@ describe("handleTransfer", function () {
       ),
     );
 
-    // t2: Receive 150 sVUSD. shares=300e18, totalCostBasis=120e36. avg=0.4e18
+    // t2: Receive 150 sVUSD. FMV = 180e18. totalCostBasis = 180e36 + 180e36 = 360e36
     handleTransfer(
       createTransferEvent(
         receiverAddress,
@@ -747,11 +947,11 @@ describe("handleTransfer", function () {
       "UserStakingPosition",
       id,
       "totalCostBasis",
-      "120000000000000000000000000000000000000",
+      "360000000000000000000000000000000000000",
     );
   });
 
-  test("sets shares to transferred amount and totalCostBasis to 0 for new user", function () {
+  test("sets shares and totalCostBasis at FMV for new user on transfer-in", function () {
     // Give receiverAddress shares so it can transfer them
     handleDeposit(
       createDepositEvent(
@@ -762,7 +962,10 @@ describe("handleTransfer", function () {
       ),
     );
 
-    // User with no prior position receives 100 sVUSD
+    // Mock convertToAssets(100e18) → 120e18 (1.2:1 rate)
+    mockConvertToAssetsForAmount(BigInt.fromString("100000000000000000000"));
+
+    // User with no prior position receives 100 sVUSD at FMV = 120e18
     handleTransfer(
       createTransferEvent(
         receiverAddress,
@@ -779,7 +982,12 @@ describe("handleTransfer", function () {
       "shares",
       "100000000000000000000",
     );
-    assert.fieldEquals("UserStakingPosition", id, "totalCostBasis", "0");
+    assert.fieldEquals(
+      "UserStakingPosition",
+      id,
+      "totalCostBasis",
+      "120000000000000000000000000000000000000",
+    );
     assert.fieldEquals("UserStakingPosition", id, "owner", ownerAddressString);
   });
 
@@ -793,6 +1001,9 @@ describe("handleTransfer", function () {
         BigInt.fromString("100000000000000000000"),
       ),
     );
+
+    // Mock convertToAssets(30e18) → 36e18 (1.2:1 rate) for receiver's FMV
+    mockConvertToAssetsForAmount(BigInt.fromString("30000000000000000000"));
 
     // Transfer 30 sVUSD out. Remaining: 70e18 shares.
     // totalCostBasis = 120e36 * 70/100 = 84e36. avg = 84e36/70e18 = 1.2e18 (unchanged)
@@ -818,7 +1029,7 @@ describe("handleTransfer", function () {
       "84000000000000000000000000000000000000",
     );
 
-    // Receiver gets shares with totalCostBasis unchanged (0 for new user)
+    // Receiver gets shares with totalCostBasis at FMV: 36e18 * WAD = 36e36
     const receiverId = `${vaultAddressString}-${receiverAddressString}`;
     assert.fieldEquals(
       "UserStakingPosition",
@@ -830,7 +1041,7 @@ describe("handleTransfer", function () {
       "UserStakingPosition",
       receiverId,
       "totalCostBasis",
-      "0",
+      "36000000000000000000000000000000000000",
     );
   });
 
@@ -844,6 +1055,9 @@ describe("handleTransfer", function () {
         BigInt.fromString("100000000000000000000"),
       ),
     );
+
+    // Mock convertToAssets(100e18) → 120e18 for receiver's FMV
+    mockConvertToAssetsForAmount(BigInt.fromString("100000000000000000000"));
 
     // Transfer all 100 sVUSD out.
     handleTransfer(
@@ -863,6 +1077,8 @@ describe("handleTransfer", function () {
     // Setup: owner deposits then transfers everything out, leaving a position
     // with shares=0. A further non-zero transfer-out (tracked shares diverged
     // from on-chain balance) must reset to zero instead of dividing by zero.
+    mockConvertToAssetsForAmount(BigInt.fromString("100000000000000000000"));
+    mockConvertToAssetsForAmount(BigInt.fromString("30000000000000000000"));
     handleDeposit(
       createDepositEvent(
         BigInt.fromString("120000000000000000000"),
@@ -1038,6 +1254,55 @@ describe("handleTransfer", function () {
       id,
       "totalCostBasis",
       "120000000000000000000000000000000000000",
+    );
+  });
+
+  test("falls back to 1:1 when convertToAssets reverts on transfer-in", function () {
+    // Give receiverAddress shares so it can transfer them
+    handleDeposit(
+      createDepositEvent(
+        BigInt.fromString("100000000000000000000"),
+        receiverAddress,
+        receiverAddress,
+        BigInt.fromString("100000000000000000000"),
+      ),
+    );
+
+    // Explicitly make convertToAssets revert for this transfer amount
+    createMockedFunction(
+      vaultAddress,
+      "convertToAssets",
+      "convertToAssets(uint256):(uint256)",
+    )
+      .withArgs([
+        ethereum.Value.fromUnsignedBigInt(
+          BigInt.fromString("100000000000000000000"),
+        ),
+      ])
+      .reverts();
+
+    // Transfer 100 sVUSD to owner. convertToAssets reverts, so the handler
+    // falls back to 1:1: assetValue = value = 100e18, totalCostBasis = 100e36
+    handleTransfer(
+      createTransferEvent(
+        receiverAddress,
+        ownerAddress,
+        BigInt.fromString("100000000000000000000"),
+      ),
+    );
+
+    const id = `${vaultAddressString}-${ownerAddressString}`;
+    assert.fieldEquals(
+      "UserStakingPosition",
+      id,
+      "shares",
+      "100000000000000000000",
+    );
+    assert.fieldEquals(
+      "UserStakingPosition",
+      id,
+      "totalCostBasis",
+      "100000000000000000000000000000000000000",
     );
   });
 });

@@ -2,7 +2,6 @@ import { TEST_ADDRESS } from "@hemilabs/anvil-fork-setup/utils";
 import { expect } from "@playwright/test";
 import { parseUnits } from "viem";
 import { getBlock, readContract } from "viem/actions";
-import { mainnet } from "viem/chains";
 import { balanceOf } from "viem-erc20/actions";
 
 import { gatewayAbi } from "../../packages/gateway/src/abi/gatewayAbi.ts";
@@ -10,20 +9,10 @@ import { gatewayAddresses } from "../../packages/gateway/src/gatewayAddresses.ts
 import { fastForwardTime } from "../scripts/fastForwardTime.ts";
 import { setRedeemDelay } from "../scripts/redeemDelay.ts";
 import { whitelistInstantRedeem } from "../scripts/whitelistInstantRedeem.ts";
-import { knownTokens } from "../src/utils/tokenList.ts";
 
 import { ANVIL_URL, createEthereumClient } from "./anvil";
 import { test } from "./fixtures/wallet";
-
-function getMainnetToken(symbol: string) {
-  const token = knownTokens.find(
-    (t) => t.chainId === mainnet.id && t.symbol === symbol,
-  );
-  if (!token) {
-    throw new Error(`Token ${symbol} not found in tokenList for mainnet`);
-  }
-  return token;
-}
+import { getMainnetToken, waitForBalance } from "./helpers";
 
 const usdc = getMainnetToken("USDC");
 const vusd = getMainnetToken("VUSD");
@@ -97,16 +86,10 @@ test("swap USDC → VUSD via the gateway", async function ({ page }) {
 
   // No popups — the mock wallet signs and forwards to Anvil silently.
   // Assert by polling balances directly against the fork.
-  await expect
-    .poll(
-      async () =>
-        balanceOf(publicClient, {
-          account: TEST_ADDRESS,
-          address: vusd.address,
-        }),
-      { timeout: 20_000 },
-    )
-    .toBeGreaterThan(vusdBefore);
+  await waitForBalance({
+    client: publicClient,
+    token: vusd.address,
+  }).toBeGreaterThan(vusdBefore);
 
   const usdcAfter = await balanceOf(publicClient, {
     account: TEST_ADDRESS,
@@ -208,16 +191,10 @@ test("redeem VUSD → USDC via the gateway (instant redeem)", async function ({
 
   // No popups — the mock wallet signs and forwards to Anvil silently.
   // Assert by polling balances directly against the fork.
-  await expect
-    .poll(
-      async () =>
-        balanceOf(publicClient, {
-          account: TEST_ADDRESS,
-          address: usdc.address,
-        }),
-      { timeout: 20_000 },
-    )
-    .toBeGreaterThan(usdcBefore);
+  await waitForBalance({
+    client: publicClient,
+    token: usdc.address,
+  }).toBeGreaterThan(usdcBefore);
 
   const vusdAfter = await balanceOf(publicClient, {
     account: TEST_ADDRESS,
@@ -283,16 +260,9 @@ test("redeem VUSD via the gateway (two-step queue redeem)", async function ({
   });
 
   // The VUSD is now locked in the gateway, so the wallet balance already dropped.
-  await expect
-    .poll(
-      async () =>
-        balanceOf(publicClient, {
-          account: TEST_ADDRESS,
-          address: vusd.address,
-        }),
-      { timeout: 20_000 },
-    )
-    .toBe(vusdBefore - REDEEM_AMOUNT);
+  await waitForBalance({ client: publicClient, token: vusd.address }).toBe(
+    vusdBefore - REDEEM_AMOUNT,
+  );
 
   // The queue now lists the request we just created — assert the
   // redeemable-balance column shows the locked amount and pegged-token symbol.
@@ -370,16 +340,10 @@ test("redeem VUSD via the gateway (two-step queue redeem)", async function ({
   // The claim settled on the fork: the output stablecoin was received, and VUSD
   // stays at its post-step-1 value (the locked balance was burned, not the
   // wallet's).
-  await expect
-    .poll(
-      async () =>
-        balanceOf(publicClient, {
-          account: TEST_ADDRESS,
-          address: outputToken.address,
-        }),
-      { timeout: 20_000 },
-    )
-    .toBeGreaterThan(outputBefore);
+  await waitForBalance({
+    client: publicClient,
+    token: outputToken.address,
+  }).toBeGreaterThan(outputBefore);
 
   const vusdAfterClaim = await balanceOf(publicClient, {
     account: TEST_ADDRESS,

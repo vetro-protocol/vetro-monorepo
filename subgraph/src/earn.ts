@@ -4,6 +4,7 @@ import {
   ExitTicket,
   ExitTicketQueueSummary,
   UserStakingPosition,
+  VaultAprHistory,
   VaultConfig,
   VaultHistory,
 } from "../generated/schema";
@@ -16,11 +17,87 @@ import {
   WithdrawRequested,
   // The code generated is the same for both vaults
 } from "../generated/sVusdStakingVault/StakingVault";
+import { YieldDistributor } from "../generated/sVusdStakingVault/YieldDistributor";
 
 const buildId = (vaultAddress: Address, suffix: string): string =>
   `${vaultAddress.toHexString()}-${suffix}`;
 
 const WAD = BigInt.fromI32(10).pow(18);
+const SECONDS_PER_YEAR = BigInt.fromI32(31536000); // 365 days
+
+/**
+ * Read the vault's current forward-looking APR: apr = rewardRate * SECONDS_PER_YEAR /
+ * totalAssets, where rewardRate is the YieldDistributor's WAD-scaled reward-per-second,
+ * so apr is itself WAD-scaled (the WAD cancels rewardRate's own scaling). Returns 0
+ * when there is no active drip — no distributor configured, period ended, zero rate, or
+ * empty vault — matching the API's getApy. Returns null when a required on-chain read
+ * reverts, so the caller skips this block's update rather than recording a bogus value.
+ * All reads use try_* so a single failure never aborts the handler.
+ */
+function readVaultApr(
+  vault: StakingVault,
+  block: ethereum.Block,
+): BigInt | null {
+  const distributorResult = vault.try_yieldDistributor();
+  if (distributorResult.reverted) {
+    return null;
+  }
+  if (distributorResult.value.equals(Address.zero())) {
+    return BigInt.fromI32(0);
+  }
+
+  const distributor = YieldDistributor.bind(distributorResult.value);
+  const rewardRateResult = distributor.try_rewardRate();
+  const periodFinishResult = distributor.try_periodFinish();
+  const totalAssetsResult = vault.try_totalAssets();
+  if (
+    rewardRateResult.reverted ||
+    periodFinishResult.reverted ||
+    totalAssetsResult.reverted
+  ) {
+    return null;
+  }
+
+  const rewardRate = rewardRateResult.value;
+  const periodFinish = periodFinishResult.value;
+  const totalAssets = totalAssetsResult.value;
+  if (periodFinish.lt(block.timestamp) || totalAssets.isZero()) {
+    return BigInt.fromI32(0);
+  }
+  return rewardRate.times(SECONDS_PER_YEAR).div(totalAssets);
+}
+
+/**
+ * Record the daily maximum APR in VaultAprHistory. Continuous-compounding APY is a
+ * strictly increasing function of APR, so tracking the daily maximum APR captures the
+ * daily maximum APY; the API converts apr -> apy. Runs on every polling block (no early
+ * return) so intra-day fluctuations are captured.
+ */
+function handleDailyApr(
+  vaultAddress: Address,
+  vault: StakingVault,
+  block: ethereum.Block,
+): void {
+  const apr = readVaultApr(vault, block);
+  if (apr === null) {
+    return;
+  }
+
+  const daySeconds = BigInt.fromI32(86400);
+  const dayTimestamp = block.timestamp.div(daySeconds).times(daySeconds);
+  const id = buildId(vaultAddress, dayTimestamp.toString());
+  let entity = VaultAprHistory.load(id);
+  if (entity == null) {
+    entity = new VaultAprHistory(id);
+    entity.timestamp = dayTimestamp;
+    entity.stakingVaultAddress = vaultAddress;
+    entity.apr = apr;
+    entity.save();
+  } else if (apr.gt(entity.apr)) {
+    entity.apr = apr;
+    entity.save();
+  }
+}
 
 function loadOrCreateQueueSummary(
   vaultAddress: Address,
@@ -39,6 +116,10 @@ function loadOrCreateQueueSummary(
 export function handleBlock(block: ethereum.Block): void {
   const vaultAddress = dataSource.address();
   const vault = StakingVault.bind(vaultAddress);
+
+  // Record the daily-maximum APR. Runs on every polling block (no early return) so
+  // intra-day APR changes are captured; see handleDailyApr.
+  handleDailyApr(vaultAddress, vault, block);
 
   // To speed up the sync process, minimize RPC calls and entity writes, only
   // save one history record per day (the first time this handler runs for that
@@ -150,8 +231,15 @@ export function handleTransfer(event: Transfer): void {
     return;
   }
 
-  // Update the receiving party: increment shares, keep totalCostBasis unchanged.
-  // Received shares are valued at 0, diluting the average price proportionally.
+  // Update the receiving party: increment shares and totalCostBasis at FMV.
+  // Value incoming shares at their current underlying asset value
+  // (convertToAssets) so that transfers — including DeFi round-trips through
+  // LP pools, routers, etc. — don't artificially deflate cost basis. If
+  // convertToAssets reverts (empty vault edge case), fall back to 1:1.
+  const vault = StakingVault.bind(vaultAddress);
+  const assetValueResult = vault.try_convertToAssets(value);
+  const assetValue = assetValueResult.reverted ? value : assetValueResult.value;
+
   const toId = buildId(vaultAddress, event.params.to.toHexString());
   let toEntity = UserStakingPosition.load(toId);
   if (toEntity == null) {
@@ -163,6 +251,7 @@ export function handleTransfer(event: Transfer): void {
   }
 
   toEntity.shares = toEntity.shares.plus(value);
+  toEntity.totalCostBasis = toEntity.totalCostBasis.plus(assetValue.times(WAD));
 
   toEntity.save();
 }

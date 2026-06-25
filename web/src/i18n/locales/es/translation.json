@@ -26,7 +26,8 @@
     "search": "Buscar",
     "search-token-placeholder": "Buscar por nombre o símbolo",
     "select-token": "Seleccionar un token",
-    "try-different-search": "Intente con un término de búsqueda diferente"
+    "try-different-search": "Intente con un término de búsqueda diferente",
+    "wallet-disclaimer": "Al conectar una billetera, usted acepta los <terms>Términos de uso</terms> de Vetro y consiente su <privacy>Política de privacidad</privacy>."
   },
   "language": {
     "switch-to": "Cambiar a Inglés"
@@ -38,9 +39,11 @@
     "earn": "Earn",
     "header-menu": {
       "company": "Empresa",
+      "docs": "Documentación",
       "homepage": "Inicio",
       "linkedin": "LinkedIn",
       "open": "Abrir menú",
+      "privacy-policy": "Política de privacidad",
       "socials": "Redes sociales",
       "terms-of-use": "Términos de uso",
       "x": "X"
@@ -202,8 +205,8 @@
         "from-chain": "desde {{chain}}",
         "on-chain": "en {{chain}}",
         "preview-error": "No se pudo estimar la tarifa",
-        "you-are-sending": "Estás enviando",
-        "you-will-receive": "Recibirás"
+        "you-are-sending": "Está enviando",
+        "you-will-receive": "Va a recibir"
       },
       "progress": {
         "approve-description": "Esto permite al contrato del puente gastar este token.",
@@ -383,7 +386,7 @@
         "redeemable-for_other": "Intercambiable por {{allButLast}} y {{lastSymbol}}",
         "send-to-queue": "Enviar a la cola",
         "swap": "Intercambiar",
-        "you-are-swapping": "Vas a intercambiar",
+        "you-are-swapping": "Está intercambiando",
         "you-will-receive-estimated": "Va a recibir (estimado)"
       },
       "progress": {
@@ -449,11 +452,6 @@
         "step-2-paragraph-2_other": "Haga clic en Canjear, elija el monto y seleccione la stablecoin ({{allButLast}} o {{lastSymbol}}) que desea recibir.",
         "title": "Cómo canjear VUSD a stables"
       }
-    },
-    "terms-of-use": {
-      "last-updated": "Última actualización: 18 de mayo de 2026",
-      "published-by": "Publicado por Vetro Service & Support Ltd.",
-      "title": "Términos de uso de Vetro"
     },
     "wallet": {
       "activity-empty-description-filtered": "Intente ajustar sus filtros.",

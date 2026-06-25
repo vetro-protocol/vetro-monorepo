@@ -14,7 +14,6 @@ import { ErrorPage } from "pages/errorPage";
 import { Faq } from "pages/faq";
 import { NotFound } from "pages/notFound";
 import { Swap } from "pages/swap";
-import { TermsOfUse } from "pages/termsOfUse";
 import { Suspense, lazy } from "react";
 import {
   BrowserRouter,
@@ -77,7 +76,6 @@ function LanguageRoutes() {
             <Route element={<Bridge />} path="bridge" />
             <Route element={<Analytics />} path="analytics" />
             <Route element={<Faq />} path="faq" />
-            <Route element={<TermsOfUse />} path="terms-of-use" />
           </Route>
           <Route
             element={

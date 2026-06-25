@@ -18,6 +18,25 @@ Get the total strategic reserves and the total surplus for a given gateway's peg
 }
 ```
 
+### `GET /analytics/collateralization-ratio/:gatewayAddress`
+
+Get the collateralization ratio for a given gateway's pegged token: the total backing value divided by the circulating supply. The backing is the sum of the strategic reserves, the protocol surplus and the liquid Treasury reserves (whitelisted holdings valued in the pegged token). Cached for 5 minutes.
+`:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway.
+The monetary fields (`strategicReserves`, `supply`, `surplus`, `total`, `treasuryTotal`) are raw `uint256` amounts in the pegged token's base units (not pre-scaled); format them with the token's decimals on the client. `ratio` is a number: the percentage `(total / supply) * 100` (e.g. `100.04`), or `0` when supply is `0`.
+
+#### Sample response
+
+```json
+{
+  "ratio": 100.04,
+  "strategicReserves": "10000000000000000000",
+  "supply": "11425000000000000000000000",
+  "surplus": "1424707358963452827",
+  "total": "11430000004707358963452827",
+  "treasuryTotal": "11429988580000000000000000"
+}
+```
+
 ### `GET /analytics/treasury/:gatewayAddress`
 
 Get the composition of the treasury by whitelisted token for a given gateway.
