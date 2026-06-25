@@ -70,15 +70,16 @@ const connectSrc = [
 
 const workerSrc = import.meta.env.VITE_SENTRY_DSN ? "blob:" : "'none'";
 
-// In dev, Vite injects an inline React Fast Refresh preamble script, so
-// 'unsafe-inline' is required for it to run. Production keeps the stricter
-// policy without it.
-const scriptSrc = [
-  "'self'",
-  "https://static.cloudflareinsights.com", // Web Analytics beacon.
-  "https://challenges.cloudflare.com", // Cloudflare bot management / challenge widget.
-  ...(import.meta.env.DEV ? ["'unsafe-inline'"] : []),
-].join(" ");
+// Production CSP is strict and includes a nonce. In dev mode, Vite injects an
+// inline React Fast Refresh preamble script, so 'unsafe-inline' is required
+// and would be overridden by including a nonce.
+const buildScriptSrc = (nonce: string) =>
+  [
+    "'self'",
+    "https://static.cloudflareinsights.com", // Web Analytics beacon.
+    "https://challenges.cloudflare.com", // Cloudflare bot management / challenge widget.
+    ...(import.meta.env.DEV ? ["'unsafe-inline'"] : [`'nonce-${nonce}'`]),
+  ].join(" ");
 
 // Deny all permissions – mirrors api/src/security-headers.ts.
 const permissionsPolicy = [
@@ -157,7 +158,7 @@ const buildCsp = (nonce: string) =>
     // (bot management / Turnstile) render in iframes.
     `frame-src 'self' ${walletFrameSrc} https://challenges.cloudflare.com`,
     `img-src 'self' data: https://hemilabs.github.io ${walletImgSrc}`,
-    `script-src ${scriptSrc} 'nonce-${nonce}'`,
+    `script-src ${buildScriptSrc(nonce)}`,
     // Tailwind v4 injects styles via a <style> tag, so 'unsafe-inline' is needed.
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     `worker-src ${workerSrc}`,
