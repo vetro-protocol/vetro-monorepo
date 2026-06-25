@@ -6,10 +6,10 @@ import { Dropdown } from "./base/dropdown";
 import { ExternalLink } from "./base/externalLink";
 import { I18nLink } from "./base/i18nLink";
 import { DocumentIcon } from "./icons/documentIcon";
-import { EllipsisHorizontalIcon } from "./icons/ellipsisHorizontalIcon";
 import { ExternalLinkIcon } from "./icons/externalLinkIcon";
 import { HomeIcon } from "./icons/homeIcon";
 import { LinkedInIcon } from "./icons/linkedInIcon";
+import { QuestionMarkCircleIcon } from "./icons/questionMarkCircleIcon";
 import { XIcon } from "./icons/xIcon";
 
 const triggerId = "header-menu-trigger";
@@ -134,7 +134,7 @@ export function HeaderMenu() {
           aria-label={t("nav.header-menu.open")}
           variant="secondary"
         >
-          <EllipsisHorizontalIcon className="size-4 text-gray-500 group-hover:text-gray-900 group-aria-expanded:text-gray-900" />
+          <QuestionMarkCircleIcon className="size-4 text-gray-500 group-hover:text-gray-900 group-aria-expanded:text-gray-900" />
         </ButtonIcon>
       )}
       sections={sections}
