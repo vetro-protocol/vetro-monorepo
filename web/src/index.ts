@@ -19,10 +19,27 @@ const allUrls: (string | undefined)[] = [
   import.meta.env.VITE_SENTRY_DSN,
 ];
 
+// Wallet provider endpoints reached by RainbowKit's default connectors. These
+// hosts must be allowed for wallet connection to work.
+const walletDomains = [
+  // Reown (ex-WalletConnect), via the WalletConnect connector
+  "https://api.web3modal.org",
+  "https://*.walletconnect.com",
+  "wss://*.walletconnect.com",
+  "https://*.walletconnect.org",
+  "wss://relay.walletconnect.org",
+  // Coinbase Wallet
+  "https://cca-lite.coinbase.com",
+  "https://chain-proxy.wallet.coinbase.com",
+  "https://keys.coinbase.com",
+  "wss://www.walletlink.org/rpc",
+];
+
 // Build connect-src dynamically from env vars baked in at build time.
 const connectSrc = [
   "'self'",
   ...allUrls.map(getUrlOrigin).filter(Boolean),
+  ...walletDomains,
 ].join(" ");
 
 const workerSrc = import.meta.env.VITE_SENTRY_DSN ? "blob:" : "'none'";
@@ -86,7 +103,8 @@ const csp = [
   "font-src 'self' https://fonts.gstatic.com",
   "form-action 'none'",
   "frame-ancestors 'none'",
-  "img-src 'self' data: https://hemilabs.github.io",
+  "frame-src 'self' https://*.walletconnect.org",
+  "img-src 'self' data: https://hemilabs.github.io https://*.walletconnect.com",
   "script-src 'self'",
   // Tailwind v4 injects styles via a <style> tag, so 'unsafe-inline' is needed.
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
