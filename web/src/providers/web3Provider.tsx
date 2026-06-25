@@ -7,7 +7,6 @@ import { allChains } from "../networks";
 export const config = getDefaultConfig({
   appName: "Vetro",
   chains: allChains,
-  // TODO add project id for wallet connect
   projectId: import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID,
   transports: Object.fromEntries(allChains.map((chain) => [chain.id, http()])),
 });
