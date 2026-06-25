@@ -6,6 +6,8 @@ on:
       - master
     paths:
       - "api/**"
+      - "packages/**"
+      - "pnpm-lock.yaml"
 
 permissions:
   contents: read
