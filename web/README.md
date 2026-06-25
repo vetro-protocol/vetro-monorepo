@@ -9,7 +9,7 @@ Built with React, Viem, Wagmi, and Tailwind CSS.
 Vite only exposes variables prefixed with `VITE_` to the client bundle. Set these in `web/.env` (or a `.env.local` override) before running `dev` or `build`.
 
 | Variable                         | Required | Description                                                                                    |
-|----------------------------------|----------|------------------------------------------------------------------------------------------------|
+| -------------------------------- | -------- | ---------------------------------------------------------------------------------------------- |
 | `VITE_DEPLOY_ENV`                | No       | Set to `"production"` to hide source maps from browsers. Any other value serves them publicly. |
 | `VITE_PORTAL_API_URL`            | Yes      | Hemi Portal API base URL (used for token prices).                                              |
 | `VITE_RPC_URL_MAINNET`           | No       | RPC URL for Ethereum mainnet. Falls back to viem's default when unset.                         |
