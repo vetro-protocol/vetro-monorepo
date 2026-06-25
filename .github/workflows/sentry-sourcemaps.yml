@@ -20,9 +20,9 @@ jobs:
       - uses: hemilabs/actions/setup-node-env@8f87619b7f0122c39e14a32514ab3e4e0d4c3966 # v2.3.0
         with:
           package-manager: pnpm
-      - run: npx wrangler deploy --dry-run --outdir=dist
+      - run: pnpm exec wrangler deploy --dry-run --outdir=dist
         working-directory: api
-      - run: npx @sentry/cli sourcemaps upload --release=${{ github.sha }} ./dist
+      - run: pnpm exec sentry-cli sourcemaps upload --release=${{ github.sha }} ./dist
         working-directory: api
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
