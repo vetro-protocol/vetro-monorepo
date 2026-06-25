@@ -40,6 +40,11 @@ export function HeaderMenu() {
           icon: <HomeIcon className={itemIconClassName} />,
           label: t("nav.header-menu.homepage"),
         },
+        {
+          href: "https://docs.vetro.org/",
+          icon: <DocumentIcon className={itemIconClassName} />,
+          label: t("nav.header-menu.docs"),
+        },
       ],
     },
     {
@@ -63,6 +68,11 @@ export function HeaderMenu() {
           href: "https://vetro.org/terms-of-use",
           icon: <DocumentIcon className={itemIconClassName} />,
           label: t("nav.header-menu.terms-of-use"),
+        },
+        {
+          href: "https://vetro.org/privacy-policy",
+          icon: <DocumentIcon className={itemIconClassName} />,
+          label: t("nav.header-menu.privacy-policy"),
         },
       ],
       label: t("nav.header-menu.company"),
