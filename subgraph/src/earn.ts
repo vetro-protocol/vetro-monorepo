@@ -231,8 +231,15 @@ export function handleTransfer(event: Transfer): void {
     return;
   }
 
-  // Update the receiving party: increment shares, keep totalCostBasis unchanged.
-  // Received shares are valued at 0, diluting the average price proportionally.
+  // Update the receiving party: increment shares and totalCostBasis at FMV.
+  // Value incoming shares at their current underlying asset value
+  // (convertToAssets) so that transfers — including DeFi round-trips through
+  // LP pools, routers, etc. — don't artificially deflate cost basis. If
+  // convertToAssets reverts (empty vault edge case), fall back to 1:1.
+  const vault = StakingVault.bind(vaultAddress);
+  const assetValueResult = vault.try_convertToAssets(value);
+  const assetValue = assetValueResult.reverted ? value : assetValueResult.value;
+
   const toId = buildId(vaultAddress, event.params.to.toHexString());
   let toEntity = UserStakingPosition.load(toId);
   if (toEntity == null) {
@@ -244,6 +251,7 @@ export function handleTransfer(event: Transfer): void {
   }
 
   toEntity.shares = toEntity.shares.plus(value);
+  toEntity.totalCostBasis = toEntity.totalCostBasis.plus(assetValue.times(WAD));
 
   toEntity.save();
 }
