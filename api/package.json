@@ -11,6 +11,7 @@
     "types:check": "wrangler types --include-env=false --check"
   },
   "dependencies": {
+    "@sentry/cloudflare": "10.58.0",
     "@vetro-protocol/earn": "workspace:*",
     "@vetro-protocol/gateway": "workspace:*",
     "@vetro-protocol/treasury": "workspace:*",

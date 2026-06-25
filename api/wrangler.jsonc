@@ -2,6 +2,7 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "main": "src/index.ts",
   "compatibility_date": "2026-02-16",
+  "compatibility_flags": ["nodejs_compat"],
   "workers_dev": false,
   "preview_urls": true,
   "upload_source_maps": true,
@@ -40,6 +41,8 @@
       },
       "vars": {
         "ORIGINS": "https://app.vetro.org,https://beta.vetro.org,https://*.hemi.xyz",
+        "SENTRY_DSN": "https://fc941b61bc1aaaa28545687b7ca97fc6@o4508162066350080.ingest.de.sentry.io/4511626274209873",
+        "SENTRY_RELEASE": "",
         "SUBGRAPH_ID": "7vnTMFYNE6Nv7RTeoaog4QgqQ3bwZTFoPUGv2gcmTxJ6",
         "SUBGRAPH_URL_TEMPLATE": "https://gateway.thegraph.com/api/$API_KEY/subgraphs/id/$ID",
       },
