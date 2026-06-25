@@ -23,7 +23,6 @@
     "viem-erc4626": "1.0.0"
   },
   "devDependencies": {
-    "@sentry/cli": "2.58.5",
     "@types/node": "24.10.13",
     "typescript": "5.9.3",
     "vite-tsconfig-paths": "6.0.4",

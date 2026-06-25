@@ -316,7 +316,6 @@ export default Sentry.withSentry(
     dsn: env.SENTRY_DSN,
     enableLogs: true,
     environment: "production",
-    release: env.SENTRY_RELEASE || undefined,
   }),
   app,
 );

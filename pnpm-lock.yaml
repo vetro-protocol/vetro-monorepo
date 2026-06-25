@@ -84,9 +84,6 @@ importers:
         specifier: 1.0.0
         version: 1.0.0(viem-erc20@2.1.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)))(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
     devDependencies:
-      '@sentry/cli':
-        specifier: 2.58.5
-        version: 2.58.5(encoding@0.1.13)
       '@types/node':
         specifier: 24.10.13
         version: 24.10.13
