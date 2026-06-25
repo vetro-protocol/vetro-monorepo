@@ -1,6 +1,7 @@
 import { type Address } from "viem";
 import { totalAssets } from "viem-erc4626/actions";
 
+import { appendLivePoint } from "./append-live-point.ts";
 import { createMainnetClient } from "./mainnet-client.ts";
 import { paginateSubgraphQuery } from "./paginate-subgraph-query.ts";
 import { getPeriodStart } from "./vault-history-period.ts";
@@ -42,7 +43,8 @@ async function getLiveTotalDepositsPoint({
  * given period. Paginates over the subgraph's 100-result page cap so that long
  * windows (e.g. "1y", up to ~366 daily entries) are returned in full. A live
  * on-chain totalAssets read is appended as the final point so the latest value
- * reflects current TVL rather than the last daily subgraph snapshot.
+ * reflects current TVL rather than the last daily subgraph snapshot, via
+ * `appendLivePoint` so it never duplicates the current UTC day's subgraph point.
  */
 export async function getTotalDepositsHistory({
   period,
@@ -95,5 +97,9 @@ export async function getTotalDepositsHistory({
     totalDeposits: h.totalAssets,
   }));
 
-  return livePoint ? [...history, livePoint] : history;
+  return appendLivePoint({
+    getValue: (point) => point.totalDeposits,
+    history,
+    livePoint,
+  });
 }
