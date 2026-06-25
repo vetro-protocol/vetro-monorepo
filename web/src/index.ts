@@ -70,6 +70,16 @@ const connectSrc = [
 
 const workerSrc = import.meta.env.VITE_SENTRY_DSN ? "blob:" : "'none'";
 
+// In dev, Vite injects an inline React Fast Refresh preamble script, so
+// 'unsafe-inline' is required for it to run. Production keeps the stricter
+// policy without it.
+const scriptSrc = [
+  "'self'",
+  "https://static.cloudflareinsights.com", // Web Analytics beacon.
+  "https://challenges.cloudflare.com", // Cloudflare bot management / challenge widget.
+  ...(import.meta.env.DEV ? ["'unsafe-inline'"] : []),
+].join(" ");
+
 // Deny all permissions – mirrors api/src/security-headers.ts.
 const permissionsPolicy = [
   "accelerometer",
@@ -133,9 +143,7 @@ const csp = [
   // (bot management / Turnstile) render in iframes.
   `frame-src 'self' ${walletFrameSrc} https://challenges.cloudflare.com`,
   `img-src 'self' data: https://hemilabs.github.io ${walletImgSrc}`,
-  // static.cloudflareinsights.com: Web Analytics beacon.
-  // challenges.cloudflare.com: Cloudflare bot management / challenge widget.
-  "script-src 'self' https://static.cloudflareinsights.com https://challenges.cloudflare.com",
+  `script-src ${scriptSrc}`,
   // Tailwind v4 injects styles via a <style> tag, so 'unsafe-inline' is needed.
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   `worker-src ${workerSrc}`,
