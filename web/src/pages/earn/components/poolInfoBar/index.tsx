@@ -13,6 +13,7 @@ import type { Address } from "viem";
 
 import { PoolInfoButtons } from "./poolInfoButtons";
 import { PoolInfoItem } from "./poolInfoItem";
+import { PoolInfoStakedAmount } from "./poolInfoStakedAmount";
 
 type Props = {
   stakingVaultAddress: Address;
@@ -92,6 +93,7 @@ export function PoolInfoBar({ stakingVaultAddress }: Props) {
             </span>
           </div>
         </PoolInfoItem>
+        <PoolInfoStakedAmount stakingVaultAddress={stakingVaultAddress} />
       </div>
       <PoolInfoButtons stakingVaultAddress={stakingVaultAddress} />
     </div>
