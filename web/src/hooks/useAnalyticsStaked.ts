@@ -9,9 +9,10 @@ type StakedResponse = {
   staked: string;
 };
 
-export const analyticsStakedQueryKey = (
-  gatewayAddress: Address | undefined,
-) => ["analytics-staked", gatewayAddress];
+const analyticsStakedQueryKey = (gatewayAddress: Address | undefined) => [
+  "analytics-staked",
+  gatewayAddress,
+];
 
 const analyticsStakedOptions = (gatewayAddress: Address | undefined) =>
   queryOptions({
@@ -26,9 +27,9 @@ const analyticsStakedOptions = (gatewayAddress: Address | undefined) =>
         ) as Promise<StakedResponse>
       ).then(({ staked }) => ({ staked: BigInt(staked) })),
     queryKey: analyticsStakedQueryKey(gatewayAddress),
-    refetchInterval: 5 * 60 * 1000, // 5 minutes
+    refetchInterval: 60 * 1000, // 1 minute
     retry: 2,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 60 * 1000, // 1 minute
   });
 
 export const useAnalyticsStaked = (gatewayAddress: Address | undefined) =>

@@ -9,7 +9,6 @@ import { waitForTransactionReceipt } from "viem/actions";
 import { withdraw } from "viem-erc4626/actions";
 import { useAccount } from "wagmi";
 
-import { analyticsStakedQueryKey } from "./useAnalyticsStaked";
 import { costBasisQueryKey } from "./useCostBasis";
 import { earnedAmountUsdQueryKey } from "./useEarnedAmountUsd";
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
@@ -146,10 +145,6 @@ export const useInstantWithdraw = function ({
 
       queryClient.invalidateQueries({
         queryKey: poolDepositsKey,
-      });
-
-      queryClient.refetchQueries({
-        queryKey: analyticsStakedQueryKey(peggedToken.gatewayAddress),
       });
     },
   });

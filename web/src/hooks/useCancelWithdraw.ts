@@ -6,11 +6,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { cancelWithdraw } from "@vetro-protocol/earn/actions";
 import { exitTicketsQueryKey } from "pages/earn/hooks/useExitTickets";
 import type { ExitTicket } from "pages/earn/types";
-import type { TokenWithGateway } from "types";
 import type { Address } from "viem";
 import { useAccount } from "wagmi";
 
-import { analyticsStakedQueryKey } from "./useAnalyticsStaked";
 import { costBasisQueryKey } from "./useCostBasis";
 import { earnedAmountUsdQueryKey } from "./useEarnedAmountUsd";
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
@@ -25,7 +23,6 @@ type Params = {
   assets: bigint;
   onStatusChange: (status: CancelWithdrawStatus) => void;
   onTransactionHash?: (hash: string) => void;
-  peggedToken: TokenWithGateway;
   requestId: bigint;
   stakingVaultAddress: Address;
 };
@@ -34,7 +31,6 @@ export const useCancelWithdraw = function ({
   assets,
   onStatusChange,
   onTransactionHash,
-  peggedToken,
   requestId,
   stakingVaultAddress,
 }: Params) {
@@ -144,10 +140,6 @@ export const useCancelWithdraw = function ({
 
       queryClient.invalidateQueries({
         queryKey: poolDepositsKey,
-      });
-
-      queryClient.refetchQueries({
-        queryKey: analyticsStakedQueryKey(peggedToken.gatewayAddress),
       });
     },
   });

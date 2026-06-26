@@ -12,7 +12,6 @@ import { type Address, isAddressEqual } from "viem";
 import { useAccount } from "wagmi";
 
 import { analyticsTreasuryQueryKey } from "./useAnalyticsTreasury";
-import { analyticsTvlQueryKey } from "./useAnalyticsTvl";
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { useMainnet } from "./useMainnet";
 import {
@@ -172,10 +171,6 @@ export const useDeposit = function ({
 
       queryClient.invalidateQueries({
         queryKey: treasuryReservesKey,
-      });
-
-      queryClient.refetchQueries({
-        queryKey: analyticsTvlQueryKey(peggedToken.gatewayAddress),
       });
 
       queryClient.invalidateQueries({

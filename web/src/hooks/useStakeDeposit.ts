@@ -9,7 +9,6 @@ import type { TokenWithGateway } from "types";
 import type { Address, TransactionReceipt } from "viem";
 import { useAccount } from "wagmi";
 
-import { analyticsStakedQueryKey } from "./useAnalyticsStaked";
 import { costBasisQueryKey } from "./useCostBasis";
 import { earnedAmountUsdQueryKey } from "./useEarnedAmountUsd";
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
@@ -206,10 +205,6 @@ export const useStakeDeposit = function ({
 
       queryClient.invalidateQueries({
         queryKey: poolDepositsKey,
-      });
-
-      queryClient.refetchQueries({
-        queryKey: analyticsStakedQueryKey(peggedToken.gatewayAddress),
       });
     },
   });

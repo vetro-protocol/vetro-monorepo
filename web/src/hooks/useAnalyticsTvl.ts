@@ -9,7 +9,7 @@ type TvlResponse = {
   minted: string;
 };
 
-export const analyticsTvlQueryKey = (gatewayAddress: Address | undefined) => [
+const analyticsTvlQueryKey = (gatewayAddress: Address | undefined) => [
   "analytics-tvl",
   gatewayAddress,
 ];
@@ -27,9 +27,9 @@ const analyticsTvlOptions = (gatewayAddress: Address | undefined) =>
         ) as Promise<TvlResponse>
       ).then(({ minted }) => ({ minted: BigInt(minted) })),
     queryKey: analyticsTvlQueryKey(gatewayAddress),
-    refetchInterval: 5 * 60 * 1000, // 5 minutes
+    refetchInterval: 60 * 1000, // 1 minute
     retry: 2,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 60 * 1000, // 1 minute
   });
 
 export const useAnalyticsTvl = (gatewayAddress: Address | undefined) =>
