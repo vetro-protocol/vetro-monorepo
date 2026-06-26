@@ -37,7 +37,6 @@ export type TrackedPool = {
   rangeLabel?: string; // short label for the view (e.g. "Full range", "$0.96–$1.04")
   rewardApy: number; // % from incentive emissions, unboosted (range minimum)
   rewardApyMax: number; // % from incentive emissions, max boost (range maximum)
-  totalApy: number; // baseApy + rewardApy
   tvlUsd: number;
   url: string; // the pool's page on its DEX
   virtualPrice: number;

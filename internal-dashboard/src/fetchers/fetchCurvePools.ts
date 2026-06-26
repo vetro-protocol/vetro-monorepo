@@ -58,7 +58,6 @@ export const fetchCurvePools = async function (
         poolType: pool.registryId,
         rewardApy,
         rewardApyMax,
-        totalApy: baseApy + rewardApy,
         tvlUsd: pool.usdTotal,
         url: pool.poolUrls?.swap?.[0] ?? "",
         virtualPrice: Number(pool.virtualPrice) / 1e18,

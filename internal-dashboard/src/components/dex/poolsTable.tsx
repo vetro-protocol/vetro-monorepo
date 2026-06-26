@@ -13,6 +13,20 @@ type Props = {
 
 const poolPath = (pool: TrackedPool) => `/dex/${pool.id}`;
 
+// Base trading-fee APY, with the CRV reward APY in parentheses. The reward is a
+// boost range (min → max) like Curve shows, collapsing to a single value when
+// there's no boost spread; pools with no rewards show the base APY alone.
+const formatApy = function ({ baseApy, rewardApy, rewardApyMax }: TrackedPool) {
+  if (rewardApy === 0) {
+    return formatPercent(baseApy);
+  }
+  const rewards =
+    rewardApyMax > rewardApy
+      ? `${formatPercent(rewardApy)} → ${formatPercent(rewardApyMax)}`
+      : formatPercent(rewardApy);
+  return `${formatPercent(baseApy)} (${rewards} CRV)`;
+};
+
 export const PoolsTable = function ({ pools }: Props) {
   const navigate = useNavigate();
 
@@ -48,9 +62,11 @@ export const PoolsTable = function ({ pools }: Props) {
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-xs text-neutral-500">APY</dt>
+                  <dt className="text-xs text-neutral-500">
+                    Base vAPY (Rewards tAPR)
+                  </dt>
                   <dd className="font-semibold text-neutral-950">
-                    {formatPercent(pool.totalApy)}
+                    {formatApy(pool)}
                   </dd>
                 </div>
               </dl>
@@ -66,7 +82,9 @@ export const PoolsTable = function ({ pools }: Props) {
               <th className="py-2 pr-4 text-left font-medium">Pool</th>
               <th className="py-2 pr-4 text-right font-medium">TVL</th>
               <th className="py-2 pr-4 text-right font-medium">24h Volume</th>
-              <th className="py-2 text-right font-medium">APY</th>
+              <th className="py-2 text-right font-medium">
+                Base vAPY (Rewards tAPR)
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -98,7 +116,7 @@ export const PoolsTable = function ({ pools }: Props) {
                   {formatUsd(pool.volumeUsd24h)}
                 </td>
                 <td className="py-3 text-right font-medium text-neutral-950">
-                  {formatPercent(pool.totalApy)}
+                  {formatApy(pool)}
                 </td>
               </tr>
             ))}
