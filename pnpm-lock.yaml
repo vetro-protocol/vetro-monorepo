@@ -98,13 +98,28 @@ importers:
         version: 6.0.4(typescript@5.9.3)(vite@8.0.13(@types/node@24.10.13)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
       vitest:
         specifier: 4.1.9
-        version: 4.1.9(@opentelemetry/api@1.9.0)(@types/node@24.10.13)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@24.10.13)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
+        version: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@24.10.13)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@24.10.13)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
       wrangler:
         specifier: 4.65.0
         version: 4.65.0(@cloudflare/workers-types@4.20260504.1)(bufferutil@4.1.0)(utf-8-validate@5.0.10)
 
   internal-dashboard:
     dependencies:
+      '@tanstack/react-query':
+        specifier: 5.90.19
+        version: 5.90.19(react@19.2.3)
+      '@vetro-protocol/earn':
+        specifier: workspace:*
+        version: link:../packages/earn
+      '@vetro-protocol/gateway':
+        specifier: workspace:*
+        version: link:../packages/gateway
+      crypto-shortener:
+        specifier: 1.2.0
+        version: 1.2.0
+      fetch-plus-plus:
+        specifier: 1.0.0
+        version: 1.0.0(encoding@0.1.13)
       react:
         specifier: 19.2.3
         version: 19.2.3
@@ -114,6 +129,18 @@ importers:
       react-router:
         specifier: 7.12.0
         version: 7.12.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      victory:
+        specifier: 37.3.6
+        version: 37.3.6(react@19.2.3)
+      viem:
+        specifier: 2.44.4
+        version: 2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)
+      viem-erc20:
+        specifier: 2.1.0
+        version: 2.1.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
+      viem-erc4626:
+        specifier: 1.0.0
+        version: 1.0.0(viem-erc20@2.1.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)))(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
     devDependencies:
       '@cloudflare/vite-plugin':
         specifier: 1.23.1
@@ -178,7 +205,7 @@ importers:
         version: 2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)
       vitest:
         specifier: 4.1.9
-        version: 4.1.9(@opentelemetry/api@1.9.0)(@types/node@24.1.0)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@24.1.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
+        version: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@24.1.0)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@24.1.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
 
   packages/earn:
     dependencies:
@@ -206,7 +233,7 @@ importers:
         version: 2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)
       vitest:
         specifier: 4.1.9
-        version: 4.1.9(@opentelemetry/api@1.9.0)(@types/node@24.1.0)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@24.1.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
+        version: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@24.1.0)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@24.1.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
 
   packages/gateway:
     dependencies:
@@ -234,7 +261,7 @@ importers:
         version: 2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)
       vitest:
         specifier: 4.1.9
-        version: 4.1.9(@opentelemetry/api@1.9.0)(@types/node@24.1.0)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@24.1.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
+        version: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@24.1.0)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@24.1.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
 
   packages/mock-wallet:
     devDependencies:
@@ -274,7 +301,7 @@ importers:
         version: 2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)
       vitest:
         specifier: 4.1.9
-        version: 4.1.9(@opentelemetry/api@1.9.0)(@types/node@25.0.9)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@25.0.9)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
+        version: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@25.0.9)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@25.0.9)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
 
   packages/treasury:
     devDependencies:
@@ -292,7 +319,7 @@ importers:
         version: 2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)
       vitest:
         specifier: 4.1.9
-        version: 4.1.9(@opentelemetry/api@1.9.0)(@types/node@25.0.9)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@25.0.9)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
+        version: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@25.0.9)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@25.0.9)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
 
   subgraph:
     dependencies:
@@ -465,7 +492,7 @@ importers:
         version: 6.0.4(typescript@5.9.3)(vite@8.0.13(@types/node@24.1.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
       vitest:
         specifier: 4.1.9
-        version: 4.1.9(@opentelemetry/api@1.9.0)(@types/node@24.1.0)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@24.1.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
+        version: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@24.1.0)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@24.1.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
       wrangler:
         specifier: 4.63.0
         version: 4.63.0(@cloudflare/workers-types@4.20260504.1)(bufferutil@4.1.0)(utf-8-validate@5.0.10)
@@ -9602,7 +9629,7 @@ snapshots:
 
   '@hemilabs/anvil-fork-setup@2.0.0(vitest@4.1.9)':
     optionalDependencies:
-      vitest: 4.1.9(@opentelemetry/api@1.9.0)(@types/node@24.1.0)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@24.1.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
+      vitest: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@24.1.0)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@24.1.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
 
   '@hemilabs/react-hooks@1.6.0(@hemilabs/wallet-watch-asset@1.0.2(patch_hash=933b0ee20c3f95b39d12cd9f25e1175fef9353a7ef2d91378cafd55f2efec0fc))(@tanstack/react-query@5.90.19(react@19.2.3))(react@19.2.3)(viem-erc20@2.1.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)))(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))(wagmi@2.19.5(@tanstack/query-core@5.90.19)(@tanstack/react-query@5.90.19(react@19.2.3))(@types/react@19.2.9)(bufferutil@4.1.0)(encoding@0.1.13)(react@19.2.3)(typescript@5.9.3)(utf-8-validate@5.0.10)(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))(zod@4.3.5))':
     dependencies:
@@ -12175,7 +12202,7 @@ snapshots:
       obug: 2.1.1
       std-env: 4.1.0
       tinyrainbow: 3.1.0
-      vitest: 4.1.9(@opentelemetry/api@1.9.0)(@types/node@24.10.13)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@24.10.13)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
+      vitest: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@24.10.13)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@24.10.13)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
 
   '@vitest/eslint-plugin@1.6.6(eslint@8.57.0)(typescript@6.0.2)(vitest@4.1.9)':
     dependencies:
@@ -12184,7 +12211,7 @@ snapshots:
       eslint: 8.57.0
     optionalDependencies:
       typescript: 6.0.2
-      vitest: 4.1.9(@opentelemetry/api@1.9.0)(@types/node@25.0.9)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@25.0.9)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
+      vitest: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@25.0.9)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@25.0.9)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
     transitivePeerDependencies:
       - supports-color
 
@@ -18015,7 +18042,7 @@ snapshots:
       jiti: 2.6.1
       yaml: 2.8.4
 
-  vitest@4.1.9(@opentelemetry/api@1.9.0)(@types/node@24.1.0)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@24.1.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4)):
+  vitest@4.1.9(@opentelemetry/api@1.9.1)(@types/node@24.1.0)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@24.1.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4)):
     dependencies:
       '@vitest/expect': 4.1.9
       '@vitest/mocker': 4.1.9(vite@8.0.13(@types/node@24.1.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
@@ -18044,7 +18071,7 @@ snapshots:
     transitivePeerDependencies:
       - msw
 
-  vitest@4.1.9(@opentelemetry/api@1.9.0)(@types/node@24.10.13)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@24.10.13)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4)):
+  vitest@4.1.9(@opentelemetry/api@1.9.1)(@types/node@24.10.13)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@24.10.13)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4)):
     dependencies:
       '@vitest/expect': 4.1.9
       '@vitest/mocker': 4.1.9(vite@8.0.13(@types/node@24.10.13)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
@@ -18073,7 +18100,7 @@ snapshots:
     transitivePeerDependencies:
       - msw
 
-  vitest@4.1.9(@opentelemetry/api@1.9.0)(@types/node@25.0.9)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@25.0.9)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4)):
+  vitest@4.1.9(@opentelemetry/api@1.9.1)(@types/node@25.0.9)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@25.0.9)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4)):
     dependencies:
       '@vitest/expect': 4.1.9
       '@vitest/mocker': 4.1.9(vite@8.0.13(@types/node@25.0.9)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
