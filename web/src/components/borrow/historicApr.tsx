@@ -85,7 +85,7 @@ const EmptyChart = ({
   <VictoryChart height={chartHeight} padding={chartPadding}>
     <VictoryAxis
       style={xAxisStyle}
-      tickFormat={(tick: number) => formatShortDate(tick / 1000, locale)}
+      tickFormat={(tick: number) => formatShortDate(tick / 1000, locale, "UTC")}
       tickValues={getPlaceholderXTicks(period)}
     />
     <VictoryAxis
