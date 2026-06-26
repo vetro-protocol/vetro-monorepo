@@ -6,7 +6,7 @@ const trackedPoolsOptions = () =>
   queryOptions({
     queryFn: ({ client: queryClient }) => fetchTrackedPools(queryClient),
     queryKey: ["tracked-pools"],
-    staleTime: 60 * 1000,
+    staleTime: 2 * 60 * 1000,
   });
 
 export const useTrackedPools = () => useQuery(trackedPoolsOptions());
