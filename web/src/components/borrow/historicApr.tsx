@@ -251,7 +251,7 @@ export function HistoricApr({ marketId }: Props) {
               style={xAxisStyle}
               tickCount={4}
               tickFormat={(tick: number) =>
-                formatShortDate(tick / 1000, i18n.language)
+                formatShortDate(tick / 1000, i18n.language, "UTC")
               }
             />
             <VictoryAxis
