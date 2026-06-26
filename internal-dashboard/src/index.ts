@@ -77,8 +77,9 @@ const csp = [
   "font-src 'self'",
   "form-action 'none'",
   "frame-ancestors 'none'",
-  // Token logos are served from the Curve assets CDN (jsDelivr).
-  "img-src 'self' data: https://cdn.jsdelivr.net",
+  // Token logos come from the Hemilabs token list (GitHub Pages), falling back
+  // to the Curve/Sushi asset CDNs (jsDelivr).
+  "img-src 'self' data: https://hemilabs.github.io https://cdn.jsdelivr.net",
   "script-src 'self'",
   // Tailwind v4 injects styles via a <style> tag, so 'unsafe-inline' is needed.
   "style-src 'self' 'unsafe-inline'",
