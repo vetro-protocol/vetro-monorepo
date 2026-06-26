@@ -1,4 +1,4 @@
-import { useAnalyticsTotals } from "hooks/useAnalyticsTotals";
+import { useAnalyticsStaked } from "hooks/useAnalyticsStaked";
 import { usePrices } from "hooks/usePrices";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
@@ -17,19 +17,19 @@ type Props = {
 export const StakedCard = function ({ peggedToken, peggedTokenError }: Props) {
   const { t } = useTranslation();
   const {
-    data: totals,
-    isError: isTotalsError,
-    isLoading: isTotalsLoading,
-  } = useAnalyticsTotals(peggedToken);
+    data: staked,
+    isError: isStakedError,
+    isLoading: isStakedLoading,
+  } = useAnalyticsStaked(peggedToken?.gatewayAddress);
   const { data: prices, isError: isPricesError } = usePrices();
 
-  const isError = peggedTokenError || isTotalsError || isPricesError;
-  const isLoading = !isError && (!peggedToken || isTotalsLoading || !prices);
+  const isError = peggedTokenError || isStakedError || isPricesError;
+  const isLoading = !isError && (!peggedToken || isStakedLoading || !prices);
 
   const value =
-    peggedToken && totals && prices
+    peggedToken && staked && prices
       ? formatTokenAmountUsd({
-          amount: totals.staked,
+          amount: staked.staked,
           prices,
           token: peggedToken,
         })

@@ -10,7 +10,7 @@ import type { TokenWithGateway } from "types";
 import type { Address } from "viem";
 import { useAccount } from "wagmi";
 
-import { analyticsTotalsQueryKey } from "./useAnalyticsTotals";
+import { analyticsStakedQueryKey } from "./useAnalyticsStaked";
 import { costBasisQueryKey } from "./useCostBasis";
 import { earnedAmountUsdQueryKey } from "./useEarnedAmountUsd";
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
@@ -62,11 +62,6 @@ export const useCancelWithdraw = function ({
   const poolDepositsKey = poolDepositsQueryKey({
     chainId: chain.id,
     stakingVaultAddress,
-  });
-
-  const analyticsTotalsKey = analyticsTotalsQueryKey({
-    chainId: chain.id,
-    gatewayAddress: peggedToken.gatewayAddress,
   });
 
   return useMutation({
@@ -151,8 +146,8 @@ export const useCancelWithdraw = function ({
         queryKey: poolDepositsKey,
       });
 
-      queryClient.invalidateQueries({
-        queryKey: analyticsTotalsKey,
+      queryClient.refetchQueries({
+        queryKey: analyticsStakedQueryKey(peggedToken.gatewayAddress),
       });
     },
   });

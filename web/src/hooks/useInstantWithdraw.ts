@@ -9,7 +9,7 @@ import { waitForTransactionReceipt } from "viem/actions";
 import { withdraw } from "viem-erc4626/actions";
 import { useAccount } from "wagmi";
 
-import { analyticsTotalsQueryKey } from "./useAnalyticsTotals";
+import { analyticsStakedQueryKey } from "./useAnalyticsStaked";
 import { costBasisQueryKey } from "./useCostBasis";
 import { earnedAmountUsdQueryKey } from "./useEarnedAmountUsd";
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
@@ -64,11 +64,6 @@ export const useInstantWithdraw = function ({
   const poolDepositsKey = poolDepositsQueryKey({
     chainId: chain.id,
     stakingVaultAddress,
-  });
-
-  const analyticsTotalsKey = analyticsTotalsQueryKey({
-    chainId: chain.id,
-    gatewayAddress: peggedToken.gatewayAddress,
   });
 
   return useMutation({
@@ -153,8 +148,8 @@ export const useInstantWithdraw = function ({
         queryKey: poolDepositsKey,
       });
 
-      queryClient.invalidateQueries({
-        queryKey: analyticsTotalsKey,
+      queryClient.refetchQueries({
+        queryKey: analyticsStakedQueryKey(peggedToken.gatewayAddress),
       });
     },
   });

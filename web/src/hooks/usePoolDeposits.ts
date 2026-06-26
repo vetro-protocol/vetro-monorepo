@@ -11,7 +11,7 @@ export const poolDepositsQueryKey = ({
   stakingVaultAddress: Address;
 }) => ["pool-deposits", chainId, stakingVaultAddress];
 
-export const poolDepositsOptions = ({
+const poolDepositsOptions = ({
   client,
   stakingVaultAddress,
 }: {

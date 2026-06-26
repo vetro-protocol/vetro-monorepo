@@ -1,5 +1,5 @@
-import { useAnalyticsTotals } from "hooks/useAnalyticsTotals";
 import { useAnalyticsTreasury } from "hooks/useAnalyticsTreasury";
+import { useAnalyticsTvl } from "hooks/useAnalyticsTvl";
 import { usePrices } from "hooks/usePrices";
 import { useWhitelistedTokensByGateway } from "hooks/useWhitelistedTokensByGateway";
 import { useTranslation } from "react-i18next";
@@ -27,17 +27,17 @@ export const TvlCard = function ({ peggedToken, peggedTokenError }: Props) {
     isLoading: isTreasuryLoading,
   } = useAnalyticsTreasury(peggedToken?.gatewayAddress);
   const {
-    data: totals,
-    isError: isTotalsError,
-    isLoading: isTotalsLoading,
-  } = useAnalyticsTotals(peggedToken);
+    data: tvl,
+    isError: isTvlError,
+    isLoading: isTvlLoading,
+  } = useAnalyticsTvl(peggedToken?.gatewayAddress);
   const { data: prices, isError: isPricesError } = usePrices();
 
   const isError = [
     peggedTokenError,
     isWhitelistedTokensError,
     isTreasuryError,
-    isTotalsError,
+    isTvlError,
     isPricesError,
   ].some(Boolean);
 
@@ -46,15 +46,15 @@ export const TvlCard = function ({ peggedToken, peggedTokenError }: Props) {
     [
       !peggedToken,
       isTreasuryLoading,
-      isTotalsLoading,
+      isTvlLoading,
       !whitelistedTokens,
       !prices,
     ].some(Boolean);
 
   const value =
-    peggedToken && totals && prices
+    peggedToken && tvl && prices
       ? formatTokenAmountUsd({
-          amount: totals.minted,
+          amount: tvl.minted,
           prices,
           token: peggedToken,
         })
