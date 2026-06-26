@@ -5,6 +5,7 @@ import { cors } from "hono/cors";
 import type { Address } from "viem";
 
 import * as analytics from "./analytics.ts";
+import { getApyHistory } from "./apy-history.ts";
 import * as borrow from "./borrow.ts";
 import { convertBigIntsToString } from "./convert-bigints-to-string.ts";
 import { getSubgraphUrl } from "./env.ts";
@@ -277,6 +278,32 @@ app.get(
       return c.json(data);
     } catch (error) {
       throw new Error(`Failed to get share value history: ${error.message}`);
+    }
+  },
+);
+
+app.get(
+  "/variable-stake/apy-history/:stakingVaultAddress/:period",
+  validateStakingVaultAddress,
+  validateParam("period", vaultHistoryValidPeriods),
+  cache({
+    cacheControl: "max-age=300",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const stakingVaultAddress = c.get("stakingVaultAddress");
+      const url = getSubgraphUrl(c.env);
+      const period = c.req.param("period");
+      const data = await getApyHistory({
+        period,
+        rpcUrl: c.env.CUSTOM_RPC_URL_MAINNET,
+        stakingVaultAddress,
+        url,
+      });
+      return c.json(data);
+    } catch (error) {
+      throw new Error(`Failed to get APY history: ${error.message}`);
     }
   },
 );

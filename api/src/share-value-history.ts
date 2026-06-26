@@ -2,6 +2,7 @@ import { type Address, formatUnits } from "viem";
 import { decimals } from "viem-erc20/actions";
 import { asset, convertToAssets } from "viem-erc4626/actions";
 
+import { appendLivePoint } from "./append-live-point.ts";
 import { createMainnetClient } from "./mainnet-client.ts";
 import { paginateSubgraphQuery } from "./paginate-subgraph-query.ts";
 import { getPeriodStart } from "./vault-history-period.ts";
@@ -65,7 +66,8 @@ async function getAssetDecimals({
  * given period. Paginates over the subgraph's 100-result page cap so that long
  * windows (e.g. "1y", up to ~366 daily entries) are returned in full. A live
  * on-chain share value read is appended as the final point so the latest value
- * reflects the current exchange rate rather than the last daily snapshot.
+ * reflects the current exchange rate rather than the last daily snapshot, via
+ * `appendLivePoint` so it never duplicates the current UTC day's subgraph point.
  */
 export async function getShareValueHistory({
   period,
@@ -129,5 +131,9 @@ export async function getShareValueHistory({
           timestamp: Date.now(),
         };
 
-  return livePoint ? [...history, livePoint] : history;
+  return appendLivePoint({
+    getValue: (point) => point.shareValue,
+    history,
+    livePoint,
+  });
 }
