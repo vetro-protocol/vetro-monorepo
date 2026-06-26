@@ -13,10 +13,21 @@ export const fetchTrackedPools = async function (
     tokens.map((token) => token.address.toLowerCase()),
   );
 
-  // Keep the rest of the list (Curve) alive if the other fails
-  const sources = await Promise.all([
-    fetchCurvePools(trackedAddresses).catch(() => []),
+  // Keep the rest of the list alive when a single source fails (Sushi is added
+  // in a later PR). Only surface an error when every source fails, so a real
+  // outage isn't silently shown as an empty pool list.
+  const results = await Promise.allSettled([
+    fetchCurvePools(trackedAddresses),
     // Adding Sushi Pools in next PR here
   ]);
-  return sources.flat();
+
+  const fulfilled = results.filter(
+    (result): result is PromiseFulfilledResult<TrackedPool[]> =>
+      result.status === "fulfilled",
+  );
+  if (fulfilled.length === 0) {
+    throw (results[0] as PromiseRejectedResult).reason;
+  }
+
+  return fulfilled.flatMap((result) => result.value);
 };
