@@ -2,13 +2,23 @@ import { Button } from "components/base/button";
 import { SegmentedControl } from "components/base/segmentedControl";
 import {
   type AprHistoryEntry,
-  type AprHistoryPeriod,
-  aprHistoryPeriods,
   useAprHistory,
 } from "hooks/borrow/useAprHistory";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
+import {
+  type ChartPeriod,
+  chartPeriods,
+  periodLabelKeys,
+} from "utils/chartPeriods";
+import {
+  chartHeight,
+  chartLineStyle,
+  tooltipProps,
+  xAxisStyle,
+  yAxisStyle,
+} from "utils/chartTheme";
 import { formatDate, formatShortDate } from "utils/date";
 import { formatPercentage } from "utils/format";
 import {
@@ -43,28 +53,20 @@ const AreaGradient = () => (
   </defs>
 );
 
-const periods = aprHistoryPeriods;
+const periods = chartPeriods;
 
-const periodDurations: Record<AprHistoryPeriod, number> = {
+const periodDurations: Record<ChartPeriod, number> = {
   "1m": 30 * 24 * 60 * 60 * 1000,
   "1w": 7 * 24 * 60 * 60 * 1000,
   "1y": 365 * 24 * 60 * 60 * 1000,
   "3m": 90 * 24 * 60 * 60 * 1000,
 };
 
+// Narrower left padding than the shared chartPadding: this chart's y-axis
+// shows short percentage labels, so it needs less room.
 const chartPadding = { bottom: 30, left: 40, right: 16, top: 10 };
 
-const xAxisStyle = {
-  axis: { stroke: "transparent" },
-  tickLabels: { fill: "#6B7280", fontSize: 11 },
-};
-
-const yAxisStyle = {
-  ...xAxisStyle,
-  grid: { stroke: "#E5E7EB", strokeDasharray: "4,4" },
-};
-
-const getPlaceholderXTicks = function (period: AprHistoryPeriod) {
+const getPlaceholderXTicks = function (period: ChartPeriod) {
   const now = Date.now();
   const duration = periodDurations[period];
   return Array.from(
@@ -78,9 +80,9 @@ const EmptyChart = ({
   period,
 }: {
   locale: string;
-  period: AprHistoryPeriod;
+  period: ChartPeriod;
 }) => (
-  <VictoryChart height={200} padding={chartPadding}>
+  <VictoryChart height={chartHeight} padding={chartPadding}>
     <VictoryAxis
       style={xAxisStyle}
       tickFormat={(tick: number) => formatShortDate(tick / 1000, locale)}
@@ -94,13 +96,6 @@ const EmptyChart = ({
     />
   </VictoryChart>
 );
-
-const periodLabelKeys = {
-  "1m": "common.charts.period-1-month",
-  "1w": "common.charts.period-1-week",
-  "1y": "common.charts.period-1-year",
-  "3m": "common.charts.period-3-month",
-} as const;
 
 const ArrowPathIcon = () => (
   <svg
@@ -174,7 +169,7 @@ function ChartTooltipLabel({
 
 export function HistoricApr({ marketId }: Props) {
   const { i18n, t } = useTranslation();
-  const [period, setPeriod] = useState<AprHistoryPeriod>("1w");
+  const [period, setPeriod] = useState<ChartPeriod>("1w");
   const { data: chartData, isError, refetch } = useAprHistory(marketId, period);
 
   return (
@@ -237,18 +232,10 @@ export function HistoricApr({ marketId }: Props) {
               <VictoryVoronoiContainer
                 labelComponent={
                   <VictoryTooltip
-                    constrainToVisibleArea
-                    cornerRadius={8}
-                    flyoutPadding={{ bottom: 8, left: 12, right: 12, top: 8 }}
-                    flyoutStyle={{
-                      fill: "white",
-                      stroke: "#E5E7EB",
-                    }}
+                    {...tooltipProps}
                     labelComponent={
                       <ChartTooltipLabel locale={i18n.language} />
                     }
-                    pointerLength={0}
-                    style={{ fontSize: 11 }}
                   />
                 }
                 labels={({ datum }: { datum: { x: number; y: number } }) =>
@@ -257,7 +244,7 @@ export function HistoricApr({ marketId }: Props) {
                 voronoiBlacklist={["area"]}
               />
             }
-            height={200}
+            height={chartHeight}
             padding={chartPadding}
           >
             <VictoryAxis
@@ -287,12 +274,7 @@ export function HistoricApr({ marketId }: Props) {
             <VictoryLine
               data={chartData}
               interpolation="linear"
-              style={{
-                data: {
-                  stroke: "#416BFF",
-                  strokeWidth: 2,
-                },
-              }}
+              style={chartLineStyle}
             />
           </VictoryChart>
         ) : (

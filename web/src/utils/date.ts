@@ -7,15 +7,25 @@ const toDate = (timestamp: number | string) =>
     typeof timestamp === "string" ? Number(timestamp) * 1000 : timestamp * 1000,
   );
 
-export const formatDate = (timestamp: number | string, language: string) =>
+export const formatDate = (
+  timestamp: number | string,
+  language: string,
+  timeZone?: string,
+) =>
   new Intl.DateTimeFormat(language, {
     day: "2-digit",
     month: "2-digit",
+    timeZone,
     year: "numeric",
   }).format(toDate(timestamp));
 
-export const formatShortDate = (timestamp: number | string, language: string) =>
+export const formatShortDate = (
+  timestamp: number | string,
+  language: string,
+  timeZone?: string,
+) =>
   new Intl.DateTimeFormat(language, {
     day: "numeric",
     month: "short",
+    timeZone,
   }).format(toDate(timestamp));
