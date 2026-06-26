@@ -82,7 +82,7 @@ app.get(
   "/analytics/tvl/:gatewayAddress",
   validateGatewayAddress,
   cache({
-    cacheControl: "max-age=300",
+    cacheControl: "max-age=60",
     cacheName: "vetro-api",
   }),
   async function (c) {
@@ -101,7 +101,7 @@ app.get(
   "/analytics/staked/:gatewayAddress",
   validateGatewayAddress,
   cache({
-    cacheControl: "max-age=300",
+    cacheControl: "max-age=60",
     cacheName: "vetro-api",
   }),
   async function (c) {
