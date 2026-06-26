@@ -79,6 +79,44 @@ app.get(
 );
 
 app.get(
+  "/analytics/tvl/:gatewayAddress",
+  validateGatewayAddress,
+  cache({
+    cacheControl: "max-age=300",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const url = c.env.CUSTOM_RPC_URL_MAINNET;
+      const gatewayAddress = c.get("gatewayAddress");
+      const data = await analytics.getTvl({ gatewayAddress, url });
+      return c.json(convertBigIntsToString(data));
+    } catch (error) {
+      throw new Error(`Failed to get TVL: ${error.message}`);
+    }
+  },
+);
+
+app.get(
+  "/analytics/staked/:gatewayAddress",
+  validateGatewayAddress,
+  cache({
+    cacheControl: "max-age=300",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const url = c.env.CUSTOM_RPC_URL_MAINNET;
+      const gatewayAddress = c.get("gatewayAddress");
+      const data = await analytics.getStaked({ gatewayAddress, url });
+      return c.json(convertBigIntsToString(data));
+    } catch (error) {
+      throw new Error(`Failed to get staked total: ${error.message}`);
+    }
+  },
+);
+
+app.get(
   "/analytics/treasury/:gatewayAddress",
   validateGatewayAddress,
   cache({
