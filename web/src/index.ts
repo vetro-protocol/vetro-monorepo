@@ -70,15 +70,16 @@ const connectSrc = [
 
 const workerSrc = import.meta.env.VITE_SENTRY_DSN ? "blob:" : "'none'";
 
-// In dev, Vite injects an inline React Fast Refresh preamble script, so
-// 'unsafe-inline' is required for it to run. Production keeps the stricter
-// policy without it.
-const scriptSrc = [
-  "'self'",
-  "https://static.cloudflareinsights.com", // Web Analytics beacon.
-  "https://challenges.cloudflare.com", // Cloudflare bot management / challenge widget.
-  ...(import.meta.env.DEV ? ["'unsafe-inline'"] : []),
-].join(" ");
+// Production CSP is strict and includes a nonce. In dev mode, Vite injects an
+// inline React Fast Refresh preamble script, so 'unsafe-inline' is required
+// and would be overridden by including a nonce.
+const buildScriptSrc = (nonce: string) =>
+  [
+    "'self'",
+    "https://static.cloudflareinsights.com", // Web Analytics beacon.
+    "https://challenges.cloudflare.com", // Cloudflare bot management / challenge widget.
+    ...(import.meta.env.DEV ? ["'unsafe-inline'"] : [`'nonce-${nonce}'`]),
+  ].join(" ");
 
 // Deny all permissions – mirrors api/src/security-headers.ts.
 const permissionsPolicy = [
@@ -132,23 +133,37 @@ const permissionsPolicy = [
   .map((feature) => `${feature}=()`)
   .join(", ");
 
-const csp = [
-  "base-uri 'none'",
-  `connect-src ${connectSrc}`,
-  "default-src 'none'",
-  "font-src 'self' https://fonts.gstatic.com",
-  "form-action 'none'",
-  "frame-ancestors 'none'",
-  // WalletConnect verify + Coinbase smart wallet + Cloudflare challenges
-  // (bot management / Turnstile) render in iframes.
-  `frame-src 'self' ${walletFrameSrc} https://challenges.cloudflare.com`,
-  `img-src 'self' data: https://hemilabs.github.io ${walletImgSrc}`,
-  `script-src ${scriptSrc}`,
-  // Tailwind v4 injects styles via a <style> tag, so 'unsafe-inline' is needed.
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  `worker-src ${workerSrc}`,
-  "upgrade-insecure-requests",
-].join("; ");
+// Generates a cryptographically random nonce per request.
+function generateNonce() {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return btoa(String.fromCharCode(...bytes));
+}
+
+// Builds a Content-Security-Policy header for a request with the given nonce.
+//
+// The nonce in script-src is redundant with 'self' for our own bundled
+// scripts, but Cloudflare's JavaScript Detections parses the CSP response
+// header and reuses this nonce for the inline scripts it injects.
+// https://developers.cloudflare.com/cloudflare-challenges/challenge-types/javascript-detections/#if-you-have-a-content-security-policy-csp
+const buildCsp = (nonce: string) =>
+  [
+    "base-uri 'none'",
+    `connect-src ${connectSrc}`,
+    "default-src 'none'",
+    "font-src 'self' https://fonts.gstatic.com",
+    "form-action 'none'",
+    "frame-ancestors 'none'",
+    // WalletConnect verify + Coinbase smart wallet + Cloudflare challenges
+    // (bot management / Turnstile) render in iframes.
+    `frame-src 'self' ${walletFrameSrc} https://challenges.cloudflare.com`,
+    `img-src 'self' data: https://hemilabs.github.io ${walletImgSrc}`,
+    `script-src ${buildScriptSrc(nonce)}`,
+    // Tailwind v4 injects styles via a <style> tag, so 'unsafe-inline' is needed.
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    `worker-src ${workerSrc}`,
+    "upgrade-insecure-requests",
+  ].join("; ");
 
 // Applied to all responses – these have meaningful effect on sub-resources.
 const commonHeaders = {
@@ -166,9 +181,9 @@ const commonHeaders = {
 };
 
 // Applied only to HTML documents – these are navigation-level controls.
-// CSP is stricter for HTML responses so it overrides the commonHeaders CSP.
+// CSP is set per-request (with a fresh nonce) in the fetch handler so it
+// overrides the commonHeaders CSP.
 const htmlHeaders = {
-  "Content-Security-Policy": csp,
   // See https://docs.base.org/smart-wallet/quickstart#cross-origin-opener-policy
   "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
   "Origin-Agent-Cluster": "?1",
@@ -187,11 +202,19 @@ export default {
     }
 
     const contentType = response.headers.get("Content-Type") ?? "";
-    if (contentType.includes("text/html")) {
-      for (const [key, value] of Object.entries(htmlHeaders)) {
-        newResponse.headers.set(key, value);
-      }
+    if (!contentType.includes("text/html")) {
+      return newResponse;
     }
+
+    for (const [key, value] of Object.entries(htmlHeaders)) {
+      newResponse.headers.set(key, value);
+    }
+
+    // Add dynamic Content-Security-Policy header with unique per-request nonce.
+    newResponse.headers.set(
+      "Content-Security-Policy",
+      buildCsp(generateNonce()),
+    );
 
     return newResponse;
   },
