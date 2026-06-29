@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/cloudflare";
 import { sVetBtcAddress, sVusdAddress } from "@vetro-protocol/earn";
 import { Hono } from "hono";
 import { cache } from "hono/cache";
@@ -356,8 +357,16 @@ app.get(
 app.notFound((c) => c.json({ error: "Not Found" }, 404));
 
 app.onError(function (error, c) {
+  Sentry.captureException(error);
   console.error("Internal Server Error:", error.message);
   return c.json({ error: "Internal Server Error" }, 500);
 });
 
-export default app;
+export default Sentry.withSentry(
+  (env: Env) => ({
+    dsn: env.SENTRY_DSN,
+    enableLogs: true,
+    environment: "production",
+  }),
+  app,
+);

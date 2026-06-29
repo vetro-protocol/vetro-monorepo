@@ -2,6 +2,9 @@
   "ignore": ["web/scripts/*"],
   "ignoreDependencies": ["@vitest/coverage-v8", "eslint-config-prettier"],
   "workspaces": {
+    "api": {
+      "ignoreDependencies": ["@sentry/cli"]
+    },
     "subgraph": {
       "entry": ["src/earn.ts", "tests/*.test.ts"],
       "ignoreBinaries": ["scripts/tag-subgraph.sh"],

@@ -276,6 +276,7 @@ Secrets are set separately using the Wrangler CLI.
 | MERKL_OPPORTUNITY_SVETBTC | Merkl opportunity id for the sVetBTC staking vault. Optional; if unset, that vault yields no rewards.         |                         |
 | MERKL_OPPORTUNITY_SVUSD   | Merkl opportunity id for the sVUSD staking vault. Optional; if unset, that vault yields no rewards.           |                         |
 | ORIGINS                   | Comma-separated list of allowed origins. (1)                                                                  | `http://localhost:5173` |
+| SENTRY_DSN                | Sentry DSN. When unset, Sentry is disabled.                                                                   |                         |
 | SUBGRAPH_API_KEY          | The subgraph API key.                                                                                         |                         |
 | SUBGRAPH_ID               | The subgraph id.                                                                                              |                         |
 | SUBGRAPH_URL_TEMPLATE     | The subgraph URL template. (2)                                                                                | (localhost)             |
