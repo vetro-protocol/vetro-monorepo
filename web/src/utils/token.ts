@@ -20,6 +20,9 @@ export const getTokenPrice = function (
  * @returns The parsed token amount in the smallest unit.
  */
 export const parseTokenUnits = function (amount: string, token: Token) {
+  if (!amount) {
+    return 0n;
+  }
   const [whole, fraction] = amount.split(".");
   const truncatedFraction = fraction?.slice(0, token.decimals);
   const normalizedAmount = truncatedFraction
