@@ -14,10 +14,15 @@ import { decimals, totalSupply } from "viem-erc20/actions";
 import {
   balanceOf,
   previewRedeem as previewMetaRedeem,
+  totalAssets,
 } from "viem-erc4626/actions";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { getCollateralizationRatio } from "../src/analytics.ts";
+import {
+  getCollateralizationRatio,
+  getStaked,
+  getTvl,
+} from "../src/analytics.ts";
 import { findStakingVaultForPeggedToken } from "../src/staking-vault.ts";
 
 vi.mock("../src/mainnet-client.ts", () => ({
@@ -52,6 +57,7 @@ vi.mock("viem-erc20/actions", () => ({
 vi.mock("viem-erc4626/actions", () => ({
   balanceOf: vi.fn(),
   previewRedeem: vi.fn(),
+  totalAssets: vi.fn(),
 }));
 
 // The primary gateway: getStrategicReserves only runs its on-chain path for
@@ -91,6 +97,7 @@ beforeEach(function () {
   );
   vi.mocked(getYieldDistributor).mockResolvedValue(yieldDistributorAddress);
   vi.mocked(totalSupply).mockResolvedValue(0n);
+  vi.mocked(totalAssets).mockResolvedValue(0n);
   vi.mocked(getWhitelistedTokens).mockResolvedValue([]);
 
   // Surplus reads the pegged token's balance across several accounts; only the
@@ -226,5 +233,68 @@ describe("analytics/getCollateralizationRatio", function () {
     expect(typeof result.supply).toBe("bigint");
     expect(typeof result.total).toBe("bigint");
     expect(typeof result.ratio).toBe("number");
+  });
+});
+
+describe("analytics/getTvl", function () {
+  const runTvl = () => getTvl({ gatewayAddress, url });
+
+  it("returns the pegged token's minted total supply", async function () {
+    vi.mocked(totalSupply).mockResolvedValue(parseUnits("11425000", 18));
+
+    const result = await runTvl();
+
+    expect(getPeggedToken).toHaveBeenCalledWith(expect.anything(), {
+      address: gatewayAddress,
+    });
+    expect(result).toEqual({ minted: parseUnits("11425000", 18) });
+  });
+
+  it("returns a zero minted amount when supply is zero", async function () {
+    vi.mocked(totalSupply).mockResolvedValue(0n);
+
+    const result = await runTvl();
+
+    expect(result).toEqual({ minted: 0n });
+  });
+
+  it("returns a raw bigint amount (the route stringifies it)", async function () {
+    vi.mocked(totalSupply).mockResolvedValue(parseUnits("1", 18));
+
+    const result = await runTvl();
+
+    expect(typeof result.minted).toBe("bigint");
+  });
+});
+
+describe("analytics/getStaked", function () {
+  const runStaked = () => getStaked({ gatewayAddress, url });
+
+  it("returns the staking vault's total assets", async function () {
+    vi.mocked(totalAssets).mockResolvedValue(parseUnits("4200000", 18));
+
+    const result = await runStaked();
+
+    expect(findStakingVaultForPeggedToken).toHaveBeenCalledWith({
+      client: expect.anything(),
+      peggedTokenAddress,
+    });
+    expect(result).toEqual({ staked: parseUnits("4200000", 18) });
+  });
+
+  it("returns a zero staked amount when the vault is empty", async function () {
+    vi.mocked(totalAssets).mockResolvedValue(0n);
+
+    const result = await runStaked();
+
+    expect(result).toEqual({ staked: 0n });
+  });
+
+  it("returns a raw bigint amount (the route stringifies it)", async function () {
+    vi.mocked(totalAssets).mockResolvedValue(parseUnits("1", 18));
+
+    const result = await runStaked();
+
+    expect(typeof result.staked).toBe("bigint");
   });
 });

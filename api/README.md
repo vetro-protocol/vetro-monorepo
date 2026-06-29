@@ -37,6 +37,34 @@ The monetary fields (`strategicReserves`, `supply`, `surplus`, `total`, `treasur
 }
 ```
 
+### `GET /analytics/tvl/:gatewayAddress`
+
+Get the TVL for a given gateway's pegged token: its circulating supply (the minted total supply).
+`:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway.
+`minted` is a raw `uint256` amount in the pegged token's base units (not pre-scaled).
+
+#### Sample response
+
+```json
+{
+  "minted": "11425000000000000000000000"
+}
+```
+
+### `GET /analytics/staked/:gatewayAddress`
+
+Get the staked total for a given gateway's pegged token: the amount deposited into its staking vault (the vault's ERC4626 total assets).
+`:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway.
+`staked` is a raw `uint256` amount in the pegged token's base units (not pre-scaled).
+
+#### Sample response
+
+```json
+{
+  "staked": "4200000000000000000000000"
+}
+```
+
 ### `GET /analytics/treasury/:gatewayAddress`
 
 Get the composition of the treasury by whitelisted token for a given gateway.
