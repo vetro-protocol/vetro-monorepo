@@ -91,7 +91,7 @@ export const validateStakingVaultAddress = validateWhitelistedAddress({
 export const validateParam = (paramName: string, validOptions: string[]) =>
   function (c: Context, next: Next) {
     const paramValue = c.req.param(paramName);
-    if (!validOptions.includes(paramValue)) {
+    if (!paramValue || !validOptions.includes(paramValue)) {
       return c.json(
         { error: `Invalid ${paramName}. Use: ${validOptions.join(", ")}` },
         400,
