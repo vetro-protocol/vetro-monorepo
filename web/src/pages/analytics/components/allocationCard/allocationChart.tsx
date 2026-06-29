@@ -20,7 +20,7 @@ export const AllocationChart = ({
   items,
   onHover,
 }: Props) => (
-  <div className="h-16 overflow-clip border-y border-gray-200 bg-gray-200/24">
+  <div className="h-16 overflow-clip border-y border-gray-200 bg-gray-200/25">
     <div className="mx-6 flex h-full gap-1 border-x border-gray-200 bg-white p-1 md:mx-14">
       {!isLoading &&
         !isError &&
