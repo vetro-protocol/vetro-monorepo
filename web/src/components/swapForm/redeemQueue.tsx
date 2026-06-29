@@ -71,9 +71,7 @@ function ActiveRedeemDrawer({
   const [flowStatus, setFlowStatus] = useState<ClaimRedeemFlowStatus>("idle");
   const [fromInputValue, setFromInputValue] = useState("0");
 
-  const amountBigInt = fromInputValue
-    ? parseTokenUnits(fromInputValue, peggedToken)
-    : 0n;
+  const amountBigInt = parseTokenUnits(fromInputValue, peggedToken);
 
   const { data: maxWithdraw } = useMaxWithdraw({
     gatewayAddress: peggedToken.gatewayAddress,

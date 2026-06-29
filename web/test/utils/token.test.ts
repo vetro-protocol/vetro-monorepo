@@ -234,6 +234,17 @@ describe("utils/token", function () {
       );
       expect(parseTokenUnits(largeDecimalAmount, token)).toEqual(expected);
     });
+
+    it("returns 0n when the amount is undefined", function () {
+      const token = { ...parseBaseToken, decimals: 6 };
+      // @ts-expect-error testing invalid input
+      expect(parseTokenUnits(undefined, token)).toEqual(0n);
+    });
+
+    it("returns 0n when the amount is an empty string", function () {
+      const token = { ...parseBaseToken, decimals: 6 };
+      expect(parseTokenUnits("", token)).toEqual(0n);
+    });
   });
 
   describe("removeOftDust", function () {
