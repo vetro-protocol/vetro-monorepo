@@ -11,7 +11,6 @@
   },
   "dependencies": {
     "@tanstack/react-query": "5.90.19",
-    "@total-typescript/ts-reset": "0.6.1",
     "@vetro-protocol/earn": "workspace:*",
     "@vetro-protocol/gateway": "workspace:*",
     "crypto-shortener": "1.2.0",
@@ -28,6 +27,7 @@
     "@cloudflare/vite-plugin": "1.23.1",
     "@cloudflare/workers-types": "4.20260504.1",
     "@tailwindcss/vite": "4.3.0",
+    "@total-typescript/ts-reset": "0.6.1",
     "@tsconfig/vite-react": "7.0.2",
     "@types/node": "24.1.0",
     "@types/react": "19.2.9",
