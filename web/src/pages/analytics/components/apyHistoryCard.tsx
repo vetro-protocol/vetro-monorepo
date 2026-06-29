@@ -1,7 +1,7 @@
 import { Button } from "components/base/button";
 import { SegmentedControl } from "components/base/segmentedControl";
+import { useApyHistory } from "hooks/useApyHistory";
 import { useElementWidth } from "hooks/useElementWidth";
-import { useShareValueHistory } from "hooks/useShareValueHistory";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
@@ -20,6 +20,7 @@ import {
   yAxisStyle,
 } from "utils/chartTheme";
 import { formatDate, formatShortDate } from "utils/date";
+import { formatPercentage } from "utils/format";
 import {
   VictoryAxis,
   VictoryChart,
@@ -33,9 +34,7 @@ type Props = {
   peggedTokenError: boolean;
 };
 
-const formatShareValue = (value: number) => value.toFixed(4);
-
-export function PegStabilityCard({ peggedToken, peggedTokenError }: Props) {
+export function ApyHistoryCard({ peggedToken, peggedTokenError }: Props) {
   const { i18n, t } = useTranslation();
   const [period, setPeriod] = useState<ChartPeriod>("1w");
   const [chartContainerRef, chartWidth] = useElementWidth();
@@ -43,13 +42,12 @@ export function PegStabilityCard({ peggedToken, peggedTokenError }: Props) {
     data: chartData,
     isError: isHistoryError,
     refetch,
-  } = useShareValueHistory({ peggedToken, period });
+  } = useApyHistory({ peggedToken, period });
 
   const isError = peggedTokenError || isHistoryError;
-  // The API appends the current on-chain share value as the final point, so the last
-  // datapoint is the current value (share token measured in pegged tokens) shown on
-  // top of the card.
-  const currentShareValue = chartData?.at(-1)?.y;
+  // The API appends the current on-chain APY as the final point, so the last
+  // datapoint is the current value shown on top of the card.
+  const currentApy = chartData?.at(-1)?.y;
 
   return (
     <div className="flex-1 px-3 md:px-14">
@@ -57,7 +55,7 @@ export function PegStabilityCard({ peggedToken, peggedTokenError }: Props) {
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div className="flex flex-col gap-1">
             <span className="text-b-medium text-gray-900">
-              {t("pages.analytics.peg-stability-label")}
+              {t("pages.analytics.apy-label")}
             </span>
             {isError ? (
               <span className="text-2xl font-semibold text-gray-900">-</span>
@@ -65,9 +63,7 @@ export function PegStabilityCard({ peggedToken, peggedTokenError }: Props) {
               <Skeleton height={32} width={96} />
             ) : (
               <span className="text-2xl font-semibold text-gray-900">
-                {currentShareValue !== undefined && peggedToken
-                  ? `${formatShareValue(currentShareValue)} ${peggedToken.symbol}`
-                  : "-"}
+                {currentApy !== undefined ? formatPercentage(currentApy) : "-"}
               </span>
             )}
           </div>
@@ -103,13 +99,17 @@ export function PegStabilityCard({ peggedToken, peggedTokenError }: Props) {
             </div>
           ) : chartData === undefined ? (
             <Skeleton height={chartHeight} />
+          ) : chartData.length === 0 ? (
+            <div className="flex h-full items-center justify-center">
+              <span className="text-gray-500">-</span>
+            </div>
           ) : (
             <VictoryChart
               containerComponent={
                 <VictoryVoronoiContainer
                   labelComponent={<VictoryTooltip {...tooltipProps} />}
                   labels={({ datum }: { datum: { x: number; y: number } }) =>
-                    `${formatDate(datum.x / 1000, i18n.language, "UTC")}  ${formatShareValue(datum.y)} ${peggedToken?.symbol ?? ""}`
+                    `${formatDate(datum.x / 1000, i18n.language, "UTC")}  ${formatPercentage(datum.y)}`
                   }
                 />
               }
@@ -127,7 +127,7 @@ export function PegStabilityCard({ peggedToken, peggedTokenError }: Props) {
               <VictoryAxis
                 dependentAxis
                 style={yAxisStyle}
-                tickFormat={formatShareValue}
+                tickFormat={formatPercentage}
               />
               <VictoryLine
                 data={chartData}
