@@ -71,12 +71,16 @@ export const Analytics = function () {
     (token) => token.gatewayAddress === selectedGatewayAddress,
   );
 
+  // only show the filter if there are 2 or more tokens to filter from
+  const showTokenFilter = gatewayAddresses.length > 1 && !isPeggedTokensError;
+
   return (
     <div className="flex flex-col">
-      <PageTitle value={t("pages.analytics.title")} />
-      {/* only show the filter if there are 2 or more tokens to filter from */}
-      {gatewayAddresses.length > 1 && !isPeggedTokensError && (
-        <div className="border-y border-gray-200 bg-white px-3 py-4 md:px-6">
+      <div className={showTokenFilter ? "border-b border-gray-200" : undefined}>
+        <PageTitle value={t("pages.analytics.title")} />
+      </div>
+      {showTokenFilter && (
+        <div className="sticky top-0 z-10 border-b border-gray-200 bg-white px-3 py-4 md:px-6">
           <div className="mx-auto w-fit">
             {tokens && selectedToken ? (
               <TokenFilter
