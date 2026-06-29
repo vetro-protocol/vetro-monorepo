@@ -28,7 +28,7 @@ export const TokenIcon = function ({ address, dex, size = 24, symbol }: Props) {
   if (source === undefined) {
     return (
       <span
-        className="inline-flex shrink-0 items-center justify-center rounded-full bg-neutral-200 text-[0.55rem] font-semibold text-neutral-700 ring-2 ring-white"
+        className="text-3xs inline-flex shrink-0 items-center justify-center rounded-full bg-neutral-200 font-semibold text-neutral-700 ring-2 ring-white"
         style={dimensions}
         title={symbol}
       >

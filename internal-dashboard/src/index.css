@@ -1,10 +1,17 @@
 @import "tailwindcss";
 
 @theme {
+  --font-size-3xs: 0.5rem; /* 8px */
+
   --shadow-primary:
     0px 0px 2px 0px rgba(10, 10, 10, 0.1),
     0px 8px 12px -4px rgba(10, 10, 10, 0.08),
     0px 1px 2px 0px rgba(10, 10, 10, 0.1);
+
   --text-sm: 0.8125rem; /* 13px */
   --text-sm--line-height: 20px;
+}
+
+@utility text-3xs {
+  font-size: var(--font-size-3xs);
 }
