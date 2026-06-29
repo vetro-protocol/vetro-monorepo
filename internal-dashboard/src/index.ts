@@ -58,15 +58,28 @@ const permissionsPolicy = [
   .map((feature) => `${feature}=()`)
   .join(", ");
 
+// Token USD prices come from the Portal API and on-chain reads use the mainnet
+// RPC; both origins are env-driven (see .env / .env.local) so overrides are also
+// allowed by the CSP. The RPC env may hold several URLs joined by "+".
+const portalApiUrl = import.meta.env.VITE_PORTAL_API_URL;
+const rpcConnectSrc = (import.meta.env.VITE_RPC_URL_MAINNET ?? "")
+  .split("+")
+  .join(" ");
+
 const csp = [
   "base-uri 'none'",
-  // Extend with external origins (e.g. the Curve API) as tabs start fetching data.
-  "connect-src 'self'",
+  // The DEX tab reads Curve liquidity straight from the Curve API (pool list /
+  // volumes / gauges) and per-pool 24h fees from Curve's analytics API. Sushi
+  // pools, tracked-token discovery and share values are read on-chain from the
+  // mainnet RPC, and token USD prices come from the Portal API.
+  `connect-src 'self' https://api.curve.finance https://prices.curve.finance ${rpcConnectSrc} ${portalApiUrl}`,
   "default-src 'none'",
   "font-src 'self'",
   "form-action 'none'",
   "frame-ancestors 'none'",
-  "img-src 'self' data:",
+  // Token logos come from the Hemilabs token list (GitHub Pages), falling back
+  // to the Curve/Sushi asset CDNs (jsDelivr).
+  "img-src 'self' data: https://hemilabs.github.io https://cdn.jsdelivr.net",
   "script-src 'self'",
   // Tailwind v4 injects styles via a <style> tag, so 'unsafe-inline' is needed.
   "style-src 'self' 'unsafe-inline'",

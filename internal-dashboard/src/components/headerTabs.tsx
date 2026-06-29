@@ -23,6 +23,6 @@ const Tab = ({ children, to }: Props) => (
 
 export const HeaderTabs = () => (
   <nav className="mb-12 flex items-center gap-x-2 border-y border-solid border-y-neutral-300/55 p-4">
-    <Tab to="/curve">Curve</Tab>
+    <Tab to="/dex">DEX</Tab>
   </nav>
 );

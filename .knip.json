@@ -1,6 +1,7 @@
 {
   "ignore": ["web/scripts/*"],
   "ignoreDependencies": ["@vitest/coverage-v8", "eslint-config-prettier"],
+  "ignoreWorkspaces": ["internal-dashboard"],
   "workspaces": {
     "api": {
       "ignoreDependencies": ["@sentry/cli"]
