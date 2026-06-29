@@ -70,11 +70,17 @@ export const fetchTokenPrices = async function ({
     queryClient.ensureQueryData(trackedTokensOptions()),
   ]);
 
+  // Price each token independently: a single vault whose on-chain call reverts
+  // shouldn't wipe out every other token's price on this internal dashboard.
   const entries = await Promise.all(
     tokens.map(async function (token) {
-      const usd = await tokenUsdPrice({ portal, queryClient, token });
-      return [token.address.toLowerCase(), usd] as const;
+      try {
+        const usd = await tokenUsdPrice({ portal, queryClient, token });
+        return [token.address.toLowerCase(), usd] as const;
+      } catch {
+        return undefined;
+      }
     }),
   );
-  return Object.fromEntries(entries);
+  return Object.fromEntries(entries.filter(Boolean));
 };
