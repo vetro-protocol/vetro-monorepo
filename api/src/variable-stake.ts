@@ -9,6 +9,7 @@ import { type Address, checksumAddress, type Hash } from "viem";
 import { mainnet } from "viem/chains";
 import { convertToAssets, totalAssets } from "viem-erc4626/actions";
 
+import { aprWadToApy } from "./apr-wad-to-apy.ts";
 import * as graphql from "./graphql.ts";
 import { createMainnetClient } from "./mainnet-client.ts";
 import * as merkl from "./merkl.ts";
@@ -68,53 +69,59 @@ export async function getCostBasis({
 }
 
 /**
- * Compute a forward-looking APY for each configured staking vault by reading
- * the current `rewardRate` from the vault's `YieldDistributor` contract and
- * annualizing it over the vault's `totalAssets()`. Yield is dripped into the
- * vault's asset balance (raising the ERC4626 share price), so the reward and
- * staked asset are the same token and no price conversion is needed.
- *
- * The vault auto-compounds continuously, so the annualized rate (APR) is turned
- * into a continuous-compounding APY via `e^apr - 1`. Returns a record keyed by
- * checksummed vault address. A vault is included with `{ apy: 0 }` when its
- * reads succeed but no drip is active (period ended, zero rate, or empty vault);
- * a vault whose on-chain reads fail is omitted entirely so the frontend can
- * render "-" for it, distinct from a genuine 0% APY.
+ * Read a single staking vault's current forward-looking APY from chain: read the
+ * `rewardRate` from the vault's `YieldDistributor` and annualize it over the vault's
+ * `totalAssets()`. Yield is dripped into the vault's asset balance (raising the
+ * ERC4626 share price), so the reward and staked asset are the same token and no
+ * price conversion is needed. Returns 0 when the reads succeed but no drip is active
+ * (period ended, zero rate, or empty vault). Throws if any on-chain read fails, so
+ * callers decide how to surface that (omit the vault, or fall back to history).
+ */
+export async function computeVaultApy({
+  client,
+  vaultAddress,
+}: {
+  client: ReturnType<typeof createMainnetClient>;
+  vaultAddress: Address;
+}) {
+  const now = BigInt(Math.floor(Date.now() / 1000));
+  const totalAssetsPromise = totalAssets(client, { address: vaultAddress });
+  const distributorReadsPromise = getYieldDistributor(client, {
+    address: vaultAddress,
+  }).then((distributorAddress) =>
+    Promise.all([
+      getPeriodFinish(client, { address: distributorAddress }),
+      getRewardRate(client, { address: distributorAddress }),
+    ]),
+  );
+  const [[periodFinish, rewardRate], assets] = await Promise.all([
+    distributorReadsPromise,
+    totalAssetsPromise,
+  ]);
+
+  if (periodFinish >= now && rewardRate > 0n && assets > 0n) {
+    // rewardRate is WAD-scaled reward per second. The WAD scale cancels the
+    // rewardRate's own WAD scaling, so aprWad = (rewardRate * SECONDS_PER_YEAR) /
+    // assets.
+    return aprWadToApy((rewardRate * SECONDS_PER_YEAR) / assets);
+  }
+  return 0;
+}
+
+/**
+ * Compute a forward-looking APY for each configured staking vault via
+ * `computeVaultApy`. Returns a record keyed by checksummed vault address. A vault is
+ * included with `{ apy: 0 }` when its reads succeed but no drip is active; a vault
+ * whose on-chain reads fail is omitted entirely so the frontend can render "-" for
+ * it, distinct from a genuine 0% APY.
  */
 export async function getApy({ rpcUrl }: { rpcUrl: string | undefined }) {
   const client = createMainnetClient(rpcUrl);
-  const now = BigInt(Math.floor(Date.now() / 1000));
 
   const entries = await Promise.all(
     stakingVaultAddresses.map(async function (vaultAddress) {
       try {
-        const totalAssetsPromise = totalAssets(client, {
-          address: vaultAddress,
-        });
-        const distributorReadsPromise = getYieldDistributor(client, {
-          address: vaultAddress,
-        }).then((distributorAddress) =>
-          Promise.all([
-            getPeriodFinish(client, { address: distributorAddress }),
-            getRewardRate(client, { address: distributorAddress }),
-          ]),
-        );
-        const [[periodFinish, rewardRate], assets] = await Promise.all([
-          distributorReadsPromise,
-          totalAssetsPromise,
-        ]);
-
-        let apy = 0;
-        if (periodFinish >= now && rewardRate > 0n && assets > 0n) {
-          // rewardRate is WAD-scaled reward per second. Annualize it and
-          // divide by assets, keeping a WAD fixed-point scale.
-          // The WAD scale cancels the rewardRate's own WAD scaling, so
-          // aprWad = apr * WAD = (rewardRate * SECONDS_PER_YEAR) / assets.
-          const aprWad = (rewardRate * SECONDS_PER_YEAR) / assets;
-          const apr = Number(aprWad) / Number(WAD);
-          // continuous compounding
-          apy = Math.expm1(apr) * 100;
-        }
+        const apy = await computeVaultApy({ client, vaultAddress });
         return [vaultAddress, { apy }] as const;
       } catch (error) {
         // Omit this vault from the response so the frontend shows "-" rather

@@ -64,6 +64,23 @@ describe("total-deposits-history/getTotalDepositsHistory", function () {
     ]);
   });
 
+  it("replaces the current UTC day's subgraph point with the live point", async function () {
+    vi.mocked(graphql.runQuery).mockResolvedValue({
+      vaultHistories: [
+        { timestamp: "1707782400", totalAssets: "5000000000000000000000" },
+        // same UTC day as `now`, with a value unlike the live read
+        { timestamp: "1707955200", totalAssets: "5900000000000000000000" },
+      ],
+    });
+
+    // The stale same-day point is dropped, so the series never has two points on
+    // the same UTC day.
+    expect(await fetchHistory()).toEqual([
+      { timestamp: 1_707_782_400_000, totalDeposits: "5000000000000000000000" },
+      livePoint,
+    ]);
+  });
+
   it("falls back to the subgraph series when the live totalAssets read fails", async function () {
     vi.mocked(graphql.runQuery).mockResolvedValue({
       vaultHistories: [

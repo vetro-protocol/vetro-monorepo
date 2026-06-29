@@ -12,7 +12,7 @@ import {
 } from "@vetro-protocol/treasury/actions";
 import { type Address, formatUnits, type PublicClient } from "viem";
 import { decimals, totalSupply } from "viem-erc20/actions";
-import { balanceOf, previewRedeem } from "viem-erc4626/actions";
+import { balanceOf, previewRedeem, totalAssets } from "viem-erc4626/actions";
 
 import { getPrice } from "./chainlink.ts";
 import { createMainnetClient } from "./mainnet-client.ts";
@@ -305,4 +305,51 @@ export async function getCollateralizationRatio({
     total,
     treasuryTotal,
   };
+}
+
+/**
+ * The TVL is the circulating supply of a gateway's pegged token (its minted
+ * total supply). Returned as a raw bigint in the pegged token's base units;
+ * the client values it (e.g. in USD) and formats it. Moves the calculation
+ * previously done on the frontend into the API so it can be cached and shared.
+ */
+export async function getTvl({
+  gatewayAddress,
+  url,
+}: {
+  gatewayAddress: Address;
+  url: string | undefined;
+}) {
+  const client = createMainnetClient(url);
+  const peggedTokenAddress = await getPeggedToken(client, {
+    address: gatewayAddress,
+  });
+  const minted = await totalSupply(client, { address: peggedTokenAddress });
+  return { minted };
+}
+
+/**
+ * The staked total is the amount of a gateway's pegged token deposited into its
+ * staking vault (the vault's ERC4626 total assets). Returned as a raw bigint in
+ * the pegged token's base units; the client values it (e.g. in USD) and formats
+ * it. Moves the calculation previously done on the frontend into the API so it
+ * can be cached and shared.
+ */
+export async function getStaked({
+  gatewayAddress,
+  url,
+}: {
+  gatewayAddress: Address;
+  url: string | undefined;
+}) {
+  const client = createMainnetClient(url);
+  const peggedTokenAddress = await getPeggedToken(client, {
+    address: gatewayAddress,
+  });
+  const stakingVaultAddress = await findStakingVaultForPeggedToken({
+    client,
+    peggedTokenAddress,
+  });
+  const staked = await totalAssets(client, { address: stakingVaultAddress });
+  return { staked };
 }

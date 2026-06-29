@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 
+import { ApyHistoryCard } from "./components/apyHistoryCard";
 import { CollateralizationCard } from "./components/collateralizationCard";
 import { ExitQueueCard } from "./components/exitQueueCard";
 import { PegStabilityCard } from "./components/pegStabilityCard";
@@ -113,6 +114,12 @@ export const Analytics = function () {
       </AllocationRow>
       <AllocationRow>
         <PegStabilityCard
+          peggedToken={selectedToken}
+          peggedTokenError={isPeggedTokensError}
+        />
+      </AllocationRow>
+      <AllocationRow>
+        <ApyHistoryCard
           peggedToken={selectedToken}
           peggedTokenError={isPeggedTokensError}
         />

@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/cloudflare";
 import { sVetBtcAddress, sVusdAddress } from "@vetro-protocol/earn";
 import { Hono } from "hono";
 import { cache } from "hono/cache";
@@ -5,6 +6,7 @@ import { cors } from "hono/cors";
 import type { Address } from "viem";
 
 import * as analytics from "./analytics.ts";
+import { getApyHistory } from "./apy-history.ts";
 import * as borrow from "./borrow.ts";
 import { convertBigIntsToString } from "./convert-bigints-to-string.ts";
 import { getSubgraphUrl } from "./env.ts";
@@ -73,6 +75,44 @@ app.get(
       throw new Error(
         `Failed to get collateralization ratio: ${error.message}`,
       );
+    }
+  },
+);
+
+app.get(
+  "/analytics/tvl/:gatewayAddress",
+  validateGatewayAddress,
+  cache({
+    cacheControl: "max-age=60",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const url = c.env.CUSTOM_RPC_URL_MAINNET;
+      const gatewayAddress = c.get("gatewayAddress");
+      const data = await analytics.getTvl({ gatewayAddress, url });
+      return c.json(convertBigIntsToString(data));
+    } catch (error) {
+      throw new Error(`Failed to get TVL: ${error.message}`);
+    }
+  },
+);
+
+app.get(
+  "/analytics/staked/:gatewayAddress",
+  validateGatewayAddress,
+  cache({
+    cacheControl: "max-age=60",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const url = c.env.CUSTOM_RPC_URL_MAINNET;
+      const gatewayAddress = c.get("gatewayAddress");
+      const data = await analytics.getStaked({ gatewayAddress, url });
+      return c.json(convertBigIntsToString(data));
+    } catch (error) {
+      throw new Error(`Failed to get staked total: ${error.message}`);
     }
   },
 );
@@ -282,6 +322,32 @@ app.get(
 );
 
 app.get(
+  "/variable-stake/apy-history/:stakingVaultAddress/:period",
+  validateStakingVaultAddress,
+  validateParam("period", vaultHistoryValidPeriods),
+  cache({
+    cacheControl: "max-age=300",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const stakingVaultAddress = c.get("stakingVaultAddress");
+      const url = getSubgraphUrl(c.env);
+      const period = c.req.param("period");
+      const data = await getApyHistory({
+        period,
+        rpcUrl: c.env.CUSTOM_RPC_URL_MAINNET,
+        stakingVaultAddress,
+        url,
+      });
+      return c.json(data);
+    } catch (error) {
+      throw new Error(`Failed to get APY history: ${error.message}`);
+    }
+  },
+);
+
+app.get(
   "/variable-stake/total-deposits-history/:stakingVaultAddress/:period",
   validateStakingVaultAddress,
   validateParam("period", vaultHistoryValidPeriods),
@@ -329,8 +395,16 @@ app.get(
 app.notFound((c) => c.json({ error: "Not Found" }, 404));
 
 app.onError(function (error, c) {
+  Sentry.captureException(error);
   console.error("Internal Server Error:", error.message);
   return c.json({ error: "Internal Server Error" }, 500);
 });
 
-export default app;
+export default Sentry.withSentry(
+  (env: Env) => ({
+    dsn: env.SENTRY_DSN,
+    enableLogs: true,
+    environment: "production",
+  }),
+  app,
+);

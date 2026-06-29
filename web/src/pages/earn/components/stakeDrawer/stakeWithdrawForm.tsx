@@ -210,7 +210,6 @@ export function StakeWithdrawForm({
     onStatusChange: handleWithdrawStepChange,
     onSuccess: handleRequestWithdrawSuccess,
     onTransactionHash: tracking.onTransactionHash,
-    peggedToken,
     stakingVaultAddress,
   });
 

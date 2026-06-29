@@ -11,6 +11,7 @@
     "types:check": "wrangler types --include-env=false --check"
   },
   "dependencies": {
+    "@sentry/cloudflare": "10.58.0",
     "@vetro-protocol/earn": "workspace:*",
     "@vetro-protocol/gateway": "workspace:*",
     "@vetro-protocol/treasury": "workspace:*",
@@ -22,10 +23,11 @@
     "viem-erc4626": "1.0.0"
   },
   "devDependencies": {
+    "@sentry/cli": "2.58.5",
     "@types/node": "24.10.13",
     "typescript": "5.9.3",
     "vite-tsconfig-paths": "6.0.4",
-    "vitest": "4.0.18",
+    "vitest": "4.1.9",
     "wrangler": "4.65.0"
   },
   "private": true,

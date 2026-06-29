@@ -53,6 +53,7 @@
   },
   "pages": {
     "analytics": {
+      "apy-label": "TEA",
       "collateralization-ratio-label": "Ratio de colateralización",
       "exit-queue-label": "Total {{symbol}} en período de espera de retiro",
       "liquid-reserves-label": "Reservas líquidas",
@@ -298,6 +299,7 @@
         "deposit": "Depositar",
         "pool-contract": "Contrato del fondo",
         "pool-deposits": "Depósitos del fondo",
+        "staked-amount": "Su monto stakeado",
         "withdraw": "Retirar"
       },
       "stake": {

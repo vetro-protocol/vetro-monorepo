@@ -80,6 +80,23 @@ describe("share-value-history/getShareValueHistory", function () {
     ]);
   });
 
+  it("replaces the current UTC day's subgraph point with the live point", async function () {
+    vi.mocked(graphql.runQuery).mockResolvedValue({
+      vaultHistories: [
+        { shareValue: "1000412938421000000", timestamp: "1707782400" },
+        // same UTC day as `now`, with a value unlike the live read
+        { shareValue: "1000500000000000000", timestamp: "1707955200" },
+      ],
+    });
+
+    // The stale same-day point is dropped, so the series never has two points on
+    // the same UTC day.
+    expect(await fetchHistory()).toEqual([
+      { shareValue: 1.000412938421, timestamp: 1_707_782_400_000 },
+      livePoint,
+    ]);
+  });
+
   it("scales by the asset decimals while using the share decimals for one share", async function () {
     const assetDecimals = 6;
     const shareDecimals = 18;

@@ -67,7 +67,6 @@ export function DeleteTicketModal({
       handlers[status]?.();
     },
     onTransactionHash,
-    peggedToken,
     requestId: BigInt(ticket.requestId),
     stakingVaultAddress: ticket.stakingVaultAddress,
   });

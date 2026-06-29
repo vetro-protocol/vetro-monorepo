@@ -11,7 +11,6 @@ import type { TokenWithGateway } from "types";
 import { type Address, isAddressEqual } from "viem";
 import { useAccount } from "wagmi";
 
-import { analyticsTotalsQueryKey } from "./useAnalyticsTotals";
 import { analyticsTreasuryQueryKey } from "./useAnalyticsTreasury";
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { useMainnet } from "./useMainnet";
@@ -62,11 +61,6 @@ export const useDeposit = function ({
   const treasuryReservesKey = treasuryReservesQueryKey({
     chainId: ethereumChain.id,
     gatewayAddress,
-  });
-
-  const analyticsTotalsKey = analyticsTotalsQueryKey({
-    chainId: ethereumChain.id,
-    gatewayAddress: peggedToken.gatewayAddress,
   });
 
   const analyticsTreasuryKey = analyticsTreasuryQueryKey(
@@ -141,12 +135,6 @@ export const useDeposit = function ({
                 : reserve,
             ),
         );
-        // optimistically bump the analytics TVL totals (minted pegged supply)
-        queryClient.setQueryData(
-          analyticsTotalsKey,
-          (old: { minted: bigint; staked: bigint } | undefined) =>
-            old ? { ...old, minted: old.minted + minPeggedTokenOut } : old,
-        );
         // optimistically bump the analytics treasury allocation for tokenIn.
         // The API is indexer-backed and may lag, so this keeps the UI in
         // sync until the backend catches up.
@@ -183,10 +171,6 @@ export const useDeposit = function ({
 
       queryClient.invalidateQueries({
         queryKey: treasuryReservesKey,
-      });
-
-      queryClient.invalidateQueries({
-        queryKey: analyticsTotalsKey,
       });
 
       queryClient.invalidateQueries({

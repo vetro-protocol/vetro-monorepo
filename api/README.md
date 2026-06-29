@@ -37,6 +37,34 @@ The monetary fields (`strategicReserves`, `supply`, `surplus`, `total`, `treasur
 }
 ```
 
+### `GET /analytics/tvl/:gatewayAddress`
+
+Get the TVL for a given gateway's pegged token: its circulating supply (the minted total supply).
+`:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway.
+`minted` is a raw `uint256` amount in the pegged token's base units (not pre-scaled).
+
+#### Sample response
+
+```json
+{
+  "minted": "11425000000000000000000000"
+}
+```
+
+### `GET /analytics/staked/:gatewayAddress`
+
+Get the staked total for a given gateway's pegged token: the amount deposited into its staking vault (the vault's ERC4626 total assets).
+`:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway.
+`staked` is a raw `uint256` amount in the pegged token's base units (not pre-scaled).
+
+#### Sample response
+
+```json
+{
+  "staked": "4200000000000000000000000"
+}
+```
+
 ### `GET /analytics/treasury/:gatewayAddress`
 
 Get the composition of the treasury by whitelisted token for a given gateway.
@@ -145,9 +173,26 @@ Returns the APY for each supported staking vault, indexed by staking vault addre
 }
 ```
 
+### `GET /variable-stake/apy-history/:stakingVaultAddress/:period`
+
+Returns the historical APY for a staking vault over the given period — the same forward-looking, continuous-compounding figure as `GET /variable-stake/apy`, recorded over time. The subgraph stores one point per UTC day (the day's **maximum** APR, as the rate fluctuates intraday), which this endpoint converts to APY. A live on-chain point is appended as the last entry so the latest value tracks the current rate rather than the subgraph's daily snapshot, which can lag by up to ~24h; if that read fails, only the subgraph series is returned. The series never has two points on the same UTC day: a live point on a day the subgraph already covers replaces that day's point, or is dropped when the APY is unchanged. Long windows return their full history (`"1y"` is up to ~366 daily points plus the live one).
+Valid periods are: `"1w"`, `"1m"`, `"3m"` and `"1y"`.
+`:stakingVaultAddress` must be a known staking vault. Returns `400` if malformed and `404` if the address is not a known staking vault.
+`apy` is a percentage number (e.g. `9.95` means 9.95%), the same unit as `GET /variable-stake/apy`. `timestamp` is in milliseconds (UTC day-start for subgraph entries, current time for the live point).
+
+#### Sample Response for "1w"
+
+```jsonc
+[
+  { "apy": 9.81, "timestamp": 1707782400000 },
+  { "apy": 9.95, "timestamp": 1707868800000 },
+  // ...more records...
+]
+```
+
 ### `GET /variable-stake/share-value-history/:stakingVaultAddress/:period`
 
-Returns the historical share value for a staking vault over the given period (Earn token vs underlying pegged token, e.g. sVUSD per VUSD). One entry per UTC day from the subgraph, plus a final point read live from the vault's on-chain `convertToAssets` (one whole share) at request time. The subgraph writes its history once per UTC day, so its latest point can lag the actual share value by up to ~24h; the appended live point keeps the last value in sync with the current exchange rate. Results across multiple subgraph pages are concatenated, so long windows return their full history (e.g. `"1y"` may include up to ~366 entries plus the live point). If the live read fails the series is returned without the appended point.
+Returns the historical share value for a staking vault over the given period (Earn token vs underlying pegged token, e.g. sVUSD per VUSD). One entry per UTC day from the subgraph, plus a final point read live from the vault's on-chain `convertToAssets` (one whole share) at request time. The subgraph writes its history once per UTC day, so its latest point can lag the actual share value by up to ~24h; the appended live point keeps the last value in sync with the current exchange rate. When the subgraph already has a point for the current UTC day, the live point is not added as a duplicate: it is skipped if its share value matches that day's point, or it replaces that day's point if the share value differs, so the series never has two points on the same day. Results across multiple subgraph pages are concatenated, so long windows return their full history (e.g. `"1y"` may include up to ~366 entries plus the live point). If the live read fails the series is returned without the appended point.
 Valid periods are: `"1w"`, `"1m"`, `"3m"` and `"1y"`.
 `:stakingVaultAddress` must be a known staking vault. Returns `400` if malformed and `404` if the address is not a known staking vault.
 `shareValue` is a number already pre-scaled by the underlying asset's decimals to a human-readable exchange rate (e.g. `1.000412938421`). `timestamp` is in milliseconds (UTC day-start for subgraph entries, current time for the live point).
@@ -164,7 +209,7 @@ Valid periods are: `"1w"`, `"1m"`, `"3m"` and `"1y"`.
 
 ### `GET /variable-stake/total-deposits-history/:stakingVaultAddress/:period`
 
-Returns the historical total deposits for a staking vault over the given period — the vault's total underlying pegged token holdings (ERC4626 `totalAssets`), i.e. the same value shown as "Pool deposits" on the Earn page. One entry per UTC day from the subgraph, plus a final point read live from the vault's on-chain `totalAssets()` at request time. The subgraph writes its history once per UTC day, so its latest point can lag actual TVL by up to ~24h; the appended live point keeps the last value in sync with current TVL. Results across multiple subgraph pages are concatenated, so long windows return their full history (e.g. `"1y"` may include up to ~366 entries plus the live point). If the live read fails the series is returned without the appended point.
+Returns the historical total deposits for a staking vault over the given period — the vault's total underlying pegged token holdings (ERC4626 `totalAssets`), i.e. the same value shown as "Pool deposits" on the Earn page. One entry per UTC day from the subgraph, plus a final point read live from the vault's on-chain `totalAssets()` at request time. The subgraph writes its history once per UTC day, so its latest point can lag actual TVL by up to ~24h; the appended live point keeps the last value in sync with current TVL. When the subgraph already has a point for the current UTC day, the live point is not added as a duplicate: it is skipped if its total deposits match that day's point, or it replaces that day's point if they differ, so the series never has two points on the same day. Results across multiple subgraph pages are concatenated, so long windows return their full history (e.g. `"1y"` may include up to ~366 entries plus the live point). If the live read fails the series is returned without the appended point.
 Valid periods are: `"1w"`, `"1m"`, `"3m"` and `"1y"`.
 `:stakingVaultAddress` must be a known staking vault. Returns `400` if malformed and `404` if the address is not a known staking vault.
 `totalDeposits` is the raw `uint256` amount in the pegged token's base units (not pre-scaled); format it with the token's decimals on the client. `timestamp` is in milliseconds.
@@ -259,6 +304,7 @@ Secrets are set separately using the Wrangler CLI.
 | MERKL_OPPORTUNITY_SVETBTC | Merkl opportunity id for the sVetBTC staking vault. Optional; if unset, that vault yields no rewards.         |                         |
 | MERKL_OPPORTUNITY_SVUSD   | Merkl opportunity id for the sVUSD staking vault. Optional; if unset, that vault yields no rewards.           |                         |
 | ORIGINS                   | Comma-separated list of allowed origins. (1)                                                                  | `http://localhost:5173` |
+| SENTRY_DSN                | Sentry DSN. When unset, Sentry is disabled.                                                                   |                         |
 | SUBGRAPH_API_KEY          | The subgraph API key.                                                                                         |                         |
 | SUBGRAPH_ID               | The subgraph id.                                                                                              |                         |
 | SUBGRAPH_URL_TEMPLATE     | The subgraph URL template. (2)                                                                                | (localhost)             |
