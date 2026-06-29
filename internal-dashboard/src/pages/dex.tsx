@@ -1,5 +1,6 @@
 import { PoolsTable } from "../components/dex/poolsTable";
 import { StateMessage } from "../components/dex/stateMessage";
+import { TokenDistribution } from "../components/dex/tokenDistribution";
 import { useTrackedPools } from "../hooks/useTrackedPools";
 
 export const DexPage = function () {
@@ -32,6 +33,19 @@ export const DexPage = function () {
               </h3>
               <PoolsTable
                 pools={[...pools].sort((a, b) => b.tvlUsd - a.tvlUsd)}
+              />
+            </div>
+            <div>
+              <h3 className="mb-1 text-lg font-semibold text-neutral-950">
+                Stats
+              </h3>
+              <p className="mb-4 text-sm text-neutral-600">
+                Share of each token&apos;s tracked liquidity by pool.
+              </p>
+              <TokenDistribution
+                // Exclude concentrated range views so a pool's liquidity isn't
+                // counted twice (the full entry already covers it).
+                pools={pools.filter((pool) => !pool.isRangeView)}
               />
             </div>
           </>
