@@ -231,7 +231,7 @@ const AddressesSection = ({ pool }: { pool: TrackedPool }) => (
 );
 
 export const DexPoolPage = function () {
-  const { poolAddress } = useParams();
+  const { poolId } = useParams();
   const { data: pools, isError, isPending } = useTrackedPools();
 
   if (isPending) {
@@ -246,7 +246,7 @@ export const DexPoolPage = function () {
   }
 
   const pool = pools?.find(
-    (candidate) => candidate.id.toLowerCase() === poolAddress?.toLowerCase(),
+    (candidate) => candidate.id.toLowerCase() === poolId?.toLowerCase(),
   );
 
   if (!pool) {

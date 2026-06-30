@@ -15,7 +15,7 @@ export const App = () => (
       <BrowserRouter>
         <Layout>
           <Routes>
-            <Route element={<DexPoolPage />} path="/dex/:poolAddress" />
+            <Route element={<DexPoolPage />} path="/dex/:poolId" />
             <Route element={<Navigate replace to="/dex" />} path="/" />
             <Route element={<DexPage />} path="/dex" />
             <Route element={<Navigate replace to="/dex" />} path="*" />
