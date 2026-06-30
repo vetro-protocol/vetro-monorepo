@@ -7,7 +7,7 @@ const CURVE_API_BASE = "https://api.curve.finance/api";
 const PRICES_API_BASE = "https://prices.curve.finance/v1";
 const NETWORK = "ethereum";
 
-export type CurveCoin = {
+type CurveCoin = {
   address: string;
   decimals: string;
   poolBalance: string;
@@ -15,7 +15,7 @@ export type CurveCoin = {
   usdPrice: number;
 };
 
-export type CurvePool = {
+type CurvePool = {
   address: string;
   coins: CurveCoin[];
   gaugeAddress?: string;
@@ -28,7 +28,7 @@ export type CurvePool = {
   virtualPrice: string;
 };
 
-export type CurveVolume = {
+type CurveVolume = {
   address: string;
   latestDailyApyPcent: number;
   latestWeeklyApyPcent: number;
@@ -36,7 +36,7 @@ export type CurveVolume = {
 };
 
 // Already converted out of the API's snake_case gauge fields.
-export type CurveGaugeInfo = {
+type CurveGaugeInfo = {
   gauge: string;
   inflationRate: string;
   pool: string;
