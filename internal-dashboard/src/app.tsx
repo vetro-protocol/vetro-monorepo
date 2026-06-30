@@ -4,6 +4,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import { Header } from "./components/header";
 import { Layout } from "./components/layout";
 import { DexPage } from "./pages/dex";
+import { DexPoolPage } from "./pages/dexPool";
 
 const queryClient = new QueryClient();
 
@@ -14,6 +15,7 @@ export const App = () => (
       <BrowserRouter>
         <Layout>
           <Routes>
+            <Route element={<DexPoolPage />} path="/dex/:poolId" />
             <Route element={<Navigate replace to="/dex" />} path="/" />
             <Route element={<DexPage />} path="/dex" />
             <Route element={<Navigate replace to="/dex" />} path="*" />

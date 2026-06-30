@@ -2,7 +2,7 @@ import { queryOptions, useQuery } from "@tanstack/react-query";
 
 import { fetchTokenPrices } from "../fetchers/fetchTokenPrices";
 
-export const tokenPricesOptions = () =>
+const tokenPricesOptions = () =>
   queryOptions({
     queryFn: ({ client: queryClient }) => fetchTokenPrices({ queryClient }),
     queryKey: ["token-prices"],
