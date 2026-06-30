@@ -1,8 +1,8 @@
-import type { BridgeableToken, Token } from "types";
+import type { BridgeableToken, NativeToken, Token } from "types";
 import { formatUnits, parseUnits as viemParseUnits } from "viem";
 
 export const getTokenPrice = function (
-  token: Token,
+  token: NativeToken | Token,
   prices: Record<string, string> | undefined,
 ) {
   const priceSymbol = (

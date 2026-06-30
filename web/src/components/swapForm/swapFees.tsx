@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { Token } from "types";
 import { formatFiatNumber } from "utils/format";
+import { getNativeToken } from "utils/nativeToken";
 
 const DollarSign = () => <span>$</span>;
 
@@ -44,12 +45,9 @@ export const SwapFees = function ({
   totalFees,
 }: Props) {
   const { t } = useTranslation();
-  const { nativeCurrency } = useMainnet();
+  const mainnet = useMainnet();
 
-  const ethToken = {
-    decimals: nativeCurrency.decimals,
-    symbol: nativeCurrency.symbol,
-  } as Token;
+  const ethToken = getNativeToken(mainnet);
 
   const isNetworkFeeIdle = networkFee.fetchStatus === "idle";
   const isNetworkFeeError = networkFee.status === "error";
@@ -94,6 +92,7 @@ export const SwapFees = function ({
         isError={isNetworkFeeError}
         isIdle={isNetworkFeeIdle}
         label={t("common.network-fee")}
+        token={ethToken}
         value={networkFeeValue}
       />
       {protocolFee ? (
@@ -102,6 +101,7 @@ export const SwapFees = function ({
           isError={protocolFee.status === "error"}
           isIdle={protocolFee.fetchStatus === "idle"}
           label={t("pages.swap.fees.fixed-protocol-fee")}
+          token={fromToken}
           value={protocolFeeValue}
         />
       ) : null}

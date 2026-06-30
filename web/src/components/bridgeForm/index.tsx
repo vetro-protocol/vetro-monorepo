@@ -21,6 +21,7 @@ import { useTranslation } from "react-i18next";
 import type { BridgeableToken } from "types";
 import { pickCounterpartToken } from "utils/bridge";
 import { getInputError } from "utils/inputError";
+import { getNativeToken } from "utils/nativeToken";
 import { parseTokenUnits, removeOftDust } from "utils/token";
 import { formatUnits } from "viem";
 import { useAccount } from "wagmi";
@@ -332,6 +333,7 @@ function BridgeFormContent({ tokens }: ContentProps) {
         </FormSectionItem>
         <BridgeFees
           layerZeroFee={layerZeroFee}
+          nativeToken={getNativeToken(fromChain)}
           networkFee={networkFee}
           sectionClassName="max-md:px-4 md:px-2"
           total={total}
