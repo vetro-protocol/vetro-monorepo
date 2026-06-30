@@ -29,9 +29,6 @@
     "try-different-search": "Try searching with a different term",
     "wallet-disclaimer": "By connecting a wallet, you agree to Vetro <terms>Terms of Use</terms> and consent to its <privacy>Privacy Policy</privacy>."
   },
-  "language": {
-    "switch-to": "Switch to Spanish"
-  },
   "nav": {
     "analytics": "Analytics",
     "borrow": "Borrow",
@@ -105,7 +102,6 @@
       "drop-from-price": "{{percentage}} from ${{price}}",
       "effective-interest": "Effective Interest",
       "effective-interest-tooltip": "The actual annual rate you pay after discounts. It's the base rate minus any rebates you qualify for.",
-      "enter-amount": "Enter amount",
       "has-position-description": "This address already has an active borrow position. Switch wallet or manage your existing position.",
       "has-position-title": "You have a position already open",
       "health-factor": "Health factor",
@@ -153,7 +149,6 @@
         "title": "Repay loan",
         "toast-description": "{{amount}} {{symbol}} repaid.",
         "toast-title": "Loan repaid",
-        "total-loan": "Total loan",
         "you-will-repay": "You will repay"
       },
       "supply-collateral-and-borrow": "Supply collateral and borrow",
@@ -165,7 +160,6 @@
         "supply-description": "Confirm the collateral deposit to your borrow position.",
         "supply-progress": "Supply progress",
         "supply-title": "Supply collateral",
-        "title": "Supply in progress",
         "toast-description": "{{amount}} {{symbol}} supplied as collateral.",
         "toast-title": "Collateral supplied",
         "you-will-supply": "You will supply"
@@ -219,7 +213,6 @@
         "waiting-description": "We're waiting for funds to arrive from the source chain — this can take a few minutes.",
         "waiting-title": "Waiting for funds to arrive"
       },
-      "select-chain": "Select chain",
       "select-from-chain": "Select source chain",
       "select-to-chain": "Select destination chain",
       "title": "Bridge assets across chains",
@@ -314,7 +307,6 @@
         "deposit-toast-title": "Stake deposit confirmed",
         "depositing": "Depositing...",
         "fees-label": "Staking {{amount}} {{token}}",
-        "how-withdrawals-work": "How withdrawals work",
         "instant-withdraw": "Withdraw",
         "instant-withdraw-step-description": "Review the details and confirm the withdrawal in your wallet.",
         "instant-withdraw-step-title": "Confirm withdrawal",
@@ -325,7 +317,6 @@
         "request-withdrawal": "Request withdrawal",
         "requesting": "Requesting...",
         "withdraw": "Withdraw",
-        "withdraw-coming-soon": "Withdraw coming soon",
         "withdraw-progress": "Withdraw progress",
         "withdraw-step-1-description": "Start the withdrawal process. Your funds will be locked in a cooldown and will no longer earn yield.",
         "withdraw-step-1-title": "Request withdrawal",
@@ -368,8 +359,7 @@
         "swap-text": "{{fromAmount}} {{fromSymbol}} to {{toAmount}} {{toSymbol}}"
       },
       "fees": {
-        "fixed-protocol-fee": "Fixed Protocol Fee",
-        "oracle-deviation-fee": "Oracle Deviation Fee"
+        "fixed-protocol-fee": "Fixed Protocol Fee"
       },
       "form": {
         "allowance-error": "Error loading allowance",
@@ -417,7 +407,6 @@
         "ready-to-redeem": "Ready to redeem",
         "redeem": "Redeem",
         "redeem-confirmed": "Redeem confirmed",
-        "redeem-progress": "Redeem progress",
         "redeemable-balance": "Redeemable balance",
         "status": "Status",
         "swap-confirmed-description": "Your {{symbol}} is now available in your wallet",
