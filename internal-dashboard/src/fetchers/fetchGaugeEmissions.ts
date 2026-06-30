@@ -17,7 +17,14 @@ export const fetchGaugeEmissions = async function (): Promise<
     }
     const inflationRate = Number(gauge.inflationRate) / 1e18;
     const relativeWeight = Number(gauge.relativeWeight) / 1e18;
-    emissions[gauge.pool.toLowerCase()] = {
+    const key = gauge.pool.toLowerCase();
+    // A pool can expose several gauges (old/killed ones linger). Keep the one
+    // emitting the most CRV so a dead gauge can't zero out an active pool.
+    const existing = emissions[key];
+    if (existing && existing.inflationRate >= inflationRate) {
+      continue;
+    }
+    emissions[key] = {
       estCrvPerDay: inflationRate * relativeWeight * SECONDS_PER_DAY,
       inflationRate,
       relativeWeight,
