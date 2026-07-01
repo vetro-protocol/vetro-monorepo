@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/cloudflare";
 import { sVetBtcAddress, sVusdAddress } from "@vetro-protocol/earn";
-import { Hono } from "hono";
+import { type Context, Hono, type Next } from "hono";
 import { cache } from "hono/cache";
 import { cors } from "hono/cors";
 import type { Address } from "viem";
@@ -139,28 +139,44 @@ app.get(
   },
 );
 
+// Cheap, local check on the market id shape. Kept ahead of `cache()` so
+// malformed ids are rejected without a cache lookup or a network call.
+function validateMarketIdFormat(c: Context, next: Next) {
+  const marketId = c.req.param("marketId")?.toLowerCase();
+  if (!marketId || !/^0x[a-f0-9]{64}$/.test(marketId)) {
+    return c.json({ error: "Malformed market id" }, 400);
+  }
+  return next();
+}
+
+// Expensive check: confirms the market exists and is supported via a Morpho
+// API call. Placed *after* `cache()` so it only runs on a cache miss, not on
+// every cached request.
+async function validateMarketIdSupported(c: Context, next: Next) {
+  try {
+    const marketId = c.req.param("marketId")?.toLowerCase();
+    if (!marketId) {
+      return c.json({ error: "Malformed market id" }, 400);
+    }
+    const isValid = await borrow.validateMarketId({ marketId });
+    if (!isValid) {
+      return c.json({ error: "Unsupported market" }, 404);
+    }
+    return next();
+  } catch (error) {
+    return c.json({ error: `Invalid market id: ${error.message}` }, 404);
+  }
+}
+
 app.get(
   "/borrow/:marketId/apr-history/:period",
-  async function (c, next) {
-    try {
-      const marketId = c.req.param("marketId").toLowerCase();
-      if (!/^0x[a-f0-9]{64}$/.test(marketId)) {
-        return c.json({ error: "Malformed market id" }, 400);
-      }
-      const isValid = await borrow.validateMarketId({ marketId });
-      if (!isValid) {
-        return c.json({ error: "Unsupported market" }, 404);
-      }
-      return next();
-    } catch (error) {
-      return c.json({ error: `Invalid market id: ${error.message}` }, 404);
-    }
-  },
+  validateMarketIdFormat,
   validateParam("period", borrow.validPeriods),
   cache({
     cacheControl: "max-age=3600",
     cacheName: "vetro-api",
   }),
+  validateMarketIdSupported,
   async function (c) {
     try {
       const marketId = c.req.param("marketId").toLowerCase();
@@ -175,29 +191,16 @@ app.get(
 
 app.get(
   "/borrow/:marketId/collateral-assets",
-  async function (c, next) {
-    try {
-      const marketId = c.req.param("marketId").toLowerCase();
-      if (!/^0x[a-f0-9]{64}$/.test(marketId)) {
-        return c.json({ error: "Malformed market id" }, 400);
-      }
-      const isValid = await borrow.validateMarketId({ marketId });
-      if (!isValid) {
-        return c.json({ error: "Unsupported market" }, 404);
-      }
-      return next();
-    } catch (error) {
-      return c.json({ error: `Invalid market id: ${error.message}` }, 404);
-    }
-  },
+  validateMarketIdFormat,
   cache({
-    cacheControl: "max-age=3600",
+    cacheControl: "max-age=300",
     cacheName: "vetro-api",
   }),
+  validateMarketIdSupported,
   async function (c) {
     try {
       const marketId = c.req.param("marketId").toLowerCase();
-      const collateralAssets = await borrow.getCollateralAssets({ marketId });
+      const collateralAssets = await borrow.getCollateralAssets(marketId);
       return c.json(collateralAssets);
     } catch (error) {
       throw new Error(`Failed to get collateral assets: ${error.message}`);
