@@ -19,6 +19,4 @@ pnpm tsc      # typecheck only
 
 ## Deployment
 
-Deployed to Cloudflare with `wrangler` (see `wrangler.jsonc`). The `staging` and
-`production` environments map to the `vetro-internal-dashboard-staging` and
-`vetro-internal-dashboard` Workers respectively.
+Deployed to Cloudflare with `wrangler` (see `wrangler.jsonc`).
