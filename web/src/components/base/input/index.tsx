@@ -29,7 +29,11 @@ export const Input = function ({
       ) : null}
       <input
         {...props}
-        aria-describedby={errorMessage ? errorId : undefined}
+        aria-describedby={
+          [props["aria-describedby"], errorMessage ? errorId : null]
+            .filter(Boolean)
+            .join(" ") || undefined
+        }
         aria-invalid={invalid || undefined}
         className="input--base"
         id={inputId}
