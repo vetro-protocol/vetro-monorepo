@@ -66,6 +66,13 @@ const rpcConnectSrc = (import.meta.env.VITE_RPC_URL_MAINNET ?? "")
   .split("+")
   .join(" ");
 
+// In dev mode, Vite injects an inline React Fast Refresh preamble script, so
+// 'unsafe-inline' is required.
+const scriptSrc = [
+  "'self'",
+  ...(import.meta.env.DEV ? ["'unsafe-inline'"] : []),
+].join(" ");
+
 const csp = [
   "base-uri 'none'",
   // The DEX tab reads Curve liquidity straight from the Curve API (pool list /
@@ -80,7 +87,7 @@ const csp = [
   // Token logos come from the Hemilabs token list (GitHub Pages), falling back
   // to the Curve/Sushi asset CDNs (jsDelivr).
   "img-src 'self' data: https://hemilabs.github.io https://cdn.jsdelivr.net",
-  "script-src 'self'",
+  `script-src ${scriptSrc}`,
   // Tailwind v4 injects styles via a <style> tag, so 'unsafe-inline' is needed.
   "style-src 'self' 'unsafe-inline'",
   "upgrade-insecure-requests",
@@ -90,8 +97,9 @@ const csp = [
 // Applied to all responses – these have meaningful effect on sub-resources.
 const commonHeaders = {
   "Content-Security-Policy": "default-src 'none'",
+  "Cross-Origin-Embedder-Policy": "credentialless",
   "Cross-Origin-Resource-Policy": "same-origin",
-  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Referrer-Policy": "no-referrer",
   "X-Content-Type-Options": "nosniff",
 };
 
