@@ -1,8 +1,8 @@
-import type { BridgeableToken, Token } from "types";
+import type { BridgeableToken, NativeToken, Token } from "types";
 import { formatUnits, parseUnits as viemParseUnits } from "viem";
 
 export const getTokenPrice = function (
-  token: Token,
+  token: NativeToken | Token,
   prices: Record<string, string> | undefined,
 ) {
   const priceSymbol = (
@@ -20,6 +20,9 @@ export const getTokenPrice = function (
  * @returns The parsed token amount in the smallest unit.
  */
 export const parseTokenUnits = function (amount: string, token: Token) {
+  if (!amount) {
+    return 0n;
+  }
   const [whole, fraction] = amount.split(".");
   const truncatedFraction = fraction?.slice(0, token.decimals);
   const normalizedAmount = truncatedFraction

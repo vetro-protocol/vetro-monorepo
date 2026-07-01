@@ -29,9 +29,6 @@
     "try-different-search": "Intente con un término de búsqueda diferente",
     "wallet-disclaimer": "Al conectar una billetera, usted acepta los <terms>Términos de uso</terms> de Vetro y consiente su <privacy>Política de privacidad</privacy>."
   },
-  "language": {
-    "switch-to": "Cambiar a Inglés"
-  },
   "nav": {
     "analytics": "Analíticas",
     "borrow": "Préstamos",
@@ -42,9 +39,11 @@
       "docs": "Documentación",
       "homepage": "Inicio",
       "linkedin": "LinkedIn",
+      "need-help": "¿Necesita ayuda?",
       "open": "Abrir menú",
       "privacy-policy": "Política de privacidad",
       "socials": "Redes sociales",
+      "submit-request": "Enviar una solicitud",
       "terms-of-use": "Términos de uso",
       "x": "X"
     },
@@ -105,7 +104,6 @@
       "drop-from-price": "{{percentage}} desde ${{price}}",
       "effective-interest": "Interés efectivo",
       "effective-interest-tooltip": "La tasa anual real que paga después de descuentos. Es la tasa base menos cualquier reembolso al que califique.",
-      "enter-amount": "Ingrese un monto",
       "has-position-description": "Esta dirección ya tiene una posición de préstamo activa. Cambie de billetera o gestione su posición existente.",
       "has-position-title": "Ya tiene una posición abierta",
       "health-factor": "Factor de salud",
@@ -153,7 +151,6 @@
         "title": "Pagar préstamo",
         "toast-description": "{{amount}} {{symbol}} pagados.",
         "toast-title": "Préstamo pagado",
-        "total-loan": "Préstamo total",
         "you-will-repay": "Pagará"
       },
       "supply-collateral-and-borrow": "Depositar garantía y pedir prestado",
@@ -165,7 +162,6 @@
         "supply-description": "Confirme el depósito de garantía a su posición de préstamo.",
         "supply-progress": "Progreso del depósito",
         "supply-title": "Depositar garantía",
-        "title": "Depósito en progreso",
         "toast-description": "{{amount}} {{symbol}} depositados como garantía.",
         "toast-title": "Garantía depositada",
         "you-will-supply": "Depositará"
@@ -220,7 +216,6 @@
         "waiting-description": "Estamos esperando que los fondos lleguen desde la red de origen — esto puede tardar unos minutos.",
         "waiting-title": "Esperando que lleguen los fondos"
       },
-      "select-chain": "Seleccionar red",
       "select-from-chain": "Seleccionar red de origen",
       "select-to-chain": "Seleccionar red de destino",
       "title": "Transfiera activos entre redes",
@@ -317,7 +312,6 @@
         "deposit-toast-title": "Depósito de stake confirmado",
         "depositing": "Depositando...",
         "fees-label": "Haciendo stake de {{amount}} {{token}}",
-        "how-withdrawals-work": "Cómo funcionan los retiros",
         "instant-withdraw": "Retirar",
         "instant-withdraw-step-description": "Revise los detalles y confirme el retiro en su billetera.",
         "instant-withdraw-step-title": "Confirmar retiro",
@@ -328,7 +322,6 @@
         "request-withdrawal": "Solicitar retiro",
         "requesting": "Solicitando...",
         "withdraw": "Retirar",
-        "withdraw-coming-soon": "Retiro próximamente",
         "withdraw-progress": "Progreso del retiro",
         "withdraw-step-1-description": "Inicie el proceso de retiro. Sus fondos estarán bloqueados en un período de espera y ya no generarán rendimiento.",
         "withdraw-step-1-title": "Solicitar retiro",
@@ -374,8 +367,7 @@
         "swap-text": "{{fromAmount}} {{fromSymbol}} a {{toAmount}} {{toSymbol}}"
       },
       "fees": {
-        "fixed-protocol-fee": "Tarifa de Protocolo Fija",
-        "oracle-deviation-fee": "Tarifa de Desviación del Oráculo"
+        "fixed-protocol-fee": "Tarifa de Protocolo Fija"
       },
       "form": {
         "allowance-error": "No se pudo cargar el monto autorizado",
@@ -424,7 +416,6 @@
         "ready-to-redeem": "Listo para canjear",
         "redeem": "Canjear",
         "redeem-confirmed": "Canje confirmado",
-        "redeem-progress": "Progreso del canje",
         "redeemable-balance": "Saldo canjeable",
         "status": "Estado",
         "swap-confirmed-description": "Su {{symbol}} ahora está disponible en su billetera",

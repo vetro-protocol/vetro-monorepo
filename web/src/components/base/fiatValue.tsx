@@ -2,7 +2,7 @@ import { type QueryStatus } from "@tanstack/react-query";
 import { usePrices } from "hooks/usePrices";
 import { type ComponentProps } from "react";
 import Skeleton from "react-loading-skeleton";
-import type { Token } from "types";
+import type { NativeToken, Token } from "types";
 import { formatFiatNumber } from "utils/format";
 import { getTokenPrice } from "utils/token";
 import { formatUnits } from "viem";
@@ -17,7 +17,7 @@ const RenderFiatValueUnsafe = function ({
 }: {
   customFormatter?: (amount: string) => string;
   queryStatus?: QueryStatus;
-  token: Token | undefined;
+  token: NativeToken | Token | undefined;
   value: bigint | undefined;
 }) {
   const { data: pricesData, status: pricesStatus } = usePrices();

@@ -18,8 +18,10 @@ onlyBuiltDependencies: []
 # Remove this once relay-auth ships a release that doesn't pin those:
 # https://github.com/WalletConnect/walletconnect-utils/pull/244
 overrides:
-  "@noble/hashes@1.7.0": "1.8.0"
   "@noble/curves@1.8.0": "1.8.1"
+  "@noble/hashes@1.7.0": "1.8.0"
+  "axios": "^1.18.0"
+  "gluegun@5.2.0": "5.2.2"
 
 packages:
   - "api"

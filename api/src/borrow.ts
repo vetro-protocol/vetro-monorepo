@@ -87,11 +87,9 @@ export async function getAprHistory({
 /**
  * Gets the amount of collateral assets in a given Morpho market.
  */
-export async function getCollateralAssets({
-  marketId,
-}: {
-  marketId: string;
-}): Promise<{ collateralAssets: number }> {
+export async function getCollateralAssets(
+  marketId: string,
+): Promise<{ collateralAssets: number }> {
   const collateralAssets = await morpho.getCollateralAssets({ marketId });
   return { collateralAssets };
 }

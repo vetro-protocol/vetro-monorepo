@@ -1,5 +1,6 @@
 import { type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import { featureFlags } from "utils/featureFlags";
 
 import { ButtonIcon } from "./base/button";
 import { Dropdown } from "./base/dropdown";
@@ -10,6 +11,7 @@ import { ExternalLinkIcon } from "./icons/externalLinkIcon";
 import { HomeIcon } from "./icons/homeIcon";
 import { LinkedInIcon } from "./icons/linkedInIcon";
 import { QuestionMarkCircleIcon } from "./icons/questionMarkCircleIcon";
+import { SubmitRequestIcon } from "./icons/submitRequestIcon";
 import { XIcon } from "./icons/xIcon";
 
 const triggerId = "header-menu-trigger";
@@ -47,6 +49,20 @@ export function HeaderMenu() {
         },
       ],
     },
+    ...(featureFlags.contactForm
+      ? [
+          {
+            items: [
+              {
+                icon: <SubmitRequestIcon className={itemIconClassName} />,
+                label: t("nav.header-menu.submit-request"),
+                to: "/contact",
+              },
+            ],
+            label: t("nav.header-menu.need-help"),
+          },
+        ]
+      : []),
     {
       items: [
         {

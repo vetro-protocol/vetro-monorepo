@@ -11,6 +11,7 @@ import { getChainById } from "networks";
 import { type ComponentProps } from "react";
 import { useTranslation } from "react-i18next";
 import type { BridgeableToken } from "types";
+import { getNativeToken } from "utils/nativeToken";
 
 import { BridgeFees } from "./bridgeFees";
 import { TokenChainLogo } from "./tokenChainLogo";
@@ -154,6 +155,7 @@ export function BridgeSubmitDrawer({
         <DrawerFeesContainer>
           <BridgeFees
             layerZeroFee={layerZeroFee}
+            nativeToken={getNativeToken(fromChain)}
             networkFee={networkFee}
             total={total}
           />
