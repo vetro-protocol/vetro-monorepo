@@ -36,6 +36,13 @@ export const stakingVaultAbi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "owner",
+    outputs: [{ type: "address" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [{ name: "account_", type: "address" }],
     name: "getActiveRequestIds",
     outputs: [{ type: "uint256[]" }],
@@ -141,6 +148,24 @@ export const stakingVaultAbi = [
       { name: "requestId", type: "uint256" },
       { name: "shares", type: "uint256" },
     ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  // Owner Functions
+  {
+    inputs: [{ name: "enabled_", type: "bool" }],
+    name: "updateCooldownEnabled",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "account_", type: "address" },
+      { name: "status_", type: "bool" },
+    ],
+    name: "updateInstantWithdrawWhitelist",
+    outputs: [],
     stateMutability: "nonpayable",
     type: "function",
   },

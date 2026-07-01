@@ -1,12 +1,29 @@
-import { TEST_ADDRESS } from "@hemilabs/anvil-fork-setup/utils";
+import {
+  TEST_ADDRESS,
+  TEST_PRIVATE_KEY,
+} from "@hemilabs/anvil-fork-setup/utils";
 import { expect } from "@playwright/test";
-import { parseAbiItem, parseEventLogs, parseUnits } from "viem";
-import { getTransactionReceipt } from "viem/actions";
-import { balanceOf } from "viem-erc20/actions";
+import {
+  createWalletClient,
+  http,
+  parseAbiItem,
+  parseEventLogs,
+  parseUnits,
+} from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import {
+  getTransactionReceipt,
+  waitForTransactionReceipt,
+  writeContract,
+} from "viem/actions";
+import { mainnet } from "viem/chains";
+import { approve, balanceOf } from "viem-erc20/actions";
 
+import { stakingVaultAbi } from "../../packages/earn/src/abi/stakingVaultAbi.ts";
 import { sVusdAddress } from "../../packages/earn/src/stakingVaultAddresses.ts";
+import { whitelistInstantWithdraw } from "../scripts/whitelistInstantWithdraw.ts";
 
-import { createEthereumClient } from "./anvil";
+import { ANVIL_URL, createEthereumClient } from "./anvil";
 import { test } from "./fixtures/wallet";
 import { getMainnetToken, waitForBalance } from "./helpers";
 
@@ -153,4 +170,136 @@ test("deposit VUSD into the Earn pool", async function ({
   await expect(page.getByText(/\([\d.,]+\s*VUSD\)/)).toBeVisible({
     timeout: 10_000,
   });
+});
+
+const WITHDRAW_DISPLAY = "3";
+const WITHDRAW_AMOUNT = parseUnits(WITHDRAW_DISPLAY, vusd.decimals);
+
+// The instant (one-step) withdraw is a plain ERC-4626 withdraw, which emits the
+// standard Withdraw(sender, receiver, owner, assets, shares). `assets` is the
+// VUSD paid out to the receiver and `shares` the sVUSD burned — both read
+// straight off the withdraw tx, no block-range scan.
+const withdrawEvent = parseAbiItem(
+  "event Withdraw(address indexed sender, address indexed receiver, address indexed owner, uint256 assets, uint256 shares)",
+);
+
+// Give the test account a real staked position by actually depositing VUSD into
+// the vault (approve + deposit) as the test account, signing directly against
+// Anvil rather than through the browser mock wallet. A real deposit leaves the
+// vault holding the underlying VUSD, so the later withdraw can pay out — minting
+// sVUSD via storage would leave the vault unbacked and the withdraw would revert.
+async function stakeVusd(assets: bigint) {
+  const walletClient = createWalletClient({
+    account: privateKeyToAccount(TEST_PRIVATE_KEY),
+    chain: mainnet,
+    transport: http(ANVIL_URL),
+  });
+
+  const approvalHash = await approve(walletClient, {
+    address: vusd.address,
+    amount: assets,
+    spender: sVusdAddress,
+  });
+  await waitForTransactionReceipt(walletClient, { hash: approvalHash });
+
+  const depositHash = await writeContract(walletClient, {
+    abi: stakingVaultAbi,
+    address: sVusdAddress,
+    args: [assets, TEST_ADDRESS],
+    functionName: "deposit",
+  });
+  await waitForTransactionReceipt(walletClient, { hash: depositHash });
+}
+
+test("withdraw VUSD from the Earn pool (whitelisted one-step exit)", async function ({
+  page,
+  walletTxHashes,
+}) {
+  const publicClient = createEthereumClient();
+
+  await stakeVusd(DEPOSIT_AMOUNT);
+  await whitelistInstantWithdraw({ address: TEST_ADDRESS, forkUrl: ANVIL_URL });
+
+  const [vusdBefore, svusdBefore] = await Promise.all([
+    balanceOf(publicClient, {
+      account: TEST_ADDRESS,
+      address: vusd.address,
+    }),
+    balanceOf(publicClient, {
+      account: TEST_ADDRESS,
+      address: sVusdAddress,
+    }),
+  ]);
+
+  await page.goto("/");
+
+  await expect(
+    page.getByRole("button", { name: /^0x[a-f0-9]{4}/i }),
+  ).toBeVisible({ timeout: 30_000 });
+
+  await page.getByRole("link", { name: "Earn" }).click();
+  await expect(page).toHaveURL(/\/en\/earn/);
+
+  // Scope to the VUSD pool bar and open its Withdraw drawer. The bar is the only
+  // element holding both the "VUSD" label and a Withdraw button; `.last()` picks
+  // that innermost match rather than an ancestor container.
+  const vusdPool = page
+    .locator("div")
+    .filter({ has: page.getByText("VUSD", { exact: true }) })
+    .filter({ has: page.getByRole("button", { name: "Withdraw" }) })
+    .last();
+  await vusdPool.getByRole("button", { name: "Withdraw" }).click();
+
+  // The drawer slides in directly in withdraw mode.
+  await expect(
+    page.getByRole("heading", { name: "Manage your stake position" }),
+  ).toBeVisible();
+
+  await expect(page.getByText("Confirm withdrawal")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Request withdrawal" }),
+  ).toBeHidden();
+
+  await page
+    .locator('input[type="text"]:not([disabled])')
+    .first()
+    .fill(WITHDRAW_DISPLAY);
+
+  const submitButton = page
+    .locator("form")
+    .getByRole("button", { exact: true, name: "Withdraw" });
+  await expect(submitButton).toBeEnabled();
+  await submitButton.dispatchEvent("click");
+
+  await expect(page.getByText("Withdrawal complete")).toBeVisible({
+    timeout: 40_000,
+  });
+
+  const withdrawTxHash = walletTxHashes.at(-1);
+  expect(withdrawTxHash).toBeDefined();
+  const receipt = await getTransactionReceipt(publicClient, {
+    hash: withdrawTxHash!,
+  });
+  const withdrawLogs = parseEventLogs({
+    abi: [withdrawEvent],
+    args: { owner: TEST_ADDRESS },
+    eventName: "Withdraw",
+    logs: receipt.logs,
+  });
+  expect(withdrawLogs).toHaveLength(1);
+  const { assets: vusdWithdrawn, shares: svusdBurned } = withdrawLogs[0].args;
+  expect(vusdWithdrawn).toBe(WITHDRAW_AMOUNT);
+  expect(svusdBurned).toBeGreaterThan(0n);
+
+  // Assertion — VUSD balance rose by exactly the withdrawn assets and sVUSD
+  // dropped by exactly the burned shares.
+  await waitForBalance({ client: publicClient, token: vusd.address }).toBe(
+    vusdBefore + vusdWithdrawn,
+  );
+
+  const svusdAfter = await balanceOf(publicClient, {
+    account: TEST_ADDRESS,
+    address: sVusdAddress,
+  });
+  expect(svusdBefore - svusdBurned).toBe(svusdAfter);
 });
