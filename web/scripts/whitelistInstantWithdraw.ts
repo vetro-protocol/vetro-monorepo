@@ -57,11 +57,6 @@ export async function whitelistInstantWithdraw({
     }),
   ]);
 
-  if (isWhitelisted) {
-    console.log(`${address} is already whitelisted for instant withdraw.`);
-    return;
-  }
-
   await impersonateAccount(testClient, { address: owner });
   await setBalance(testClient, { address: owner, value: parseEther("1") });
 
@@ -78,14 +73,18 @@ export async function whitelistInstantWithdraw({
     });
     await waitForTransactionReceipt(publicClient, { hash: enableHash });
 
-    const whitelistHash = await writeContract(testClient, {
-      abi: stakingVaultAbi,
-      account: owner,
-      address: vaultAddress,
-      args: [address, true],
-      functionName: "updateInstantWithdrawWhitelist",
-    });
-    await waitForTransactionReceipt(publicClient, { hash: whitelistHash });
+    if (isWhitelisted) {
+      console.log(`${address} is already whitelisted for instant withdraw.`);
+    } else {
+      const whitelistHash = await writeContract(testClient, {
+        abi: stakingVaultAbi,
+        account: owner,
+        address: vaultAddress,
+        args: [address, true],
+        functionName: "updateInstantWithdrawWhitelist",
+      });
+      await waitForTransactionReceipt(publicClient, { hash: whitelistHash });
+    }
   } finally {
     await stopImpersonatingAccount(testClient, { address: owner });
   }
