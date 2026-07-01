@@ -19,6 +19,8 @@ export type Token = {
   symbol: string;
 };
 
+export type NativeToken = Omit<Token, "address">;
+
 export type TokenWithGateway = Token & { gatewayAddress: Address };
 
 export type BridgeableToken = Token & {

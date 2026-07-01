@@ -2,6 +2,7 @@ import { FeeDetails } from "components/feeDetails";
 import { FeesContainer } from "components/feesContainer";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import type { Token } from "types";
 import { formatFiatNumber } from "utils/format";
 
 const DollarSign = () => <span>$</span>;
@@ -17,6 +18,7 @@ type FeeData = {
 
 type Props = {
   layerZeroFee: FeeData;
+  nativeToken: Pick<Token, "logoURI" | "symbol">;
   networkFee: FeeData;
   sectionClassName?: string;
   total: FeeData;
@@ -24,6 +26,7 @@ type Props = {
 
 export function BridgeFees({
   layerZeroFee,
+  nativeToken,
   networkFee,
   sectionClassName,
   total,
@@ -48,12 +51,14 @@ export function BridgeFees({
         className={sectionClassName}
         isError={networkFee.isError}
         label={t("common.network-fee")}
+        token={nativeToken}
         value={renderFiat(networkFee.data)}
       />
       <FeeDetails
         className={sectionClassName}
         isError={layerZeroFee.isError}
         label={t("pages.bridge.fees.layerzero-fee")}
+        token={nativeToken}
         value={renderFiat(layerZeroFee.data)}
       />
     </FeesContainer>

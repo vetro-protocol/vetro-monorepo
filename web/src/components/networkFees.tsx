@@ -1,9 +1,11 @@
 import type { FetchStatus, QueryStatus } from "@tanstack/react-query";
 import { FeeDetails } from "components/feeDetails";
 import { FeesContainer } from "components/feesContainer";
+import { mainnet } from "networks/mainnet";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { formatFiatNumber } from "utils/format";
+import { getNativeToken } from "utils/nativeToken";
 
 type Props = {
   label?: ReactNode;
@@ -21,6 +23,7 @@ export const NetworkFees = function ({
   sectionClassName,
 }: Props) {
   const { t } = useTranslation();
+  const nativeToken = getNativeToken(mainnet);
 
   const formattedFee =
     networkFee.data !== undefined
@@ -43,6 +46,7 @@ export const NetworkFees = function ({
         isError={isError}
         isIdle={isIdle}
         label={t("common.network-fee")}
+        token={nativeToken}
         value={formattedFee}
       />
     </FeesContainer>
