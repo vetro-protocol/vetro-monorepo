@@ -42,6 +42,7 @@ export const Input = function ({
         <p
           className="text-b-regular text-rose-600 transition-colors group-focus-within/input:text-gray-500"
           id={errorId}
+          role="alert"
         >
           {errorMessage}
         </p>
