@@ -3,6 +3,17 @@ import {
   getDefaultConfig,
   RainbowKitProvider,
 } from "@rainbow-me/rainbowkit";
+import {
+  binanceWallet,
+  // coinbaseWallet is deprecated in favor of baseAccount (no removal date
+  // announced). baseAccount is a different UX (passkey-based smart wallet, no
+  // extension/QR support), so this is a product decision, not a simple rename.
+  coinbaseWallet,
+  metaMaskWallet,
+  rainbowWallet,
+  safeWallet,
+  walletConnectWallet,
+} from "@rainbow-me/rainbowkit/wallets";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Trans } from "react-i18next";
 import { http, WagmiProvider } from "wagmi";
@@ -15,6 +26,19 @@ export const config = getDefaultConfig({
   chains: allChains,
   projectId: import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID,
   transports: Object.fromEntries(allChains.map((chain) => [chain.id, http()])),
+  wallets: [
+    {
+      groupName: "Popular",
+      wallets: [
+        safeWallet,
+        metaMaskWallet,
+        binanceWallet,
+        coinbaseWallet,
+        rainbowWallet,
+        walletConnectWallet,
+      ],
+    },
+  ],
 });
 
 const queryClient = new QueryClient();
