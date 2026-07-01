@@ -22,7 +22,9 @@ import { ExternalLink } from "../components/base/externalLink";
 import { allChains } from "../networks";
 
 export const config = getDefaultConfig({
+  appIcon: "https://app.vetro.org/vetroLogo.png",
   appName: "Vetro",
+  appUrl: "https://app.vetro.org",
   chains: allChains,
   projectId: import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID,
   transports: Object.fromEntries(allChains.map((chain) => [chain.id, http()])),
