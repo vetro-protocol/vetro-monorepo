@@ -187,35 +187,6 @@ async function getBacking({
   };
 }
 
-/**
- * The strategic reserves are the mark-to-market value of yield-bearing
- * receipts held by the Treasury, the UMM role and the Operator (multisig).
- * The protocol surplus is any pegged token held in the Treasury, UMM or
- * YieldDistributor.
- *
- * This is useful to understand the health of the protocol and its ability to
- * cover redemptions for the given gateway's pegged token.
- */
-export async function getPeggedTokenBacking({
-  gatewayAddress,
-  url,
-}: {
-  gatewayAddress: Address;
-  url: string | undefined;
-}) {
-  const client = createMainnetClient(url);
-  const [peggedTokenAddress, treasuryAddress] = await Promise.all([
-    getPeggedToken(client, { address: gatewayAddress }),
-    getTreasury(client, { address: gatewayAddress }),
-  ]);
-  return getBacking({
-    client,
-    gatewayAddress,
-    peggedTokenAddress,
-    treasuryAddress,
-  });
-}
-
 // Converts the Treasury's whitelisted-token holdings into their pegged-token
 // equivalent using the gateway's on-chain previewRedeem rate, mirroring the
 // frontend's previous client-side calculation. A token whose redeem rate is
