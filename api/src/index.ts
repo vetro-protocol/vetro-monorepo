@@ -34,28 +34,6 @@ app.use("*", async function (c, next) {
 app.use("*", securityHeaders);
 
 app.get(
-  "/analytics/pegged-token-backing/:gatewayAddress",
-  validateGatewayAddress,
-  cache({
-    cacheControl: "max-age=15, stale-while-revalidate=45",
-    cacheName: "vetro-api",
-  }),
-  async function (c) {
-    try {
-      const url = c.env.CUSTOM_RPC_URL_MAINNET;
-      const gatewayAddress = c.get("gatewayAddress");
-      const data = await analytics.getPeggedTokenBacking({
-        gatewayAddress,
-        url,
-      });
-      return c.json(convertBigIntsToString(data));
-    } catch (error) {
-      throw new Error(`Failed to get pegged token backing: ${error.message}`);
-    }
-  },
-);
-
-app.get(
   "/analytics/collateralization-ratio/:gatewayAddress",
   validateGatewayAddress,
   cache({
