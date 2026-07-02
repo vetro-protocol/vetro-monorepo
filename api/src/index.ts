@@ -22,6 +22,8 @@ import { getTotalDepositsHistory } from "./total-deposits-history.ts";
 import { createOriginFn, parseOrigins } from "./validate-origin.ts";
 import * as variableStake from "./variable-stake.ts";
 import { validPeriods as vaultHistoryValidPeriods } from "./vault-history-period.ts";
+import { readWarmedTask, warmScheduled } from "./warm-cache.ts";
+import { treasuryTask, warmTasks } from "./warm-tasks.ts";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -126,13 +128,13 @@ app.get(
   }),
   async function (c) {
     try {
-      const url = c.env.CUSTOM_RPC_URL_MAINNET;
       const gatewayAddress = c.get("gatewayAddress");
-      const data = await analytics.getTreasuryComposition({
-        gatewayAddress,
-        url,
+      const data = await readWarmedTask({
+        c,
+        item: gatewayAddress,
+        task: treasuryTask,
       });
-      return c.json(convertBigIntsToString(data));
+      return c.json(data);
     } catch (error) {
       throw new Error(`Failed to get treasury composition: ${error.message}`);
     }
@@ -403,11 +405,22 @@ app.onError(function (error, c) {
   return c.json({ error: "Internal Server Error" }, 500);
 });
 
+const handler = Object.assign(app, {
+  async scheduled(event: ScheduledController, env: Env) {
+    await warmScheduled({
+      cron: event.cron,
+      env,
+      kv: env.CACHE_KV,
+      tasks: warmTasks,
+    });
+  },
+}) satisfies ExportedHandler<Env>;
+
 export default Sentry.withSentry(
   (env: Env) => ({
     dsn: env.SENTRY_DSN,
     enableLogs: true,
     environment: "production",
   }),
-  app,
+  handler,
 );
