@@ -9,6 +9,7 @@ import { Analytics } from "pages/analytics";
 import { Borrow } from "pages/borrow";
 import { BorrowMarketDetails } from "pages/borrowMarketDetails";
 import { Bridge } from "pages/bridge";
+import { Contact } from "pages/contact";
 import { Earn } from "pages/earn";
 import { ErrorPage } from "pages/errorPage";
 import { Faq } from "pages/faq";
@@ -23,6 +24,7 @@ import {
   Routes,
   useLocation,
 } from "react-router";
+import { featureFlags } from "utils/featureFlags";
 
 const SentryRoutes = Sentry.withSentryReactRouterV7Routing(Routes);
 
@@ -76,6 +78,9 @@ function LanguageRoutes() {
             <Route element={<Bridge />} path="bridge" />
             <Route element={<Analytics />} path="analytics" />
             <Route element={<Faq />} path="faq" />
+            {featureFlags.contactForm && (
+              <Route element={<Contact />} path="contact" />
+            )}
           </Route>
           <Route
             element={
