@@ -13,7 +13,7 @@ const SCALE_FACTOR = 0.05;
 const STACK_OFFSET = 12;
 
 const positions = {
-  "bottom-center": "fixed bottom-4 left-1/2 z-40 w-72 -translate-x-1/2",
+  "bottom-center": "fixed bottom-4 left-1/2 z-40 w-80 -translate-x-1/2",
   "bottom-right":
     "fixed inset-x-4 bottom-4 z-40 md:inset-x-auto md:right-4 md:w-96",
 } as const;
