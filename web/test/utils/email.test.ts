@@ -26,4 +26,9 @@ describe("isValidEmail", function () {
     expect(isValidEmail("john@email.com ")).toBe(false);
     expect(isValidEmail("john @email.com")).toBe(false);
   });
+
+  it("should reject a value with multiple @ characters", function () {
+    expect(isValidEmail("john@@email.com")).toBe(false);
+    expect(isValidEmail("john@a@email.com")).toBe(false);
+  });
 });
