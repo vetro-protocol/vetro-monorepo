@@ -3,12 +3,16 @@ import { CloseIcon } from "components/icons/closeIcon";
 import { Stack } from "../stack";
 
 import { CheckCircleIcon } from "./checkCircleIcon";
+import { ErrorCircleIcon } from "./errorCircleIcon";
+
+type ToastVariant = "error" | "success";
 
 export type ToastData = {
   closable?: boolean;
   description?: string;
   id: number | string;
   title: string;
+  variant?: ToastVariant;
 };
 
 type ToasterProps = {
@@ -23,6 +27,7 @@ type ToastProps = {
   description?: string;
   onClose: VoidFunction;
   title: string;
+  variant?: ToastVariant;
 };
 
 const ToastCard = ({
@@ -30,15 +35,21 @@ const ToastCard = ({
   description,
   onClose,
   title,
+  variant = "success",
 }: {
   closable?: boolean;
   description?: string;
   onClose: VoidFunction;
   title: string;
+  variant?: ToastVariant;
 }) => (
   <div className="group flex items-start gap-3 rounded-lg bg-gray-950 p-3 pr-4">
     <div className="flex h-5 shrink-0 items-center">
-      <CheckCircleIcon className="size-4 text-blue-500" />
+      {variant === "error" ? (
+        <ErrorCircleIcon className="size-4 text-rose-500" />
+      ) : (
+        <CheckCircleIcon className="size-4 text-blue-500" />
+      )}
     </div>
     <div className="flex min-w-0 flex-1 flex-col gap-0.5">
       <p className="text-sm leading-5 font-medium text-gray-50">{title}</p>
@@ -76,10 +87,11 @@ export const Toast = ({
   description,
   onClose,
   title,
+  variant,
 }: ToastProps) => (
   <Toaster
     autoCloseMs={autoCloseMs}
     onClose={onClose}
-    toasts={[{ closable, description, id: "toast", title }]}
+    toasts={[{ closable, description, id: "toast", title, variant }]}
   />
 );
