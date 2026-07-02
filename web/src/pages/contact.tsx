@@ -11,7 +11,7 @@ export function Contact() {
     <div className="flex flex-col items-center">
       <PageTitle value={t("pages.contact.title")} />
       <ContactForm />
-      <p className="text-caption mt-4 text-sm text-gray-500">
+      <p className="text-caption mt-4 text-gray-500">
         <Trans
           components={{
             emailLink: (
