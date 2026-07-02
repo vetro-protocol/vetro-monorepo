@@ -224,6 +224,33 @@
         "bridge-title": "Transferencia confirmada"
       }
     },
+    "contact": {
+      "email-us-directly": "O escríbanos directamente a <emailLink>{{email}}</emailLink>",
+      "form": {
+        "category-error": "Por favor, seleccione un tema.",
+        "category-label": "¿De qué se trata?",
+        "email-error": "Por favor, ingrese una dirección de correo electrónico válida.",
+        "email-label": "Su dirección de correo electrónico",
+        "message-error": "Por favor, describa qué pasó.",
+        "message-helper": "Por favor, ingrese todos los detalles que pueda.",
+        "message-label": "¿Qué pasó?",
+        "message-placeholder": "Describa qué pasó. Incluya el tipo de operación y el hash de la transacción si los tiene.",
+        "submit": "Obtener ayuda",
+        "submitting": "Obteniendo ayuda...",
+        "topic-bridge": "Puente",
+        "topic-earn": "Earn",
+        "topic-other": "Otro",
+        "topic-placeholder": "Seleccione un tema",
+        "topic-swap": "Intercambios"
+      },
+      "title": "Cuéntenos qué pasó para que podamos ayudarle",
+      "toast": {
+        "error-description": "Su solicitud no se envió. Inténtelo de nuevo.",
+        "error-title": "Algo salió mal",
+        "success-description": "Nos pondremos en contacto con usted en breve.",
+        "success-title": "La ayuda está en camino"
+      }
+    },
     "earn": {
       "activity": {
         "cancel-withdraw-text": "Exit ticket de {{amount}} {{symbol}} eliminado",

@@ -12,7 +12,7 @@ import {
 import { createPortal } from "react-dom";
 
 type DropdownSection<T> = {
-  items: T[];
+  items: readonly T[];
   label?: string;
 };
 
@@ -38,7 +38,7 @@ type ItemWrapperProps<T> = {
 
 type BaseProps<T> = {
   getItemKey: (item: T) => string;
-  items?: T[];
+  items?: readonly T[];
   matchTriggerWidth?: boolean;
   menuLabel?: string;
   renderItem: (item: T, isSelected: boolean) => ReactNode;
