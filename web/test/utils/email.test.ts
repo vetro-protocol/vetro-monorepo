@@ -20,4 +20,10 @@ describe("isValidEmail", function () {
     expect(isValidEmail("@email.com")).toBe(false);
     expect(isValidEmail("john@")).toBe(false);
   });
+
+  it("should reject values with whitespace", function () {
+    expect(isValidEmail(" john@email.com")).toBe(false);
+    expect(isValidEmail("john@email.com ")).toBe(false);
+    expect(isValidEmail("john @email.com")).toBe(false);
+  });
 });
