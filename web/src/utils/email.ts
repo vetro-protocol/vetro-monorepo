@@ -4,4 +4,4 @@
  * not attempt strict RFC 5322 validation. Whether an address actually exists
  * and can receive mail can only be confirmed by sending an email to it.
  */
-export const isValidEmail = (value: string) => /.+@.+/.test(value);
+export const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+$/.test(value);
