@@ -23,7 +23,12 @@ import { createOriginFn, parseOrigins } from "./validate-origin.ts";
 import * as variableStake from "./variable-stake.ts";
 import { validPeriods as vaultHistoryValidPeriods } from "./vault-history-period.ts";
 import { readWarmedTask, warmScheduled } from "./warm-cache.ts";
-import { treasuryTask, warmTasks } from "./warm-tasks.ts";
+import {
+  collateralizationRatioTask,
+  treasuryTask,
+  tvlTask,
+  warmTasks,
+} from "./warm-tasks.ts";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -39,18 +44,18 @@ app.get(
   "/analytics/collateralization-ratio/:gatewayAddress",
   validateGatewayAddress,
   cache({
-    cacheControl: "max-age=300",
+    cacheControl: "max-age=60",
     cacheName: "vetro-api",
   }),
   async function (c) {
     try {
-      const url = c.env.CUSTOM_RPC_URL_MAINNET;
       const gatewayAddress = c.get("gatewayAddress");
-      const data = await analytics.getCollateralizationRatio({
-        gatewayAddress,
-        url,
+      const data = await readWarmedTask({
+        c,
+        item: gatewayAddress,
+        task: collateralizationRatioTask,
       });
-      return c.json(convertBigIntsToString(data));
+      return c.json(data);
     } catch (error) {
       throw new Error(
         `Failed to get collateralization ratio: ${error.message}`,
@@ -68,10 +73,13 @@ app.get(
   }),
   async function (c) {
     try {
-      const url = c.env.CUSTOM_RPC_URL_MAINNET;
       const gatewayAddress = c.get("gatewayAddress");
-      const data = await analytics.getTvl({ gatewayAddress, url });
-      return c.json(convertBigIntsToString(data));
+      const data = await readWarmedTask({
+        c,
+        item: gatewayAddress,
+        task: tvlTask,
+      });
+      return c.json(data);
     } catch (error) {
       throw new Error(`Failed to get TVL: ${error.message}`);
     }

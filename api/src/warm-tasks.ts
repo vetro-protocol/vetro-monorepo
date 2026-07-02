@@ -1,7 +1,11 @@
 import { gatewayAddresses } from "@vetro-protocol/gateway";
 import type { Address } from "viem";
 
-import { getTreasuryComposition } from "./analytics.ts";
+import {
+  getCollateralizationRatio,
+  getTreasuryComposition,
+  getTvl,
+} from "./analytics.ts";
 import { convertBigIntsToString } from "./convert-bigints-to-string.ts";
 import type { WarmTask } from "./warm-cache.ts";
 
@@ -17,4 +21,29 @@ export const treasuryTask: WarmTask<Address> = {
     }).then(convertBigIntsToString),
 };
 
-export const warmTasks = [treasuryTask];
+// Warms `GET /analytics/collateralization-ratio/:gatewayAddress`
+export const collateralizationRatioTask: WarmTask<Address> = {
+  cron: "*/5 * * * *",
+  items: gatewayAddresses,
+  key: (gatewayAddress) =>
+    `analytics:collateralization-ratio:${gatewayAddress}`,
+  produce: (gatewayAddress, env) =>
+    getCollateralizationRatio({
+      gatewayAddress,
+      url: env.CUSTOM_RPC_URL_MAINNET,
+    }).then(convertBigIntsToString),
+};
+
+// Warms `GET /analytics/tvl/:gatewayAddress`
+export const tvlTask: WarmTask<Address> = {
+  cron: "* * * * *",
+  items: gatewayAddresses,
+  key: (gatewayAddress) => `analytics:tvl:${gatewayAddress}`,
+  produce: (gatewayAddress, env) =>
+    getTvl({
+      gatewayAddress,
+      url: env.CUSTOM_RPC_URL_MAINNET,
+    }).then(convertBigIntsToString),
+};
+
+export const warmTasks = [treasuryTask, collateralizationRatioTask, tvlTask];

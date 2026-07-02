@@ -22,8 +22,12 @@
       "id": "00000000000000000000000000000000",
     },
   ],
+  // Inherited by all environments
   "triggers": {
-    "crons": ["* * * * *"],
+    "crons": [
+      "* * * * *", // every minute
+      "*/5 * * * *", // every 5 minutes
+    ],
   },
   "vars": {
     "MERKL_OPPORTUNITY_SVETBTC": "",
@@ -40,9 +44,6 @@
           "id": "6178978b72a04fff9d90d9f994787ba3",
         },
       ],
-      "triggers": {
-        "crons": ["* * * * *"],
-      },
       "vars": {
         "CUSTOM_RPC_URL_MAINNET": "https://eth.drpc.org",
         "ORIGINS": "https://*.letshamsterdance.xyz,https://*-vetro-web-staging.hemilabs.workers.dev",
@@ -59,9 +60,6 @@
           "id": "b3c5b487520e40df8785dc40e797aadb",
         },
       ],
-      "triggers": {
-        "crons": ["* * * * *"],
-      },
       "observability": {
         "enabled": true,
         "head_sampling_rate": 0.1,
