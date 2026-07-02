@@ -8,6 +8,11 @@ import type { Address } from "viem";
 import * as analytics from "./analytics.ts";
 import { getApyHistory } from "./apy-history.ts";
 import * as borrow from "./borrow.ts";
+import {
+  contactFeatureToggle,
+  sendContactEmail,
+  validateContactForm,
+} from "./contact.ts";
 import { convertBigIntsToString } from "./convert-bigints-to-string.ts";
 import { getSubgraphUrl } from "./env.ts";
 import {
@@ -380,6 +385,17 @@ app.get(
     } catch (error) {
       throw new Error(`Failed to get exit tickets: ${error.message}`);
     }
+  },
+);
+
+app.post(
+  "/contact",
+  contactFeatureToggle,
+  validateContactForm,
+  async function (c) {
+    const { category, email, message } = c.get("contactForm");
+    await sendContactEmail({ category, email, env: c.env, message });
+    return c.body(null, 204);
   },
 );
 

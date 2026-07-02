@@ -279,6 +279,36 @@ Returns all user's variable stake exit tickets to i.e. allow claiming the withdr
 ]
 ```
 
+### `POST /contact`
+
+Submit a support request. The contents are emailed to the configured recipient
+using the Cloudflare `send_email` binding (the recipient must be a verified
+Email Routing destination; the sender address comes from `CONTACT_FORM_SENDER`).
+
+Gated by the `CONTACT_FORM_ENABLED` feature toggle: when it is not `"true"` the
+endpoint behaves as if it does not exist and returns `404`.
+
+#### Request body
+
+```json
+{
+  "category": "swap",
+  "email": "user@example.com",
+  "message": "Describe what happened (max 5000 characters)."
+}
+```
+
+`category` must be one of the known topics (`swap`, `bridge`, `earn`,
+`other`). `email` must be well-formed. `message` must be non-empty and at most
+5000 characters.
+
+#### Response
+
+Returns `204 No Content` with an empty body once the email is sent.
+
+Returns `404` when the feature is disabled, `400` for an invalid body / email /
+category / message, and `500` if sending fails.
+
 ## Configuration
 
 Environment variables are configured in `wrangler.jsonc`.
@@ -286,6 +316,9 @@ Secrets are set separately using the Wrangler CLI.
 
 | Variable                  | Description                                                                                                   | Default                 |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| CONTACT_FORM_ENABLED      | Feature toggle for `POST /contact`. When not `"true"`, the endpoint returns `404`.                            | `"false"`               |
+| CONTACT_FORM_RECIPIENT    | Destination address for contact form emails. Must be a verified Email Routing destination.                    |                         |
+| CONTACT_FORM_SENDER       | `from` address for contact form emails. Its domain must be a verified Email Routing sending domain.           |                         |
 | CUSTOM_RPC_URL_MAINNET    | Ethereum RPC node URL(s). Overrides `viem`'s default. Several URLs joined by `+` become a fallback transport. |                         |
 | MERKL_OPPORTUNITY_SVETBTC | Merkl opportunity id for the sVetBTC staking vault. Optional; if unset, that vault yields no rewards.         |                         |
 | MERKL_OPPORTUNITY_SVUSD   | Merkl opportunity id for the sVUSD staking vault. Optional; if unset, that vault yields no rewards.           |                         |
@@ -297,6 +330,8 @@ Secrets are set separately using the Wrangler CLI.
 
 (1) Globs with stars (`*`) are supported. I.e. `https://*.hemi.xyz` will match any subdomain or subdomain chain.
 (2) API key and id are replaced in the template at the `$API_KEY` and `$ID` positions.
+
+The `POST /contact` endpoint also requires a `send_email` binding named `SEND_EMAIL`, configured in `wrangler.jsonc`. Sending only works once the domain is verified and the recipient is added as a destination in Cloudflare Email Routing.
 
 ## Local development
 
