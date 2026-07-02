@@ -26,6 +26,7 @@ import { readWarmedTask, warmScheduled } from "./warm-cache.ts";
 import {
   collateralizationRatioTask,
   treasuryTask,
+  tvlTask,
   warmTasks,
 } from "./warm-tasks.ts";
 
@@ -72,10 +73,13 @@ app.get(
   }),
   async function (c) {
     try {
-      const url = c.env.CUSTOM_RPC_URL_MAINNET;
       const gatewayAddress = c.get("gatewayAddress");
-      const data = await analytics.getTvl({ gatewayAddress, url });
-      return c.json(convertBigIntsToString(data));
+      const data = await readWarmedTask({
+        c,
+        item: gatewayAddress,
+        task: tvlTask,
+      });
+      return c.json(data);
     } catch (error) {
       throw new Error(`Failed to get TVL: ${error.message}`);
     }
