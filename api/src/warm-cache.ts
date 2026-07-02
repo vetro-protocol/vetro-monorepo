@@ -37,9 +37,15 @@ export async function readWarmedTask<Item>({
     return cached;
   }
   const data = await task.produce(item, c.env);
-  c.executionCtx.waitUntil(
-    kv.put(key, JSON.stringify(data), { expirationTtl: cacheTtl }),
-  );
+  // Write through so the next reader gets a fast hit, but never cache empty
+  // data and report background write failures — mirroring the cron path.
+  if (data !== null && data !== undefined) {
+    c.executionCtx.waitUntil(
+      kv
+        .put(key, JSON.stringify(data), { expirationTtl: cacheTtl })
+        .catch((error) => Sentry.captureException(error)),
+    );
+  }
   return data;
 }
 
