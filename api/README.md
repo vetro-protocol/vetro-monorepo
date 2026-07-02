@@ -317,8 +317,8 @@ Secrets are set separately using the Wrangler CLI.
 | Variable                  | Description                                                                                                   | Default                 |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------- |
 | CONTACT_FORM_ENABLED      | Feature toggle for `POST /contact`. When not `"true"`, the endpoint returns `404`.                            | `"false"`               |
-| CONTACT_FORM_RECIPIENT    | Destination address for contact form emails. Must be a verified Email Routing destination.                    |                         |
-| CONTACT_FORM_SENDER       | `from` address for contact form emails. Its domain must be a verified Email Routing sending domain.           |                         |
+| CONTACT_FORM_RECIPIENT    | Destination address for contact form emails. Must be a verified Email Routing destination.                    | `support@vetro.org`     |
+| CONTACT_FORM_SENDER       | `from` address for contact form emails. Its domain must be a verified Email Routing sending domain.           | `noreply@vetro.org`     |
 | CUSTOM_RPC_URL_MAINNET    | Ethereum RPC node URL(s). Overrides `viem`'s default. Several URLs joined by `+` become a fallback transport. |                         |
 | MERKL_OPPORTUNITY_SVETBTC | Merkl opportunity id for the sVetBTC staking vault. Optional; if unset, that vault yields no rewards.         |                         |
 | MERKL_OPPORTUNITY_SVUSD   | Merkl opportunity id for the sVUSD staking vault. Optional; if unset, that vault yields no rewards.           |                         |
