@@ -3,17 +3,17 @@
   "version": "1.6.0",
   "license": "MIT",
   "scripts": {
-    "prebuild": "npm run codegen",
+    "prebuild": "$npm_execpath run codegen",
     "build": "graph build",
     "codegen": "graph codegen",
     "create-local": "graph create --node http://localhost:8020/ $npm_package_name",
     "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ $npm_package_name --version-label $npm_package_version",
     "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 $npm_package_name --version-label $npm_package_version",
     "graph:auth": "graph auth",
-    "postinstall": "npm run codegen",
+    "postinstall": "$npm_execpath run codegen",
     "remove-local": "graph remove --node http://localhost:8020/ $npm_package_name",
     "tag": "scripts/tag-subgraph.sh",
-    "pretest": "npm run codegen",
+    "pretest": "$npm_execpath run codegen",
     "test": "graph test --version=0.6.0"
   },
   "dependencies": {
