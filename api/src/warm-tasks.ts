@@ -3,6 +3,7 @@ import type { Address } from "viem";
 
 import {
   getCollateralizationRatio,
+  getStaked,
   getTreasuryComposition,
   getTvl,
 } from "./analytics.ts";
@@ -46,4 +47,21 @@ export const tvlTask: WarmTask<Address> = {
     }).then(convertBigIntsToString),
 };
 
-export const warmTasks = [treasuryTask, collateralizationRatioTask, tvlTask];
+// Warms `GET /analytics/staked/:gatewayAddress`
+export const stakedTask: WarmTask<Address> = {
+  cron: "* * * * *",
+  items: gatewayAddresses,
+  key: (gatewayAddress) => `analytics:staked:${gatewayAddress}`,
+  produce: (gatewayAddress, env) =>
+    getStaked({
+      gatewayAddress,
+      url: env.CUSTOM_RPC_URL_MAINNET,
+    }).then(convertBigIntsToString),
+};
+
+export const warmTasks = [
+  treasuryTask,
+  collateralizationRatioTask,
+  tvlTask,
+  stakedTask,
+];

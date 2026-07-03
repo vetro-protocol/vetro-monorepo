@@ -5,7 +5,6 @@ import { cache } from "hono/cache";
 import { cors } from "hono/cors";
 import type { Address } from "viem";
 
-import * as analytics from "./analytics.ts";
 import { getApyHistory } from "./apy-history.ts";
 import * as borrow from "./borrow.ts";
 import { convertBigIntsToString } from "./convert-bigints-to-string.ts";
@@ -25,6 +24,7 @@ import { validPeriods as vaultHistoryValidPeriods } from "./vault-history-period
 import { readWarmedTask, warmScheduled } from "./warm-cache.ts";
 import {
   collateralizationRatioTask,
+  stakedTask,
   treasuryTask,
   tvlTask,
   warmTasks,
@@ -95,10 +95,13 @@ app.get(
   }),
   async function (c) {
     try {
-      const url = c.env.CUSTOM_RPC_URL_MAINNET;
       const gatewayAddress = c.get("gatewayAddress");
-      const data = await analytics.getStaked({ gatewayAddress, url });
-      return c.json(convertBigIntsToString(data));
+      const data = await readWarmedTask({
+        c,
+        item: gatewayAddress,
+        task: stakedTask,
+      });
+      return c.json(data);
     } catch (error) {
       throw new Error(`Failed to get staked total: ${error.message}`);
     }
