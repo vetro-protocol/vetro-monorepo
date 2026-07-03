@@ -4,12 +4,12 @@ import { useEthereumClient } from "hooks/useEthereumClient";
 import { stakingVaultForPeggedTokenOptions } from "hooks/useStakingVaultForPeggedToken";
 import type { TokenWithGateway } from "types";
 import type { ChartPeriod } from "utils/chartPeriods";
-import { isValidUrl } from "utils/url";
+import { getVetroApiUrl, isValidUrl } from "utils/url";
 import type { Client } from "viem";
 
 type ApiEntry = { apy: number; timestamp: number };
 
-const apiUrl = import.meta.env.VITE_VETRO_API_URL;
+const apiUrl = getVetroApiUrl();
 
 const apyHistoryOptions = ({
   client,

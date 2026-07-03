@@ -3,7 +3,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import { allChains } from "networks";
-import { getUrlOrigin } from "utils/url";
+import { deriveApiOrigin, getUrlOrigin } from "utils/url";
 
 type Env = {
   ASSETS: Fetcher;
@@ -146,10 +146,10 @@ function generateNonce() {
 // scripts, but Cloudflare's JavaScript Detections parses the CSP response
 // header and reuses this nonce for the inline scripts it injects.
 // https://developers.cloudflare.com/cloudflare-challenges/challenge-types/javascript-detections/#if-you-have-a-content-security-policy-csp
-const buildCsp = (nonce: string) =>
+const buildCsp = (nonce: string, extraConnectSrc?: string) =>
   [
     "base-uri 'none'",
-    `connect-src ${connectSrc}`,
+    `connect-src ${connectSrc}${extraConnectSrc ? ` ${extraConnectSrc}` : ""}`,
     "default-src 'none'",
     "font-src 'self' https://fonts.gstatic.com",
     "form-action 'none'",
@@ -210,10 +210,13 @@ export default {
       newResponse.headers.set(key, value);
     }
 
+    // Allow the matching API preview in connect-src on staging preview hosts.
+    const apiPreviewOrigin = deriveApiOrigin(new URL(request.url).hostname);
+
     // Add dynamic Content-Security-Policy header with unique per-request nonce.
     newResponse.headers.set(
       "Content-Security-Policy",
-      buildCsp(generateNonce()),
+      buildCsp(generateNonce(), apiPreviewOrigin),
     );
 
     return newResponse;
