@@ -115,6 +115,11 @@ test("deposit VUSD into the Earn pool", async function ({
     timeout: 60_000,
   });
 
+  // Check input resets to "0" on success
+  await expect(
+    page.locator('input[type="text"]:not([disabled])').first(),
+  ).toHaveValue("0");
+
   // Assertion 1 — VUSD balance dropped by exactly the deposited amount.
   await waitForBalance({ client: publicClient, token: vusd.address }).toBe(
     vusdBefore - DEPOSIT_AMOUNT,
@@ -274,6 +279,11 @@ test("withdraw VUSD from the Earn pool (whitelisted one-step exit)", async funct
   await expect(page.getByText("Withdrawal complete")).toBeVisible({
     timeout: 40_000,
   });
+
+  // Check input resets to "0" on success
+  await expect(
+    page.locator('input[type="text"]:not([disabled])').first(),
+  ).toHaveValue("0");
 
   const withdrawTxHash = walletTxHashes.at(-1);
   expect(withdrawTxHash).toBeDefined();
