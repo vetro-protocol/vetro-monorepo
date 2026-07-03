@@ -73,6 +73,46 @@ export const sendContactEmail = ({
     from: env.CONTACT_FORM_SENDER!,
     replyTo: email,
     subject: `New support request: ${category}`,
-    text: `From: ${email}\nCategory: ${category}\n\n${message}`,
+    text: `New contact form submission.
+
+From: ${email}
+Category: ${category}
+Received: ${new Date().toUTCString()}
+
+Message:
+${message}
+
+--
+Reply directly to this email to respond to the sender`,
     to: env.CONTACT_FORM_RECIPIENT!,
+  });
+
+/**
+ * Sends the submitter an acknowledgement that their contact form request was
+ * received. Replies route back to CONTACT_FORM_RECIPIENT so the support team
+ * picks up any response.
+ */
+export const sendContactConfirmation = ({
+  category,
+  email,
+  env,
+}: Omit<ContactForm, "message"> & { env: Env }) =>
+  env.SEND_EMAIL.send({
+    from: env.CONTACT_FORM_SENDER!,
+    replyTo: env.CONTACT_FORM_RECIPIENT!,
+    subject: "We received your message",
+    text: `Hi,
+
+Thanks for contacting us. We have received your enquiry
+(category: ${category}) and will respond as soon as we can.
+
+This was sent to ${email}. If you did not submit this,
+you can ignore this email.
+
+--
+Vetro Service & Support Ltd.
+You received this because you used the contact form at ${env.WEBSITE_URL}.
+Privacy policy: https://vetro.org/privacy-policy
+Contact: ${env.CONTACT_FORM_RECIPIENT!}`,
+    to: email,
   });

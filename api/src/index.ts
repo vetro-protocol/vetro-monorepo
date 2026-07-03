@@ -10,6 +10,7 @@ import { getApyHistory } from "./apy-history.ts";
 import * as borrow from "./borrow.ts";
 import {
   contactFeatureToggle,
+  sendContactConfirmation,
   sendContactEmail,
   validateContactForm,
 } from "./contact.ts";
@@ -395,6 +396,13 @@ app.post(
   async function (c) {
     const { category, email, message } = c.get("contactForm");
     await sendContactEmail({ category, email, env: c.env, message });
+    // The confirmation to the submitter is best-effort: a failure here must not
+    // fail the request, since the support notification already went out.
+    try {
+      await sendContactConfirmation({ category, email, env: c.env });
+    } catch (error) {
+      Sentry.captureException(error);
+    }
     return c.body(null, 204);
   },
 );

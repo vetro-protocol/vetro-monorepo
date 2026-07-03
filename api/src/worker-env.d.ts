@@ -16,4 +16,5 @@ interface Env {
   SUBGRAPH_API_KEY?: string;
   SUBGRAPH_ID?: string;
   SUBGRAPH_URL_TEMPLATE: string;
+  WEBSITE_URL: string;
 }

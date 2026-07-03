@@ -37,6 +37,7 @@
     "MERKL_OPPORTUNITY_SVUSD": "",
     "ORIGINS": "http://localhost:3000,http://localhost:5173",
     "SUBGRAPH_URL_TEMPLATE": "http://localhost:8000/subgraphs/name/vetro-app-subgraph",
+    "WEBSITE_URL": "http://localhost:5173/",
   },
   "send_email": [{ "name": "SEND_EMAIL" }],
   "env": {
@@ -57,6 +58,7 @@
         "ORIGINS": "https://*.letshamsterdance.xyz,https://*-vetro-web-staging.hemilabs.workers.dev",
         "SUBGRAPH_ID": "7vnTMFYNE6Nv7RTeoaog4QgqQ3bwZTFoPUGv2gcmTxJ6",
         "SUBGRAPH_URL_TEMPLATE": "https://gateway.thegraph.com/api/$API_KEY/subgraphs/id/$ID",
+        "WEBSITE_URL": "https://vetro.letshamsterdance.xyz/",
       },
       "send_email": [{ "name": "SEND_EMAIL" }],
     },
@@ -85,6 +87,7 @@
         "SENTRY_DSN": "https://fc941b61bc1aaaa28545687b7ca97fc6@o4508162066350080.ingest.de.sentry.io/4511626274209873",
         "SUBGRAPH_ID": "7vnTMFYNE6Nv7RTeoaog4QgqQ3bwZTFoPUGv2gcmTxJ6",
         "SUBGRAPH_URL_TEMPLATE": "https://gateway.thegraph.com/api/$API_KEY/subgraphs/id/$ID",
+        "WEBSITE_URL": "https://app.vetro.org/",
       },
       "send_email": [{ "name": "SEND_EMAIL" }],
     },
