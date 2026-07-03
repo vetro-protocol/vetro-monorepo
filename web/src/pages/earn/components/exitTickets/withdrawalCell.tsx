@@ -16,10 +16,10 @@ export function WithdrawalCell({ ticket }: Props) {
 
   if (peggedToken) {
     return (
-      <span className="text-xsm flex items-center gap-x-2 font-medium text-gray-900">
+      <div className="text-xsm flex items-center gap-x-2 font-medium text-gray-900">
         <TokenLogo size="small" {...peggedToken} />
         <DisplayAmount amount={BigInt(ticket.assets)} token={peggedToken} />
-      </span>
+      </div>
     );
   }
 
