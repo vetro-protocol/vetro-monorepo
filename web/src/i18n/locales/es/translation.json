@@ -311,7 +311,6 @@
         "withdraw-all-toast-title": "Todos los tickets de salida retirados",
         "withdraw-toast-description": "Sus fondos han sido retirados exitosamente a su billetera.",
         "withdraw-toast-title": "Retiro completado",
-        "withdrawal-amount": "{{amount}} {{symbol}}",
         "withdrawal-tx": "Retiro:",
         "withdrawing": "Retirando...",
         "withdrawn": "Retirado"
