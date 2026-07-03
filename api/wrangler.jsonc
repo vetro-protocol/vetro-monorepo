@@ -32,7 +32,7 @@
   "vars": {
     "CONTACT_FORM_ENABLED": "false",
     "CONTACT_FORM_RECIPIENT": "support@vetro.org",
-    "CONTACT_FORM_SENDER": "noreply@vetro.org",
+    "CONTACT_FORM_SENDER": "noreply@forms.vetro.org",
     "MERKL_OPPORTUNITY_SVETBTC": "",
     "MERKL_OPPORTUNITY_SVUSD": "",
     "ORIGINS": "http://localhost:3000,http://localhost:5173",
@@ -52,7 +52,7 @@
         // Contact form enabled on staging for testing purposes.
         "CONTACT_FORM_ENABLED": "true",
         "CONTACT_FORM_RECIPIENT": "gonzalo@hemi.xyz",
-        "CONTACT_FORM_SENDER": "noreply@vetro.org",
+        "CONTACT_FORM_SENDER": "noreply@forms.vetro.org",
         "CUSTOM_RPC_URL_MAINNET": "https://eth.drpc.org",
         "ORIGINS": "https://*.letshamsterdance.xyz,https://*-vetro-web-staging.hemilabs.workers.dev",
         "SUBGRAPH_ID": "7vnTMFYNE6Nv7RTeoaog4QgqQ3bwZTFoPUGv2gcmTxJ6",
@@ -80,7 +80,7 @@
       "vars": {
         "CONTACT_FORM_ENABLED": "false",
         "CONTACT_FORM_RECIPIENT": "support@vetro.org",
-        "CONTACT_FORM_SENDER": "noreply@vetro.org",
+        "CONTACT_FORM_SENDER": "noreply@forms.vetro.org",
         "ORIGINS": "https://app.vetro.org,https://beta.vetro.org,https://*.hemi.xyz",
         "SENTRY_DSN": "https://fc941b61bc1aaaa28545687b7ca97fc6@o4508162066350080.ingest.de.sentry.io/4511626274209873",
         "SUBGRAPH_ID": "7vnTMFYNE6Nv7RTeoaog4QgqQ3bwZTFoPUGv2gcmTxJ6",
