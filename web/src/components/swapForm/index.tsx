@@ -2,7 +2,7 @@ import { useDebounce } from "@hemilabs/react-hooks/useDebounce";
 import { usePeggedTokensByGateway } from "hooks/usePeggedTokensByGateway";
 import { useSwapMode } from "hooks/useSwapMode";
 import { useWhitelistedTokens } from "hooks/useWhitelistedTokens";
-import { useReducer } from "react";
+import { useCallback, useReducer } from "react";
 import type { TokenWithGateway } from "types";
 import { parseTokenUnits } from "utils/token";
 import type { Address } from "viem";
@@ -69,9 +69,9 @@ function SwapFormContent({
     });
   }
 
-  function onInputChange(value: string) {
+  const onInputChange = useCallback(function onInputChange(value: string) {
     dispatch({ payload: value, type: "SET_FROM_INPUT_VALUE" });
-  }
+  }, []);
 
   function onToggleApprove10x() {
     dispatch({ type: "TOGGLE_APPROVE_10X" });

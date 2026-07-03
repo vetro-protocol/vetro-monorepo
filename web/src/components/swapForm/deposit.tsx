@@ -74,9 +74,24 @@ export function Deposit({
   });
   const { t } = useTranslation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const handleDrawerClose = useCallback(() => setIsDrawerOpen(false), []);
   const [flowStatus, setFlowStatus] = useState<DepositFlowStatus>("idle");
   const [showToast, setShowToast] = useState(false);
+  const [toastData, setToastData] = useState({
+    fromAmount: "",
+    fromSymbol: "",
+    toAmount: "",
+    toSymbol: "",
+  });
+
+  const handleDrawerClose = useCallback(
+    function handleDrawerClose() {
+      setIsDrawerOpen(false);
+      if (flowStatus === "deposited") {
+        onInputChange("0");
+      }
+    },
+    [flowStatus, onInputChange],
+  );
   // Captures whether approval was needed when the flow started, because
   // useNeedsApproval flips to false after a successful approval tx.
   const [startedWithApproval, setStartedWithApproval] = useState(false);
@@ -153,6 +168,12 @@ export function Deposit({
       emitter.on("deposit-transaction-succeeded", function () {
         onCompleted();
         setFlowStatus("deposited");
+        setToastData({
+          fromAmount: fromInputValue,
+          fromSymbol: fromToken.symbol,
+          toAmount: outputValue,
+          toSymbol: toToken.symbol,
+        });
         setShowToast(true);
         watchToken();
       });
@@ -317,12 +338,10 @@ export function Deposit({
       {showToast && (
         <Toast
           closable
-          description={t("pages.swap.toast.swap-success-description", {
-            fromAmount: fromInputValue,
-            fromSymbol: fromToken.symbol,
-            toAmount: outputValue,
-            toSymbol: toToken.symbol,
-          })}
+          description={t(
+            "pages.swap.toast.swap-success-description",
+            toastData,
+          )}
           onClose={() => setShowToast(false)}
           title={t("pages.swap.toast.swap-success-title")}
         />
