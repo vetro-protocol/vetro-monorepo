@@ -192,19 +192,49 @@ const htmlHeaders = {
   "X-Frame-Options": "DENY",
 };
 
-// Countries and regions subject to geo-restriction (soft-block).
-const restrictedCountries = new Set(["US"]);
-const restrictedContinents = new Set(["EU"]);
+// Countries subject to geo-restriction (soft-block): EU 27 member states, EEA
+// (Norway, Iceland, Liechtenstein), US and Tor users.
+const restrictedCountries = new Set([
+  "AT",
+  "BE",
+  "BG",
+  "CY",
+  "CZ",
+  "DE",
+  "DK",
+  "EE",
+  "ES",
+  "FI",
+  "FR",
+  "GR",
+  "HR",
+  "HU",
+  "IE",
+  "IS",
+  "IT",
+  "LI",
+  "LT",
+  "LU",
+  "LV",
+  "MT",
+  "NL",
+  "NO",
+  "PL",
+  "PT",
+  "RO",
+  "SE",
+  "SI",
+  "SK",
+  "T1", // Tor exit node (Cloudflare sets this for Tor users).
+  "US",
+]);
 
 function isGeoRestricted(request: Request): boolean {
   const cf = request.cf;
   if (!cf) {
     return false;
   }
-  return (
-    restrictedCountries.has(String(cf.country ?? "")) ||
-    restrictedContinents.has(String(cf.continent ?? ""))
-  );
+  return restrictedCountries.has(String(cf.country ?? ""));
 }
 
 export default {
