@@ -279,24 +279,64 @@ Returns all user's variable stake exit tickets to i.e. allow claiming the withdr
 ]
 ```
 
+### `POST /contact`
+
+Submit a support request. The contents are emailed to the configured recipient
+using the Cloudflare `send_email` binding (the recipient must be a verified
+Email Routing destination; the sender address comes from `CONTACT_FORM_SENDER`).
+A confirmation email is also sent to the submitter acknowledging their request;
+its replies route back to `CONTACT_FORM_RECIPIENT`.
+
+Gated by the `CONTACT_FORM_ENABLED` feature toggle: when it is not `"true"` the
+endpoint behaves as if it does not exist and returns `404`.
+
+#### Request body
+
+```json
+{
+  "category": "swap",
+  "email": "user@example.com",
+  "message": "Describe what happened (max 5000 characters)."
+}
+```
+
+`category` must be one of the known topics (`swap`, `bridge`, `earn`,
+`other`). `email` must be well-formed. `message` must be non-empty and at most
+5000 characters.
+
+#### Response
+
+Returns `204 No Content` with an empty body once the support email is sent. The
+confirmation email to the submitter is best-effort: if it fails, the failure is
+reported to Sentry and the response is still `204`.
+
+Returns `404` when the feature is disabled, `400` for an invalid body / email /
+category / message, and `500` if sending the support email fails.
+
 ## Configuration
 
 Environment variables are configured in `wrangler.jsonc`.
 Secrets are set separately using the Wrangler CLI.
 
-| Variable                  | Description                                                                                                   | Default                 |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------- |
-| CUSTOM_RPC_URL_MAINNET    | Ethereum RPC node URL(s). Overrides `viem`'s default. Several URLs joined by `+` become a fallback transport. |                         |
-| MERKL_OPPORTUNITY_SVETBTC | Merkl opportunity id for the sVetBTC staking vault. Optional; if unset, that vault yields no rewards.         |                         |
-| MERKL_OPPORTUNITY_SVUSD   | Merkl opportunity id for the sVUSD staking vault. Optional; if unset, that vault yields no rewards.           |                         |
-| ORIGINS                   | Comma-separated list of allowed origins. (1)                                                                  | `http://localhost:5173` |
-| SENTRY_DSN                | Sentry DSN. When unset, Sentry is disabled.                                                                   |                         |
-| SUBGRAPH_API_KEY          | The subgraph API key.                                                                                         |                         |
-| SUBGRAPH_ID               | The subgraph id.                                                                                              |                         |
-| SUBGRAPH_URL_TEMPLATE     | The subgraph URL template. (2)                                                                                | (localhost)             |
+| Variable                  | Description                                                                                                   | Default                   |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| CONTACT_FORM_ENABLED      | Feature toggle for `POST /contact`. When not `"true"`, the endpoint returns `404`.                            | `"false"`                 |
+| CONTACT_FORM_RECIPIENT    | Destination address for contact form emails. Must be a verified Email Routing destination.                    | `support@vetro.org`       |
+| CONTACT_FORM_SENDER       | `from` address for contact form emails. Its domain must be a verified Email Routing sending domain.           | `noreply@forms.vetro.org` |
+| CUSTOM_RPC_URL_MAINNET    | Ethereum RPC node URL(s). Overrides `viem`'s default. Several URLs joined by `+` become a fallback transport. |                           |
+| MERKL_OPPORTUNITY_SVETBTC | Merkl opportunity id for the sVetBTC staking vault. Optional; if unset, that vault yields no rewards.         |                           |
+| MERKL_OPPORTUNITY_SVUSD   | Merkl opportunity id for the sVUSD staking vault. Optional; if unset, that vault yields no rewards.           |                           |
+| ORIGINS                   | Comma-separated list of allowed origins. (1)                                                                  | `http://localhost:5173`   |
+| SENTRY_DSN                | Sentry DSN. When unset, Sentry is disabled.                                                                   |                           |
+| SUBGRAPH_API_KEY          | The subgraph API key.                                                                                         |                           |
+| SUBGRAPH_ID               | The subgraph id.                                                                                              |                           |
+| SUBGRAPH_URL_TEMPLATE     | The subgraph URL template. (2)                                                                                | (localhost)               |
+| WEBSITE_URL               | Public URL of the web app, referenced in the contact form confirmation email.                                 | `http://localhost:5173/`  |
 
 (1) Globs with stars (`*`) are supported. I.e. `https://*.hemi.xyz` will match any subdomain or subdomain chain.
 (2) API key and id are replaced in the template at the `$API_KEY` and `$ID` positions.
+
+The `POST /contact` endpoint also requires a `send_email` binding named `SEND_EMAIL`, configured in `wrangler.jsonc`. Sending only works once the domain is verified and the recipient is added as a destination in Cloudflare Email Routing.
 
 ## Local development
 

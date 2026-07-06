@@ -7,6 +7,12 @@ import type { Address } from "viem";
 
 import { getApyHistory } from "./apy-history.ts";
 import * as borrow from "./borrow.ts";
+import {
+  contactFeatureToggle,
+  sendContactConfirmation,
+  sendContactEmail,
+  validateContactForm,
+} from "./contact.ts";
 import { convertBigIntsToString } from "./convert-bigints-to-string.ts";
 import { getSubgraphUrl } from "./env.ts";
 import {
@@ -383,6 +389,24 @@ app.get(
     } catch (error) {
       throw new Error(`Failed to get exit tickets: ${error.message}`);
     }
+  },
+);
+
+app.post(
+  "/contact",
+  contactFeatureToggle,
+  validateContactForm,
+  async function (c) {
+    const { category, email, message } = c.get("contactForm");
+    await sendContactEmail({ category, email, env: c.env, message });
+    // The confirmation to the submitter is best-effort: a failure here must not
+    // fail the request, since the support notification already went out.
+    try {
+      await sendContactConfirmation({ category, email, env: c.env });
+    } catch (error) {
+      Sentry.captureException(error);
+    }
+    return c.body(null, 204);
   },
 );
 
