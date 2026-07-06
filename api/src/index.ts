@@ -5,7 +5,6 @@ import { cache } from "hono/cache";
 import { cors } from "hono/cors";
 import type { Address } from "viem";
 
-import * as analytics from "./analytics.ts";
 import { getApyHistory } from "./apy-history.ts";
 import * as borrow from "./borrow.ts";
 import { convertBigIntsToString } from "./convert-bigints-to-string.ts";
@@ -22,6 +21,14 @@ import { getTotalDepositsHistory } from "./total-deposits-history.ts";
 import { createOriginFn, parseOrigins } from "./validate-origin.ts";
 import * as variableStake from "./variable-stake.ts";
 import { validPeriods as vaultHistoryValidPeriods } from "./vault-history-period.ts";
+import { readWarmedTask, warmScheduled } from "./warm-cache.ts";
+import {
+  collateralizationRatioTask,
+  stakedTask,
+  treasuryTask,
+  tvlTask,
+  warmTasks,
+} from "./warm-tasks.ts";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -34,43 +41,21 @@ app.use("*", async function (c, next) {
 app.use("*", securityHeaders);
 
 app.get(
-  "/analytics/pegged-token-backing/:gatewayAddress",
-  validateGatewayAddress,
-  cache({
-    cacheControl: "max-age=15, stale-while-revalidate=45",
-    cacheName: "vetro-api",
-  }),
-  async function (c) {
-    try {
-      const url = c.env.CUSTOM_RPC_URL_MAINNET;
-      const gatewayAddress = c.get("gatewayAddress");
-      const data = await analytics.getPeggedTokenBacking({
-        gatewayAddress,
-        url,
-      });
-      return c.json(convertBigIntsToString(data));
-    } catch (error) {
-      throw new Error(`Failed to get pegged token backing: ${error.message}`);
-    }
-  },
-);
-
-app.get(
   "/analytics/collateralization-ratio/:gatewayAddress",
   validateGatewayAddress,
   cache({
-    cacheControl: "max-age=300",
+    cacheControl: "max-age=60",
     cacheName: "vetro-api",
   }),
   async function (c) {
     try {
-      const url = c.env.CUSTOM_RPC_URL_MAINNET;
       const gatewayAddress = c.get("gatewayAddress");
-      const data = await analytics.getCollateralizationRatio({
-        gatewayAddress,
-        url,
+      const data = await readWarmedTask({
+        c,
+        item: gatewayAddress,
+        task: collateralizationRatioTask,
       });
-      return c.json(convertBigIntsToString(data));
+      return c.json(data);
     } catch (error) {
       throw new Error(
         `Failed to get collateralization ratio: ${error.message}`,
@@ -88,10 +73,13 @@ app.get(
   }),
   async function (c) {
     try {
-      const url = c.env.CUSTOM_RPC_URL_MAINNET;
       const gatewayAddress = c.get("gatewayAddress");
-      const data = await analytics.getTvl({ gatewayAddress, url });
-      return c.json(convertBigIntsToString(data));
+      const data = await readWarmedTask({
+        c,
+        item: gatewayAddress,
+        task: tvlTask,
+      });
+      return c.json(data);
     } catch (error) {
       throw new Error(`Failed to get TVL: ${error.message}`);
     }
@@ -107,10 +95,13 @@ app.get(
   }),
   async function (c) {
     try {
-      const url = c.env.CUSTOM_RPC_URL_MAINNET;
       const gatewayAddress = c.get("gatewayAddress");
-      const data = await analytics.getStaked({ gatewayAddress, url });
-      return c.json(convertBigIntsToString(data));
+      const data = await readWarmedTask({
+        c,
+        item: gatewayAddress,
+        task: stakedTask,
+      });
+      return c.json(data);
     } catch (error) {
       throw new Error(`Failed to get staked total: ${error.message}`);
     }
@@ -126,13 +117,13 @@ app.get(
   }),
   async function (c) {
     try {
-      const url = c.env.CUSTOM_RPC_URL_MAINNET;
       const gatewayAddress = c.get("gatewayAddress");
-      const data = await analytics.getTreasuryComposition({
-        gatewayAddress,
-        url,
+      const data = await readWarmedTask({
+        c,
+        item: gatewayAddress,
+        task: treasuryTask,
       });
-      return c.json(convertBigIntsToString(data));
+      return c.json(data);
     } catch (error) {
       throw new Error(`Failed to get treasury composition: ${error.message}`);
     }
@@ -403,11 +394,22 @@ app.onError(function (error, c) {
   return c.json({ error: "Internal Server Error" }, 500);
 });
 
+const handler = Object.assign(app, {
+  async scheduled(event: ScheduledController, env: Env) {
+    await warmScheduled({
+      cron: event.cron,
+      env,
+      kv: env.CACHE_KV,
+      tasks: warmTasks,
+    });
+  },
+}) satisfies ExportedHandler<Env>;
+
 export default Sentry.withSentry(
   (env: Env) => ({
     dsn: env.SENTRY_DSN,
     enableLogs: true,
     environment: "production",
   }),
-  app,
+  handler,
 );

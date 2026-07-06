@@ -4,20 +4,6 @@ Service that provides data to the Vetro web application.
 
 ## Data endpoints
 
-### `GET /analytics/pegged-token-backing/:gatewayAddress`
-
-Get the total strategic reserves and the total surplus for a given gateway's pegged token.
-`:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway.
-
-#### Sample response
-
-```json
-{
-  "strategicReserves": "10000000000000000000",
-  "surplus": "1424707358963452827"
-}
-```
-
 ### `GET /analytics/collateralization-ratio/:gatewayAddress`
 
 Get the collateralization ratio for a given gateway's pegged token: the total backing value divided by the circulating supply. The backing is the sum of the strategic reserves, the protocol surplus and the liquid Treasury reserves (whitelisted holdings valued in the pegged token). Cached for 5 minutes.

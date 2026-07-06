@@ -43,20 +43,39 @@ export const ClosableWithDescription: Story = {
   },
 };
 
+export const Error: Story = {
+  args: {
+    description: "Your request wasn't sent. Try again.",
+    title: "Something went wrong",
+    variant: "error",
+  },
+};
+
 function MultipleToastsDemo() {
   const [toasts, setToasts] = useState<ToastData[]>([]);
   const counterRef = useRef(0);
 
   const handleAdd = useCallback(function handleAdd() {
     counterRef.current += 1;
+    // Odd toasts show the error variant, even toasts show success.
+    const isError = counterRef.current % 2 === 1;
     setToasts((prev) => [
       ...prev,
-      {
-        closable: true,
-        description: "Your funds are now staked and earning yield.",
-        id: counterRef.current,
-        title: "Stake deposit confirmed",
-      },
+      isError
+        ? {
+            closable: true,
+            description: "Your request wasn't sent. Try again.",
+            id: counterRef.current,
+            title: "Something went wrong",
+            variant: "error",
+          }
+        : {
+            closable: true,
+            description: "Your funds are now staked and earning yield.",
+            id: counterRef.current,
+            title: "Stake deposit confirmed",
+            variant: "success",
+          },
     ]);
   }, []);
 
@@ -70,7 +89,8 @@ function MultipleToastsDemo() {
         Add toast
       </Button>
       <p className="text-sm text-gray-500">
-        Active toasts: {toasts.length}. Hover over the stack to expand.
+        Active toasts: {toasts.length}. Even are successes, odd are errors.
+        Hover over the stack to expand.
       </p>
       <Toaster autoCloseMs={8000} onClose={handleClose} toasts={toasts} />
     </div>

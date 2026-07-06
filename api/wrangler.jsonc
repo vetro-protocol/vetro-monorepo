@@ -15,6 +15,20 @@
       "enabled": true,
     },
   },
+  // Runs locally, no real binding
+  "kv_namespaces": [
+    {
+      "binding": "CACHE_KV",
+      "id": "00000000000000000000000000000000",
+    },
+  ],
+  // Inherited by all environments
+  "triggers": {
+    "crons": [
+      "* * * * *", // every minute
+      "*/5 * * * *", // every 5 minutes
+    ],
+  },
   "vars": {
     "MERKL_OPPORTUNITY_SVETBTC": "",
     "MERKL_OPPORTUNITY_SVUSD": "",
@@ -24,6 +38,12 @@
   "env": {
     "staging": {
       "name": "vetro-api-staging",
+      "kv_namespaces": [
+        {
+          "binding": "CACHE_KV",
+          "id": "6178978b72a04fff9d90d9f994787ba3",
+        },
+      ],
       "vars": {
         "CUSTOM_RPC_URL_MAINNET": "https://eth.drpc.org",
         "ORIGINS": "https://*.letshamsterdance.xyz,https://*-vetro-web-staging.hemilabs.workers.dev",
@@ -34,6 +54,12 @@
     "production": {
       "name": "vetro-api",
       "preview_urls": false,
+      "kv_namespaces": [
+        {
+          "binding": "CACHE_KV",
+          "id": "b3c5b487520e40df8785dc40e797aadb",
+        },
+      ],
       "observability": {
         "enabled": true,
         "head_sampling_rate": 0.1,

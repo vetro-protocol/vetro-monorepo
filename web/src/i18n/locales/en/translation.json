@@ -223,6 +223,33 @@
         "bridge-title": "Bridge confirmed"
       }
     },
+    "contact": {
+      "email-us-directly": "Or email us directly at <emailLink>{{email}}</emailLink>",
+      "form": {
+        "category-error": "Please select a topic.",
+        "category-label": "What's this about?",
+        "email-error": "Please enter a valid email address.",
+        "email-label": "Your email address",
+        "message-error": "Please describe what happened.",
+        "message-helper": "Please enter as many details as you can.",
+        "message-label": "What happened?",
+        "message-placeholder": "Describe what happened. Include the operation type and transaction hash if you have them.",
+        "submit": "Get help",
+        "submitting": "Getting help...",
+        "topic-bridge": "Bridge",
+        "topic-earn": "Earn",
+        "topic-other": "Other",
+        "topic-placeholder": "Select a topic",
+        "topic-swap": "Swap"
+      },
+      "title": "Tell us what happened so we can help",
+      "toast": {
+        "error-description": "Your request wasn’t sent. Try again.",
+        "error-title": "Something went wrong",
+        "success-description": "We’ll reach out shortly.",
+        "success-title": "Help is on the way"
+      }
+    },
     "earn": {
       "activity": {
         "cancel-withdraw-text": "{{amount}} {{symbol}} exit ticket deleted",
@@ -281,7 +308,6 @@
         "withdraw-all-toast-title": "All exit tickets withdrawn",
         "withdraw-toast-description": "Your funds have been successfully withdrawn to your wallet.",
         "withdraw-toast-title": "Withdrawal complete",
-        "withdrawal-amount": "{{amount}} {{symbol}}",
         "withdrawal-tx": "Withdrawal:",
         "withdrawing": "Withdrawing...",
         "withdrawn": "Withdrawn"
