@@ -130,7 +130,7 @@ export function RedeemQueueTable({
         ),
         header: () => <Header text={t("pages.swap.redeem-queue.status")} />,
         id: "status",
-        meta: { width: "200px" },
+        meta: { className: "grow", width: "200px" },
       },
       {
         cell: ({ row }) => (
