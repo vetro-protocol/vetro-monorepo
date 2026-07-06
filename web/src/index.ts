@@ -192,6 +192,21 @@ const htmlHeaders = {
   "X-Frame-Options": "DENY",
 };
 
+// Countries and regions subject to geo-restriction (soft-block).
+const restrictedCountries = new Set(["US"]);
+const restrictedContinents = new Set(["EU"]);
+
+function isGeoRestricted(request: Request): boolean {
+  const cf = request.cf;
+  if (!cf) {
+    return false;
+  }
+  return (
+    restrictedCountries.has(String(cf.country ?? "")) ||
+    restrictedContinents.has(String(cf.continent ?? ""))
+  );
+}
+
 export default {
   async fetch(request: Request, env: Env) {
     const response = await env.ASSETS.fetch(request);
@@ -209,6 +224,13 @@ export default {
     for (const [key, value] of Object.entries(htmlHeaders)) {
       newResponse.headers.set(key, value);
     }
+
+    // Geo-restriction session cookie for front-end soft-blocking.
+    const restricted = isGeoRestricted(request);
+    newResponse.headers.append(
+      "Set-Cookie",
+      `geo-restricted=${restricted ? "1" : "0"}; SameSite=Strict; Secure; Path=/`,
+    );
 
     // Add dynamic Content-Security-Policy header with unique per-request nonce.
     newResponse.headers.set(
