@@ -193,7 +193,7 @@ const htmlHeaders = {
 };
 
 // Countries subject to geo-restriction (soft-block): EU 27 member states, EEA
-// (Norway, Iceland, Liechtenstein), US and Tor users.
+// (Norway, Iceland, Liechtenstein), US.
 const restrictedCountries = new Set([
   "AT",
   "BE",
@@ -225,7 +225,6 @@ const restrictedCountries = new Set([
   "SE",
   "SI",
   "SK",
-  "T1", // Tor exit node (Cloudflare sets this for Tor users).
   "US",
 ]);
 
