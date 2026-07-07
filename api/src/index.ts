@@ -29,6 +29,7 @@ import * as variableStake from "./variable-stake.ts";
 import { validPeriods as vaultHistoryValidPeriods } from "./vault-history-period.ts";
 import { readWarmedTask, warmScheduled } from "./warm-cache.ts";
 import {
+  apyTask,
   collateralizationRatioTask,
   stakedTask,
   treasuryTask,
@@ -230,15 +231,13 @@ app.get(
 app.get(
   "/variable-stake/apy",
   cache({
-    cacheControl: "max-age=600",
+    cacheControl: "max-age=60",
     cacheName: "vetro-api",
   }),
   async function (c) {
     try {
-      const data = await variableStake.getApy({
-        rpcUrl: c.env.CUSTOM_RPC_URL_MAINNET,
-      });
-      return c.json(data);
+      const data = await readWarmedTask({ c, task: apyTask });
+      return c.json(data ?? {});
     } catch (error) {
       throw new Error(`Failed to get APY: ${error.message}`);
     }
@@ -335,8 +334,8 @@ app.get(
       const url = getSubgraphUrl(c.env);
       const period = c.req.param("period");
       const data = await getApyHistory({
+        c,
         period,
-        rpcUrl: c.env.CUSTOM_RPC_URL_MAINNET,
         stakingVaultAddress,
         url,
       });
