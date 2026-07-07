@@ -22,7 +22,8 @@ export type KeyedWarmTask<Item, Data = unknown> = {
  * Either **keyed** — one KV entry per item, `produce(env, item)` and `items`
  * required — or **global** — a single KV entry, `produce(env)` and no `items`.
  * `Data` is the shape `produce` yields; `readWarmedTask` returns it verbatim
- * (declare a task with `satisfies` so `Data` is inferred from `produce`).
+ * (define a task with `globalWarmTask`/`keyedWarmTask` so `Data` is inferred
+ * from `produce`).
  */
 type WarmTask<Item = never, Data = unknown> =
   | GlobalWarmTask<Data>
