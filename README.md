@@ -50,8 +50,11 @@ Then authenticate with your Figma account when prompted. The MCP configuration i
 The monorepo contains the following workspaces:
 
 - `api` - Service that provides data to the Vetro web application
-- `geo-block` - A static HTML page shown to users in sanctioned countries
 - `internal-dashboard` - Internal-facing dashboard for operational metrics
 - `packages/*` - Shared packages
 - `subgraph` - Subgraph indexing Ethereum mainnet events for the API
 - `web` - Web application
+
+In addition, it hosts these additional directories:
+
+- `geo-block` - A static HTML page shown to users in sanctioned countries
