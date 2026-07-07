@@ -77,7 +77,7 @@ export async function getCostBasis({
  * (period ended, zero rate, or empty vault). Throws if any on-chain read fails, so
  * callers decide how to surface that (omit the vault, or fall back to history).
  */
-export async function computeVaultApy({
+async function computeVaultApy({
   client,
   vaultAddress,
 }: {
