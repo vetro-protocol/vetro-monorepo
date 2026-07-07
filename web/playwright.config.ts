@@ -28,12 +28,13 @@ export default defineConfig({
   webServer: {
     command: `pnpm dev --port ${PORT} --strictPort`,
     env: {
-      // Swap/redeem is fully on-chain; the backend APIs only supply USD display
-      // values. Disable them so e2e stays hermetic (prices render as $0, which
+      // Swap/redeem is fully on-chain; the portal API only supplies USD display
+      // values. Disable it so e2e stays hermetic (prices render as $0, which
       // these tests don't assert on). isValidUrl("") is false → query disabled.
       VITE_PORTAL_API_URL: "",
       VITE_RPC_URL_MAINNET: ANVIL_URL,
-      VITE_VETRO_API_URL: "",
+      // The Vetro API is enabled with a fake localhost URL
+      VITE_VETRO_API_URL: "http://localhost:5555",
     },
     reuseExistingServer: false,
     timeout: 120_000,
