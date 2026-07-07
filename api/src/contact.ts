@@ -54,6 +54,7 @@ function isAllowedHostname(hostname: string | undefined, env: Env) {
   return allowed
     .split(",")
     .map((entry) => entry.trim())
+    .filter(Boolean)
     .includes(hostname ?? "");
 }
 

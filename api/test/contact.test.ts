@@ -306,4 +306,25 @@ describe("verifyTurnstile", function () {
     expect(next).toHaveBeenCalledTimes(1);
     expect(json).not.toHaveBeenCalled();
   });
+
+  it("does not let an empty allowlist entry allow a missing hostname", async function () {
+    // A trailing comma yields an empty entry; it must not match a response with
+    // no hostname.
+    vi.stubGlobal("fetch", okResponse({ success: true }));
+    const { context, json, next } = buildContext({
+      env: {
+        TURNSTILE_ALLOWED_HOSTNAMES: "vetro.org,",
+        TURNSTILE_SECRET_KEY: "secret",
+      },
+      vars: { turnstileToken: "a-token" },
+    });
+
+    await verifyTurnstile(context, next);
+
+    expect(json).toHaveBeenCalledWith(
+      { error: "Captcha verification failed" },
+      403,
+    );
+    expect(next).not.toHaveBeenCalled();
+  });
 });
