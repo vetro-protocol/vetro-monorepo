@@ -12,6 +12,7 @@ import {
   sendContactConfirmation,
   sendContactEmail,
   validateContactForm,
+  verifyTurnstile,
 } from "./contact.ts";
 import { convertBigIntsToString } from "./convert-bigints-to-string.ts";
 import { getSubgraphUrl } from "./env.ts";
@@ -396,6 +397,7 @@ app.post(
   "/contact",
   contactFeatureToggle,
   validateContactForm,
+  verifyTurnstile,
   async function (c) {
     const { category, email, message } = c.get("contactForm");
     await sendContactEmail({ category, email, env: c.env, message });

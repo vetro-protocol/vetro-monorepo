@@ -9,6 +9,9 @@ type ContactForm = {
 declare module "hono" {
   interface ContextVariableMap {
     contactForm: ContactForm;
+    // Unknown because it comes straight off the
+    // parsed JSON; verifyTurnstile validates its type.
+    turnstileToken: unknown;
   }
 }
 
@@ -30,6 +33,76 @@ export function contactFeatureToggle(
   return next();
 }
 
+const siteverifyUrl =
+  "https://challenges.cloudflare.com/turnstile/v0/siteverify";
+
+type SiteverifyResponse = {
+  hostname?: string;
+  success?: boolean;
+};
+
+// Defense-in-depth: when TURNSTILE_ALLOWED_HOSTNAMES is set (comma-separated),
+// require siteverify's reported hostname to be one of them, so a token minted on
+// another site can't be replayed here. Left unset (local/staging), the check is
+// skipped. Cross-origin browser abuse is already blocked by CORS; this closes
+// the gap for non-browser clients replaying a token.
+function isAllowedHostname(hostname: string | undefined, env: Env) {
+  const allowed = env.TURNSTILE_ALLOWED_HOSTNAMES;
+  if (!allowed) {
+    return true;
+  }
+  return allowed
+    .split(",")
+    .map((entry) => entry.trim())
+    .includes(hostname ?? "");
+}
+
+/**
+ * Verifies the Cloudflare Turnstile token supplied with the contact form
+ * submission against Cloudflare's siteverify endpoint. Verification is skipped
+ * entirely when TURNSTILE_SECRET_KEY is unset, so environments without
+ * Turnstile configured (e.g. local dev) keep working.
+ */
+export async function verifyTurnstile(
+  c: Context<{ Bindings: Env }>,
+  next: Next,
+) {
+  const secret = c.env.TURNSTILE_SECRET_KEY;
+  if (!secret) {
+    return next();
+  }
+
+  // Token was pulled off the already-parsed body by validateContactForm.
+  const token = c.get("turnstileToken");
+  if (typeof token !== "string" || token.length === 0) {
+    return c.json({ error: "Missing captcha token" }, 400);
+  }
+
+  // Turnstile's siteverify expects application/x-www-form-urlencoded
+  const body = new URLSearchParams({ response: token, secret });
+  const remoteIp = c.req.header("CF-Connecting-IP");
+  if (remoteIp) {
+    body.set("remoteip", remoteIp);
+  }
+
+  try {
+    const response = await fetch(siteverifyUrl, { body, method: "POST" });
+    if (response.ok) {
+      const result = (await response.json()) as SiteverifyResponse;
+      if (
+        result.success === true &&
+        isAllowedHostname(result.hostname, c.env)
+      ) {
+        return next();
+      }
+    }
+  } catch {
+    // Fall through to the fail-closed rejection below.
+  }
+
+  return c.json({ error: "Captcha verification failed" }, 403);
+}
+
 export async function validateContactForm(c: Context, next: Next) {
   let body: unknown;
   try {
@@ -38,7 +111,10 @@ export async function validateContactForm(c: Context, next: Next) {
     return c.json({ error: "Invalid request body" }, 400);
   }
 
-  const { category, email, message } = (body ?? {}) as Record<string, unknown>;
+  const { category, email, message, token } = (body ?? {}) as Record<
+    string,
+    unknown
+  >;
 
   if (typeof email !== "string" || !emailPattern.test(email)) {
     return c.json({ error: "Invalid email address" }, 400);
@@ -55,6 +131,8 @@ export async function validateContactForm(c: Context, next: Next) {
   }
 
   c.set("contactForm", { category, email, message });
+  // Hand the raw token to verifyTurnstile so it doesn't re-parse the body.
+  c.set("turnstileToken", token);
   return next();
 }
 

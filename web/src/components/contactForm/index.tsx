@@ -1,3 +1,4 @@
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 import { Button } from "components/base/button";
 import { Dropdown } from "components/base/dropdown";
 import { Input } from "components/base/input";
@@ -5,9 +6,14 @@ import { TextArea } from "components/base/textarea";
 import { Toast } from "components/base/toast";
 import { ChevronUpDownIcon } from "components/icons/chevronUpDownIcon";
 import { useSubmitContactForm } from "hooks/useSubmitContactForm";
-import { type ChangeEvent, type FormEvent, useState } from "react";
+import { type ChangeEvent, type FormEvent, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { isValidEmail } from "utils/email";
+
+const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+// When no site key is configured the widget can't render, so mirror the API's
+// "skip when unconfigured" behavior instead of leaving the form unsubmittable.
+const captchaEnabled = Boolean(turnstileSiteKey);
 
 const topics = [
   { key: "swap", labelKey: "pages.contact.form.topic-swap" },
@@ -57,6 +63,67 @@ function useValidatedField({ errorMessage, isValid }: UseValidatedFieldParams) {
   };
 }
 
+// Manages the Turnstile token + touched state, mirroring useValidatedField.
+// `valid` is true when the captcha is disabled (nothing to solve) or a token has
+// been obtained; `reset` refreshes the single-use widget for the next attempt.
+function useTurnstile() {
+  const ref = useRef<TurnstileInstance>(undefined);
+  const [token, setToken] = useState<string>();
+  const [touched, setTouched] = useState(false);
+  return {
+    markTouched() {
+      setTouched(true);
+    },
+    props: {
+      onError() {
+        setToken(undefined);
+      },
+      onExpire() {
+        setToken(undefined);
+      },
+      onSuccess: setToken,
+    },
+    ref,
+    reset() {
+      ref.current?.reset();
+      setToken(undefined);
+      setTouched(false);
+    },
+    showError: captchaEnabled && touched && !token,
+    token,
+    valid: !captchaEnabled || Boolean(token),
+  };
+}
+
+type CaptchaFieldProps = {
+  field: ReturnType<typeof useTurnstile>;
+};
+
+// Renders the Turnstile widget and its error, or nothing when the captcha is
+// disabled (no site key configured).
+function CaptchaField({ field }: CaptchaFieldProps) {
+  const { t } = useTranslation();
+  if (!captchaEnabled) {
+    return null;
+  }
+  return (
+    <div className="flex flex-col gap-2">
+      <Turnstile
+        {...field.props}
+        // Forcing light theme because there's no dark theme in Vetro... yet!
+        options={{ size: "flexible", theme: "light" }}
+        ref={field.ref}
+        siteKey={turnstileSiteKey}
+      />
+      {field.showError ? (
+        <p className="text-b-regular text-rose-600" role="alert">
+          {t("pages.contact.form.captcha-error")}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 export function ContactForm() {
   const { t } = useTranslation();
   const { mutate, reset, status } = useSubmitContactForm();
@@ -74,11 +141,14 @@ export function ContactForm() {
   const [topicTouched, setTopicTouched] = useState(false);
   const showTopicError = topicTouched && !topic;
 
+  const turnstile = useTurnstile();
+
   function resetForm() {
     email.reset();
     message.reset();
     setTopic(undefined);
     setTopicTouched(false);
+    turnstile.reset();
   }
 
   function handleSubmit(event: FormEvent) {
@@ -86,18 +156,28 @@ export function ContactForm() {
     if (status === "pending") {
       return;
     }
-    if (!topic || !email.valid || !message.valid) {
+    if (!topic || !email.valid || !message.valid || !turnstile.valid) {
       // The button stays active; on an invalid submit reveal every field's
       // error (as if each had been touched) instead of failing silently.
       email.markTouched();
       message.markTouched();
       setTopicTouched(true);
+      turnstile.markTouched();
       return;
     }
     // Reset on success so the filled-in form can't be resubmitted as a duplicate.
     mutate(
-      { category: topic.key, email: email.value, message: message.value },
-      { onSuccess: resetForm },
+      {
+        category: topic.key,
+        email: email.value,
+        message: message.value,
+        token: turnstile.token,
+      },
+      {
+        // The token was consumed by the failed attempt; get a fresh one.
+        onError: turnstile.reset,
+        onSuccess: resetForm,
+      },
     );
   }
 
@@ -172,6 +252,8 @@ export function ContactForm() {
           required
           value={message.value}
         />
+        <CaptchaField field={turnstile} />
+
         <div className="border-t border-gray-200 py-4 *:w-full">
           <Button disabled={status === "pending"} size="xSmall" type="submit">
             {status === "pending"

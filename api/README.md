@@ -290,19 +290,29 @@ its replies route back to `CONTACT_FORM_RECIPIENT`.
 Gated by the `CONTACT_FORM_ENABLED` feature toggle: when it is not `"true"` the
 endpoint behaves as if it does not exist and returns `404`.
 
+Protected by [Cloudflare Turnstile](https://developers.cloudflare.com/turnstile/):
+the submission must include a `token` obtained from the widget on the web app,
+which is verified server-side. Verification is skipped when `TURNSTILE_SECRET_KEY`
+is unset (e.g. local development). Verification is **fail-closed**: if Cloudflare's
+siteverify is unreachable or returns a non-OK/non-JSON response, the request is
+rejected with `403` rather than let through. When `TURNSTILE_ALLOWED_HOSTNAMES` is
+set, the hostname reported by siteverify must also match one of its entries.
+
 #### Request body
 
 ```json
 {
   "category": "swap",
   "email": "user@example.com",
-  "message": "Describe what happened (max 5000 characters)."
+  "message": "Describe what happened (max 5000 characters).",
+  "token": "cloudflare-turnstile-token"
 }
 ```
 
 `category` must be one of the known topics (`swap`, `bridge`, `earn`,
 `other`). `email` must be well-formed. `message` must be non-empty and at most
-5000 characters.
+5000 characters. `token` is the Turnstile token; it is required (and verified)
+only when `TURNSTILE_SECRET_KEY` is configured.
 
 #### Response
 
@@ -311,30 +321,41 @@ confirmation email to the submitter is best-effort: if it fails, the failure is
 reported to Sentry and the response is still `204`.
 
 Returns `404` when the feature is disabled, `400` for an invalid body / email /
-category / message, and `500` if sending the support email fails.
+category / message or a missing captcha token, `403` when captcha verification
+fails (or cannot be completed — fail-closed), and `500` if sending the support
+email fails.
 
 ## Configuration
 
 Environment variables are configured in `wrangler.jsonc`.
 Secrets are set separately using the Wrangler CLI.
 
-| Variable                  | Description                                                                                                   | Default                   |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------- |
-| CONTACT_FORM_ENABLED      | Feature toggle for `POST /contact`. When not `"true"`, the endpoint returns `404`.                            | `"false"`                 |
-| CONTACT_FORM_RECIPIENT    | Destination address for contact form emails. Must be a verified Email Routing destination.                    | `support@vetro.org`       |
-| CONTACT_FORM_SENDER       | `from` address for contact form emails. Its domain must be a verified Email Routing sending domain.           | `noreply@forms.vetro.org` |
-| CUSTOM_RPC_URL_MAINNET    | Ethereum RPC node URL(s). Overrides `viem`'s default. Several URLs joined by `+` become a fallback transport. |                           |
-| MERKL_OPPORTUNITY_SVETBTC | Merkl opportunity id for the sVetBTC staking vault. Optional; if unset, that vault yields no rewards.         |                           |
-| MERKL_OPPORTUNITY_SVUSD   | Merkl opportunity id for the sVUSD staking vault. Optional; if unset, that vault yields no rewards.           |                           |
-| ORIGINS                   | Comma-separated list of allowed origins. (1)                                                                  | `http://localhost:5173`   |
-| SENTRY_DSN                | Sentry DSN. When unset, Sentry is disabled.                                                                   |                           |
-| SUBGRAPH_API_KEY          | The subgraph API key.                                                                                         |                           |
-| SUBGRAPH_ID               | The subgraph id.                                                                                              |                           |
-| SUBGRAPH_URL_TEMPLATE     | The subgraph URL template. (2)                                                                                | (localhost)               |
-| WEBSITE_URL               | Public URL of the web app, referenced in the contact form confirmation email.                                 | `http://localhost:5173/`  |
+| Variable                    | Description                                                                                                                                                                     | Default                   |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| CONTACT_FORM_ENABLED        | Feature toggle for `POST /contact`. When not `"true"`, the endpoint returns `404`.                                                                                              | `"false"`                 |
+| CONTACT_FORM_RECIPIENT      | Destination address for contact form emails. Must be a verified Email Routing destination.                                                                                      | `support@vetro.org`       |
+| CONTACT_FORM_SENDER         | `from` address for contact form emails. Its domain must be a verified Email Routing sending domain.                                                                             | `noreply@forms.vetro.org` |
+| CUSTOM_RPC_URL_MAINNET      | Ethereum RPC node URL(s). Overrides `viem`'s default. Several URLs joined by `+` become a fallback transport.                                                                   |                           |
+| MERKL_OPPORTUNITY_SVETBTC   | Merkl opportunity id for the sVetBTC staking vault. Optional; if unset, that vault yields no rewards.                                                                           |                           |
+| MERKL_OPPORTUNITY_SVUSD     | Merkl opportunity id for the sVUSD staking vault. Optional; if unset, that vault yields no rewards.                                                                             |                           |
+| ORIGINS                     | Comma-separated list of allowed origins. (1)                                                                                                                                    | `http://localhost:5173`   |
+| SENTRY_DSN                  | Sentry DSN. When unset, Sentry is disabled.                                                                                                                                     |                           |
+| SUBGRAPH_API_KEY            | The subgraph API key.                                                                                                                                                           |                           |
+| SUBGRAPH_ID                 | The subgraph id.                                                                                                                                                                |                           |
+| SUBGRAPH_URL_TEMPLATE       | The subgraph URL template. (2)                                                                                                                                                  | (localhost)               |
+| TURNSTILE_ALLOWED_HOSTNAMES | Optional comma-separated hostname allowlist. When set, a Turnstile token whose siteverify `hostname` is not listed is rejected (`403`). Unset (local/staging) skips this check. |                           |
+| TURNSTILE_SECRET_KEY        | Cloudflare Turnstile secret key for verifying `POST /contact` tokens. When unset, verification is skipped. (3)                                                                  |                           |
+| WEBSITE_URL                 | Public URL of the web app, referenced in the contact form confirmation email.                                                                                                   | `http://localhost:5173/`  |
 
 (1) Globs with stars (`*`) are supported. I.e. `https://*.hemi.xyz` will match any subdomain or subdomain chain.
 (2) API key and id are replaced in the template at the `$API_KEY` and `$ID` positions.
+(3) Per environment: local (`.dev.vars`) and staging (`env.staging.vars`) use Cloudflare's always-passes [test secret](https://developers.cloudflare.com/turnstile/troubleshooting/testing/) `1x0000000000000000000000000000000AA`, since it is public and non-sensitive. Production sets the real key as a Wrangler secret — it is intentionally absent from `env.production.vars` in `wrangler.jsonc`:
+
+```sh
+pnpm wrangler secret put TURNSTILE_SECRET_KEY --env production
+```
+
+The web app pairs this with the matching **site** key `VITE_TURNSTILE_SITE_KEY` (public; test key `1x00000000000000000000AA` committed in `web/.env` for local/staging, real key injected at build time for production).
 
 The `POST /contact` endpoint also requires a `send_email` binding named `SEND_EMAIL`, configured in `wrangler.jsonc`. Sending only works once the domain is verified and the recipient is added as a destination in Cloudflare Email Routing.
 

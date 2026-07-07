@@ -1,7 +1,11 @@
 import type { Context } from "hono";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { contactFeatureToggle, validateContactForm } from "../src/contact.ts";
+import {
+  contactFeatureToggle,
+  validateContactForm,
+  verifyTurnstile,
+} from "../src/contact.ts";
 
 const validForm = {
   category: "swap",
@@ -9,18 +13,25 @@ const validForm = {
   message: "Something went wrong.",
 };
 
-// Minimal Hono Context for testing.
-function buildContext({ body = validForm, env = {} } = {}) {
+// Minimal Hono Context for testing. `vars` seeds the get/set store so tests can
+// preload context values (e.g. the turnstileToken validateContactForm stashes).
+function buildContext({ body = validForm, env = {}, vars = {} } = {}) {
   const json = vi.fn((data, status) => ({ data, status }));
   const next = vi.fn();
-  const set = vi.fn();
+  const store: Record<string, unknown> = { ...vars };
+  const set = vi.fn(function (key: string, value: unknown) {
+    store[key] = value;
+  });
+  const get = vi.fn((key: string) => store[key]);
   const context = {
     env: {
       CONTACT_FORM_ENABLED: "true",
       ...env,
     },
+    get,
     json,
     req: {
+      header: vi.fn(() => undefined),
       json: vi.fn(async function () {
         if (typeof body === "string") {
           throw new SyntaxError("Invalid JSON");
@@ -32,6 +43,7 @@ function buildContext({ body = validForm, env = {} } = {}) {
   };
   return {
     context: context as unknown as Context<{ Bindings: Env }>,
+    get,
     json,
     next,
     set,
@@ -133,6 +145,164 @@ describe("validateContactForm", function () {
     await validateContactForm(context, next);
 
     expect(set).toHaveBeenCalledWith("contactForm", validForm);
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(json).not.toHaveBeenCalled();
+  });
+
+  it("stashes the turnstile token from the body", async function () {
+    const { context, set } = buildContext({
+      body: { ...validForm, token: "a-token" },
+    });
+
+    await validateContactForm(context, vi.fn());
+
+    expect(set).toHaveBeenCalledWith("turnstileToken", "a-token");
+  });
+});
+
+describe("verifyTurnstile", function () {
+  afterEach(function () {
+    vi.unstubAllGlobals();
+  });
+
+  const okResponse = (result: unknown) =>
+    vi.fn(async () => ({ json: async () => result, ok: true }));
+
+  it("skips verification when the secret is unset", async function () {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const { context, json, next } = buildContext({
+      env: { TURNSTILE_SECRET_KEY: undefined },
+      vars: { turnstileToken: "a-token" },
+    });
+
+    await verifyTurnstile(context, next);
+
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(json).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when the token is missing", async function () {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const { context, json, next } = buildContext({
+      env: { TURNSTILE_SECRET_KEY: "secret" },
+    });
+
+    await verifyTurnstile(context, next);
+
+    expect(json).toHaveBeenCalledWith({ error: "Missing captcha token" }, 400);
+    expect(next).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("calls next when siteverify succeeds", async function () {
+    vi.stubGlobal("fetch", okResponse({ success: true }));
+    const { context, json, next } = buildContext({
+      env: { TURNSTILE_SECRET_KEY: "secret" },
+      vars: { turnstileToken: "a-token" },
+    });
+
+    await verifyTurnstile(context, next);
+
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(json).not.toHaveBeenCalled();
+  });
+
+  it("returns 403 when siteverify reports failure", async function () {
+    vi.stubGlobal("fetch", okResponse({ success: false }));
+    const { context, json, next } = buildContext({
+      env: { TURNSTILE_SECRET_KEY: "secret" },
+      vars: { turnstileToken: "a-token" },
+    });
+
+    await verifyTurnstile(context, next);
+
+    expect(json).toHaveBeenCalledWith(
+      { error: "Captcha verification failed" },
+      403,
+    );
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it("fails closed with 403 when siteverify errors", async function () {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async function () {
+        throw new Error("network down");
+      }),
+    );
+    const { context, json, next } = buildContext({
+      env: { TURNSTILE_SECRET_KEY: "secret" },
+      vars: { turnstileToken: "a-token" },
+    });
+
+    await verifyTurnstile(context, next);
+
+    expect(json).toHaveBeenCalledWith(
+      { error: "Captcha verification failed" },
+      403,
+    );
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it("fails closed with 403 on a non-ok siteverify response", async function () {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({ json: async () => ({ success: true }), ok: false })),
+    );
+    const { context, json, next } = buildContext({
+      env: { TURNSTILE_SECRET_KEY: "secret" },
+      vars: { turnstileToken: "a-token" },
+    });
+
+    await verifyTurnstile(context, next);
+
+    expect(json).toHaveBeenCalledWith(
+      { error: "Captcha verification failed" },
+      403,
+    );
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it("returns 403 when the hostname is not allowed", async function () {
+    vi.stubGlobal(
+      "fetch",
+      okResponse({ hostname: "evil.example", success: true }),
+    );
+    const { context, json, next } = buildContext({
+      env: {
+        TURNSTILE_ALLOWED_HOSTNAMES: "vetro.org",
+        TURNSTILE_SECRET_KEY: "secret",
+      },
+      vars: { turnstileToken: "a-token" },
+    });
+
+    await verifyTurnstile(context, next);
+
+    expect(json).toHaveBeenCalledWith(
+      { error: "Captcha verification failed" },
+      403,
+    );
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it("calls next when the hostname is allowed", async function () {
+    vi.stubGlobal(
+      "fetch",
+      okResponse({ hostname: "vetro.org", success: true }),
+    );
+    const { context, json, next } = buildContext({
+      env: {
+        TURNSTILE_ALLOWED_HOSTNAMES: "app.vetro.org, vetro.org",
+        TURNSTILE_SECRET_KEY: "secret",
+      },
+      vars: { turnstileToken: "a-token" },
+    });
+
+    await verifyTurnstile(context, next);
+
     expect(next).toHaveBeenCalledTimes(1);
     expect(json).not.toHaveBeenCalled();
   });

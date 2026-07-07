@@ -58,6 +58,7 @@
         "ORIGINS": "https://*.letshamsterdance.xyz,https://*-vetro-web-staging.hemilabs.workers.dev",
         "SUBGRAPH_ID": "7vnTMFYNE6Nv7RTeoaog4QgqQ3bwZTFoPUGv2gcmTxJ6",
         "SUBGRAPH_URL_TEMPLATE": "https://gateway.thegraph.com/api/$API_KEY/subgraphs/id/$ID",
+        "TURNSTILE_SECRET_KEY": "1x0000000000000000000000000000000AA",
         "WEBSITE_URL": "https://vetro.letshamsterdance.xyz/",
       },
       "send_email": [{ "name": "SEND_EMAIL" }],

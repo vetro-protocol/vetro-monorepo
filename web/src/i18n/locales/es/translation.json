@@ -227,6 +227,7 @@
     "contact": {
       "email-us-directly": "O escríbanos directamente a <emailLink>{{email}}</emailLink>",
       "form": {
+        "captcha-error": "Por favor, complete el captcha.",
         "category-error": "Por favor, seleccione un tema.",
         "category-label": "¿De qué se trata?",
         "email-error": "Por favor, ingrese una dirección de correo electrónico válida.",
