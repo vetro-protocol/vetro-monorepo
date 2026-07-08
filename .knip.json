@@ -1,7 +1,6 @@
 {
   "ignore": ["web/scripts/*"],
   "ignoreDependencies": ["eslint-config-prettier"],
-  "ignoreWorkspaces": ["internal-dashboard"],
   "workspaces": {
     "api": {
       "ignoreDependencies": ["@sentry/cli"]
