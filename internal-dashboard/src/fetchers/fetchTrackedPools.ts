@@ -4,6 +4,7 @@ import { trackedTokensOptions } from "../hooks/useTrackedTokens";
 import { type TrackedPool } from "../lib/types";
 
 import { fetchCurvePools } from "./fetchCurvePools";
+import { fetchSushiPools } from "./fetchSushiPools";
 
 export const fetchTrackedPools = async function (
   queryClient: QueryClient,
@@ -18,7 +19,7 @@ export const fetchTrackedPools = async function (
   // outage isn't silently shown as an empty pool list.
   const results = await Promise.allSettled([
     fetchCurvePools(trackedAddresses),
-    // Adding Sushi Pools in next PR here
+    fetchSushiPools(trackedAddresses),
   ]);
 
   const fulfilled = results.filter(

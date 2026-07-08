@@ -77,9 +77,10 @@ const csp = [
   "base-uri 'none'",
   // The DEX tab reads Curve liquidity straight from the Curve API (pool list /
   // volumes / gauges) and per-pool 24h fees from Curve's analytics API. Sushi
-  // pools, tracked-token discovery and share values are read on-chain from the
-  // mainnet RPC, and token USD prices come from the Portal API.
-  `connect-src 'self' https://api.curve.finance https://prices.curve.finance ${rpcConnectSrc} ${portalApiUrl}`,
+  // pools come entirely from Sushi's own data API. Tracked-token discovery and
+  // share values are read on-chain from the mainnet RPC, and token USD prices
+  // come from the Portal API.
+  `connect-src 'self' https://api.curve.finance https://prices.curve.finance https://production.data-gcp.sushi.com ${rpcConnectSrc} ${portalApiUrl}`,
   "default-src 'none'",
   "font-src 'self'",
   "form-action 'none'",
