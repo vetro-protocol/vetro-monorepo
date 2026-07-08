@@ -226,6 +226,7 @@
     "contact": {
       "email-us-directly": "Or email us directly at <emailLink>{{email}}</emailLink>",
       "form": {
+        "captcha-error": "Please complete the captcha.",
         "category-error": "Please select a topic.",
         "category-label": "What's this about?",
         "email-error": "Please enter a valid email address.",

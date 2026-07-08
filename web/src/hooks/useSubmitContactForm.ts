@@ -6,6 +6,8 @@ type ContactFormValues = {
   category: string;
   email: string;
   message: string;
+  // Omitted when the widget is disabled (no VITE_TURNSTILE_SITE_KEY)
+  token?: string;
 };
 
 const apiUrl = import.meta.env.VITE_VETRO_API_URL;
