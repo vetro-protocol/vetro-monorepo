@@ -51,13 +51,13 @@ const CurveFeesCard = function ({ pool }: { pool: TrackedPool }) {
   return (
     <StatCard
       hint={
-        stats && stats.liquidityFee24h > 0
+        stats && stats.liquidityFee24h !== null && stats.liquidityFee24h > 0
           ? `+ ${formatPrice(stats.liquidityFee24h)} liquidity fees`
           : undefined
       }
       label="24h Fees"
       value={
-        stats?.tradingFee24h !== undefined
+        stats?.tradingFee24h !== undefined && stats.tradingFee24h !== null
           ? formatPrice(stats.tradingFee24h)
           : "—"
       }
