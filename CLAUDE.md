@@ -28,6 +28,7 @@ The `web/` app exposes the Swap, Earn, Borrow, Bridge, and Analytics pages. The 
 - **Type vs Interface**: Prefer `type` over `interface`, except for module augmentation
 - **Running TypeScript files**: Use `node <path/to/file>.ts` directly — Node natively supports TypeScript execution
 - **Component Props naming**: When creating a type for component props, use generic name `Props` if they're the only props defined in the file. Otherwise, use `<ComponentName>Props`
+- **Comparing addresses**: When comparing `Address` values (the type from `viem`), prefer `isAddressEqual` imported from `viem` over direct equality checks
 
 ### API project
 
