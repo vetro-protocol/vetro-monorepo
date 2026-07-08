@@ -14,9 +14,9 @@ export const fetchTrackedPools = async function (
     tokens.map((token) => token.address.toLowerCase()),
   );
 
-  // Keep the rest of the list alive when a single source fails (Sushi is added
-  // in a later PR). Only surface an error when every source fails, so a real
-  // outage isn't silently shown as an empty pool list.
+  // Keep the rest of the list alive when a single source fails. Only surface an
+  // error when every source fails, so a real outage isn't silently shown as an
+  // empty pool list.
   const results = await Promise.allSettled([
     fetchCurvePools(trackedAddresses),
     fetchSushiPools(trackedAddresses),

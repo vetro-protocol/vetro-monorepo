@@ -88,17 +88,23 @@ type SushiPoolData = {
 export const fetchSushiPoolData = async function (
   address: Address,
 ): Promise<SushiPoolData> {
-  const body: { data?: { v3Pool: RawV3Pool | null } } = await fetch(
-    SUSHI_API_URL,
-    {
-      body: JSON.stringify({
-        query,
-        variables: { address, chainId: CHAIN_ID },
-      }),
-      headers: { "content-type": "application/json" },
-      method: "POST",
-    },
-  );
+  const body: {
+    data?: { v3Pool: RawV3Pool | null };
+    errors?: { message: string }[];
+  } = await fetch(SUSHI_API_URL, {
+    body: JSON.stringify({
+      query,
+      variables: { address, chainId: CHAIN_ID },
+    }),
+    headers: { "content-type": "application/json" },
+    method: "POST",
+  });
+  // GraphQL reports failures as a 200 with an `errors` array; surface the real
+  // message rather than letting it fall through to a misleading "not found".
+  if (body.errors?.length) {
+    const reason = body.errors.map((error) => error.message).join("; ");
+    throw new Error(`Sushi API error for pool ${address}: ${reason}`);
+  }
   const pool = body.data?.v3Pool;
   if (!pool) {
     throw new Error(`Sushi pool ${address} not found`);

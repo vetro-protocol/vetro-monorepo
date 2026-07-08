@@ -50,7 +50,8 @@ const fetchSushiPool = async function ({
     : [1, data.token1Price];
 
   const tokens = [data.token0, data.token1];
-  const baseType = `Sushi V3 · ${data.swapFee * 100}%`;
+  // toFixed keeps the fee percentage free of float artifacts (e.g. 0.3 * 100).
+  const baseType = `Sushi V3 · ${Number((data.swapFee * 100).toFixed(4))}%`;
   const url = `https://www.sushi.com/ethereum/pool/v3/${pool.address}`;
 
   const makeEntry = function ({
