@@ -40,14 +40,16 @@ const fetchSushiPool = async function ({
   const data = await fetchSushiPoolData(pool.address);
 
   // Anchor the reference leg (whichever isn't a tracked Vetro token) at $1 and
-  // take the other's price straight from Sushi's pool rate — token0Price is
-  // token1-per-token0, token1Price its inverse.
+  // take the tracked leg's price from Sushi's pool rate. Sushi's tokenNPrice is
+  // tokenN-per-the-other-token, so the tracked leg priced in $1 reference units
+  // is the *reference* token's price field: token1Price (USDT-per-VUSD) when
+  // token1 is the reference, token0Price when token0 is.
   const token1IsReference = !trackedAddresses.has(
     data.token1.address.toLowerCase(),
   );
   const usdPrices = token1IsReference
-    ? [data.token0Price, 1]
-    : [1, data.token1Price];
+    ? [data.token1Price, 1]
+    : [1, data.token0Price];
 
   const tokens = [data.token0, data.token1];
   // toFixed keeps the fee percentage free of float artifacts (e.g. 0.3 * 100).

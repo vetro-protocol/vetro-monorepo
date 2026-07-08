@@ -77,9 +77,9 @@ type SushiPoolData = {
   sqrtPriceX96: bigint; // current price as a Q64.96 sqrt ratio (for band views)
   swapFee: number; // fee tier as a fraction (0.0005 = 0.05%)
   token0: SushiToken;
-  token0Price: number; // token1 per token0
+  token0Price: number; // token0 per token1
   token1: SushiToken;
-  token1Price: number; // token0 per token1
+  token1Price: number; // token1 per token0
   volumeUsd24h: number;
 };
 
