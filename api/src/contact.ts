@@ -1,16 +1,25 @@
 import type { Context, Next } from "hono";
 
+// Already base64-encoded and shaped for the SEND_EMAIL binding's attachments.
+type Attachment = {
+  content: string;
+  disposition: "attachment";
+  filename: string;
+  type: string;
+};
+
 type ContactForm = {
   category: string;
   email: string;
+  files: File[];
   message: string;
 };
 
 declare module "hono" {
   interface ContextVariableMap {
     contactForm: ContactForm;
-    // Unknown because it comes straight off the
-    // parsed JSON; verifyTurnstile validates its type.
+    // Unknown because it comes straight off the multipart
+    // form field; verifyTurnstile validates its type.
     turnstileToken: unknown;
   }
 }
@@ -22,6 +31,51 @@ const contactCategories = ["bridge", "earn", "other", "swap"];
 // a minimal, permissive check — some text, an "@", and more text after it.
 const emailPattern = /^[^\s@]+@[^\s@]+$/;
 const maxMessageLength = 5000;
+
+const isValidMessage = (message: unknown): message is string =>
+  typeof message === "string" &&
+  message.trim().length > 0 &&
+  message.length <= maxMessageLength;
+
+// Attachment limits. See https://developers.cloudflare.com/email-service/platform/limits/
+const allowedAttachmentTypes = ["image/jpeg", "image/png"];
+const maxAttachmentCount = 5;
+const maxTotalAttachmentBytes = 3_500_000;
+
+// Upper bound on the whole request body, checked before formData() buffers it.
+// Headroom over the attachment budget covers the multipart boundaries and the
+// text fields (message is capped at 5000 chars).
+const maxRequestBytes = maxTotalAttachmentBytes + 500_000;
+
+// Same checks (and order) as the web app's getAttachmentError so a submission
+// rejected client-side reports the matching reason here. See
+// web/src/hooks/useAttachments.ts.
+function validateAttachments(files: File[]) {
+  if (files.some((file) => !allowedAttachmentTypes.includes(file.type))) {
+    return "Unsupported attachment type";
+  }
+  if (files.length > maxAttachmentCount) {
+    return "Too many attachments";
+  }
+  const totalBytes = files.reduce((sum, file) => sum + file.size, 0);
+  if (totalBytes > maxTotalAttachmentBytes) {
+    return "Attachments too large";
+  }
+  return undefined;
+}
+
+// Base64-encodes each file for the SEND_EMAIL binding. Deferred until after the
+// captcha passes so an unverified request can't force multi-MB reads + encoding.
+export const encodeAttachments = (files: File[]): Promise<Attachment[]> =>
+  Promise.all(
+    files.map(async (file) => ({
+      // Standard base64 (not base64url) — MIME attachments require it.
+      content: Buffer.from(await file.arrayBuffer()).toString("base64"),
+      disposition: "attachment" as const,
+      filename: file.name,
+      type: file.type,
+    })),
+  );
 
 export function contactFeatureToggle(
   c: Context<{ Bindings: Env }>,
@@ -105,17 +159,27 @@ export async function verifyTurnstile(
 }
 
 export async function validateContactForm(c: Context, next: Next) {
-  let body: unknown;
+  // Reject oversized bodies before formData() reads them into memory. The
+  // captcha token lives inside the body, so it can't gate this earlier; this
+  // bounds the pre-verification read for any client that reports its size.
+  if (Number(c.req.header("Content-Length")) > maxRequestBytes) {
+    return c.json({ error: "Request too large" }, 413);
+  }
+
+  let form: FormData;
   try {
-    body = await c.req.json();
+    form = await c.req.formData();
   } catch {
     return c.json({ error: "Invalid request body" }, 400);
   }
 
-  const { category, email, message, token } = (body ?? {}) as Record<
-    string,
-    unknown
-  >;
+  const category = form.get("category");
+  const email = form.get("email");
+  const message = form.get("message");
+  const token = form.get("token");
+  const files = form
+    .getAll("files")
+    .filter((value): value is File => value instanceof File);
 
   if (typeof email !== "string" || !emailPattern.test(email)) {
     return c.json({ error: "Invalid email address" }, 400);
@@ -123,15 +187,16 @@ export async function validateContactForm(c: Context, next: Next) {
   if (typeof category !== "string" || !contactCategories.includes(category)) {
     return c.json({ error: "Invalid category" }, 400);
   }
-  if (
-    typeof message !== "string" ||
-    message.trim().length === 0 ||
-    message.length > maxMessageLength
-  ) {
+  if (!isValidMessage(message)) {
     return c.json({ error: "Invalid message" }, 400);
   }
 
-  c.set("contactForm", { category, email, message });
+  const attachmentError = validateAttachments(files);
+  if (attachmentError) {
+    return c.json({ error: attachmentError }, 400);
+  }
+
+  c.set("contactForm", { category, email, files, message });
   // Hand the raw token to verifyTurnstile so it doesn't re-parse the body.
   c.set("turnstileToken", token);
   return next();
@@ -143,12 +208,14 @@ export async function validateContactForm(c: Context, next: Next) {
  * sender address comes from CONTACT_FORM_SENDER.
  */
 export const sendContactEmail = ({
+  attachments,
   category,
   email,
   env,
   message,
-}: ContactForm & { env: Env }) =>
+}: Omit<ContactForm, "files"> & { attachments: Attachment[]; env: Env }) =>
   env.SEND_EMAIL.send({
+    attachments,
     from: env.CONTACT_FORM_SENDER!,
     replyTo: email,
     subject: `New support request: ${category}`,
@@ -175,7 +242,7 @@ export const sendContactConfirmation = ({
   category,
   email,
   env,
-}: Omit<ContactForm, "message"> & { env: Env }) =>
+}: Omit<ContactForm, "files" | "message"> & { env: Env }) =>
   env.SEND_EMAIL.send({
     from: { email: env.CONTACT_FORM_SENDER!, name: "Vetro Support" },
     replyTo: env.CONTACT_FORM_RECIPIENT!,
