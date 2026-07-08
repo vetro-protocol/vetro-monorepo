@@ -75,7 +75,7 @@ export const fetchGauges = (): Promise<CurveGaugeInfo[]> =>
     })),
   );
 
-export type CurvePoolStats = {
+type CurvePoolStats = {
   liquidityFee24h: number;
   tradingFee24h: number;
   tradingVolume24h: number;
