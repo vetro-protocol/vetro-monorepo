@@ -2,13 +2,14 @@ import fetch from "fetch-plus-plus";
 import { type Address } from "viem";
 
 // Sushi's own data API — the backend of sushi.com's pool pages
-// (https://www.sushi.com/ethereum/pool/v3/<address>). Keyless and CORS-open (it
-// reflects any Origin), so the browser reads it directly. It's the single source
-// for everything the dashboard renders about a Sushi pool — including the current
-// liquidity / sqrt price the price-band views derive from — so nothing is read
-// on-chain. The origin must be whitelisted in the worker CSP connect-src
-// (src/index.ts).
-const SUSHI_API_URL = "https://production.data-gcp.sushi.com/graphql";
+// (https://www.sushi.com/ethereum/pool/v3/<address>). Direct browser calls fail
+// in the deployed environment (they work from localhost), so requests go through
+// the worker's /api/sushi proxy (src/index.ts), which forwards them server-side
+// and sidesteps the browser's cross-origin restrictions. Sushi is the single
+// source for everything the dashboard renders about a pool — including the
+// current liquidity / sqrt price the price-band views derive from — so nothing
+// is read on-chain.
+const SUSHI_API_URL = "/api/sushi";
 
 // Ethereum mainnet — everything the dashboard tracks lives here.
 const CHAIN_ID = 1;
