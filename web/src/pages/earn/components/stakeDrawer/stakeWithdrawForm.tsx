@@ -1,5 +1,6 @@
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { RenderCryptoValue } from "components/base/cryptoValue";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { VerticalStepper, stepStatus } from "components/base/verticalStepper";
 import { CollapsibleSection } from "components/collapsibleSection";
@@ -20,7 +21,6 @@ import { type FormEvent, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import type { TokenWithGateway } from "types";
-import { formatAmount } from "utils/token";
 import { type Address, parseUnits } from "viem";
 import { useAccount } from "wagmi";
 
@@ -166,7 +166,7 @@ export function StakeWithdrawForm({
 
   const tracking = canInstantWithdraw ? instantTracking : requestTracking;
 
-  const { data: stakedBalance, isError: isStakedBalanceError } =
+  const { data: stakedBalance, status: stakedBalanceStatus } =
     useStakedBalance(stakingVaultAddress);
 
   const { data: nativeBalanceData } = useNativeBalance(chain.id);
@@ -237,12 +237,6 @@ export function StakeWithdrawForm({
     stakedBalance,
   });
 
-  const formattedBalance = formatAmount({
-    amount: stakedBalance,
-    decimals: peggedToken.decimals,
-    isError: isStakedBalanceError,
-  });
-
   const balancesLoaded =
     nativeBalance !== undefined && stakedBalance !== undefined;
 
@@ -271,7 +265,13 @@ export function StakeWithdrawForm({
           balance={
             <Balance
               label={t("pages.earn.stake.available-to-withdraw")}
-              value={formattedBalance}
+              value={
+                <RenderCryptoValue
+                  status={stakedBalanceStatus}
+                  token={peggedToken}
+                  value={stakedBalance}
+                />
+              }
             />
           }
           errorKey={balancesLoaded ? inputError : undefined}
