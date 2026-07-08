@@ -12,8 +12,9 @@ const GAP = 12;
 const SCALE_FACTOR = 0.05;
 const STACK_OFFSET = 12;
 
-// Below `sm` the header renders as a fixed bottom bar (h-16), so bottom-anchored
-// stacks are lifted by its height (4rem) plus the base 1rem gap to clear it.
+// Below `sm` the header moves to the bottom of the screen as a bar (h-16), so
+// bottom-anchored stacks are lifted by its height (4rem) plus the base 1rem gap
+// to clear it.
 // `z-0` keeps the stack below overlay backdrops (z-10+) so modals, drawers and
 // the mobile nav sheet cover it; it still paints above page content since it is
 // portaled to the end of `document.body`.
