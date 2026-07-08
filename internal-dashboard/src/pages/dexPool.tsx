@@ -57,7 +57,9 @@ const CurveFeesCard = function ({ pool }: { pool: TrackedPool }) {
       }
       label="24h Fees"
       value={
-        stats?.tradingFee24h != null ? formatPrice(stats.tradingFee24h) : "—"
+        stats?.tradingFee24h !== undefined
+          ? formatPrice(stats.tradingFee24h)
+          : "—"
       }
     />
   );

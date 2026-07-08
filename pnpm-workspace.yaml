@@ -4,6 +4,7 @@ minimumReleaseAge: 10080 # 7 days in minutes
 minimumReleaseAgeExclude:
   - "@hemilabs/*"
   - "@vetro-protocol/*"
+  - "eslint-config-bloq"
   - "viem-erc20"
   - "viem-erc4626"
 
@@ -46,4 +47,6 @@ trustPolicy: no-downgrade
 # version already present in the committed lockfile; allowlist it so installs
 # can resolve.
 trustPolicyExclude:
+  - "eslint-config-prettier@8.10.2"
+  - "eslint-import-resolver-typescript@3.10.1"
   - "semver@6.3.1"
