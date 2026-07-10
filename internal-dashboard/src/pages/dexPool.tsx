@@ -51,13 +51,15 @@ const CurveFeesCard = function ({ pool }: { pool: TrackedPool }) {
   return (
     <StatCard
       hint={
-        stats && stats.liquidityFee24h > 0
+        stats && stats.liquidityFee24h !== null && stats.liquidityFee24h > 0
           ? `+ ${formatPrice(stats.liquidityFee24h)} liquidity fees`
           : undefined
       }
       label="24h Fees"
       value={
-        stats?.tradingFee24h != null ? formatPrice(stats.tradingFee24h) : "—"
+        stats?.tradingFee24h !== undefined && stats.tradingFee24h !== null
+          ? formatPrice(stats.tradingFee24h)
+          : "—"
       }
     />
   );
@@ -66,7 +68,7 @@ const CurveFeesCard = function ({ pool }: { pool: TrackedPool }) {
 // Rolling-24h fees. Sushi's API gives them on the pool object directly; Curve
 // needs a separate per-pool analytics fetch.
 const FeesCard = function ({ pool }: { pool: TrackedPool }) {
-  if (pool.feesUsd24h != null) {
+  if (pool.feesUsd24h !== null && pool.feesUsd24h !== undefined) {
     return <StatCard label="24h Fees" value={formatPrice(pool.feesUsd24h)} />;
   }
   return <CurveFeesCard pool={pool} />;
