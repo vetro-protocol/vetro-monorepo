@@ -9,9 +9,11 @@ import { Table } from "components/base/table";
 import { Header } from "components/base/table/header";
 import { TopSection } from "components/base/table/topSection";
 import { Toast } from "components/base/toast";
+import { Tooltip } from "components/tooltip";
 import { TableCellsIcon } from "pages/earn/icons/tableCellsIcon";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { isGeoRestricted } from "utils/geoRestriction";
 import type { Address } from "viem";
 import { useAccount } from "wagmi";
 
@@ -121,6 +123,7 @@ function WithdrawAllButton({
   const { isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
   const { t } = useTranslation();
+  const geoRestricted = isGeoRestricted();
 
   if (!isConnected) {
     return (
@@ -130,9 +133,9 @@ function WithdrawAllButton({
     );
   }
 
-  return (
+  const button = (
     <Button
-      disabled={disabled}
+      disabled={disabled || geoRestricted}
       onClick={onWithdrawAll}
       size="xSmall"
       variant="primary"
@@ -144,6 +147,12 @@ function WithdrawAllButton({
         {!isWithdrawing && count > 0 && <Badge variant="blue">{count}</Badge>}
       </span>
     </Button>
+  );
+
+  return geoRestricted ? (
+    <Tooltip content={t("common.geo-restriction-title")}>{button}</Tooltip>
+  ) : (
+    button
   );
 }
 

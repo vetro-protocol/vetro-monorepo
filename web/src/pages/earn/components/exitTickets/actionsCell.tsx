@@ -8,6 +8,7 @@ import { useVaultPeggedToken } from "hooks/useVaultPeggedToken";
 import { TrashIcon } from "pages/earn/icons/trashIcon";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { isGeoRestricted } from "utils/geoRestriction";
 import { formatAmount } from "utils/token";
 import { useAccount } from "wagmi";
 
@@ -25,14 +26,15 @@ type Props = {
 
 type WithdrawButtonProps = {
   disabled: boolean;
+  geoRestricted: boolean;
   isWithdrawing: boolean;
   onWithdraw: VoidFunction;
 };
 
 function WithdrawButton({
   disabled,
+  geoRestricted,
   isWithdrawing,
-
   onWithdraw,
 }: WithdrawButtonProps) {
   const { openConnectModal } = useConnectModal();
@@ -47,9 +49,9 @@ function WithdrawButton({
     );
   }
 
-  return (
+  const button = (
     <Button
-      disabled={disabled || isWithdrawing}
+      disabled={disabled || isWithdrawing || geoRestricted}
       onClick={onWithdraw}
       size="xSmall"
       variant="primary"
@@ -64,6 +66,12 @@ function WithdrawButton({
       </span>
     </Button>
   );
+
+  return geoRestricted ? (
+    <Tooltip content={t("common.geo-restriction-title")}>{button}</Tooltip>
+  ) : (
+    button
+  );
 }
 
 export function ActionsCell({
@@ -73,6 +81,7 @@ export function ActionsCell({
   ticket,
 }: Props) {
   const { t } = useTranslation();
+  const geoRestricted = isGeoRestricted();
 
   const { data: peggedToken } = useVaultPeggedToken(ticket.stakingVaultAddress);
   const status = getTicketStatus(ticket);
@@ -132,14 +141,21 @@ export function ActionsCell({
           {status === "ready" && (
             <WithdrawButton
               disabled={disabled}
+              geoRestricted={geoRestricted}
               isWithdrawing={isWithdrawing}
               onWithdraw={handleWithdraw}
             />
           )}
-          <Tooltip content={t("pages.earn.exit-tickets.delete-tooltip")}>
+          <Tooltip
+            content={
+              geoRestricted
+                ? t("common.geo-restriction-title")
+                : t("pages.earn.exit-tickets.delete-tooltip")
+            }
+          >
             <ButtonIcon
               aria-label={t("pages.earn.exit-tickets.delete-tooltip")}
-              disabled={disabled || isWithdrawing}
+              disabled={disabled || isWithdrawing || geoRestricted}
               onClick={() => setIsModalOpen(true)}
               size="xSmall"
               variant="secondary"
