@@ -42,15 +42,23 @@ export function FileDropzone({
   const [dragging, setDragging] = useState(false);
   const errorId = useId();
 
+  // Adding files mid-upload is ignored: they wouldn't be part of the in-flight
+  // request, so accepting them would leave the rows out of sync with what's
+  // actually being sent.
   function handleDrop(event: DragEvent<HTMLDivElement>) {
     event.preventDefault();
     setDragging(false);
+    if (isUploading) {
+      return;
+    }
     onFilesAdded(Array.from(event.dataTransfer.files));
   }
 
   function handleDragOver(event: DragEvent<HTMLDivElement>) {
     event.preventDefault();
-    setDragging(true);
+    if (!isUploading) {
+      setDragging(true);
+    }
   }
 
   function handleDragLeave(event: DragEvent<HTMLDivElement>) {
@@ -64,7 +72,9 @@ export function FileDropzone({
   }
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
-    onFilesAdded(Array.from(event.target.files ?? []));
+    if (!isUploading) {
+      onFilesAdded(Array.from(event.target.files ?? []));
+    }
     // Clear so re-selecting the same file fires onChange again.
     event.target.value = "";
   }
@@ -82,6 +92,7 @@ export function FileDropzone({
       >
         <p className="text-b-regular text-center text-gray-500">{hint}</p>
         <Button
+          disabled={isUploading}
           onClick={() => inputRef.current?.click()}
           size="xSmall"
           type="button"
