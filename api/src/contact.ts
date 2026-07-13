@@ -177,7 +177,7 @@ export const sendContactConfirmation = ({
   env,
 }: Omit<ContactForm, "message"> & { env: Env }) =>
   env.SEND_EMAIL.send({
-    from: env.CONTACT_FORM_SENDER!,
+    from: { email: env.CONTACT_FORM_SENDER!, name: "Vetro Support" },
     replyTo: env.CONTACT_FORM_RECIPIENT!,
     subject: "We received your message",
     text: `Hi,
