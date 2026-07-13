@@ -1,3 +1,4 @@
+import { CheckIcon } from "components/icons/checkIcon";
 import type { ReactNode } from "react";
 
 /* eslint-disable sort-keys */
@@ -21,21 +22,6 @@ export type Step = {
 type Props = {
   steps: Step[];
 };
-
-const CheckIcon = () => (
-  <svg
-    aria-hidden="true"
-    className="size-2.5"
-    fill="none"
-    stroke="white"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    strokeWidth={2.5}
-    viewBox="0 0 12 12"
-  >
-    <path d="M2 6l3 3 5-5" />
-  </svg>
-);
 
 const XIcon = () => (
   <svg
@@ -80,7 +66,7 @@ export const VerticalStepper = ({ steps }: Props) => (
         <div className="relative mt-0.5 flex shrink-0 flex-col items-center">
           {step.status === stepStatus.completed ? (
             <div className="relative z-10 flex size-4 items-center justify-center rounded-full bg-blue-500">
-              <CheckIcon />
+              <CheckIcon className="size-2.5" />
             </div>
           ) : step.status === stepStatus.failed ? (
             <div className="relative z-10 flex size-4 items-center justify-center rounded-full bg-red-500">
