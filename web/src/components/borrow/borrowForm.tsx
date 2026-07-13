@@ -31,6 +31,7 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 import { getMaxBorrowable } from "utils/borrowLimit";
+import { formatNumber } from "utils/format";
 import { type Address, formatUnits, parseUnits } from "viem";
 import { useAccount } from "wagmi";
 
@@ -411,7 +412,7 @@ export function BorrowForm({
         <Toast
           closable
           description={t("pages.borrow.toast.description", {
-            amount: borrowInput,
+            amount: formatNumber(borrowInput),
             symbol: loanToken.symbol,
           })}
           onClose={() => setShowToast(false)}

@@ -19,6 +19,7 @@ import { useWithdrawalDelay } from "hooks/useWithdrawalDelay";
 import { type FormEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
+import { formatNumber } from "utils/format";
 import { getInputError } from "utils/inputError";
 import { getTokenListParams } from "utils/tokenList";
 import { isAddressEqual } from "viem";
@@ -145,7 +146,10 @@ export function TwoStepRedeem({
       emitter.on("request-redeem-transaction-succeeded", function () {
         onCompleted();
         setFlowStatus("request-redeemed");
-        setToastData({ amount: fromInputValue, symbol: fromToken.symbol });
+        setToastData({
+          amount: formatNumber(fromInputValue),
+          symbol: fromToken.symbol,
+        });
         setShowToast(true);
         document
           .getElementById("redeem-queue")
