@@ -2,10 +2,12 @@ import { useAllowance } from "@hemilabs/react-hooks/useAllowance";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { Button } from "components/base/button";
 import { Spinner } from "components/base/spinner";
+import { ExclamationTriangleIcon } from "components/icons/exclamationTriangleIcon";
 import type { InputError } from "components/tokenInput/utils";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
+import { isGeoRestricted } from "utils/geoRestriction";
 import { useAccount } from "wagmi";
 
 const Container = ({ children }: { children: ReactNode }) => (
@@ -39,6 +41,17 @@ export function SubmitButton({
   });
 
   const { t } = useTranslation();
+
+  if (isGeoRestricted()) {
+    return (
+      <Container>
+        <Button disabled size="xLarge" type="button">
+          <ExclamationTriangleIcon />
+          {t("common.geo-restriction-title")}
+        </Button>
+      </Container>
+    );
+  }
 
   if (!address) {
     return (
