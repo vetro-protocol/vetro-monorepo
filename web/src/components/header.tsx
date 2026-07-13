@@ -41,7 +41,7 @@ export function Header() {
 
   return (
     <>
-      <div className="flex h-16 items-center gap-x-3 border-b border-gray-200 px-6 md:justify-between">
+      <div className="flex h-16 items-center gap-x-3 border-b border-gray-200 px-6 max-sm:order-last max-sm:border-t max-sm:border-b-0 max-sm:bg-white max-sm:px-4 md:justify-between">
         <HeaderStart />
         <div className="hidden flex-1 justify-center xl:flex">
           <NavBarLinks />
