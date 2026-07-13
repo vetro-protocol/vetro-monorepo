@@ -21,6 +21,10 @@ export type TrackedPool = {
   baseApy: number; // % from trading fees
   coins: PoolCoin[];
   dex: Dex; // venue this pool belongs to
+  // Rolling-24h trading fees in USD, when the venue's API hands them to us
+  // directly (Sushi). Undefined for venues whose fees are fetched on demand
+  // instead (Curve), so the details page knows to fetch per-pool.
+  feesUsd24h?: number;
   // Contract distributing incentives (a Curve gauge). Venue-specific and
   // optional — not every DEX exposes one.
   gaugeAddress: Address | undefined;

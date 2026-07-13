@@ -30,6 +30,7 @@ import { useMainnet } from "hooks/useMainnet";
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { formatLtvAsPercentage } from "utils/borrowReview";
+import { formatNumber } from "utils/format";
 import { parseTokenUnits } from "utils/token";
 import { formatUnits } from "viem";
 import { useAccount } from "wagmi";
@@ -371,7 +372,7 @@ export function WithdrawCollateralForm({ market, onClose }: Props) {
           description={t(
             "pages.borrow.withdraw-collateral-progress.toast-description",
             {
-              amount: collateralInput,
+              amount: formatNumber(collateralInput),
               symbol: collateralToken.symbol,
             },
           )}

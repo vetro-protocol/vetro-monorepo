@@ -22,6 +22,7 @@ import { type FormEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
 import { applyBps } from "utils/fees";
+import { formatNumber } from "utils/format";
 import { getInputError } from "utils/inputError";
 import { formatAmount } from "utils/token";
 import { parseUnits } from "viem";
@@ -169,9 +170,9 @@ export function Deposit({
         onCompleted();
         setFlowStatus("deposited");
         setToastData({
-          fromAmount: fromInputValue,
+          fromAmount: formatNumber(fromInputValue),
           fromSymbol: fromToken.symbol,
-          toAmount: outputValue,
+          toAmount: formatNumber(outputValue),
           toSymbol: toToken.symbol,
         });
         setShowToast(true);

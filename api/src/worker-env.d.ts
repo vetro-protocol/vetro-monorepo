@@ -3,13 +3,20 @@
 // update this interface to match.
 interface Env {
   CACHE_KV: KVNamespace;
+  CONTACT_FORM_ENABLED?: string;
+  CONTACT_FORM_RECIPIENT?: string;
+  CONTACT_FORM_SENDER?: string;
   CUSTOM_RPC_URL_MAINNET?: string;
   MERKL_OPPORTUNITY_SVETBTC?: string;
   MERKL_OPPORTUNITY_SVUSD?: string;
   ORIGINS: string;
+  SEND_EMAIL: SendEmail;
   CF_VERSION_METADATA?: WorkerVersionMetadata;
   SENTRY_DSN?: string;
   SUBGRAPH_API_KEY?: string;
   SUBGRAPH_ID?: string;
   SUBGRAPH_URL_TEMPLATE: string;
+  TURNSTILE_ALLOWED_HOSTNAMES?: string;
+  TURNSTILE_SECRET_KEY?: string;
+  WEBSITE_URL: string;
 }

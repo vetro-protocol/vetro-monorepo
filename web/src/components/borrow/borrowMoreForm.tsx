@@ -33,6 +33,7 @@ import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { maxBigInt, minBigInt } from "utils/bigint";
 import { formatLtvAsPercentage } from "utils/borrowReview";
+import { formatNumber } from "utils/format";
 import { parseTokenUnits } from "utils/token";
 import { formatUnits } from "viem";
 import { useAccount } from "wagmi";
@@ -405,7 +406,7 @@ export function BorrowMoreForm({ market, onClose }: Props) {
         <Toast
           closable
           description={t("pages.borrow.toast.description", {
-            amount: borrowInput,
+            amount: formatNumber(borrowInput),
             symbol: loanToken.symbol,
           })}
           onClose={() => setShowToast(false)}

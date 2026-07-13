@@ -5,14 +5,18 @@ import {
 import { expect } from "@playwright/test";
 import {
   createWalletClient,
+  erc20Abi,
   http,
+  isAddressEqual,
   parseAbiItem,
   parseEventLogs,
   parseUnits,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import {
+  getBlock,
   getTransactionReceipt,
+  readContract,
   waitForTransactionReceipt,
   writeContract,
 } from "viem/actions";
@@ -21,7 +25,10 @@ import { approve, balanceOf } from "viem-erc20/actions";
 
 import { stakingVaultAbi } from "../../packages/earn/src/abi/stakingVaultAbi.ts";
 import { sVusdAddress } from "../../packages/earn/src/stakingVaultAddresses.ts";
+import { fastForwardTime } from "../scripts/fastForwardTime.ts";
+import { setCooldownEnabled } from "../scripts/setCooldownEnabled.ts";
 import { whitelistInstantWithdraw } from "../scripts/whitelistInstantWithdraw.ts";
+import type { ExitTicket } from "../src/pages/earn/types.ts";
 
 import { ANVIL_URL, createEthereumClient } from "./anvil";
 import { test } from "./fixtures/wallet";
@@ -312,4 +319,233 @@ test("withdraw VUSD from the Earn pool (whitelisted one-step exit)", async funct
     address: sVusdAddress,
   });
   expect(svusdBefore - svusdBurned).toBe(svusdAfter);
+});
+
+test("withdraw VUSD from the Earn pool (two-step cooldown exit)", async function ({
+  page,
+  walletTxHashes,
+}) {
+  const publicClient = createEthereumClient();
+
+  // Seed a real staked position, then enable cooldown WITHOUT whitelisting so
+  // the app takes the two-step path: when cooldown is disabled the app treats
+  // everyone as instant (fetchCanInstantWithdraw), and whitelisting would force
+  // the instant one-step form. Leaving the account un-whitelisted keeps the
+  // "Request withdrawal" flow and renders the exit-tickets section.
+  await stakeVusd(DEPOSIT_AMOUNT);
+  await setCooldownEnabled({ forkUrl: ANVIL_URL });
+
+  expect(
+    await readContract(publicClient, {
+      abi: stakingVaultAbi,
+      address: sVusdAddress,
+      functionName: "cooldownEnabled",
+    }),
+  ).toBe(true);
+
+  const [vusdBefore, svusdBefore] = await Promise.all([
+    balanceOf(publicClient, {
+      account: TEST_ADDRESS,
+      address: vusd.address,
+    }),
+    balanceOf(publicClient, {
+      account: TEST_ADDRESS,
+      address: sVusdAddress,
+    }),
+  ]);
+
+  // Drive the exit-tickets table from a mocked API response we control (the
+  // endpoint is otherwise stubbed with [] by the wallet fixture).
+  let exitTicketsBody: ExitTicket[] = [];
+  await page.route("**/variable-stake/exit-tickets/**", (route) =>
+    route.fulfill({ json: exitTicketsBody }),
+  );
+
+  await page.goto("/");
+
+  await expect(
+    page.getByRole("button", { name: /^0x[a-f0-9]{4}/i }),
+  ).toBeVisible({ timeout: 30_000 });
+
+  await page.getByRole("link", { name: "Earn" }).click();
+  await expect(page).toHaveURL(/\/en\/earn/);
+
+  // Open the VUSD pool's Withdraw drawer (same locator as the one-step test).
+  const vusdPool = page
+    .locator("div")
+    .filter({ has: page.getByText("VUSD", { exact: true }) })
+    .filter({ has: page.getByRole("button", { name: "Withdraw" }) })
+    .last();
+  await vusdPool.getByRole("button", { name: "Withdraw" }).click();
+
+  await expect(
+    page.getByRole("heading", { name: "Manage your stake position" }),
+  ).toBeVisible();
+
+  // Fill the amount first: with an empty input the submit button reads "Enter an
+  // amount", and only resolves to its action label once a valid amount is set.
+  await page
+    .locator('input[type="text"]:not([disabled])')
+    .first()
+    .fill(WITHDRAW_DISPLAY);
+
+  // Two-step path: with an amount entered the submit reads "Request withdrawal"
+  // (the instant path would read "Withdraw" instead) — this proves the account
+  // is on the request → cooldown → claim flow. Generous timeout: the drawer's
+  // form body is gated on the canInstantWithdraw/staked-balance reads, and this
+  // is the first hit to the Earn route when the test runs in isolation (Vite
+  // compiles it on demand).
+  const submitButton = page
+    .locator("form")
+    .getByRole("button", { name: "Request withdrawal" });
+  await expect(submitButton).toBeEnabled({ timeout: 20_000 });
+  // Dispatch the click to bypass the fee-section tooltip overlay in CI (see the
+  // deposit test for the full rationale).
+  await submitButton.dispatchEvent("click");
+
+  await expect(page.getByText("Withdrawal request confirmed")).toBeVisible({
+    timeout: 60_000,
+  });
+
+  // The drawer auto-closes ~2s after success and clears its stake-mode URL
+  // params (nuqs). Wait for that before reloading below — otherwise the
+  // persisted params reopen the drawer and its overlay intercepts clicks on the
+  // exit-tickets table (see the deposit test for the same rationale).
+  await expect(
+    page.getByRole("heading", { name: "Manage your stake position" }),
+  ).toBeHidden({ timeout: 15_000 });
+
+  // Read the request tx: WithdrawRequested carries the requestId, the locked
+  // shares/assets, and the on-chain claimableAt. This is the same event
+  // useStakeWithdraw parses to build its optimistic ticket.
+  const requestTxHash = walletTxHashes.at(-1);
+  expect(requestTxHash).toBeDefined();
+  const requestReceipt = await getTransactionReceipt(publicClient, {
+    hash: requestTxHash!,
+  });
+  const requestLogs = parseEventLogs({
+    abi: stakingVaultAbi,
+    args: { owner: TEST_ADDRESS },
+    eventName: "WithdrawRequested",
+    logs: requestReceipt.logs,
+  });
+  expect(requestLogs).toHaveLength(1);
+  const { assets, claimableAt, requestId, shares } = requestLogs[0].args;
+  expect(claimableAt).toBeGreaterThan(0n);
+  expect(assets).toBe(WITHDRAW_AMOUNT);
+  expect(shares).toBeGreaterThan(0n);
+
+  // Shares leave the wallet at request time; VUSD is only paid out on claim.
+  const svusdAfterRequest = await balanceOf(publicClient, {
+    account: TEST_ADDRESS,
+    address: sVusdAddress,
+  });
+  expect(svusdAfterRequest).toBe(svusdBefore - shares);
+  expect(
+    await balanceOf(publicClient, {
+      account: TEST_ADDRESS,
+      address: vusd.address,
+    }),
+  ).toBe(vusdBefore);
+
+  const ticket: ExitTicket = {
+    assets: assets.toString(),
+    claimableAt: claimableAt.toString(),
+    owner: TEST_ADDRESS,
+    requestId: requestId.toString(),
+    requestTxHash: requestTxHash!,
+    shares: shares.toString(),
+    stakingVaultAddress: sVusdAddress,
+  };
+
+  // Cooldown state — mock returns the ticket with its real (future) claimableAt.
+  exitTicketsBody = [ticket];
+  await page.reload();
+  await expect(
+    page.getByRole("button", { name: /^0x[a-f0-9]{4}/i }),
+  ).toBeVisible({ timeout: 30_000 });
+
+  const exitTickets = page.locator("#exit-tickets");
+  await expect(exitTickets.getByText("Cooldown in progress")).toBeVisible({
+    timeout: 20_000,
+  });
+
+  // Fast-forward the fork past claimableAt so the claim tx passes the contract's
+  // block.timestamp check (Gateway/vault _handleRedeemOrWithdraw).
+  const { timestamp: chainNow } = await getBlock(publicClient);
+  await fastForwardTime({
+    forkUrl: ANVIL_URL,
+    seconds: Number(claimableAt - chainNow),
+  });
+
+  // Ready state — override claimableAt to a past unix ts so getTicketStatus
+  // resolves to "ready" against the real browser clock.
+  exitTicketsBody = [{ ...ticket, claimableAt: "1" }];
+  await page.reload();
+  await expect(
+    page.getByRole("button", { name: /^0x[a-f0-9]{4}/i }),
+  ).toBeVisible({ timeout: 30_000 });
+
+  await expect(exitTickets.getByText("Ready to withdraw")).toBeVisible({
+    timeout: 20_000,
+  });
+
+  // Step 2 — claim from the row. `exact` avoids matching the "Withdraw all"
+  // button.
+  const rowWithdrawButton = exitTickets.getByRole("button", {
+    exact: true,
+    name: "Withdraw",
+  });
+  await expect(rowWithdrawButton).toBeEnabled();
+  await rowWithdrawButton.click();
+
+  await expect(page.getByText("Withdrawal complete")).toBeVisible({
+    timeout: 40_000,
+  });
+
+  // Confirm the payout against the claim tx itself: sum the VUSD transferred to
+  // the receiver in the claim receipt. walletTxHashes ends with the claim tx
+  // (seeding used a separate client; the only browser txs are the request then
+  // the claim). The StakingVault ABI has no claim event, so read the standard
+  // ERC-20 Transfer(to = receiver) logs on the VUSD token.
+  const claimTxHash = walletTxHashes.at(-1);
+  expect(claimTxHash).toBeDefined();
+  const claimReceipt = await getTransactionReceipt(publicClient, {
+    hash: claimTxHash!,
+  });
+  const vusdReceived = parseEventLogs({
+    abi: erc20Abi,
+    args: { to: TEST_ADDRESS },
+    eventName: "Transfer",
+    logs: claimReceipt.logs,
+  })
+    .filter((log) => isAddressEqual(log.address, vusd.address))
+    .reduce((sum, log) => sum + log.args.value, 0n);
+  expect(vusdReceived).toBeGreaterThan(0n);
+
+  // useClaimWithdraw optimistically sets claimTxHash on the cached ticket, so the
+  // row flips to "Withdrawn". Mirror that onto the mocked endpoint too, so a
+  // background refetch can't overwrite the optimistic state and revert the row
+  // back to "ready".
+  exitTicketsBody = [
+    { ...ticket, claimableAt: "1", claimTxHash: claimTxHash! },
+  ];
+  await expect(exitTickets.getByText("Withdrawn")).toBeVisible();
+
+  // VUSD rose by exactly what the claim receipt paid out; sVUSD stays at its
+  // post-request value (the shares were already removed at request time).
+  await waitForBalance({ client: publicClient, token: vusd.address }).toBe(
+    vusdBefore + vusdReceived,
+  );
+  expect(
+    await balanceOf(publicClient, {
+      account: TEST_ADDRESS,
+      address: sVusdAddress,
+    }),
+  ).toBe(svusdAfterRequest);
+
+  // Check the toast
+  await expect(page.getByText("Withdrawal complete")).toBeVisible({
+    timeout: 10_000,
+  });
 });

@@ -44,23 +44,34 @@ const ExternalLink = ({
   </a>
 );
 
-// Rolling-24h fees come from Curve's analytics API, fetched per pool on demand.
-const FeesCard = function ({ pool }: { pool: TrackedPool }) {
+// Curve's fees aren't on the pool object; fetch them per pool on demand.
+const CurveFeesCard = function ({ pool }: { pool: TrackedPool }) {
   const { data: stats } = useCurvePoolStats({ poolAddress: pool.address });
 
   return (
     <StatCard
       hint={
-        stats && stats.liquidityFee24h > 0
+        stats && stats.liquidityFee24h !== null && stats.liquidityFee24h > 0
           ? `+ ${formatPrice(stats.liquidityFee24h)} liquidity fees`
           : undefined
       }
       label="24h Fees"
       value={
-        stats?.tradingFee24h != null ? formatPrice(stats.tradingFee24h) : "—"
+        stats?.tradingFee24h !== undefined && stats.tradingFee24h !== null
+          ? formatPrice(stats.tradingFee24h)
+          : "—"
       }
     />
   );
+};
+
+// Rolling-24h fees. Sushi's API gives them on the pool object directly; Curve
+// needs a separate per-pool analytics fetch.
+const FeesCard = function ({ pool }: { pool: TrackedPool }) {
+  if (pool.feesUsd24h !== null && pool.feesUsd24h !== undefined) {
+    return <StatCard label="24h Fees" value={formatPrice(pool.feesUsd24h)} />;
+  }
+  return <CurveFeesCard pool={pool} />;
 };
 
 const ExchangeRateCard = function ({ pool }: { pool: TrackedPool }) {
@@ -263,8 +274,9 @@ export const DexPoolPage = function () {
     );
   }
 
-  // Curve exposes volume / fees / APY / gauge; Sushi pools are read on-chain for
-  // liquidity only, so those sections are Curve-only.
+  // The volume / fees / APY cards apply to any full pool; range views are
+  // sub-slices of one pool, so they'd double-count and are hidden. The gauge
+  // section stays Curve-only — Sushi has no gauge.
   const isCurve = pool.dex === "curve";
 
   return (
@@ -300,7 +312,7 @@ export const DexPoolPage = function () {
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         <StatCard label="TVL" value={formatUsd(pool.tvlUsd)} />
-        {isCurve ? (
+        {!pool.isRangeView ? (
           <>
             <StatCard label="24h Volume" value={formatUsd(pool.volumeUsd24h)} />
             <FeesCard pool={pool} />

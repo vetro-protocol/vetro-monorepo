@@ -3,13 +3,20 @@ import { formatUnits } from "viem";
 
 import { getTokenPrice } from "./token";
 
-export const formatUsd = (value: number) =>
-  new Intl.NumberFormat("en-US", {
+export const formatUsd = function (value: number) {
+  if (value > 0 && value < 0.01) {
+    return "< $0.01";
+  }
+  if (value < 0 && value > -0.01) {
+    return "< -$0.01";
+  }
+  return new Intl.NumberFormat("en-US", {
     currency: "USD",
     maximumFractionDigits: 2,
     notation: "compact",
     style: "currency",
   }).format(value);
+};
 
 type TokenAmountUsdArgs = {
   amount: bigint;

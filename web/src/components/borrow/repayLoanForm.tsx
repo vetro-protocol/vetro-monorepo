@@ -34,6 +34,7 @@ import { useMainnet } from "hooks/useMainnet";
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { formatLtvAsPercentage } from "utils/borrowReview";
+import { formatNumber } from "utils/format";
 import { parseTokenUnits } from "utils/token";
 import { useAccount } from "wagmi";
 
@@ -431,7 +432,7 @@ export function RepayLoanForm({ market, onClose }: Props) {
         <Toast
           closable
           description={t("pages.borrow.repay-loan-progress.toast-description", {
-            amount: repayInput,
+            amount: formatNumber(repayInput),
             symbol: loanToken.symbol,
           })}
           onClose={() => setShowToast(false)}

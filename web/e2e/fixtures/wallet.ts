@@ -52,6 +52,17 @@ export const test = base.extend<WalletFixtures>({
       transports: { [mainnet.id]: recordingTransport(walletTxHashes) },
     });
 
+    // VITE_VETRO_API_URL points at a fake localhost host (see playwright.config)
+    await page.route("**/variable-stake/apy", (route) =>
+      route.fulfill({ json: {} }),
+    );
+    await page.route("**/variable-stake/cost-basis/**", (route) =>
+      route.fulfill({ json: {} }),
+    );
+    await page.route("**/variable-stake/exit-tickets/**", (route) =>
+      route.fulfill({ json: [] }),
+    );
+
     // The fork is started and funded once in globalSetup, then shared across
     // every test (workers: 1). Without isolation, on-chain mutations from one
     // test leak into the next — e.g. a redeem leaves the gateway allowance set,

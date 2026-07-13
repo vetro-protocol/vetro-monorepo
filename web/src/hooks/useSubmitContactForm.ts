@@ -1,18 +1,30 @@
 import { useMutation } from "@tanstack/react-query";
+import fetch from "fetch-plus-plus";
+import { isValidUrl } from "utils/url";
 
 type ContactFormValues = {
   category: string;
   email: string;
   message: string;
+  // Omitted when the widget is disabled (no VITE_TURNSTILE_SITE_KEY)
+  token?: string;
 };
+
+const apiUrl = import.meta.env.VITE_VETRO_API_URL;
 
 export const useSubmitContactForm = () =>
   useMutation<void, Error, ContactFormValues>({
-    // The contact API is not wired up to the client yet, so this stubs a
-    // successful submission by waiting 5s before resolving. Replace with the
-    // real `POST /contact` call once the API is implemented. The endpoint
-    // responds with `204 No Content`, so there is no response body to return.
-    // See https://github.com/vetro-protocol/vetro-monorepo/issues/550
-    mutationFn: () =>
-      new Promise((resolve) => setTimeout(() => resolve(), 5000)),
+    // The endpoint responds with `204 No Content` (fetch-plus-plus resolves to
+    // `undefined`) on success, and throws on any non-2xx so the form surfaces
+    // its error toast.
+    mutationFn(values) {
+      if (apiUrl === undefined || !isValidUrl(apiUrl)) {
+        throw new Error("VITE_VETRO_API_URL is not configured");
+      }
+      return fetch(`${apiUrl}/contact`, {
+        body: JSON.stringify(values),
+        headers: { "content-type": "application/json" },
+        method: "POST",
+      }) as Promise<void>;
+    },
   });
