@@ -15,14 +15,17 @@ const STACK_OFFSET = 12;
 // Below `sm` the header moves to the bottom of the screen as a bar (h-16), so
 // bottom-anchored stacks are lifted by its height (4rem) plus the base 1rem gap
 // to clear it.
-// `z-0` keeps the stack below overlay backdrops (z-10+) so modals, drawers and
-// the mobile nav sheet cover it; it still paints above page content since it is
-// portaled to the end of `document.body`.
+// The bottom-center stack (ambient app notifications) uses `z-0` so overlay
+// backdrops (z-10+) — modals, drawers and the mobile nav sheet — cover it. The
+// bottom-right stack (transactional toasts) stays at `z-40` so success/error
+// toasts remain visible above a drawer that lingers after the flow completes.
+// Both still paint above page content since they are portaled to the end of
+// `document.body`.
 const positions = {
   "bottom-center":
     "fixed bottom-20 left-1/2 z-0 w-80 -translate-x-1/2 sm:bottom-4",
   "bottom-right":
-    "fixed inset-x-4 bottom-20 z-0 sm:bottom-4 md:inset-x-auto md:right-4 md:w-96",
+    "fixed inset-x-4 bottom-20 z-40 sm:bottom-4 md:inset-x-auto md:right-4 md:w-96",
 } as const;
 
 export type StackItem = {
