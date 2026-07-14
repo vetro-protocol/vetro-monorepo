@@ -192,8 +192,8 @@ const htmlHeaders = {
   "X-Frame-Options": "DENY",
 };
 
-// Countries subject to geo-restriction (soft-block): EU 27 member states, EEA
-// (Norway, Iceland, Liechtenstein), US.
+// Countries subject to geo-restriction: EU 27 member states, EEA (Norway,
+// Iceland, Liechtenstein), US and Panama.
 const restrictedCountries = new Set([
   "AT",
   "BE",
@@ -219,6 +219,7 @@ const restrictedCountries = new Set([
   "MT",
   "NL",
   "NO",
+  "PA",
   "PL",
   "PT",
   "RO",
@@ -254,7 +255,7 @@ export default {
       newResponse.headers.set(key, value);
     }
 
-    // Geo-restriction session cookie for front-end soft-blocking.
+    // Geo-restriction session cookie for front-end blocking.
     const restricted = isGeoRestricted(request);
     newResponse.headers.append(
       "Set-Cookie",

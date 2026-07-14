@@ -1,5 +1,7 @@
 import { Button } from "components/base/button";
+import { ExclamationTriangleIcon } from "components/icons/exclamationTriangleIcon";
 import { useTranslation } from "react-i18next";
+import { isGeoRestricted } from "utils/geoRestriction";
 
 type Props = {
   actionText: string;
@@ -29,6 +31,15 @@ export function StakeSubmitButton({
   pendingText,
 }: Props) {
   const { t } = useTranslation();
+
+  if (isGeoRestricted()) {
+    return (
+      <Button disabled size="small" type="submit" variant="primary">
+        <ExclamationTriangleIcon />
+        {t("common.geo-restriction-title")}
+      </Button>
+    );
+  }
 
   if (!isConnected) {
     return (

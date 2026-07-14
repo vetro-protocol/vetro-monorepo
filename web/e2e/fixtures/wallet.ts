@@ -52,6 +52,29 @@ export const test = base.extend<WalletFixtures>({
       transports: { [mainnet.id]: recordingTransport(walletTxHashes) },
     });
 
+    // The Cloudflare Worker (run by @cloudflare/vite-plugin) sets a
+    // geo-restricted=1 cookie when request.cf.country is in the restricted
+    // list. GitHub Actions runners are in the US (restricted), so the cookie
+    // blocks all wallet actions. Monkey-patch the document.cookie getter so
+    // isGeoRestricted() always reads "0" regardless of what the Worker set.
+    // A simple `document.cookie = "geo-restricted=0; …"` write is unreliable
+    // because the Secure flag on the server-set cookie may prevent a JS
+    // override on HTTP localhost.
+    await page.addInitScript(function () {
+      const desc = Object.getOwnPropertyDescriptor(
+        Document.prototype,
+        "cookie",
+      );
+      if (!desc?.get) return;
+      const originalGet = desc.get;
+      desc.get = function () {
+        return originalGet
+          .call(this)
+          .replace(/geo-restricted=1/g, "geo-restricted=0");
+      };
+      Object.defineProperty(Document.prototype, "cookie", desc);
+    });
+
     // VITE_VETRO_API_URL points at a fake localhost host (see playwright.config)
     await page.route("**/variable-stake/apy", (route) =>
       route.fulfill({ json: {} }),

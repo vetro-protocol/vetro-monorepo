@@ -4,6 +4,7 @@ import { RenderFiatValue } from "components/base/fiatValue";
 import { MaxButton } from "components/base/maxButton";
 import { type Step, VerticalStepper } from "components/base/verticalStepper";
 import { DrawerFeesContainer } from "components/feesContainer";
+import { ExclamationTriangleIcon } from "components/icons/exclamationTriangleIcon";
 import { TokenDropdown } from "components/tokenDropdown";
 import { TokenInput } from "components/tokenInput";
 import { Balance } from "components/tokenInput/balance";
@@ -12,6 +13,7 @@ import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import type { ComponentProps } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
+import { isGeoRestricted } from "utils/geoRestriction";
 import { formatAmount } from "utils/token";
 import type { Address } from "viem";
 
@@ -69,8 +71,10 @@ export function ClaimRedeemProgressDrawer({
 }: Props) {
   const { t } = useTranslation();
 
+  const geoRestricted = isGeoRestricted();
   const renderRetry = flowStatus === "redeem-error";
   const isDisabled =
+    geoRestricted ||
     !!inputError ||
     (flowStatus !== "idle" &&
       flowStatus !== "redeem-ready" &&
@@ -124,11 +128,18 @@ export function ClaimRedeemProgressDrawer({
           size="small"
           variant="primary"
         >
-          {inputError
-            ? t(`common.${inputError}`)
-            : renderRetry
-              ? t("pages.swap.progress.retry")
-              : t("pages.swap.redeem-queue.redeem")}
+          {geoRestricted ? (
+            <>
+              <ExclamationTriangleIcon />
+              {t("common.geo-restriction-title")}
+            </>
+          ) : inputError ? (
+            t(`common.${inputError}`)
+          ) : renderRetry ? (
+            t("pages.swap.progress.retry")
+          ) : (
+            t("pages.swap.redeem-queue.redeem")
+          )}
         </Button>
       </div>
       <DrawerFeesContainer>
