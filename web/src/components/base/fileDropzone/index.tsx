@@ -84,7 +84,7 @@ export function FileDropzone({
       <div
         aria-describedby={errorMessage ? errorId : undefined}
         className={`flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed bg-gray-50 px-3 py-6 transition-colors ${
-          dragging ? "border-gray-400" : "border-gray-200"
+          dragging ? "border-blue-500" : "border-gray-200"
         }`}
         onDragLeave={handleDragLeave}
         onDragOver={handleDragOver}
