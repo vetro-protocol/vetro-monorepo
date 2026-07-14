@@ -11,7 +11,7 @@ export const StatusMessage = ({ action, description, icon, title }: Props) => (
   <div className="flex max-w-60 flex-col items-center gap-3 text-center">
     <div className="size-7">{icon}</div>
     <div className="flex flex-col gap-1">
-      <h5 className="text-h5 text-gray-900">{title}</h5>
+      <h5 className="text-gray-900">{title}</h5>
       <p className="text-b-regular text-gray-500">{description}</p>
     </div>
     {action}
