@@ -9,7 +9,7 @@ export function formatFileSize(bytes: number) {
     return `${bytes} B`;
   }
   const kb = bytes / 1000;
-  if (kb < 1000) {
+  if (Math.round(kb) < 1000) {
     return `${Math.round(kb)} KB`;
   }
   return `${(kb / 1000).toFixed(1)} MB`;

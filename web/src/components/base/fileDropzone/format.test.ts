@@ -18,5 +18,8 @@ describe("formatFileSize", function () {
   it("formats megabytes with one decimal", function () {
     expect(formatFileSize(1_000_000)).toBe("1.0 MB");
     expect(formatFileSize(3_500_000)).toBe("3.5 MB");
+    // A size that rounds up to 1000 KB spills into MB instead of "1000 KB".
+    expect(formatFileSize(999_500)).toBe("1.0 MB");
+    expect(formatFileSize(999_499)).toBe("999 KB");
   });
 });
