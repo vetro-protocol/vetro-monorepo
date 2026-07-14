@@ -2,6 +2,7 @@ import type { ComponentProps } from "react";
 
 export const FileIcon = (props: ComponentProps<"svg">) => (
   <svg
+    aria-hidden="true"
     fill="none"
     viewBox="0 0 16 16"
     xmlns="http://www.w3.org/2000/svg"
