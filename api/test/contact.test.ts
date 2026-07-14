@@ -3,7 +3,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   buildAttachments,
-  contactFeatureToggle,
   validateContactForm,
   verifyTurnstile,
 } from "../src/contact.ts";
@@ -50,7 +49,6 @@ function buildContext({
   const get = vi.fn((key: string) => store[key]);
   const context = {
     env: {
-      CONTACT_FORM_ENABLED: "true",
       ...env,
     },
     get,
@@ -76,28 +74,6 @@ function buildContext({
     set,
   };
 }
-
-describe("contactFeatureToggle", function () {
-  it("returns 404 when the toggle is off", function () {
-    const { context, json, next } = buildContext({
-      env: { CONTACT_FORM_ENABLED: "false" },
-    });
-
-    contactFeatureToggle(context, next);
-
-    expect(json).toHaveBeenCalledWith({ error: "Not Found" }, 404);
-    expect(next).not.toHaveBeenCalled();
-  });
-
-  it("calls next when the toggle is on", function () {
-    const { context, json, next } = buildContext();
-
-    contactFeatureToggle(context, next);
-
-    expect(next).toHaveBeenCalledTimes(1);
-    expect(json).not.toHaveBeenCalled();
-  });
-});
 
 describe("validateContactForm", function () {
   it("returns 413 before parsing when Content-Length exceeds the limit", async function () {

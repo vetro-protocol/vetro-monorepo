@@ -79,16 +79,6 @@ export const buildAttachments = (files: File[]): Promise<Attachment[]> =>
     })),
   );
 
-export function contactFeatureToggle(
-  c: Context<{ Bindings: Env }>,
-  next: Next,
-) {
-  if (c.env.CONTACT_FORM_ENABLED !== "true") {
-    return c.json({ error: "Not Found" }, 404);
-  }
-  return next();
-}
-
 const siteverifyUrl =
   "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 

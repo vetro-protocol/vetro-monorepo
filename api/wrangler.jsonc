@@ -30,7 +30,6 @@
     ],
   },
   "vars": {
-    "CONTACT_FORM_ENABLED": "false",
     "CONTACT_FORM_RECIPIENT": "support@vetro.org",
     "CONTACT_FORM_SENDER": "noreply@forms.vetro.org",
     "MERKL_OPPORTUNITY_SVETBTC": "",
@@ -50,8 +49,6 @@
         },
       ],
       "vars": {
-        // Contact form enabled on staging for testing purposes.
-        "CONTACT_FORM_ENABLED": "true",
         "CONTACT_FORM_RECIPIENT": "gonzalo@hemi.xyz",
         "CONTACT_FORM_SENDER": "noreply@forms.vetro.org",
         "CUSTOM_RPC_URL_MAINNET": "https://eth.drpc.org",
@@ -81,7 +78,6 @@
         },
       },
       "vars": {
-        "CONTACT_FORM_ENABLED": "false",
         "CONTACT_FORM_RECIPIENT": "support@vetro.org",
         "CONTACT_FORM_SENDER": "noreply@forms.vetro.org",
         "ORIGINS": "https://app.vetro.org,https://beta.vetro.org,https://*.hemi.xyz",
