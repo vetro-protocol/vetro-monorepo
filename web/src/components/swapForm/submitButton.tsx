@@ -45,7 +45,7 @@ export function SubmitButton({
   if (isGeoRestricted()) {
     return (
       <Container>
-        <Button disabled size="xLarge" type="button">
+        <Button disabled size="xLarge" type="submit">
           <ExclamationTriangleIcon />
           {t("common.geo-restriction-title")}
         </Button>
