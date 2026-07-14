@@ -2,8 +2,8 @@ import type { Context } from "hono";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  buildAttachments,
   contactFeatureToggle,
-  encodeAttachments,
   validateContactForm,
   verifyTurnstile,
 } from "../src/contact.ts";
@@ -445,29 +445,32 @@ describe("verifyTurnstile", function () {
   });
 });
 
-describe("encodeAttachments", function () {
-  it("base64-encodes each file for the SEND_EMAIL binding", async function () {
-    const attachments = await encodeAttachments([
+describe("buildAttachments", function () {
+  const decode = (content: ArrayBuffer) => Buffer.from(content).toString();
+
+  it("passes raw file bytes for the SEND_EMAIL binding to encode", async function () {
+    const attachments = await buildAttachments([
       new File(["hi"], "shot.png", { type: "image/png" }),
     ]);
 
     expect(attachments).toEqual([
       {
-        // Buffer.from("hi").toString("base64") === "aGk="
-        content: "aGk=",
+        // Raw bytes, not base64 — the binding base64-encodes them itself.
+        content: expect.any(ArrayBuffer),
         disposition: "attachment",
         filename: "shot.png",
         type: "image/png",
       },
     ]);
+    expect(decode(attachments[0].content)).toBe("hi");
   });
 
   it("returns an empty array when there are no files", async function () {
-    expect(await encodeAttachments([])).toEqual([]);
+    expect(await buildAttachments([])).toEqual([]);
   });
 
-  it("encodes multiple files in order", async function () {
-    const attachments = await encodeAttachments([
+  it("reads multiple files in order", async function () {
+    const attachments = await buildAttachments([
       new File(["hi"], "first.png", { type: "image/png" }),
       new File(["yo"], "second.jpg", { type: "image/jpeg" }),
     ]);
@@ -476,10 +479,8 @@ describe("encodeAttachments", function () {
       "first.png",
       "second.jpg",
     ]);
-    // Buffer.from("hi") === "aGk=", Buffer.from("yo") === "eW8="
-    expect(attachments.map((attachment) => attachment.content)).toEqual([
-      "aGk=",
-      "eW8=",
-    ]);
+    expect(attachments.map((attachment) => decode(attachment.content))).toEqual(
+      ["hi", "yo"],
+    );
   });
 });
