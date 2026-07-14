@@ -34,14 +34,14 @@ const fetchIsSanctioned = ({
   });
 
 export const useIsSanctioned = function () {
-  const { address, isConnected } = useAccount();
+  const { address } = useAccount();
   const client = useEthereumClient();
 
   // Fail-open: RPC errors resolve as unrestricted so the app remains usable. It
   // seems likely that RPC errors will also prevent any use of the app so this
   // is a reasonable tradeoff.
   const { data: isSanctioned = false } = useQuery({
-    enabled: isConnected && !!address && !!client,
+    enabled: !!address && !!client,
     queryFn: () => fetchIsSanctioned({ address: address!, client: client! }),
     // The oracle lives on mainnet and the result is chain-agnostic, so
     // address alone is a sufficient cache key.
@@ -52,5 +52,5 @@ export const useIsSanctioned = function () {
     staleTime: 1000 * 60 * 60,
   });
 
-  return isConnected && isSanctioned;
+  return isSanctioned;
 };
