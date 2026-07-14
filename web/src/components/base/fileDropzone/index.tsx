@@ -83,7 +83,7 @@ export function FileDropzone({
     <div className="flex flex-col gap-2">
       <div
         aria-describedby={errorMessage ? errorId : undefined}
-        className={`flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed bg-zinc-50 px-3 py-6 transition-colors ${
+        className={`flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed bg-gray-50 px-3 py-6 transition-colors ${
           dragging ? "border-gray-400" : "border-gray-200"
         }`}
         onDragLeave={handleDragLeave}
