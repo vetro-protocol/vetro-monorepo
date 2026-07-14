@@ -8,8 +8,8 @@ import type { Address } from "viem";
 import { getApyHistory } from "./apy-history.ts";
 import * as borrow from "./borrow.ts";
 import {
+  buildAttachments,
   contactFeatureToggle,
-  encodeAttachments,
   sendContactConfirmation,
   sendContactEmail,
   validateContactForm,
@@ -400,8 +400,8 @@ app.post(
   verifyTurnstile,
   async function (c) {
     const { category, email, files, message } = c.get("contactForm");
-    // Encode only now that the captcha has passed (verifyTurnstile ran).
-    const attachments = await encodeAttachments(files);
+    // Read files only now that the captcha has passed (verifyTurnstile ran).
+    const attachments = await buildAttachments(files);
     await sendContactEmail({
       attachments,
       category,

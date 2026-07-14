@@ -312,9 +312,10 @@ set, the hostname reported by siteverify must also match one of its entries.
 
 Attachments are optional. Each file must be `image/png` or `image/jpeg`; at most
 5 files may be attached, and their combined size must not exceed 3.5 MB. Valid
-attachments are base64-encoded and sent along with the support email (they are
-not included in the submitter's confirmation email). The limit leaves headroom
-under Cloudflare's 5 MiB total-message cap once the content is base64-encoded.
+attachments are sent along with the support email as raw binary; the mail
+binding base64-encodes them into the message (they are not included in the
+submitter's confirmation email). The limit leaves headroom under Cloudflare's
+5 MiB total-message cap once the content is base64-encoded.
 
 #### Response
 

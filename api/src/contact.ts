@@ -1,8 +1,9 @@
 import type { Context, Next } from "hono";
 
-// Already base64-encoded and shaped for the SEND_EMAIL binding's attachments.
+// Shaped for the SEND_EMAIL binding's attachments. Content is raw binary; the
+// binding base64-encodes it into the MIME part itself.
 type Attachment = {
-  content: string;
+  content: ArrayBuffer;
   disposition: "attachment";
   filename: string;
   type: string;
@@ -64,13 +65,14 @@ function validateAttachments(files: File[]) {
   return undefined;
 }
 
-// Base64-encodes each file for the SEND_EMAIL binding. Deferred until after the
-// captcha passes so an unverified request can't force multi-MB reads + encoding.
-export const encodeAttachments = (files: File[]): Promise<Attachment[]> =>
+// Reads each file into an ArrayBuffer for the SEND_EMAIL binding, which does the
+// base64 encoding itself — pre-encoding here would double-encode and corrupt the
+// attachment. Deferred until after the captcha passes so an unverified request
+// can't force multi-MB reads.
+export const buildAttachments = (files: File[]): Promise<Attachment[]> =>
   Promise.all(
     files.map(async (file) => ({
-      // Standard base64 (not base64url) — MIME attachments require it.
-      content: Buffer.from(await file.arrayBuffer()).toString("base64"),
+      content: await file.arrayBuffer(),
       disposition: "attachment" as const,
       filename: file.name,
       type: file.type,
