@@ -47,6 +47,9 @@ export const useIsSanctioned = function () {
     // address alone is a sufficient cache key.
     queryKey: ["is-sanctioned", address],
     retry: false,
+    // Sanction status changes very infrequently; avoid unnecessary mainnet RPC
+    // calls on remounts and window refocus.
+    staleTime: 1000 * 60 * 60,
   });
 
   return isConnected && isSanctioned;
