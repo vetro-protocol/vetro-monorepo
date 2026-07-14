@@ -15,7 +15,7 @@ type Story = StoryObj<typeof meta>;
 const hint = "Drag and drop here or";
 const removeLabel = "Delete";
 const selectLabel = "Select files";
-const uploadedLabel = "Uploaded";
+const uploadedLabel = "Attached";
 const uploadingLabel = "Uploading...";
 
 // Fabricate a File so the row UI can be shown without a real upload.
