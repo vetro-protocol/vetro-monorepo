@@ -9,6 +9,7 @@ import { getApyHistory } from "./apy-history.ts";
 import * as borrow from "./borrow.ts";
 import {
   contactFeatureToggle,
+  encodeAttachments,
   sendContactConfirmation,
   sendContactEmail,
   validateContactForm,
@@ -398,8 +399,16 @@ app.post(
   validateContactForm,
   verifyTurnstile,
   async function (c) {
-    const { category, email, message } = c.get("contactForm");
-    await sendContactEmail({ category, email, env: c.env, message });
+    const { category, email, files, message } = c.get("contactForm");
+    // Encode only now that the captcha has passed (verifyTurnstile ran).
+    const attachments = await encodeAttachments(files);
+    await sendContactEmail({
+      attachments,
+      category,
+      email,
+      env: c.env,
+      message,
+    });
     // The confirmation to the submitter is best-effort: a failure here must not
     // fail the request, since the support notification already went out.
     try {

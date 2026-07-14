@@ -300,19 +300,21 @@ set, the hostname reported by siteverify must also match one of its entries.
 
 #### Request body
 
-```json
-{
-  "category": "swap",
-  "email": "user@example.com",
-  "message": "Describe what happened (max 5000 characters).",
-  "token": "cloudflare-turnstile-token"
-}
-```
+`multipart/form-data` with these fields:
 
-`category` must be one of the known topics (`swap`, `bridge`, `earn`,
-`other`). `email` must be well-formed. `message` must be non-empty and at most
-5000 characters. `token` is the Turnstile token; it is required (and verified)
-only when `TURNSTILE_SECRET_KEY` is configured.
+| Field      | Type | Notes                                                                             |
+| ---------- | ---- | --------------------------------------------------------------------------------- |
+| `category` | text | One of the known topics: `swap`, `bridge`, `earn`, `other`.                       |
+| `email`    | text | Must be well-formed.                                                              |
+| `message`  | text | Non-empty, at most 5000 characters.                                               |
+| `token`    | text | Turnstile token; required (and verified) only when `TURNSTILE_SECRET_KEY` is set. |
+| `files`    | file | Optional screenshots (repeat the field for multiple). See limits below.           |
+
+Attachments are optional. Each file must be `image/png` or `image/jpeg`; at most
+5 files may be attached, and their combined size must not exceed 3.5 MB. Valid
+attachments are base64-encoded and sent along with the support email (they are
+not included in the submitter's confirmation email). The limit leaves headroom
+under Cloudflare's 5 MiB total-message cap once the content is base64-encoded.
 
 #### Response
 
@@ -321,9 +323,11 @@ confirmation email to the submitter is best-effort: if it fails, the failure is
 reported to Sentry and the response is still `204`.
 
 Returns `404` when the feature is disabled, `400` for an invalid body / email /
-category / message or a missing captcha token, `403` when captcha verification
-fails (or cannot be completed — fail-closed), and `500` if sending the support
-email fails.
+category / message, unsupported or oversized attachments (`Unsupported
+attachment type`, `Too many attachments`, `Attachments too large`), or a missing
+captcha token, `413` (`Request too large`) when the request body exceeds the
+size limit, `403` when captcha verification fails (or cannot be completed —
+fail-closed), and `500` if sending the support email fails.
 
 ## Configuration
 

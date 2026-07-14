@@ -229,6 +229,15 @@
     "contact": {
       "email-us-directly": "O escríbanos directamente a <emailLink>{{email}}</emailLink>",
       "form": {
+        "attachments-error-invalid-type": "Solo se admiten archivos PNG y JPG.",
+        "attachments-error-too-large": "Sus capturas de pantalla son demasiado grandes. Mantenga el total por debajo de {{limit}} MB.",
+        "attachments-error-too-many": "Puede adjuntar hasta {{max}} capturas de pantalla.",
+        "attachments-hint": "Arrastre y suelte aquí o",
+        "attachments-label": "Capturas de pantalla (opcional)",
+        "attachments-remove": "Eliminar",
+        "attachments-select": "Seleccionar archivos",
+        "attachments-uploaded": "Adjuntado",
+        "attachments-uploading": "Subiendo...",
         "captcha-error": "Por favor, complete el captcha.",
         "category-error": "Por favor, seleccione un tema.",
         "category-label": "¿De qué se trata?",

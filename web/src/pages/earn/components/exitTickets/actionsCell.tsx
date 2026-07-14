@@ -1,11 +1,11 @@
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { Button, ButtonIcon } from "components/base/button";
 import { Toast } from "components/base/toast";
+import { TrashIcon } from "components/icons/trashIcon";
 import { Tooltip } from "components/tooltip";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useClaimWithdraw } from "hooks/useClaimWithdraw";
 import { useVaultPeggedToken } from "hooks/useVaultPeggedToken";
-import { TrashIcon } from "pages/earn/icons/trashIcon";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { isGeoRestricted } from "utils/geoRestriction";

@@ -19,6 +19,7 @@ export const Default: Story = {
 export const SizeVariants: Story = {
   render: () => (
     <div className="flex items-center gap-x-3">
+      <Spinner size="small" />
       <Spinner />
       <Spinner size="large" />
       <Spinner size="xLarge" />
