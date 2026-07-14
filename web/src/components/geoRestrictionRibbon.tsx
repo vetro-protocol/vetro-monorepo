@@ -11,7 +11,7 @@ export function GeoRestrictionRibbon() {
         <span>{t("common.geo-restriction-title")}.</span>
         <span className="text-white/64 max-md:hidden">
           {" "}
-          {t("common.geo-restriction-description")}
+          {t("common.restriction-description")}
         </span>
       </p>
     </div>
