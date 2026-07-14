@@ -24,11 +24,11 @@ export function AddressRestriction() {
       className="font-geist fixed inset-0 z-9999 overflow-hidden bg-gray-50"
       role="alertdialog"
     >
-      <div className="relative mx-4 h-full border-x border-gray-200 lg:mx-auto lg:max-w-[1024px]">
-        <div className="relative flex h-[160px] items-center justify-center overflow-hidden lg:h-[152px]">
+      <div className="relative mx-4 h-full border-x border-gray-200 lg:mx-auto lg:max-w-5xl">
+        <div className="relative flex h-40 items-center justify-center overflow-hidden lg:h-[152px]">
           <img
             alt=""
-            className="pointer-events-none absolute top-1/2 left-1/2 hidden h-[240px] w-[1365px] -translate-x-1/2 translate-y-[-20%] opacity-3 lg:block"
+            className="pointer-events-none absolute top-1/2 left-1/2 hidden h-60 w-[1365px] -translate-x-1/2 translate-y-[-20%] opacity-3 lg:block"
             src={vetroLogo}
           />
           <img alt="Vetro" className="relative z-10 h-10" src={vetroLogo} />
@@ -46,7 +46,7 @@ export function AddressRestriction() {
           />
         </div>
       </div>
-      <div className="pointer-events-none fixed bottom-0 left-1/2 w-[calc(100%-2rem)] -translate-x-1/2 lg:max-w-[1024px]">
+      <div className="pointer-events-none fixed bottom-0 left-1/2 w-[calc(100%-2rem)] -translate-x-1/2 lg:max-w-5xl">
         <GlobeIllustration />
       </div>
     </div>
