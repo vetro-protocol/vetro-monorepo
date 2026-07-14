@@ -2,8 +2,8 @@ import type { Context } from "hono";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
-  contactFeatureToggle,
   buildAttachments,
+  contactFeatureToggle,
   validateContactForm,
   verifyTurnstile,
 } from "../src/contact.ts";
