@@ -1,5 +1,6 @@
 {
   "common": {
+    "address-restriction-title": "Vetro isn't available for your wallet",
     "amount-too-small-to-bridge": "Amount too small to bridge",
     "approve-10x": "Approve 10x",
     "approve-10x-tooltip": "Approves up to 10× your transaction amount, reducing future approval steps. You can revoke it anytime.",
@@ -15,7 +16,6 @@
     "connect-wallet": "Connect wallet",
     "enter-amount": "Enter an amount",
     "exceeds-debt": "Amount exceeds debt",
-    "geo-restriction-description": "Due to regulations, we're unable to offer access at this time.",
     "geo-restriction-title": "Vetro isn't available in your country",
     "insufficient-balance": "Insufficient balance",
     "insufficient-collateral": "Insufficient collateral",
@@ -25,6 +25,7 @@
     "network-fee": "Network Fee",
     "no-results-found": "No tokens found",
     "oracle": "Oracle",
+    "restriction-description": "Due to regulations, we're unable to offer you access at this time.",
     "search": "Search",
     "search-token-placeholder": "Search by name or symbol",
     "select-token": "Select a token",

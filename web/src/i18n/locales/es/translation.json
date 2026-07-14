@@ -1,5 +1,6 @@
 {
   "common": {
+    "address-restriction-title": "Vetro no está disponible para su billetera",
     "amount-too-small-to-bridge": "Cantidad demasiado pequeña para transferir",
     "approve-10x": "Aprobar 10x",
     "approve-10x-tooltip": "Apruebe hasta 10× el monto de su transacción, reduciendo futuros pasos de aprobación. Puede revocarlo en cualquier momento.",
@@ -15,7 +16,6 @@
     "connect-wallet": "Conectar billetera",
     "enter-amount": "Ingrese un monto",
     "exceeds-debt": "El monto excede la deuda",
-    "geo-restriction-description": "Debido a regulaciones, no podemos ofrecer acceso en este momento.",
     "geo-restriction-title": "Vetro no está disponible en su país",
     "insufficient-balance": "Saldo insuficiente",
     "insufficient-collateral": "Garantía insuficiente",
@@ -25,6 +25,7 @@
     "network-fee": "Tarifa de Red",
     "no-results-found": "No se encontraron tokens",
     "oracle": "Oráculo",
+    "restriction-description": "Debido a regulaciones, no podemos ofrecerle acceso en este momento.",
     "search": "Buscar",
     "search-token-placeholder": "Buscar por nombre o símbolo",
     "select-token": "Seleccionar un token",
