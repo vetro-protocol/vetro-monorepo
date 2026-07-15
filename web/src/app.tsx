@@ -25,7 +25,6 @@ import {
   Routes,
   useLocation,
 } from "react-router";
-import { featureFlags } from "utils/featureFlags";
 import { isGeoRestricted } from "utils/geoRestriction";
 
 const SentryRoutes = Sentry.withSentryReactRouterV7Routing(Routes);
@@ -81,9 +80,7 @@ function LanguageRoutes() {
             <Route element={<Bridge />} path="bridge" />
             <Route element={<Analytics />} path="analytics" />
             <Route element={<Faq />} path="faq" />
-            {featureFlags.contactForm && (
-              <Route element={<Contact />} path="contact" />
-            )}
+            <Route element={<Contact />} path="contact" />
           </Route>
           <Route
             element={

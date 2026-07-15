@@ -287,9 +287,6 @@ Email Routing destination; the sender address comes from `CONTACT_FORM_SENDER`).
 A confirmation email is also sent to the submitter acknowledging their request;
 its replies route back to `CONTACT_FORM_RECIPIENT`.
 
-Gated by the `CONTACT_FORM_ENABLED` feature toggle: when it is not `"true"` the
-endpoint behaves as if it does not exist and returns `404`.
-
 Protected by [Cloudflare Turnstile](https://developers.cloudflare.com/turnstile/):
 the submission must include a `token` obtained from the widget on the web app,
 which is verified server-side. Verification is skipped when `TURNSTILE_SECRET_KEY`
@@ -323,7 +320,7 @@ Returns `204 No Content` with an empty body once the support email is sent. The
 confirmation email to the submitter is best-effort: if it fails, the failure is
 reported to Sentry and the response is still `204`.
 
-Returns `404` when the feature is disabled, `400` for an invalid body / email /
+Returns `400` for an invalid body / email /
 category / message, unsupported or oversized attachments (`Unsupported
 attachment type`, `Too many attachments`, `Attachments too large`), or a missing
 captcha token, `413` (`Request too large`) when the request body exceeds the
@@ -337,7 +334,6 @@ Secrets are set separately using the Wrangler CLI.
 
 | Variable                    | Description                                                                                                                                                                     | Default                   |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
-| CONTACT_FORM_ENABLED        | Feature toggle for `POST /contact`. When not `"true"`, the endpoint returns `404`.                                                                                              | `"false"`                 |
 | CONTACT_FORM_RECIPIENT      | Destination address for contact form emails. Must be a verified Email Routing destination.                                                                                      | `support@vetro.org`       |
 | CONTACT_FORM_SENDER         | `from` address for contact form emails. Its domain must be a verified Email Routing sending domain.                                                                             | `noreply@forms.vetro.org` |
 | CUSTOM_RPC_URL_MAINNET      | Ethereum RPC node URL(s). Overrides `viem`'s default. Several URLs joined by `+` become a fallback transport.                                                                   |                           |
