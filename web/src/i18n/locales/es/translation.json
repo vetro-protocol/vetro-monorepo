@@ -1,5 +1,6 @@
 {
   "common": {
+    "address-restriction-title": "Vetro no está disponible para su billetera",
     "amount-too-small-to-bridge": "Cantidad demasiado pequeña para transferir",
     "approve-10x": "Aprobar 10x",
     "approve-10x-tooltip": "Apruebe hasta 10× el monto de su transacción, reduciendo futuros pasos de aprobación. Puede revocarlo en cualquier momento.",
@@ -15,6 +16,7 @@
     "connect-wallet": "Conectar billetera",
     "enter-amount": "Ingrese un monto",
     "exceeds-debt": "El monto excede la deuda",
+    "geo-restriction-title": "Vetro no está disponible en su país",
     "insufficient-balance": "Saldo insuficiente",
     "insufficient-collateral": "Garantía insuficiente",
     "insufficient-gas": "ETH insuficiente para gas",
@@ -23,6 +25,7 @@
     "network-fee": "Tarifa de Red",
     "no-results-found": "No se encontraron tokens",
     "oracle": "Oráculo",
+    "restriction-description": "Debido a regulaciones, no podemos ofrecerle acceso en este momento.",
     "search": "Buscar",
     "search-token-placeholder": "Buscar por nombre o símbolo",
     "select-token": "Seleccionar un token",
@@ -227,6 +230,15 @@
     "contact": {
       "email-us-directly": "O escríbanos directamente a <emailLink>{{email}}</emailLink>",
       "form": {
+        "attachments-error-invalid-type": "Solo se admiten archivos PNG y JPG.",
+        "attachments-error-too-large": "Sus capturas de pantalla son demasiado grandes. Mantenga el total por debajo de {{limit}} MB.",
+        "attachments-error-too-many": "Puede adjuntar hasta {{max}} capturas de pantalla.",
+        "attachments-hint": "Arrastre y suelte aquí o",
+        "attachments-label": "Capturas de pantalla (opcional)",
+        "attachments-remove": "Eliminar",
+        "attachments-select": "Seleccionar archivos",
+        "attachments-uploaded": "Adjuntado",
+        "attachments-uploading": "Subiendo...",
         "captcha-error": "Por favor, complete el captcha.",
         "category-error": "Por favor, seleccione un tema.",
         "category-label": "¿De qué se trata?",

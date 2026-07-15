@@ -2,7 +2,7 @@ import type { Context } from "hono";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
-  contactFeatureToggle,
+  buildAttachments,
   validateContactForm,
   verifyTurnstile,
 } from "../src/contact.ts";
@@ -13,9 +13,33 @@ const validForm = {
   message: "Something went wrong.",
 };
 
+// Builds the multipart FormData validateContactForm now parses. `files` (an
+// optional File[]) is appended under the repeated "files" field.
+function toFormData(body: Record<string, unknown>) {
+  const form = new FormData();
+  for (const [key, value] of Object.entries(body)) {
+    if (value === undefined) {
+      continue;
+    }
+    if (key === "files") {
+      for (const file of value as File[]) {
+        form.append("files", file);
+      }
+      continue;
+    }
+    form.append(key, value as string);
+  }
+  return form;
+}
+
 // Minimal Hono Context for testing. `vars` seeds the get/set store so tests can
 // preload context values (e.g. the turnstileToken validateContactForm stashes).
-function buildContext({ body = validForm, env = {}, vars = {} } = {}) {
+function buildContext({
+  body = validForm,
+  env = {},
+  headers = {},
+  vars = {},
+} = {}) {
   const json = vi.fn((data, status) => ({ data, status }));
   const next = vi.fn();
   const store: Record<string, unknown> = { ...vars };
@@ -25,19 +49,20 @@ function buildContext({ body = validForm, env = {}, vars = {} } = {}) {
   const get = vi.fn((key: string) => store[key]);
   const context = {
     env: {
-      CONTACT_FORM_ENABLED: "true",
       ...env,
     },
     get,
     json,
     req: {
-      header: vi.fn(() => undefined),
-      json: vi.fn(async function () {
+      formData: vi.fn(async function () {
         if (typeof body === "string") {
-          throw new SyntaxError("Invalid JSON");
+          throw new TypeError("Invalid multipart body");
         }
-        return body;
+        return toFormData(body);
       }),
+      header: vi.fn(
+        (name: string) => (headers as Record<string, string>)[name],
+      ),
     },
     set,
   };
@@ -50,29 +75,19 @@ function buildContext({ body = validForm, env = {}, vars = {} } = {}) {
   };
 }
 
-describe("contactFeatureToggle", function () {
-  it("returns 404 when the toggle is off", function () {
+describe("validateContactForm", function () {
+  it("returns 413 before parsing when Content-Length exceeds the limit", async function () {
     const { context, json, next } = buildContext({
-      env: { CONTACT_FORM_ENABLED: "false" },
+      headers: { "Content-Length": String(4_000_001) },
     });
 
-    contactFeatureToggle(context, next);
+    await validateContactForm(context, next);
 
-    expect(json).toHaveBeenCalledWith({ error: "Not Found" }, 404);
+    expect(context.req.formData).not.toHaveBeenCalled();
+    expect(json).toHaveBeenCalledWith({ error: "Request too large" }, 413);
     expect(next).not.toHaveBeenCalled();
   });
 
-  it("calls next when the toggle is on", function () {
-    const { context, json, next } = buildContext();
-
-    contactFeatureToggle(context, next);
-
-    expect(next).toHaveBeenCalledTimes(1);
-    expect(json).not.toHaveBeenCalled();
-  });
-});
-
-describe("validateContactForm", function () {
   it("returns 400 for a malformed request body", async function () {
     // @ts-expect-error Testing invalid input
     const { context, json, next } = buildContext({ body: "not json" });
@@ -83,10 +98,12 @@ describe("validateContactForm", function () {
     expect(next).not.toHaveBeenCalled();
   });
 
-  it("returns 400 for a non-string email", async function () {
+  it("returns 400 for a missing email", async function () {
+    // With multipart, form.get("email") is null when the field is absent, which
+    // exercises the `typeof email !== "string"` guard.
     const { context, json, next } = buildContext({
-      // @ts-expect-error Testing invalid input
-      body: { ...validForm, email: 42 },
+      // @ts-expect-error Testing invalid input (email field omitted)
+      body: { category: "swap", message: "Something went wrong." },
     });
 
     await validateContactForm(context, next);
@@ -144,7 +161,10 @@ describe("validateContactForm", function () {
 
     await validateContactForm(context, next);
 
-    expect(set).toHaveBeenCalledWith("contactForm", validForm);
+    expect(set).toHaveBeenCalledWith("contactForm", {
+      ...validForm,
+      files: [],
+    });
     expect(next).toHaveBeenCalledTimes(1);
     expect(json).not.toHaveBeenCalled();
   });
@@ -157,6 +177,78 @@ describe("validateContactForm", function () {
     await validateContactForm(context, vi.fn());
 
     expect(set).toHaveBeenCalledWith("turnstileToken", "a-token");
+  });
+
+  it("accepts and stores valid image attachments", async function () {
+    // Encoding is deferred to the handler; validation just stores the files.
+    const { context, json, next, set } = buildContext({
+      body: {
+        ...validForm,
+        files: [new File(["hi"], "shot.png", { type: "image/png" })],
+      },
+    });
+
+    await validateContactForm(context, next);
+
+    expect(set).toHaveBeenCalledWith("contactForm", {
+      ...validForm,
+      files: [expect.any(File)],
+    });
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(json).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 for an unsupported attachment type", async function () {
+    const { context, json, next } = buildContext({
+      body: {
+        ...validForm,
+        files: [new File(["x"], "notes.pdf", { type: "application/pdf" })],
+      },
+    });
+
+    await validateContactForm(context, next);
+
+    expect(json).toHaveBeenCalledWith(
+      { error: "Unsupported attachment type" },
+      400,
+    );
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 for too many attachments", async function () {
+    const { context, json, next } = buildContext({
+      body: {
+        ...validForm,
+        files: Array.from(
+          { length: 6 },
+          (_, index) =>
+            new File(["x"], `shot-${index}.png`, { type: "image/png" }),
+        ),
+      },
+    });
+
+    await validateContactForm(context, next);
+
+    expect(json).toHaveBeenCalledWith({ error: "Too many attachments" }, 400);
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when attachments exceed the total size budget", async function () {
+    const { context, json, next } = buildContext({
+      body: {
+        ...validForm,
+        files: [
+          new File([new Uint8Array(3_500_001)], "big.png", {
+            type: "image/png",
+          }),
+        ],
+      },
+    });
+
+    await validateContactForm(context, next);
+
+    expect(json).toHaveBeenCalledWith({ error: "Attachments too large" }, 400);
+    expect(next).not.toHaveBeenCalled();
   });
 });
 
@@ -326,5 +418,45 @@ describe("verifyTurnstile", function () {
       403,
     );
     expect(next).not.toHaveBeenCalled();
+  });
+});
+
+describe("buildAttachments", function () {
+  const decode = (content: ArrayBuffer) => Buffer.from(content).toString();
+
+  it("passes raw file bytes for the SEND_EMAIL binding to encode", async function () {
+    const attachments = await buildAttachments([
+      new File(["hi"], "shot.png", { type: "image/png" }),
+    ]);
+
+    expect(attachments).toEqual([
+      {
+        // Raw bytes, not base64 — the binding base64-encodes them itself.
+        content: expect.any(ArrayBuffer),
+        disposition: "attachment",
+        filename: "shot.png",
+        type: "image/png",
+      },
+    ]);
+    expect(decode(attachments[0].content)).toBe("hi");
+  });
+
+  it("returns an empty array when there are no files", async function () {
+    expect(await buildAttachments([])).toEqual([]);
+  });
+
+  it("reads multiple files in order", async function () {
+    const attachments = await buildAttachments([
+      new File(["hi"], "first.png", { type: "image/png" }),
+      new File(["yo"], "second.jpg", { type: "image/jpeg" }),
+    ]);
+
+    expect(attachments.map((attachment) => attachment.filename)).toEqual([
+      "first.png",
+      "second.jpg",
+    ]);
+    expect(attachments.map((attachment) => decode(attachment.content))).toEqual(
+      ["hi", "yo"],
+    );
   });
 });

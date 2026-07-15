@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { useLocation } from "react-router";
 
+import { GlobeIllustration } from "../globeIllustration";
+
 import "react-loading-skeleton/dist/skeleton.css";
 
 export function MainContent({
@@ -26,16 +28,7 @@ export function MainContent({
 
 export const AppLayout = ({ children }: { children: ReactNode }) => (
   <MainContent
-    bottom={
-      <div className="relative border-x border-gray-200 pt-18">
-        <img alt="" src="/pageBackground.svg" />
-        <img
-          alt=""
-          className="absolute right-0 bottom-0 left-0"
-          src="/squareDotsBackground.svg"
-        />
-      </div>
-    }
+    bottom={<GlobeIllustration className="border-x border-gray-200 pt-18" />}
   >
     {children}
   </MainContent>

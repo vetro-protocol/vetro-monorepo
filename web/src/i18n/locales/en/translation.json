@@ -1,5 +1,6 @@
 {
   "common": {
+    "address-restriction-title": "Vetro isn't available for your wallet",
     "amount-too-small-to-bridge": "Amount too small to bridge",
     "approve-10x": "Approve 10x",
     "approve-10x-tooltip": "Approves up to 10× your transaction amount, reducing future approval steps. You can revoke it anytime.",
@@ -15,6 +16,7 @@
     "connect-wallet": "Connect wallet",
     "enter-amount": "Enter an amount",
     "exceeds-debt": "Amount exceeds debt",
+    "geo-restriction-title": "Vetro isn't available in your country",
     "insufficient-balance": "Insufficient balance",
     "insufficient-collateral": "Insufficient collateral",
     "insufficient-gas": "Insufficient ETH for gas",
@@ -23,6 +25,7 @@
     "network-fee": "Network Fee",
     "no-results-found": "No tokens found",
     "oracle": "Oracle",
+    "restriction-description": "Due to regulations, we're unable to offer you access at this time.",
     "search": "Search",
     "search-token-placeholder": "Search by name or symbol",
     "select-token": "Select a token",
@@ -226,6 +229,15 @@
     "contact": {
       "email-us-directly": "Or email us directly at <emailLink>{{email}}</emailLink>",
       "form": {
+        "attachments-error-invalid-type": "Only PNG and JPG files are supported.",
+        "attachments-error-too-large": "Your screenshots are too large. Keep the total under {{limit}} MB.",
+        "attachments-error-too-many": "You can attach up to {{max}} screenshots.",
+        "attachments-hint": "Drag and drop here or",
+        "attachments-label": "Screenshots (optional)",
+        "attachments-remove": "Delete",
+        "attachments-select": "Select files",
+        "attachments-uploaded": "Attached",
+        "attachments-uploading": "Uploading...",
         "captcha-error": "Please complete the captcha.",
         "category-error": "Please select a topic.",
         "category-label": "What's this about?",

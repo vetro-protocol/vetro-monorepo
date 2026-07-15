@@ -7,85 +7,27 @@
     <title>Vetro - Not Available</title>
     <link
       rel="icon"
-      type="image/svg+xml"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23101828'/%3E%3Cpath d='M25.17 5L17.16 22.5H12.93L5 5H10.41L15.03 18.33L19.68 5H25.17ZM15.03 11.94C16.02 11.94 16.83 11.14 16.83 10.14C16.83 9.15 16.02 8.35 15.03 8.35C14.04 8.35 13.23 9.15 13.23 10.14C13.23 11.14 14.04 11.94 15.03 11.94ZM23.91 15.37C23.12 15.37 22.49 16.01 22.49 16.8C22.49 17.59 23.12 18.22 23.91 18.22C24.7 18.22 25.34 17.59 25.34 16.8C25.34 16.01 24.7 15.37 23.91 15.37Z' fill='white'/%3E%3C/svg%3E"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 9'%3E%3Crect width='9' height='9' rx='2' fill='%23101828'/%3E%3Cpath d='M2 2L4.5 7L7 2' stroke='white' fill='none'/%3E%3C/svg%3E"
     />
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Geist:wght@400..600&display=swap"
-      rel="stylesheet"
-    />
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ['"Geist"', "system-ui", "sans-serif"],
-            },
-          },
-        },
-      };
-    </script>
   </head>
 
-  <body class="h-screen overflow-hidden bg-[#f9fafb] font-sans">
-    <!-- Centered container -->
+  <body class="h-screen overflow-hidden bg-gray-50 font-sans">
     <div
-      class="relative mx-4 h-full border-x border-[#e5e7eb] lg:mx-auto lg:max-w-[1024px]"
+      class="relative mx-4 flex h-full items-center border-x border-gray-200 lg:mx-auto lg:max-w-[1024px]"
     >
-      <!-- Logo section with watermark -->
       <div
-        class="relative flex h-[160px] items-center justify-center overflow-hidden lg:h-[152px]"
+        class="flex w-full flex-col items-center justify-center border-y border-gray-200 bg-white py-14"
       >
-        <!-- Large faint watermark: w-[1364.954px] h-60 fill-[#101828] -->
-        <svg
-          aria-hidden="true"
-          focusable="false"
-          class="pointer-events-none absolute top-1/2 left-1/2 hidden h-[240px] w-[1365px] -translate-x-1/2 translate-y-[-20%] opacity-[0.03] lg:block"
-          viewBox="0 0 227.492 40"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          preserveAspectRatio="xMidYMid meet"
+        <div
+          class="flex w-60 flex-col items-center gap-3 text-center text-[13px] leading-[20px]"
         >
-          <path
-            d="M46.5644 0.608157L29.0349 38.9168H17.5974L0 0.608157H11.8447L23.2822 29.7788L34.7876 0.608157H46.5644ZM23.2822 15.8042C25.4512 15.8042 27.2078 14.0476 27.2078 11.8786C27.2078 9.70962 25.4512 7.95302 23.2822 7.95302C21.1132 7.95302 19.3566 9.70962 19.3566 11.8786C19.3566 14.0476 21.1132 15.8042 23.2822 15.8042ZM42.7067 23.2953C40.5377 23.2953 38.7811 25.0519 38.7811 27.2209C38.7811 29.3899 40.5377 31.1465 42.7067 31.1465C44.8757 31.1465 46.6323 29.3899 46.6323 27.2209C46.6323 25.0519 44.8757 23.2953 42.7067 23.2953ZM60.6799 22.8098H85.5856V15.8382H60.6799V7.91909H86.8724V0.608157H49.9184V38.9168H87.1439V31.6059H60.6799V22.8072V22.8098ZM90.2943 7.91909H104.981V38.9168H115.743V7.91909H130.43V0.608157H90.2943V7.91909ZM168.783 20.2362V20.3719C173.52 21.048 174.264 26.8685 174.264 30.5931V38.9168H163.503V31.5406C163.503 26.1925 161.133 24.8405 157.75 24.8405H144.418V38.9194H133.656V0.608157H162.422C173.387 0.608157 175.214 7.10473 175.214 11.0303C175.214 15.6998 173.319 18.678 168.786 20.2362H168.783ZM163.842 12.6564C163.842 8.86656 160.728 7.91909 158.089 7.91909H144.418V17.5974H158.698C161.068 17.5974 163.842 16.3106 163.842 12.6564ZM227.492 19.9674C227.492 27.8865 224.11 40 202.855 40C181.601 40 178.219 27.8839 178.219 19.9674C178.219 12.0509 181.536 0 202.855 0C224.175 0 227.492 12.0483 227.492 19.9674ZM216.055 19.9674C216.055 14.079 212.602 7.1752 202.855 7.1752C193.109 7.1752 189.656 14.079 189.656 19.9674C189.656 25.8558 193.107 32.7595 202.855 32.7595C212.604 32.7595 216.055 25.8558 216.055 19.9674Z"
-            fill="#101828"
-          />
-        </svg>
-        <!-- Solid black wordmark -->
-        <svg
-          aria-hidden="true"
-          focusable="false"
-          class="relative z-10"
-          width="228"
-          height="40"
-          viewBox="0 0 227.492 40"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M46.5644 0.608157L29.0349 38.9168H17.5974L0 0.608157H11.8447L23.2822 29.7788L34.7876 0.608157H46.5644ZM23.2822 15.8042C25.4512 15.8042 27.2078 14.0476 27.2078 11.8786C27.2078 9.70962 25.4512 7.95302 23.2822 7.95302C21.1132 7.95302 19.3566 9.70962 19.3566 11.8786C19.3566 14.0476 21.1132 15.8042 23.2822 15.8042ZM42.7067 23.2953C40.5377 23.2953 38.7811 25.0519 38.7811 27.2209C38.7811 29.3899 40.5377 31.1465 42.7067 31.1465C44.8757 31.1465 46.6323 29.3899 46.6323 27.2209C46.6323 25.0519 44.8757 23.2953 42.7067 23.2953ZM60.6799 22.8098H85.5856V15.8382H60.6799V7.91909H86.8724V0.608157H49.9184V38.9168H87.1439V31.6059H60.6799V22.8072V22.8098ZM90.2943 7.91909H104.981V38.9168H115.743V7.91909H130.43V0.608157H90.2943V7.91909ZM168.783 20.2362V20.3719C173.52 21.048 174.264 26.8685 174.264 30.5931V38.9168H163.503V31.5406C163.503 26.1925 161.133 24.8405 157.75 24.8405H144.418V38.9194H133.656V0.608157H162.422C173.387 0.608157 175.214 7.10473 175.214 11.0303C175.214 15.6998 173.319 18.678 168.786 20.2362H168.783ZM163.842 12.6564C163.842 8.86656 160.728 7.91909 158.089 7.91909H144.418V17.5974H158.698C161.068 17.5974 163.842 16.3106 163.842 12.6564ZM227.492 19.9674C227.492 27.8865 224.11 40 202.855 40C181.601 40 178.219 27.8839 178.219 19.9674C178.219 12.0509 181.536 0 202.855 0C224.175 0 227.492 12.0483 227.492 19.9674ZM216.055 19.9674C216.055 14.079 212.602 7.1752 202.855 7.1752C193.109 7.1752 189.656 14.079 189.656 19.9674C189.656 25.8558 193.107 32.7595 202.855 32.7595C212.604 32.7595 216.055 25.8558 216.055 19.9674Z"
-            fill="#101828"
-          />
-        </svg>
-      </div>
-
-      <!-- Message section -->
-      <div
-        class="flex h-[258px] flex-col items-center justify-center border-y border-[#e5e7eb] bg-white pb-14 lg:h-[306px]"
-      >
-        <div class="flex w-60 flex-col items-center gap-3 text-center">
-          <!-- Alert icon -->
           <svg
             aria-hidden="true"
-            focusable="false"
             width="28"
             height="28"
             viewBox="0 0 28 28"
             fill="none"
-            xmlns="http://www.w3.org/2000/svg"
           >
             <circle cx="14" cy="14" r="12.25" fill="#EAF4FF" />
             <path
@@ -96,133 +38,13 @@
             <path d="M14 12V14.5" stroke="#416BFF" stroke-linecap="round" />
             <circle cx="14" cy="17" r="0.5" fill="#416BFF" />
           </svg>
-
-          <!-- Text -->
-          <div class="flex flex-col gap-0.5 text-[13px] leading-[20px]">
-            <h1 class="font-semibold text-[#101828]">
-              Vetro isn't available in your region
-            </h1>
-            <p class="font-normal text-[#6a7282]">
-              Due to regulations, we're unable to offer access in your country
-              at this time.
-            </p>
-          </div>
+          <h1 class="font-semibold text-gray-900">
+            Vetro isn't available in your country
+          </h1>
+          <p class="text-gray-500">
+            Due to regulations, we're unable to offer you access at this time.
+          </p>
         </div>
-
-        <!-- Button -->
-        <a
-          href="https://vetro.org"
-          class="mt-7 inline-flex h-[28px] items-center justify-center rounded-full bg-[#d9ebff] px-3 text-[13px] leading-[20px] font-semibold text-[#416bff] no-underline transition-colors hover:bg-[#c5dfff]"
-        >
-          Visit our Website
-        </a>
-      </div>
-    </div>
-
-    <!-- Globe section (outside bordered container) -->
-    <div
-      class="pointer-events-none fixed bottom-0 left-1/2 w-[calc(100%-2rem)] -translate-x-1/2 lg:max-w-[1024px]"
-    >
-      <div class="relative">
-        <!-- Globe lines -->
-        <svg
-          aria-hidden="true"
-          focusable="false"
-          width="1066"
-          height="157"
-          viewBox="187 0 1066 157"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-auto w-full"
-        >
-          <path
-            d="M721 134C565.667 357.066 245.6 890.759 206 1243"
-            stroke="#2040FF"
-          />
-          <path
-            d="M903 19.5C822.2 3.1 749.833 88.6677 721 133.501C717 93.5 688.5 12 669.5 2"
-            stroke="#2040FF"
-          />
-          <path
-            d="M720 0.5C1218.44 0.5 1622.5 404.563 1622.5 903C1622.5 1401.44 1218.44 1805.5 720 1805.5C221.563 1805.5 -182.5 1401.44 -182.5 903C-182.5 404.563 221.563 0.5 720 0.5Z"
-            stroke="#2040FF"
-          />
-          <path
-            d="M720 11.5C822.653 11.5 915.564 35.5493 982.794 74.4053C1050.04 113.269 1091.5 166.884 1091.5 226C1091.5 285.116 1050.04 338.731 982.794 377.595C915.564 416.451 822.653 440.5 720 440.5C617.347 440.5 524.436 416.451 457.206 377.595C389.963 338.731 348.5 285.116 348.5 226C348.5 166.884 389.963 113.269 457.206 74.4053C524.436 35.5493 617.347 11.5 720 11.5Z"
-            stroke="#2040FF"
-          />
-          <path
-            d="M720 74.5C755.003 74.5 786.668 82.2099 809.563 94.6494C832.479 107.099 846.5 124.216 846.5 143C846.5 161.784 832.479 178.901 809.563 191.351C786.668 203.79 755.003 211.5 720 211.5C684.997 211.5 653.332 203.79 630.437 191.351C607.521 178.901 593.5 161.784 593.5 143C593.5 124.216 607.521 107.099 630.437 94.6494C653.332 82.2099 684.997 74.5 720 74.5Z"
-            stroke="#2040FF"
-          />
-          <path
-            d="M720 0.5C876.765 0.5 1018.67 42.172 1121.36 109.521C1224.06 176.872 1287.5 269.86 1287.5 372.5C1287.5 475.14 1224.06 568.128 1121.36 635.479C1018.67 702.828 876.765 744.5 720 744.5C563.235 744.5 421.333 702.828 318.638 635.479C215.938 568.128 152.5 475.14 152.5 372.5C152.5 269.86 215.938 176.872 318.638 109.521C421.333 42.172 563.235 0.5 720 0.5Z"
-            stroke="#2040FF"
-          />
-          <path
-            d="M721 133.5C559.333 92.5 244 65.5017 35.5 315"
-            stroke="#2040FF"
-          />
-          <path
-            d="M1403.5 314.998C1219 161 879 113.501 720 133.998C543.833 137.999 130.7 227.1 -112.5 551.5"
-            stroke="#2040FF"
-          />
-          <path
-            d="M721 133.496C795.667 96.3297 985.9 40.3967 1147.5 107.997"
-            stroke="#2040FF"
-          />
-          <path
-            d="M720.5 133.5C915.833 179.167 1366.8 365.4 1608 745"
-            stroke="#2040FF"
-          />
-          <path
-            d="M719 132C930.833 296.167 1388.9 759.1 1526.5 1297.5"
-            stroke="#2040FF"
-          />
-          <path
-            d="M721 133.5C932.833 297.667 1388.9 759.1 1526.5 1297.5"
-            stroke="#2040FF"
-          />
-          <path
-            d="M721 134C458.5 244.5 -81 609.1 -137 1179.5"
-            stroke="#2040FF"
-          />
-          <path
-            d="M721 133.499C659.333 88.1655 522.5 13.5 417.5 52.4976"
-            stroke="#2040FF"
-          />
-          <path
-            d="M721 134C768.5 382.5 870.8 930.3 894 1135.5"
-            stroke="#2040FF"
-          />
-        </svg>
-        <!-- Decorative dots -->
-        <svg
-          aria-hidden="true"
-          focusable="false"
-          width="1066"
-          height="157"
-          viewBox="187 0 1066 157"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          class="absolute right-0 bottom-0 left-0 h-auto w-full"
-        >
-          <rect x="493" y="55" width="10" height="10" fill="#2040FF" />
-          <rect
-            x="834"
-            y="50"
-            width="10"
-            height="10"
-            fill="#2040FF"
-            transform="rotate(45, 839, 55)"
-          />
-          <rect x="1120" y="50" width="10" height="10" fill="#2040FF" />
-          <rect x="563" y="144" width="8" height="8" fill="#2040FF" />
-          <rect x="530" y="143" width="6" height="6" fill="#2040FF" />
-          <rect x="392" y="171" width="6" height="6" fill="#2040FF" />
-          <rect x="360" y="154" width="2" height="2" fill="#2040FF" />
-          <rect x="1415" y="29" width="2" height="2" fill="#2040FF" />
-        </svg>
       </div>
     </div>
   </body>

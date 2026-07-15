@@ -11,6 +11,7 @@ import { MaxButton } from "components/base/maxButton";
 import { Toast } from "components/base/toast";
 import { OracleLabel } from "components/borrow/oracleLabel";
 import { FormSection, FormSectionItem } from "components/feesContainer";
+import { ExclamationTriangleIcon } from "components/icons/exclamationTriangleIcon";
 import { NetworkFees } from "components/networkFees";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenInput } from "components/tokenInput";
@@ -32,6 +33,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { getMaxBorrowable } from "utils/borrowLimit";
 import { formatNumber } from "utils/format";
+import { isGeoRestricted } from "utils/geoRestriction";
 import { type Address, formatUnits, parseUnits } from "viem";
 import { useAccount } from "wagmi";
 
@@ -52,6 +54,15 @@ function SubmitButton({
   openConnectModal,
 }: SubmitButtonProps) {
   const { t } = useTranslation();
+
+  if (isGeoRestricted()) {
+    return (
+      <Button disabled size="small" type="submit" variant="primary">
+        <ExclamationTriangleIcon />
+        {t("common.geo-restriction-title")}
+      </Button>
+    );
+  }
 
   if (!address) {
     return (
