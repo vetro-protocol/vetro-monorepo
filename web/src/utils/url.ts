@@ -3,7 +3,7 @@ export const isRelativeUrl = (url: string) => url.startsWith("/");
 // Maps a web staging preview host to its matching API preview. The preview host
 // suffixes come from the preview build env. Gated to the preview build so it's
 // dead-code eliminated everywhere else.
-export function deriveApiOrigin(hostname: string): string | undefined {
+export function deriveApiOrigin(hostname: string) {
   if (import.meta.env.VITE_DEPLOY_ENV !== "preview") {
     return undefined;
   }
