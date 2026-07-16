@@ -19,11 +19,13 @@ export const MOCK_WALLET_INFO = Object.freeze({
   rdns: "com.example.mock-wallet",
 } satisfies Eip6963ProviderInfo);
 
-// The EIP-1193 object a discovery UI connects to. The no-op event methods are
-// enough for RainbowKit/wagmi, which never subscribe to a mock wallet's events.
+// The EIP-1193 object a discovery UI connects to. The event methods accept any
+// args (method syntax, so typed EIP-1193 providers stay assignable), but no-op
+// implementations are enough for RainbowKit/wagmi, which never subscribe to a
+// mock wallet's events.
 export type Eip6963Provider = {
-  on: () => void;
-  removeListener: () => void;
+  on(...args: unknown[]): void;
+  removeListener(...args: unknown[]): void;
   request: (request: RpcRequest) => Promise<unknown>;
 };
 
