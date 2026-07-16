@@ -127,7 +127,7 @@ export function PositionsTable({ marketIds }: Props) {
         cell({ row }) {
           const lltv = formatLtvAsPercentage(row.original.lltv);
           const ltv =
-            row.original.ltv != null
+            row.original.ltv !== null && row.original.ltv !== undefined
               ? formatLtvAsPercentage(row.original.ltv)
               : null;
           const value = formatHealthFactor(row.original.healthFactor);
@@ -156,7 +156,7 @@ export function PositionsTable({ marketIds }: Props) {
         cell: ({ row }) => (
           <div className="flex flex-col items-center">
             <span className="text-b-medium text-gray-900">
-              {row.original.ltv != null
+              {row.original.ltv !== null && row.original.ltv !== undefined
                 ? `${formatPercentage(formatLtvAsPercentage(row.original.ltv))}`
                 : "-"}
             </span>

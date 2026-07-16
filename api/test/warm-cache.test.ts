@@ -3,8 +3,9 @@ import type { Context } from "hono";
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  type GlobalWarmTask,
+  type KeyedWarmTask,
   readWarmedTask,
-  type WarmTask,
   warmScheduled,
 } from "../src/warm-cache.ts";
 
@@ -48,7 +49,7 @@ function createFakeContext(kv: unknown) {
   };
 }
 
-const task: WarmTask<string> = {
+const task: KeyedWarmTask<string> = {
   cron: "* * * * *",
   items: ["a", "b"],
   key: (item) => `key:${item}`,
@@ -76,7 +77,7 @@ describe("warm-cache/readWarmedTask", function () {
     await settled();
 
     expect(data).toEqual({ fresh: true });
-    expect(task.produce).toHaveBeenCalledWith("a", c.env);
+    expect(task.produce).toHaveBeenCalledWith(c.env, "a");
     expect(kv.puts).toEqual([
       { key: "key:a", value: JSON.stringify({ fresh: true }) },
     ]);
@@ -106,12 +107,32 @@ describe("warm-cache/readWarmedTask", function () {
     expect(data).toEqual({ fresh: true });
     expect(Sentry.captureException).toHaveBeenCalledWith(putError);
   });
+
+  it("reads a global item-less task without passing an item", async function () {
+    const kv = createFakeKv();
+    const produce = vi.fn().mockResolvedValue({ global: true });
+    const globalTask: GlobalWarmTask = {
+      cron: "* * * * *",
+      key: () => "global:key",
+      produce,
+    };
+    const { c, settled } = createFakeContext(kv);
+
+    const data = await readWarmedTask({ c, task: globalTask });
+    await settled();
+
+    expect(data).toEqual({ global: true });
+    expect(produce).toHaveBeenCalledWith(c.env);
+    expect(kv.puts).toEqual([
+      { key: "global:key", value: JSON.stringify({ global: true }) },
+    ]);
+  });
 });
 
 describe("warm-cache/warmScheduled", function () {
   it("only warms tasks whose cron matches the fired one", async function () {
     const kv = createFakeKv();
-    const other: WarmTask<string> = {
+    const other: KeyedWarmTask<string> = {
       cron: "*/5 * * * *",
       items: ["z"],
       key: (item) => `other:${item}`,
@@ -132,7 +153,7 @@ describe("warm-cache/warmScheduled", function () {
 
   it("isolates per-key failures and reports them to Sentry", async function () {
     const kv = createFakeKv();
-    vi.mocked(task.produce).mockImplementation(async function (item) {
+    vi.mocked(task.produce).mockImplementation(async function (_env, item) {
       if (item === "a") {
         throw new Error("produce a failed");
       }
@@ -151,6 +172,28 @@ describe("warm-cache/warmScheduled", function () {
       { key: "key:b", value: JSON.stringify({ item: "b" }) },
     ]);
     expect(Sentry.captureException).toHaveBeenCalledTimes(1);
+  });
+
+  it("warms a single global entry for a task without items", async function () {
+    const kv = createFakeKv();
+    const produce = vi.fn().mockResolvedValue({ v: 9 });
+    const globalTask: GlobalWarmTask = {
+      cron: "* * * * *",
+      key: () => "global:key",
+      produce,
+    };
+
+    await warmScheduled({
+      cron: "* * * * *",
+      env: {} as Env,
+      kv: kv as unknown as KVNamespace,
+      tasks: [globalTask],
+    });
+
+    expect(produce).toHaveBeenCalledTimes(1);
+    expect(kv.puts).toEqual([
+      { key: "global:key", value: JSON.stringify({ v: 9 }) },
+    ]);
   });
 
   it("treats empty produced data as a failure and leaves KV untouched", async function () {

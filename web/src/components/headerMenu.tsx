@@ -1,6 +1,5 @@
 import { type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { featureFlags } from "utils/featureFlags";
 
 import { ButtonIcon } from "./base/button";
 import { Dropdown } from "./base/dropdown";
@@ -49,20 +48,16 @@ export function HeaderMenu() {
         },
       ],
     },
-    ...(featureFlags.contactForm
-      ? [
-          {
-            items: [
-              {
-                icon: <SubmitRequestIcon className={itemIconClassName} />,
-                label: t("nav.header-menu.submit-request"),
-                to: "/contact",
-              },
-            ],
-            label: t("nav.header-menu.need-help"),
-          },
-        ]
-      : []),
+    {
+      items: [
+        {
+          icon: <SubmitRequestIcon className={itemIconClassName} />,
+          label: t("nav.header-menu.submit-request"),
+          to: "/contact",
+        },
+      ],
+      label: t("nav.header-menu.need-help"),
+    },
     {
       items: [
         {

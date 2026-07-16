@@ -15,6 +15,7 @@ import { OracleLabel } from "components/borrow/oracleLabel";
 import { hasSufficientGas } from "components/borrow/utils";
 import { CollapsibleSection } from "components/collapsibleSection";
 import { DrawerFeesContainer } from "components/feesContainer";
+import { ExclamationTriangleIcon } from "components/icons/exclamationTriangleIcon";
 import { NetworkFees } from "components/networkFees";
 import { TokenInput } from "components/tokenInput";
 import { Balance } from "components/tokenInput/balance";
@@ -34,6 +35,8 @@ import { useMainnet } from "hooks/useMainnet";
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { formatLtvAsPercentage } from "utils/borrowReview";
+import { formatNumber } from "utils/format";
+import { isGeoRestricted } from "utils/geoRestriction";
 import { parseTokenUnits } from "utils/token";
 import { useAccount } from "wagmi";
 
@@ -91,6 +94,15 @@ function SubmitButton({
   sufficientGas,
 }: SubmitButtonProps) {
   const { t } = useTranslation();
+
+  if (isGeoRestricted()) {
+    return (
+      <Button disabled size="small" type="submit" variant="primary">
+        <ExclamationTriangleIcon />
+        {t("common.geo-restriction-title")}
+      </Button>
+    );
+  }
 
   if (!address) {
     return (
@@ -431,7 +443,7 @@ export function RepayLoanForm({ market, onClose }: Props) {
         <Toast
           closable
           description={t("pages.borrow.repay-loan-progress.toast-description", {
-            amount: repayInput,
+            amount: formatNumber(repayInput),
             symbol: loanToken.symbol,
           })}
           onClose={() => setShowToast(false)}

@@ -274,6 +274,13 @@ function BridgeFormContent({ tokens }: ContentProps) {
     }
   }
 
+  function handleDrawerClose() {
+    setIsDrawerOpen(false);
+    if (flowStatus === "sent") {
+      dispatch({ payload: "0", type: "SET_FROM_INPUT_VALUE" });
+    }
+  }
+
   return (
     <>
       <Form
@@ -346,7 +353,7 @@ function BridgeFormContent({ tokens }: ContentProps) {
           fromToken={fromToken}
           layerZeroFee={layerZeroFee}
           networkFee={networkFee}
-          onClose={() => setIsDrawerOpen(false)}
+          onClose={handleDrawerClose}
           onRetry={handleRetry}
           showApproveStep={startedWithApproval}
           toAmount={toAmountDisplay}

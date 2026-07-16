@@ -11,7 +11,8 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
 import { unixNowTimestamp } from "utils/date";
-import { formatAmount } from "utils/token";
+import { formatNumber } from "utils/format";
+import { formatUnits } from "viem";
 
 /**
  * Schedules a re-render the moment the soonest future timestamp in `items`
@@ -108,12 +109,9 @@ function RedeemNotification({
   const navigate = useI18nNavigate();
   const { t } = useTranslation();
 
-  const formattedAmount = formatAmount({
-    amount: amountLocked,
-    decimals: peggedToken.decimals,
-    isError: false,
-    symbol: peggedToken.symbol,
-  });
+  const formattedAmount = `${formatNumber(
+    formatUnits(amountLocked, peggedToken.decimals),
+  )} ${peggedToken.symbol}`;
 
   function handleClick() {
     const el = document.getElementById("redeem-queue");

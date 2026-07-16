@@ -19,6 +19,7 @@ import { useWithdrawalDelay } from "hooks/useWithdrawalDelay";
 import { type FormEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
+import { formatNumber } from "utils/format";
 import { getInputError } from "utils/inputError";
 import { getTokenListParams } from "utils/tokenList";
 import { isAddressEqual } from "viem";
@@ -71,10 +72,20 @@ export function TwoStepRedeem({
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
-  const handleDrawerClose = useCallback(() => setIsDrawerOpen(false), []);
   const [flowStatus, setFlowStatus] = useState<RequestRedeemFlowStatus>("idle");
   const [showToast, setShowToast] = useState(false);
+  const [toastData, setToastData] = useState({ amount: "", symbol: "" });
   const [startedWithApproval, setStartedWithApproval] = useState(false);
+
+  const handleDrawerClose = useCallback(
+    function handleDrawerClose() {
+      setIsDrawerOpen(false);
+      if (flowStatus === "request-redeemed") {
+        onInputChange("0");
+      }
+    },
+    [flowStatus, onInputChange],
+  );
 
   const { data: seconds } = useWithdrawalDelay({
     gatewayAddress: fromToken.gatewayAddress,
@@ -135,6 +146,10 @@ export function TwoStepRedeem({
       emitter.on("request-redeem-transaction-succeeded", function () {
         onCompleted();
         setFlowStatus("request-redeemed");
+        setToastData({
+          amount: formatNumber(fromInputValue),
+          symbol: fromToken.symbol,
+        });
         setShowToast(true);
         document
           .getElementById("redeem-queue")
@@ -314,10 +329,7 @@ export function TwoStepRedeem({
           closable
           description={t("pages.swap.toast.redeem-queued-description")}
           onClose={() => setShowToast(false)}
-          title={t("pages.swap.toast.redeem-queued-title", {
-            amount: fromInputValue,
-            symbol: fromToken.symbol,
-          })}
+          title={t("pages.swap.toast.redeem-queued-title", toastData)}
         />
       )}
     </>

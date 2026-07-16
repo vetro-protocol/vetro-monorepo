@@ -6,7 +6,7 @@ import { type TrackedPool, type TrackedToken } from "./types";
 // well beyond the 2 decimals of percentage the UI renders.
 const SHARE_SCALE = 1_000_000n;
 
-export type DistributionSlice = {
+type DistributionSlice = {
   balance: bigint; // raw on-chain units
   pool: TrackedPool;
   share: number; // 0..1 of the token's total tracked liquidity

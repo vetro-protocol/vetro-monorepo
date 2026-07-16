@@ -1,6 +1,7 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import { Badge } from "components/base/badge";
 import { Button, ButtonIcon } from "components/base/button";
+import { DisplayAmount } from "components/base/displayAmount";
 import { StatusBadge } from "components/base/statusBadge";
 import { Table } from "components/base/table";
 import { Header } from "components/base/table/header";
@@ -11,7 +12,7 @@ import type { RedeemRequest } from "hooks/useGetRedeemRequests";
 import { type ReactNode, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { formatCountdown } from "utils/countdown";
-import { formatAmount } from "utils/token";
+import { isGeoRestricted } from "utils/geoRestriction";
 
 type Props = {
   data: RedeemRequest[];
@@ -49,6 +50,7 @@ function ActionsCell({
   const { t } = useTranslation();
   const remainingSeconds = useCountdown(row.claimableAt);
   const isReady = remainingSeconds === 0;
+  const geoRestricted = isGeoRestricted();
 
   return (
     <div className="flex items-center gap-3">
@@ -69,9 +71,16 @@ function ActionsCell({
           </span>
         )}
       </Button>
-      <Tooltip content={t("pages.swap.redeem-queue.cancel-redeem")}>
+      <Tooltip
+        content={
+          geoRestricted
+            ? t("common.geo-restriction-title")
+            : t("pages.swap.redeem-queue.cancel-redeem")
+        }
+      >
         <ButtonIcon
           aria-label={t("pages.swap.redeem-queue.cancel-redeem")}
+          disabled={geoRestricted}
           onClick={() => onCancelRedeem(row)}
           variant="secondary"
         >
@@ -106,16 +115,12 @@ export function RedeemQueueTable({
     (): ColumnDef<RedeemRequest>[] => [
       {
         cell: ({ row }) => (
-          <div className="flex items-center gap-2">
+          <div className="text-b-medium flex items-center gap-2 text-gray-900">
             <TokenLogo {...row.original.peggedToken} />
-            <span className="text-b-medium text-gray-900">
-              {formatAmount({
-                amount: row.original.amountLocked,
-                decimals: row.original.peggedToken.decimals,
-                isError: false,
-              })}{" "}
-              {row.original.peggedToken.symbol}
-            </span>
+            <DisplayAmount
+              amount={row.original.amountLocked}
+              token={row.original.peggedToken}
+            />
           </div>
         ),
         header: () => (
@@ -130,7 +135,7 @@ export function RedeemQueueTable({
         ),
         header: () => <Header text={t("pages.swap.redeem-queue.status")} />,
         id: "status",
-        meta: { width: "200px" },
+        meta: { className: "grow", width: "200px" },
       },
       {
         cell: ({ row }) => (

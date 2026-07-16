@@ -10,7 +10,7 @@ import Skeleton from "react-loading-skeleton";
 import { ApyHistoryCard } from "./components/apyHistoryCard";
 import { CollateralizationCard } from "./components/collateralizationCard";
 import { ExitQueueCard } from "./components/exitQueueCard";
-import { PegStabilityCard } from "./components/pegStabilityCard";
+import { ShareRatioCard } from "./components/shareRatioCard";
 import { StakedCard } from "./components/stakedCard";
 import { TokenFilter } from "./components/tokenFilter";
 import { TvlCard } from "./components/tvlCard";
@@ -117,7 +117,7 @@ export const Analytics = function () {
         />
       </AllocationRow>
       <AllocationRow>
-        <PegStabilityCard
+        <ShareRatioCard
           peggedToken={selectedToken}
           peggedTokenError={isPeggedTokensError}
         />

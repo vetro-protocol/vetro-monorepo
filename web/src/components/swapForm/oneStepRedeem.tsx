@@ -22,6 +22,7 @@ import { type FormEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
 import { applyBps } from "utils/fees";
+import { formatNumber } from "utils/format";
 import { getInputError } from "utils/inputError";
 import { formatAmount } from "utils/token";
 import { isAddressEqual, parseUnits } from "viem";
@@ -71,10 +72,25 @@ export function OneStepRedeem({
   const ethereumChain = useMainnet();
   const { t } = useTranslation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const handleDrawerClose = useCallback(() => setIsDrawerOpen(false), []);
   const [flowStatus, setFlowStatus] = useState<RedeemFlowStatus>("idle");
   const [showToast, setShowToast] = useState(false);
+  const [toastData, setToastData] = useState({
+    fromAmount: "",
+    fromSymbol: "",
+    toAmount: "",
+    toSymbol: "",
+  });
   const [startedWithApproval, setStartedWithApproval] = useState(false);
+
+  const handleDrawerClose = useCallback(
+    function handleDrawerClose() {
+      setIsDrawerOpen(false);
+      if (flowStatus === "redeemed") {
+        onInputChange("0");
+      }
+    },
+    [flowStatus, onInputChange],
+  );
 
   const { data: fromTokenBalance } = useTokenBalance({
     address: fromToken.address,
@@ -147,6 +163,12 @@ export function OneStepRedeem({
       emitter.on("redeem-transaction-succeeded", function () {
         onCompleted();
         setFlowStatus("redeemed");
+        setToastData({
+          fromAmount: formatNumber(fromInputValue),
+          fromSymbol: fromToken.symbol,
+          toAmount: formatNumber(outputValue),
+          toSymbol: toToken.symbol,
+        });
         setShowToast(true);
       });
       emitter.on("redeem-transaction-reverted", function () {
@@ -328,12 +350,10 @@ export function OneStepRedeem({
       {showToast && (
         <Toast
           closable
-          description={t("pages.swap.toast.swap-success-description", {
-            fromAmount: fromInputValue,
-            fromSymbol: fromToken.symbol,
-            toAmount: outputValue,
-            toSymbol: toToken.symbol,
-          })}
+          description={t(
+            "pages.swap.toast.swap-success-description",
+            toastData,
+          )}
           onClose={() => setShowToast(false)}
           title={t("pages.swap.toast.swap-success-title")}
         />

@@ -45,6 +45,11 @@ export function StakeDrawerContent({
     dispatch({ payload: value, type: "SET_INPUT_VALUE" });
   }
 
+  function handleSuccess(toast: ToastData) {
+    handleInputChange("0");
+    onSuccess(toast);
+  }
+
   function handleDepositStepChange(step: DepositStep) {
     dispatch({ payload: step, type: "SET_DEPOSIT_STEP" });
   }
@@ -80,7 +85,7 @@ export function StakeDrawerContent({
           onApprove10xToggle={handleToggleApprove10x}
           onDepositStepChange={handleDepositStepChange}
           onInputChange={handleInputChange}
-          onSuccess={onSuccess}
+          onSuccess={handleSuccess}
           peggedToken={peggedToken}
           stakingVaultAddress={stakingVaultAddress}
         />
@@ -88,7 +93,7 @@ export function StakeDrawerContent({
         <StakeWithdrawForm
           inputValue={state.inputValue}
           onInputChange={handleInputChange}
-          onSuccess={onSuccess}
+          onSuccess={handleSuccess}
           onWithdrawStepChange={handleWithdrawStepChange}
           peggedToken={peggedToken}
           stakingVaultAddress={stakingVaultAddress}

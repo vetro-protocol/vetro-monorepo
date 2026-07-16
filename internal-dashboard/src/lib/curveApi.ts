@@ -75,11 +75,11 @@ export const fetchGauges = (): Promise<CurveGaugeInfo[]> =>
     })),
   );
 
-export type CurvePoolStats = {
-  liquidityFee24h: number;
-  tradingFee24h: number;
-  tradingVolume24h: number;
-  tvlUsd: number;
+type CurvePoolStats = {
+  liquidityFee24h: number | null;
+  tradingFee24h: number | null;
+  tradingVolume24h: number | null;
+  tvlUsd: number | null;
 };
 
 // Rolling-24h fees and volume for a single pool, as shown on curvemonitor.

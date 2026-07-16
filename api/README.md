@@ -144,7 +144,7 @@ Returns the user's cost basis (in the vault asset's native smallest unit; decima
 
 ### `GET /variable-stake/apy`
 
-Returns the APY for each supported staking vault, indexed by staking vault address. This is a forward-looking figure computed from the current `rewardRate` read directly from each vault's `YieldDistributor` contract, annualized over the vault's `totalAssets()` and expressed as a continuous-compounding APY. A vault whose drip has ended (or whose rate or total assets are zero) returns a genuine `{ "apy": 0 }`. A vault whose on-chain reads fail (e.g. RPC error or an unconfigured distributor) is **omitted** from the response rather than returned as `0`, so clients can render "-" for it — distinct from a real 0% APY. If every vault's reads fail, the response is `{}`.
+Returns the APY for each supported staking vault, indexed by staking vault address. This is a forward-looking figure computed from each vault's `rewardRate` (read from its `YieldDistributor` contract), annualized over the vault's `totalAssets()` and expressed as a continuous-compounding APY. A vault whose drip has ended (or whose rate or total assets are zero) returns a genuine `{ "apy": 0 }`. A vault whose on-chain reads fail (e.g. RPC error or an unconfigured distributor) is **omitted** from the response rather than returned as `0`, so clients can render "-" for it — distinct from a real 0% APY. If every vault's reads fail, the response is `{}`.
 
 #### Sample Response
 
@@ -161,7 +161,7 @@ Returns the APY for each supported staking vault, indexed by staking vault addre
 
 ### `GET /variable-stake/apy-history/:stakingVaultAddress/:period`
 
-Returns the historical APY for a staking vault over the given period — the same forward-looking, continuous-compounding figure as `GET /variable-stake/apy`, recorded over time. The subgraph stores one point per UTC day (the day's **maximum** APR, as the rate fluctuates intraday), which this endpoint converts to APY. A live on-chain point is appended as the last entry so the latest value tracks the current rate rather than the subgraph's daily snapshot, which can lag by up to ~24h; if that read fails, only the subgraph series is returned. The series never has two points on the same UTC day: a live point on a day the subgraph already covers replaces that day's point, or is dropped when the APY is unchanged. Long windows return their full history (`"1y"` is up to ~366 daily points plus the live one).
+Returns the historical APY for a staking vault over the given period — the same forward-looking, continuous-compounding figure as `GET /variable-stake/apy`, recorded over time. The subgraph stores one point per UTC day (the day's **maximum** APR, as the rate fluctuates intraday), which this endpoint converts to APY. A live point carrying the vault's current APY (the same value as `GET /variable-stake/apy`) is appended as the last entry so the latest value tracks the current rate rather than the subgraph's daily snapshot, which can lag by up to ~24h; if that value is unavailable, only the subgraph series is returned. The series never has two points on the same UTC day: a live point on a day the subgraph already covers replaces that day's point, or is dropped when the APY is unchanged. Long windows return their full history (`"1y"` is up to ~366 daily points plus the live one).
 Valid periods are: `"1w"`, `"1m"`, `"3m"` and `"1y"`.
 `:stakingVaultAddress` must be a known staking vault. Returns `400` if malformed and `404` if the address is not a known staking vault.
 `apy` is a percentage number (e.g. `9.95` means 9.95%), the same unit as `GET /variable-stake/apy`. `timestamp` is in milliseconds (UTC day-start for subgraph entries, current time for the live point).
@@ -279,24 +279,86 @@ Returns all user's variable stake exit tickets to i.e. allow claiming the withdr
 ]
 ```
 
+### `POST /contact`
+
+Submit a support request. The contents are emailed to the configured recipient
+using the Cloudflare `send_email` binding (the recipient must be a verified
+Email Routing destination; the sender address comes from `CONTACT_FORM_SENDER`).
+A confirmation email is also sent to the submitter acknowledging their request;
+its replies route back to `CONTACT_FORM_RECIPIENT`.
+
+Protected by [Cloudflare Turnstile](https://developers.cloudflare.com/turnstile/):
+the submission must include a `token` obtained from the widget on the web app,
+which is verified server-side. Verification is skipped when `TURNSTILE_SECRET_KEY`
+is unset (e.g. local development). Verification is **fail-closed**: if Cloudflare's
+siteverify is unreachable or returns a non-OK/non-JSON response, the request is
+rejected with `403` rather than let through. When `TURNSTILE_ALLOWED_HOSTNAMES` is
+set, the hostname reported by siteverify must also match one of its entries.
+
+#### Request body
+
+`multipart/form-data` with these fields:
+
+| Field      | Type | Notes                                                                             |
+| ---------- | ---- | --------------------------------------------------------------------------------- |
+| `category` | text | One of the known topics: `swap`, `bridge`, `earn`, `other`.                       |
+| `email`    | text | Must be well-formed.                                                              |
+| `message`  | text | Non-empty, at most 5000 characters.                                               |
+| `token`    | text | Turnstile token; required (and verified) only when `TURNSTILE_SECRET_KEY` is set. |
+| `files`    | file | Optional screenshots (repeat the field for multiple). See limits below.           |
+
+Attachments are optional. Each file must be `image/png` or `image/jpeg`; at most
+5 files may be attached, and their combined size must not exceed 3.5 MB. Valid
+attachments are sent along with the support email as raw binary; the mail
+binding base64-encodes them into the message (they are not included in the
+submitter's confirmation email). The limit leaves headroom under Cloudflare's
+5 MiB total-message cap once the content is base64-encoded.
+
+#### Response
+
+Returns `204 No Content` with an empty body once the support email is sent. The
+confirmation email to the submitter is best-effort: if it fails, the failure is
+reported to Sentry and the response is still `204`.
+
+Returns `400` for an invalid body / email /
+category / message, unsupported or oversized attachments (`Unsupported
+attachment type`, `Too many attachments`, `Attachments too large`), or a missing
+captcha token, `413` (`Request too large`) when the request body exceeds the
+size limit, `403` when captcha verification fails (or cannot be completed —
+fail-closed), and `500` if sending the support email fails.
+
 ## Configuration
 
 Environment variables are configured in `wrangler.jsonc`.
 Secrets are set separately using the Wrangler CLI.
 
-| Variable                  | Description                                                                                                   | Default                 |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------- |
-| CUSTOM_RPC_URL_MAINNET    | Ethereum RPC node URL(s). Overrides `viem`'s default. Several URLs joined by `+` become a fallback transport. |                         |
-| MERKL_OPPORTUNITY_SVETBTC | Merkl opportunity id for the sVetBTC staking vault. Optional; if unset, that vault yields no rewards.         |                         |
-| MERKL_OPPORTUNITY_SVUSD   | Merkl opportunity id for the sVUSD staking vault. Optional; if unset, that vault yields no rewards.           |                         |
-| ORIGINS                   | Comma-separated list of allowed origins. (1)                                                                  | `http://localhost:5173` |
-| SENTRY_DSN                | Sentry DSN. When unset, Sentry is disabled.                                                                   |                         |
-| SUBGRAPH_API_KEY          | The subgraph API key.                                                                                         |                         |
-| SUBGRAPH_ID               | The subgraph id.                                                                                              |                         |
-| SUBGRAPH_URL_TEMPLATE     | The subgraph URL template. (2)                                                                                | (localhost)             |
+| Variable                    | Description                                                                                                                                                                     | Default                   |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| CONTACT_FORM_RECIPIENT      | Destination address for contact form emails. Must be a verified Email Routing destination.                                                                                      | `support@vetro.org`       |
+| CONTACT_FORM_SENDER         | `from` address for contact form emails. Its domain must be a verified Email Routing sending domain.                                                                             | `noreply@forms.vetro.org` |
+| CUSTOM_RPC_URL_MAINNET      | Ethereum RPC node URL(s). Overrides `viem`'s default. Several URLs joined by `+` become a fallback transport.                                                                   |                           |
+| MERKL_OPPORTUNITY_SVETBTC   | Merkl opportunity id for the sVetBTC staking vault. Optional; if unset, that vault yields no rewards.                                                                           |                           |
+| MERKL_OPPORTUNITY_SVUSD     | Merkl opportunity id for the sVUSD staking vault. Optional; if unset, that vault yields no rewards.                                                                             |                           |
+| ORIGINS                     | Comma-separated list of allowed origins. (1)                                                                                                                                    | `http://localhost:5173`   |
+| SENTRY_DSN                  | Sentry DSN. When unset, Sentry is disabled.                                                                                                                                     |                           |
+| SUBGRAPH_API_KEY            | The subgraph API key.                                                                                                                                                           |                           |
+| SUBGRAPH_ID                 | The subgraph id.                                                                                                                                                                |                           |
+| SUBGRAPH_URL_TEMPLATE       | The subgraph URL template. (2)                                                                                                                                                  | (localhost)               |
+| TURNSTILE_ALLOWED_HOSTNAMES | Optional comma-separated hostname allowlist. When set, a Turnstile token whose siteverify `hostname` is not listed is rejected (`403`). Unset (local/staging) skips this check. |                           |
+| TURNSTILE_SECRET_KEY        | Cloudflare Turnstile secret key for verifying `POST /contact` tokens. When unset, verification is skipped. (3)                                                                  |                           |
+| WEBSITE_URL                 | Public URL of the web app, referenced in the contact form confirmation email.                                                                                                   | `http://localhost:5173/`  |
 
 (1) Globs with stars (`*`) are supported. I.e. `https://*.hemi.xyz` will match any subdomain or subdomain chain.
 (2) API key and id are replaced in the template at the `$API_KEY` and `$ID` positions.
+(3) Per environment: local (`.dev.vars`) and staging (`env.staging.vars`) use Cloudflare's always-passes [test secret](https://developers.cloudflare.com/turnstile/troubleshooting/testing/) `1x0000000000000000000000000000000AA`, since it is public and non-sensitive. Production sets the real key as a Wrangler secret — it is intentionally absent from `env.production.vars` in `wrangler.jsonc`:
+
+```sh
+pnpm wrangler secret put TURNSTILE_SECRET_KEY --env production
+```
+
+The web app pairs this with the matching **site** key `VITE_TURNSTILE_SITE_KEY` (public; test key `1x00000000000000000000AA` committed in `web/.env` for local/staging, real key injected at build time for production).
+
+The `POST /contact` endpoint also requires a `send_email` binding named `SEND_EMAIL`, configured in `wrangler.jsonc`. Sending only works once the domain is verified and the recipient is added as a destination in Cloudflare Email Routing.
 
 ## Local development
 

@@ -7,6 +7,13 @@ import type { Address } from "viem";
 
 import { getApyHistory } from "./apy-history.ts";
 import * as borrow from "./borrow.ts";
+import {
+  buildAttachments,
+  sendContactConfirmation,
+  sendContactEmail,
+  validateContactForm,
+  verifyTurnstile,
+} from "./contact.ts";
 import { convertBigIntsToString } from "./convert-bigints-to-string.ts";
 import { getSubgraphUrl } from "./env.ts";
 import {
@@ -23,6 +30,7 @@ import * as variableStake from "./variable-stake.ts";
 import { validPeriods as vaultHistoryValidPeriods } from "./vault-history-period.ts";
 import { readWarmedTask, warmScheduled } from "./warm-cache.ts";
 import {
+  apyTask,
   collateralizationRatioTask,
   stakedTask,
   treasuryTask,
@@ -224,15 +232,13 @@ app.get(
 app.get(
   "/variable-stake/apy",
   cache({
-    cacheControl: "max-age=600",
+    cacheControl: "max-age=60",
     cacheName: "vetro-api",
   }),
   async function (c) {
     try {
-      const data = await variableStake.getApy({
-        rpcUrl: c.env.CUSTOM_RPC_URL_MAINNET,
-      });
-      return c.json(data);
+      const data = await readWarmedTask({ c, task: apyTask });
+      return c.json(data ?? {});
     } catch (error) {
       throw new Error(`Failed to get APY: ${error.message}`);
     }
@@ -329,8 +335,8 @@ app.get(
       const url = getSubgraphUrl(c.env);
       const period = c.req.param("period");
       const data = await getApyHistory({
+        c,
         period,
-        rpcUrl: c.env.CUSTOM_RPC_URL_MAINNET,
         stakingVaultAddress,
         url,
       });
@@ -385,6 +391,27 @@ app.get(
     }
   },
 );
+
+app.post("/contact", validateContactForm, verifyTurnstile, async function (c) {
+  const { category, email, files, message } = c.get("contactForm");
+  // Read files only now that the captcha has passed (verifyTurnstile ran).
+  const attachments = await buildAttachments(files);
+  await sendContactEmail({
+    attachments,
+    category,
+    email,
+    env: c.env,
+    message,
+  });
+  // The confirmation to the submitter is best-effort: a failure here must not
+  // fail the request, since the support notification already went out.
+  try {
+    await sendContactConfirmation({ category, email, env: c.env });
+  } catch (error) {
+    Sentry.captureException(error);
+  }
+  return c.body(null, 204);
+});
 
 app.notFound((c) => c.json({ error: "Not Found" }, 404));
 

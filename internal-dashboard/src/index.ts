@@ -77,8 +77,10 @@ const csp = [
   "base-uri 'none'",
   // The DEX tab reads Curve liquidity straight from the Curve API (pool list /
   // volumes / gauges) and per-pool 24h fees from Curve's analytics API. Sushi
-  // pools, tracked-token discovery and share values are read on-chain from the
-  // mainnet RPC, and token USD prices come from the Portal API.
+  // pools come from Sushi's data API via the worker's own /api/sushi proxy, so
+  // they need no extra origin here ('self' covers it). Tracked-token discovery
+  // and share values are read on-chain from the mainnet RPC, and token USD
+  // prices come from the Portal API.
   `connect-src 'self' https://api.curve.finance https://prices.curve.finance ${rpcConnectSrc} ${portalApiUrl}`,
   "default-src 'none'",
   "font-src 'self'",
@@ -114,8 +116,32 @@ const htmlHeaders = {
   "X-Frame-Options": "DENY",
 };
 
+// Sushi's data API rejects the deployed browser's cross-origin requests (they
+// work from localhost), so the worker forwards them server-side, where CORS
+// doesn't apply. Keep in sync with lib/sushiApi.ts, which posts to /api/sushi.
+const SUSHI_UPSTREAM = "https://production.data-gcp.sushi.com/graphql";
+
+const proxySushi = async function (request: Request) {
+  const upstream = await fetch(SUSHI_UPSTREAM, {
+    body: await request.text(),
+    headers: { "content-type": "application/json" },
+    method: "POST",
+  });
+  return new Response(upstream.body, {
+    headers: { "content-type": "application/json" },
+    status: upstream.status,
+  });
+};
+
 export default {
   async fetch(request: Request, env: Env) {
+    if (
+      request.method === "POST" &&
+      new URL(request.url).pathname === "/api/sushi"
+    ) {
+      return proxySushi(request);
+    }
+
     const response = await env.ASSETS.fetch(request);
     const newResponse = new Response(response.body, response);
 

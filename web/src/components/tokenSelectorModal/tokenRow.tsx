@@ -1,10 +1,10 @@
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
+import { RenderCryptoValue } from "components/base/cryptoValue";
 import { BridgeTokenFiatValue } from "components/bridgeForm/bridgeTokenFiatValue";
 import { TokenChainLogo } from "components/bridgeForm/tokenChainLogo";
 import { TokenLogo } from "components/tokenLogo";
 import type { ReactNode } from "react";
 import type { Token } from "types";
-import { formatAmount } from "utils/token";
 import { useAccount } from "wagmi";
 
 type Props<T extends Token> = {
@@ -21,7 +21,7 @@ export function TokenRow<T extends Token>({
   token,
 }: Props<T>) {
   const { address } = useAccount();
-  const { data: balance, isError } = useTokenBalance({
+  const { data: balance, status } = useTokenBalance({
     address: token.address,
     chainId: token.chainId,
   });
@@ -45,13 +45,9 @@ export function TokenRow<T extends Token>({
       </div>
       {address ? (
         <div className="flex shrink-0 flex-col items-end gap-0.5">
-          <span className="text-b-medium text-gray-900">
-            {formatAmount({
-              amount: balance,
-              decimals: token.decimals,
-              isError,
-            })}
-          </span>
+          <div className="text-b-medium text-gray-900">
+            <RenderCryptoValue status={status} token={token} value={balance} />
+          </div>
           <span className="text-b-regular text-gray-500">
             $<BridgeTokenFiatValue token={token} value={balance} />
           </span>

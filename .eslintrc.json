@@ -3,23 +3,21 @@
   "ignorePatterns": [
     "api/.wrangler/**/*",
     "internal-dashboard/dist/**/*",
+    "subgraph/**/*",
     "web/dist/**/*",
-    "web/storybook-static/**/*"
+    "web/playwright-report/**/*",
+    "web/storybook-static/**/*",
+    "web/test-results/**/*"
   ],
   "overrides": [
     {
-      "excludedFiles": [
-        "internal-dashboard/dist/**/*",
-        "subgraph/generated/**/*",
-        "web/dist/**/*"
-      ],
+      "excludedFiles": ["internal-dashboard/dist/**/*", "web/dist/**/*"],
       "extends": ["bloq/esm", "bloq/typescript", "prettier"],
       "files": [
         "*.{js,mjs}",
         "api/**/*.ts",
         "internal-dashboard/**/*.{js,ts,tsx}",
         "packages/**/*.{js,ts,tsx}",
-        "subgraph/**/*.ts",
         "web/**/*.{js,ts,tsx}"
       ]
     },
@@ -42,7 +40,7 @@
       "files": ["*.d.ts"]
     },
     {
-      "excludedFiles": ["api/tests/*.ts", "subgraph/tests/*.ts"],
+      "excludedFiles": ["api/tests/*.ts"],
       "extends": ["bloq/typescript", "bloq/vitest"],
       "files": ["*.{spec,test}.{js,ts}"]
     },

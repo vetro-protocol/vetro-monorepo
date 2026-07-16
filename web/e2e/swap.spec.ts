@@ -84,6 +84,11 @@ test("swap USDC → VUSD via the gateway", async function ({ page }) {
     timeout: 40_000,
   });
 
+  // Check input resets to "0" on success
+  await expect(
+    page.locator('input[type="text"]:not([disabled])').first(),
+  ).toHaveValue("0", { timeout: 15_000 });
+
   // No popups — the mock wallet signs and forwards to Anvil silently.
   // Assert by polling balances directly against the fork.
   await waitForBalance({
@@ -189,6 +194,11 @@ test("redeem VUSD → USDC via the gateway (instant redeem)", async function ({
     timeout: 40_000,
   });
 
+  // Check input resets to "0" on success
+  await expect(
+    page.locator('input[type="text"]:not([disabled])').first(),
+  ).toHaveValue("0", { timeout: 15_000 });
+
   // No popups — the mock wallet signs and forwards to Anvil silently.
   // Assert by polling balances directly against the fork.
   await waitForBalance({
@@ -258,6 +268,11 @@ test("redeem VUSD via the gateway (two-step queue redeem)", async function ({
   await expect(page.getByText(/sent to queue/i)).toBeVisible({
     timeout: 60_000,
   });
+
+  // Check input resets to "0" on success
+  await expect(
+    page.locator('input[type="text"]:not([disabled])').first(),
+  ).toHaveValue("0", { timeout: 15_000 });
 
   // The VUSD is now locked in the gateway, so the wallet balance already dropped.
   await waitForBalance({ client: publicClient, token: vusd.address }).toBe(

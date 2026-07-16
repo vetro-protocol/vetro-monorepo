@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/react";
 import { AppLayout, MainContent } from "components/base/appLayout";
 import { AppViewport } from "components/base/appViewport";
 import { ErrorBoundary } from "components/base/errorBoundary";
+import { GeoRestrictionRibbon } from "components/geoRestrictionRibbon";
 import { Header } from "components/header";
 import { I18nInitializer } from "i18n/config";
 import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
@@ -24,7 +25,7 @@ import {
   Routes,
   useLocation,
 } from "react-router";
-import { featureFlags } from "utils/featureFlags";
+import { isGeoRestricted } from "utils/geoRestriction";
 
 const SentryRoutes = Sentry.withSentryReactRouterV7Routing(Routes);
 
@@ -52,6 +53,7 @@ function LanguageRoutes() {
         </MainContent>
       }
     >
+      {isGeoRestricted() && <GeoRestrictionRibbon />}
       <Header />
       <I18nInitializer />
       <ErrorBoundary
@@ -78,9 +80,7 @@ function LanguageRoutes() {
             <Route element={<Bridge />} path="bridge" />
             <Route element={<Analytics />} path="analytics" />
             <Route element={<Faq />} path="faq" />
-            {featureFlags.contactForm && (
-              <Route element={<Contact />} path="contact" />
-            )}
+            <Route element={<Contact />} path="contact" />
           </Route>
           <Route
             element={
