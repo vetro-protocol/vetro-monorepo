@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "allowImportingTsExtensions": true,
     "erasableSyntaxOnly": true,
     "lib": ["es2024", "DOM", "DOM.Iterable"],
     "noEmit": true
