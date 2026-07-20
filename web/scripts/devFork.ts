@@ -62,8 +62,15 @@ function shutdown() {
   return shutdownPromise;
 }
 
-process.on("SIGINT", shutdown);
-process.on("SIGTERM", shutdown);
-vite.on("exit", function (code) {
-  void shutdown().then(() => process.exit(code ?? 0));
-});
+const shutdownAndExit = (code: number) =>
+  shutdown().then(
+    () => process.exit(code),
+    function (error) {
+      console.error(error);
+      process.exit(1);
+    },
+  );
+
+process.on("SIGINT", () => shutdownAndExit(0));
+process.on("SIGTERM", () => shutdownAndExit(0));
+vite.on("exit", (code) => shutdownAndExit(code ?? 0));
