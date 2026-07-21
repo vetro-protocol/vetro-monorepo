@@ -5,6 +5,7 @@ import { Header } from "./components/header";
 import { Layout } from "./components/layout";
 import { DexPage } from "./pages/dex";
 import { DexPoolPage } from "./pages/dexPool";
+import { EarnAgentPage } from "./pages/earnAgent";
 
 const queryClient = new QueryClient();
 
@@ -18,6 +19,7 @@ export const App = () => (
             <Route element={<DexPoolPage />} path="/dex/:poolId" />
             <Route element={<Navigate replace to="/dex" />} path="/" />
             <Route element={<DexPage />} path="/dex" />
+            <Route element={<EarnAgentPage />} path="/hemi-earn" />
             <Route element={<Navigate replace to="/dex" />} path="*" />
           </Routes>
         </Layout>
