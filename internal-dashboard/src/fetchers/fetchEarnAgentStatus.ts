@@ -31,10 +31,16 @@ type EarnAgentStatus = {
   vaults: VaultCooldownPosition[];
 };
 
-// An ERC-1967 slot holds the address right-aligned in 32 bytes; an unset slot
-// comes back as zero (or "0x" from some RPCs), which normalizes to undefined.
+// An ERC-1967 slot holds the address right-aligned in a full 32-byte word; an
+// unset slot comes back as zero — or "0x" from some RPCs — both normalizing to
+// undefined. Guard on the full-word length so a bare "0x" doesn't slice into
+// "0x0x" and make getAddress throw.
 const slotToAddress = (slotValue: Hex | undefined) =>
-  normalizeAddress(slotValue ? `0x${slotValue.slice(-40)}` : undefined);
+  normalizeAddress(
+    slotValue && slotValue.length === 66
+      ? `0x${slotValue.slice(-40)}`
+      : undefined,
+  );
 
 const agentContract = {
   abi: earnAgentAbi,
