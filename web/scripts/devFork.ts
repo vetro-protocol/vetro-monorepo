@@ -73,4 +73,10 @@ const shutdownAndExit = (code: number) =>
 
 process.on("SIGINT", () => shutdownAndExit(0));
 process.on("SIGTERM", () => shutdownAndExit(0));
+// A failed spawn emits "error" instead of "exit"; without this handler the
+// throw would go uncaught and leave anvil orphaned on 8545.
+vite.on("error", function (error) {
+  console.error(error);
+  shutdownAndExit(1);
+});
 vite.on("exit", (code) => shutdownAndExit(code ?? 0));
