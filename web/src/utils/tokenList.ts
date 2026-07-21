@@ -1,4 +1,4 @@
-import { sVetBtcAddress, sVusdAddress } from "@vetro-protocol/earn";
+import { sVetBtcAddress, sVusdAddress } from "@vetro-protocol/earn/addresses";
 import type { Token } from "types";
 import { arbitrum, base, bsc, hemi, mainnet, optimism } from "viem/chains";
 

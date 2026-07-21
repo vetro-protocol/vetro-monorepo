@@ -5,7 +5,9 @@
     "internal-dashboard/dist/**/*",
     "subgraph/**/*",
     "web/dist/**/*",
-    "web/storybook-static/**/*"
+    "web/playwright-report/**/*",
+    "web/storybook-static/**/*",
+    "web/test-results/**/*"
   ],
   "overrides": [
     {

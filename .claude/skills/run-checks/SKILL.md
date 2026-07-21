@@ -95,6 +95,3 @@ Run it when a web change warrants a full assertive pass.
   workspace and only ignores `web/scripts/*` as a path (see
   [`.knip.json`](../../../.knip.json)). Run it in a whole-repo pass or leave it to
   CI, not every tight loop.
-- Run e2e **through Playwright**, never `node scripts/*.ts` — anything importing
-  `web/src/utils/tokenList.ts` pulls the `@vetro-protocol/earn` barrel whose
-  `.js`-extension imports Node's native TS loader can't resolve.

@@ -1,6 +1,7 @@
 import { Button } from "components/base/button";
 import { SegmentedControl } from "components/base/segmentedControl";
 import { useElementWidth } from "hooks/useElementWidth";
+import { useShareTokenForPeggedToken } from "hooks/useShareTokenForPeggedToken";
 import { useShareValueHistory } from "hooks/useShareValueHistory";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -35,7 +36,24 @@ type Props = {
 
 const formatShareValue = (value: number) => value.toFixed(4);
 
-export function PegStabilityCard({ peggedToken, peggedTokenError }: Props) {
+function ShareRatioLabel({ peggedToken, peggedTokenError }: Props) {
+  const { t } = useTranslation();
+  const { data: shareToken, isError: isShareTokenError } =
+    useShareTokenForPeggedToken({ peggedToken });
+
+  if (shareToken && peggedToken) {
+    return t("pages.analytics.share-ratio-label", {
+      peggedSymbol: peggedToken.symbol,
+      shareSymbol: shareToken.symbol,
+    });
+  }
+  if (peggedTokenError || isShareTokenError) {
+    return "-";
+  }
+  return <Skeleton width={160} />;
+}
+
+export function ShareRatioCard({ peggedToken, peggedTokenError }: Props) {
   const { i18n, t } = useTranslation();
   const [period, setPeriod] = useState<ChartPeriod>("1w");
   const [chartContainerRef, chartWidth] = useElementWidth();
@@ -57,7 +75,10 @@ export function PegStabilityCard({ peggedToken, peggedTokenError }: Props) {
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div className="flex flex-col gap-1">
             <span className="text-b-medium text-gray-900">
-              {t("pages.analytics.peg-stability-label")}
+              <ShareRatioLabel
+                peggedToken={peggedToken}
+                peggedTokenError={peggedTokenError}
+              />
             </span>
             {isError ? (
               <span className="text-2xl font-semibold text-gray-900">-</span>

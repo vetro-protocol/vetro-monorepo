@@ -55,6 +55,10 @@
         "default": "./_esm/actions/index.js",
         "types": "./_types/actions/index.d.ts"
       },
+      "./addresses": {
+        "default": "./_esm/stakingVaultAddresses.js",
+        "types": "./_types/stakingVaultAddresses.d.ts"
+      },
       "./package.json": "./package.json"
     },
     "main": "./_esm/index.js",
@@ -70,6 +74,10 @@
     "./actions": {
       "types": "./src/actions/index.ts",
       "default": "./src/actions/index.ts"
+    },
+    "./addresses": {
+      "types": "./src/stakingVaultAddresses.ts",
+      "default": "./src/stakingVaultAddresses.ts"
     },
     "./package.json": "./package.json"
   },
