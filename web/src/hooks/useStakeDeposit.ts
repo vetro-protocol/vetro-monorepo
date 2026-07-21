@@ -6,6 +6,7 @@ import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpd
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deposit } from "@vetro-protocol/earn/actions";
 import type { TokenWithGateway } from "types";
+import { type CostBases, bumpCostBasis } from "utils/costBasis";
 import type { Address, TransactionReceipt } from "viem";
 import { useAccount } from "wagmi";
 
@@ -162,6 +163,12 @@ export const useStakeDeposit = function ({
             (old: bigint | undefined) =>
               old !== undefined ? old + assets : old,
           );
+
+          queryClient.setQueryData(
+            costBasisQueryKey(account),
+            (old: CostBases | undefined) =>
+              bumpCostBasis({ assets, costBases: old, stakingVaultAddress }),
+          );
         },
       );
 
@@ -180,16 +187,8 @@ export const useStakeDeposit = function ({
         queryKey: peggedTokenBalanceKey,
       });
 
-      // Refetch (not just invalidate) the queries that downstream fetchers
-      // read via ensureQueryData: shares feed useStakedBalance, and cost
-      // basis feeds fetchEarnedAmountUsd. Neither has a mounted observer,
-      // so invalidation alone would leave them stale.
-      await Promise.all([
-        queryClient.refetchQueries({ queryKey: sharesBalanceKey }),
-        queryClient.refetchQueries({
-          queryKey: costBasisQueryKey(account),
-        }),
-      ]);
+      // Refetch (not just invalidate) shares: it feeds useStakedBalance.
+      await queryClient.refetchQueries({ queryKey: sharesBalanceKey });
 
       queryClient.invalidateQueries({
         queryKey: stakedKey,

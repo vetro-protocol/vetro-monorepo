@@ -4,6 +4,7 @@ import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
 import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpdateNativeBalanceAfterReceipt";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { TokenWithGateway } from "types";
+import { type CostBases, reduceCostBasisProportionally } from "utils/costBasis";
 import type { Address } from "viem";
 import { waitForTransactionReceipt } from "viem/actions";
 import { withdraw } from "viem-erc4626/actions";
@@ -101,8 +102,23 @@ export const useInstantWithdraw = function ({
         peggedTokenBalanceKey,
         (old: bigint | undefined) => (old !== undefined ? old + assets : old),
       );
+      // Capture staked before the optimistic decrement so cost basis can be
+      // reduced by the same proportion the subgraph applies on withdrawal.
+      const stakedBefore = queryClient.getQueryData<bigint>(stakedKey);
+
       queryClient.setQueryData(stakedKey, (old: bigint | undefined) =>
         old !== undefined ? old - assets : old,
+      );
+
+      queryClient.setQueryData(
+        costBasisQueryKey(account),
+        (old: CostBases | undefined) =>
+          reduceCostBasisProportionally({
+            assets,
+            costBases: old,
+            stakedBefore,
+            stakingVaultAddress,
+          }),
       );
       queryClient.setQueryData(poolDepositsKey, (old: bigint | undefined) =>
         old !== undefined ? old - assets : old,
@@ -120,16 +136,8 @@ export const useInstantWithdraw = function ({
         queryKey: peggedTokenBalanceKey,
       });
 
-      // Refetch (not just invalidate) the queries that downstream fetchers
-      // read via ensureQueryData: shares feed useStakedBalance, and cost
-      // basis feeds fetchEarnedAmountUsd. Neither has a mounted observer,
-      // so invalidation alone would leave them stale.
-      await Promise.all([
-        queryClient.refetchQueries({ queryKey: sharesBalanceKey }),
-        queryClient.refetchQueries({
-          queryKey: costBasisQueryKey(account),
-        }),
-      ]);
+      // Refetch (not just invalidate) shares: it feeds useStakedBalance.
+      await queryClient.refetchQueries({ queryKey: sharesBalanceKey });
 
       queryClient.invalidateQueries({
         queryKey: stakedKey,
