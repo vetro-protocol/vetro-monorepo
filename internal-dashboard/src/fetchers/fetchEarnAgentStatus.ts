@@ -22,7 +22,7 @@ export type VaultCooldownPosition = {
   underlying: { decimals: number; symbol: string };
 };
 
-export type EarnAgentStatus = {
+type EarnAgentStatus = {
   implementation: Address | undefined;
   keepers: Address[];
   owner: Address;
