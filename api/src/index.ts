@@ -211,7 +211,7 @@ app.get(
   "/variable-stake/cost-basis/:address",
   validateAddress,
   cache({
-    cacheControl: "max-age=300",
+    cacheControl: "max-age=10",
     cacheName: "vetro-api",
   }),
   async function (c) {
