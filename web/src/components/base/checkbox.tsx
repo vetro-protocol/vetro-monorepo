@@ -11,7 +11,7 @@ export const Checkbox = (props: Props) => (
     />
     <svg
       aria-hidden="true"
-      className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 peer-checked:opacity-100"
+      className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 peer-checked:opacity-100 peer-checked:peer-disabled:opacity-50"
       fill="none"
       height="9"
       viewBox="0 0 10 9"
