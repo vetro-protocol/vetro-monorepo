@@ -16,7 +16,7 @@ import { useTotalRedeemFees } from "hooks/useTotalRedeemFees";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
-import { applyBps } from "utils/fees";
+import { applyBps } from "utils/bigint";
 import { getInputError } from "utils/inputError";
 import { formatAmount, parseTokenUnits } from "utils/token";
 import { formatUnits, isAddressEqual, parseUnits } from "viem";
