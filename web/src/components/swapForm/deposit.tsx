@@ -21,7 +21,7 @@ import { useTotalMintFees } from "hooks/useTotalMintFees";
 import { type FormEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
-import { applyBps } from "utils/fees";
+import { applyBps } from "utils/bigint";
 import { formatNumber } from "utils/format";
 import { getInputError } from "utils/inputError";
 import { formatAmount } from "utils/token";
