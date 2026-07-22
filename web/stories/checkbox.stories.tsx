@@ -23,7 +23,7 @@ export const States: Story = {
 export const WithLabel: Story = {
   render: () => (
     <label className="flex cursor-pointer items-center gap-2 text-gray-900">
-      <Checkbox checked onChange={() => ({})} />I understand and accept the risk
+      <Checkbox defaultChecked />I understand and accept the risk
     </label>
   ),
 };
