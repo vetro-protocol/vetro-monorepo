@@ -23,7 +23,7 @@ export const previewDepositQueryKey = ({
   amountIn.toString(),
 ];
 
-export const previewDepositTokenOptions = ({
+const previewDepositTokenOptions = ({
   amountIn,
   chainId,
   client,
