@@ -3,11 +3,19 @@ import { ButtonIcon } from "components/base/button";
 import { ToggleButton } from "components/base/toggleButton";
 import { ExclamationTriangleIcon } from "components/icons/exclamationTriangleIcon";
 import { GearIcon } from "components/icons/gearIcon";
-import { type KeyboardEvent, useRef, useState } from "react";
+import { useFadeMount } from "hooks/useFadeMount";
+import {
+  type KeyboardEvent,
+  type TransitionEvent,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { DEFAULT_SLIPPAGE, isHighSlippage, MAX_SLIPPAGE } from "utils/slippage";
 
 import { HighSlippageModal } from "./highSlippageModal";
+
+const opacityClass = (show: boolean) => (show ? "opacity-100" : "opacity-0");
 
 type Props = {
   onChange: (slippage: number) => void;
@@ -59,18 +67,22 @@ type PanelProps = {
   draft: string;
   isAuto: boolean;
   isHigh: boolean;
+  isVisible: boolean;
   onInputChange: (raw: string) => void;
   onInputKeyDown: (event: KeyboardEvent<HTMLInputElement>) => void;
   onToggleAuto: VoidFunction;
+  onTransitionEnd: (event: TransitionEvent) => void;
 };
 
 function SlippagePanel({
   draft,
   isAuto,
   isHigh,
+  isVisible,
   onInputChange,
   onInputKeyDown,
   onToggleAuto,
+  onTransitionEnd,
 }: PanelProps) {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -83,7 +95,12 @@ function SlippagePanel({
   }
 
   return (
-    <div className="absolute top-full right-0 z-20 mt-1 w-72 rounded-lg bg-white px-4 py-1 shadow-xl">
+    <div
+      className={`absolute top-full right-0 z-20 mt-1 w-72 rounded-lg bg-white px-4 py-1 shadow-xl transition-opacity duration-300 ${opacityClass(
+        isVisible,
+      )}`}
+      onTransitionEnd={onTransitionEnd}
+    >
       <p className="text-b-medium py-2 text-gray-500">
         {t("pages.swap.slippage.title")}
       </p>
@@ -130,7 +147,8 @@ function SlippagePanel({
 }
 
 export function SlippageSettings({ onChange, slippage }: Props) {
-  const [isOpen, setIsOpen] = useState(false);
+  const { close, handleTransitionEnd, isMounted, isVisible, open } =
+    useFadeMount();
   const [isAuto, setIsAuto] = useState(slippage === DEFAULT_SLIPPAGE);
   const [draft, setDraft] = useState(
     slippage === DEFAULT_SLIPPAGE ? "" : String(slippage),
@@ -139,14 +157,14 @@ export function SlippageSettings({ onChange, slippage }: Props) {
 
   const draftValue = isAuto || draft === "" ? DEFAULT_SLIPPAGE : Number(draft);
 
-  function open() {
+  function openPanel() {
     setIsAuto(slippage === DEFAULT_SLIPPAGE);
     setDraft(slippage === DEFAULT_SLIPPAGE ? "" : String(slippage));
-    setIsOpen(true);
+    open();
   }
 
   function commitAndClose() {
-    setIsOpen(false);
+    close();
     if (draftValue === slippage) {
       return;
     }
@@ -155,6 +173,14 @@ export function SlippageSettings({ onChange, slippage }: Props) {
       return;
     }
     onChange(draftValue);
+  }
+
+  function handleTriggerClick() {
+    if (isVisible) {
+      commitAndClose();
+    } else {
+      openPanel();
+    }
   }
 
   function handleInputChange(raw: string) {
@@ -183,25 +209,24 @@ export function SlippageSettings({ onChange, slippage }: Props) {
   }
 
   const ref = useOnClickOutside<HTMLDivElement>(function () {
-    if (isOpen) {
+    if (isVisible) {
       commitAndClose();
     }
   });
 
   return (
     <div className="relative" ref={ref}>
-      <SlippageTrigger
-        onClick={() => (isOpen ? commitAndClose() : open())}
-        slippage={slippage}
-      />
-      {isOpen ? (
+      <SlippageTrigger onClick={handleTriggerClick} slippage={slippage} />
+      {isMounted ? (
         <SlippagePanel
           draft={draft}
           isAuto={isAuto}
           isHigh={isHighSlippage(draftValue)}
+          isVisible={isVisible}
           onInputChange={handleInputChange}
           onInputKeyDown={handleInputKeyDown}
           onToggleAuto={handleToggleAuto}
+          onTransitionEnd={handleTransitionEnd}
         />
       ) : null}
       {pendingHigh !== null ? (
