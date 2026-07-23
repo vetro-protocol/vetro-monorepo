@@ -1,7 +1,7 @@
 # @vetro-protocol/cli
 
 > [!NOTE]
-> This CLI is still under development. Docs may not reflect the actual state, but the future one.
+> This CLI is still under development. Docs may not reflect the actual state yet.
 
 `vetro-cli` — a command-line interface that sits on top of the `@vetro-protocol/*` packages so agents and users can read Vetro state and generate transaction calldata.
 
