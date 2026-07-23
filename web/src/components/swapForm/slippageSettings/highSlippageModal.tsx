@@ -24,7 +24,7 @@ export function HighSlippageModal({ onClose, onConfirm }: Props) {
             </h4>
             <p className="text-b-regular text-gray-500">
               <Trans
-                components={{ highlight: <span className="text-red-600" /> }}
+                components={{ highlight: <span className="text-rose-600" /> }}
                 i18nKey="pages.swap.slippage.warning-description"
                 values={{ threshold: HIGH_SLIPPAGE_THRESHOLD }}
               />

@@ -74,7 +74,7 @@ function SlippagePanel({
 }: PanelProps) {
   const { t } = useTranslation();
   return (
-    <div className="absolute top-full right-0 z-20 mt-2 w-72 rounded-xl border border-gray-200 bg-white px-4 py-1 shadow-xl">
+    <div className="absolute top-full right-0 z-20 mt-1 w-72 rounded-lg bg-white px-4 py-1 shadow-xl">
       <p className="text-b-medium py-2 text-gray-500">
         {t("pages.swap.slippage.title")}
       </p>
