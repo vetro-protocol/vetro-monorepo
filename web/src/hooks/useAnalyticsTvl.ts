@@ -1,9 +1,9 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import fetch from "fetch-plus-plus";
-import { isValidUrl } from "utils/url";
+import { getVetroApiUrl, isValidUrl } from "utils/url";
 import type { Address } from "viem";
 
-const apiUrl = import.meta.env.VITE_VETRO_API_URL;
+const apiUrl = getVetroApiUrl();
 
 type TvlResponse = {
   minted: string;

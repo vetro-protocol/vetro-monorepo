@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import fetch from "fetch-plus-plus";
-import { isValidUrl } from "utils/url";
+import { getVetroApiUrl, isValidUrl } from "utils/url";
 import { useAccount } from "wagmi";
 
 import type { ExitTicket } from "../types";
 
-const apiUrl = import.meta.env.VITE_VETRO_API_URL;
+const apiUrl = getVetroApiUrl();
 
 export const exitTicketsQueryKey = (address: string | undefined) =>
   ["exit-tickets", address] as const;
