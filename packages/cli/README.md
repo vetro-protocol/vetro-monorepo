@@ -22,10 +22,15 @@ The following env variables can be set.
 
 ## Output
 
-All output is JSON, so it's directly consumable by an agent.
+Successful output is JSON on stdout, so it's directly consumable by an agent.
 
 - Addresses and other strings are emitted as JSON strings; booleans as JSON booleans.
 - `uint256` on-chain values are serialized as decimal strings, since `bigint` can't be represented in JSON.
+
+Failures always exit non-zero, but come in two shapes:
+
+- **Runtime errors** (RPC failure, contract revert) are JSON on stderr: `{ "error": "..." }`.
+- **Usage errors** (invalid or missing flags, unknown commands) are written by the CLI parser as plain text on stderr.
 
 ## Commands
 
