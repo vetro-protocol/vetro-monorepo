@@ -158,7 +158,6 @@ export function Deposit({
     amountIn: amountBigInt,
     approveAmount,
     gatewayAddress: fromToken.gatewayAddress,
-    minPeggedTokenOut,
     onEmitter(emitter) {
       emitter.on("user-signed-approval", () => setFlowStatus("approving"));
       emitter.on("approve-transaction-succeeded", () =>
@@ -206,6 +205,7 @@ export function Deposit({
       });
     },
     peggedToken: toToken,
+    slippage,
     tokenIn: fromToken.address,
   });
 
