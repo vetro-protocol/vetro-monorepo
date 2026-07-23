@@ -8,22 +8,21 @@ import { deposit } from "@vetro-protocol/gateway/actions";
 import type { EventEmitter } from "events";
 import type { TreasuryToken } from "pages/analytics/types";
 import type { TokenWithGateway } from "types";
+import { getReceivedAmount } from "utils/receipt";
 import { type Address, isAddressEqual } from "viem";
 import { useAccount } from "wagmi";
 
 import { analyticsTreasuryQueryKey } from "./useAnalyticsTreasury";
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { useMainnet } from "./useMainnet";
-import {
-  previewDepositQueryKey,
-  previewDepositTokenOptions,
-} from "./usePreviewDeposit";
+import { previewDepositQueryKey } from "./usePreviewDeposit";
 import { treasuryReservesQueryKey } from "./useTreasuryReserves";
 
 export const useDeposit = function ({
   amountIn,
   approveAmount,
   gatewayAddress,
+  minPeggedTokenOut,
   onEmitter,
   peggedToken,
   tokenIn,
@@ -31,6 +30,7 @@ export const useDeposit = function ({
   amountIn: bigint;
   approveAmount?: bigint;
   gatewayAddress: Address;
+  minPeggedTokenOut: bigint | undefined;
   onEmitter?: (emitter: EventEmitter<DepositEvents>) => void;
   peggedToken: TokenWithGateway;
   tokenIn: Address;
@@ -74,18 +74,11 @@ export const useDeposit = function ({
       if (!account) {
         throw new Error("No account connected");
       }
+      if (minPeggedTokenOut === undefined) {
+        throw new Error("No preview available");
+      }
 
       await ensureConnectedTo(ethereumChain.id);
-
-      const minPeggedTokenOut = await queryClient.ensureQueryData(
-        previewDepositTokenOptions({
-          amountIn,
-          chainId: ethereumChain.id,
-          client: walletClient!,
-          gatewayAddress,
-          tokenIn,
-        }),
-      );
 
       const { emitter, promise } = deposit(walletClient!, {
         amountIn,
@@ -116,6 +109,10 @@ export const useDeposit = function ({
       emitter.on("deposit-transaction-succeeded", function (receipt) {
         updateNativeBalanceAfterReceipt(receipt);
 
+        const mintedAmount =
+          getReceivedAmount({ account, logs: receipt.logs }) ??
+          minPeggedTokenOut;
+
         // optimistically deduce the deposited token, and increase PeggedToken balance
         queryClient.setQueryData(
           tokenInBalanceQueryKey,
@@ -123,7 +120,7 @@ export const useDeposit = function ({
         );
         queryClient.setQueryData(
           peggedTokenBalanceQueryKey,
-          (old: bigint) => old + minPeggedTokenOut,
+          (old: bigint) => old + mintedAmount,
         );
         // optimistically increase treasury reserve for the deposited token
         queryClient.setQueryData(

@@ -24,12 +24,14 @@ import type { TokenWithGateway } from "types";
 import { applyBps } from "utils/bigint";
 import { formatNumber } from "utils/format";
 import { getInputError } from "utils/inputError";
+import { applySlippage } from "utils/slippage";
 import { formatAmount } from "utils/token";
 import { parseUnits } from "viem";
 
 import { Form } from "./form";
 import { OutputLabel } from "./outputLabel";
 import { RedeemQueueSection } from "./redeemQueueSection";
+import { SlippageSettings } from "./slippageSettings";
 import { SubmitButton } from "./submitButton";
 import { type DepositFlowStatus, SwapDepositDrawer } from "./swapDepositDrawer";
 import { SwapFees } from "./swapFees";
@@ -44,9 +46,12 @@ type Props = {
   fromToken: TokenWithGateway;
   onInputChange: (value: string) => void;
   onMaxClick: (maxValue: string) => void;
+  onReset: VoidFunction;
+  onSlippageChange: (slippage: number) => void;
   onToggle: VoidFunction;
   onTokenChange: (token: TokenWithGateway) => void;
   onToggleApprove10x: VoidFunction;
+  slippage: number;
   toToken: TokenWithGateway;
   whitelistedTokens: TokenWithGateway[];
 };
@@ -59,9 +64,12 @@ export function Deposit({
   fromToken,
   onInputChange,
   onMaxClick,
+  onReset,
+  onSlippageChange,
   onToggle,
   onToggleApprove10x,
   onTokenChange,
+  slippage,
   toToken,
   whitelistedTokens,
 }: Props) {
@@ -88,10 +96,10 @@ export function Deposit({
     function handleDrawerClose() {
       setIsDrawerOpen(false);
       if (flowStatus === "deposited") {
-        onInputChange("0");
+        onReset();
       }
     },
-    [flowStatus, onInputChange],
+    [flowStatus, onReset],
   );
   // Captures whether approval was needed when the flow started, because
   // useNeedsApproval flips to false after a successful approval tx.
@@ -129,6 +137,11 @@ export function Deposit({
     isError: isDepositPreviewError,
   });
 
+  const minPeggedTokenOut =
+    depositPreview === undefined
+      ? undefined
+      : applySlippage({ preview: depositPreview, slippage });
+
   const { onCompleted, onFailed, onPending, onTransactionHash } =
     useActivityTracking({
       page: "swap",
@@ -145,6 +158,7 @@ export function Deposit({
     amountIn: amountBigInt,
     approveAmount,
     gatewayAddress: fromToken.gatewayAddress,
+    minPeggedTokenOut,
     onEmitter(emitter) {
       emitter.on("user-signed-approval", () => setFlowStatus("approving"));
       emitter.on("approve-transaction-succeeded", () =>
@@ -208,7 +222,7 @@ export function Deposit({
     amount: amountBigInt,
     approveAmount,
     fromToken,
-    minPeggedTokenOut: depositPreview,
+    minPeggedTokenOut,
   });
 
   // This is measured in {token} units - paid to the Vetro contracts
@@ -223,7 +237,7 @@ export function Deposit({
     amount: amountBigInt,
     approveAmount,
     fromToken,
-    minPeggedTokenOut: depositPreview,
+    minPeggedTokenOut,
   });
 
   const balancesLoaded =
@@ -270,6 +284,9 @@ export function Deposit({
         onInputChange={onInputChange}
         onSubmit={handleSubmit}
         onToggle={onToggle}
+        slippageControl={
+          <SlippageSettings onChange={onSlippageChange} slippage={slippage} />
+        }
         toSection={
           <TokenInput
             balance={<ToTokenBalance token={toToken} />}

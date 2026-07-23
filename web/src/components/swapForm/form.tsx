@@ -20,6 +20,7 @@ type Props = {
   onInputChange: (value: string) => void;
   onSubmit: (e: FormEvent) => void;
   onToggle: VoidFunction;
+  slippageControl?: ReactNode;
   toSection: ReactNode;
 };
 
@@ -34,6 +35,7 @@ export function Form({
   onInputChange,
   onSubmit,
   onToggle,
+  slippageControl,
   toSection,
 }: Props) {
   const { t } = useTranslation();
@@ -66,6 +68,7 @@ export function Form({
             fiatValue={
               <RenderFiatValue token={fromToken} value={amountBigInt} />
             }
+            headerAction={slippageControl}
             label={t("pages.swap.form.you-are-swapping")}
             maxButton={maxButton}
             onChange={onInputChange}

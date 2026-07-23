@@ -24,12 +24,14 @@ import type { TokenWithGateway } from "types";
 import { applyBps } from "utils/bigint";
 import { formatNumber } from "utils/format";
 import { getInputError } from "utils/inputError";
+import { applySlippage } from "utils/slippage";
 import { formatAmount } from "utils/token";
 import { isAddressEqual, parseUnits } from "viem";
 
 import { Form } from "./form";
 import { OutputLabel } from "./outputLabel";
 import { RedeemQueueSection } from "./redeemQueueSection";
+import { SlippageSettings } from "./slippageSettings";
 import { SubmitButton } from "./submitButton";
 import { SwapFees } from "./swapFees";
 import { type RedeemFlowStatus, SwapRedeemDrawer } from "./swapRedeemDrawer";
@@ -45,10 +47,13 @@ type Props = {
   onFromTokenChange: (token: TokenWithGateway) => void;
   onInputChange: (value: string) => void;
   onMaxClick: (maxValue: string) => void;
+  onReset: VoidFunction;
+  onSlippageChange: (slippage: number) => void;
   onToggle: VoidFunction;
   onTokenChange: (token: TokenWithGateway) => void;
   onToggleApprove10x: VoidFunction;
   peggedTokens: TokenWithGateway[];
+  slippage: number;
   toToken: TokenWithGateway;
   whitelistedTokens: TokenWithGateway[];
 };
@@ -62,10 +67,13 @@ export function OneStepRedeem({
   onFromTokenChange,
   onInputChange,
   onMaxClick,
+  onReset,
+  onSlippageChange,
   onToggle,
   onToggleApprove10x,
   onTokenChange,
   peggedTokens,
+  slippage,
   toToken,
   whitelistedTokens,
 }: Props) {
@@ -86,10 +94,10 @@ export function OneStepRedeem({
     function handleDrawerClose() {
       setIsDrawerOpen(false);
       if (flowStatus === "redeemed") {
-        onInputChange("0");
+        onReset();
       }
     },
-    [flowStatus, onInputChange],
+    [flowStatus, onReset],
   );
 
   const { data: fromTokenBalance } = useTokenBalance({
@@ -129,6 +137,11 @@ export function OneStepRedeem({
     isError: isPreviewError,
   });
 
+  const minAmountOut =
+    redeemPreview === undefined
+      ? undefined
+      : applySlippage({ preview: redeemPreview, slippage });
+
   const { onCompleted, onFailed, onPending, onTransactionHash } =
     useActivityTracking({
       page: "swap",
@@ -143,6 +156,7 @@ export function OneStepRedeem({
 
   const redeemMutation = useRedeem({
     approveAmount,
+    minAmountOut,
     onEmitter(emitter) {
       emitter.on("user-signed-approval", () => setFlowStatus("approving"));
       emitter.on("approve-transaction-succeeded", () =>
@@ -201,7 +215,7 @@ export function OneStepRedeem({
     amount: amountBigInt,
     approveAmount,
     fromToken,
-    minAmountOut: redeemPreview,
+    minAmountOut,
     tokenOut: toToken.address,
   });
 
@@ -215,7 +229,7 @@ export function OneStepRedeem({
     amount: amountBigInt,
     approveAmount,
     fromToken,
-    minAmountOut: redeemPreview,
+    minAmountOut,
     tokenOut: toToken.address,
   });
 
@@ -270,6 +284,9 @@ export function OneStepRedeem({
         onInputChange={onInputChange}
         onSubmit={handleSubmit}
         onToggle={onToggle}
+        slippageControl={
+          <SlippageSettings onChange={onSlippageChange} slippage={slippage} />
+        }
         toSection={
           <TokenInput
             balance={<ToTokenBalance token={toToken} />}

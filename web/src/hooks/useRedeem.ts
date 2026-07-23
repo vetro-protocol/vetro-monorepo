@@ -8,7 +8,8 @@ import type { RedeemEvents } from "@vetro-protocol/gateway";
 import { redeem } from "@vetro-protocol/gateway/actions";
 import type { EventEmitter } from "events";
 import type { TokenWithGateway } from "types";
-import { type Address, erc20Abi, isAddressEqual, parseEventLogs } from "viem";
+import { getReceivedAmount } from "utils/receipt";
+import { type Address, isAddressEqual } from "viem";
 import { useAccount } from "wagmi";
 
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
@@ -16,21 +17,20 @@ import { redeemRequestQueryKey } from "./useGetRedeemRequest";
 import { redeemRequestsQueryKey } from "./useGetRedeemRequests";
 import { useMainnet } from "./useMainnet";
 import { maxWithdrawQueryKey } from "./useMaxWithdraw";
-import {
-  previewRedeemQueryKey,
-  previewRedeemTokenOptions,
-} from "./usePreviewRedeem";
+import { previewRedeemQueryKey } from "./usePreviewRedeem";
 import { redeemDelayOptions } from "./useRedeemDelay";
 import { treasuryReservesQueryKey } from "./useTreasuryReserves";
 
 export const useRedeem = function ({
   approveAmount,
+  minAmountOut,
   onEmitter,
   peggedToken,
   peggedTokenIn,
   tokenOut,
 }: {
   approveAmount?: bigint;
+  minAmountOut: bigint | undefined;
   onEmitter?: (emitter: EventEmitter<RedeemEvents>) => void;
   peggedToken: TokenWithGateway;
   peggedTokenIn: bigint;
@@ -90,30 +90,22 @@ export const useRedeem = function ({
       if (!account) {
         throw new Error("No account connected");
       }
+      if (minAmountOut === undefined) {
+        throw new Error("No preview available");
+      }
       await ensureConnectedTo(ethereumChain.id);
 
-      const [minAmountOut, hasDelay] = await Promise.all([
-        queryClient.ensureQueryData(
-          previewRedeemTokenOptions({
+      const hasDelay = await queryClient
+        .ensureQueryData(
+          redeemDelayOptions({
+            account,
             chainId: ethereumChain.id,
-            client: walletClient!,
+            client: walletClient,
             gatewayAddress: peggedToken.gatewayAddress,
-            peggedTokenIn,
-            tokenOut,
+            queryClient,
           }),
-        ),
-        queryClient
-          .ensureQueryData(
-            redeemDelayOptions({
-              account,
-              chainId: ethereumChain.id,
-              client: walletClient,
-              gatewayAddress: peggedToken.gatewayAddress,
-              queryClient,
-            }),
-          )
-          .then((redeemDelay) => redeemDelay > 0n),
-      ]);
+        )
+        .then((redeemDelay) => redeemDelay > 0n);
 
       const { emitter, promise } = redeem(walletClient!, {
         approveAmount,
@@ -151,15 +143,8 @@ export const useRedeem = function ({
       emitter.on("redeem-transaction-succeeded", function (receipt) {
         updateNativeBalanceAfterReceipt(receipt);
 
-        // Parse the actual redeemed amount from the Transfer event
-        const transferLogs = parseEventLogs({
-          abi: erc20Abi,
-          eventName: "Transfer",
-          logs: receipt.logs,
-        });
         const actualAmount =
-          transferLogs.find((log) => isAddressEqual(log.args.to, account))?.args
-            .value ?? minAmountOut;
+          getReceivedAmount({ account, logs: receipt.logs }) ?? minAmountOut;
 
         if (hasDelay) {
           // if there's a delay, the PeggedToken was burned from the Gateway vault
