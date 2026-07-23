@@ -3,7 +3,7 @@ import { ButtonIcon } from "components/base/button";
 import { ToggleButton } from "components/base/toggleButton";
 import { ExclamationTriangleIcon } from "components/icons/exclamationTriangleIcon";
 import { GearIcon } from "components/icons/gearIcon";
-import { type KeyboardEvent, useState } from "react";
+import { type KeyboardEvent, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { DEFAULT_SLIPPAGE, isHighSlippage, MAX_SLIPPAGE } from "utils/slippage";
 
@@ -73,6 +73,15 @@ function SlippagePanel({
   onToggleAuto,
 }: PanelProps) {
   const { t } = useTranslation();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  function handleToggleAuto() {
+    onToggleAuto();
+    if (isAuto) {
+      inputRef.current?.focus();
+    }
+  }
+
   return (
     <div className="absolute top-full right-0 z-20 mt-1 w-72 rounded-lg bg-white px-4 py-1 shadow-xl">
       <p className="text-b-medium py-2 text-gray-500">
@@ -86,7 +95,7 @@ function SlippagePanel({
           <span className={isAuto ? "text-gray-900" : "text-gray-400"}>
             {t("pages.swap.slippage.auto")}
           </span>
-          <ToggleButton active={isAuto} onClick={onToggleAuto} />
+          <ToggleButton active={isAuto} onClick={handleToggleAuto} />
           <span className="h-4 w-px bg-gray-200" />
           <div
             className={`text-caption flex items-center rounded-full px-3 py-1 shadow-sm ${
@@ -99,6 +108,7 @@ function SlippagePanel({
               onChange={(e) => onInputChange(e.target.value)}
               onKeyDown={onInputKeyDown}
               placeholder="0"
+              ref={inputRef}
               value={isAuto ? "" : draft}
             />
             <span>%</span>
