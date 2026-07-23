@@ -156,7 +156,6 @@ export function OneStepRedeem({
 
   const redeemMutation = useRedeem({
     approveAmount,
-    minAmountOut,
     onEmitter(emitter) {
       emitter.on("user-signed-approval", () => setFlowStatus("approving"));
       emitter.on("approve-transaction-succeeded", () =>
@@ -200,6 +199,7 @@ export function OneStepRedeem({
     },
     peggedToken: fromToken,
     peggedTokenIn: amountBigInt,
+    slippage,
     tokenOut: toToken.address,
   });
 

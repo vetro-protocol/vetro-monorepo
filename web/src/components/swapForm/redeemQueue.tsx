@@ -154,7 +154,6 @@ function ActiveRedeemDrawer({
   });
 
   const redeemMutation = useRedeem({
-    minAmountOut,
     onEmitter(emitter) {
       emitter.on("pre-redeem", () => setFlowStatus("redeem-ready"));
       emitter.on("user-signed-redeem", function (hash) {
@@ -182,6 +181,7 @@ function ActiveRedeemDrawer({
     },
     peggedToken,
     peggedTokenIn: amountBigInt,
+    slippage,
     tokenOut: toToken.address,
   });
 

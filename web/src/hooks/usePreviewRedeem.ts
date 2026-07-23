@@ -23,7 +23,7 @@ export const previewRedeemQueryKey = ({
   peggedTokenIn.toString(),
 ];
 
-const previewRedeemTokenOptions = ({
+export const previewRedeemTokenOptions = ({
   chainId,
   client,
   gatewayAddress,
