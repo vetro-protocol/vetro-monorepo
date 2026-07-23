@@ -17,7 +17,7 @@ export function HighSlippageModal({ onClose, onConfirm }: Props) {
   return (
     <Modal ariaLabel={t("pages.swap.slippage.warning-title")} onClose={onClose}>
       {({ close }) => (
-        <div className="flex w-full flex-col md:w-[448px]">
+        <div className="flex w-full flex-col md:w-112">
           <div className="flex flex-col gap-2 p-6 pb-3">
             <h4 className="text-gray-900">
               {t("pages.swap.slippage.warning-title")}

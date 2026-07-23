@@ -76,7 +76,7 @@ export function CancelRedeemModal({
       onClose={onClose}
     >
       {({ close }) => (
-        <div className="flex w-full flex-col gap-6 p-6 md:w-[448px]">
+        <div className="flex w-full flex-col gap-6 p-6 md:w-112">
           <div className="flex flex-col gap-y-1">
             <h4 className="text-gray-900">
               {t("pages.swap.redeem-queue.cancel-redeem")}
