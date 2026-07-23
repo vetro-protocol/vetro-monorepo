@@ -44,6 +44,7 @@ type Props = {
   onFromTokenChange: (token: TokenWithGateway) => void;
   onInputChange: (value: string) => void;
   onMaxClick: (maxValue: string) => void;
+  onReset: VoidFunction;
   onToggle: VoidFunction;
   onTokenChange: (token: TokenWithGateway) => void;
   onToggleApprove10x: VoidFunction;
@@ -61,6 +62,7 @@ export function TwoStepRedeem({
   onFromTokenChange,
   onInputChange,
   onMaxClick,
+  onReset,
   onToggle,
   onToggleApprove10x,
   peggedTokens,
@@ -81,10 +83,10 @@ export function TwoStepRedeem({
     function handleDrawerClose() {
       setIsDrawerOpen(false);
       if (flowStatus === "request-redeemed") {
-        onInputChange("0");
+        onReset();
       }
     },
-    [flowStatus, onInputChange],
+    [flowStatus, onReset],
   );
 
   const { data: seconds } = useWithdrawalDelay({

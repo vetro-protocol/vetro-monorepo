@@ -461,6 +461,19 @@
         "title": "Cola de Canje"
       },
       "select-option": "Seleccione el token a intercambiar",
+      "slippage": {
+        "accept-risk": "Entiendo y acepto el riesgo",
+        "auto": "Auto",
+        "cancel": "Cancelar",
+        "continue-anyway": "Continuar de todos modos",
+        "high-slippage": "Slippage alto",
+        "high-value": "Slippage alto {{value}}%",
+        "max-slippage": "Slippage máximo",
+        "title": "Configuración avanzada",
+        "value": "Slippage {{value}}%",
+        "warning-description": "<highlight>Su slippage está por encima del {{threshold}}%.</highlight> Esto aumenta su exposición al impacto de precio. Podría recibir significativamente menos tokens de los cotizados.",
+        "warning-title": "Advertencia de slippage alto"
+      },
       "title": "Intercambie sus tokens por activos de Vetro",
       "toast": {
         "redeem-queued-description": "Podrá canjearlo una vez que finalice el período de espera.",

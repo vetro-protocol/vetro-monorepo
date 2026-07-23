@@ -10,7 +10,7 @@ import { TokenInput } from "components/tokenInput";
 import { Balance } from "components/tokenInput/balance";
 import type { InputError } from "components/tokenInput/utils";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
-import type { ComponentProps } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
 import { isGeoRestricted } from "utils/geoRestriction";
@@ -37,6 +37,7 @@ type Props = {
   oracleToken: Address;
   outputBigInt: bigint | undefined;
   outputValue: string;
+  slippageControl: ReactNode;
   steps: Step[];
   toToken: TokenWithGateway;
   unitPreview: UnitPreview;
@@ -63,6 +64,7 @@ export function ClaimRedeemProgressDrawer({
   outputBigInt,
   outputValue,
   protocolFee,
+  slippageControl,
   steps,
   totalFees,
   toToken,
@@ -100,6 +102,7 @@ export function ClaimRedeemProgressDrawer({
             />
           }
           fiatValue={<RenderFiatValue token={fromToken} value={amountBigInt} />}
+          headerAction={slippageControl}
           label={t("pages.swap.redeem-queue.enter-amount-to-redeem")}
           maxButton={<MaxButton onClick={onMaxClick} />}
           onChange={onInputChange}

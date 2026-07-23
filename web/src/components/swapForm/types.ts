@@ -11,5 +11,6 @@ export type SwapFormState = {
   approve10x: boolean;
   fromInputValue: string;
   fromToken: TokenWithGateway;
+  slippage: number;
   toToken: TokenWithGateway;
 };

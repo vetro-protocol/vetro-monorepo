@@ -8,6 +8,8 @@ import { deposit } from "@vetro-protocol/gateway/actions";
 import type { EventEmitter } from "events";
 import type { TreasuryToken } from "pages/analytics/types";
 import type { TokenWithGateway } from "types";
+import { getReceivedAmount } from "utils/receipt";
+import { applySlippage } from "utils/slippage";
 import { type Address, isAddressEqual } from "viem";
 import { useAccount } from "wagmi";
 
@@ -26,6 +28,7 @@ export const useDeposit = function ({
   gatewayAddress,
   onEmitter,
   peggedToken,
+  slippage,
   tokenIn,
 }: {
   amountIn: bigint;
@@ -33,6 +36,7 @@ export const useDeposit = function ({
   gatewayAddress: Address;
   onEmitter?: (emitter: EventEmitter<DepositEvents>) => void;
   peggedToken: TokenWithGateway;
+  slippage: number;
   tokenIn: Address;
 }) {
   const { address: account } = useAccount();
@@ -77,7 +81,7 @@ export const useDeposit = function ({
 
       await ensureConnectedTo(ethereumChain.id);
 
-      const minPeggedTokenOut = await queryClient.ensureQueryData(
+      const preview = await queryClient.ensureQueryData(
         previewDepositTokenOptions({
           amountIn,
           chainId: ethereumChain.id,
@@ -86,6 +90,7 @@ export const useDeposit = function ({
           tokenIn,
         }),
       );
+      const minPeggedTokenOut = applySlippage({ preview, slippage });
 
       const { emitter, promise } = deposit(walletClient!, {
         amountIn,
@@ -116,6 +121,9 @@ export const useDeposit = function ({
       emitter.on("deposit-transaction-succeeded", function (receipt) {
         updateNativeBalanceAfterReceipt(receipt);
 
+        const mintedAmount =
+          getReceivedAmount({ account, logs: receipt.logs }) ?? preview;
+
         // optimistically deduce the deposited token, and increase PeggedToken balance
         queryClient.setQueryData(
           tokenInBalanceQueryKey,
@@ -123,7 +131,7 @@ export const useDeposit = function ({
         );
         queryClient.setQueryData(
           peggedTokenBalanceQueryKey,
-          (old: bigint) => old + minPeggedTokenOut,
+          (old: bigint) => old + mintedAmount,
         );
         // optimistically increase treasury reserve for the deposited token
         queryClient.setQueryData(

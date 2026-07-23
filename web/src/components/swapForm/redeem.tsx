@@ -15,10 +15,13 @@ type Props = {
   onFromTokenChange: (token: TokenWithGateway) => void;
   onInputChange: (value: string) => void;
   onMaxClick: (maxValue: string) => void;
+  onReset: VoidFunction;
+  onSlippageChange: (slippage: number) => void;
   onToggle: VoidFunction;
   onTokenChange: (token: TokenWithGateway) => void;
   onToggleApprove10x: VoidFunction;
   peggedTokens: TokenWithGateway[];
+  slippage: number;
   toToken: TokenWithGateway;
   whitelistedTokens: TokenWithGateway[];
 };

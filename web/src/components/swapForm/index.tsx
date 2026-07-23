@@ -4,6 +4,7 @@ import { useSwapMode } from "hooks/useSwapMode";
 import { useWhitelistedTokens } from "hooks/useWhitelistedTokens";
 import { useCallback, useReducer } from "react";
 import type { TokenWithGateway } from "types";
+import { DEFAULT_SLIPPAGE } from "utils/slippage";
 import { parseTokenUnits } from "utils/token";
 import type { Address } from "viem";
 
@@ -36,6 +37,7 @@ function getInitialState({
     approve10x: false,
     fromInputValue: "0",
     fromToken: mode === "deposit" ? firstStablecoin : firstPeggedToken,
+    slippage: DEFAULT_SLIPPAGE,
     toToken: mode === "deposit" ? firstPeggedToken : firstStablecoin,
   };
 }
@@ -73,6 +75,16 @@ function SwapFormContent({
     dispatch({ payload: value, type: "SET_FROM_INPUT_VALUE" });
   }, []);
 
+  const onReset = useCallback(function onReset() {
+    dispatch({ type: "RESET" });
+  }, []);
+
+  const onSlippageChange = useCallback(function onSlippageChange(
+    slippage: number,
+  ) {
+    dispatch({ payload: slippage, type: "SET_SLIPPAGE" });
+  }, []);
+
   function onToggleApprove10x() {
     dispatch({ type: "TOGGLE_APPROVE_10X" });
   }
@@ -85,6 +97,8 @@ function SwapFormContent({
     dispatch,
     onInputChange,
     onMaxClick,
+    onReset,
+    onSlippageChange,
     onToggle,
     onToggleApprove10x,
     peggedTokens,

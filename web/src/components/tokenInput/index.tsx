@@ -7,6 +7,7 @@ type Props = {
   disabled?: boolean;
   errorKey?: string;
   fiatValue: ReactNode;
+  headerAction?: ReactNode;
   label: string;
   maxButton?: ReactNode;
   onChange?: (value: string) => void;
@@ -19,6 +20,7 @@ export const TokenInput = ({
   disabled = false,
   errorKey,
   fiatValue,
+  headerAction,
   label,
   maxButton,
   onChange,
@@ -26,7 +28,10 @@ export const TokenInput = ({
   value,
 }: Props) => (
   <div className="hover:shadow-bs h-32 rounded-lg bg-gray-50 p-4">
-    <span className="text-xsm text-gray-500">{label}</span>
+    <div className="flex items-center justify-between">
+      <span className="text-xsm text-gray-500">{label}</span>
+      {headerAction}
+    </div>
     <div className="mt-1 flex items-center justify-between gap-2">
       <input
         className={`min-w-0 flex-1 bg-transparent text-4xl font-semibold outline-none ${getTextColor({ errorKey, value })}`}

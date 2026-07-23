@@ -1,12 +1,15 @@
 import type { TokenWithGateway } from "types";
 import { sanitizeAmount } from "utils/sanitizeAmount";
+import { DEFAULT_SLIPPAGE } from "utils/slippage";
 
 import type { SwapFormState } from "./types";
 
 type SwapFormAction =
   | { payload: string; type: "SET_FROM_INPUT_VALUE" }
   | { payload: TokenWithGateway; type: "SET_FROM_TOKEN" }
+  | { payload: number; type: "SET_SLIPPAGE" }
   | { payload: TokenWithGateway; type: "SET_TO_TOKEN" }
+  | { type: "RESET" }
   | { type: "TOGGLE_APPROVE_10X" }
   | { type: "TOGGLE_TOKENS" };
 
@@ -24,8 +27,12 @@ export function swapFormReducer(
     }
     case "SET_FROM_TOKEN":
       return { ...state, fromToken: action.payload };
+    case "SET_SLIPPAGE":
+      return { ...state, slippage: action.payload };
     case "SET_TO_TOKEN":
       return { ...state, toToken: action.payload };
+    case "RESET":
+      return { ...state, fromInputValue: "0", slippage: DEFAULT_SLIPPAGE };
     case "TOGGLE_APPROVE_10X":
       return { ...state, approve10x: !state.approve10x };
     case "TOGGLE_TOKENS":

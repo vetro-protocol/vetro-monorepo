@@ -18,6 +18,7 @@ import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
 import { applyBps } from "utils/bigint";
 import { getInputError } from "utils/inputError";
+import { applySlippage, DEFAULT_SLIPPAGE } from "utils/slippage";
 import { formatAmount, parseTokenUnits } from "utils/token";
 import { formatUnits, isAddressEqual, parseUnits } from "viem";
 
@@ -26,6 +27,7 @@ import { ClaimRedeemDrawer } from "./claimRedeemDrawer";
 import { RedeemQueueEmptyState } from "./redeemQueueEmptyState";
 import { RedeemQueueTable } from "./redeemQueueTable";
 import { RedeemQueueToasts } from "./redeemQueueToasts";
+import { SlippageSettings } from "./slippageSettings";
 import { type ClaimRedeemFlowStatus } from "./types";
 
 type Props = {
@@ -70,6 +72,7 @@ function ActiveRedeemDrawer({
   );
   const [flowStatus, setFlowStatus] = useState<ClaimRedeemFlowStatus>("idle");
   const [fromInputValue, setFromInputValue] = useState("0");
+  const [slippage, setSlippage] = useState(DEFAULT_SLIPPAGE);
 
   const amountBigInt = parseTokenUnits(fromInputValue, peggedToken);
 
@@ -96,6 +99,11 @@ function ActiveRedeemDrawer({
     isError: isPreviewError,
   });
 
+  const minAmountOut =
+    redeemPreview === undefined
+      ? undefined
+      : applySlippage({ preview: redeemPreview, slippage });
+
   const inputError = getInputError({
     amount: amountBigInt,
     maxWithdraw,
@@ -120,7 +128,7 @@ function ActiveRedeemDrawer({
     amount: amountBigInt,
     approveAmount: undefined,
     fromToken: peggedToken,
-    minAmountOut: redeemPreview,
+    minAmountOut,
     tokenOut: toToken.address,
   });
 
@@ -141,7 +149,7 @@ function ActiveRedeemDrawer({
     // no approval is needed when redeeming from the queue
     approveAmount: undefined,
     fromToken: peggedToken,
-    minAmountOut: redeemPreview,
+    minAmountOut,
     tokenOut: toToken.address,
   });
 
@@ -173,6 +181,7 @@ function ActiveRedeemDrawer({
     },
     peggedToken,
     peggedTokenIn: amountBigInt,
+    slippage,
     tokenOut: toToken.address,
   });
 
@@ -207,6 +216,9 @@ function ActiveRedeemDrawer({
       outputBigInt={redeemPreview}
       outputValue={outputValue}
       protocolFee={protocolFeeQueryData}
+      slippageControl={
+        <SlippageSettings onChange={setSlippage} slippage={slippage} />
+      }
       toToken={toToken}
       totalFees={totalRedeemFeesQueryData}
       unitPreview={unitRedeemPreview}

@@ -3,7 +3,7 @@ import { DrawerLoader } from "components/base/drawer/drawerLoader";
 import { type Step, stepStatus } from "components/base/verticalStepper";
 import type { InputError } from "components/tokenInput/utils";
 import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
-import { type ComponentProps, Suspense, lazy } from "react";
+import { type ComponentProps, type ReactNode, Suspense, lazy } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
 import type { Address } from "viem";
@@ -41,6 +41,7 @@ type Props = {
   oracleToken: Address;
   outputBigInt: bigint | undefined;
   outputValue: string;
+  slippageControl: ReactNode;
   toToken: TokenWithGateway;
   unitPreview: UnitPreview;
   whitelistedTokens: TokenWithGateway[];
@@ -66,6 +67,7 @@ export function ClaimRedeemDrawer({
   outputBigInt,
   outputValue,
   protocolFee,
+  slippageControl,
   totalFees,
   toToken,
   unitPreview,
@@ -104,6 +106,7 @@ export function ClaimRedeemDrawer({
           outputBigInt={outputBigInt}
           outputValue={outputValue}
           protocolFee={protocolFee}
+          slippageControl={slippageControl}
           steps={steps}
           toToken={toToken}
           totalFees={totalFees}
