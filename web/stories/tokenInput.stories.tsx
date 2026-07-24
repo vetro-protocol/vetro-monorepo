@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 
 import { MaxButton } from "../src/components/base/maxButton";
+import { GearIcon } from "../src/components/icons/gearIcon";
 import { TokenDropdown } from "../src/components/tokenDropdown";
 import { TokenInput } from "../src/components/tokenInput";
 import { TokenSelectorReadOnly } from "../src/components/tokenSelectorReadOnly";
@@ -89,6 +90,54 @@ export const ReadOnlyToken: Story = {
     return (
       <div className="w-[450px]">
         <TokenInput {...args} onChange={setAmount} value={amount} />
+      </div>
+    );
+  },
+};
+
+export const WithHeaderAction: Story = {
+  args: {
+    balance: (
+      <>
+        <span className="text-gray-500">Balance:</span>
+        <span className="mr-1 text-gray-900">2</span>
+      </>
+    ),
+    fiatValue: "0.00",
+    headerAction: (
+      <button
+        aria-label="Open settings"
+        className="cursor-pointer text-gray-700 hover:text-gray-900"
+        onClick={() => alert("header action clicked")}
+        type="button"
+      >
+        <GearIcon />
+      </button>
+    ),
+    label: "You are swapping",
+    maxButton: <MaxButton onClick={() => alert("max clicked")} />,
+    onChange: () => ({}),
+    tokenSelector: undefined,
+    value: "0",
+  },
+  render: function Render(args) {
+    const [amount, setAmount] = useAmount();
+    const [selectedToken, setSelectedToken] = useState<Token>(tokens[0]);
+
+    return (
+      <div className="w-[450px]">
+        <TokenInput
+          {...args}
+          onChange={setAmount}
+          tokenSelector={
+            <TokenDropdown
+              onChange={setSelectedToken}
+              tokens={tokens}
+              value={selectedToken}
+            />
+          }
+          value={amount}
+        />
       </div>
     );
   },

@@ -454,6 +454,19 @@
         "title": "Redeem Queue"
       },
       "select-option": "Select token to swap",
+      "slippage": {
+        "accept-risk": "I understand and accept the risk",
+        "auto": "Auto",
+        "cancel": "Cancel",
+        "continue-anyway": "Continue anyway",
+        "high-slippage": "High slippage",
+        "high-value": "High slippage {{value}}%",
+        "max-slippage": "Max slippage",
+        "title": "Advanced settings",
+        "value": "Slippage {{value}}%",
+        "warning-description": "<highlight>Your slippage is set above {{threshold}}%.</highlight> This increases your exposure to price impact. You may receive significantly fewer tokens than quoted.",
+        "warning-title": "High slippage warning"
+      },
       "title": "Swap your tokens with Vetro assets",
       "toast": {
         "redeem-queued-description": "You'll be able to redeem it once the cooldown ends.",

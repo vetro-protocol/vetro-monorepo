@@ -82,7 +82,7 @@ export function DeleteTicketModal({
       onClose={onClose}
     >
       {({ close }) => (
-        <div className="flex w-full flex-col gap-6 p-6 md:w-[448px]">
+        <div className="flex w-full flex-col gap-6 p-6 md:w-112">
           <div className="flex flex-col gap-2">
             <h4 className="text-base font-semibold tracking-tight text-gray-900">
               {t("pages.earn.exit-tickets.delete-title")}
