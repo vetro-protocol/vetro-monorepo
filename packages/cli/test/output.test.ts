@@ -1,9 +1,12 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { printResult } from "../src/lib/output.js";
+import { printError, printResult } from "../src/lib/output.js";
 
 const captureStdout = () =>
   vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+const captureStderr = () =>
+  vi.spyOn(process.stderr, "write").mockImplementation(() => true);
 
 describe("printResult", function () {
   it("serializes bigint values as decimal strings", function () {
@@ -38,5 +41,39 @@ describe("printResult", function () {
     const spy = captureStdout();
     printResult(undefined);
     expect(spy).toHaveBeenCalledWith("null\n");
+  });
+});
+
+describe("printError", function () {
+  const originalRpcUrl = process.env.RPC_URL;
+
+  afterEach(function () {
+    if (originalRpcUrl === undefined) {
+      delete process.env.RPC_URL;
+    } else {
+      process.env.RPC_URL = originalRpcUrl;
+    }
+    process.exitCode = 0;
+  });
+
+  it("redacts the configured RPC_URL so a key doesn't leak", function () {
+    process.env.RPC_URL = "https://eth-mainnet.example/v2/SECRET_KEY";
+    const spy = captureStderr();
+    printError(
+      new Error(
+        "HTTP request failed. URL: https://eth-mainnet.example/v2/SECRET_KEY",
+      ),
+    );
+    expect(spy).toHaveBeenCalledWith(
+      '{"error":"HTTP request failed. URL: [redacted]"}\n',
+    );
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("passes the message through when RPC_URL is unset", function () {
+    delete process.env.RPC_URL;
+    const spy = captureStderr();
+    printError(new Error("boom"));
+    expect(spy).toHaveBeenCalledWith('{"error":"boom"}\n');
   });
 });
