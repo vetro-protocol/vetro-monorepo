@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import fetch from "fetch-plus-plus";
-import { isValidUrl } from "utils/url";
+import { getVetroApiUrl, isValidUrl } from "utils/url";
 import type { Hash } from "viem";
 
-const apiUrl = import.meta.env.VITE_VETRO_API_URL;
+const apiUrl = getVetroApiUrl();
 
 export const marketCollateralQueryKey = (marketId: Hash) => [
   "market-collateral",

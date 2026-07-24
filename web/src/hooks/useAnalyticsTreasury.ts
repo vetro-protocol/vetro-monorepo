@@ -1,10 +1,10 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import fetch from "fetch-plus-plus";
 import type { TreasuryToken } from "pages/analytics/types";
-import { isValidUrl } from "utils/url";
+import { getVetroApiUrl, isValidUrl } from "utils/url";
 import type { Address } from "viem";
 
-const apiUrl = import.meta.env.VITE_VETRO_API_URL;
+const apiUrl = getVetroApiUrl();
 
 export const analyticsTreasuryQueryKey = (
   gatewayAddress: Address | undefined,

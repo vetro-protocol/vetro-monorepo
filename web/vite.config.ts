@@ -26,7 +26,8 @@ const config = {
   },
 } satisfies UserConfig;
 
-if (process.env.VITE_DEPLOY_ENV) {
+// Add sentry plugin for staging/production, disable on preview deployments.
+if (process.env.VITE_DEPLOY_ENV && process.env.VITE_DEPLOY_ENV !== "preview") {
   // Sentry plugin shall be last to ensure source maps are generated correctly
   // and tree-shaking doesn't remove Sentry's instrumentation.
   config.plugins.push(

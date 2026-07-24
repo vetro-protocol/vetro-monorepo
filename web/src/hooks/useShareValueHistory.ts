@@ -4,11 +4,11 @@ import { useEthereumClient } from "hooks/useEthereumClient";
 import { stakingVaultForPeggedTokenOptions } from "hooks/useStakingVaultForPeggedToken";
 import type { TokenWithGateway } from "types";
 import type { ChartPeriod } from "utils/chartPeriods";
-import { isValidUrl } from "utils/url";
+import { getVetroApiUrl, isValidUrl } from "utils/url";
 
 type ApiEntry = { shareValue: number; timestamp: number };
 
-const apiUrl = import.meta.env.VITE_VETRO_API_URL;
+const apiUrl = getVetroApiUrl();
 
 export const useShareValueHistory = function ({
   peggedToken,

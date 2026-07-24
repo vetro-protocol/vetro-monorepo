@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import fetch from "fetch-plus-plus";
 import type { ChartPeriod } from "utils/chartPeriods";
-import { isValidUrl } from "utils/url";
+import { getVetroApiUrl, isValidUrl } from "utils/url";
 import type { Hash } from "viem";
 
 export type AprHistoryEntry = {
@@ -9,7 +9,7 @@ export type AprHistoryEntry = {
   timestamp: number;
 };
 
-const apiUrl = import.meta.env.VITE_VETRO_API_URL;
+const apiUrl = getVetroApiUrl();
 
 export const useAprHistory = (marketId: Hash, period: ChartPeriod) =>
   useQuery({
