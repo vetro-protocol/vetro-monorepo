@@ -1,0 +1,40 @@
+{
+  "name": "@vetro-protocol/cli",
+  "version": "1.0.0-beta.1",
+  "description": "CLI to read and operate on Vetro.",
+  "license": "MIT",
+  "files": [
+    "LICENSE",
+    "README.md",
+    "_esm"
+  ],
+  "bin": {
+    "vetro-cli": "./_esm/cli.js"
+  },
+  "scripts": {
+    "build": "tsc --noEmit",
+    "bundle": "node esbuild.ts",
+    "clean": "rm -rf ./_esm",
+    "prepack": "cp ../../LICENSE LICENSE",
+    "postpack": "rm -f LICENSE",
+    "prepublishOnly": "pnpm clean && pnpm bundle",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@vetro-protocol/gateway": "workspace:*",
+    "commander": "15.0.0",
+    "viem": "2.44.4"
+  },
+  "devDependencies": {
+    "@tsconfig/node24": "24.0.4",
+    "@types/node": "24.1.0",
+    "esbuild": "0.27.3",
+    "typescript": "5.9.3",
+    "vitest": "4.1.9"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "private": true,
+  "type": "module"
+}
