@@ -53,12 +53,15 @@ const walletFrameSrc = [
   "https://keys.coinbase.com",
 ].join(" ");
 
+const analyticsOrigin = getUrlOrigin(import.meta.env.VITE_ANALYTICS_URL);
+
 const allUrls: (string | undefined)[] = [
   import.meta.env.VITE_PORTAL_API_URL,
   import.meta.env.VITE_VETRO_API_URL,
   ...rpcUrls,
   ...walletConnectUrls,
   import.meta.env.VITE_SENTRY_DSN,
+  import.meta.env.VITE_ANALYTICS_URL,
   "https://cloudflareinsights.com", // Cloudflare Web Beacon analytics.
 ];
 
@@ -78,6 +81,7 @@ const buildScriptSrc = (nonce: string) =>
     "'self'",
     "https://static.cloudflareinsights.com", // Web Analytics beacon.
     "https://challenges.cloudflare.com", // Cloudflare bot management / challenge widget.
+    ...(analyticsOrigin ? [analyticsOrigin] : []),
     ...(import.meta.env.DEV ? ["'unsafe-inline'"] : [`'nonce-${nonce}'`]),
   ].join(" ");
 
