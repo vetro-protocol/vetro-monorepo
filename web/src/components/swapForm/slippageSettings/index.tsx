@@ -11,7 +11,11 @@ import {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { DEFAULT_SLIPPAGE, isHighSlippage, MAX_SLIPPAGE } from "utils/slippage";
+import {
+  DEFAULT_SLIPPAGE,
+  isHighSlippage,
+  sanitizeSlippage,
+} from "utils/slippage";
 
 import { HighSlippageModal } from "./highSlippageModal";
 
@@ -21,16 +25,6 @@ type Props = {
   onChange: (slippage: number) => void;
   slippage: number;
 };
-
-function sanitizeSlippage(raw: string) {
-  if (raw === "") {
-    return "";
-  }
-  if (!/^\d+$/.test(raw)) {
-    return null;
-  }
-  return Number(raw) > MAX_SLIPPAGE ? null : raw;
-}
 
 type TriggerProps = {
   onClick: VoidFunction;
@@ -120,8 +114,8 @@ function SlippagePanel({
             }`}
           >
             <input
-              className="w-7 bg-transparent text-right outline-none"
-              inputMode="numeric"
+              className="w-11 bg-transparent text-right outline-none"
+              inputMode="decimal"
               onChange={(e) => onInputChange(e.target.value)}
               onKeyDown={onInputKeyDown}
               placeholder="0"
