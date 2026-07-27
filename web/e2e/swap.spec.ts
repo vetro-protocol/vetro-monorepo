@@ -1,14 +1,18 @@
 import { TEST_ADDRESS } from "@hemilabs/anvil-fork-setup/utils";
 import { expect } from "@playwright/test";
+import { getTreasury } from "@vetro-protocol/gateway/actions";
+import { getWhitelistedTokens } from "@vetro-protocol/treasury/actions";
 import { parseUnits } from "viem";
 import { getBlock, readContract } from "viem/actions";
-import { balanceOf } from "viem-erc20/actions";
+import { balanceOf, symbol } from "viem-erc20/actions";
 
 import { gatewayAbi } from "../../packages/gateway/src/abi/gatewayAbi.ts";
 import { gatewayAddresses } from "../../packages/gateway/src/gatewayAddresses.ts";
 import { fastForwardTime } from "../scripts/fastForwardTime.ts";
 import { setRedeemDelay } from "../scripts/redeemDelay.ts";
+import { requestRedeem } from "../scripts/requestRedeem.ts";
 import { setDepositActive } from "../scripts/setDepositActive.ts";
+import { setWithdrawActive } from "../scripts/setWithdrawActive.ts";
 import { whitelistInstantRedeem } from "../scripts/whitelistInstantRedeem.ts";
 
 import { ANVIL_URL, createEthereumClient } from "./anvil";
@@ -419,4 +423,85 @@ test("redeem VUSD via the gateway (two-step queue redeem)", async function ({
     address: vusd.address,
   });
   expect(vusdAfterClaim).toBe(vusdBefore - REDEEM_AMOUNT);
+});
+
+test("claim drawer CTA reads 'Redeems are paused for this token' when the output token's redeems are paused", async function ({
+  page,
+}) {
+  const publicClient = createEthereumClient();
+
+  await setRedeemDelay({
+    address: TEST_ADDRESS,
+    enableDelay: true,
+    forkUrl: ANVIL_URL,
+    gateway: gatewayAddresses[0],
+  });
+
+  // Queue the redeem on-chain instead of through the form.
+  const { claimableAt } = await requestRedeem({
+    address: TEST_ADDRESS,
+    forkUrl: ANVIL_URL,
+    gateway: gatewayAddresses[0],
+    peggedTokenAmount: REDEEM_AMOUNT,
+  });
+  expect(claimableAt).toBeGreaterThan(0n);
+
+  const treasury = await getTreasury(publicClient, {
+    address: gatewayAddresses[0],
+  });
+  const [defaultOutputToken] = await getWhitelistedTokens(publicClient, {
+    address: treasury,
+  });
+  const defaultOutputSymbol = await symbol(publicClient, {
+    address: defaultOutputToken,
+  });
+
+  const { activeAfter } = await setWithdrawActive({
+    active: false,
+    forkUrl: ANVIL_URL,
+    gateway: gatewayAddresses[0],
+    token: defaultOutputToken,
+  });
+  expect(activeAfter).toBe(false);
+
+  // Skip the cooldown on both clocks — the fork's, so the request is claimable,
+  // and the browser's, so the row's countdown (useCountdown) reaches zero and
+  // enables the Redeem button. See the two-step test for the full rationale.
+  const { timestamp: chainNow } = await getBlock(publicClient);
+  const newTimestamp = await fastForwardTime({
+    forkUrl: ANVIL_URL,
+    seconds: Number(claimableAt - chainNow),
+  });
+  await page.clock.setFixedTime(Number(newTimestamp) * 1000);
+
+  await page.goto("/swap");
+
+  await expect(
+    page.getByRole("button", { name: /^0x[a-f0-9]{4}/i }),
+  ).toBeVisible({ timeout: 30_000 });
+
+  const redeemQueue = page.locator("#redeem-queue");
+  await expect(redeemQueue.getByText(/ready to redeem/i)).toBeVisible({
+    timeout: 20_000,
+  });
+
+  const queueRedeemButton = redeemQueue.getByRole("button", {
+    name: /^redeem$/i,
+  });
+  await expect(queueRedeemButton).toBeEnabled({ timeout: 30_000 });
+  await queueRedeemButton.click();
+
+  const drawerTitle = page.getByRole("heading", { name: /redeem your/i });
+  await expect(drawerTitle).toBeVisible();
+  const drawer = drawerTitle.locator("..");
+
+  await expect(
+    drawer.getByRole("button", { name: "Select token to swap" }),
+  ).toContainText(defaultOutputSymbol);
+
+  const pausedButton = drawer.getByRole("button", {
+    name: "Redeems are paused for this token",
+  });
+  await expect(pausedButton).toBeVisible({ timeout: 20_000 });
+  await expect(pausedButton).toBeDisabled();
 });

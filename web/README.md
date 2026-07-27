@@ -164,3 +164,22 @@ Options (exactly one of `--pause` / `--unpause` is required):
 | `--unpause`  |       | Resume redeems to the token          | —                        |
 | `--gateway`  | `-g`  | Gateway address                      | first configured gateway |
 | `--fork-url` | `-f`  | Anvil RPC URL                        | `http://127.0.0.1:8545`  |
+
+### Send a Redeem to the Queue
+
+Queue a redeem of the gateway's pegged token for an address using a local Anvil fork. Impersonates the address to approve the gateway and call `requestRedeem`, so the Redeem Queue can be populated without going through the Swap form. Prints the request's `claimableAt`, which `fastForwardTime.ts` can then be used to step past.
+
+**Usage:**
+
+```bash
+node web/scripts/requestRedeem.ts --address 0xYourAddress --amount 2
+```
+
+Options:
+
+| Flag         | Short | Description                                | Default                  |
+| ------------ | ----- | ------------------------------------------ | ------------------------ |
+| `--address`  | `-a`  | Address to queue the redeem for (required) | —                        |
+| `--amount`   |       | Pegged token amount to queue (required)    | —                        |
+| `--gateway`  | `-g`  | Gateway address                            | first configured gateway |
+| `--fork-url` | `-f`  | Anvil RPC URL                              | `http://127.0.0.1:8545`  |
