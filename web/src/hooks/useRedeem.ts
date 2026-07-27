@@ -8,7 +8,9 @@ import type { RedeemEvents } from "@vetro-protocol/gateway";
 import { redeem } from "@vetro-protocol/gateway/actions";
 import type { EventEmitter } from "events";
 import type { TokenWithGateway } from "types";
-import { type Address, erc20Abi, isAddressEqual, parseEventLogs } from "viem";
+import { getReceivedAmount } from "utils/receipt";
+import { applySlippage } from "utils/slippage";
+import { type Address, isAddressEqual } from "viem";
 import { useAccount } from "wagmi";
 
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
@@ -28,12 +30,14 @@ export const useRedeem = function ({
   onEmitter,
   peggedToken,
   peggedTokenIn,
+  slippage,
   tokenOut,
 }: {
   approveAmount?: bigint;
   onEmitter?: (emitter: EventEmitter<RedeemEvents>) => void;
   peggedToken: TokenWithGateway;
   peggedTokenIn: bigint;
+  slippage: number;
   tokenOut: Address;
 }) {
   const { address: account } = useAccount();
@@ -92,7 +96,7 @@ export const useRedeem = function ({
       }
       await ensureConnectedTo(ethereumChain.id);
 
-      const [minAmountOut, hasDelay] = await Promise.all([
+      const [preview, hasDelay] = await Promise.all([
         queryClient.ensureQueryData(
           previewRedeemTokenOptions({
             chainId: ethereumChain.id,
@@ -114,6 +118,7 @@ export const useRedeem = function ({
           )
           .then((redeemDelay) => redeemDelay > 0n),
       ]);
+      const minAmountOut = applySlippage({ preview, slippage });
 
       const { emitter, promise } = redeem(walletClient!, {
         approveAmount,
@@ -151,15 +156,8 @@ export const useRedeem = function ({
       emitter.on("redeem-transaction-succeeded", function (receipt) {
         updateNativeBalanceAfterReceipt(receipt);
 
-        // Parse the actual redeemed amount from the Transfer event
-        const transferLogs = parseEventLogs({
-          abi: erc20Abi,
-          eventName: "Transfer",
-          logs: receipt.logs,
-        });
         const actualAmount =
-          transferLogs.find((log) => isAddressEqual(log.args.to, account))?.args
-            .value ?? minAmountOut;
+          getReceivedAmount({ account, logs: receipt.logs }) ?? preview;
 
         if (hasDelay) {
           // if there's a delay, the PeggedToken was burned from the Gateway vault

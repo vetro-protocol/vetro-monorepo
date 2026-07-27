@@ -4,6 +4,7 @@
   "scripts": {
     "build": "tsc && vite build",
     "dev": "vite",
+    "dev:fork": "node scripts/devFork.ts",
     "prepreview": "pnpm run build",
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",

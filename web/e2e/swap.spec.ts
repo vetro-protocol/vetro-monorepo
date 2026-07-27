@@ -159,10 +159,12 @@ test("redeem VUSD → USDC via the gateway (instant redeem)", async function ({
   // form with a selectable output token. Pick USDC unless it's already the
   // default output (clicking the already-selected token won't close the
   // modal). Scope to the "You will receive" section to avoid depending on the
-  // relative ordering of the two token selectors.
+  // relative ordering of the two token selectors. The label sits inside the
+  // TokenInput header row, so climb two levels to reach the card that also
+  // holds the token selector.
   const toTokenSelector = page
     .getByText("You will receive")
-    .locator("..")
+    .locator("../..")
     .getByRole("button", { name: "Select token to swap" });
   await expect(toTokenSelector).toBeVisible();
   // Switch the output to USDC. Selecting any token closes the picker, so we can

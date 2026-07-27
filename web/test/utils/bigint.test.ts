@@ -1,6 +1,28 @@
 import { describe, expect, it } from "vitest";
 
-import { maxBigInt, minBigInt } from "../../src/utils/bigint";
+import { applyBps, maxBigInt, minBigInt } from "../../src/utils/bigint";
+
+describe("applyBps", function () {
+  it("calculates 0.30% of 10000", function () {
+    expect(applyBps(10000n, 30n)).toBe(30n);
+  });
+
+  it("calculates 1% of 1000000", function () {
+    expect(applyBps(1000000n, 100n)).toBe(10000n);
+  });
+
+  it("returns 0 when amount is 0", function () {
+    expect(applyBps(0n, 50n)).toBe(0n);
+  });
+
+  it("returns 0 when bps is 0", function () {
+    expect(applyBps(1000n, 0n)).toBe(0n);
+  });
+
+  it("truncates when result is not whole", function () {
+    expect(applyBps(1n, 5000n)).toBe(0n);
+  });
+});
 
 describe("maxBigInt", function () {
   it("should return the value when given a single argument", function () {

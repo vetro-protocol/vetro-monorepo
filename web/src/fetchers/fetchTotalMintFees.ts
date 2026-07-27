@@ -6,7 +6,8 @@ import { pricesOptions } from "hooks/usePrices";
 import { mintGasUnitsOptions } from "hooks/useSwapMintFees";
 import { config } from "providers/web3Provider";
 import type { TokenWithGateway } from "types";
-import { applyBps, weiToUsd } from "utils/fees";
+import { applyBps } from "utils/bigint";
+import { weiToUsd } from "utils/fees";
 import { getTokenPrice } from "utils/token";
 import { type Address, type Chain, type Client, formatUnits } from "viem";
 

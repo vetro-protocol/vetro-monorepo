@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { cancelWithdraw } from "@vetro-protocol/earn/actions";
 import { exitTicketsQueryKey } from "pages/earn/hooks/useExitTickets";
 import type { ExitTicket } from "pages/earn/types";
+import { type CostBases, bumpCostBasis } from "utils/costBasis";
 import type { Address } from "viem";
 import { useAccount } from "wagmi";
 
@@ -102,6 +103,12 @@ export const useCancelWithdraw = function ({
         queryClient.setQueryData(stakedKey, (old: bigint | undefined) =>
           old !== undefined ? old + assets : old,
         );
+
+        queryClient.setQueryData(
+          costBasisQueryKey(account),
+          (old: CostBases | undefined) =>
+            bumpCostBasis({ assets, costBases: old, stakingVaultAddress }),
+        );
         // Optimistically add assets back to pool deposits
         queryClient.setQueryData(poolDepositsKey, (old: bigint | undefined) =>
           old !== undefined ? old + assets : old,
@@ -115,16 +122,8 @@ export const useCancelWithdraw = function ({
         queryKey: nativeBalanceKey,
       });
 
-      // Refetch (not just invalidate) the queries that downstream fetchers
-      // read via ensureQueryData: shares feed useStakedBalance, and cost
-      // basis feeds fetchEarnedAmountUsd. Neither has a mounted observer,
-      // so invalidation alone would leave them stale.
-      await Promise.all([
-        queryClient.refetchQueries({ queryKey: sharesBalanceKey }),
-        queryClient.refetchQueries({
-          queryKey: costBasisQueryKey(account),
-        }),
-      ]);
+      // Refetch (not just invalidate) shares: it feeds useStakedBalance.
+      await queryClient.refetchQueries({ queryKey: sharesBalanceKey });
 
       queryClient.invalidateQueries({
         queryKey: stakedKey,

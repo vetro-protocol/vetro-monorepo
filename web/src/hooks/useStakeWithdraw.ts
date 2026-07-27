@@ -7,6 +7,7 @@ import { stakingVaultAbi } from "@vetro-protocol/earn";
 import { requestWithdraw } from "@vetro-protocol/earn/actions";
 import { exitTicketsQueryKey } from "pages/earn/hooks/useExitTickets";
 import type { ExitTicket } from "pages/earn/types";
+import { type CostBases, reduceCostBasisProportionally } from "utils/costBasis";
 import { type Address, type TransactionReceipt, parseEventLogs } from "viem";
 import { useAccount } from "wagmi";
 
@@ -100,9 +101,21 @@ export const useStakeWithdraw = function ({
           onStatusChange?.("completed");
           onSuccess?.();
 
+          const stakedBefore = queryClient.getQueryData<bigint>(stakedKey);
+
           // Optimistically update staked balance
           queryClient.setQueryData(stakedKey, (old: bigint | undefined) =>
             old !== undefined ? old - assets : old,
+          );
+          queryClient.setQueryData(
+            costBasisQueryKey(account),
+            (old: CostBases | undefined) =>
+              reduceCostBasisProportionally({
+                assets,
+                costBases: old,
+                stakedBefore,
+                stakingVaultAddress,
+              }),
           );
           // Optimistically update pool deposits balance
           queryClient.setQueryData(
@@ -145,16 +158,8 @@ export const useStakeWithdraw = function ({
         queryKey: nativeBalanceKey,
       });
 
-      // Refetch (not just invalidate) the queries that downstream fetchers
-      // read via ensureQueryData: shares feed useStakedBalance, and cost
-      // basis feeds fetchEarnedAmountUsd. Neither has a mounted observer,
-      // so invalidation alone would leave them stale.
-      await Promise.all([
-        queryClient.refetchQueries({ queryKey: sharesBalanceKey }),
-        queryClient.refetchQueries({
-          queryKey: costBasisQueryKey(account),
-        }),
-      ]);
+      // Refetch (not just invalidate) shares: it feeds useStakedBalance.
+      await queryClient.refetchQueries({ queryKey: sharesBalanceKey });
 
       queryClient.invalidateQueries({
         queryKey: stakedKey,

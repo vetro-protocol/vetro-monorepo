@@ -143,7 +143,7 @@ importers:
     devDependencies:
       '@cloudflare/vite-plugin':
         specifier: 1.23.1
-        version: 1.23.1(bufferutil@4.1.0)(utf-8-validate@5.0.10)(vite@8.0.13(@types/node@24.1.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))(workerd@1.20260329.1)(wrangler@4.63.0(@cloudflare/workers-types@4.20260504.1)(bufferutil@4.1.0)(utf-8-validate@5.0.10))
+        version: 1.23.1(bufferutil@4.1.0)(utf-8-validate@5.0.10)(vite@8.0.13(@types/node@24.1.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))(workerd@1.20260205.0)(wrangler@4.63.0(@cloudflare/workers-types@4.20260504.1)(bufferutil@4.1.0)(utf-8-validate@5.0.10))
       '@cloudflare/workers-types':
         specifier: 4.20260504.1
         version: 4.20260504.1
@@ -208,6 +208,34 @@ importers:
       viem:
         specifier: 2.44.4
         version: 2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)
+      vitest:
+        specifier: 4.1.9
+        version: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@24.1.0)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@24.1.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
+
+  packages/cli:
+    dependencies:
+      '@vetro-protocol/gateway':
+        specifier: workspace:*
+        version: link:../gateway
+      commander:
+        specifier: 15.0.0
+        version: 15.0.0
+      viem:
+        specifier: 2.44.4
+        version: 2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)
+    devDependencies:
+      '@tsconfig/node24':
+        specifier: 24.0.4
+        version: 24.0.4
+      '@types/node':
+        specifier: 24.1.0
+        version: 24.1.0
+      esbuild:
+        specifier: 0.27.3
+        version: 0.27.3
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
       vitest:
         specifier: 4.1.9
         version: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@24.1.0)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@24.1.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
@@ -437,7 +465,7 @@ importers:
     devDependencies:
       '@cloudflare/vite-plugin':
         specifier: 1.23.1
-        version: 1.23.1(bufferutil@4.1.0)(utf-8-validate@5.0.10)(vite@8.0.13(@types/node@24.1.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))(workerd@1.20260205.0)(wrangler@4.63.0(@cloudflare/workers-types@4.20260504.1)(bufferutil@4.1.0)(utf-8-validate@5.0.10))
+        version: 1.23.1(bufferutil@4.1.0)(utf-8-validate@5.0.10)(vite@8.0.13(@types/node@24.1.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))(workerd@1.20260329.1)(wrangler@4.63.0(@cloudflare/workers-types@4.20260504.1)(bufferutil@4.1.0)(utf-8-validate@5.0.10))
       '@cloudflare/workers-types':
         specifier: 4.20260504.1
         version: 4.20260504.1
@@ -3438,9 +3466,6 @@ packages:
   '@types/node@24.10.13':
     resolution: {integrity: sha512-oH72nZRfDv9lADUBSo104Aq7gPHpQZc4BTx38r9xf9pg5LfP6EzSyH2n7qFmmxRQXh7YlUXODcYsg6PuTDSxGg==, tarball: https://registry.npmjs.org/@types/node/-/node-24.10.13.tgz}
 
-  '@types/node@24.12.0':
-    resolution: {integrity: sha512-GYDxsZi3ChgmckRT9HPU0WEhKLP08ev/Yfcq2AstjrDASOYCSXeyjDsHg4v5t4jOj7cyDX3vmprafKlWIG9MXQ==, tarball: https://registry.npmjs.org/@types/node/-/node-24.12.0.tgz}
-
   '@types/node@25.0.9':
     resolution: {integrity: sha512-/rpCXHlCWeqClNBwUhDcusJxXYDjZTyE8v5oTO7WbL8eij2nKhUeU89/6xgjU7N4/Vh3He0BtyhJdQbDyhiXAw==, tarball: https://registry.npmjs.org/@types/node/-/node-25.0.9.tgz}
 
@@ -4439,6 +4464,14 @@ packages:
   commander@14.0.2:
     resolution: {integrity: sha512-TywoWNNRbhoD0BXs1P3ZEScW8W5iKrnbithIl0YH+uCmBd0QpPOA8yc82DS3BIE5Ma6FnBVUsJ7wVUDz4dvOWQ==, tarball: https://registry.npmjs.org/commander/-/commander-14.0.2.tgz}
     engines: {node: '>=20'}
+
+  commander@14.0.3:
+    resolution: {integrity: sha512-H+y0Jo/T1RZ9qPP4Eh1pkcQcLRglraJaSLoyOtHxu6AapkjWVCy2Sit1QQ4x3Dng8qDlSsZEet7g5Pq06MvTgw==, tarball: https://registry.npmjs.org/commander/-/commander-14.0.3.tgz}
+    engines: {node: '>=20'}
+
+  commander@15.0.0:
+    resolution: {integrity: sha512-z67u4ZhzCL/Tydu1lJARtEZYWbWaN7oYLHbsuzocr6y4N6WZAagG3RQ4FW61V1/0+jImpj293XfrcYnd1qxtPg==, tarball: https://registry.npmjs.org/commander/-/commander-15.0.0.tgz}
+    engines: {node: '>=22.12.0'}
 
   commander@2.20.3:
     resolution: {integrity: sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==, tarball: https://registry.npmjs.org/commander/-/commander-2.20.3.tgz}
@@ -11228,7 +11261,7 @@ snapshots:
   '@solana/errors@2.3.0(typescript@5.9.3)':
     dependencies:
       chalk: 5.6.2
-      commander: 14.0.2
+      commander: 14.0.3
       typescript: 5.9.3
 
   '@solana/errors@5.4.0(typescript@5.9.3)':
@@ -11839,7 +11872,7 @@ snapshots:
 
   '@types/connect@3.4.38':
     dependencies:
-      '@types/node': 24.12.0
+      '@types/node': 24.10.13
 
   '@types/d3-array@3.2.2': {}
 
@@ -11899,10 +11932,6 @@ snapshots:
     dependencies:
       undici-types: 7.16.0
 
-  '@types/node@24.12.0':
-    dependencies:
-      undici-types: 7.16.0
-
   '@types/node@25.0.9':
     dependencies:
       undici-types: 7.16.0
@@ -11927,11 +11956,11 @@ snapshots:
 
   '@types/ws@7.4.7':
     dependencies:
-      '@types/node': 24.12.0
+      '@types/node': 24.10.13
 
   '@types/ws@8.18.1':
     dependencies:
-      '@types/node': 24.12.0
+      '@types/node': 24.10.13
 
   '@typescript-eslint/eslint-plugin@8.53.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@6.0.2))(eslint@8.57.0)(typescript@6.0.2)':
     dependencies:
@@ -12169,7 +12198,7 @@ snapshots:
       obug: 2.1.1
       std-env: 4.1.0
       tinyrainbow: 3.1.0
-      vitest: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@24.1.0)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@24.1.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
+      vitest: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@24.10.13)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@24.10.13)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
 
   '@vitest/eslint-plugin@1.6.6(eslint@8.57.0)(typescript@6.0.2)(vitest@4.1.9)':
     dependencies:
@@ -13475,6 +13504,10 @@ snapshots:
 
   commander@14.0.2: {}
 
+  commander@14.0.3: {}
+
+  commander@15.0.0: {}
+
   commander@2.20.3: {}
 
   comment-parser@1.3.1: {}
@@ -14239,13 +14272,14 @@ snapshots:
       esquery: 1.7.0
       jsonc-eslint-parser: 2.4.2
 
-  eslint-module-utils@2.12.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@6.0.2))(eslint-import-resolver-node@0.3.9)(eslint@8.57.0):
+  eslint-module-utils@2.12.1(@typescript-eslint/parser@6.21.0(eslint@8.57.0)(typescript@6.0.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1)(eslint@8.57.0):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
-      '@typescript-eslint/parser': 8.53.1(eslint@8.57.0)(typescript@6.0.2)
+      '@typescript-eslint/parser': 6.21.0(eslint@8.57.0)(typescript@6.0.2)
       eslint: 8.57.0
       eslint-import-resolver-node: 0.3.9
+      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0)(eslint@8.57.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -14266,7 +14300,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 8.57.0
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.12.1(@typescript-eslint/parser@8.53.1(eslint@8.57.0)(typescript@6.0.2))(eslint-import-resolver-node@0.3.9)(eslint@8.57.0)
+      eslint-module-utils: 2.12.1(@typescript-eslint/parser@6.21.0(eslint@8.57.0)(typescript@6.0.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1)(eslint@8.57.0)
       hasown: 2.0.2
       is-core-module: 2.16.1
       is-glob: 4.0.3

@@ -28,6 +28,7 @@ const createInitialState = (): SwapFormState => ({
   approve10x: false,
   fromInputValue: "0",
   fromToken: mockToken1,
+  slippage: 0,
   toToken: mockToken2,
 });
 
@@ -88,6 +89,28 @@ describe("swapFormReducer", function () {
     });
     expect(result.toToken).toBe(newToken);
     expect(result.fromToken).toBe(mockToken1);
+  });
+
+  it("SET_SLIPPAGE updates the slippage value", function () {
+    const state = createInitialState();
+    const result = swapFormReducer(state, {
+      payload: 6,
+      type: "SET_SLIPPAGE",
+    });
+    expect(result.slippage).toBe(6);
+  });
+
+  it("RESET clears input and slippage without touching tokens", function () {
+    const state = {
+      ...createInitialState(),
+      fromInputValue: "500",
+      slippage: 6,
+    };
+    const result = swapFormReducer(state, { type: "RESET" });
+    expect(result.fromInputValue).toBe("0");
+    expect(result.slippage).toBe(0);
+    expect(result.fromToken).toBe(mockToken1);
+    expect(result.toToken).toBe(mockToken2);
   });
 
   it("TOGGLE_TOKENS swaps tokens and preserves input value", function () {
