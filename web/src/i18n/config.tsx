@@ -6,7 +6,7 @@ import { useNavigate, useParams } from "react-router";
 import { resources } from "./resources";
 
 const fallbackLng = "en";
-const supportedLngs = ["en", "es"];
+export const supportedLngs = ["en", "es"];
 
 export const initializeI18n = () =>
   i18n.use(initReactI18next).init({
