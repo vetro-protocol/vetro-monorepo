@@ -8,6 +8,7 @@ import { gatewayAbi } from "../../packages/gateway/src/abi/gatewayAbi.ts";
 import { gatewayAddresses } from "../../packages/gateway/src/gatewayAddresses.ts";
 import { fastForwardTime } from "../scripts/fastForwardTime.ts";
 import { setRedeemDelay } from "../scripts/redeemDelay.ts";
+import { setDepositActive } from "../scripts/setDepositActive.ts";
 import { whitelistInstantRedeem } from "../scripts/whitelistInstantRedeem.ts";
 
 import { ANVIL_URL, createEthereumClient } from "./anvil";
@@ -15,6 +16,7 @@ import { test } from "./fixtures/wallet";
 import { getMainnetToken, waitForBalance } from "./helpers";
 
 const usdc = getMainnetToken("USDC");
+const usdcSymbol = new RegExp(usdc.symbol);
 const vusd = getMainnetToken("VUSD");
 const SWAP_AMOUNT_DISPLAY = "1";
 const SWAP_AMOUNT = parseUnits(SWAP_AMOUNT_DISPLAY, usdc.decimals);
@@ -65,9 +67,12 @@ test("swap USDC → VUSD via the gateway", async function ({ page }) {
 
   // Auto-waits for the USDC row, covering the CI race where the token list is
   // still loading when the dialog opens.
-  await fromTokenDialog.getByRole("button", { name: /USDC/ }).first().click();
+  await fromTokenDialog
+    .getByRole("button", { name: usdcSymbol })
+    .first()
+    .click();
 
-  await expect(fromTokenSelector).toContainText("USDC");
+  await expect(fromTokenSelector).toContainText(usdcSymbol);
   // Selecting a token closes the picker; ensure it's gone before interacting
   // with the form underneath.
   await expect(fromTokenDialog).toBeHidden();
@@ -101,6 +106,53 @@ test("swap USDC → VUSD via the gateway", async function ({ page }) {
     address: usdc.address,
   });
   expect(usdcAfter).toBe(usdcBefore - SWAP_AMOUNT);
+});
+
+test("deposit CTA reads 'Swaps are paused' when the token's deposits are paused", async function ({
+  page,
+}) {
+  const { activeAfter } = await setDepositActive({
+    active: false,
+    forkUrl: ANVIL_URL,
+    gateway: gatewayAddresses[0],
+    token: usdc.address,
+  });
+  expect(activeAfter).toBe(false);
+
+  await page.goto("/swap");
+
+  await expect(
+    page.getByRole("button", { name: /^0x[a-f0-9]{4}/i }),
+  ).toBeVisible({ timeout: 30_000 });
+
+  const fromTokenSelector = page
+    .getByRole("button", { name: "Select token to swap" })
+    .first();
+  await fromTokenSelector.click();
+
+  const fromTokenDialog = page.getByRole("dialog", { name: "Select a token" });
+  await expect(fromTokenDialog).toBeVisible();
+  await fromTokenDialog
+    .getByRole("button", { name: usdcSymbol })
+    .first()
+    .click();
+
+  await expect(fromTokenSelector).toContainText(usdcSymbol);
+  await expect(fromTokenDialog).toBeHidden();
+
+  const pausedButton = page.getByRole("button", {
+    name: "Swaps are paused for this token",
+  });
+  await expect(pausedButton).toBeVisible({ timeout: 20_000 });
+  await expect(pausedButton).toBeDisabled();
+
+  const resumed = await setDepositActive({
+    active: true,
+    forkUrl: ANVIL_URL,
+    gateway: gatewayAddresses[0],
+    token: usdc.address,
+  });
+  expect(resumed.activeAfter).toBe(true);
 });
 
 test("redeem VUSD → USDC via the gateway (instant redeem)", async function ({
@@ -178,9 +230,9 @@ test("redeem VUSD → USDC via the gateway (instant redeem)", async function ({
 
   // Auto-waits for the USDC row, covering the CI race where the token list is
   // still loading when the dialog opens.
-  await toTokenDialog.getByRole("button", { name: /USDC/ }).first().click();
+  await toTokenDialog.getByRole("button", { name: usdcSymbol }).first().click();
 
-  await expect(toTokenSelector).toContainText("USDC");
+  await expect(toTokenSelector).toContainText(usdcSymbol);
   // Selecting a token closes the picker; ensure it's gone before interacting
   // with the form underneath.
   await expect(toTokenDialog).toBeHidden();

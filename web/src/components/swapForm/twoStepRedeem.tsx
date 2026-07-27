@@ -225,7 +225,11 @@ export function TwoStepRedeem({
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!inputError) {
+    if (
+      !inputError &&
+      needsApproval !== undefined &&
+      redeemPreview !== undefined
+    ) {
       setStartedWithApproval(!!needsApproval);
       setFlowStatus(needsApproval ? "approving" : "request-redeem-ready");
       requestRedeemMutation.mutate();
@@ -271,6 +275,8 @@ export function TwoStepRedeem({
         <SubmitButton
           actionText={t("pages.swap.form.send-to-queue")}
           inputError={inputError}
+          // First step of the two-step redeeming is always active
+          isActive
           isPreviewError={isPreviewError}
           previewValue={redeemPreview}
           token={fromToken}
