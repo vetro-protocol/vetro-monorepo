@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { applySlippage, sanitizeSlippage } from "./slippage";
+import { applySlippage, sanitizeSlippage } from "../../src/utils/slippage";
 
 describe("applySlippage", function () {
   it("returns the full preview when slippage is 0 (auto)", function () {
