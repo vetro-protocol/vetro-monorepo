@@ -207,6 +207,7 @@ function ActiveRedeemDrawer({
       fromAmount={fromInputValue}
       fromToken={peggedToken}
       inputError={inputError}
+      isPreviewError={isPreviewError}
       networkFee={networkFee}
       onClose={handleClose}
       onInputChange={onFromInputChange}

@@ -17,6 +17,7 @@ import { usePreviewRedeem } from "hooks/usePreviewRedeem";
 import { useRedeem } from "hooks/useRedeem";
 import { useRedeemFee } from "hooks/useRedeemFee";
 import { useSwapRedeemFees } from "hooks/useSwapRedeemFees";
+import { useTokenConfig } from "hooks/useTokenConfig";
 import { useTotalRedeemFees } from "hooks/useTotalRedeemFees";
 import { type FormEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -117,6 +118,11 @@ export function OneStepRedeem({
   const { data: maxWithdraw } = useMaxWithdraw({
     gatewayAddress: fromToken.gatewayAddress,
     tokenOut: toToken.address,
+  });
+
+  const { data: tokenConfig, isError: isTokenConfigError } = useTokenConfig({
+    gatewayAddress: fromToken.gatewayAddress,
+    token: toToken.address,
   });
 
   const { data: redeemPreview, isError: isPreviewError } = usePreviewRedeem({
@@ -249,7 +255,12 @@ export function OneStepRedeem({
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!inputError) {
+    if (
+      !inputError &&
+      needsApproval !== undefined &&
+      tokenConfig?.withdrawActive &&
+      redeemPreview !== undefined
+    ) {
       setStartedWithApproval(!!needsApproval);
       setFlowStatus(needsApproval ? "approving" : "redeem-ready");
       redeemMutation.mutate();
@@ -314,6 +325,8 @@ export function OneStepRedeem({
         <SubmitButton
           actionText={t("pages.swap.form.redeem")}
           inputError={inputError}
+          isActive={tokenConfig?.withdrawActive}
+          isActiveError={isTokenConfigError}
           isPreviewError={isPreviewError}
           previewValue={redeemPreview}
           token={fromToken}

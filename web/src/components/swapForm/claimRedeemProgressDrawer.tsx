@@ -2,6 +2,7 @@ import { Button } from "components/base/button";
 import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { MaxButton } from "components/base/maxButton";
+import { Spinner } from "components/base/spinner";
 import { type Step, VerticalStepper } from "components/base/verticalStepper";
 import { DrawerFeesContainer } from "components/feesContainer";
 import { ExclamationTriangleIcon } from "components/icons/exclamationTriangleIcon";
@@ -10,6 +11,7 @@ import { TokenInput } from "components/tokenInput";
 import { Balance } from "components/tokenInput/balance";
 import type { InputError } from "components/tokenInput/utils";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
+import { useTokenConfig } from "hooks/useTokenConfig";
 import type { ComponentProps, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
@@ -29,6 +31,7 @@ type Props = {
   fromAmount: string;
   fromToken: TokenWithGateway;
   inputError: InputError | undefined;
+  isPreviewError: boolean;
   onInputChange: (value: string) => void;
   onMaxClick: VoidFunction;
   onRetry?: VoidFunction;
@@ -47,6 +50,59 @@ type Props = {
   "networkFee" | "protocolFee" | "totalFees"
 >;
 
+const isFlowInProgress = (flowStatus: ClaimRedeemFlowStatus) =>
+  flowStatus !== "idle" &&
+  flowStatus !== "redeem-ready" &&
+  flowStatus !== "redeem-error";
+
+function SubmitLabel({
+  geoRestricted,
+  inputError,
+  isActiveError,
+  isLoading,
+  isPaused,
+  isPreviewError,
+  renderRetry,
+}: {
+  geoRestricted: boolean;
+  inputError: InputError | undefined;
+  isActiveError: boolean;
+  isLoading: boolean;
+  isPaused: boolean;
+  isPreviewError: boolean;
+  renderRetry: boolean;
+}) {
+  const { t } = useTranslation();
+
+  if (geoRestricted) {
+    return (
+      <>
+        <ExclamationTriangleIcon />
+        {t("common.geo-restriction-title")}
+      </>
+    );
+  }
+  if (isPaused) {
+    return t("pages.swap.redeem-queue.redeems-paused-for-token");
+  }
+  if (inputError) {
+    return t(`common.${inputError}`);
+  }
+  if (isActiveError) {
+    return t("pages.swap.form.token-status-error");
+  }
+  if (isPreviewError) {
+    return t("pages.swap.form.preview-error");
+  }
+  if (isLoading) {
+    return <Spinner />;
+  }
+  if (renderRetry) {
+    return t("pages.swap.progress.retry");
+  }
+  return t("pages.swap.redeem-queue.redeem");
+}
+
 export function ClaimRedeemProgressDrawer({
   amountBigInt,
   amountLocked,
@@ -54,6 +110,7 @@ export function ClaimRedeemProgressDrawer({
   fromAmount,
   fromToken,
   inputError,
+  isPreviewError,
   networkFee,
   onInputChange,
   onMaxClick,
@@ -73,14 +130,23 @@ export function ClaimRedeemProgressDrawer({
 }: Props) {
   const { t } = useTranslation();
 
+  const { data: tokenConfig, isError: isTokenConfigError } = useTokenConfig({
+    gatewayAddress: fromToken.gatewayAddress,
+    token: toToken.address,
+  });
+
   const geoRestricted = isGeoRestricted();
+  const isPaused = tokenConfig?.withdrawActive === false;
   const renderRetry = flowStatus === "redeem-error";
+  const isDataLoaded = tokenConfig !== undefined && outputBigInt !== undefined;
+  const isLoading = !isDataLoaded && !isTokenConfigError;
   const isDisabled =
     geoRestricted ||
+    isPaused ||
+    !isDataLoaded ||
     !!inputError ||
-    (flowStatus !== "idle" &&
-      flowStatus !== "redeem-ready" &&
-      flowStatus !== "redeem-error");
+    isPreviewError ||
+    isFlowInProgress(flowStatus);
 
   return (
     <div className="flex h-full flex-col">
@@ -131,18 +197,15 @@ export function ClaimRedeemProgressDrawer({
           size="small"
           variant="primary"
         >
-          {geoRestricted ? (
-            <>
-              <ExclamationTriangleIcon />
-              {t("common.geo-restriction-title")}
-            </>
-          ) : inputError ? (
-            t(`common.${inputError}`)
-          ) : renderRetry ? (
-            t("pages.swap.progress.retry")
-          ) : (
-            t("pages.swap.redeem-queue.redeem")
-          )}
+          <SubmitLabel
+            geoRestricted={geoRestricted}
+            inputError={inputError}
+            isActiveError={isTokenConfigError}
+            isLoading={isLoading}
+            isPaused={isPaused}
+            isPreviewError={isPreviewError}
+            renderRetry={renderRetry}
+          />
         </Button>
       </div>
       <DrawerFeesContainer>

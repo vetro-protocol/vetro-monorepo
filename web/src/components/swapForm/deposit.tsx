@@ -17,6 +17,7 @@ import { useMainnet } from "hooks/useMainnet";
 import { useMintFee } from "hooks/useMintFee";
 import { usePreviewDeposit } from "hooks/usePreviewDeposit";
 import { useSwapMintFees } from "hooks/useSwapMintFees";
+import { useTokenConfig } from "hooks/useTokenConfig";
 import { useTotalMintFees } from "hooks/useTotalMintFees";
 import { type FormEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -116,6 +117,11 @@ export function Deposit({
     amount: amountBigInt,
     spender: fromToken.gatewayAddress,
     token: fromToken,
+  });
+
+  const { data: tokenConfig, isError: isTokenConfigError } = useTokenConfig({
+    gatewayAddress: fromToken.gatewayAddress,
+    token: fromToken.address,
   });
 
   const { data: depositPreview, isError: isDepositPreviewError } =
@@ -250,7 +256,12 @@ export function Deposit({
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!inputError) {
+    if (
+      !inputError &&
+      needsApproval !== undefined &&
+      tokenConfig?.depositActive &&
+      depositPreview !== undefined
+    ) {
       setStartedWithApproval(!!needsApproval);
       setFlowStatus(needsApproval ? "approving" : "deposit-ready");
       depositMutation.mutate();
@@ -303,6 +314,8 @@ export function Deposit({
         <SubmitButton
           actionText={t("pages.swap.form.swap")}
           inputError={inputError}
+          isActive={tokenConfig?.depositActive}
+          isActiveError={isTokenConfigError}
           isPreviewError={isDepositPreviewError}
           previewValue={depositPreview}
           token={fromToken}

@@ -413,6 +413,8 @@
         "redeemable-for_other": "Redeemable for {{allButLast}} and {{lastSymbol}}",
         "send-to-queue": "Send to queue",
         "swap": "Swap",
+        "swaps-paused": "Swaps are paused for this token",
+        "token-status-error": "Error loading token status",
         "you-are-swapping": "You are swapping",
         "you-will-receive-estimated": "You will receive (estimated)"
       },
@@ -449,6 +451,8 @@
         "redeem": "Redeem",
         "redeem-confirmed": "Redeem confirmed",
         "redeemable-balance": "Redeemable balance",
+        "redeems-paused": "Redeems are paused",
+        "redeems-paused-for-token": "Redeems are paused for this token",
         "status": "Status",
         "swap-confirmed-description": "Your {{symbol}} is now available in your wallet",
         "title": "Redeem Queue"

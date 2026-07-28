@@ -122,3 +122,64 @@ Options:
 | `--delay`    |       | Enable withdrawal delay for the address  | —                       |
 | `--no-delay` |       | Disable withdrawal delay for the address | —                       |
 | `--fork-url` | `-f`  | Anvil RPC URL                            | `http://127.0.0.1:8545` |
+
+### Pause or Resume Deposits
+
+Flip a whitelisted token's `depositActive` flag on the gateway's Treasury using a local Anvil fork. Impersonates the treasury owner to grant itself `KEEPER_ROLE`, then sets the flag. While paused, minting from that token is blocked and the Swap CTA reads "Swaps are paused for this token".
+
+**Usage:**
+
+```bash
+node web/scripts/setDepositActive.ts --token 0xTokenAddress --pause
+node web/scripts/setDepositActive.ts --token 0xTokenAddress --unpause
+```
+
+Options (exactly one of `--pause` / `--unpause` is required):
+
+| Flag         | Short | Description                          | Default                  |
+| ------------ | ----- | ------------------------------------ | ------------------------ |
+| `--token`    | `-t`  | Whitelisted token address (required) | —                        |
+| `--pause`    |       | Pause deposits for the token         | —                        |
+| `--unpause`  |       | Resume deposits for the token        | —                        |
+| `--gateway`  | `-g`  | Gateway address                      | first configured gateway |
+| `--fork-url` | `-f`  | Anvil RPC URL                        | `http://127.0.0.1:8545`  |
+
+### Pause or Resume Redeems
+
+Same as above for a whitelisted token's `withdrawActive` flag, which controls whether the Treasury can pay that token out. While paused, the one-step redeem CTA reads "Swaps are paused for this token" and the Redeem Queue's claim drawer reads "Redeems are paused for this token"; sending to the queue is unaffected. The queue row's Redeem button only locks once **every** whitelisted token on the gateway is paused.
+
+**Usage:**
+
+```bash
+node web/scripts/setWithdrawActive.ts --token 0xTokenAddress --pause
+node web/scripts/setWithdrawActive.ts --token 0xTokenAddress --unpause
+```
+
+Options (exactly one of `--pause` / `--unpause` is required):
+
+| Flag         | Short | Description                          | Default                  |
+| ------------ | ----- | ------------------------------------ | ------------------------ |
+| `--token`    | `-t`  | Whitelisted token address (required) | —                        |
+| `--pause`    |       | Pause redeems to the token           | —                        |
+| `--unpause`  |       | Resume redeems to the token          | —                        |
+| `--gateway`  | `-g`  | Gateway address                      | first configured gateway |
+| `--fork-url` | `-f`  | Anvil RPC URL                        | `http://127.0.0.1:8545`  |
+
+### Send a Redeem to the Queue
+
+Queue a redeem of the gateway's pegged token for an address using a local Anvil fork. Impersonates the address to approve the gateway and call `requestRedeem`, so the Redeem Queue can be populated without going through the Swap form. Prints the request's `claimableAt`, which `fastForwardTime.ts` can then be used to step past.
+
+**Usage:**
+
+```bash
+node web/scripts/requestRedeem.ts --address 0xYourAddress --amount 2
+```
+
+Options:
+
+| Flag         | Short | Description                                | Default                  |
+| ------------ | ----- | ------------------------------------------ | ------------------------ |
+| `--address`  | `-a`  | Address to queue the redeem for (required) | —                        |
+| `--amount`   |       | Pegged token amount to queue (required)    | —                        |
+| `--gateway`  | `-g`  | Gateway address                            | first configured gateway |
+| `--fork-url` | `-f`  | Anvil RPC URL                              | `http://127.0.0.1:8545`  |
