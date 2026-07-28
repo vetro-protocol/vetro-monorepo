@@ -2,6 +2,7 @@ import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import type { FetchStatus, QueryStatus } from "@tanstack/react-query";
 import { TopSection } from "components/base/table/topSection";
 import { useActivityTracking } from "hooks/useActivityTracking";
+import { useAmount } from "hooks/useAmount";
 import {
   type RedeemRequest,
   useGetRedeemRequests,
@@ -71,7 +72,7 @@ function ActiveRedeemDrawer({
     () => drawerWhitelistedTokens[0],
   );
   const [flowStatus, setFlowStatus] = useState<ClaimRedeemFlowStatus>("idle");
-  const [fromInputValue, setFromInputValue] = useState("0");
+  const [fromInputValue, onFromInputChange] = useAmount();
   const [slippage, setSlippage] = useState(DEFAULT_SLIPPAGE);
 
   const amountBigInt = parseTokenUnits(fromInputValue, peggedToken);
@@ -186,7 +187,7 @@ function ActiveRedeemDrawer({
   });
 
   const handleMaxClick = () =>
-    setFromInputValue(formatUnits(amountLocked, peggedToken.decimals));
+    onFromInputChange(formatUnits(amountLocked, peggedToken.decimals));
 
   const handleSubmit = function () {
     setFlowStatus("redeem-ready");
@@ -208,7 +209,7 @@ function ActiveRedeemDrawer({
       inputError={inputError}
       networkFee={networkFee}
       onClose={handleClose}
-      onInputChange={setFromInputValue}
+      onInputChange={onFromInputChange}
       onMaxClick={handleMaxClick}
       onSubmit={handleSubmit}
       onTokenChange={setToToken}
