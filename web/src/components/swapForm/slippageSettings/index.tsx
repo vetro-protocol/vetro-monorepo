@@ -114,7 +114,7 @@ function SlippagePanel({
             }`}
           >
             <input
-              className="w-11 bg-transparent text-right outline-none"
+              className="w-7 bg-transparent text-right outline-none"
               inputMode="decimal"
               onChange={(e) => onInputChange(e.target.value)}
               onKeyDown={onInputKeyDown}
