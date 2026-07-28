@@ -80,11 +80,11 @@ importers:
         specifier: 2.44.4
         version: 2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)
       viem-erc20:
-        specifier: 2.1.0
-        version: 2.1.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
+        specifier: 2.2.0
+        version: 2.2.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
       viem-erc4626:
         specifier: 1.0.0
-        version: 1.0.0(viem-erc20@2.1.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)))(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
+        version: 1.0.0(viem-erc20@2.2.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)))(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
     devDependencies:
       '@sentry/cli':
         specifier: 2.58.5
@@ -135,11 +135,11 @@ importers:
         specifier: 2.44.4
         version: 2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)
       viem-erc20:
-        specifier: 2.1.0
-        version: 2.1.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
+        specifier: 2.2.0
+        version: 2.2.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
       viem-erc4626:
         specifier: 1.0.0
-        version: 1.0.0(viem-erc20@2.1.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)))(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
+        version: 1.0.0(viem-erc20@2.2.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)))(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
     devDependencies:
       '@cloudflare/vite-plugin':
         specifier: 1.23.1
@@ -190,8 +190,8 @@ importers:
         specifier: 1.0.0
         version: 1.0.0
       viem-erc20:
-        specifier: 2.1.0
-        version: 2.1.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
+        specifier: 2.2.0
+        version: 2.2.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
     devDependencies:
       '@tsconfig/node24':
         specifier: 24.0.4
@@ -246,8 +246,8 @@ importers:
         specifier: 1.0.0
         version: 1.0.0
       viem-erc20:
-        specifier: 2.1.0
-        version: 2.1.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
+        specifier: 2.2.0
+        version: 2.2.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
     devDependencies:
       '@tsconfig/node24':
         specifier: 24.0.4
@@ -274,8 +274,8 @@ importers:
         specifier: 1.0.0
         version: 1.0.0
       viem-erc20:
-        specifier: 2.1.0
-        version: 2.1.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
+        specifier: 2.2.0
+        version: 2.2.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
     devDependencies:
       '@tsconfig/node24':
         specifier: 24.0.4
@@ -317,8 +317,8 @@ importers:
         specifier: 1.0.0
         version: 1.0.0
       viem-erc20:
-        specifier: 2.1.0
-        version: 2.1.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
+        specifier: 2.2.0
+        version: 2.2.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
     devDependencies:
       '@tsconfig/node24':
         specifier: 24.0.4
@@ -374,7 +374,7 @@ importers:
     dependencies:
       '@hemilabs/react-hooks':
         specifier: 1.6.0
-        version: 1.6.0(@hemilabs/wallet-watch-asset@1.0.2(patch_hash=933b0ee20c3f95b39d12cd9f25e1175fef9353a7ef2d91378cafd55f2efec0fc))(@tanstack/react-query@5.90.19(react@19.2.3))(react@19.2.3)(viem-erc20@2.1.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)))(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))(wagmi@2.19.5(@tanstack/query-core@5.90.19)(@tanstack/react-query@5.90.19(react@19.2.3))(@types/react@19.2.9)(bufferutil@4.1.0)(encoding@0.1.13)(react@19.2.3)(typescript@5.9.3)(utf-8-validate@5.0.10)(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))(zod@4.3.5))
+        version: 1.6.0(@hemilabs/wallet-watch-asset@1.0.2(patch_hash=933b0ee20c3f95b39d12cd9f25e1175fef9353a7ef2d91378cafd55f2efec0fc))(@tanstack/react-query@5.90.19(react@19.2.3))(react@19.2.3)(viem-erc20@2.2.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)))(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))(wagmi@2.19.5(@tanstack/query-core@5.90.19)(@tanstack/react-query@5.90.19(react@19.2.3))(@types/react@19.2.9)(bufferutil@4.1.0)(encoding@0.1.13)(react@19.2.3)(typescript@5.9.3)(utf-8-validate@5.0.10)(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))(zod@4.3.5))
       '@hemilabs/wallet-watch-asset':
         specifier: 1.0.2
         version: 1.0.2(patch_hash=933b0ee20c3f95b39d12cd9f25e1175fef9353a7ef2d91378cafd55f2efec0fc)
@@ -454,11 +454,11 @@ importers:
         specifier: 2.44.4
         version: 2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)
       viem-erc20:
-        specifier: 2.1.0
-        version: 2.1.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
+        specifier: 2.2.0
+        version: 2.2.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
       viem-erc4626:
         specifier: 1.0.0
-        version: 1.0.0(viem-erc20@2.1.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)))(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
+        version: 1.0.0(viem-erc20@2.2.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)))(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
       wagmi:
         specifier: 2.19.5
         version: 2.19.5(@tanstack/query-core@5.90.19)(@tanstack/react-query@5.90.19(react@19.2.3))(@types/react@19.2.9)(bufferutil@4.1.0)(encoding@0.1.13)(react@19.2.3)(typescript@5.9.3)(utf-8-validate@5.0.10)(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))(zod@4.3.5)
@@ -8314,9 +8314,9 @@ packages:
     peerDependencies:
       react: '>=16.6.0'
 
-  viem-erc20@2.1.0:
-    resolution: {integrity: sha512-nKm8FP0PHxVCtr6UTxBS8j3uJA+dVXzsIWMZsPfQNojuS93nJ8V3i/gS0OQM0pByHPNUFvlI/thjylS9F8EtDQ==, tarball: https://registry.npmjs.org/viem-erc20/-/viem-erc20-2.1.0.tgz}
-    engines: {node: '>=20'}
+  viem-erc20@2.2.0:
+    resolution: {integrity: sha512-D94oo26ypP+0N4ysZ39IuiwlEDEg5z2BdaEf+55rFqulWyM3wRe8vyhMqMycD/zMXQFdan4NWpsutOng3BKL4g==, tarball: https://registry.npmjs.org/viem-erc20/-/viem-erc20-2.2.0.tgz}
+    engines: {node: ^20.19.0 || >=22.12.0}
     peerDependencies:
       viem: ^2.x
 
@@ -9546,13 +9546,13 @@ snapshots:
     optionalDependencies:
       vitest: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@24.1.0)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@24.1.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
 
-  '@hemilabs/react-hooks@1.6.0(@hemilabs/wallet-watch-asset@1.0.2(patch_hash=933b0ee20c3f95b39d12cd9f25e1175fef9353a7ef2d91378cafd55f2efec0fc))(@tanstack/react-query@5.90.19(react@19.2.3))(react@19.2.3)(viem-erc20@2.1.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)))(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))(wagmi@2.19.5(@tanstack/query-core@5.90.19)(@tanstack/react-query@5.90.19(react@19.2.3))(@types/react@19.2.9)(bufferutil@4.1.0)(encoding@0.1.13)(react@19.2.3)(typescript@5.9.3)(utf-8-validate@5.0.10)(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))(zod@4.3.5))':
+  '@hemilabs/react-hooks@1.6.0(@hemilabs/wallet-watch-asset@1.0.2(patch_hash=933b0ee20c3f95b39d12cd9f25e1175fef9353a7ef2d91378cafd55f2efec0fc))(@tanstack/react-query@5.90.19(react@19.2.3))(react@19.2.3)(viem-erc20@2.2.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)))(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))(wagmi@2.19.5(@tanstack/query-core@5.90.19)(@tanstack/react-query@5.90.19(react@19.2.3))(@types/react@19.2.9)(bufferutil@4.1.0)(encoding@0.1.13)(react@19.2.3)(typescript@5.9.3)(utf-8-validate@5.0.10)(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))(zod@4.3.5))':
     dependencies:
       '@hemilabs/wallet-watch-asset': 1.0.2(patch_hash=933b0ee20c3f95b39d12cd9f25e1175fef9353a7ef2d91378cafd55f2efec0fc)
       '@tanstack/react-query': 5.90.19(react@19.2.3)
       react: 19.2.3
       viem: 2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)
-      viem-erc20: 2.1.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
+      viem-erc20: 2.2.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
       wagmi: 2.19.5(@tanstack/query-core@5.90.19)(@tanstack/react-query@5.90.19(react@19.2.3))(@types/react@19.2.9)(bufferutil@4.1.0)(encoding@0.1.13)(react@19.2.3)(typescript@5.9.3)(utf-8-validate@5.0.10)(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))(zod@4.3.5)
 
   '@hemilabs/wallet-watch-asset@1.0.2(patch_hash=933b0ee20c3f95b39d12cd9f25e1175fef9353a7ef2d91378cafd55f2efec0fc)': {}
@@ -17821,14 +17821,14 @@ snapshots:
       victory-voronoi-container: 37.3.6(react@19.2.3)
       victory-zoom-container: 37.3.6(react@19.2.3)
 
-  viem-erc20@2.1.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)):
+  viem-erc20@2.2.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)):
     dependencies:
       viem: 2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)
 
-  viem-erc4626@1.0.0(viem-erc20@2.1.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)))(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)):
+  viem-erc4626@1.0.0(viem-erc20@2.2.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)))(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)):
     dependencies:
       viem: 2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)
-      viem-erc20: 2.1.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
+      viem-erc20: 2.2.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
 
   viem@2.23.2(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5):
     dependencies:

@@ -2,7 +2,8 @@ import { allowanceQueryOptions } from "@hemilabs/react-hooks/useAllowance";
 import type { QueryClient } from "@tanstack/react-query";
 import { config } from "providers/web3Provider";
 import type { Token } from "types";
-import { type Address, type Client, encodeFunctionData, erc20Abi } from "viem";
+import type { Address, Client } from "viem";
+import { encodeApproveData } from "viem-erc20/actions";
 import { estimateGasQueryOptions } from "wagmi/query";
 
 export const estimateApprovalGasUnits = async function ({
@@ -35,11 +36,7 @@ export const estimateApprovalGasUnits = async function ({
   return queryClient.ensureQueryData(
     estimateGasQueryOptions(config, {
       account: owner,
-      data: encodeFunctionData({
-        abi: erc20Abi,
-        args: [spender, approveAmount ?? amount],
-        functionName: "approve",
-      }),
+      data: encodeApproveData({ amount: approveAmount ?? amount, spender }),
       to: token.address,
     }),
   );
