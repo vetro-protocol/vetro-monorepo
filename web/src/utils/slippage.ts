@@ -33,7 +33,7 @@ export function sanitizeSlippage(raw: string) {
   if (raw === "") {
     return "";
   }
-  const value = raw.replace(",", ".");
+  const value = raw.replace(",", ".").replace(/^0+(?=\d)/, "");
   if (!/^\d+(\.\d?)?$/.test(value)) {
     return null;
   }
