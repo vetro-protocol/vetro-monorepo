@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { parseAddress, parseGateway, parseSlippage } from "../src/lib/args.js";
+import {
+  parseAddress,
+  parseAmount,
+  parseGateway,
+  parseSlippage,
+} from "../src/lib/args.js";
 
 describe("parseAddress", function () {
   it("returns the checksummed address for valid lowercase input", function () {
@@ -13,6 +18,40 @@ describe("parseAddress", function () {
     expect(() => parseAddress("not-an-address")).toThrow(
       'Invalid address: "not-an-address"',
     );
+  });
+});
+
+describe("parseAmount", function () {
+  it("returns the value unchanged for integers", function () {
+    expect(parseAmount("1")).toBe("1");
+    expect(parseAmount("1000")).toBe("1000");
+  });
+
+  it("returns the value unchanged for decimals", function () {
+    expect(parseAmount("0.5")).toBe("0.5");
+    expect(parseAmount("12.000000000000000001")).toBe("12.000000000000000001");
+  });
+
+  it("throws for zero", function () {
+    expect(() => parseAmount("0")).toThrow(
+      'Amount must be greater than 0: "0"',
+    );
+    expect(() => parseAmount("0.0")).toThrow(
+      'Amount must be greater than 0: "0.0"',
+    );
+    expect(() => parseAmount("00.000")).toThrow(
+      'Amount must be greater than 0: "00.000"',
+    );
+  });
+
+  it("throws for malformed values", function () {
+    expect(() => parseAmount("abc")).toThrow('Invalid amount: "abc"');
+    expect(() => parseAmount("-1")).toThrow('Invalid amount: "-1"');
+    expect(() => parseAmount(".5")).toThrow('Invalid amount: ".5"');
+    expect(() => parseAmount("1.")).toThrow('Invalid amount: "1."');
+    expect(() => parseAmount("1.2.3")).toThrow('Invalid amount: "1.2.3"');
+    expect(() => parseAmount("1e18")).toThrow('Invalid amount: "1e18"');
+    expect(() => parseAmount("")).toThrow('Invalid amount: ""');
   });
 });
 

@@ -16,7 +16,7 @@ export function parseAmount(value: string) {
   if (!/^\d+(\.\d+)?$/.test(value)) {
     throw new InvalidArgumentError(`Invalid amount: "${value}"`);
   }
-  if (/^0*(\.0*)?$/.test(value)) {
+  if (Number(value) === 0) {
     throw new InvalidArgumentError(`Amount must be greater than 0: "${value}"`);
   }
   return value;
