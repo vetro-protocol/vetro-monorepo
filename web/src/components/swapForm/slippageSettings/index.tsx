@@ -187,12 +187,10 @@ export function SlippageSettings({ onChange, slippage }: Props) {
   }
 
   function handleToggleAuto() {
-    setIsAuto(function (previous) {
-      if (!previous) {
-        setDraft("");
-      }
-      return !previous;
-    });
+    if (!isAuto) {
+      setDraft("");
+    }
+    setIsAuto((previous) => !previous);
   }
 
   function handleInputKeyDown(event: KeyboardEvent<HTMLInputElement>) {
