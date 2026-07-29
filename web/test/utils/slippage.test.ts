@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { applySlippage, sanitizeSlippage } from "./slippage";
+import { applySlippage, sanitizeSlippage } from "../../src/utils/slippage";
 
 describe("applySlippage", function () {
   it("returns the full preview when slippage is 0 (auto)", function () {
@@ -60,6 +60,19 @@ describe("sanitizeSlippage", function () {
   it("normalizes a comma separator to a dot", function () {
     expect(sanitizeSlippage("0,2")).toBe("0.2");
     expect(sanitizeSlippage("12,")).toBe("12.");
+  });
+
+  it("drops leading zeros", function () {
+    expect(sanitizeSlippage("007")).toBe("7");
+    expect(sanitizeSlippage("00")).toBe("0");
+    expect(sanitizeSlippage("05.5")).toBe("5.5");
+    expect(sanitizeSlippage("00.5")).toBe("0.5");
+    expect(sanitizeSlippage("0100")).toBe("100");
+  });
+
+  it("keeps a lone zero while typing a decimal", function () {
+    expect(sanitizeSlippage("0")).toBe("0");
+    expect(sanitizeSlippage("0.")).toBe("0.");
   });
 
   it("rejects a comma with more than one decimal digit", function () {
