@@ -6,7 +6,7 @@ export const DEFAULT_SLIPPAGE = 0;
 
 export const MAX_SLIPPAGE = 100;
 
-// TODO may be shared on core package https://github.com/vetro-protocol/vetro-monorepo/issues/659
+// TODO may be shared in a core package https://github.com/vetro-protocol/vetro-monorepo/issues/659
 export const applySlippage = ({
   preview,
   slippage,
