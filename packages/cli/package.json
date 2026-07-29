@@ -18,14 +18,18 @@
     "prepack": "cp ../../LICENSE LICENSE",
     "postpack": "rm -f LICENSE",
     "prepublishOnly": "pnpm clean && pnpm bundle",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "pnpm bundle && vitest run --config vitest.e2e.config.ts"
   },
   "dependencies": {
     "@vetro-protocol/gateway": "workspace:*",
+    "@vetro-protocol/treasury": "workspace:*",
     "commander": "15.0.0",
-    "viem": "2.44.4"
+    "viem": "2.44.4",
+    "viem-erc20": "2.2.0"
   },
   "devDependencies": {
+    "@hemilabs/anvil-fork-setup": "2.0.0",
     "@tsconfig/node24": "24.0.4",
     "@types/node": "24.1.0",
     "esbuild": "0.27.3",
