@@ -6,7 +6,7 @@ import { ErrorBoundary } from "components/base/errorBoundary";
 import { GeoRestrictionRibbon } from "components/geoRestrictionRibbon";
 import { Header } from "components/header";
 import { I18nInitializer } from "i18n/config";
-import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
+import { NuqsAdapter } from "nuqs/adapters/react-router/v8";
 import { Analytics } from "pages/analytics";
 import { Borrow } from "pages/borrow";
 import { BorrowMarketDetails } from "pages/borrowMarketDetails";
