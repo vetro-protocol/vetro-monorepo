@@ -3,6 +3,7 @@ import { TEST_ADDRESS } from "@hemilabs/anvil-fork-setup/utils";
 import { type ChildProcess, spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { parseArgs } from "node:util";
 import { mainnet } from "viem/chains";
 
 import { fundAccount } from "./fundAccount.ts";
@@ -30,9 +31,19 @@ const startViteServer = (forkUrl: string): ChildProcess =>
     stdio: "inherit",
   });
 
+const { values } = parseArgs({
+  options: {
+    "fork-url": { short: "f", type: "string" },
+  },
+  strict: true,
+});
+
 const { stop, url } = await startAnvilFork({
   chainId: mainnet.id,
-  forkUrl: process.env.VITE_RPC_URL_MAINNET ?? mainnet.rpcUrls.default.http[0],
+  forkUrl:
+    values["fork-url"] ??
+    process.env.VITE_RPC_URL_MAINNET ??
+    mainnet.rpcUrls.default.http[0],
 });
 
 // Fund only — scenario state (cooldown, redeem delay, time jumps, …) is

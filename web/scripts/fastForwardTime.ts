@@ -16,10 +16,10 @@ import { mainnet } from "viem/chains";
  * @returns The fork's new block.timestamp (unix seconds) after the jump.
  */
 export async function fastForwardTime({
-  forkUrl,
+  forkUrl = "http://127.0.0.1:8545",
   seconds,
 }: {
-  forkUrl: string;
+  forkUrl?: string;
   seconds: number;
 }) {
   const testClient = createTestClient({
@@ -36,7 +36,7 @@ export async function fastForwardTime({
 }
 
 // Allow running as a standalone script:
-//   node web/scripts/fastForwardTime.ts --fork-url http://127.0.0.1:8545 --seconds 120
+//   node web/scripts/fastForwardTime.ts --seconds 120 [--fork-url …]
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const { values } = parseArgs({
     options: {
@@ -48,14 +48,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 
   if (!values.seconds || !/^\d+$/.test(values.seconds)) {
     console.error(
-      "Seconds is invalid. Usage: node web/scripts/fastForwardTime.ts --fork-url http://127.0.0.1:8545 --seconds 120",
-    );
-    process.exit(1);
-  }
-
-  if (!values["fork-url"]) {
-    console.error(
-      "Fork URL is required. Usage: node web/scripts/fastForwardTime.ts --fork-url http://127.0.0.1:8545 --seconds 120",
+      "Seconds is invalid. Usage: node web/scripts/fastForwardTime.ts --seconds 120",
     );
     process.exit(1);
   }
@@ -66,6 +59,6 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   });
 
   console.log(
-    `Fast-forwarded ${values.seconds}s on ${values["fork-url"]} (new block.timestamp: ${timestamp}).`,
+    `Fast-forwarded ${values.seconds}s (new block.timestamp: ${timestamp}).`,
   );
 }
