@@ -16,6 +16,7 @@
     "connect-wallet": "Conectar billetera",
     "enter-amount": "Ingrese un monto",
     "exceeds-debt": "El monto excede la deuda",
+    "exceeds-max-mint": "El monto excede el límite de acuñación",
     "geo-restriction-title": "Vetro no está disponible en su país",
     "insufficient-balance": "Saldo insuficiente",
     "insufficient-collateral": "Garantía insuficiente",
