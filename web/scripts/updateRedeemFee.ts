@@ -37,8 +37,8 @@ const grantRoleAbi = [
 const { values } = parseArgs({
   options: {
     fee: { short: "f", type: "string" },
+    "fork-url": { default: "http://127.0.0.1:8545", type: "string" },
     gateway: { short: "g", type: "string" },
-    "rpc-url": { default: "http://127.0.0.1:8545", short: "r", type: "string" },
     token: { short: "t", type: "string" },
   },
   strict: true,
@@ -62,7 +62,7 @@ if (!values.fee || !Number.isInteger(fee) || fee < 0 || fee > 500) {
   process.exit(1);
 }
 
-const transport = http(values["rpc-url"]);
+const transport = http(values["fork-url"]);
 
 const publicClient = createPublicClient({
   chain: mainnet,

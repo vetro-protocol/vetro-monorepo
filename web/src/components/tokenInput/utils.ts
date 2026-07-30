@@ -2,6 +2,7 @@ const inputErrors = [
   "amount-too-small-to-bridge",
   "enter-amount",
   "exceeds-debt",
+  "exceeds-max-mint",
   "insufficient-balance",
   "insufficient-collateral",
   "insufficient-gas",

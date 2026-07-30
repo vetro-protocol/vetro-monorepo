@@ -12,6 +12,7 @@ import { fastForwardTime } from "../scripts/fastForwardTime.ts";
 import { setRedeemDelay } from "../scripts/redeemDelay.ts";
 import { requestRedeem } from "../scripts/requestRedeem.ts";
 import { setDepositActive } from "../scripts/setDepositActive.ts";
+import { setMaxMint } from "../scripts/setMaxMint.ts";
 import { setWithdrawActive } from "../scripts/setWithdrawActive.ts";
 import { whitelistInstantRedeem } from "../scripts/whitelistInstantRedeem.ts";
 
@@ -157,6 +158,64 @@ test("deposit CTA reads 'Swaps are paused' when the token's deposits are paused"
     token: usdc.address,
   });
   expect(resumed.activeAfter).toBe(true);
+});
+
+test("deposit CTA reads 'Amount exceeds mint limit' once the preview exceeds the gateway's remaining capacity", async function ({
+  page,
+}) {
+  const remainingCapacity = parseUnits("0.5", vusd.decimals);
+  const { maxMintAfter, maxMintBefore } = await setMaxMint({
+    forkUrl: ANVIL_URL,
+    gateway: gatewayAddresses[0],
+    maxMint: remainingCapacity,
+  });
+  expect(maxMintAfter).toBe(remainingCapacity);
+
+  await page.goto("/swap");
+
+  await expect(
+    page.getByRole("button", { name: /^0x[a-f0-9]{4}/i }),
+  ).toBeVisible({ timeout: 30_000 });
+
+  const fromTokenSelector = page
+    .getByRole("button", { name: "Select token to swap" })
+    .first();
+  await fromTokenSelector.click();
+
+  const fromTokenDialog = page.getByRole("dialog", { name: "Select a token" });
+  await expect(fromTokenDialog).toBeVisible();
+  await fromTokenDialog
+    .getByRole("button", { name: usdcSymbol })
+    .first()
+    .click();
+
+  await expect(fromTokenSelector).toContainText(usdcSymbol);
+  await expect(fromTokenDialog).toBeHidden();
+
+  const amountInput = page
+    .locator('input[type="text"]:not([disabled])')
+    .first();
+
+  await amountInput.fill("0.1");
+  await expect(page.getByRole("button", { name: /^swap$/i })).toBeEnabled({
+    timeout: 20_000,
+  });
+
+  // Over the cap: 1 USDC previews to ~0.999 VUSD, above the 0.5 remaining.
+  await amountInput.fill(SWAP_AMOUNT_DISPLAY);
+
+  const exceededButton = page.getByRole("button", {
+    name: "Amount exceeds mint limit",
+  });
+  await expect(exceededButton).toBeVisible({ timeout: 20_000 });
+  await expect(exceededButton).toBeDisabled();
+
+  const restored = await setMaxMint({
+    forkUrl: ANVIL_URL,
+    gateway: gatewayAddresses[0],
+    maxMint: maxMintBefore,
+  });
+  expect(restored.maxMintAfter).toBe(maxMintBefore);
 });
 
 test("redeem VUSD → USDC via the gateway (instant redeem)", async function ({

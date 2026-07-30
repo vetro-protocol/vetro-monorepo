@@ -147,4 +147,59 @@ describe("getInputError", function () {
     });
     expect(result).toBe("insufficient-balance");
   });
+
+  it("returns 'exceeds-max-mint' when depositPreview exceeds maxMint", function () {
+    const result = getInputError({
+      amount: 500n,
+      depositPreview: 200n,
+      maxMint: 100n,
+      nativeBalance: 100n,
+      tokenBalance: 1000n,
+    });
+    expect(result).toBe("exceeds-max-mint");
+  });
+
+  it("returns undefined when depositPreview equals maxMint", function () {
+    const result = getInputError({
+      amount: 500n,
+      depositPreview: 100n,
+      maxMint: 100n,
+      nativeBalance: 100n,
+      tokenBalance: 1000n,
+    });
+    expect(result).toBeUndefined();
+  });
+
+  it("returns undefined when maxMint is undefined", function () {
+    const result = getInputError({
+      amount: 500n,
+      depositPreview: 200n,
+      maxMint: undefined,
+      nativeBalance: 100n,
+      tokenBalance: 1000n,
+    });
+    expect(result).toBeUndefined();
+  });
+
+  it("returns undefined when depositPreview is undefined", function () {
+    const result = getInputError({
+      amount: 500n,
+      depositPreview: undefined,
+      maxMint: 100n,
+      nativeBalance: 100n,
+      tokenBalance: 1000n,
+    });
+    expect(result).toBeUndefined();
+  });
+
+  it("returns 'insufficient-balance' before 'exceeds-max-mint' when both apply", function () {
+    const result = getInputError({
+      amount: 2000n,
+      depositPreview: 200n,
+      maxMint: 100n,
+      nativeBalance: 100n,
+      tokenBalance: 1000n,
+    });
+    expect(result).toBe("insufficient-balance");
+  });
 });
