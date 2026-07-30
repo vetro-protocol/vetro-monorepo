@@ -143,5 +143,9 @@ export async function resolvePeggedToken({
   gatewayAddress: Address;
 }) {
   const address = await getPeggedToken(client, { address: gatewayAddress });
-  return { address, symbol: await symbol(client, { address }) };
+  const [tokenDecimals, tokenSymbol] = await Promise.all([
+    decimals(client, { address }),
+    symbol(client, { address }),
+  ]);
+  return { address, decimals: tokenDecimals, symbol: tokenSymbol };
 }
