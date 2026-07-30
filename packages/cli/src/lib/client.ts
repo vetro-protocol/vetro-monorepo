@@ -5,6 +5,7 @@ import { mainnet } from "viem/chains";
 // For the time being, for development, let's allow overriding with env vars
 export const createVetroClient = () =>
   createPublicClient({
+    batch: { multicall: true },
     chain: mainnet,
     transport: http(process.env.RPC_URL),
   });
