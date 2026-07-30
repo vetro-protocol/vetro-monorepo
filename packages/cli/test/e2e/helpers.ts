@@ -2,9 +2,7 @@ import {
   TEST_ADDRESS,
   TEST_PRIVATE_KEY,
 } from "@hemilabs/anvil-fork-setup/utils";
-import { execFile } from "node:child_process";
-import { fileURLToPath } from "node:url";
-import { promisify } from "node:util";
+import { type Command, CommanderError } from "commander";
 import {
   type Address,
   type Hex,
@@ -16,6 +14,7 @@ import {
   http,
   keccak256,
   pad,
+  parseAbi,
   parseEther,
   parseUnits,
   toHex,
@@ -29,10 +28,8 @@ import {
 } from "viem/actions";
 import { mainnet } from "viem/chains";
 
-const execFileAsync = promisify(execFile);
-
-// The bundled bin is what actually ships, so the tests drive that rather than src.
-const cliPath = fileURLToPath(new URL("../../_esm/cli.js", import.meta.url));
+import { printError } from "../../src/lib/output.js";
+import { createProgram } from "../../src/program.js";
 
 export const usdc = {
   address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
@@ -55,23 +52,102 @@ export type TransactionRequest = {
   value: Hex;
 };
 
-export const runCliRaw = ({
+export const gatewayAbi = parseAbi([
+  "function deposit(address tokenIn, uint256 amountIn, uint256 minPeggedTokenOut, address receiver)",
+]);
+
+export const swapAmount = "100";
+export const slippage = "0.5";
+
+export const mintArgs = (extra: string[] = []) => [
+  "swap",
+  "mint",
+  "--from",
+  usdc.symbol,
+  "--amount",
+  swapAmount,
+  "--receiver",
+  TEST_ADDRESS,
+  ...extra,
+];
+
+export const approveArgs = (token: string) => [
+  "swap",
+  "approve",
+  "--token",
+  token,
+  "--amount",
+  swapAmount,
+];
+
+const captureStream = function (stream: NodeJS.WriteStream) {
+  const chunks: string[] = [];
+  const original = stream.write;
+  stream.write = function (chunk: unknown) {
+    chunks.push(String(chunk));
+    return true;
+  } as NodeJS.WriteStream["write"];
+  return {
+    read: () => chunks.join(""),
+    restore() {
+      stream.write = original;
+    },
+  };
+};
+
+// Commander copies these to subcommands as they are created, so the root alone
+// would still let a subcommand call process.exit and take the test run with it.
+const withExitOverride = function (command: Command) {
+  command.exitOverride();
+  command.commands.forEach(withExitOverride);
+  return command;
+};
+
+/**
+ * Runs the CLI in this process, mirroring how `src/cli.ts` reports failures:
+ * commander prints its own usage errors, anything else goes through
+ * `printError`. Driving `createProgram` in this process, rather than spawning
+ * the bundled bin, is what lets coverage see these runs.
+ */
+export const runCliRaw = async function ({
   args,
   rpcUrl,
 }: {
   args: string[];
   rpcUrl: string;
-}) =>
-  execFileAsync(process.execPath, [cliPath, ...args], {
-    env: { ...process.env, RPC_URL: rpcUrl },
-  }).then(
-    ({ stderr, stdout }) => ({ exitCode: 0, stderr, stdout }),
-    (error: { code: number; stderr: string; stdout: string }) => ({
-      exitCode: error.code,
-      stderr: error.stderr,
-      stdout: error.stdout,
-    }),
-  );
+}) {
+  const stdout = captureStream(process.stdout);
+  const stderr = captureStream(process.stderr);
+  const previousRpcUrl = process.env.RPC_URL;
+  const previousExitCode = process.exitCode;
+
+  process.env.RPC_URL = rpcUrl;
+  process.exitCode = 0;
+
+  try {
+    await withExitOverride(createProgram()).parseAsync(args, { from: "user" });
+  } catch (error) {
+    if (error instanceof CommanderError) {
+      process.exitCode = error.exitCode;
+    } else {
+      printError(error);
+    }
+  } finally {
+    stdout.restore();
+    stderr.restore();
+    if (previousRpcUrl === undefined) {
+      delete process.env.RPC_URL;
+    } else {
+      process.env.RPC_URL = previousRpcUrl;
+    }
+  }
+
+  const exitCode = process.exitCode ?? 0;
+  // Leaving this set would fail the vitest run itself.
+  process.exitCode = previousExitCode;
+
+  return { exitCode, stderr: stderr.read(), stdout: stdout.read() };
+};
 
 export const runCli = async function <T = string>({
   args,
