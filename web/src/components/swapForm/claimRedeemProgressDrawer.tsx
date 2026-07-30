@@ -31,6 +31,7 @@ type Props = {
   fromAmount: string;
   fromToken: TokenWithGateway;
   inputError: InputError | undefined;
+  isLoading: boolean;
   isPreviewError: boolean;
   onInputChange: (value: string) => void;
   onMaxClick: VoidFunction;
@@ -110,6 +111,7 @@ export function ClaimRedeemProgressDrawer({
   fromAmount,
   fromToken,
   inputError,
+  isLoading,
   isPreviewError,
   networkFee,
   onInputChange,
@@ -138,8 +140,8 @@ export function ClaimRedeemProgressDrawer({
   const geoRestricted = isGeoRestricted();
   const isPaused = tokenConfig?.withdrawActive === false;
   const renderRetry = flowStatus === "redeem-error";
-  const isDataLoaded = tokenConfig !== undefined && outputBigInt !== undefined;
-  const isLoading = !isDataLoaded && !isTokenConfigError;
+  const isDataLoaded =
+    !isLoading && tokenConfig !== undefined && outputBigInt !== undefined;
   const isDisabled =
     geoRestricted ||
     isPaused ||
@@ -201,7 +203,7 @@ export function ClaimRedeemProgressDrawer({
             geoRestricted={geoRestricted}
             inputError={inputError}
             isActiveError={isTokenConfigError}
-            isLoading={isLoading}
+            isLoading={!isDataLoaded}
             isPaused={isPaused}
             isPreviewError={isPreviewError}
             renderRetry={renderRetry}

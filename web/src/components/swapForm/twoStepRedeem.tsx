@@ -101,11 +101,12 @@ export function TwoStepRedeem({
   const { data: nativeBalanceData } = useNativeBalance(ethereumChain.id);
   const nativeBalance = nativeBalanceData?.value;
 
-  const { data: needsApproval } = useNeedsApproval({
-    amount: amountBigInt,
-    spender: fromToken.gatewayAddress,
-    token: fromToken,
-  });
+  const { data: needsApproval, isError: isNeedsApprovalError } =
+    useNeedsApproval({
+      amount: amountBigInt,
+      spender: fromToken.gatewayAddress,
+      token: fromToken,
+    });
 
   const { data: redeemPreview, isError: isPreviewError } = usePreviewRedeem({
     gatewayAddress: fromToken.gatewayAddress,
@@ -179,6 +180,9 @@ export function TwoStepRedeem({
     nativeBalance,
     tokenBalance: fromTokenBalance,
   });
+
+  const isLoading = () =>
+    redeemPreview === undefined || needsApproval === undefined;
 
   const networkFeeQueryData = useSwapRequestRedeemFees({
     amount: amountBigInt,
@@ -277,9 +281,9 @@ export function TwoStepRedeem({
           inputError={inputError}
           // First step of the two-step redeeming is always active
           isActive
+          isAllowanceError={isNeedsApprovalError}
+          isLoading={isLoading()}
           isPreviewError={isPreviewError}
-          previewValue={redeemPreview}
-          token={fromToken}
         />
         <div className="border-t border-gray-200 px-2 py-3 *:w-full">
           <Button

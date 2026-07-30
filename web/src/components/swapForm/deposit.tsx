@@ -14,6 +14,7 @@ import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useDeposit } from "hooks/useDeposit";
 import { useMainnet } from "hooks/useMainnet";
+import { useMaxMint } from "hooks/useMaxMint";
 import { useMintFee } from "hooks/useMintFee";
 import { usePreviewDeposit } from "hooks/usePreviewDeposit";
 import { useSwapMintFees } from "hooks/useSwapMintFees";
@@ -113,10 +114,15 @@ export function Deposit({
 
   const { data: nativeBalanceData } = useNativeBalance(ethereumChain.id);
 
-  const { data: needsApproval } = useNeedsApproval({
-    amount: amountBigInt,
-    spender: fromToken.gatewayAddress,
-    token: fromToken,
+  const { data: needsApproval, isError: isNeedsApprovalError } =
+    useNeedsApproval({
+      amount: amountBigInt,
+      spender: fromToken.gatewayAddress,
+      token: fromToken,
+    });
+
+  const { data: maxMint, isError: isMaxMintError } = useMaxMint({
+    gatewayAddress: fromToken.gatewayAddress,
   });
 
   const { data: tokenConfig, isError: isTokenConfigError } = useTokenConfig({
@@ -219,6 +225,8 @@ export function Deposit({
 
   const inputError = getInputError({
     amount: amountBigInt,
+    depositPreview,
+    maxMint,
     nativeBalance,
     tokenBalance: fromTokenBalance,
   });
@@ -248,6 +256,12 @@ export function Deposit({
 
   const balancesLoaded =
     nativeBalance !== undefined && fromTokenBalance !== undefined;
+
+  const isLoading = () =>
+    depositPreview === undefined ||
+    needsApproval === undefined ||
+    tokenConfig === undefined ||
+    (maxMint === undefined && !isMaxMintError);
 
   const handleRetry = function () {
     setFlowStatus(startedWithApproval ? "approving" : "deposit-ready");
@@ -316,9 +330,9 @@ export function Deposit({
           inputError={inputError}
           isActive={tokenConfig?.depositActive}
           isActiveError={isTokenConfigError}
+          isAllowanceError={isNeedsApprovalError}
+          isLoading={isLoading()}
           isPreviewError={isDepositPreviewError}
-          previewValue={depositPreview}
-          token={fromToken}
         />
       </Form>
       <FormSection show={amountBigInt !== 0n}>

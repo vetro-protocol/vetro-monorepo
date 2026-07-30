@@ -2,6 +2,7 @@ import type { Client, WalletClient } from "viem";
 
 import {
   getGateway,
+  getMaxMint,
   getMaxWithdraw,
   getMintFee,
   getPeggedToken,
@@ -48,6 +49,8 @@ export {
 export const gatewayPublicActions = () => (client: Client) => ({
   getGateway: (params: Parameters<typeof getGateway>[1]) =>
     getGateway(client, params),
+  getMaxMint: (params: Parameters<typeof getMaxMint>[1]) =>
+    getMaxMint(client, params),
   getMaxWithdraw: (params: Parameters<typeof getMaxWithdraw>[1]) =>
     getMaxWithdraw(client, params),
   getMintFee: (params: Parameters<typeof getMintFee>[1]) =>

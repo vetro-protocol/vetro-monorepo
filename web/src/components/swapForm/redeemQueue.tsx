@@ -77,7 +77,7 @@ function ActiveRedeemDrawer({
 
   const amountBigInt = parseTokenUnits(fromInputValue, peggedToken);
 
-  const { data: maxWithdraw } = useMaxWithdraw({
+  const { data: maxWithdraw, isError: isMaxWithdrawError } = useMaxWithdraw({
     gatewayAddress: peggedToken.gatewayAddress,
     tokenOut: toToken.address,
   });
@@ -112,6 +112,8 @@ function ActiveRedeemDrawer({
     redeemPreview,
     tokenBalance: amountLocked,
   });
+
+  const isLoading = () => maxWithdraw === undefined && !isMaxWithdrawError;
 
   const { onCompleted, onFailed, onPending, onTransactionHash } =
     useActivityTracking({
@@ -207,6 +209,7 @@ function ActiveRedeemDrawer({
       fromAmount={fromInputValue}
       fromToken={peggedToken}
       inputError={inputError}
+      isLoading={isLoading()}
       isPreviewError={isPreviewError}
       networkFee={networkFee}
       onClose={handleClose}

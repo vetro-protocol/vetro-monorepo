@@ -16,6 +16,7 @@
     "connect-wallet": "Connect wallet",
     "enter-amount": "Enter an amount",
     "exceeds-debt": "Amount exceeds debt",
+    "exceeds-max-mint": "Amount exceeds mint limit",
     "geo-restriction-title": "Vetro isn't available in your country",
     "insufficient-balance": "Insufficient balance",
     "insufficient-collateral": "Insufficient collateral",

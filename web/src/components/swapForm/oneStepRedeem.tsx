@@ -109,13 +109,14 @@ export function OneStepRedeem({
   const { data: nativeBalanceData } = useNativeBalance(ethereumChain.id);
   const nativeBalance = nativeBalanceData?.value;
 
-  const { data: needsApproval } = useNeedsApproval({
-    amount: amountBigInt,
-    spender: fromToken.gatewayAddress,
-    token: fromToken,
-  });
+  const { data: needsApproval, isError: isNeedsApprovalError } =
+    useNeedsApproval({
+      amount: amountBigInt,
+      spender: fromToken.gatewayAddress,
+      token: fromToken,
+    });
 
-  const { data: maxWithdraw } = useMaxWithdraw({
+  const { data: maxWithdraw, isError: isMaxWithdrawError } = useMaxWithdraw({
     gatewayAddress: fromToken.gatewayAddress,
     tokenOut: toToken.address,
   });
@@ -248,6 +249,12 @@ export function OneStepRedeem({
   const balancesLoaded =
     nativeBalance !== undefined && fromTokenBalance !== undefined;
 
+  const isLoading = () =>
+    redeemPreview === undefined ||
+    needsApproval === undefined ||
+    tokenConfig === undefined ||
+    (maxWithdraw === undefined && !isMaxWithdrawError);
+
   const handleRetry = function () {
     setFlowStatus(startedWithApproval ? "approving" : "redeem-ready");
     redeemMutation.mutate();
@@ -327,9 +334,9 @@ export function OneStepRedeem({
           inputError={inputError}
           isActive={tokenConfig?.withdrawActive}
           isActiveError={isTokenConfigError}
+          isAllowanceError={isNeedsApprovalError}
+          isLoading={isLoading()}
           isPreviewError={isPreviewError}
-          previewValue={redeemPreview}
-          token={fromToken}
         />
       </Form>
       <FormSection show={amountBigInt !== 0n}>

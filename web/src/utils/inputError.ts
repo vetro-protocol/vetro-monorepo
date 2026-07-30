@@ -1,13 +1,25 @@
 import type { InputError } from "components/tokenInput/utils";
 
+const exceedsLimit = ({
+  limit,
+  preview,
+}: {
+  limit: bigint | undefined;
+  preview: bigint | undefined;
+}) => preview !== undefined && limit !== undefined && preview > limit;
+
 export function getInputError({
   amount,
+  depositPreview,
+  maxMint,
   maxWithdraw,
   nativeBalance,
   redeemPreview,
   tokenBalance,
 }: {
   amount: bigint;
+  depositPreview?: bigint;
+  maxMint?: bigint;
   maxWithdraw?: bigint;
   nativeBalance: bigint | undefined;
   redeemPreview?: bigint;
@@ -22,12 +34,11 @@ export function getInputError({
   if (nativeBalance !== undefined && nativeBalance === 0n) {
     return "insufficient-gas";
   }
-  if (
-    redeemPreview !== undefined &&
-    maxWithdraw !== undefined &&
-    redeemPreview > maxWithdraw
-  ) {
+  if (exceedsLimit({ limit: maxWithdraw, preview: redeemPreview })) {
     return "insufficient-treasury";
+  }
+  if (exceedsLimit({ limit: maxMint, preview: depositPreview })) {
+    return "exceeds-max-mint";
   }
   return undefined;
 }

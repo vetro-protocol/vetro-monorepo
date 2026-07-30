@@ -1,4 +1,3 @@
-import { useAllowance } from "@hemilabs/react-hooks/useAllowance";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { Button } from "components/base/button";
 import { Spinner } from "components/base/spinner";
@@ -6,7 +5,6 @@ import { ExclamationTriangleIcon } from "components/icons/exclamationTriangleIco
 import type { InputError } from "components/tokenInput/utils";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import type { TokenWithGateway } from "types";
 import { isGeoRestricted } from "utils/geoRestriction";
 import { useAccount } from "wagmi";
 
@@ -21,9 +19,9 @@ type Props = {
   inputError: InputError | undefined;
   isActive: boolean | undefined;
   isActiveError?: boolean;
+  isAllowanceError: boolean;
+  isLoading: boolean;
   isPreviewError: boolean;
-  previewValue: bigint | undefined;
-  token: TokenWithGateway;
 };
 
 export function SubmitButton({
@@ -31,18 +29,12 @@ export function SubmitButton({
   inputError,
   isActive,
   isActiveError = false,
+  isAllowanceError,
+  isLoading,
   isPreviewError,
-  previewValue,
-  token,
 }: Props) {
   const { address } = useAccount();
   const { openConnectModal } = useConnectModal();
-
-  const { data: allowance, isError: isAllowanceError } = useAllowance({
-    owner: address,
-    spender: token.gatewayAddress,
-    token,
-  });
 
   const { t } = useTranslation();
 
@@ -120,12 +112,7 @@ export function SubmitButton({
     );
   }
 
-  const shouldShowSpinner = () =>
-    isActive === undefined ||
-    previewValue === undefined ||
-    (allowance === undefined && !isAllowanceError);
-
-  if (shouldShowSpinner()) {
+  if (isLoading) {
     return (
       <Container>
         <Button {...buttonProps}>

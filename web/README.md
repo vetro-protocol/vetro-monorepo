@@ -79,11 +79,11 @@ node web/scripts/updateMintFee.ts --token 0xTokenAddress --fee 100
 
 Options:
 
-| Flag        | Short | Description                           | Default                 |
-| ----------- | ----- | ------------------------------------- | ----------------------- |
-| `--token`   | `-t`  | Token address (required)              | —                       |
-| `--fee`     | `-f`  | New mint fee in BPS, 0–500 (required) | —                       |
-| `--rpc-url` | `-r`  | Anvil RPC URL                         | `http://127.0.0.1:8545` |
+| Flag         | Short | Description                           | Default                 |
+| ------------ | ----- | ------------------------------------- | ----------------------- |
+| `--token`    | `-t`  | Token address (required)              | —                       |
+| `--fee`      | `-f`  | New mint fee in BPS, 0–500 (required) | —                       |
+| `--fork-url` | —     | Anvil RPC URL                         | `http://127.0.0.1:8545` |
 
 ### Update Redeem Fee
 
@@ -97,11 +97,29 @@ node web/scripts/updateRedeemFee.ts --token 0xTokenAddress --fee 100
 
 Options:
 
-| Flag        | Short | Description                             | Default                 |
-| ----------- | ----- | --------------------------------------- | ----------------------- |
-| `--token`   | `-t`  | Token address (required)                | —                       |
-| `--fee`     | `-f`  | New redeem fee in BPS, 0–500 (required) | —                       |
-| `--rpc-url` | `-r`  | Anvil RPC URL                           | `http://127.0.0.1:8545` |
+| Flag         | Short | Description                             | Default                 |
+| ------------ | ----- | --------------------------------------- | ----------------------- |
+| `--token`    | `-t`  | Token address (required)                | —                       |
+| `--fee`      | `-f`  | New redeem fee in BPS, 0–500 (required) | —                       |
+| `--fork-url` | —     | Anvil RPC URL                           | `http://127.0.0.1:8545` |
+
+### Set Max Mint
+
+Set the Gateway's remaining mint capacity — what `maxMint()` returns — using a local Anvil fork. Impersonates the contract owner to rewrite `mintLimit`, re-basing it on the supply already minted. Lower it below a swap's expected output to make the Swap CTA read "Amount exceeds mint limit".
+
+**Usage:**
+
+```bash
+node web/scripts/setMaxMint.ts --amount 5
+```
+
+Options:
+
+| Flag         | Short | Description                                     | Default                  |
+| ------------ | ----- | ----------------------------------------------- | ------------------------ |
+| `--amount`   | —     | Remaining capacity, in pegged tokens (required) | —                        |
+| `--gateway`  | `-g`  | Gateway address                                 | first configured gateway |
+| `--fork-url` | `-f`  | Anvil RPC URL                                   | `http://127.0.0.1:8545`  |
 
 ### Redeem Delay
 

@@ -33,6 +33,7 @@ type Props = {
   fromAmount: string;
   fromToken: TokenWithGateway;
   inputError: InputError | undefined;
+  isLoading: boolean;
   isPreviewError: boolean;
   onClose: VoidFunction;
   onInputChange: (value: string) => void;
@@ -58,6 +59,7 @@ export function ClaimRedeemDrawer({
   fromAmount,
   fromToken,
   inputError,
+  isLoading,
   isPreviewError,
   networkFee,
   onClose,
@@ -98,6 +100,7 @@ export function ClaimRedeemDrawer({
           fromAmount={fromAmount}
           fromToken={fromToken}
           inputError={inputError}
+          isLoading={isLoading}
           isPreviewError={isPreviewError}
           networkFee={networkFee}
           onInputChange={onInputChange}
