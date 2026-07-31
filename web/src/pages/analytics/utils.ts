@@ -8,8 +8,8 @@ import type { AllocationItem, TreasuryToken } from "./types";
 type Prices = Record<string, string>;
 
 const colorPalette = [
-  "bg-blue-400",
   "bg-emerald-400",
+  "bg-blue-400",
   "bg-amber-400",
   "bg-rose-400",
   "bg-purple-400",
