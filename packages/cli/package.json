@@ -46,6 +46,7 @@
   "engines": {
     "node": ">=24"
   },
+  "private": false,
   "publishConfig": {
     "access": "public"
   },
