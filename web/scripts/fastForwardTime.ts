@@ -48,7 +48,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 
   if (!values.seconds || !/^\d+$/.test(values.seconds)) {
     console.error(
-      "Seconds is invalid. Usage: node web/scripts/fastForwardTime.ts --seconds 120",
+      "Seconds is invalid. Usage: node web/scripts/fastForwardTime.ts --seconds 120 [--fork-url …]",
     );
     process.exit(1);
   }
