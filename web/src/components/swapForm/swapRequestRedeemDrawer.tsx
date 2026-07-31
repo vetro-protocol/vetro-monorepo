@@ -65,15 +65,10 @@ type Props = {
 
 export function SwapRequestRedeemDrawer({
   flowStatus,
-  fromAmount,
-  fromToken,
-  networkFee,
   onClose,
   onRetry,
-  protocolFee,
   showApproveStep,
-  subtitle,
-  totalFees,
+  ...props
 }: Props) {
   const { t } = useTranslation();
   useCloseOnSuccess({ onClose, success: flowStatus === "request-redeemed" });
@@ -101,14 +96,9 @@ export function SwapRequestRedeemDrawer({
     <Drawer onClose={onClose}>
       <Suspense fallback={<DrawerLoader />}>
         <SwapProgressDrawer
-          fromAmount={fromAmount}
-          fromToken={fromToken}
-          networkFee={networkFee}
+          {...props}
           onRetry={isError ? onRetry : undefined}
-          protocolFee={protocolFee}
           steps={steps}
-          subtitle={subtitle}
-          totalFees={totalFees}
         />
       </Suspense>
     </Drawer>

@@ -2,10 +2,8 @@ import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
 import { type Step, stepStatus } from "components/base/verticalStepper";
 import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
-import { Suspense, lazy } from "react";
+import { type ComponentProps, Suspense, lazy } from "react";
 import { useTranslation } from "react-i18next";
-import type { Token } from "types";
-import type { Hash } from "viem";
 
 const BorrowProgressDrawer = lazy(() =>
   import("./borrowProgressDrawer").then((m) => ({
@@ -68,27 +66,18 @@ const getBorrowStepStatus = function (
 };
 
 type Props = {
-  borrowAmount: string;
-  borrowToken: Token;
-  collateralAmount: string;
-  collateralToken: Token;
   flowStatus: Exclude<BorrowFlowStatus, "idle">;
-  marketId: Hash;
   onClose: VoidFunction;
   onRetry: VoidFunction;
   showApproveStep: boolean;
-};
+} & Omit<ComponentProps<typeof BorrowProgressDrawer>, "onRetry" | "steps">;
 
 export function BorrowDrawer({
-  borrowAmount,
-  borrowToken,
-  collateralAmount,
-  collateralToken,
   flowStatus,
-  marketId,
   onClose,
   onRetry,
   showApproveStep,
+  ...props
 }: Props) {
   const { t } = useTranslation();
   useCloseOnSuccess({ onClose, success: flowStatus === "borrowed" });
@@ -123,11 +112,7 @@ export function BorrowDrawer({
     <Drawer onClose={onClose}>
       <Suspense fallback={<DrawerLoader />}>
         <BorrowProgressDrawer
-          borrowAmount={borrowAmount}
-          borrowToken={borrowToken}
-          collateralAmount={collateralAmount}
-          collateralToken={collateralToken}
-          marketId={marketId}
+          {...props}
           onRetry={isError ? onRetry : undefined}
           steps={steps}
         />

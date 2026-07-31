@@ -70,18 +70,10 @@ type Props = {
 
 export function SwapDepositDrawer({
   flowStatus,
-  fromAmount,
-  fromToken,
-  networkFee,
   onClose,
   onRetry,
-  oracleToken,
-  outputValue,
-  protocolFee,
   showApproveStep,
-  totalFees,
-  toToken,
-  unitPreview,
+  ...props
 }: Props) {
   const { t } = useTranslation();
   useCloseOnSuccess({ onClose, success: flowStatus === "deposited" });
@@ -109,17 +101,9 @@ export function SwapDepositDrawer({
     <Drawer onClose={onClose}>
       <Suspense fallback={<DrawerLoader />}>
         <SwapProgressDrawer
-          fromAmount={fromAmount}
-          fromToken={fromToken}
-          networkFee={networkFee}
+          {...props}
           onRetry={isError ? onRetry : undefined}
-          oracleToken={oracleToken}
-          outputValue={outputValue}
-          protocolFee={protocolFee}
           steps={steps}
-          toToken={toToken}
-          totalFees={totalFees}
-          unitPreview={unitPreview}
         />
       </Suspense>
     </Drawer>
