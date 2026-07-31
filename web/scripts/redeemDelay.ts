@@ -13,13 +13,14 @@ import {
   readContract,
   setBalance,
   stopImpersonatingAccount,
-  waitForTransactionReceipt,
   writeContract,
 } from "viem/actions";
 import { mainnet } from "viem/chains";
 
 import { gatewayAbi } from "../../packages/gateway/src/abi/gatewayAbi.ts";
 import { gatewayAddresses } from "../../packages/gateway/src/gatewayAddresses.ts";
+
+import { confirmTransaction } from "./utils.ts";
 
 const WITHDRAWAL_DELAY_SECONDS = 72n;
 
@@ -72,7 +73,7 @@ export async function setRedeemDelay({
           args: [true],
           functionName: "setWithdrawalDelayEnabled",
         });
-        await waitForTransactionReceipt(publicClient, { hash });
+        await confirmTransaction({ client: publicClient, hash });
       }
 
       const [, isWhitelisted] = await Promise.all([
@@ -82,7 +83,7 @@ export async function setRedeemDelay({
           address: gateway,
           args: [WITHDRAWAL_DELAY_SECONDS],
           functionName: "updateWithdrawalDelay",
-        }).then((hash) => waitForTransactionReceipt(publicClient, { hash })),
+        }).then((hash) => confirmTransaction({ client: publicClient, hash })),
         readContract(publicClient, {
           abi: gatewayAbi,
           address: gateway,
@@ -99,7 +100,7 @@ export async function setRedeemDelay({
           args: [address],
           functionName: "removeFromInstantRedeemWhitelist",
         });
-        await waitForTransactionReceipt(publicClient, { hash });
+        await confirmTransaction({ client: publicClient, hash });
       }
     } else if (delayEnabledBefore) {
       const hash = await writeContract(testClient, {
@@ -109,7 +110,7 @@ export async function setRedeemDelay({
         args: [false],
         functionName: "setWithdrawalDelayEnabled",
       });
-      await waitForTransactionReceipt(publicClient, { hash });
+      await confirmTransaction({ client: publicClient, hash });
     }
 
     const [delayEnabledAfter, delay] = await Promise.all([

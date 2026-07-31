@@ -12,7 +12,6 @@ import {
   impersonateAccount,
   readContract,
   stopImpersonatingAccount,
-  waitForTransactionReceipt,
   writeContract,
 } from "viem/actions";
 import { mainnet } from "viem/chains";
@@ -20,6 +19,8 @@ import { approve, decimals } from "viem-erc20/actions";
 
 import { gatewayAbi } from "../../packages/gateway/src/abi/gatewayAbi.ts";
 import { gatewayAddresses } from "../../packages/gateway/src/gatewayAddresses.ts";
+
+import { confirmTransaction } from "./utils.ts";
 
 // Send `peggedTokenAmount` to the gateway's redeem queue on behalf of `address`
 // by impersonating it, so a queued redeem can be set up without driving the
@@ -60,7 +61,7 @@ export async function requestRedeem({
       amount: peggedTokenAmount,
       spender: gateway,
     });
-    await waitForTransactionReceipt(publicClient, { hash: approveHash });
+    await confirmTransaction({ client: publicClient, hash: approveHash });
 
     const requestHash = await writeContract(testClient, {
       abi: gatewayAbi,
@@ -68,7 +69,7 @@ export async function requestRedeem({
       args: [peggedTokenAmount],
       functionName: "requestRedeem",
     });
-    await waitForTransactionReceipt(publicClient, { hash: requestHash });
+    await confirmTransaction({ client: publicClient, hash: requestHash });
   } finally {
     await stopImpersonatingAccount(testClient, { address });
   }
