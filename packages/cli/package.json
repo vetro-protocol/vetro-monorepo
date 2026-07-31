@@ -11,6 +11,11 @@
   "bin": {
     "vetro-cli": "./_esm/cli.js"
   },
+  "repository": {
+    "directory": "packages/cli",
+    "type": "git",
+    "url": "git+https://github.com/vetro-protocol/vetro-monorepo.git"
+  },
   "scripts": {
     "build": "tsc --noEmit",
     "bundle": "node esbuild.ts",
@@ -41,6 +46,8 @@
   "engines": {
     "node": ">=24"
   },
-  "private": true,
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module"
 }
