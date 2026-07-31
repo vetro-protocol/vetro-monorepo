@@ -18,6 +18,7 @@ import {
   mintArgs,
   runCli,
   runCliRaw,
+  setMaxMint,
   slippage,
   usdc,
   vusd,
@@ -129,6 +130,42 @@ describe("swap mint", function () {
     expect(JSON.parse(stderr).error).toBe(
       `Not a whitelisted token: "${vusd.symbol}"`,
     );
+  });
+
+  it("rejects an amount that would mint past the gateway's remaining capacity", async function () {
+    const { to: gateway } = await runCli<TransactionRequest>({
+      args: mintArgs(),
+      rpcUrl,
+    });
+    const remainingCapacity = parseUnits("0.5", vusd.decimals);
+    const { maxMintAfter, maxMintBefore } = await setMaxMint({
+      gateway,
+      maxMint: remainingCapacity,
+      rpcUrl,
+    });
+    expect(maxMintAfter).toBe(remainingCapacity);
+
+    try {
+      // Below the max mint
+      const request = await runCli<TransactionRequest>({
+        args: mintArgs(["--amount", "0.1"]),
+        rpcUrl,
+      });
+
+      // above the max mint
+      const { exitCode, stderr } = await runCliRaw({
+        args: mintArgs(),
+        rpcUrl,
+      });
+      expect(exitCode).toBe(1);
+      expect(JSON.parse(stderr).error).toContain(
+        "Amount exceeds the mint limit",
+      );
+
+      expect(isHex(request.data)).toBe(true);
+    } finally {
+      await setMaxMint({ gateway, maxMint: maxMintBefore, rpcUrl });
+    }
   });
 
   it.for([

@@ -2,6 +2,7 @@ import {
   TEST_ADDRESS,
   TEST_PRIVATE_KEY,
 } from "@hemilabs/anvil-fork-setup/utils";
+import { gatewayAbi as vetroGatewayAbi } from "@vetro-protocol/gateway";
 import { type Command, CommanderError } from "commander";
 import {
   type Address,
@@ -21,10 +22,14 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import {
+  impersonateAccount,
+  readContract,
   sendTransaction,
   setBalance,
   setStorageAt,
+  stopImpersonatingAccount,
   waitForTransactionReceipt,
+  writeContract,
 } from "viem/actions";
 import { mainnet } from "viem/chains";
 
@@ -200,6 +205,60 @@ export const fundTestAccount = async function ({
     ),
     value: pad(toHex(parseUnits(amount, usdc.decimals))),
   });
+};
+
+export const setMaxMint = async function ({
+  gateway,
+  maxMint,
+  rpcUrl,
+}: {
+  gateway: Address;
+  maxMint: bigint;
+  rpcUrl: string;
+}) {
+  const { publicClient, testClient } = createClients(rpcUrl);
+
+  const [owner, mintLimit, maxMintBefore] = await Promise.all([
+    readContract(publicClient, {
+      abi: vetroGatewayAbi,
+      address: gateway,
+      functionName: "owner",
+    }),
+    readContract(publicClient, {
+      abi: vetroGatewayAbi,
+      address: gateway,
+      functionName: "mintLimit",
+    }),
+    readContract(publicClient, {
+      abi: vetroGatewayAbi,
+      address: gateway,
+      functionName: "maxMint",
+    }),
+  ]);
+
+  await impersonateAccount(testClient, { address: owner });
+  await setBalance(testClient, { address: owner, value: parseEther("1") });
+
+  try {
+    const hash = await writeContract(testClient, {
+      abi: vetroGatewayAbi,
+      account: owner,
+      address: gateway,
+      args: [mintLimit - maxMintBefore + maxMint],
+      functionName: "updateMintLimit",
+    });
+    await waitForTransactionReceipt(publicClient, { hash });
+  } finally {
+    await stopImpersonatingAccount(testClient, { address: owner });
+  }
+
+  const maxMintAfter = await readContract(publicClient, {
+    abi: vetroGatewayAbi,
+    address: gateway,
+    functionName: "maxMint",
+  });
+
+  return { maxMintAfter, maxMintBefore };
 };
 
 /** Broadcasts a TransactionRequest the CLI emitted, exactly as an agent would. */

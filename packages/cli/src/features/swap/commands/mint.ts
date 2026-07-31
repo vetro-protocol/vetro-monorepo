@@ -1,6 +1,10 @@
-import { encodeDeposit, previewDeposit } from "@vetro-protocol/gateway/actions";
+import {
+  encodeDeposit,
+  getMaxMint,
+  previewDeposit,
+} from "@vetro-protocol/gateway/actions";
 import { type Command } from "commander";
-import { type Address, parseUnits } from "viem";
+import { type Address, formatUnits, parseUnits } from "viem";
 
 import { parseAddress, parseAmount, parseSlippage } from "../../../lib/args.js";
 import { createVetroClient } from "../../../lib/client.js";
@@ -63,12 +67,29 @@ export function register(swap: Command) {
 
       const amountIn = parseUnits(options.amount, tokenIn.decimals);
 
-      const minPeggedTokenOut = applySlippage({
-        preview: await previewDeposit(client, {
+      const [peggedTokenOut, maxMint] = await Promise.all([
+        previewDeposit(client, {
           address: tokenIn.gatewayAddress,
           amountIn,
           tokenIn: tokenIn.address,
         }),
+        getMaxMint(client, { address: tokenIn.gatewayAddress }),
+      ]);
+
+      if (peggedTokenOut > maxMint) {
+        const peggedToken = await resolvePeggedToken({
+          client,
+          gatewayAddress: tokenIn.gatewayAddress,
+        });
+        const format = (value: bigint) =>
+          `${formatUnits(value, peggedToken.decimals)} ${peggedToken.symbol}`;
+        throw new Error(
+          `Amount exceeds the mint limit: it would mint ${format(peggedTokenOut)}, above the ${format(maxMint)} the gateway can still mint`,
+        );
+      }
+
+      const minPeggedTokenOut = applySlippage({
+        preview: peggedTokenOut,
         slippage: options.slippage,
       });
 
