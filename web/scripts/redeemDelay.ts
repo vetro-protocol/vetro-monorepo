@@ -6,7 +6,9 @@ import {
   createTestClient,
   http,
   isAddress,
+  keccak256,
   parseEther,
+  stringToBytes,
 } from "viem";
 import {
   impersonateAccount,
@@ -23,6 +25,31 @@ import { gatewayAddresses } from "../../packages/gateway/src/gatewayAddresses.ts
 import { confirmTransaction } from "./utils.ts";
 
 const WITHDRAWAL_DELAY_SECONDS = 72n;
+
+const MAINTAINER_ROLE = keccak256(stringToBytes("MAINTAINER_ROLE"));
+
+const accessControlAbi = [
+  {
+    inputs: [
+      { name: "role", type: "bytes32" },
+      { name: "account", type: "address" },
+    ],
+    name: "grantRole",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "role", type: "bytes32" },
+      { name: "account", type: "address" },
+    ],
+    name: "hasRole",
+    outputs: [{ type: "bool" }],
+    stateMutability: "view",
+    type: "function",
+  },
+] as const;
 
 // Enable or disable the gateway's withdrawal delay by impersonating its owner.
 // When enabling, also remove the address from the instant-redeem whitelist so it
@@ -47,11 +74,16 @@ export async function setRedeemDelay({
     transport,
   });
 
-  const [owner, delayEnabledBefore] = await Promise.all([
+  const [owner, treasury, delayEnabledBefore] = await Promise.all([
     readContract(publicClient, {
       abi: gatewayAbi,
       address: gateway,
       functionName: "owner",
+    }),
+    readContract(publicClient, {
+      abi: gatewayAbi,
+      address: gateway,
+      functionName: "treasury",
     }),
     readContract(publicClient, {
       abi: gatewayAbi,
@@ -64,6 +96,24 @@ export async function setRedeemDelay({
   await setBalance(testClient, { address: owner, value: parseEther("1") });
 
   try {
+    const ownerHasRole = await readContract(publicClient, {
+      abi: accessControlAbi,
+      address: treasury,
+      args: [MAINTAINER_ROLE, owner],
+      functionName: "hasRole",
+    });
+
+    if (!ownerHasRole) {
+      const grantHash = await writeContract(testClient, {
+        abi: accessControlAbi,
+        account: owner,
+        address: treasury,
+        args: [MAINTAINER_ROLE, owner],
+        functionName: "grantRole",
+      });
+      await confirmTransaction({ client: publicClient, hash: grantHash });
+    }
+
     if (enableDelay) {
       if (!delayEnabledBefore) {
         const hash = await writeContract(testClient, {
