@@ -13,13 +13,14 @@ import {
   readContract,
   setBalance,
   stopImpersonatingAccount,
-  waitForTransactionReceipt,
   writeContract,
 } from "viem/actions";
 import { mainnet } from "viem/chains";
 
 import { stakingVaultAbi } from "../../packages/earn/src/abi/stakingVaultAbi.ts";
 import { sVusdAddress } from "../../packages/earn/src/stakingVaultAddresses.ts";
+
+import { confirmTransaction } from "./utils.ts";
 
 // The StakingVault is Ownable2Step, so its owner-only setters can be called
 // directly after impersonating owner() — no role grant needed (unlike the
@@ -71,7 +72,7 @@ export async function whitelistInstantWithdraw({
       args: [true],
       functionName: "updateCooldownEnabled",
     });
-    await waitForTransactionReceipt(publicClient, { hash: enableHash });
+    await confirmTransaction({ client: publicClient, hash: enableHash });
 
     if (isWhitelisted) {
       console.log(`${address} is already whitelisted for instant withdraw.`);
@@ -83,7 +84,7 @@ export async function whitelistInstantWithdraw({
         args: [address, true],
         functionName: "updateInstantWithdrawWhitelist",
       });
-      await waitForTransactionReceipt(publicClient, { hash: whitelistHash });
+      await confirmTransaction({ client: publicClient, hash: whitelistHash });
     }
   } finally {
     await stopImpersonatingAccount(testClient, { address: owner });

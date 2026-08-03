@@ -14,7 +14,6 @@ import {
   readContract,
   setBalance,
   stopImpersonatingAccount,
-  waitForTransactionReceipt,
   writeContract,
 } from "viem/actions";
 import { mainnet } from "viem/chains";
@@ -22,6 +21,8 @@ import { decimals } from "viem-erc20/actions";
 
 import { gatewayAbi } from "../../packages/gateway/src/abi/gatewayAbi.ts";
 import { gatewayAddresses } from "../../packages/gateway/src/gatewayAddresses.ts";
+
+import { confirmTransaction } from "./utils.ts";
 
 export async function setMaxMint({
   forkUrl,
@@ -73,7 +74,7 @@ export async function setMaxMint({
       args: [mintLimitAfter],
       functionName: "updateMintLimit",
     });
-    await waitForTransactionReceipt(publicClient, { hash });
+    await confirmTransaction({ client: publicClient, hash });
 
     const maxMintAfter = await readContract(publicClient, {
       abi: gatewayAbi,

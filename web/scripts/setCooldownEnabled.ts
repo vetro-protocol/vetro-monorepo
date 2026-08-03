@@ -13,13 +13,14 @@ import {
   readContract,
   setBalance,
   stopImpersonatingAccount,
-  waitForTransactionReceipt,
   writeContract,
 } from "viem/actions";
 import { mainnet } from "viem/chains";
 
 import { stakingVaultAbi } from "../../packages/earn/src/abi/stakingVaultAbi.ts";
 import { sVusdAddress } from "../../packages/earn/src/stakingVaultAddresses.ts";
+
+import { confirmTransaction } from "./utils.ts";
 
 // The StakingVault is Ownable2Step, so its owner-only setters can be called
 // directly after impersonating owner() — no role grant needed (see
@@ -60,7 +61,7 @@ export async function setCooldownEnabled({
       args: [true],
       functionName: "updateCooldownEnabled",
     });
-    await waitForTransactionReceipt(publicClient, { hash: enableHash });
+    await confirmTransaction({ client: publicClient, hash: enableHash });
   } finally {
     await stopImpersonatingAccount(testClient, { address: owner });
   }

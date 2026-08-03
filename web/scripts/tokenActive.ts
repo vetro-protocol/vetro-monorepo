@@ -14,7 +14,6 @@ import {
   readContract,
   setBalance,
   stopImpersonatingAccount,
-  waitForTransactionReceipt,
   writeContract,
 } from "viem/actions";
 import { mainnet } from "viem/chains";
@@ -22,6 +21,8 @@ import { mainnet } from "viem/chains";
 import { gatewayAbi } from "../../packages/gateway/src/abi/gatewayAbi.ts";
 import { gatewayAddresses } from "../../packages/gateway/src/gatewayAddresses.ts";
 import { treasuryAbi } from "../../packages/treasury/src/abi/treasuryAbi.ts";
+
+import { confirmTransaction } from "./utils.ts";
 
 const KEEPER_ROLE = keccak256(stringToBytes("KEEPER_ROLE"));
 
@@ -149,7 +150,7 @@ export async function setTokenActive({
         args: [KEEPER_ROLE, owner],
         functionName: "grantRole",
       });
-      await waitForTransactionReceipt(publicClient, { hash: grantHash });
+      await confirmTransaction({ client: publicClient, hash: grantHash });
     }
 
     const hash = await writeContract(testClient, {
@@ -159,7 +160,7 @@ export async function setTokenActive({
       args: [token, active],
       functionName: setterNames[flag],
     });
-    await waitForTransactionReceipt(publicClient, { hash });
+    await confirmTransaction({ client: publicClient, hash });
   } finally {
     await stopImpersonatingAccount(testClient, { address: owner });
   }
