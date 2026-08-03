@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import fetch from "fetch-plus-plus";
-import { isValidUrl } from "utils/url";
 import type { Address } from "viem";
 
 const apiUrl = import.meta.env.VITE_VETRO_API_URL;
@@ -9,7 +8,7 @@ type ApyResponse = Partial<Record<Address, { apy: number }>>;
 
 export const useApy = (stakingVaultAddress: Address) =>
   useQuery({
-    enabled: apiUrl !== undefined && isValidUrl(apiUrl),
+    enabled: apiUrl !== undefined && URL.canParse(apiUrl),
     queryFn: () =>
       fetch(`${apiUrl}/variable-stake/apy`) as Promise<ApyResponse>,
     queryKey: ["variable-stake-apy"],

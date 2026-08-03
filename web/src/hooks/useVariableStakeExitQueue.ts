@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import fetch from "fetch-plus-plus";
 import { useMainnet } from "hooks/useMainnet";
-import { isValidUrl } from "utils/url";
 import type { Address } from "viem";
 
 const apiUrl = import.meta.env.VITE_VETRO_API_URL;
@@ -17,7 +16,7 @@ export function useVariableStakeExitQueue(gatewayAddress: Address | undefined) {
   return useQuery({
     enabled:
       apiUrl !== undefined &&
-      isValidUrl(apiUrl) &&
+      URL.canParse(apiUrl) &&
       gatewayAddress !== undefined,
     async queryFn() {
       const { assets, openTickets } = await (fetch(
