@@ -1,6 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
 import fetch from "fetch-plus-plus";
-import { isValidUrl } from "utils/url";
 
 type ContactFormValues = {
   // Optional screenshots; sent as multipart file parts.
@@ -20,7 +19,7 @@ export const useSubmitContactForm = () =>
     // `undefined`) on success, and throws on any non-2xx so the form surfaces
     // its error toast.
     mutationFn({ attachments = [], category, email, message, token }) {
-      if (apiUrl === undefined || !isValidUrl(apiUrl)) {
+      if (apiUrl === undefined || !URL.canParse(apiUrl)) {
         throw new Error("VITE_VETRO_API_URL is not configured");
       }
       const body = new FormData();

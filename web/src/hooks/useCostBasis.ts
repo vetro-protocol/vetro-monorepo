@@ -1,6 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
 import fetch from "fetch-plus-plus";
-import { isValidUrl } from "utils/url";
 import type { Address } from "viem";
 
 const apiUrl = import.meta.env.VITE_VETRO_API_URL;
@@ -17,7 +16,7 @@ export const costBasisQueryOptions = ({
 }) =>
   queryOptions({
     enabled:
-      apiUrl !== undefined && isValidUrl(apiUrl) && address !== undefined,
+      apiUrl !== undefined && URL.canParse(apiUrl) && address !== undefined,
     async queryFn() {
       const data = (await fetch(
         `${apiUrl}/variable-stake/cost-basis/${address}`,

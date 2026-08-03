@@ -4,7 +4,6 @@ import { useEthereumClient } from "hooks/useEthereumClient";
 import { stakingVaultForPeggedTokenOptions } from "hooks/useStakingVaultForPeggedToken";
 import type { TokenWithGateway } from "types";
 import type { ChartPeriod } from "utils/chartPeriods";
-import { isValidUrl } from "utils/url";
 
 type ApiEntry = { shareValue: number; timestamp: number };
 
@@ -21,7 +20,7 @@ export const useShareValueHistory = function ({
   const queryClient = useQueryClient();
   return useQuery({
     enabled:
-      !!client && !!peggedToken && apiUrl !== undefined && isValidUrl(apiUrl),
+      !!client && !!peggedToken && apiUrl !== undefined && URL.canParse(apiUrl),
     async queryFn() {
       const stakingVaultAddress = await queryClient.ensureQueryData(
         stakingVaultForPeggedTokenOptions({

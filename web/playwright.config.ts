@@ -30,7 +30,7 @@ export default defineConfig({
     env: {
       // Swap/redeem is fully on-chain; the portal API only supplies USD display
       // values. Disable it so e2e stays hermetic (prices render as $0, which
-      // these tests don't assert on). isValidUrl("") is false → query disabled.
+      // these tests don't assert on). URL.canParse("") is false → query disabled.
       VITE_PORTAL_API_URL: "",
       VITE_RPC_URL_MAINNET: ANVIL_URL,
       // The Vetro API is enabled with a fake localhost URL
