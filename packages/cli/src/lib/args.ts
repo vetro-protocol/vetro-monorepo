@@ -31,11 +31,13 @@ export function parseGateway(value: string) {
 }
 
 export function parseRpcUrl(value: string) {
-  if (!URL.canParse(value)) {
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
     throw new InvalidArgumentError(`Invalid RPC URL: "${value}"`);
   }
-  const { protocol } = new URL(value);
-  if (protocol !== "http:" && protocol !== "https:") {
+  if (url.protocol !== "http:" && url.protocol !== "https:") {
     throw new InvalidArgumentError(
       `RPC URL must use http or https: "${value}"`,
     );
