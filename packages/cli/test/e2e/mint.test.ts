@@ -6,8 +6,10 @@ import {
   isAddress,
   isAddressEqual,
   isHex,
+  numberToHex,
   parseUnits,
 } from "viem";
+import { getChainId } from "viem/actions";
 import { describe, expect, inject, it } from "vitest";
 
 import {
@@ -29,12 +31,12 @@ describe("swap mint", function () {
   const rpcUrl = inject("anvilUrl");
   const { publicClient } = createClients(rpcUrl);
 
-  it("targets mainnet with no native value", async function () {
+  it("targets the chain the RPC is on, with no native value", async function () {
     const request = await runCli<TransactionRequest>({
       args: mintArgs(),
       rpcUrl,
     });
-    expect(request.chainId).toBe("0x1");
+    expect(request.chainId).toBe(numberToHex(await getChainId(publicClient)));
     expect(isHex(request.data)).toBe(true);
     expect(isAddress(request.to)).toBe(true);
     expect(request.value).toBe("0x0");

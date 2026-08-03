@@ -1,5 +1,5 @@
-import { type Address, type Hex, numberToHex } from "viem";
-import { mainnet } from "viem/chains";
+import { type Address, type Client, type Hex, numberToHex } from "viem";
+import { getChainId } from "viem/actions";
 
 export function printResult(value: unknown) {
   const json = JSON.stringify(value ?? null, (_key, val) =>
@@ -8,15 +8,17 @@ export function printResult(value: unknown) {
   process.stdout.write(`${json}\n`);
 }
 
-export function printTransactionRequest({
+export async function printTransactionRequest({
+  client,
   data,
   to,
 }: {
+  client: Client;
   data: Hex;
   to: Address;
 }) {
   printResult({
-    chainId: numberToHex(mainnet.id),
+    chainId: numberToHex(await getChainId(client)),
     data,
     to,
     value: "0x0",

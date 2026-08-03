@@ -22,7 +22,8 @@ export function register(swap: Command) {
         client,
         value: options.token,
       });
-      printTransactionRequest({
+      await printTransactionRequest({
+        client,
         data: encodeApproveData({
           amount: parseUnits(options.amount, token.decimals),
           spender: token.gatewayAddress,

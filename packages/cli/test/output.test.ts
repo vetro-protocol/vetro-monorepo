@@ -1,6 +1,11 @@
+import { createClient, custom, numberToHex } from "viem";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { printError, printResult } from "../src/lib/output.js";
+import {
+  printError,
+  printResult,
+  printTransactionRequest,
+} from "../src/lib/output.js";
 
 const captureStdout = () =>
   vi.spyOn(process.stdout, "write").mockImplementation(() => true);
@@ -41,6 +46,37 @@ describe("printResult", function () {
     const spy = captureStdout();
     printResult(undefined);
     expect(spy).toHaveBeenCalledWith("null\n");
+  });
+});
+
+describe("printTransactionRequest", function () {
+  const clientOnChain = (chainId: number) =>
+    createClient({
+      transport: custom({
+        request: () => Promise.resolve(numberToHex(chainId)),
+      }),
+    });
+
+  it("stamps the chain the client is connected to", async function () {
+    const spy = captureStdout();
+    await printTransactionRequest({
+      client: clientOnChain(999),
+      data: "0xdeadbeef",
+      to: "0xDaD503f8B9d42bb7af3AfC588358D30163e4416F",
+    });
+    expect(spy).toHaveBeenCalledWith(
+      '{"chainId":"0x3e7","data":"0xdeadbeef","to":"0xDaD503f8B9d42bb7af3AfC588358D30163e4416F","value":"0x0"}\n',
+    );
+  });
+
+  it("stamps mainnet when the client is connected to mainnet", async function () {
+    const spy = captureStdout();
+    await printTransactionRequest({
+      client: clientOnChain(1),
+      data: "0xdeadbeef",
+      to: "0xDaD503f8B9d42bb7af3AfC588358D30163e4416F",
+    });
+    expect(JSON.parse(spy.mock.calls[0][0] as string).chainId).toBe("0x1");
   });
 });
 

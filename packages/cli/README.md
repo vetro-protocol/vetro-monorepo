@@ -18,7 +18,7 @@ node packages/cli/_esm/cli.js swap pegged-token --gateway 0x...
 
 The following env variables can be set.
 
-- `RPC_URL` — Ethereum mainnet RPC endpoint used for reads. Falls back to a public RPC when unset.
+- `RPC_URL` — RPC endpoint used for reads. Falls back to a public Ethereum mainnet RPC when unset.
 
 ## Output
 
@@ -40,7 +40,7 @@ Write commands touch no keys — they emit a JSON-RPC transaction request and th
 { "chainId": "0x1", "data": "0x8b6099db…", "to": "0x…gateway", "value": "0x0" }
 ```
 
-Every numeric field is a hex `QUANTITY`, so the object can be lifted straight into `eth_sendTransaction` or an [ERC-5792](https://eips.ethereum.org/EIPS/eip-5792) `wallet_sendCalls` batch. The chain is always Ethereum mainnet, so `chainId` is always `"0x1"` and `value` is always `"0x0"`.
+Every numeric field is a hex `QUANTITY`, so the object can be lifted straight into `eth_sendTransaction` or an [ERC-5792](https://eips.ethereum.org/EIPS/eip-5792) `wallet_sendCalls` batch. `value` is always `"0x0"`.
 
 ## Token arguments
 

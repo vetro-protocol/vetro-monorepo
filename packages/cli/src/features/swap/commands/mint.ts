@@ -111,7 +111,8 @@ export function register(swap: Command) {
         slippage: options.slippage,
       });
 
-      printTransactionRequest({
+      await printTransactionRequest({
+        client,
         data: encodeDeposit({
           amountIn,
           minPeggedTokenOut,
