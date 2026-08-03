@@ -94,11 +94,16 @@ export const fetchUniswapPoolData = async function (
     headers: { "content-type": "application/json" },
     method: "POST",
   });
+  // GraphQL reports failures as a 200 with an `errors` array, which can arrive
+  // alongside a partially populated `data`; surface the real message rather than
+  // silently pricing the pool off whatever fields did come back.
+  if (body.errors?.length) {
+    const reason = body.errors.map((error) => error.message).join("; ");
+    throw new Error(`Uniswap API error for pool ${address}: ${reason}`);
+  }
   const pool = body.data?.v3Pool;
   if (!pool) {
-    const reason =
-      body.errors?.map((error) => error.message).join("; ") ?? "not found";
-    throw new Error(`Uniswap pool ${address}: ${reason}`);
+    throw new Error(`Uniswap pool ${address} not found`);
   }
   return {
     feeTier: pool.feeTier,
