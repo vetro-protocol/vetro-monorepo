@@ -90,6 +90,7 @@ This is the list of commands available
 | Command                                                   | Reads            | Returns                                                                                                                                                                 |
 | --------------------------------------------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `vetro-cli swap allowance --token <tok> --account <addr>` | `allowance`      | Gateway's spending allowance, in human units. `<tok>` may be a whitelisted token (swap-in) or a pegged token (one-step swap-out; the two-step queue needs no allowance) |
+| `vetro-cli swap mint-fee --token <tok>`                   | `getMintFee`     | Mint fee charged on a deposit of the whitelisted `<tok>`, in bps                                                                                                        |
 | `vetro-cli swap pegged-token --gateway <addr>`            | `getPeggedToken` | Gateway's pegged-token address                                                                                                                                          |
 | `vetro-cli swap treasury --gateway <addr>`                | `getTreasury`    | Gateway's treasury address                                                                                                                                              |
 
