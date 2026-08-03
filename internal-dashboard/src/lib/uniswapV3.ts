@@ -63,6 +63,10 @@ export const buildPoolQueries = function ({
 export const findPools = async function (queries: PoolQuery[]) {
   const addresses = await multicall(client, {
     allowFailure: false,
+    // One aggregate3 for every getPool. viem's 1024-byte default would split
+    // these into a dozen concurrent eth_calls, which the keyless public RPC
+    // rate-limits — and allowFailure: false turns a single rejected chunk into
+    // a total discovery failure.
     batchSize: 0,
     contracts: queries.map((query) => ({
       abi: factoryAbi,
