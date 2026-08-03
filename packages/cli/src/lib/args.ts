@@ -30,6 +30,19 @@ export function parseGateway(value: string) {
   return address;
 }
 
+export function parseRpcUrl(value: string) {
+  if (!URL.canParse(value)) {
+    throw new InvalidArgumentError(`Invalid RPC URL: "${value}"`);
+  }
+  const { protocol } = new URL(value);
+  if (protocol !== "http:" && protocol !== "https:") {
+    throw new InvalidArgumentError(
+      `RPC URL must use http or https: "${value}"`,
+    );
+  }
+  return value;
+}
+
 export function parseSlippage(value: string) {
   const normalized = value.replace(",", ".");
   if (normalized !== "" && !/^\d+(\.\d?)?$/.test(normalized)) {

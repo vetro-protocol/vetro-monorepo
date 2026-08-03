@@ -9,7 +9,7 @@ import { type Command } from "commander";
 import { type Address, formatUnits, parseUnits } from "viem";
 
 import { parseAddress, parseAmount, parseSlippage } from "../../../lib/args.js";
-import { createVetroClient } from "../../../lib/client.js";
+import { type GlobalOptions, createVetroClient } from "../../../lib/client.js";
 import { printTransactionRequest } from "../../../lib/output.js";
 import { DEFAULT_SLIPPAGE, applySlippage } from "../../../lib/slippage.js";
 import {
@@ -42,14 +42,19 @@ export function register(swap: Command) {
       parseSlippage,
       DEFAULT_SLIPPAGE,
     )
-    .action(async function (options: {
-      amount: string;
-      from: string;
-      receiver: Address;
-      slippage: number;
-      to?: string;
-    }) {
-      const client = createVetroClient();
+    .action(async function (
+      options: {
+        amount: string;
+        from: string;
+        receiver: Address;
+        slippage: number;
+        to?: string;
+      },
+      command: Command,
+    ) {
+      const { chainId, client } = await createVetroClient(
+        command.optsWithGlobals<GlobalOptions>(),
+      );
       const tokenIn = await resolveWhitelistedToken({
         client,
         value: options.from,
@@ -111,8 +116,8 @@ export function register(swap: Command) {
         slippage: options.slippage,
       });
 
-      await printTransactionRequest({
-        client,
+      printTransactionRequest({
+        chainId,
         data: encodeDeposit({
           amountIn,
           minPeggedTokenOut,

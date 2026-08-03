@@ -22,18 +22,18 @@ describe("swap in (USDC → VUSD)", function () {
   const rpcUrl = inject("anvilUrl");
   const { publicClient } = createClients(rpcUrl);
 
+  const onFork = (args: string[]) => [...args, "--rpc-url", rpcUrl];
+
   it("mints at least minPeggedTokenOut once the mint calldata is broadcast", async function () {
-    const mintRequest = await runCli<TransactionRequest>({
-      args: mintArgs(["--slippage", slippage]),
-      rpcUrl,
-    });
+    const mintRequest = await runCli<TransactionRequest>(
+      onFork(mintArgs(["--slippage", slippage])),
+    );
     await fundTestAccount({ amount: "1000", rpcUrl });
     // Approving sets the allowance, so this is safe however often it runs.
     await sendTransactionRequest({
-      request: await runCli<TransactionRequest>({
-        args: approveArgs(usdc.symbol),
-        rpcUrl,
-      }),
+      request: await runCli<TransactionRequest>(
+        onFork(approveArgs(usdc.symbol)),
+      ),
       rpcUrl,
     });
 

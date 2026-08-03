@@ -1,11 +1,26 @@
 import { createPublicClient, http } from "viem";
+import { getChainId } from "viem/actions";
 import { mainnet } from "viem/chains";
 
-// TODO extend custom RPC https://github.com/vetro-protocol/vetro-monorepo/issues/445#issuecomment-5062771972
-// For the time being, for development, let's allow overriding with env vars
-export const createVetroClient = () =>
-  createPublicClient({
+export type GlobalOptions = { rpcUrl?: string };
+
+// Hardhat chain id when using local fork.
+const localChainId = 31337;
+const supportedChainIds = [mainnet.id, localChainId];
+
+export async function createVetroClient({ rpcUrl }: GlobalOptions) {
+  const client = createPublicClient({
     batch: { multicall: true },
     chain: mainnet,
-    transport: http(process.env.RPC_URL),
+    transport: http(rpcUrl),
   });
+
+  const chainId = await getChainId(client);
+  if (!supportedChainIds.includes(chainId)) {
+    throw new Error(
+      `The RPC endpoint is on chain ${chainId}, but Vetro is only deployed on Ethereum mainnet (${mainnet.id}); a local fork of it (${localChainId}) is also accepted`,
+    );
+  }
+
+  return { chainId, client };
+}

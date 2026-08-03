@@ -1,11 +1,36 @@
-import { Command } from "commander";
+import { Command, Option } from "commander";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { register as swap } from "./features/swap/index.js";
+import { parseRpcUrl } from "./lib/args.js";
+import { redactOptionValues } from "./lib/output.js";
 
 const features = [swap];
+
+/**
+ * The option, paired with the redactor for the usage errors it can raise.
+ * Commander reports those before the endpoint is resolved and echoes the
+ * offending value, so the parser keeps hold of whatever it was handed --
+ * for the flag and the env var alike, including a value it rejected.
+ */
+const createRpcUrlOption = function () {
+  let attempted: string | undefined;
+  return {
+    option: new Option(
+      "--rpc-url <url>",
+      "RPC endpoint to read from, which also determines the chain the calldata is stamped with; defaults to a public Ethereum mainnet RPC",
+    )
+      .argParser(function (value: string) {
+        attempted = value;
+        return parseRpcUrl(value);
+      })
+      .env("RPC_URL"),
+    redactUsageError: (message: string) =>
+      redactOptionValues({ message, values: [attempted, process.env.RPC_URL] }),
+  };
+};
 
 export function createProgram() {
   const packageJsonPath = join(
@@ -20,12 +45,17 @@ export function createProgram() {
   };
 
   const program = new Command();
+  const { option: rpcUrlOption, redactUsageError } = createRpcUrlOption();
 
   program
+    .configureOutput({
+      outputError: (message, write) => write(redactUsageError(message)),
+    })
     // The CLI name is the bin key (vetro-cli), not the scoped package name.
     .name(Object.keys(pkg.bin)[0])
     .description(pkg.description)
-    .version(pkg.version);
+    .version(pkg.version)
+    .addOption(rpcUrlOption);
 
   features.forEach((register) => register(program));
 
