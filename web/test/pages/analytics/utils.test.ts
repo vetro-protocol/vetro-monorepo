@@ -50,12 +50,12 @@ const usdcToken = {
 describe("pages/analytics/utils", function () {
   describe("assignColor", function () {
     it("returns the color at the given index", function () {
-      expect(assignColor(0)).toBe("bg-blue-400");
-      expect(assignColor(1)).toBe("bg-emerald-400");
+      expect(assignColor(0)).toBe("bg-emerald-400");
+      expect(assignColor(1)).toBe("bg-blue-400");
     });
 
     it("wraps around when index exceeds palette length", function () {
-      expect(assignColor(8)).toBe("bg-blue-400");
+      expect(assignColor(8)).toBe("bg-emerald-400");
     });
   });
 
