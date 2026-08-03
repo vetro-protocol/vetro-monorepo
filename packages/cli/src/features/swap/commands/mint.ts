@@ -1,8 +1,10 @@
 import {
   encodeDeposit,
   getMaxMint,
+  getTreasury,
   previewDeposit,
 } from "@vetro-protocol/gateway/actions";
+import { getTokenConfig } from "@vetro-protocol/treasury/actions";
 import { type Command } from "commander";
 import { type Address, formatUnits, parseUnits } from "viem";
 
@@ -67,14 +69,30 @@ export function register(swap: Command) {
 
       const amountIn = parseUnits(options.amount, tokenIn.decimals);
 
-      const [peggedTokenOut, maxMint] = await Promise.all([
+      const isDepositActive = async function () {
+        const treasury = await getTreasury(client, {
+          address: tokenIn.gatewayAddress,
+        });
+        const [, , , depositActive] = await getTokenConfig(client, {
+          address: treasury,
+          token: tokenIn.address,
+        });
+        return depositActive;
+      };
+
+      const [peggedTokenOut, maxMint, depositActive] = await Promise.all([
         previewDeposit(client, {
           address: tokenIn.gatewayAddress,
           amountIn,
           tokenIn: tokenIn.address,
         }),
         getMaxMint(client, { address: tokenIn.gatewayAddress }),
+        isDepositActive(),
       ]);
+
+      if (!depositActive) {
+        throw new Error(`Minting from "${options.from}" is paused`);
+      }
 
       if (peggedTokenOut > maxMint) {
         const peggedToken = await resolvePeggedToken({

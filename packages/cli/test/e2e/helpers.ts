@@ -261,6 +261,88 @@ export const setMaxMint = async function ({
   return { maxMintAfter, maxMintBefore };
 };
 
+const treasuryAbi = parseAbi([
+  "function KEEPER_ROLE() view returns (bytes32)",
+  "function defaultAdmin() view returns (address)",
+  "function grantRole(bytes32 role, address account)",
+  "function hasRole(bytes32 role, address account) view returns (bool)",
+  "function setDepositActive(address token, bool active)",
+]);
+
+/** Flips the treasury's `depositActive` for a whitelisted token, as a keeper. */
+export const setDepositActive = async function ({
+  active,
+  gateway,
+  rpcUrl,
+  token,
+}: {
+  active: boolean;
+  gateway: Address;
+  rpcUrl: string;
+  token: Address;
+}) {
+  const { publicClient, testClient } = createClients(rpcUrl);
+
+  const treasury = await readContract(publicClient, {
+    abi: vetroGatewayAbi,
+    address: gateway,
+    functionName: "treasury",
+  });
+  const [admin, keeperRole] = await Promise.all([
+    readContract(publicClient, {
+      abi: treasuryAbi,
+      address: treasury,
+      functionName: "defaultAdmin",
+    }),
+    readContract(publicClient, {
+      abi: treasuryAbi,
+      address: treasury,
+      functionName: "KEEPER_ROLE",
+    }),
+  ]);
+
+  await impersonateAccount(testClient, { address: admin });
+  await setBalance(testClient, { address: admin, value: parseEther("1") });
+
+  const confirm = async function (hash: Hex) {
+    const { status } = await waitForTransactionReceipt(publicClient, { hash });
+    if (status !== "success") {
+      throw new Error("treasury write reverted");
+    }
+  };
+
+  try {
+    const isKeeper = await readContract(publicClient, {
+      abi: treasuryAbi,
+      address: treasury,
+      args: [keeperRole, admin],
+      functionName: "hasRole",
+    });
+    if (!isKeeper) {
+      await confirm(
+        await writeContract(testClient, {
+          abi: treasuryAbi,
+          account: admin,
+          address: treasury,
+          args: [keeperRole, admin],
+          functionName: "grantRole",
+        }),
+      );
+    }
+    await confirm(
+      await writeContract(testClient, {
+        abi: treasuryAbi,
+        account: admin,
+        address: treasury,
+        args: [token, active],
+        functionName: "setDepositActive",
+      }),
+    );
+  } finally {
+    await stopImpersonatingAccount(testClient, { address: admin });
+  }
+};
+
 /** Broadcasts a TransactionRequest the CLI emitted, exactly as an agent would. */
 export const sendTransactionRequest = async function ({
   request,

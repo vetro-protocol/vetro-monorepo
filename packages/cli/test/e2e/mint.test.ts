@@ -18,6 +18,7 @@ import {
   mintArgs,
   runCli,
   runCliRaw,
+  setDepositActive,
   setMaxMint,
   slippage,
   usdc,
@@ -165,6 +166,37 @@ describe("swap mint", function () {
       expect(isHex(request.data)).toBe(true);
     } finally {
       await setMaxMint({ gateway, maxMint: maxMintBefore, rpcUrl });
+    }
+  });
+
+  it("rejects minting a token whose deposits are paused", async function () {
+    const { to: gateway } = await runCli<TransactionRequest>({
+      args: mintArgs(),
+      rpcUrl,
+    });
+    await setDepositActive({
+      active: false,
+      gateway,
+      rpcUrl,
+      token: usdc.address,
+    });
+
+    try {
+      const { exitCode, stderr } = await runCliRaw({
+        args: mintArgs(),
+        rpcUrl,
+      });
+      expect(exitCode).toBe(1);
+      expect(JSON.parse(stderr).error).toBe(
+        `Minting from "${usdc.symbol}" is paused`,
+      );
+    } finally {
+      await setDepositActive({
+        active: true,
+        gateway,
+        rpcUrl,
+        token: usdc.address,
+      });
     }
   });
 
