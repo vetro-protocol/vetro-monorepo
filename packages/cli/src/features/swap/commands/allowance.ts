@@ -3,7 +3,7 @@ import { type Address, formatUnits } from "viem";
 import { allowance } from "viem-erc20/actions";
 
 import { parseAddress } from "../../../lib/args.js";
-import { createVetroClient } from "../../../lib/client.js";
+import { type GlobalOptions, createVetroClient } from "../../../lib/client.js";
 import { printResult } from "../../../lib/output.js";
 import { resolveSwapToken } from "../../../lib/tokens.js";
 
@@ -16,8 +16,13 @@ export function register(swap: Command) {
       "Whitelisted or pegged token to check, by symbol or address",
     )
     .requiredOption("--account <addr>", "Token owner", parseAddress)
-    .action(async function (options: { account: Address; token: string }) {
-      const client = createVetroClient();
+    .action(async function (
+      options: { account: Address; token: string },
+      command: Command,
+    ) {
+      const { client } = await createVetroClient(
+        command.optsWithGlobals<GlobalOptions>(),
+      );
       const token = await resolveSwapToken({
         client,
         value: options.token,

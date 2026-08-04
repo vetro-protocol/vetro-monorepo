@@ -4,6 +4,7 @@ import {
   parseAddress,
   parseAmount,
   parseGateway,
+  parseRpcUrl,
   parseSlippage,
 } from "../src/lib/args.js";
 
@@ -72,6 +73,31 @@ describe("parseGateway", function () {
 
   it("throws for a malformed address", function () {
     expect(() => parseGateway("nope")).toThrow('Invalid address: "nope"');
+  });
+});
+
+describe("parseRpcUrl", function () {
+  it("returns the URL unchanged so it still matches for redaction", function () {
+    expect(parseRpcUrl("https://eth-mainnet.example/v2/KEY")).toBe(
+      "https://eth-mainnet.example/v2/KEY",
+    );
+    expect(parseRpcUrl("http://127.0.0.1:8545")).toBe("http://127.0.0.1:8545");
+  });
+
+  it("throws for a malformed URL", function () {
+    expect(() => parseRpcUrl("not-a-url")).toThrow(
+      'Invalid RPC URL: "not-a-url"',
+    );
+  });
+
+  it("throws for an empty value rather than treating it as unset", function () {
+    expect(() => parseRpcUrl("")).toThrow('Invalid RPC URL: ""');
+  });
+
+  it("throws for a transport the client cannot use", function () {
+    expect(() => parseRpcUrl("ws://127.0.0.1:8545")).toThrow(
+      'RPC URL must use http or https: "ws://127.0.0.1:8545"',
+    );
   });
 });
 

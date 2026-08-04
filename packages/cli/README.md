@@ -16,9 +16,31 @@ node packages/cli/_esm/cli.js swap pegged-token --gateway 0x...
 
 ## Configuration
 
-The following env variables can be set.
+`--rpc-url <url>` is a global option, accepted anywhere on the command line — before or after the subcommand:
 
-- `RPC_URL` — Ethereum mainnet RPC endpoint used for reads. Falls back to a public RPC when unset.
+```sh
+vetro-cli --rpc-url https://my-node.example swap treasury --gateway 0x...
+vetro-cli swap treasury --gateway 0x... --rpc-url https://my-node.example
+```
+
+It sets the endpoint every read goes to, and therefore the chain the emitted calldata is stamped with. It also accepts the endpoint via env var, so the resolution order is:
+
+1. `--rpc-url`
+2. `RPC_URL`
+3. a public Ethereum mainnet RPC (viem's default for mainnet)
+
+Only `http`/`https` endpoints are accepted; anything else is rejected as a usage error before any request is made.
+
+### Supported chains
+
+Vetro is deployed on Ethereum mainnet only, so every command starts by reading the endpoint's `eth_chainId` and fails if it is anything other than:
+
+| Chain ID | Endpoint                           |
+| -------- | ---------------------------------- |
+| `1`      | Ethereum mainnet                   |
+| `31337`  | local fork (anvil/Hardhat default) |
+
+The check runs before any contract read, so pointing at another network fails fast rather than returning state read off the wrong chain. This restriction is temporary and lifts once Vetro is deployed on more chains.
 
 ## Output
 
@@ -40,7 +62,7 @@ Write commands touch no keys — they emit a JSON-RPC transaction request and th
 { "chainId": "0x1", "data": "0x8b6099db…", "to": "0x…gateway", "value": "0x0" }
 ```
 
-Every numeric field is a hex `QUANTITY`, so the object can be lifted straight into `eth_sendTransaction` or an [ERC-5792](https://eips.ethereum.org/EIPS/eip-5792) `wallet_sendCalls` batch. The chain is always Ethereum mainnet, so `chainId` is always `"0x1"` and `value` is always `"0x0"`.
+Every numeric field is a hex `QUANTITY`, so the object can be lifted straight into `eth_sendTransaction` or an [ERC-5792](https://eips.ethereum.org/EIPS/eip-5792) `wallet_sendCalls` batch. `value` is always `"0x0"`.
 
 ## Token arguments
 

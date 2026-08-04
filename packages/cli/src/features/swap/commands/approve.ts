@@ -3,7 +3,7 @@ import { parseUnits } from "viem";
 import { encodeApproveData } from "viem-erc20/actions";
 
 import { parseAmount } from "../../../lib/args.js";
-import { createVetroClient } from "../../../lib/client.js";
+import { type GlobalOptions, createVetroClient } from "../../../lib/client.js";
 import { printTransactionRequest } from "../../../lib/output.js";
 import { resolveSwapToken } from "../../../lib/tokens.js";
 
@@ -16,13 +16,19 @@ export function register(swap: Command) {
       "Whitelisted or pegged token to approve, by symbol or address",
     )
     .requiredOption("--amount <n>", "Amount in human units", parseAmount)
-    .action(async function (options: { amount: string; token: string }) {
-      const client = createVetroClient();
+    .action(async function (
+      options: { amount: string; token: string },
+      command: Command,
+    ) {
+      const { chainId, client } = await createVetroClient(
+        command.optsWithGlobals<GlobalOptions>(),
+      );
       const token = await resolveSwapToken({
         client,
         value: options.token,
       });
       printTransactionRequest({
+        chainId,
         data: encodeApproveData({
           amount: parseUnits(options.amount, token.decimals),
           spender: token.gatewayAddress,

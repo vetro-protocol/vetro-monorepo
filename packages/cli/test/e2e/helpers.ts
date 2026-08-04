@@ -33,6 +33,7 @@ import {
 } from "viem/actions";
 import { mainnet } from "viem/chains";
 
+import { type GlobalOptions } from "../../src/lib/client.js";
 import { printError } from "../../src/lib/output.js";
 import { createProgram } from "../../src/program.js";
 
@@ -114,37 +115,26 @@ const withExitOverride = function (command: Command) {
  * `printError`. Driving `createProgram` in this process, rather than spawning
  * the bundled bin, is what lets coverage see these runs.
  */
-export const runCliRaw = async function ({
-  args,
-  rpcUrl,
-}: {
-  args: string[];
-  rpcUrl: string;
-}) {
+export const runCliRaw = async function (args: string[]) {
   const stdout = captureStream(process.stdout);
   const stderr = captureStream(process.stderr);
-  const previousRpcUrl = process.env.RPC_URL;
   const previousExitCode = process.exitCode;
 
-  process.env.RPC_URL = rpcUrl;
   process.exitCode = 0;
 
+  const program = withExitOverride(createProgram());
+
   try {
-    await withExitOverride(createProgram()).parseAsync(args, { from: "user" });
+    await program.parseAsync(args, { from: "user" });
   } catch (error) {
     if (error instanceof CommanderError) {
       process.exitCode = error.exitCode;
     } else {
-      printError(error);
+      printError({ error, rpcUrl: program.opts<GlobalOptions>().rpcUrl });
     }
   } finally {
     stdout.restore();
     stderr.restore();
-    if (previousRpcUrl === undefined) {
-      delete process.env.RPC_URL;
-    } else {
-      process.env.RPC_URL = previousRpcUrl;
-    }
   }
 
   const exitCode = process.exitCode ?? 0;
@@ -154,14 +144,8 @@ export const runCliRaw = async function ({
   return { exitCode, stderr: stderr.read(), stdout: stdout.read() };
 };
 
-export const runCli = async function <T = string>({
-  args,
-  rpcUrl,
-}: {
-  args: string[];
-  rpcUrl: string;
-}) {
-  const { exitCode, stderr, stdout } = await runCliRaw({ args, rpcUrl });
+export const runCli = async function <T = string>(args: string[]) {
+  const { exitCode, stderr, stdout } = await runCliRaw(args);
   if (exitCode !== 0) {
     throw new Error(
       `vetro-cli ${args.join(" ")} exited ${exitCode}: ${stderr}`,
