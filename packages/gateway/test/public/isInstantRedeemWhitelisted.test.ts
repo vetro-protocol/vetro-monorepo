@@ -96,8 +96,6 @@ describe("isInstantRedeemWhitelisted", function () {
   });
 
   it("should call readContract if parameters are valid", async function () {
-    vi.mocked(readContract);
-
     await isInstantRedeemWhitelisted(client, validParameters);
 
     expect(readContract).toHaveBeenCalledWith(client, {

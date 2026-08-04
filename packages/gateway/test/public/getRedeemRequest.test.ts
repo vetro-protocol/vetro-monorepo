@@ -96,8 +96,6 @@ describe("getRedeemRequest", function () {
   });
 
   it("should call readContract if parameters are valid", async function () {
-    vi.mocked(readContract);
-
     await getRedeemRequest(client, validParameters);
 
     expect(readContract).toHaveBeenCalledWith(client, {

@@ -6,14 +6,15 @@ import {
   createTestClient,
   http,
   isAddress,
+  keccak256,
   parseEther,
+  stringToBytes,
 } from "viem";
 import {
   impersonateAccount,
   readContract,
   setBalance,
   stopImpersonatingAccount,
-  waitForTransactionReceipt,
   writeContract,
 } from "viem/actions";
 import { mainnet } from "viem/chains";
@@ -21,7 +22,34 @@ import { mainnet } from "viem/chains";
 import { gatewayAbi } from "../../packages/gateway/src/abi/gatewayAbi.ts";
 import { gatewayAddresses } from "../../packages/gateway/src/gatewayAddresses.ts";
 
+import { confirmTransaction } from "./utils.ts";
+
 const WITHDRAWAL_DELAY_SECONDS = 72n;
+
+const MAINTAINER_ROLE = keccak256(stringToBytes("MAINTAINER_ROLE"));
+
+const accessControlAbi = [
+  {
+    inputs: [
+      { name: "role", type: "bytes32" },
+      { name: "account", type: "address" },
+    ],
+    name: "grantRole",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "role", type: "bytes32" },
+      { name: "account", type: "address" },
+    ],
+    name: "hasRole",
+    outputs: [{ type: "bool" }],
+    stateMutability: "view",
+    type: "function",
+  },
+] as const;
 
 // Enable or disable the gateway's withdrawal delay by impersonating its owner.
 // When enabling, also remove the address from the instant-redeem whitelist so it
@@ -46,11 +74,16 @@ export async function setRedeemDelay({
     transport,
   });
 
-  const [owner, delayEnabledBefore] = await Promise.all([
+  const [owner, treasury, delayEnabledBefore] = await Promise.all([
     readContract(publicClient, {
       abi: gatewayAbi,
       address: gateway,
       functionName: "owner",
+    }),
+    readContract(publicClient, {
+      abi: gatewayAbi,
+      address: gateway,
+      functionName: "treasury",
     }),
     readContract(publicClient, {
       abi: gatewayAbi,
@@ -63,6 +96,24 @@ export async function setRedeemDelay({
   await setBalance(testClient, { address: owner, value: parseEther("1") });
 
   try {
+    const ownerHasRole = await readContract(publicClient, {
+      abi: accessControlAbi,
+      address: treasury,
+      args: [MAINTAINER_ROLE, owner],
+      functionName: "hasRole",
+    });
+
+    if (!ownerHasRole) {
+      const grantHash = await writeContract(testClient, {
+        abi: accessControlAbi,
+        account: owner,
+        address: treasury,
+        args: [MAINTAINER_ROLE, owner],
+        functionName: "grantRole",
+      });
+      await confirmTransaction({ client: publicClient, hash: grantHash });
+    }
+
     if (enableDelay) {
       if (!delayEnabledBefore) {
         const hash = await writeContract(testClient, {
@@ -72,7 +123,7 @@ export async function setRedeemDelay({
           args: [true],
           functionName: "setWithdrawalDelayEnabled",
         });
-        await waitForTransactionReceipt(publicClient, { hash });
+        await confirmTransaction({ client: publicClient, hash });
       }
 
       const [, isWhitelisted] = await Promise.all([
@@ -82,7 +133,7 @@ export async function setRedeemDelay({
           address: gateway,
           args: [WITHDRAWAL_DELAY_SECONDS],
           functionName: "updateWithdrawalDelay",
-        }).then((hash) => waitForTransactionReceipt(publicClient, { hash })),
+        }).then((hash) => confirmTransaction({ client: publicClient, hash })),
         readContract(publicClient, {
           abi: gatewayAbi,
           address: gateway,
@@ -99,7 +150,7 @@ export async function setRedeemDelay({
           args: [address],
           functionName: "removeFromInstantRedeemWhitelist",
         });
-        await waitForTransactionReceipt(publicClient, { hash });
+        await confirmTransaction({ client: publicClient, hash });
       }
     } else if (delayEnabledBefore) {
       const hash = await writeContract(testClient, {
@@ -109,7 +160,7 @@ export async function setRedeemDelay({
         args: [false],
         functionName: "setWithdrawalDelayEnabled",
       });
-      await waitForTransactionReceipt(publicClient, { hash });
+      await confirmTransaction({ client: publicClient, hash });
     }
 
     const [delayEnabledAfter, delay] = await Promise.all([

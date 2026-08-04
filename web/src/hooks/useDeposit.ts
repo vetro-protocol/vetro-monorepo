@@ -16,6 +16,7 @@ import { useAccount } from "wagmi";
 import { analyticsTreasuryQueryKey } from "./useAnalyticsTreasury";
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { useMainnet } from "./useMainnet";
+import { maxMintQueryKey } from "./useMaxMint";
 import {
   previewDepositQueryKey,
   previewDepositTokenOptions,
@@ -183,6 +184,13 @@ export const useDeposit = function ({
 
       queryClient.invalidateQueries({
         queryKey: analyticsTreasuryKey,
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: maxMintQueryKey({
+          chainId: ethereumChain.id,
+          gatewayAddress,
+        }),
       });
 
       // Let's clear this query, as once the user inputs an amount

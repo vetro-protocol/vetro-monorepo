@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import fetch from "fetch-plus-plus";
-import { isValidUrl } from "utils/url";
 import { useAccount } from "wagmi";
 
 import type { ExitTicket } from "../types";
@@ -15,7 +14,7 @@ export function useExitTickets() {
 
   return useQuery({
     enabled:
-      apiUrl !== undefined && isValidUrl(apiUrl) && address !== undefined,
+      apiUrl !== undefined && URL.canParse(apiUrl) && address !== undefined,
     queryFn: () =>
       fetch(`${apiUrl}/variable-stake/exit-tickets/${address}`) as Promise<
         ExitTicket[]

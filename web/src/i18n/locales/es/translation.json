@@ -16,6 +16,7 @@
     "connect-wallet": "Conectar billetera",
     "enter-amount": "Ingrese un monto",
     "exceeds-debt": "El monto excede la deuda",
+    "exceeds-max-mint": "El monto excede el límite de acuñación",
     "geo-restriction-title": "Vetro no está disponible en su país",
     "insufficient-balance": "Saldo insuficiente",
     "insufficient-collateral": "Garantía insuficiente",
@@ -419,6 +420,8 @@
         "redeemable-for_other": "Intercambiable por {{allButLast}} y {{lastSymbol}}",
         "send-to-queue": "Enviar a la cola",
         "swap": "Intercambiar",
+        "swaps-paused": "Los intercambios están pausados para este token",
+        "token-status-error": "No se pudo cargar el estado del token",
         "you-are-swapping": "Está intercambiando",
         "you-will-receive-estimated": "Va a recibir (estimado)"
       },
@@ -456,6 +459,8 @@
         "redeem": "Canjear",
         "redeem-confirmed": "Canje confirmado",
         "redeemable-balance": "Saldo canjeable",
+        "redeems-paused": "Los canjes están pausados",
+        "redeems-paused-for-token": "Los canjes están pausados para este token",
         "status": "Estado",
         "swap-confirmed-description": "Su {{symbol}} ahora está disponible en su billetera",
         "title": "Cola de Canje"
@@ -466,13 +471,13 @@
         "auto": "Auto",
         "cancel": "Cancelar",
         "continue-anyway": "Continuar de todos modos",
-        "high-slippage": "Slippage alto",
-        "high-value": "Slippage alto {{value}}%",
-        "max-slippage": "Slippage máximo",
+        "high-slippage": "Deslizamiento alto",
+        "high-value": "Deslizamiento alto {{value}}%",
+        "max-slippage": "Deslizamiento máximo",
         "title": "Configuración avanzada",
-        "value": "Slippage {{value}}%",
-        "warning-description": "<highlight>Su slippage está por encima del {{threshold}}%.</highlight> Esto aumenta su exposición al impacto de precio. Podría recibir significativamente menos tokens de los cotizados.",
-        "warning-title": "Advertencia de slippage alto"
+        "value": "Deslizamiento {{value}}%",
+        "warning-description": "<highlight>Su deslizamiento está por encima del {{threshold}}%.</highlight> Esto aumenta su exposición al impacto de precio. Podría recibir significativamente menos tokens de los cotizados.",
+        "warning-title": "Advertencia de deslizamiento alto"
       },
       "title": "Intercambie sus tokens por activos de Vetro",
       "toast": {

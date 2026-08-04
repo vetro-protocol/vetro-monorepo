@@ -14,9 +14,11 @@ import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useDeposit } from "hooks/useDeposit";
 import { useMainnet } from "hooks/useMainnet";
+import { useMaxMint } from "hooks/useMaxMint";
 import { useMintFee } from "hooks/useMintFee";
 import { usePreviewDeposit } from "hooks/usePreviewDeposit";
 import { useSwapMintFees } from "hooks/useSwapMintFees";
+import { useTokenConfig } from "hooks/useTokenConfig";
 import { useTotalMintFees } from "hooks/useTotalMintFees";
 import { type FormEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -112,10 +114,20 @@ export function Deposit({
 
   const { data: nativeBalanceData } = useNativeBalance(ethereumChain.id);
 
-  const { data: needsApproval } = useNeedsApproval({
-    amount: amountBigInt,
-    spender: fromToken.gatewayAddress,
-    token: fromToken,
+  const { data: needsApproval, isError: isNeedsApprovalError } =
+    useNeedsApproval({
+      amount: amountBigInt,
+      spender: fromToken.gatewayAddress,
+      token: fromToken,
+    });
+
+  const { data: maxMint, isError: isMaxMintError } = useMaxMint({
+    gatewayAddress: fromToken.gatewayAddress,
+  });
+
+  const { data: tokenConfig, isError: isTokenConfigError } = useTokenConfig({
+    gatewayAddress: fromToken.gatewayAddress,
+    token: fromToken.address,
   });
 
   const { data: depositPreview, isError: isDepositPreviewError } =
@@ -213,6 +225,8 @@ export function Deposit({
 
   const inputError = getInputError({
     amount: amountBigInt,
+    depositPreview,
+    maxMint,
     nativeBalance,
     tokenBalance: fromTokenBalance,
   });
@@ -243,6 +257,12 @@ export function Deposit({
   const balancesLoaded =
     nativeBalance !== undefined && fromTokenBalance !== undefined;
 
+  const isLoading = () =>
+    depositPreview === undefined ||
+    needsApproval === undefined ||
+    tokenConfig === undefined ||
+    (maxMint === undefined && !isMaxMintError);
+
   const handleRetry = function () {
     setFlowStatus(startedWithApproval ? "approving" : "deposit-ready");
     depositMutation.mutate();
@@ -250,7 +270,12 @@ export function Deposit({
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!inputError) {
+    if (
+      !inputError &&
+      needsApproval !== undefined &&
+      tokenConfig?.depositActive &&
+      depositPreview !== undefined
+    ) {
       setStartedWithApproval(!!needsApproval);
       setFlowStatus(needsApproval ? "approving" : "deposit-ready");
       depositMutation.mutate();
@@ -303,9 +328,11 @@ export function Deposit({
         <SubmitButton
           actionText={t("pages.swap.form.swap")}
           inputError={inputError}
+          isActive={tokenConfig?.depositActive}
+          isActiveError={isTokenConfigError}
+          isAllowanceError={isNeedsApprovalError}
+          isLoading={isLoading()}
           isPreviewError={isDepositPreviewError}
-          previewValue={depositPreview}
-          token={fromToken}
         />
       </Form>
       <FormSection show={amountBigInt !== 0n}>

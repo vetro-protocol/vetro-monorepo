@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { printError, printResult } from "../src/lib/output.js";
+import {
+  printError,
+  printResult,
+  printTransactionRequest,
+} from "../src/lib/output.js";
 
 const captureStdout = () =>
   vi.spyOn(process.stdout, "write").mockImplementation(() => true);
@@ -44,36 +48,61 @@ describe("printResult", function () {
   });
 });
 
-describe("printError", function () {
-  const originalRpcUrl = process.env.RPC_URL;
+describe("printTransactionRequest", function () {
+  it("emits the chain it was given as a hex QUANTITY", function () {
+    const spy = captureStdout();
+    printTransactionRequest({
+      chainId: 1,
+      data: "0xdeadbeef",
+      to: "0xDaD503f8B9d42bb7af3AfC588358D30163e4416F",
+    });
+    expect(spy).toHaveBeenCalledWith(
+      '{"chainId":"0x1","data":"0xdeadbeef","to":"0xDaD503f8B9d42bb7af3AfC588358D30163e4416F","value":"0x0"}\n',
+    );
+  });
+});
 
+describe("printError", function () {
   afterEach(function () {
-    if (originalRpcUrl === undefined) {
-      delete process.env.RPC_URL;
-    } else {
-      process.env.RPC_URL = originalRpcUrl;
-    }
     process.exitCode = 0;
   });
 
-  it("redacts the configured RPC_URL so a key doesn't leak", function () {
-    process.env.RPC_URL = "https://eth-mainnet.example/v2/SECRET_KEY";
+  it("redacts the resolved RPC URL so a key doesn't leak", function () {
     const spy = captureStderr();
-    printError(
-      new Error(
+    printError({
+      error: new Error(
         "HTTP request failed. URL: https://eth-mainnet.example/v2/SECRET_KEY",
       ),
-    );
+      rpcUrl: "https://eth-mainnet.example/v2/SECRET_KEY",
+    });
     expect(spy).toHaveBeenCalledWith(
       '{"error":"HTTP request failed. URL: [redacted]"}\n',
     );
     expect(process.exitCode).toBe(1);
   });
 
-  it("passes the message through when RPC_URL is unset", function () {
-    delete process.env.RPC_URL;
+  it("redacts every occurrence of the URL", function () {
     const spy = captureStderr();
-    printError(new Error("boom"));
+    printError({
+      error: new Error(
+        "https://secret.example/KEY failed; retry https://secret.example/KEY",
+      ),
+      rpcUrl: "https://secret.example/KEY",
+    });
+    expect(spy).toHaveBeenCalledWith(
+      '{"error":"[redacted] failed; retry [redacted]"}\n',
+    );
+  });
+
+  it("passes the message through when no RPC URL was configured", function () {
+    const spy = captureStderr();
+    printError({ error: new Error("boom") });
     expect(spy).toHaveBeenCalledWith('{"error":"boom"}\n');
+  });
+
+  it("stringifies a non-Error rejection", function () {
+    const spy = captureStderr();
+    printError({ error: "plain failure" });
+    expect(spy).toHaveBeenCalledWith('{"error":"plain failure"}\n');
   });
 });

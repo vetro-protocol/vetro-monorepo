@@ -1,15 +1,10 @@
 import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
 import { type Step, stepStatus } from "components/base/verticalStepper";
-import type { InputError } from "components/tokenInput/utils";
 import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
-import { type ComponentProps, type ReactNode, Suspense, lazy } from "react";
+import { type ComponentProps, Suspense, lazy } from "react";
 import { useTranslation } from "react-i18next";
-import type { TokenWithGateway } from "types";
-import type { Address } from "viem";
 
-import type { UnitPreview } from "./outputLabel";
-import type { SwapFees } from "./swapFees";
 import { type ClaimRedeemFlowStatus } from "./types";
 
 const ClaimRedeemProgressDrawer = lazy(() =>
@@ -27,52 +22,11 @@ const confirmStepStatuses: Record<ClaimRedeemFlowStatus, Step["status"]> = {
 };
 
 type Props = {
-  amountBigInt: bigint;
-  amountLocked: bigint;
-  flowStatus: ClaimRedeemFlowStatus;
-  fromAmount: string;
-  fromToken: TokenWithGateway;
-  inputError: InputError | undefined;
   onClose: VoidFunction;
-  onInputChange: (value: string) => void;
-  onMaxClick: VoidFunction;
-  onSubmit: VoidFunction;
-  onTokenChange: (token: TokenWithGateway) => void;
-  oracleToken: Address;
-  outputBigInt: bigint | undefined;
-  outputValue: string;
-  slippageControl: ReactNode;
-  toToken: TokenWithGateway;
-  unitPreview: UnitPreview;
-  whitelistedTokens: TokenWithGateway[];
-} & Pick<
-  ComponentProps<typeof SwapFees>,
-  "networkFee" | "protocolFee" | "totalFees"
->;
+} & Omit<ComponentProps<typeof ClaimRedeemProgressDrawer>, "onRetry" | "steps">;
 
-export function ClaimRedeemDrawer({
-  amountBigInt,
-  amountLocked,
-  flowStatus,
-  fromAmount,
-  fromToken,
-  inputError,
-  networkFee,
-  onClose,
-  onInputChange,
-  onMaxClick,
-  onSubmit,
-  onTokenChange,
-  oracleToken,
-  outputBigInt,
-  outputValue,
-  protocolFee,
-  slippageControl,
-  totalFees,
-  toToken,
-  unitPreview,
-  whitelistedTokens,
-}: Props) {
+export function ClaimRedeemDrawer({ onClose, ...props }: Props) {
+  const { flowStatus, onSubmit } = props;
   const { t } = useTranslation();
   useCloseOnSuccess({ onClose, success: flowStatus === "redeemed" });
 
@@ -90,28 +44,9 @@ export function ClaimRedeemDrawer({
     <Drawer onClose={onClose}>
       <Suspense fallback={<DrawerLoader />}>
         <ClaimRedeemProgressDrawer
-          amountBigInt={amountBigInt}
-          amountLocked={amountLocked}
-          flowStatus={flowStatus}
-          fromAmount={fromAmount}
-          fromToken={fromToken}
-          inputError={inputError}
-          networkFee={networkFee}
-          onInputChange={onInputChange}
-          onMaxClick={onMaxClick}
+          {...props}
           onRetry={isError ? onSubmit : undefined}
-          onSubmit={onSubmit}
-          onTokenChange={onTokenChange}
-          oracleToken={oracleToken}
-          outputBigInt={outputBigInt}
-          outputValue={outputValue}
-          protocolFee={protocolFee}
-          slippageControl={slippageControl}
           steps={steps}
-          toToken={toToken}
-          totalFees={totalFees}
-          unitPreview={unitPreview}
-          whitelistedTokens={whitelistedTokens}
         />
       </Suspense>
     </Drawer>

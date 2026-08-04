@@ -60,8 +60,6 @@ describe("getTreasury", function () {
   });
 
   it("should call readContract if all parameters are valid", async function () {
-    vi.mocked(readContract);
-
     await getTreasury(client, validParameters);
 
     expect(readContract).toHaveBeenCalledWith(client, {

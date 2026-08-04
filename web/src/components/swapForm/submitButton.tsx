@@ -1,4 +1,3 @@
-import { useAllowance } from "@hemilabs/react-hooks/useAllowance";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { Button } from "components/base/button";
 import { Spinner } from "components/base/spinner";
@@ -6,7 +5,6 @@ import { ExclamationTriangleIcon } from "components/icons/exclamationTriangleIco
 import type { InputError } from "components/tokenInput/utils";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import type { TokenWithGateway } from "types";
 import { isGeoRestricted } from "utils/geoRestriction";
 import { useAccount } from "wagmi";
 
@@ -19,33 +17,37 @@ const Container = ({ children }: { children: ReactNode }) => (
 type Props = {
   actionText: string;
   inputError: InputError | undefined;
+  isActive: boolean | undefined;
+  isActiveError?: boolean;
+  isAllowanceError: boolean;
+  isLoading: boolean;
   isPreviewError: boolean;
-  previewValue: bigint | undefined;
-  token: TokenWithGateway;
 };
 
 export function SubmitButton({
   actionText,
   inputError,
+  isActive,
+  isActiveError = false,
+  isAllowanceError,
+  isLoading,
   isPreviewError,
-  previewValue,
-  token,
 }: Props) {
   const { address } = useAccount();
   const { openConnectModal } = useConnectModal();
 
-  const { data: allowance, isError: isAllowanceError } = useAllowance({
-    owner: address,
-    spender: token.gatewayAddress,
-    token,
-  });
-
   const { t } = useTranslation();
+
+  const buttonProps = {
+    disabled: true,
+    size: "xLarge",
+    type: "submit",
+  } as const;
 
   if (isGeoRestricted()) {
     return (
       <Container>
-        <Button disabled size="xLarge" type="submit">
+        <Button {...buttonProps}>
           <ExclamationTriangleIcon />
           {t("common.geo-restriction-title")}
         </Button>
@@ -67,11 +69,27 @@ export function SubmitButton({
     );
   }
 
+  if (isActive === false) {
+    return (
+      <Container>
+        <Button {...buttonProps}>{t("pages.swap.form.swaps-paused")}</Button>
+      </Container>
+    );
+  }
+
   if (inputError) {
     return (
       <Container>
-        <Button disabled size="xLarge" type="button">
-          {t(`common.${inputError}`)}
+        <Button {...buttonProps}>{t(`common.${inputError}`)}</Button>
+      </Container>
+    );
+  }
+
+  if (isActiveError) {
+    return (
+      <Container>
+        <Button {...buttonProps}>
+          {t("pages.swap.form.token-status-error")}
         </Button>
       </Container>
     );
@@ -81,9 +99,7 @@ export function SubmitButton({
   if (isAllowanceError) {
     return (
       <Container>
-        <Button disabled size="xLarge" type="button">
-          {t("pages.swap.form.allowance-error")}
-        </Button>
+        <Button {...buttonProps}>{t("pages.swap.form.allowance-error")}</Button>
       </Container>
     );
   }
@@ -91,22 +107,15 @@ export function SubmitButton({
   if (isPreviewError) {
     return (
       <Container>
-        <Button disabled size="xLarge" type="button">
-          {t("pages.swap.form.preview-error")}
-        </Button>
+        <Button {...buttonProps}>{t("pages.swap.form.preview-error")}</Button>
       </Container>
     );
   }
 
-  const shouldShowSpinner = () =>
-    // show spinner for loading allowance, or calculating output values
-    previewValue === undefined ||
-    (allowance === undefined && !isAllowanceError);
-
-  if (shouldShowSpinner()) {
+  if (isLoading) {
     return (
       <Container>
-        <Button disabled size="xLarge" type="button">
+        <Button {...buttonProps}>
           <Spinner />
         </Button>
       </Container>
@@ -115,7 +124,7 @@ export function SubmitButton({
 
   return (
     <Container>
-      <Button size="xLarge" type="submit">
+      <Button {...buttonProps} disabled={false}>
         {actionText}
       </Button>
     </Container>

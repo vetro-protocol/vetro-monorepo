@@ -18,11 +18,11 @@
     "tiny-fetch-json": "2.0.1",
     "tiny-post-json": "1.0.0",
     "viem": "2.44.4",
-    "viem-erc20": "2.1.0",
+    "viem-erc20": "2.2.0",
     "viem-erc4626": "1.0.0"
   },
   "devDependencies": {
-    "@sentry/cli": "2.58.5",
+    "@sentry/cli": "3.6.2",
     "@types/node": "24.10.13",
     "typescript": "5.9.3",
     "vitest": "4.1.9",

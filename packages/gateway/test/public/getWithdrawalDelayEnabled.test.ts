@@ -60,8 +60,6 @@ describe("getWithdrawalDelayEnabled", function () {
   });
 
   it("should call readContract if parameters are valid", async function () {
-    vi.mocked(readContract);
-
     await getWithdrawalDelayEnabled(client, validParameters);
 
     expect(readContract).toHaveBeenCalledWith(client, {

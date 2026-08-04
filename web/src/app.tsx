@@ -1,11 +1,12 @@
 import * as Sentry from "@sentry/react";
+import { AnalyticsTracker } from "components/analyticsTracker";
 import { AppLayout, MainContent } from "components/base/appLayout";
 import { AppViewport } from "components/base/appViewport";
 import { ErrorBoundary } from "components/base/errorBoundary";
 import { GeoRestrictionRibbon } from "components/geoRestrictionRibbon";
 import { Header } from "components/header";
 import { I18nInitializer } from "i18n/config";
-import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
+import { NuqsAdapter } from "nuqs/adapters/react-router/v8";
 import { Analytics } from "pages/analytics";
 import { Borrow } from "pages/borrow";
 import { BorrowMarketDetails } from "pages/borrowMarketDetails";
@@ -28,6 +29,10 @@ import {
 import { isGeoRestricted } from "utils/geoRestriction";
 
 const SentryRoutes = Sentry.withSentryReactRouterV7Routing(Routes);
+
+const analyticsEnabled =
+  !!import.meta.env.VITE_ANALYTICS_URL &&
+  !!import.meta.env.VITE_ANALYTICS_WEBSITE_ID;
 
 const AppNotifications = lazy(() =>
   import("components/appNotifications").then((m) => ({
@@ -102,6 +107,7 @@ function LanguageRoutes() {
 export const App = () => (
   <BrowserRouter>
     <NuqsAdapter>
+      {analyticsEnabled && <AnalyticsTracker />}
       <AppViewport>
         <SentryRoutes>
           {/* Redirect root to English */}

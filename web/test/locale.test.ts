@@ -49,6 +49,7 @@ const dynamicallyReferencedKeys = [
   "common.amount-too-small-to-bridge",
   "common.enter-amount",
   "common.exceeds-debt",
+  "common.exceeds-max-mint",
   "common.insufficient-balance",
   "common.insufficient-collateral",
   "common.insufficient-gas",

@@ -1,13 +1,19 @@
 import { TEST_ADDRESS } from "@hemilabs/anvil-fork-setup/utils";
 import { expect } from "@playwright/test";
+import { getTreasury } from "@vetro-protocol/gateway/actions";
+import { getWhitelistedTokens } from "@vetro-protocol/treasury/actions";
 import { parseUnits } from "viem";
 import { getBlock, readContract } from "viem/actions";
-import { balanceOf } from "viem-erc20/actions";
+import { balanceOf, symbol } from "viem-erc20/actions";
 
 import { gatewayAbi } from "../../packages/gateway/src/abi/gatewayAbi.ts";
 import { gatewayAddresses } from "../../packages/gateway/src/gatewayAddresses.ts";
 import { fastForwardTime } from "../scripts/fastForwardTime.ts";
 import { setRedeemDelay } from "../scripts/redeemDelay.ts";
+import { requestRedeem } from "../scripts/requestRedeem.ts";
+import { setDepositActive } from "../scripts/setDepositActive.ts";
+import { setMaxMint } from "../scripts/setMaxMint.ts";
+import { setWithdrawActive } from "../scripts/setWithdrawActive.ts";
 import { whitelistInstantRedeem } from "../scripts/whitelistInstantRedeem.ts";
 
 import { ANVIL_URL, createEthereumClient } from "./anvil";
@@ -15,6 +21,7 @@ import { test } from "./fixtures/wallet";
 import { getMainnetToken, waitForBalance } from "./helpers";
 
 const usdc = getMainnetToken("USDC");
+const usdcSymbol = new RegExp(usdc.symbol);
 const vusd = getMainnetToken("VUSD");
 const SWAP_AMOUNT_DISPLAY = "1";
 const SWAP_AMOUNT = parseUnits(SWAP_AMOUNT_DISPLAY, usdc.decimals);
@@ -65,9 +72,12 @@ test("swap USDC → VUSD via the gateway", async function ({ page }) {
 
   // Auto-waits for the USDC row, covering the CI race where the token list is
   // still loading when the dialog opens.
-  await fromTokenDialog.getByRole("button", { name: /USDC/ }).first().click();
+  await fromTokenDialog
+    .getByRole("button", { name: usdcSymbol })
+    .first()
+    .click();
 
-  await expect(fromTokenSelector).toContainText("USDC");
+  await expect(fromTokenSelector).toContainText(usdcSymbol);
   // Selecting a token closes the picker; ensure it's gone before interacting
   // with the form underneath.
   await expect(fromTokenDialog).toBeHidden();
@@ -101,6 +111,111 @@ test("swap USDC → VUSD via the gateway", async function ({ page }) {
     address: usdc.address,
   });
   expect(usdcAfter).toBe(usdcBefore - SWAP_AMOUNT);
+});
+
+test("deposit CTA reads 'Swaps are paused' when the token's deposits are paused", async function ({
+  page,
+}) {
+  const { activeAfter } = await setDepositActive({
+    active: false,
+    forkUrl: ANVIL_URL,
+    gateway: gatewayAddresses[0],
+    token: usdc.address,
+  });
+  expect(activeAfter).toBe(false);
+
+  await page.goto("/swap");
+
+  await expect(
+    page.getByRole("button", { name: /^0x[a-f0-9]{4}/i }),
+  ).toBeVisible({ timeout: 30_000 });
+
+  const fromTokenSelector = page
+    .getByRole("button", { name: "Select token to swap" })
+    .first();
+  await fromTokenSelector.click();
+
+  const fromTokenDialog = page.getByRole("dialog", { name: "Select a token" });
+  await expect(fromTokenDialog).toBeVisible();
+  await fromTokenDialog
+    .getByRole("button", { name: usdcSymbol })
+    .first()
+    .click();
+
+  await expect(fromTokenSelector).toContainText(usdcSymbol);
+  await expect(fromTokenDialog).toBeHidden();
+
+  const pausedButton = page.getByRole("button", {
+    name: "Swaps are paused for this token",
+  });
+  await expect(pausedButton).toBeVisible({ timeout: 20_000 });
+  await expect(pausedButton).toBeDisabled();
+
+  const resumed = await setDepositActive({
+    active: true,
+    forkUrl: ANVIL_URL,
+    gateway: gatewayAddresses[0],
+    token: usdc.address,
+  });
+  expect(resumed.activeAfter).toBe(true);
+});
+
+test("deposit CTA reads 'Amount exceeds mint limit' once the preview exceeds the gateway's remaining capacity", async function ({
+  page,
+}) {
+  const remainingCapacity = parseUnits("0.5", vusd.decimals);
+  const { maxMintAfter, maxMintBefore } = await setMaxMint({
+    forkUrl: ANVIL_URL,
+    gateway: gatewayAddresses[0],
+    maxMint: remainingCapacity,
+  });
+  expect(maxMintAfter).toBe(remainingCapacity);
+
+  await page.goto("/swap");
+
+  await expect(
+    page.getByRole("button", { name: /^0x[a-f0-9]{4}/i }),
+  ).toBeVisible({ timeout: 30_000 });
+
+  const fromTokenSelector = page
+    .getByRole("button", { name: "Select token to swap" })
+    .first();
+  await fromTokenSelector.click();
+
+  const fromTokenDialog = page.getByRole("dialog", { name: "Select a token" });
+  await expect(fromTokenDialog).toBeVisible();
+  await fromTokenDialog
+    .getByRole("button", { name: usdcSymbol })
+    .first()
+    .click();
+
+  await expect(fromTokenSelector).toContainText(usdcSymbol);
+  await expect(fromTokenDialog).toBeHidden();
+
+  const amountInput = page
+    .locator('input[type="text"]:not([disabled])')
+    .first();
+
+  await amountInput.fill("0.1");
+  await expect(page.getByRole("button", { name: /^swap$/i })).toBeEnabled({
+    timeout: 20_000,
+  });
+
+  // Over the cap: 1 USDC previews to ~0.999 VUSD, above the 0.5 remaining.
+  await amountInput.fill(SWAP_AMOUNT_DISPLAY);
+
+  const exceededButton = page.getByRole("button", {
+    name: "Amount exceeds mint limit",
+  });
+  await expect(exceededButton).toBeVisible({ timeout: 20_000 });
+  await expect(exceededButton).toBeDisabled();
+
+  const restored = await setMaxMint({
+    forkUrl: ANVIL_URL,
+    gateway: gatewayAddresses[0],
+    maxMint: maxMintBefore,
+  });
+  expect(restored.maxMintAfter).toBe(maxMintBefore);
 });
 
 test("redeem VUSD → USDC via the gateway (instant redeem)", async function ({
@@ -178,9 +293,9 @@ test("redeem VUSD → USDC via the gateway (instant redeem)", async function ({
 
   // Auto-waits for the USDC row, covering the CI race where the token list is
   // still loading when the dialog opens.
-  await toTokenDialog.getByRole("button", { name: /USDC/ }).first().click();
+  await toTokenDialog.getByRole("button", { name: usdcSymbol }).first().click();
 
-  await expect(toTokenSelector).toContainText("USDC");
+  await expect(toTokenSelector).toContainText(usdcSymbol);
   // Selecting a token closes the picker; ensure it's gone before interacting
   // with the form underneath.
   await expect(toTokenDialog).toBeHidden();
@@ -367,4 +482,85 @@ test("redeem VUSD via the gateway (two-step queue redeem)", async function ({
     address: vusd.address,
   });
   expect(vusdAfterClaim).toBe(vusdBefore - REDEEM_AMOUNT);
+});
+
+test("claim drawer CTA reads 'Redeems are paused for this token' when the output token's redeems are paused", async function ({
+  page,
+}) {
+  const publicClient = createEthereumClient();
+
+  await setRedeemDelay({
+    address: TEST_ADDRESS,
+    enableDelay: true,
+    forkUrl: ANVIL_URL,
+    gateway: gatewayAddresses[0],
+  });
+
+  // Queue the redeem on-chain instead of through the form.
+  const { claimableAt } = await requestRedeem({
+    address: TEST_ADDRESS,
+    forkUrl: ANVIL_URL,
+    gateway: gatewayAddresses[0],
+    peggedTokenAmount: REDEEM_AMOUNT,
+  });
+  expect(claimableAt).toBeGreaterThan(0n);
+
+  const treasury = await getTreasury(publicClient, {
+    address: gatewayAddresses[0],
+  });
+  const [defaultOutputToken] = await getWhitelistedTokens(publicClient, {
+    address: treasury,
+  });
+  const defaultOutputSymbol = await symbol(publicClient, {
+    address: defaultOutputToken,
+  });
+
+  const { activeAfter } = await setWithdrawActive({
+    active: false,
+    forkUrl: ANVIL_URL,
+    gateway: gatewayAddresses[0],
+    token: defaultOutputToken,
+  });
+  expect(activeAfter).toBe(false);
+
+  // Skip the cooldown on both clocks — the fork's, so the request is claimable,
+  // and the browser's, so the row's countdown (useCountdown) reaches zero and
+  // enables the Redeem button. See the two-step test for the full rationale.
+  const { timestamp: chainNow } = await getBlock(publicClient);
+  const newTimestamp = await fastForwardTime({
+    forkUrl: ANVIL_URL,
+    seconds: Number(claimableAt - chainNow),
+  });
+  await page.clock.setFixedTime(Number(newTimestamp) * 1000);
+
+  await page.goto("/swap");
+
+  await expect(
+    page.getByRole("button", { name: /^0x[a-f0-9]{4}/i }),
+  ).toBeVisible({ timeout: 30_000 });
+
+  const redeemQueue = page.locator("#redeem-queue");
+  await expect(redeemQueue.getByText(/ready to redeem/i)).toBeVisible({
+    timeout: 20_000,
+  });
+
+  const queueRedeemButton = redeemQueue.getByRole("button", {
+    name: /^redeem$/i,
+  });
+  await expect(queueRedeemButton).toBeEnabled({ timeout: 30_000 });
+  await queueRedeemButton.click();
+
+  const drawerTitle = page.getByRole("heading", { name: /redeem your/i });
+  await expect(drawerTitle).toBeVisible();
+  const drawer = drawerTitle.locator("..");
+
+  await expect(
+    drawer.getByRole("button", { name: "Select token to swap" }),
+  ).toContainText(defaultOutputSymbol);
+
+  const pausedButton = drawer.getByRole("button", {
+    name: "Redeems are paused for this token",
+  });
+  await expect(pausedButton).toBeVisible({ timeout: 20_000 });
+  await expect(pausedButton).toBeDisabled();
 });

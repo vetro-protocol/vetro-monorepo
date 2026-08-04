@@ -1,0 +1,78 @@
+import { TEST_ADDRESS } from "@hemilabs/anvil-fork-setup/utils";
+import { isAddressEqual } from "viem";
+import { describe, expect, inject, it } from "vitest";
+
+import {
+  type TransactionRequest,
+  swapAmount,
+  approveArgs,
+  fundTestAccount,
+  runCli,
+  runCliRaw,
+  sendTransactionRequest,
+  usdc,
+  vusd,
+} from "./helpers.js";
+
+describe("swap approve", function () {
+  const rpcUrl = inject("anvilUrl");
+
+  const approveOnFork = (token: string) => [
+    ...approveArgs(token),
+    "--rpc-url",
+    rpcUrl,
+  ];
+
+  const readAllowance = (token: string) =>
+    runCli([
+      "swap",
+      "allowance",
+      "--token",
+      token,
+      "--account",
+      TEST_ADDRESS,
+      "--rpc-url",
+      rpcUrl,
+    ]);
+
+  it("grants the gateway a USDC allowance once the approve calldata is broadcast", async function () {
+    await fundTestAccount({ amount: "1000", rpcUrl });
+    const request = await runCli<TransactionRequest>(
+      approveOnFork(usdc.symbol),
+    );
+    expect(isAddressEqual(request.to, usdc.address)).toBe(true);
+
+    const receipt = await sendTransactionRequest({ request, rpcUrl });
+    expect(receipt.status).toBe("success");
+
+    expect(await readAllowance(usdc.symbol)).toBe(swapAmount);
+  });
+
+  it("grants the gateway an allowance on the pegged token", async function () {
+    await fundTestAccount({ amount: "1000", rpcUrl });
+    const request = await runCli<TransactionRequest>(
+      approveOnFork(vusd.symbol),
+    );
+    expect(isAddressEqual(request.to, vusd.address)).toBe(true);
+
+    const receipt = await sendTransactionRequest({ request, rpcUrl });
+    expect(receipt.status).toBe("success");
+
+    expect(await readAllowance(vusd.symbol)).toBe(swapAmount);
+  });
+
+  it("resolves a token given a non-checksummed address", async function () {
+    const request = await runCli<TransactionRequest>(
+      approveOnFork(usdc.address.toLowerCase()),
+    );
+    expect(isAddressEqual(request.to, usdc.address)).toBe(true);
+  });
+
+  it("rejects a token the protocol does not know", async function () {
+    const { exitCode, stderr } = await runCliRaw(approveOnFork("USDX"));
+    expect(exitCode).toBe(1);
+    expect(JSON.parse(stderr).error).toBe(
+      'Not a whitelisted or pegged token: "USDX"',
+    );
+  });
+});

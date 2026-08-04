@@ -15,13 +15,14 @@ import {
   readContract,
   setBalance,
   stopImpersonatingAccount,
-  waitForTransactionReceipt,
   writeContract,
 } from "viem/actions";
 import { mainnet } from "viem/chains";
 
 import { gatewayAbi } from "../../packages/gateway/src/abi/gatewayAbi.ts";
 import { gatewayAddresses } from "../../packages/gateway/src/gatewayAddresses.ts";
+
+import { confirmTransaction } from "./utils.ts";
 
 // Whitelisting for instant redeem is `onlyRole(MAINTAINER_ROLE)`, and the
 // gateway delegates role checks to its Treasury (`Treasury.hasRole`). The
@@ -114,7 +115,7 @@ export async function whitelistInstantRedeem({
         args: [MAINTAINER_ROLE, owner],
         functionName: "grantRole",
       });
-      await waitForTransactionReceipt(publicClient, { hash: grantHash });
+      await confirmTransaction({ client: publicClient, hash: grantHash });
     }
 
     const whitelistHash = await writeContract(testClient, {
@@ -124,7 +125,7 @@ export async function whitelistInstantRedeem({
       args: [address],
       functionName: "addToInstantRedeemWhitelist",
     });
-    await waitForTransactionReceipt(publicClient, { hash: whitelistHash });
+    await confirmTransaction({ client: publicClient, hash: whitelistHash });
   } finally {
     await stopImpersonatingAccount(testClient, { address: owner });
   }

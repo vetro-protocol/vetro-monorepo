@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { applySlippage } from "./slippage";
+import { applySlippage } from "../src/lib/slippage.js";
 
 describe("applySlippage", function () {
-  it("returns the full preview when slippage is 0 (auto)", function () {
+  it("returns the full preview when slippage is 0", function () {
     expect(applySlippage({ preview: 1_000_000n, slippage: 0 })).toBe(
       1_000_000n,
     );
@@ -12,6 +12,19 @@ describe("applySlippage", function () {
   it("reduces the preview by the given percent", function () {
     expect(applySlippage({ preview: 1_000_000n, slippage: 1 })).toBe(990_000n);
     expect(applySlippage({ preview: 1_000_000n, slippage: 50 })).toBe(500_000n);
+  });
+
+  it("reduces the preview by a fractional percent", function () {
+    expect(applySlippage({ preview: 1_000_000n, slippage: 0.1 })).toBe(
+      999_000n,
+    );
+    expect(applySlippage({ preview: 1_000_000n, slippage: 0.3 })).toBe(
+      997_000n,
+    );
+    expect(applySlippage({ preview: 1_000_000n, slippage: 0.5 })).toBe(
+      995_000n,
+    );
+    expect(applySlippage({ preview: 1_000_000n, slippage: 99.9 })).toBe(1_000n);
   });
 
   it("returns 0 when slippage is 100", function () {

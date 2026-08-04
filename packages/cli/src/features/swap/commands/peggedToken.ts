@@ -3,7 +3,7 @@ import { type Command } from "commander";
 import { type Address } from "viem";
 
 import { parseGateway } from "../../../lib/args.js";
-import { createVetroClient } from "../../../lib/client.js";
+import { type GlobalOptions, createVetroClient } from "../../../lib/client.js";
 import { printResult } from "../../../lib/output.js";
 
 export function register(swap: Command) {
@@ -11,8 +11,10 @@ export function register(swap: Command) {
     .command("pegged-token")
     .description("Print the gateway's pegged-token address")
     .requiredOption("--gateway <addr>", "Gateway address", parseGateway)
-    .action(async function (options: { gateway: Address }) {
-      const client = createVetroClient();
+    .action(async function (options: { gateway: Address }, command: Command) {
+      const { client } = await createVetroClient(
+        command.optsWithGlobals<GlobalOptions>(),
+      );
       const peggedToken = await getPeggedToken(client, {
         address: options.gateway,
       });

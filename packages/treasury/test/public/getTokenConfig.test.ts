@@ -76,8 +76,6 @@ describe("getTokenConfig", function () {
   });
 
   it("should call readContract if all parameters are valid", async function () {
-    vi.mocked(readContract);
-
     await getTokenConfig(client, validParameters);
 
     expect(readContract).toHaveBeenCalledWith(client, {

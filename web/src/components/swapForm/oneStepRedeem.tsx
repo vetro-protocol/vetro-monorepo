@@ -17,6 +17,7 @@ import { usePreviewRedeem } from "hooks/usePreviewRedeem";
 import { useRedeem } from "hooks/useRedeem";
 import { useRedeemFee } from "hooks/useRedeemFee";
 import { useSwapRedeemFees } from "hooks/useSwapRedeemFees";
+import { useTokenConfig } from "hooks/useTokenConfig";
 import { useTotalRedeemFees } from "hooks/useTotalRedeemFees";
 import { type FormEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -108,15 +109,21 @@ export function OneStepRedeem({
   const { data: nativeBalanceData } = useNativeBalance(ethereumChain.id);
   const nativeBalance = nativeBalanceData?.value;
 
-  const { data: needsApproval } = useNeedsApproval({
-    amount: amountBigInt,
-    spender: fromToken.gatewayAddress,
-    token: fromToken,
-  });
+  const { data: needsApproval, isError: isNeedsApprovalError } =
+    useNeedsApproval({
+      amount: amountBigInt,
+      spender: fromToken.gatewayAddress,
+      token: fromToken,
+    });
 
-  const { data: maxWithdraw } = useMaxWithdraw({
+  const { data: maxWithdraw, isError: isMaxWithdrawError } = useMaxWithdraw({
     gatewayAddress: fromToken.gatewayAddress,
     tokenOut: toToken.address,
+  });
+
+  const { data: tokenConfig, isError: isTokenConfigError } = useTokenConfig({
+    gatewayAddress: fromToken.gatewayAddress,
+    token: toToken.address,
   });
 
   const { data: redeemPreview, isError: isPreviewError } = usePreviewRedeem({
@@ -242,6 +249,12 @@ export function OneStepRedeem({
   const balancesLoaded =
     nativeBalance !== undefined && fromTokenBalance !== undefined;
 
+  const isLoading = () =>
+    redeemPreview === undefined ||
+    needsApproval === undefined ||
+    tokenConfig === undefined ||
+    (maxWithdraw === undefined && !isMaxWithdrawError);
+
   const handleRetry = function () {
     setFlowStatus(startedWithApproval ? "approving" : "redeem-ready");
     redeemMutation.mutate();
@@ -249,7 +262,12 @@ export function OneStepRedeem({
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!inputError) {
+    if (
+      !inputError &&
+      needsApproval !== undefined &&
+      tokenConfig?.withdrawActive &&
+      redeemPreview !== undefined
+    ) {
       setStartedWithApproval(!!needsApproval);
       setFlowStatus(needsApproval ? "approving" : "redeem-ready");
       redeemMutation.mutate();
@@ -314,9 +332,11 @@ export function OneStepRedeem({
         <SubmitButton
           actionText={t("pages.swap.form.redeem")}
           inputError={inputError}
+          isActive={tokenConfig?.withdrawActive}
+          isActiveError={isTokenConfigError}
+          isAllowanceError={isNeedsApprovalError}
+          isLoading={isLoading()}
           isPreviewError={isPreviewError}
-          previewValue={redeemPreview}
-          token={fromToken}
         />
       </Form>
       <FormSection show={amountBigInt !== 0n}>

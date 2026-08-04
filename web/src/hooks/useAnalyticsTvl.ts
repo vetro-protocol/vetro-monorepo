@@ -1,6 +1,5 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import fetch from "fetch-plus-plus";
-import { isValidUrl } from "utils/url";
 import type { Address } from "viem";
 
 const apiUrl = import.meta.env.VITE_VETRO_API_URL;
@@ -18,7 +17,7 @@ const analyticsTvlOptions = (gatewayAddress: Address | undefined) =>
   queryOptions({
     enabled:
       apiUrl !== undefined &&
-      isValidUrl(apiUrl) &&
+      URL.canParse(apiUrl) &&
       gatewayAddress !== undefined,
     queryFn: () =>
       (

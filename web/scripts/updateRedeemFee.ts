@@ -13,13 +13,14 @@ import {
   impersonateAccount,
   readContract,
   setBalance,
-  waitForTransactionReceipt,
   writeContract,
 } from "viem/actions";
 import { mainnet } from "viem/chains";
 
 import { gatewayAbi } from "../../packages/gateway/src/abi/gatewayAbi.ts";
 import { gatewayAddresses } from "../../packages/gateway/src/gatewayAddresses.ts";
+
+import { confirmTransaction } from "./utils.ts";
 
 const grantRoleAbi = [
   {
@@ -37,8 +38,8 @@ const grantRoleAbi = [
 const { values } = parseArgs({
   options: {
     fee: { short: "f", type: "string" },
+    "fork-url": { default: "http://127.0.0.1:8545", type: "string" },
     gateway: { short: "g", type: "string" },
-    "rpc-url": { default: "http://127.0.0.1:8545", short: "r", type: "string" },
     token: { short: "t", type: "string" },
   },
   strict: true,
@@ -62,7 +63,7 @@ if (!values.fee || !Number.isInteger(fee) || fee < 0 || fee > 500) {
   process.exit(1);
 }
 
-const transport = http(values["rpc-url"]);
+const transport = http(values["fork-url"]);
 
 const publicClient = createPublicClient({
   chain: mainnet,
@@ -101,7 +102,7 @@ const grantRoleHash = await writeContract(testClient, {
   functionName: "grantRole",
 });
 
-await waitForTransactionReceipt(publicClient, { hash: grantRoleHash });
+await confirmTransaction({ client: publicClient, hash: grantRoleHash });
 
 console.log(`Admin: ${admin}`);
 console.log(`Gateway: ${gateway}`);
@@ -127,7 +128,7 @@ const hash = await writeContract(testClient, {
 
 console.log(`Transaction hash: ${hash}`);
 
-const receipt = await waitForTransactionReceipt(publicClient, { hash });
+const receipt = await confirmTransaction({ client: publicClient, hash });
 
 console.log(`Transaction confirmed in block ${receipt.blockNumber}`);
 console.log(`Redeem fee updated: ${currentFee} -> ${fee} BPS`);
