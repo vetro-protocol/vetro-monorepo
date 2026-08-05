@@ -3,3 +3,4 @@ export { pendingDepositRequest } from "viem-erc7540/actions";
 
 export * from "./getCurrentRate.js";
 export * from "./getEpochId.js";
+export * from "./getMaxRequestDeposit.js";
