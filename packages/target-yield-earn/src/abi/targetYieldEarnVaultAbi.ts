@@ -20,4 +20,11 @@ export const targetYieldEarnVaultAbi = [
     stateMutability: "view",
     type: "function",
   },
+  {
+    inputs: [{ name: "owner_", type: "address" }],
+    name: "maxRequestRedeem",
+    outputs: [{ type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
 ] as const;
