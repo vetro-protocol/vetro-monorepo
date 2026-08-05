@@ -1,6 +1,10 @@
 import type { Client } from "viem";
 
-import { getEpochId, pendingDepositRequest } from "./actions/public/index.js";
+import {
+  getCurrentRate,
+  getEpochId,
+  pendingDepositRequest,
+} from "./actions/public/index.js";
 
 export { targetYieldEarnVaultAbi } from "./abi/targetYieldEarnVaultAbi.js";
 
@@ -12,6 +16,8 @@ export {
 
 // Export factory functions for .extend() pattern
 export const targetYieldEarnPublicActions = () => (client: Client) => ({
+  getCurrentRate: (params: Parameters<typeof getCurrentRate>[1]) =>
+    getCurrentRate(client, params),
   getEpochId: (params: Parameters<typeof getEpochId>[1]) =>
     getEpochId(client, params),
   pendingDepositRequest: (
