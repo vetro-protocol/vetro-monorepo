@@ -5,6 +5,7 @@ import { type TrackedPool } from "../lib/types";
 
 import { fetchCurvePools } from "./fetchCurvePools";
 import { fetchSushiPools } from "./fetchSushiPools";
+import { fetchUniswapPools } from "./fetchUniswapPools";
 
 export const fetchTrackedPools = async function (
   queryClient: QueryClient,
@@ -20,6 +21,7 @@ export const fetchTrackedPools = async function (
   const results = await Promise.allSettled([
     fetchCurvePools(trackedAddresses),
     fetchSushiPools(trackedAddresses),
+    fetchUniswapPools(queryClient),
   ]);
 
   const fulfilled = results.filter(

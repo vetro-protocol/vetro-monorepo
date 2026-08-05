@@ -1,6 +1,7 @@
 import { VictoryPie, VictoryTooltip } from "victory";
 import { formatUnits } from "viem";
 
+import { type Dex, dexLabels } from "../../config/dexes";
 import { useTokenPrices } from "../../hooks/useTokenPrices";
 import { useTrackedTokens } from "../../hooks/useTrackedTokens";
 import {
@@ -11,6 +12,7 @@ import { formatPercent, formatTokenAmount, formatUsd } from "../../lib/format";
 import { type TrackedPool } from "../../lib/types";
 
 import { TokenIcon } from "./tokenIcon";
+import { VenueBadge } from "./venueBadge";
 
 type Props = {
   pools: TrackedPool[];
@@ -62,6 +64,7 @@ const DistributionCard = function ({
               );
               return {
                 balance,
+                dex: slice.pool.dex,
                 usd: price !== undefined ? balance * price : undefined,
                 x: slice.pool.name,
                 y: slice.share * 100,
@@ -79,6 +82,7 @@ const DistributionCard = function ({
             labels={({ datum }) =>
               [
                 datum.x,
+                dexLabels[datum.dex as Dex],
                 `${formatTokenAmount(datum.balance)} ${token.symbol}`,
                 datum.usd !== undefined ? formatUsd(datum.usd) : undefined,
               ]
@@ -107,6 +111,7 @@ const DistributionCard = function ({
               <span className="truncate text-neutral-700">
                 {slice.pool.name}
               </span>
+              <VenueBadge dex={slice.pool.dex} />
             </span>
             <span className="shrink-0 font-medium text-neutral-950">
               {formatPercent(slice.share * 100)}

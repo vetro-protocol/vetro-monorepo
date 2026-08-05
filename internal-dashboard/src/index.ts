@@ -76,18 +76,18 @@ const scriptSrc = [
 const csp = [
   "base-uri 'none'",
   // The DEX tab reads Curve liquidity straight from the Curve API (pool list /
-  // volumes / gauges) and per-pool 24h fees from Curve's analytics API. Sushi
-  // pools come from Sushi's data API via the worker's own /api/sushi proxy, so
-  // they need no extra origin here ('self' covers it). Tracked-token discovery
-  // and share values are read on-chain from the mainnet RPC, and token USD
-  // prices come from the Portal API.
+  // volumes / gauges) and per-pool 24h fees from Curve's analytics API. Sushi and
+  // Uniswap pool data comes from their own APIs via the worker's /api/sushi and
+  // /api/uniswap proxies, so they need no extra origin here ('self' covers it).
+  // Token / pool discovery, pool balances and share values are read on-chain from
+  // the mainnet RPC, and token USD prices come from the Portal API.
   `connect-src 'self' https://api.curve.finance https://prices.curve.finance ${rpcConnectSrc} ${portalApiUrl}`,
   "default-src 'none'",
   "font-src 'self'",
   "form-action 'none'",
   "frame-ancestors 'none'",
   // Token logos come from the Hemilabs token list (GitHub Pages), falling back
-  // to the Curve/Sushi asset CDNs (jsDelivr).
+  // to the venues' asset CDNs — Curve, Sushi and Uniswap (all jsDelivr).
   "img-src 'self' data: https://hemilabs.github.io https://cdn.jsdelivr.net",
   `script-src ${scriptSrc}`,
   // Tailwind v4 injects styles via a <style> tag, so 'unsafe-inline' is needed.
@@ -116,30 +116,42 @@ const htmlHeaders = {
   "X-Frame-Options": "DENY",
 };
 
-// Sushi's data API rejects the deployed browser's cross-origin requests (they
-// work from localhost), so the worker forwards them server-side, where CORS
-// doesn't apply. Keep in sync with lib/sushiApi.ts, which posts to /api/sushi.
-const SUSHI_UPSTREAM = "https://production.data-gcp.sushi.com/graphql";
+const graphqlProxies: Record<
+  string,
+  { headers?: Record<string, string>; upstream: string }
+> = {
+  "/api/sushi": { upstream: "https://production.data-gcp.sushi.com/graphql" },
+  "/api/uniswap": {
+    headers: { origin: "https://app.uniswap.org" },
+    upstream: "https://interface.gateway.uniswap.org/v1/graphql",
+  },
+};
 
-const proxySushi = async function (request: Request) {
-  const upstream = await fetch(SUSHI_UPSTREAM, {
+const proxyGraphql = async function ({
+  headers,
+  request,
+  upstream,
+}: {
+  headers?: Record<string, string>;
+  request: Request;
+  upstream: string;
+}) {
+  const response = await fetch(upstream, {
     body: await request.text(),
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", ...headers },
     method: "POST",
   });
-  return new Response(upstream.body, {
+  return new Response(response.body, {
     headers: { "content-type": "application/json" },
-    status: upstream.status,
+    status: response.status,
   });
 };
 
 export default {
   async fetch(request: Request, env: Env) {
-    if (
-      request.method === "POST" &&
-      new URL(request.url).pathname === "/api/sushi"
-    ) {
-      return proxySushi(request);
+    const proxy = graphqlProxies[new URL(request.url).pathname];
+    if (request.method === "POST" && proxy) {
+      return proxyGraphql({ ...proxy, request });
     }
 
     const response = await env.ASSETS.fetch(request);
