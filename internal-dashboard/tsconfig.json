@@ -3,6 +3,7 @@
   "compilerOptions": {
     "baseUrl": "./src",
     "resolveJsonModule": true,
+    "strict": true,
     "types": ["node"]
   },
   "include": ["reset.d.ts", "src", "test"],
