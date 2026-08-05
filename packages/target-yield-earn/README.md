@@ -19,6 +19,7 @@ npm add @vetro-protocol/target-yield-earn viem
 
 ```ts
 import {
+  getCurrentRate,
   getEpochId,
   pendingDepositRequest,
 } from "@vetro-protocol/target-yield-earn/actions";
@@ -32,6 +33,9 @@ const vaultAddress = "0x...";
 // Current epoch, or 0n if the vault hasn't started one yet.
 const epochId = await getEpochId(publicClient, { address: vaultAddress });
 
+// Rate accruing now, WAD-scaled per annum. 0n outside an accrual interval.
+const rate = await getCurrentRate(publicClient, { address: vaultAddress });
+
 // Assets requested for deposit that the keeper hasn't fulfilled yet.
 const pendingAssets = await pendingDepositRequest(publicClient, {
   address: vaultAddress,
@@ -43,6 +47,7 @@ const pendingAssets = await pendingDepositRequest(publicClient, {
 ## API
 
 - Public actions (reads):
+  - `getCurrentRate(client, params)` — the rate currently accruing, WAD-scaled per annum, `0n` outside an accrual interval.
   - `getEpochId(client, params)` — the current epoch id, `0n` when no epoch has started.
   - `pendingDepositRequest(client, params)` — assets in an unfulfilled deposit request, re-exported from `viem-erc7540`.
 - `targetYieldEarnPublicActions()` — viem extension factory that wires the same actions onto a client via `.extend()`.
