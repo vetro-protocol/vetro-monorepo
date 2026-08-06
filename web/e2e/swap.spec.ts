@@ -1,6 +1,6 @@
 import { TEST_ADDRESS } from "@hemilabs/anvil-fork-setup/utils";
 import { expect } from "@playwright/test";
-import { getTreasury } from "@vetro-protocol/gateway/actions";
+import { getRedeemRequest, getTreasury } from "@vetro-protocol/gateway/actions";
 import { getWhitelistedTokens } from "@vetro-protocol/treasury/actions";
 import { parseUnits } from "viem";
 import { getBlock, readContract } from "viem/actions";
@@ -563,4 +563,83 @@ test("claim drawer CTA reads 'Redeems are paused for this token' when the output
   });
   await expect(pausedButton).toBeVisible({ timeout: 20_000 });
   await expect(pausedButton).toBeDisabled();
+});
+
+test("cancel a queued redeem from the redeem queue", async function ({ page }) {
+  const publicClient = createEthereumClient();
+
+  await setRedeemDelay({
+    address: TEST_ADDRESS,
+    enableDelay: true,
+    forkUrl: ANVIL_URL,
+    gateway: gatewayAddresses[0],
+  });
+
+  const vusdBefore = await balanceOf(publicClient, {
+    account: TEST_ADDRESS,
+    address: vusd.address,
+  });
+
+  const { amountLocked, claimableAt } = await requestRedeem({
+    address: TEST_ADDRESS,
+    forkUrl: ANVIL_URL,
+    gateway: gatewayAddresses[0],
+    peggedTokenAmount: REDEEM_AMOUNT,
+  });
+  expect(amountLocked).toBe(REDEEM_AMOUNT);
+  expect(claimableAt).toBeGreaterThan(0n);
+
+  expect(
+    await balanceOf(publicClient, {
+      account: TEST_ADDRESS,
+      address: vusd.address,
+    }),
+  ).toBe(vusdBefore - REDEEM_AMOUNT);
+
+  // Freeze the browser clock at the fork's timestamp before redeem becomes enabled.
+  const { timestamp: chainNow } = await getBlock(publicClient);
+  expect(chainNow).toBeLessThan(claimableAt);
+  await page.clock.setFixedTime(Number(chainNow) * 1000);
+
+  await page.goto("/swap");
+
+  await expect(
+    page.getByRole("button", { name: /^0x[a-f0-9]{4}/i }),
+  ).toBeVisible({ timeout: 30_000 });
+
+  const redeemQueue = page.locator("#redeem-queue");
+  await expect(
+    redeemQueue.getByText(`${REDEEM_AMOUNT_DISPLAY} ${vusd.symbol}`),
+  ).toBeVisible({ timeout: 20_000 });
+
+  await expect(redeemQueue.getByText(/cooldown in progress/i)).toBeVisible();
+
+  await redeemQueue.getByRole("button", { name: "Cancel redeem" }).click();
+
+  const cancelModal = page.getByRole("dialog", { name: "Cancel redeem" });
+  await expect(cancelModal).toBeVisible();
+  await expect(
+    cancelModal.getByRole("button", { name: "Keep redeem" }),
+  ).toBeVisible();
+
+  await cancelModal.getByRole("button", { name: "Cancel redeem" }).click();
+
+  await expect(page.getByText("Redeem cancelled")).toBeVisible({
+    timeout: 40_000,
+  });
+  await expect(cancelModal).toBeHidden();
+
+  // The locked VUSD is back in the wallet, at exactly the pre-queue balance.
+  await waitForBalance({ client: publicClient, token: vusd.address }).toBe(
+    vusdBefore,
+  );
+
+  // The gateway cleared the request, so the queue falls back to its empty state.
+  const [amountLockedAfter] = await getRedeemRequest(publicClient, {
+    address: gatewayAddresses[0],
+    user: TEST_ADDRESS,
+  });
+  expect(amountLockedAfter).toBe(0n);
+
+  await expect(redeemQueue.getByText("Start with your assets")).toBeVisible();
 });
