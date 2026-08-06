@@ -29,7 +29,7 @@
     "@cloudflare/workers-types": "4.20260504.1",
     "@tailwindcss/vite": "4.3.0",
     "@total-typescript/ts-reset": "0.6.1",
-    "@tsconfig/vite-react": "7.0.2",
+    "@tsconfig/vite-react": "8.1.1",
     "@types/node": "24.1.0",
     "@types/react": "19.2.9",
     "@types/react-dom": "19.2.3",
