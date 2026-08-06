@@ -3,6 +3,7 @@ import {
   TEST_PRIVATE_KEY,
 } from "@hemilabs/anvil-fork-setup/utils";
 import { gatewayAbi as vetroGatewayAbi } from "@vetro-protocol/gateway";
+import { getKeeperRole } from "@vetro-protocol/treasury/actions";
 import { type Command, CommanderError } from "commander";
 import {
   type Address,
@@ -246,7 +247,6 @@ export const setMaxMint = async function ({
 };
 
 const treasuryAbi = parseAbi([
-  "function KEEPER_ROLE() view returns (bytes32)",
   "function defaultAdmin() view returns (address)",
   "function grantRole(bytes32 role, address account)",
   "function hasRole(bytes32 role, address account) view returns (bool)",
@@ -278,11 +278,7 @@ export const setDepositActive = async function ({
       address: treasury,
       functionName: "defaultAdmin",
     }),
-    readContract(publicClient, {
-      abi: treasuryAbi,
-      address: treasury,
-      functionName: "KEEPER_ROLE",
-    }),
+    getKeeperRole(publicClient, { address: treasury }),
   ]);
 
   await impersonateAccount(testClient, { address: admin });

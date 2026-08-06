@@ -1,3 +1,4 @@
+export * from "./getKeeperRole.ts";
 export * from "./getPrice.ts";
 export * from "./getTokenConfig.ts";
 export * from "./getWhitelistedTokens.ts";
