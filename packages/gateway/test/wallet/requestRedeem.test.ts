@@ -10,8 +10,8 @@ import { sepolia } from "viem/chains";
 import { allowance, approve } from "viem-erc20/actions";
 import { describe, expect, it, vi } from "vitest";
 
-import { getPeggedToken } from "../../src/actions/public/getPeggedToken";
-import { requestRedeem } from "../../src/actions/wallet/requestRedeem";
+import { getPeggedToken } from "../../src/actions/public/getPeggedToken.ts";
+import { requestRedeem } from "../../src/actions/wallet/requestRedeem.ts";
 
 vi.mock("../../src/actions/public/getPeggedToken", () => ({
   getPeggedToken: vi.fn(),

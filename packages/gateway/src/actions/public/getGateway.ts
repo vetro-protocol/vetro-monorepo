@@ -1,8 +1,8 @@
+import { isAddressValid } from "@vetro-protocol/core";
 import { type Address, type Client } from "viem";
 import { readContract } from "viem/actions";
 
-import { peggedTokenAbi } from "../../abi/peggedTokenAbi.js";
-import { isAddressValid } from "../../utils/isAddressValid.js";
+import { peggedTokenAbi } from "../../abi/peggedTokenAbi.ts";
 
 /**
  * Reads the gateway address for a given pegged token.

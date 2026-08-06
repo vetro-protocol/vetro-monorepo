@@ -1,8 +1,8 @@
+import { isAddressValid } from "@vetro-protocol/core";
 import { type Address, type Client } from "viem";
 import { readContract } from "viem/actions";
 
-import { gatewayAbi } from "../../abi/gatewayAbi.js";
-import { isAddressValid } from "../../utils/isAddressValid.js";
+import { gatewayAbi } from "../../abi/gatewayAbi.ts";
 
 export async function previewRedeem(
   client: Client,

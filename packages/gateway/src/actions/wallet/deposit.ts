@@ -12,8 +12,8 @@ import {
 import { waitForTransactionReceipt, writeContract } from "viem/actions";
 import { allowance, approve } from "viem-erc20/actions";
 
-import { gatewayAbi } from "../../abi/gatewayAbi.js";
-import type { DepositEvents } from "../../types.js";
+import { gatewayAbi } from "../../abi/gatewayAbi.ts";
+import type { DepositEvents } from "../../types.ts";
 
 export type DepositParams = {
   amountIn: bigint;
