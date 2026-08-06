@@ -1,8 +1,8 @@
+import { isAddressValid } from "@vetro-protocol/core";
 import { type Address, type Client } from "viem";
 import { readContract } from "viem/actions";
 
-import { treasuryAbi } from "../../abi/treasuryAbi.js";
-import { isAddressValid } from "../../utils/isAddressValid.js";
+import { treasuryAbi } from "../../abi/treasuryAbi.ts";
 
 export async function getTokenConfig(
   client: Client,

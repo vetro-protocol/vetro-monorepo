@@ -5,10 +5,10 @@ import {
   getTokenConfig,
   getWhitelistedTokens,
   getWithdrawable,
-} from "./actions/public/index.js";
+} from "./actions/public/index.ts";
 
 // Export ABI
-export { treasuryAbi } from "./abi/treasuryAbi.js";
+export { treasuryAbi } from "./abi/treasuryAbi.ts";
 
 // Export factory function for .extend() pattern
 export const treasuryPublicActions = () => (client: Client) => ({

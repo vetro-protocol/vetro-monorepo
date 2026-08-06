@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "baseUrl": "./",
+    "allowImportingTsExtensions": true,
     "erasableSyntaxOnly": true,
     "noEmit": true
   },
