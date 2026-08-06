@@ -3,6 +3,7 @@ import type { Client } from "viem";
 import {
   getCurrentRate,
   getEpochId,
+  getMaxRequestDeposit,
   pendingDepositRequest,
 } from "./actions/public/index.js";
 
@@ -20,6 +21,8 @@ export const targetYieldEarnPublicActions = () => (client: Client) => ({
     getCurrentRate(client, params),
   getEpochId: (params: Parameters<typeof getEpochId>[1]) =>
     getEpochId(client, params),
+  getMaxRequestDeposit: (params: Parameters<typeof getMaxRequestDeposit>[1]) =>
+    getMaxRequestDeposit(client, params),
   pendingDepositRequest: (
     params: Parameters<typeof pendingDepositRequest>[1],
   ) => pendingDepositRequest(client, params),
