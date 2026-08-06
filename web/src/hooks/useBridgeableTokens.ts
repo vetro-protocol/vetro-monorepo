@@ -1,7 +1,7 @@
+import { knownTokens } from "@vetro-protocol/core";
 import { useMemo } from "react";
 import type { BridgeableToken } from "types";
 import { bridgeableTokens } from "utils/bridgeableTokens";
-import { knownTokens } from "utils/tokenList";
 import { isAddressEqual } from "viem";
 
 export const useBridgeableTokens = () =>

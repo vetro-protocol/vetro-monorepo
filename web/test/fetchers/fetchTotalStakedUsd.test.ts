@@ -1,7 +1,7 @@
+import { knownTokens } from "@vetro-protocol/core";
 import { pricesOptions } from "hooks/usePrices";
 import { stakedBalanceQueryOptions } from "hooks/useStakedBalance";
 import { vaultPeggedTokenQueryOptions } from "hooks/useVaultPeggedToken";
-import { knownTokens } from "utils/tokenList";
 import type { Address, Client } from "viem";
 import { mainnet } from "viem/chains";
 import { describe, expect, it } from "vitest";

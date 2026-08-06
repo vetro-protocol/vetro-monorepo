@@ -1,4 +1,4 @@
-import type { Token } from "types";
+import type { Token } from "@vetro-protocol/core";
 import { formatUnits } from "viem";
 
 import { getTokenPrice } from "./token";

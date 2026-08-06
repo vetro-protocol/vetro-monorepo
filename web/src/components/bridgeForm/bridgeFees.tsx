@@ -1,8 +1,8 @@
+import type { Token } from "@vetro-protocol/core";
 import { FeeDetails } from "components/feeDetails";
 import { FeesContainer } from "components/feesContainer";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import type { Token } from "types";
 import { formatFiatNumber } from "utils/format";
 
 const DollarSign = () => <span>$</span>;

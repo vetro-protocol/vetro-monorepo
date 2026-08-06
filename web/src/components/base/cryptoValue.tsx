@@ -1,7 +1,7 @@
 import type { QueryStatus } from "@tanstack/react-query";
+import type { Token } from "@vetro-protocol/core";
 import type { ComponentType, ReactNode } from "react";
 import Skeleton from "react-loading-skeleton";
-import type { Token } from "types";
 
 import { DisplayAmount } from "./displayAmount";
 

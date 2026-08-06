@@ -1,6 +1,6 @@
+import type { Token } from "@vetro-protocol/core";
 import { OracleTooltip } from "components/oracleTooltip";
 import { useTranslation } from "react-i18next";
-import type { Token } from "types";
 import {
   calculatePriceDropPercentage,
   formatOraclePrice,

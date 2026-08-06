@@ -1,6 +1,6 @@
 import { type QueryClient, queryOptions } from "@tanstack/react-query";
+import type { Token } from "@vetro-protocol/core";
 import { fetchDepositGasUnits } from "fetchers/fetchDepositGasUnits";
-import type { Token } from "types";
 import { type Address, type Chain, type Client } from "viem";
 
 export const depositGasUnitsOptions = ({

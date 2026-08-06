@@ -1,5 +1,5 @@
 import type { Market } from "@morpho-org/blue-sdk";
-import type { Token } from "types";
+import type { Token } from "@vetro-protocol/core";
 import {
   calculateDailyInterestCost,
   calculateHealthFactor,

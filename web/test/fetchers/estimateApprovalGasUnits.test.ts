@@ -1,5 +1,5 @@
 import { type QueryClient } from "@tanstack/react-query";
-import type { Token } from "types";
+import type { Token } from "@vetro-protocol/core";
 import { zeroAddress, type Client } from "viem";
 import { describe, expect, it, vi } from "vitest";
 

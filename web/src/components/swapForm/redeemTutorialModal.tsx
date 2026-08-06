@@ -1,9 +1,10 @@
+import type { Token } from "@vetro-protocol/core";
 import { Modal } from "components/base/modal";
 import { StripedDivider } from "components/stripedDivider";
 import { useWithdrawalDelay } from "hooks/useWithdrawalDelay";
 import type { ReactNode } from "react";
 import { Trans, useTranslation } from "react-i18next";
-import type { Token, TokenWithGateway } from "types";
+import type { TokenWithGateway } from "types";
 import { getTokenListParams } from "utils/tokenList";
 
 type Props = {
