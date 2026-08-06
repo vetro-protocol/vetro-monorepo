@@ -2,7 +2,7 @@ import { type Address, type Client, zeroAddress } from "viem";
 import { readContract } from "viem/actions";
 import { describe, expect, it, vi } from "vitest";
 
-import { getCooldownEnabled } from "../../src/actions/public/getCooldownEnabled";
+import { getCooldownEnabled } from "../../src/actions/public/getCooldownEnabled.ts";
 
 vi.mock("viem/actions", () => ({
   readContract: vi.fn(),

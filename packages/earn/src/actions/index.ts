@@ -1,20 +1,20 @@
 // Export all public actions
-export * from "./public/getActiveRequestIds.js";
-export * from "./public/getClaimableRequests.js";
-export * from "./public/getCooldownDuration.js";
-export * from "./public/getCooldownEnabled.js";
-export * from "./public/getInstantWithdrawWhitelist.js";
-export * from "./public/getPendingRequests.js";
-export * from "./public/getPeriodFinish.js";
-export * from "./public/getRequestDetails.js";
-export * from "./public/getRewardRate.js";
-export * from "./public/getTotalAssetsInCooldown.js";
-export * from "./public/getYieldDistributor.js";
+export * from "./public/getActiveRequestIds.ts";
+export * from "./public/getClaimableRequests.ts";
+export * from "./public/getCooldownDuration.ts";
+export * from "./public/getCooldownEnabled.ts";
+export * from "./public/getInstantWithdrawWhitelist.ts";
+export * from "./public/getPendingRequests.ts";
+export * from "./public/getPeriodFinish.ts";
+export * from "./public/getRequestDetails.ts";
+export * from "./public/getRewardRate.ts";
+export * from "./public/getTotalAssetsInCooldown.ts";
+export * from "./public/getYieldDistributor.ts";
 
 // Export all wallet actions
-export * from "./wallet/cancelWithdraw.js";
-export * from "./wallet/claimWithdraw.js";
-export * from "./wallet/claimWithdrawBatch.js";
-export * from "./wallet/deposit.js";
-export * from "./wallet/requestRedeem.js";
-export * from "./wallet/requestWithdraw.js";
+export * from "./wallet/cancelWithdraw.ts";
+export * from "./wallet/claimWithdraw.ts";
+export * from "./wallet/claimWithdrawBatch.ts";
+export * from "./wallet/deposit.ts";
+export * from "./wallet/requestRedeem.ts";
+export * from "./wallet/requestWithdraw.ts";

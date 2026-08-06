@@ -1,3 +1,4 @@
+import { isAddressValid } from "@vetro-protocol/core";
 import { EventEmitter } from "events";
 import { toPromiseEvent } from "to-promise-event";
 import {
@@ -11,9 +12,8 @@ import {
 } from "viem";
 import { waitForTransactionReceipt, writeContract } from "viem/actions";
 
-import { stakingVaultAbi } from "../../abi/stakingVaultAbi.js";
-import type { RequestRedeemEvents } from "../../types.js";
-import { isAddressValid } from "../../utils/isAddressValid.js";
+import { stakingVaultAbi } from "../../abi/stakingVaultAbi.ts";
+import type { RequestRedeemEvents } from "../../types.ts";
 
 export type RequestRedeemParams = {
   owner: Address;
