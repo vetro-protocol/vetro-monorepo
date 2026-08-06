@@ -2,7 +2,7 @@
 
 Shared building blocks and small utilities used across the Vetro Protocol packages and apps that would otherwise be copied into every package.
 
-## Usage
+## Installation
 
 This package is private to this monorepo — not published to npm. Depend on it with `workspace:*`:
 
