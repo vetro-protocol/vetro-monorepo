@@ -22,6 +22,7 @@ import {
   getCurrentRate,
   getEpochId,
   getMaxRequestDeposit,
+  getMaxRequestRedeem,
   pendingDepositRequest,
 } from "@vetro-protocol/target-yield-earn/actions";
 import { createPublicClient, http } from "viem";
@@ -43,6 +44,12 @@ const maxAssets = await getMaxRequestDeposit(publicClient, {
   controller: "0x...",
 });
 
+// Max amount of shares this owner can still request for redemption.
+const maxShares = await getMaxRequestRedeem(publicClient, {
+  address: vaultAddress,
+  owner: "0x...",
+});
+
 // Assets requested for deposit that the keeper hasn't fulfilled yet.
 const pendingAssets = await pendingDepositRequest(publicClient, {
   address: vaultAddress,
@@ -57,6 +64,7 @@ const pendingAssets = await pendingDepositRequest(publicClient, {
   - `getCurrentRate(client, params)` — the rate currently accruing, WAD-scaled per annum, `0n` outside an accrual interval.
   - `getEpochId(client, params)` — the current epoch id, `0n` when no epoch has started.
   - `getMaxRequestDeposit(client, params)` — the assets the controller can still request for deposit, capped by the epoch's remaining deposit capacity. `0n` whenever a deposit request would revert — outside the entry window, while paused, shutdown or terminated, or when the controller has a pending request from an earlier epoch.
+  - `getMaxRequestRedeem(client, params)` — the shares the owner can still request for redemption. `0n` whenever a redeem request would revert — outside the exit window, while shutdown, or when a redeem batch from an earlier epoch is still pending and the vault hasn't terminated.
   - `pendingDepositRequest(client, params)` — assets in an unfulfilled deposit request, re-exported from `viem-erc7540`.
 - `targetYieldEarnPublicActions()` — viem extension factory that wires the same actions onto a client via `.extend()`.
 - `targetYieldEarnVaultAbi` — the minimal ABI subset used by the package.

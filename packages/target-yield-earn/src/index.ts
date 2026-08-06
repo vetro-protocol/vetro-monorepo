@@ -4,6 +4,7 @@ import {
   getCurrentRate,
   getEpochId,
   getMaxRequestDeposit,
+  getMaxRequestRedeem,
   pendingDepositRequest,
 } from "./actions/public/index.js";
 
@@ -23,6 +24,8 @@ export const targetYieldEarnPublicActions = () => (client: Client) => ({
     getEpochId(client, params),
   getMaxRequestDeposit: (params: Parameters<typeof getMaxRequestDeposit>[1]) =>
     getMaxRequestDeposit(client, params),
+  getMaxRequestRedeem: (params: Parameters<typeof getMaxRequestRedeem>[1]) =>
+    getMaxRequestRedeem(client, params),
   pendingDepositRequest: (
     params: Parameters<typeof pendingDepositRequest>[1],
   ) => pendingDepositRequest(client, params),
