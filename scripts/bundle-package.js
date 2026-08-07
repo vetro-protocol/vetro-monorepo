@@ -21,12 +21,13 @@ const isPrivateWorkspacePackage = function (name) {
 };
 
 // Private workspaces are only allowed in devDependencies.
-const misplaced = Object.keys(packageJson.dependencies ?? {}).filter(
-  isPrivateWorkspacePackage,
-);
+const misplaced = Object.keys({
+  ...packageJson.dependencies,
+  ...packageJson.peerDependencies,
+}).filter(isPrivateWorkspacePackage);
 if (misplaced.length > 0) {
   throw new Error(
-    `${misplaced.join(", ")} is private and gets inlined, so it must be a devDependency -- listing it under "dependencies" publishes a package npm cannot install.`,
+    `${misplaced.join(", ")} is private and gets inlined, so it must be a devDependency -- declaring it as a runtime or peer dependency publishes a package npm cannot install.`,
   );
 }
 
