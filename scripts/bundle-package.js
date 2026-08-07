@@ -30,8 +30,8 @@ if (misplaced.length > 0) {
   );
 }
 
-// Private workspace need to be inlined - so mark the rest as "external"
-// so they are included as part of the source code.
+// Private workspace packages are not published, so they must be inlined.
+// Everything else stays "external" - kept as a runtime import, not bundled.
 const external = Object.keys({
   ...packageJson.dependencies,
   ...packageJson.peerDependencies,
