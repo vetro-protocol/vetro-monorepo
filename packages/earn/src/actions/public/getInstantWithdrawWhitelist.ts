@@ -1,8 +1,8 @@
+import { isAddressValid } from "@vetro-protocol/core";
 import { type Address, type Client } from "viem";
 import { readContract } from "viem/actions";
 
-import { stakingVaultAbi } from "../../abi/stakingVaultAbi.js";
-import { isAddressValid } from "../../utils/isAddressValid.js";
+import { stakingVaultAbi } from "../../abi/stakingVaultAbi.ts";
 
 export async function getInstantWithdrawWhitelist(
   client: Client,

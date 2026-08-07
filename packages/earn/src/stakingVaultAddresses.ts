@@ -1,9 +1,15 @@
+import {
+  sVetBtcAddress as coreSVetBtcAddress,
+  sVusdAddress as coreSVusdAddress,
+  stakingVaultAddresses as coreStakingVaultAddresses,
+} from "@vetro-protocol/core";
 import type { Address } from "viem";
 
-export const sVusdAddress: Address =
-  "0x476310E34D2810f7d79C43A74E4D79405bd7a925";
+// Re-declared rather than re-exported: `export … from` emits the same
+// re-export into the .d.ts, pointing consumers at a package private to this
+// monorepo. The explicit annotations keep the declarations self-contained.
+export const sVusdAddress: Address = coreSVusdAddress;
 
-export const sVetBtcAddress: Address =
-  "0x0cB9D84d4bcEc8d3D5B2d99a6F07f4605325987e";
+export const sVetBtcAddress: Address = coreSVetBtcAddress;
 
-export const stakingVaultAddresses: Address[] = [sVusdAddress, sVetBtcAddress];
+export const stakingVaultAddresses: Address[] = coreStakingVaultAddresses;

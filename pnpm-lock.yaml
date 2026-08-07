@@ -31,6 +31,9 @@ importers:
       commitlint-config-bloq:
         specifier: 1.1.0
         version: 1.1.0(@commitlint/cli@21.1.0(@types/node@25.0.9)(conventional-commits-parser@6.4.0)(typescript@6.0.2))
+      esbuild:
+        specifier: 0.27.3
+        version: 0.27.3
       eslint:
         specifier: 8.57.0
         version: 8.57.0
@@ -288,6 +291,9 @@ importers:
       '@types/node':
         specifier: 24.1.0
         version: 24.1.0
+      '@vetro-protocol/core':
+        specifier: workspace:*
+        version: link:../core
       '@vitest/coverage-v8':
         specifier: 4.1.9
         version: 4.1.9(vitest@4.1.9)
@@ -12332,7 +12338,7 @@ snapshots:
       obug: 2.1.1
       std-env: 4.1.0
       tinyrainbow: 3.1.0
-      vitest: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@24.1.0)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@24.1.0)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
+      vitest: 4.1.9(@opentelemetry/api@1.9.1)(@types/node@24.10.13)(@vitest/coverage-v8@4.1.9)(vite@8.0.13(@types/node@24.10.13)(esbuild@0.27.3)(jiti@2.6.1)(yaml@2.8.4))
 
   '@vitest/eslint-plugin@1.6.6(eslint@8.57.0)(typescript@6.0.2)(vitest@4.1.9)':
     dependencies:
