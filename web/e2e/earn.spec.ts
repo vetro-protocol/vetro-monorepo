@@ -3,6 +3,7 @@ import {
   TEST_PRIVATE_KEY,
 } from "@hemilabs/anvil-fork-setup/utils";
 import { expect } from "@playwright/test";
+import { stakingVaultAbi, sVusdAddress } from "@vetro-protocol/earn";
 import {
   createWalletClient,
   erc20Abi,
@@ -23,8 +24,6 @@ import {
 import { mainnet } from "viem/chains";
 import { approve, balanceOf } from "viem-erc20/actions";
 
-import { stakingVaultAbi } from "../../packages/earn/src/abi/stakingVaultAbi.ts";
-import { sVusdAddress } from "../../packages/earn/src/stakingVaultAddresses.ts";
 import { fastForwardTime } from "../scripts/fastForwardTime.ts";
 import { setCooldownEnabled } from "../scripts/setCooldownEnabled.ts";
 import { whitelistInstantWithdraw } from "../scripts/whitelistInstantWithdraw.ts";

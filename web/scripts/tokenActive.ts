@@ -1,3 +1,5 @@
+import { gatewayAbi, gatewayAddresses } from "@vetro-protocol/gateway";
+import { getTreasury } from "@vetro-protocol/gateway/actions";
 import {
   getKeeperRole,
   getTokenConfig,
@@ -19,9 +21,6 @@ import {
   writeContract,
 } from "viem/actions";
 import { mainnet } from "viem/chains";
-
-import { gatewayAbi } from "../../packages/gateway/src/abi/gatewayAbi.ts";
-import { gatewayAddresses } from "../../packages/gateway/src/gatewayAddresses.ts";
 
 import { confirmTransaction } from "./utils.ts";
 
@@ -104,11 +103,7 @@ export async function setTokenActive({
       address: gateway,
       functionName: "owner",
     }),
-    readContract(publicClient, {
-      abi: gatewayAbi,
-      address: gateway,
-      functionName: "treasury",
-    }),
+    getTreasury(publicClient, { address: gateway }),
   ]);
 
   const readActive = async function () {
