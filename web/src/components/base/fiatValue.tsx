@@ -1,8 +1,9 @@
 import { type QueryStatus } from "@tanstack/react-query";
+import type { Token } from "@vetro-protocol/core";
 import { usePrices } from "hooks/usePrices";
 import { type ComponentProps } from "react";
 import Skeleton from "react-loading-skeleton";
-import type { NativeToken, Token } from "types";
+import type { NativeToken } from "types";
 import { formatFiatNumber } from "utils/format";
 import { getTokenPrice } from "utils/token";
 import { formatUnits } from "viem";

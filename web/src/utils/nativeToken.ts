@@ -11,9 +11,10 @@ const ether: NativeToken = {
   symbol: "ETH",
 };
 
-// Kept out of tokenList.ts on purpose: this module imports an SVG asset, so it
-// can only be loaded through the Vite/Vitest pipeline. tokenList.ts stays free
-// of asset imports because it's also consumed by plain-node scripts.
+// Kept out of @vetro-protocol/core on purpose: this module imports an SVG
+// asset, so it can only be loaded through the Vite/Vitest pipeline. The core
+// token list stays free of asset imports because it's also consumed by
+// plain-node scripts.
 const nativeTokens: NativeToken[] = [
   ether,
   // These chains use Ether as their native currency

@@ -1,9 +1,9 @@
 import type { Market } from "@morpho-org/blue-sdk";
+import type { Token } from "@vetro-protocol/core";
 import { DisplayAmount } from "components/base/displayAmount";
 import { Tooltip } from "components/tooltip";
 import { useBorrowReview } from "hooks/borrow/useBorrowReview";
 import { useTranslation } from "react-i18next";
-import type { Token } from "types";
 import { formatFiatNumber, formatPercentage } from "utils/format";
 import { parseUnits } from "viem";
 

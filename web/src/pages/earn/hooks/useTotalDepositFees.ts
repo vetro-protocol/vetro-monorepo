@@ -4,10 +4,10 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import type { Token } from "@vetro-protocol/core";
 import { fetchTotalDepositFees } from "fetchers/fetchTotalDepositFees";
 import { useEthereumClient } from "hooks/useEthereumClient";
 import { useMainnet } from "hooks/useMainnet";
-import type { Token } from "types";
 import { type Address, type Chain, type Client } from "viem";
 import { useAccount } from "wagmi";
 

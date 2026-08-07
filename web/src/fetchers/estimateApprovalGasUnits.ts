@@ -1,7 +1,7 @@
 import { allowanceQueryOptions } from "@hemilabs/react-hooks/useAllowance";
 import type { QueryClient } from "@tanstack/react-query";
+import type { Token } from "@vetro-protocol/core";
 import { config } from "providers/web3Provider";
-import type { Token } from "types";
 import type { Address, Client } from "viem";
 import { encodeApproveData } from "viem-erc20/actions";
 import { estimateGasQueryOptions } from "wagmi/query";

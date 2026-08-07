@@ -1,3 +1,4 @@
+import { getTokenConfig } from "@vetro-protocol/treasury/actions";
 import { parseArgs } from "node:util";
 import {
   type Address,
@@ -20,7 +21,6 @@ import { mainnet } from "viem/chains";
 
 import { gatewayAbi } from "../../packages/gateway/src/abi/gatewayAbi.ts";
 import { gatewayAddresses } from "../../packages/gateway/src/gatewayAddresses.ts";
-import { treasuryAbi } from "../../packages/treasury/src/abi/treasuryAbi.ts";
 
 import { confirmTransaction } from "./utils.ts";
 
@@ -113,14 +113,9 @@ export async function setTokenActive({
   ]);
 
   const readActive = async function () {
-    const [, , , depositActive, withdrawActive] = await readContract(
+    const [, , , depositActive, withdrawActive] = await getTokenConfig(
       publicClient,
-      {
-        abi: treasuryAbi,
-        address: treasury,
-        args: [token],
-        functionName: "tokenConfig",
-      },
+      { address: treasury, token },
     );
     return flag === "deposit" ? depositActive : withdrawActive;
   };

@@ -1,7 +1,7 @@
+import type { Token } from "@vetro-protocol/core";
 import { TokenLogo } from "components/tokenLogo";
 import type { ReactNode } from "react";
 import Skeleton from "react-loading-skeleton";
-import type { Token } from "types";
 
 export type FeeDetailsProps = {
   className?: string;

@@ -1,6 +1,6 @@
 import { getChainAddresses } from "@morpho-org/blue-sdk";
 import type { QueryClient } from "@tanstack/react-query";
-import type { Token } from "types";
+import type { Token } from "@vetro-protocol/core";
 import { createMorphoCollateralStateOverride } from "utils/morphoStateOverride";
 import { type Address, type Client, type Hash } from "viem";
 

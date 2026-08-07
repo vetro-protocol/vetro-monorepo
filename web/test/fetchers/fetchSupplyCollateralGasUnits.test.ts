@@ -1,5 +1,5 @@
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
-import type { Token } from "types";
+import type { Token } from "@vetro-protocol/core";
 import { type Client, zeroAddress, zeroHash } from "viem";
 import { estimateGas } from "viem/actions";
 import { describe, expect, it, vi } from "vitest";

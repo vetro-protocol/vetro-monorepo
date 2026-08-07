@@ -1,6 +1,6 @@
 import type { QueryClient } from "@tanstack/react-query";
+import type { Token } from "@vetro-protocol/core";
 import { stakingVaultAddresses } from "@vetro-protocol/earn";
-import type { Token } from "types";
 import { type Client, zeroAddress } from "viem";
 import { sepolia } from "viem/chains";
 import { describe, expect, it, vi } from "vitest";

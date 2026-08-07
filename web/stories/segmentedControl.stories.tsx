@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { knownTokens } from "@vetro-protocol/core";
 import { useState } from "react";
 
 import { SegmentedControl } from "../src/components/base/segmentedControl";
 import { TokenDisplay } from "../src/components/tokenDisplay";
-import { knownTokens } from "../src/utils/tokenList";
 
 const meta: Meta<typeof SegmentedControl> = {
   component: SegmentedControl,

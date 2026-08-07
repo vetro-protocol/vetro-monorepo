@@ -1,10 +1,10 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { knownTokens, type Token } from "@vetro-protocol/core";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { convertToAssetsQueryOptions } from "hooks/useConvertToAssets";
 import { useEthereumClient } from "hooks/useEthereumClient";
 import { vaultPeggedTokenQueryOptions } from "hooks/useVaultPeggedToken";
-import type { Token, TokenWithGateway } from "types";
-import { knownTokens } from "utils/tokenList";
+import type { TokenWithGateway } from "types";
 import { mainnet } from "viem/chains";
 
 type Props = {

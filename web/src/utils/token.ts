@@ -1,4 +1,5 @@
-import type { BridgeableToken, NativeToken, Token } from "types";
+import type { Token } from "@vetro-protocol/core";
+import type { BridgeableToken, NativeToken } from "types";
 import { formatUnits, parseUnits as viemParseUnits } from "viem";
 
 export const getTokenPrice = function (

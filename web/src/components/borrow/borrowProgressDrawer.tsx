@@ -1,3 +1,4 @@
+import type { Token } from "@vetro-protocol/core";
 import { Button } from "components/base/button";
 import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { RenderFiatValue } from "components/base/fiatValue";
@@ -8,7 +9,6 @@ import { TokenLogo } from "components/tokenLogo";
 import { useTotalSupplyAndBorrowFees } from "hooks/borrow/useSupplyAndBorrowFees";
 import { useAnimatedVisibility } from "hooks/useAnimatedVisibility";
 import { useTranslation } from "react-i18next";
-import type { Token } from "types";
 import { type Hash, parseUnits } from "viem";
 
 type Props = {

@@ -1,8 +1,6 @@
-import type { Token } from "types";
+import { knownTokens, type Token } from "@vetro-protocol/core";
 import { type Address, type Client, isAddressEqual } from "viem";
 import { decimals, name, symbol } from "viem-erc20/actions";
-
-import { knownTokens } from "../utils/tokenList";
 
 export const fetchTokenInfo = async function ({
   address,
