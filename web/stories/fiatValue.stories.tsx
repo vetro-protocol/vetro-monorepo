@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import type { Token } from "@vetro-protocol/core";
 import { parseUnits } from "viem";
 
 import { RenderFiatValue } from "../src/components/base/fiatValue";
-import type { Token } from "../src/types";
 
 const usdc: Token = {
   address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",

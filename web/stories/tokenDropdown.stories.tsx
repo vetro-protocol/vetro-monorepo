@@ -1,9 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { knownTokens } from "@vetro-protocol/core";
+import { knownTokens, type Token } from "@vetro-protocol/core";
 import { useState } from "react";
 
 import { TokenDropdown } from "../src/components/tokenDropdown";
-import type { Token } from "../src/types";
 
 const meta = {
   args: {},
