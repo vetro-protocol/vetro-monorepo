@@ -106,14 +106,10 @@ export const fetchV3PoolState = async function ({
     },
   );
 
-  const firstWord = wordPosition({
-    spacing,
-    tick: Math.min(lowerTick, currentTick),
-  });
-  const lastWord = wordPosition({
-    spacing,
-    tick: Math.max(upperTick, currentTick),
-  });
+  const firstTick = Math.min(lowerTick, currentTick);
+  const lastTick = Math.max(upperTick, currentTick);
+  const firstWord = wordPosition({ spacing, tick: firstTick });
+  const lastWord = wordPosition({ spacing, tick: lastTick });
   const words = Array.from(
     { length: lastWord - firstWord + 1 },
     (_, index) => firstWord + index,
@@ -133,11 +129,15 @@ export const fetchV3PoolState = async function ({
     })),
   });
 
-  const ticks = words.flatMap((word, index) =>
-    setBits(bitmaps[index]).map(
-      (bit) => (word * BITS_PER_WORD + bit) * spacing,
-    ),
-  );
+  // A word spans 256 ticks of spacing, so the outermost two reach past the range
+  // asked for; drop what they overshoot rather than read those ticks.
+  const ticks = words
+    .flatMap((word, index) =>
+      setBits(bitmaps[index]).map(
+        (bit) => (word * BITS_PER_WORD + bit) * spacing,
+      ),
+    )
+    .filter((tick) => tick >= firstTick && tick <= lastTick);
 
   const tickData = await multicall(client, {
     allowFailure: false,
