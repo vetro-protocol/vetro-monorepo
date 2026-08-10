@@ -13,6 +13,7 @@ Vite only exposes variables prefixed with `VITE_` to the client bundle. Set thes
 | `VITE_ANALYTICS_URL`             | No       | Umami tracker script URL. Analytics (page views) is enabled only when this and the website ID are both set. |
 | `VITE_ANALYTICS_WEBSITE_ID`      | No       | Umami website ID.                                                                                           |
 | `VITE_DEPLOY_ENV`                | No       | Set to `"production"` to hide source maps from browsers. Any other value serves them publicly.              |
+| `VITE_FIXED_TERM_YIELD_ENABLED`  | No       | Feature flag for the fixed term yield feature. Enabled only when set to `"true"`.                           |
 | `VITE_PORTAL_API_URL`            | Yes      | Hemi Portal API base URL (used for token prices).                                                           |
 | `VITE_RPC_URL_MAINNET`           | No       | RPC URL for Ethereum mainnet. Falls back to viem's default when unset.                                      |
 | `VITE_SENTRY_DSN`                | No       | Sentry DSN. When unset, Sentry is disabled.                                                                 |
