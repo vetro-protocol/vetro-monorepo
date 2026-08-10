@@ -329,6 +329,9 @@
         "withdrawing": "Retirando...",
         "withdrawn": "Retirado"
       },
+      "fixed-term": {
+        "title": "Fondos con objetivo de rendimiento fijo"
+      },
       "pool-info": {
         "apy": "TEA",
         "deposit": "Depositar",
