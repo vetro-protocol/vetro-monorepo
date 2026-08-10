@@ -3,7 +3,8 @@ import { formatUnits } from "viem";
 import { type SushiPoolConfig, sushiPools } from "../config/sushiPools";
 import { fetchSushiPoolData, type SushiToken } from "../lib/sushiApi";
 import { type PoolCoin, type TrackedPool } from "../lib/types";
-import { computeBandAmounts } from "../lib/v3PositionMath";
+import { fetchV3PoolState } from "../lib/v3PoolState";
+import { computeBandAmounts, priceToTick } from "../lib/v3PositionMath";
 
 const buildCoins = ({
   balances,
@@ -23,13 +24,14 @@ const buildCoins = ({
   }));
 
 // The Sushi implementation of a DEX pool source. One GraphQL call to Sushi's own
-// API (fetchSushiPoolData) supplies everything — token identity, balances, TVL,
-// prices, 24h volume / fees / APR, plus the pool's current liquidity / sqrt price
-// — so nothing is read on-chain. A configured price band's concentrated liquidity
-// is derived from that current liquidity with Uniswap's own Position math
-// (lib/v3PositionMath). USD prices anchor the reference leg (the non-tracked
-// stable) at $1 and take the tracked leg's price from the pool rate. Gauge
-// emissions aren't a Sushi concept, so that stays unset.
+// API (fetchSushiPoolData) supplies everything the whole-pool entry needs — token
+// identity, balances, TVL, prices, 24h volume / fees / APR. A configured price
+// band additionally needs the pool's liquidity spread across ticks, which no data
+// API publishes, so that much is read on-chain (lib/v3PoolState) and turned into
+// token amounts with Uniswap's own Position math (lib/v3PositionMath). USD prices
+// anchor the reference leg (the non-tracked stable) at $1 and take the tracked
+// leg's price from the pool rate. Gauge emissions aren't a Sushi concept, so that
+// stays unset.
 const fetchSushiPool = async function ({
   pool,
   trackedAddresses,
@@ -105,15 +107,34 @@ const fetchSushiPool = async function ({
     tvlUsd: data.liquidityUsd,
   });
 
-  // Each configured band: how much of the pool's current liquidity sits within
-  // it, from the pool's live liquidity / sqrt price (no chain reads needed).
-  const rangeEntries = (pool.ranges ?? []).map(function (range) {
+  const ranges = pool.ranges ?? [];
+  if (ranges.length === 0) {
+    return [fullEntry];
+  }
+
+  const decimals = {
+    decimals0: data.token0.decimals,
+    decimals1: data.token1.decimals,
+  };
+  // One read spanning every configured band, so they all value the same snapshot.
+  const poolState = await fetchV3PoolState({
+    lowerTick: priceToTick({
+      ...decimals,
+      price: Math.min(...ranges.map((range) => range.lowerPrice)),
+    }),
+    poolAddress: pool.address,
+    upperTick: priceToTick({
+      ...decimals,
+      price: Math.max(...ranges.map((range) => range.upperPrice)),
+    }),
+  });
+
+  // Each configured band: how much of the pool's liquidity sits within it.
+  const rangeEntries = ranges.map(function (range) {
     const { amount0, amount1 } = computeBandAmounts({
-      decimals0: data.token0.decimals,
-      decimals1: data.token1.decimals,
-      liquidity: data.liquidity,
+      ...decimals,
+      ...poolState,
       lowerPrice: range.lowerPrice,
-      sqrtPriceX96: data.sqrtPriceX96,
       upperPrice: range.upperPrice,
     });
     const coins = buildCoins({

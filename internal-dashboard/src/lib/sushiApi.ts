@@ -5,10 +5,9 @@ import { type Address } from "viem";
 // (https://www.sushi.com/ethereum/pool/v3/<address>). Direct browser calls fail
 // in the deployed environment (they work from localhost), so requests go through
 // the worker's /api/sushi proxy (src/index.ts), which forwards them server-side
-// and sidesteps the browser's cross-origin restrictions. Sushi is the single
-// source for everything the dashboard renders about a pool — including the
-// current liquidity / sqrt price the price-band views derive from — so nothing
-// is read on-chain.
+// and sidesteps the browser's cross-origin restrictions. Sushi is the source for
+// everything the dashboard renders about a whole pool; the per-tick liquidity a
+// price band needs isn't published here and is read on-chain (lib/v3PoolState).
 const SUSHI_API_URL = "/api/sushi";
 
 // Ethereum mainnet — everything the dashboard tracks lives here.
@@ -22,12 +21,10 @@ const query = `
       feeApr1d
       feeUSD1d
       incentiveApr
-      liquidity
       liquidityUSD
       name
       reserve0
       reserve1
-      sqrtPrice
       swapFee
       token0 {
         address
@@ -52,12 +49,10 @@ type RawV3Pool = {
   feeApr1d: number;
   feeUSD1d: number;
   incentiveApr: number;
-  liquidity: string;
   liquidityUSD: number;
   name: string;
   reserve0: string;
   reserve1: string;
-  sqrtPrice: string;
   swapFee: number;
   token0: SushiToken;
   token0Price: number;
@@ -69,13 +64,11 @@ type RawV3Pool = {
 type SushiPoolData = {
   baseApy: number; // % from trading fees
   feesUsd24h: number;
-  liquidity: bigint; // pool's current in-range liquidity (for band views)
   liquidityUsd: number; // whole-pool TVL, as Sushi values it
   name: string;
   reserve0: bigint; // raw balance of token0 held by the pool
   reserve1: bigint;
   rewardApy: number; // % from incentives
-  sqrtPriceX96: bigint; // current price as a Q64.96 sqrt ratio (for band views)
   swapFee: number; // fee tier as a fraction (0.0005 = 0.05%)
   token0: SushiToken;
   token0Price: number; // token0 per token1
@@ -113,13 +106,11 @@ export const fetchSushiPoolData = async function (
   return {
     baseApy: pool.feeApr1d * 100,
     feesUsd24h: pool.feeUSD1d,
-    liquidity: BigInt(pool.liquidity),
     liquidityUsd: pool.liquidityUSD,
     name: pool.name,
     reserve0: BigInt(pool.reserve0),
     reserve1: BigInt(pool.reserve1),
     rewardApy: pool.incentiveApr * 100,
-    sqrtPriceX96: BigInt(pool.sqrtPrice),
     swapFee: pool.swapFee,
     token0: pool.token0,
     token0Price: pool.token0Price,
