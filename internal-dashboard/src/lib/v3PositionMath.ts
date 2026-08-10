@@ -19,6 +19,9 @@
 
 const Q96 = 2n ** 96n;
 
+// Ticks index the price grid as 1.0001^tick.
+const TICK_BASE = 1.0001;
+
 // SqrtPriceMath.getAmount0Delta (roundUp = false), verbatim.
 const getAmount0Delta = function (
   sqrtRatioAX96: bigint,
@@ -63,54 +66,96 @@ const priceToSqrtRatioX96 = function ({
   return BigInt(Math.floor(Math.sqrt(rawPrice) * 2 ** 96));
 };
 
-// Token amounts (raw units) the pool's current liquidity provides across a price
-// band, mirroring Position.amount0 / .amount1 with the band's sqrt-price bounds in
-// place of tick-derived ones. Assumes liquidity is uniform across the band (the
-// pool's current L) — an approximation for a dashboard readout, exact when the
-// band sits within one liquidity segment.
-export const computeBandAmounts = function ({
+const tickToSqrtRatioX96 = (tick: number) =>
+  BigInt(Math.floor(Math.sqrt(TICK_BASE ** tick) * 2 ** 96));
+
+// The tick whose price range contains a human price (token1 per token0).
+export const priceToTick = function ({
   decimals0,
   decimals1,
+  price,
+}: {
+  decimals0: number;
+  decimals1: number;
+  price: number;
+}) {
+  const rawPrice = price * 10 ** (decimals1 - decimals0);
+  return Math.floor(Math.log(rawPrice) / Math.log(TICK_BASE));
+};
+
+// How much liquidity enters (or leaves, when negative) as an initialized tick is
+// crossed upwards — the pool's `ticks(tick).liquidityNet`.
+export type TickLiquidity = { liquidityNet: bigint; tick: number };
+
+// Token amounts (raw units) the pool provides across a price band, mirroring
+// Position.amount0 / .amount1 with the band's sqrt-price bounds in place of
+// tick-derived ones. Liquidity is uniform only between initialized ticks, so the
+// band is cut at every one it contains and each slice is valued with the
+// liquidity actually active across it — the pool's current L covers only the
+// slice holding the current price.
+export const computeBandAmounts = function ({
+  currentTick,
+  decimals0,
+  decimals1,
+  initializedTicks,
   liquidity,
   lowerPrice,
   sqrtPriceX96,
   upperPrice,
 }: {
+  currentTick: number;
   decimals0: number;
   decimals1: number;
+  initializedTicks: TickLiquidity[];
   liquidity: bigint;
   lowerPrice: number;
   sqrtPriceX96: bigint;
   upperPrice: number;
 }): { amount0: bigint; amount1: bigint } {
-  const sqrtLowerX96 = priceToSqrtRatioX96({
-    decimals0,
-    decimals1,
-    price: lowerPrice,
-  });
-  const sqrtUpperX96 = priceToSqrtRatioX96({
-    decimals0,
-    decimals1,
-    price: upperPrice,
+  const lowerTick = priceToTick({ decimals0, decimals1, price: lowerPrice });
+  const upperTick = priceToTick({ decimals0, decimals1, price: upperPrice });
+
+  const sliceTicks = initializedTicks
+    .filter((entry) => entry.tick > lowerTick && entry.tick <= upperTick)
+    .sort((a, b) => a.tick - b.tick);
+
+  const bounds = [
+    priceToSqrtRatioX96({ decimals0, decimals1, price: lowerPrice }),
+    ...sliceTicks.map((entry) => tickToSqrtRatioX96(entry.tick)),
+    priceToSqrtRatioX96({ decimals0, decimals1, price: upperPrice }),
+  ];
+
+  // The pool reports the liquidity active at the current tick, so un-cross every
+  // initialized tick between there and the band's lower edge to reach the
+  // liquidity active in the band's first slice.
+  let sliceLiquidity = initializedTicks.reduce(function (total, entry) {
+    if (entry.tick > lowerTick && entry.tick <= currentTick) {
+      return total - entry.liquidityNet;
+    }
+    if (entry.tick > currentTick && entry.tick <= lowerTick) {
+      return total + entry.liquidityNet;
+    }
+    return total;
+  }, liquidity);
+
+  let amount0 = 0n;
+  let amount1 = 0n;
+  bounds.slice(0, -1).forEach(function (lower, index) {
+    if (index > 0) {
+      sliceLiquidity += sliceTicks[index - 1].liquidityNet;
+    }
+    const upper = bounds[index + 1];
+    if (sqrtPriceX96 <= lower) {
+      // Slice above the price: all token0.
+      amount0 += getAmount0Delta(lower, upper, sliceLiquidity);
+    } else if (sqrtPriceX96 >= upper) {
+      // Slice below the price: all token1.
+      amount1 += getAmount1Delta(lower, upper, sliceLiquidity);
+    } else {
+      amount0 += getAmount0Delta(sqrtPriceX96, upper, sliceLiquidity);
+      amount1 += getAmount1Delta(lower, sqrtPriceX96, sliceLiquidity);
+    }
   });
 
-  if (sqrtPriceX96 < sqrtLowerX96) {
-    // Price below the band: all token0.
-    return {
-      amount0: getAmount0Delta(sqrtLowerX96, sqrtUpperX96, liquidity),
-      amount1: 0n,
-    };
-  }
-  if (sqrtPriceX96 < sqrtUpperX96) {
-    // Price inside the band: split at the current price.
-    return {
-      amount0: getAmount0Delta(sqrtPriceX96, sqrtUpperX96, liquidity),
-      amount1: getAmount1Delta(sqrtLowerX96, sqrtPriceX96, liquidity),
-    };
-  }
-  // Price above the band: all token1.
-  return {
-    amount0: 0n,
-    amount1: getAmount1Delta(sqrtLowerX96, sqrtUpperX96, liquidity),
-  };
+  return { amount0, amount1 };
 };
