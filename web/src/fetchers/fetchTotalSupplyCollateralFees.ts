@@ -1,6 +1,6 @@
 import type { QueryClient } from "@tanstack/react-query";
+import type { Token } from "@vetro-protocol/core";
 import { supplyCollateralGasUnitsOptions } from "hooks/borrow/useSupplyCollateralFees";
-import type { Token } from "types";
 import { type Address, type Chain, type Client, type Hash } from "viem";
 
 import { fetchTotalNetworkFees } from "./fetchTotalNetworkFees";

@@ -1,6 +1,6 @@
 import type { AccrualPosition, Market } from "@morpho-org/blue-sdk";
+import type { Token } from "@vetro-protocol/core";
 import { useRef } from "react";
-import type { Token } from "types";
 import {
   calculateDailyInterestCost,
   calculateHealthFactor,

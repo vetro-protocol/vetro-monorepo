@@ -472,6 +472,9 @@ importers:
       '@vetro-protocol/bridge':
         specifier: workspace:*
         version: link:../packages/bridge
+      '@vetro-protocol/core':
+        specifier: workspace:*
+        version: link:../packages/core
       '@vetro-protocol/earn':
         specifier: workspace:*
         version: link:../packages/earn

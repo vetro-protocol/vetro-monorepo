@@ -1,4 +1,4 @@
-import type { Token } from "types";
+import type { Token } from "@vetro-protocol/core";
 import { describe, expect, it } from "vitest";
 
 import { getTokenListParams } from "../../src/utils/tokenList";

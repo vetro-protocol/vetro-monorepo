@@ -1,6 +1,6 @@
+import { type Token } from "@vetro-protocol/core";
 import { TokenSelectorModal } from "components/tokenSelectorModal";
 import { useTranslation } from "react-i18next";
-import { type Token } from "types";
 
 type Props<T extends Token = Token> = {
   onChange: (token: T) => void;

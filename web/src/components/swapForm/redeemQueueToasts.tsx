@@ -1,6 +1,6 @@
+import type { Token } from "@vetro-protocol/core";
 import { Toast } from "components/base/toast";
 import { useTranslation } from "react-i18next";
-import type { Token } from "types";
 
 type Props = {
   onClose: VoidFunction;

@@ -1,3 +1,4 @@
+import { knownTokens } from "@vetro-protocol/core";
 import { parseArgs } from "node:util";
 import {
   createPublicClient,
@@ -9,8 +10,6 @@ import {
 import { getBalance } from "viem/actions";
 import { mainnet } from "viem/chains";
 import { balanceOf } from "viem-erc20/actions";
-
-import { knownTokens } from "../src/utils/tokenList.ts";
 
 const { values } = parseArgs({
   options: {
@@ -39,7 +38,11 @@ const publicClient = createPublicClient({
 const nativeBalance = await getBalance(publicClient, { address });
 console.log(`ETH: ${formatEther(nativeBalance)}`);
 
-for (const token of knownTokens) {
+const mainnetTokens = knownTokens.filter(
+  (token) => token.chainId === mainnet.id,
+);
+
+for (const token of mainnetTokens) {
   const balance = await balanceOf(publicClient, {
     account: address,
     address: token.address,

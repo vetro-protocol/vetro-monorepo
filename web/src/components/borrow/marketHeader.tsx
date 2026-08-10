@@ -1,5 +1,5 @@
+import type { Token } from "@vetro-protocol/core";
 import { TokenLogo } from "components/tokenLogo";
-import type { Token } from "types";
 
 type Props = {
   collateralToken: Token;

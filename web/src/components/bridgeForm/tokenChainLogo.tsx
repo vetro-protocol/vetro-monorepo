@@ -1,8 +1,8 @@
+import type { Token } from "@vetro-protocol/core";
 import { ChainLogo } from "components/chainLogo";
 import { TokenLogo } from "components/tokenLogo";
 import { getChainById } from "networks";
 import type { ComponentProps } from "react";
-import type { Token } from "types";
 
 type Props = {
   size?: ComponentProps<typeof TokenLogo>["size"];

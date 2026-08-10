@@ -1,6 +1,6 @@
+import type { Token } from "@vetro-protocol/core";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { ShareTokenFiatValue } from "components/base/shareTokenFiatValue";
-import type { Token } from "types";
 
 type Props = {
   token: Token;

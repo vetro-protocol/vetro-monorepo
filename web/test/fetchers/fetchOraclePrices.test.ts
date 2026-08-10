@@ -1,6 +1,6 @@
+import type { Token } from "@vetro-protocol/core";
 import { tokenConfigOptions } from "hooks/useTokenConfig";
 import { whitelistedTokensByGatewayOptions } from "hooks/useWhitelistedTokensByGateway";
-import type { Token } from "types";
 import { type Address, type Client, zeroAddress } from "viem";
 import { readContract } from "viem/actions";
 import { describe, expect, it, vi } from "vitest";

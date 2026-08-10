@@ -1,10 +1,10 @@
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
+import type { Token } from "@vetro-protocol/core";
 import { RenderCryptoValue } from "components/base/cryptoValue";
 import { BridgeTokenFiatValue } from "components/bridgeForm/bridgeTokenFiatValue";
 import { TokenChainLogo } from "components/bridgeForm/tokenChainLogo";
 import { TokenLogo } from "components/tokenLogo";
 import type { ReactNode } from "react";
-import type { Token } from "types";
 import { useAccount } from "wagmi";
 
 type Props<T extends Token> = {

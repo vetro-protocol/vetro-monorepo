@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { knownTokens, type Token } from "@vetro-protocol/core";
 import { useState } from "react";
 
 import { MaxButton } from "../src/components/base/maxButton";
@@ -7,8 +8,6 @@ import { TokenDropdown } from "../src/components/tokenDropdown";
 import { TokenInput } from "../src/components/tokenInput";
 import { TokenSelectorReadOnly } from "../src/components/tokenSelectorReadOnly";
 import { useAmount } from "../src/hooks/useAmount";
-import type { Token } from "../src/types";
-import { knownTokens } from "../src/utils/tokenList";
 
 const meta = {
   component: TokenInput,

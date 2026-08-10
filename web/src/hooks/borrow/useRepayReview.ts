@@ -1,5 +1,5 @@
 import type { AccrualPosition } from "@morpho-org/blue-sdk";
-import type { Token } from "types";
+import type { Token } from "@vetro-protocol/core";
 import { maxBigInt } from "utils/bigint";
 
 import { usePositionReview } from "./usePositionReview";

@@ -1,4 +1,4 @@
-import type { Token } from "types";
+import type { Token } from "@vetro-protocol/core";
 import { tokenAmountToUsd } from "utils/currency";
 import { formatNumber } from "utils/format";
 import { formatUnits, isAddressEqual, type Address } from "viem";

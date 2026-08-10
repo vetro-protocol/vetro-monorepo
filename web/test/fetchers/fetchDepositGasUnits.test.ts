@@ -1,6 +1,6 @@
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
+import type { Token } from "@vetro-protocol/core";
 import { stakingVaultAddresses } from "@vetro-protocol/earn";
-import type { Token } from "types";
 import { type Client, zeroAddress } from "viem";
 import { estimateGas } from "viem/actions";
 import { describe, expect, it, vi } from "vitest";

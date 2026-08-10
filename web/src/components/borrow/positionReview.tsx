@@ -1,9 +1,9 @@
+import type { Token } from "@vetro-protocol/core";
 import { DisplayAmount } from "components/base/displayAmount";
 import { TokenLogo } from "components/tokenLogo";
 import { Tooltip } from "components/tooltip";
 import { type PositionMetrics } from "hooks/borrow/usePositionReview";
 import { useTranslation } from "react-i18next";
-import type { Token } from "types";
 import { formatFiatNumber, formatPercentage } from "utils/format";
 
 import { HealthFactor } from "./healthFactor";
