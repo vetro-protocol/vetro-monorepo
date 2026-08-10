@@ -1,13 +1,21 @@
 import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { PageTitle } from "components/base/pageTitle";
 import { StripedDivider } from "components/stripedDivider";
+import { Suspense, lazy } from "react";
 import { useTranslation } from "react-i18next";
+import { featureFlags } from "utils/featureFlags";
 
 import { EarnStats } from "./components/earnStats";
 import { ExitTickets } from "./components/exitTickets";
 import { ExitTicketsSkeleton } from "./components/exitTickets/skeleton";
 import { PoolInfoBar } from "./components/poolInfoBar";
 import { useShowExitTickets } from "./hooks/useShowExitTickets";
+
+const FixedTermEarn = lazy(() =>
+  import("./components/fixedTermEarn").then((m) => ({
+    default: m.FixedTermEarn,
+  })),
+);
 
 export function Earn() {
   const { data: showExitTickets, isLoading } = useShowExitTickets();
@@ -25,6 +33,11 @@ export function Earn() {
           stakingVaultAddress={stakingVaultAddress}
         />
       ))}
+      {featureFlags.fixedTermYield && (
+        <Suspense>
+          <FixedTermEarn />
+        </Suspense>
+      )}
       {(isLoading || showExitTickets) && (
         <>
           <div className="border-b border-gray-200 bg-gray-100">
