@@ -139,11 +139,9 @@ describe("computeBandAmounts", function () {
 
   it("splits evenly for a price-symmetric band at $1 (equal decimals)", function () {
     const { amount0, amount1 } = computeBandAmounts({
-      ...uniformPool,
-      decimals1: 18,
+      ...atPrice({ ...uniformPool, decimals1: 18 }, 1),
       liquidity: 10n ** 24n,
       lowerPrice: 0.5,
-      sqrtPriceX96: priceToSqrtX96({ decimals0: 18, decimals1: 18, price: 1 }),
       upperPrice: 2,
     });
     // A band symmetric in price around the current price holds equal token
