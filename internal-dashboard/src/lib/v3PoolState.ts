@@ -1,5 +1,5 @@
 import { type Address } from "viem";
-import { multicall } from "viem/actions";
+import { getBlockNumber, multicall } from "viem/actions";
 
 import { client } from "./client";
 import { type TickLiquidity } from "./v3PositionMath";
@@ -94,10 +94,13 @@ export const fetchV3PoolState = async function ({
   poolAddress: Address;
   upperTick: number;
 }) {
+  const blockNumber = await getBlockNumber(client);
+
   const [[sqrtPriceX96, currentTick], liquidity, spacing] = await multicall(
     client,
     {
       allowFailure: false,
+      blockNumber,
       contracts: [
         { abi: poolAbi, address: poolAddress, functionName: "slot0" },
         { abi: poolAbi, address: poolAddress, functionName: "liquidity" },
@@ -121,6 +124,7 @@ export const fetchV3PoolState = async function ({
     // byte-size batching would split these across concurrent eth_calls that the
     // keyless public RPC rate-limits.
     batchSize: 0,
+    blockNumber,
     contracts: words.map((word) => ({
       abi: poolAbi,
       address: poolAddress,
@@ -142,6 +146,7 @@ export const fetchV3PoolState = async function ({
   const tickData = await multicall(client, {
     allowFailure: false,
     batchSize: 0,
+    blockNumber,
     contracts: ticks.map((tick) => ({
       abi: poolAbi,
       address: poolAddress,
