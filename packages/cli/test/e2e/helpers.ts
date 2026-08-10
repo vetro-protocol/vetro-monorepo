@@ -234,11 +234,7 @@ export const setMaxMint = async function ({
     await stopImpersonatingAccount(testClient, { address: owner });
   }
 
-  const maxMintAfter = await readContract(publicClient, {
-    abi: vetroGatewayAbi,
-    address: gateway,
-    functionName: "maxMint",
-  });
+  const maxMintAfter = await getMaxMint(publicClient, { address: gateway });
 
   return { maxMintAfter, maxMintBefore };
 };
