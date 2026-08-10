@@ -1,6 +1,6 @@
 {
   "name": "@vetro-protocol/treasury",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Vetro Protocol treasury actions for viem.",
   "license": "MIT",
   "files": [
@@ -17,16 +17,18 @@
   },
   "scripts": {
     "build": "tsc --noEmit",
-    "build:esm": "tsc -p tsconfig.build.json --outDir ./_esm --sourceMap",
     "build:types": "tsc -p tsconfig.build.json --declarationDir ./_types --emitDeclarationOnly --declaration --declarationMap",
+    "prebundle": "pnpm build",
+    "bundle": "node ../../scripts/bundle-package.js",
     "clean": "rm -rf ./_esm ./_types",
     "prepack": "cp ../../LICENSE LICENSE",
-    "prepublishOnly": "pnpm clean && pnpm build:esm && pnpm build:types",
+    "prepublishOnly": "pnpm clean && pnpm bundle && pnpm build:types",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
     "@tsconfig/node24": "24.0.4",
+    "@vetro-protocol/core": "workspace:*",
     "@vitest/coverage-v8": "4.1.9",
     "typescript": "5.9.3",
     "viem": "2.44.4",

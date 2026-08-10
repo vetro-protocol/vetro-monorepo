@@ -2,7 +2,7 @@ import { Address, Client, zeroAddress } from "viem";
 import { readContract } from "viem/actions";
 import { describe, expect, it, vi } from "vitest";
 
-import { getWithdrawable } from "../../src/actions/public/getWithdrawable.ts";
+import { getKeeperRole } from "../../src/actions/public/getKeeperRole.ts";
 
 vi.mock("viem/actions", () => ({
   readContract: vi.fn(),
@@ -10,23 +10,22 @@ vi.mock("viem/actions", () => ({
 
 const validParameters = {
   address: "0x1234567890123456789012345678901234567890" as Address,
-  token: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd" as Address,
 };
 
 // @ts-expect-error - We only create an empty client for testing purposes
 const client: Client = {};
 
-describe("getWithdrawable", function () {
+describe("getKeeperRole", function () {
   it("should throw an error if client is not defined", async function () {
     await expect(
       // @ts-expect-error - Testing invalid input
-      getWithdrawable(undefined, validParameters),
+      getKeeperRole(undefined, validParameters),
     ).rejects.toThrow("Client is not defined");
   });
 
   it("should throw an error if parameters are not provided", async function () {
     // @ts-expect-error - Testing invalid input
-    await expect(getWithdrawable(client, undefined)).rejects.toThrow(
+    await expect(getKeeperRole(client, undefined)).rejects.toThrow(
       "Parameters are required",
     );
   });
@@ -37,52 +36,36 @@ describe("getWithdrawable", function () {
       address: "invalid_address",
     };
     // @ts-expect-error - Testing invalid input
-    await expect(getWithdrawable(client, parameters)).rejects.toThrow(
+    await expect(getKeeperRole(client, parameters)).rejects.toThrow(
+      "Treasury address is invalid",
+    );
+  });
+
+  it("should throw an error if the address is not provided", async function () {
+    const parameters = {};
+    // @ts-expect-error - Testing invalid input
+    await expect(getKeeperRole(client, parameters)).rejects.toThrow(
       "Treasury address is invalid",
     );
   });
 
   it("should throw an error if the address is zero address", async function () {
     const parameters = {
-      ...validParameters,
       address: zeroAddress,
     };
 
-    await expect(getWithdrawable(client, parameters)).rejects.toThrow(
+    await expect(getKeeperRole(client, parameters)).rejects.toThrow(
       "Treasury address is invalid",
     );
   });
 
-  it("should throw an error if the token is not valid", async function () {
-    const parameters = {
-      ...validParameters,
-      token: "invalid_token",
-    };
-    // @ts-expect-error - Testing invalid input
-    await expect(getWithdrawable(client, parameters)).rejects.toThrow(
-      "Token is invalid",
-    );
-  });
-
-  it("should throw an error if the token is zero address", async function () {
-    const parameters = {
-      ...validParameters,
-      token: zeroAddress,
-    };
-
-    await expect(getWithdrawable(client, parameters)).rejects.toThrow(
-      "Token is invalid",
-    );
-  });
-
   it("should call readContract if all parameters are valid", async function () {
-    await getWithdrawable(client, validParameters);
+    await getKeeperRole(client, validParameters);
 
     expect(readContract).toHaveBeenCalledWith(client, {
       abi: expect.anything(),
       address: validParameters.address,
-      args: [validParameters.token],
-      functionName: "withdrawable",
+      functionName: "KEEPER_ROLE",
     });
   });
 });
