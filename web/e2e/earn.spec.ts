@@ -4,6 +4,7 @@ import {
 } from "@hemilabs/anvil-fork-setup/utils";
 import { expect } from "@playwright/test";
 import { stakingVaultAbi, sVusdAddress } from "@vetro-protocol/earn";
+import { getCooldownEnabled } from "@vetro-protocol/earn/actions";
 import {
   createWalletClient,
   erc20Abi,
@@ -17,7 +18,6 @@ import { privateKeyToAccount } from "viem/accounts";
 import {
   getBlock,
   getTransactionReceipt,
-  readContract,
   waitForTransactionReceipt,
   writeContract,
 } from "viem/actions";
@@ -335,11 +335,7 @@ test("withdraw VUSD from the Earn pool (two-step cooldown exit)", async function
   await setCooldownEnabled({ forkUrl: ANVIL_URL });
 
   expect(
-    await readContract(publicClient, {
-      abi: stakingVaultAbi,
-      address: sVusdAddress,
-      functionName: "cooldownEnabled",
-    }),
+    await getCooldownEnabled(publicClient, { address: sVusdAddress }),
   ).toBe(true);
 
   const [vusdBefore, svusdBefore] = await Promise.all([

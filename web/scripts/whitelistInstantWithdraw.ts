@@ -1,4 +1,5 @@
 import { stakingVaultAbi, sVusdAddress } from "@vetro-protocol/earn";
+import { getInstantWithdrawWhitelist } from "@vetro-protocol/earn/actions";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import {
@@ -48,11 +49,9 @@ export async function whitelistInstantWithdraw({
       address: vaultAddress,
       functionName: "owner",
     }),
-    readContract(publicClient, {
-      abi: stakingVaultAbi,
+    getInstantWithdrawWhitelist(publicClient, {
+      account: address,
       address: vaultAddress,
-      args: [address],
-      functionName: "instantWithdrawWhitelist",
     }),
   ]);
 
