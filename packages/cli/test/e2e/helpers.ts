@@ -3,6 +3,7 @@ import {
   TEST_PRIVATE_KEY,
 } from "@hemilabs/anvil-fork-setup/utils";
 import { gatewayAbi as vetroGatewayAbi } from "@vetro-protocol/gateway";
+import { getMaxMint } from "@vetro-protocol/gateway/actions";
 import { getKeeperRole } from "@vetro-protocol/treasury/actions";
 import { type Command, CommanderError } from "commander";
 import {
@@ -214,11 +215,7 @@ export const setMaxMint = async function ({
       address: gateway,
       functionName: "mintLimit",
     }),
-    readContract(publicClient, {
-      abi: vetroGatewayAbi,
-      address: gateway,
-      functionName: "maxMint",
-    }),
+    getMaxMint(publicClient, { address: gateway }),
   ]);
 
   await impersonateAccount(testClient, { address: owner });
@@ -237,11 +234,7 @@ export const setMaxMint = async function ({
     await stopImpersonatingAccount(testClient, { address: owner });
   }
 
-  const maxMintAfter = await readContract(publicClient, {
-    abi: vetroGatewayAbi,
-    address: gateway,
-    functionName: "maxMint",
-  });
+  const maxMintAfter = await getMaxMint(publicClient, { address: gateway });
 
   return { maxMintAfter, maxMintBefore };
 };

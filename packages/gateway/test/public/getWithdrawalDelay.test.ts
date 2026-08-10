@@ -2,7 +2,7 @@ import { Address, Client, zeroAddress } from "viem";
 import { readContract } from "viem/actions";
 import { describe, it, expect, vi } from "vitest";
 
-import { getWithdrawalDelay } from "../../src/actions/public/getWithdrawalDelay";
+import { getWithdrawalDelay } from "../../src/actions/public/getWithdrawalDelay.ts";
 
 vi.mock("viem/actions", () => ({
   readContract: vi.fn(),

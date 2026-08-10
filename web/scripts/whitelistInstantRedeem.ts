@@ -1,3 +1,8 @@
+import { gatewayAbi, gatewayAddresses } from "@vetro-protocol/gateway";
+import {
+  getTreasury,
+  isInstantRedeemWhitelisted,
+} from "@vetro-protocol/gateway/actions";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import {
@@ -18,9 +23,6 @@ import {
   writeContract,
 } from "viem/actions";
 import { mainnet } from "viem/chains";
-
-import { gatewayAbi } from "../../packages/gateway/src/abi/gatewayAbi.ts";
-import { gatewayAddresses } from "../../packages/gateway/src/gatewayAddresses.ts";
 
 import { confirmTransaction } from "./utils.ts";
 
@@ -78,16 +80,10 @@ export async function whitelistInstantRedeem({
       address: gateway,
       functionName: "owner",
     }),
-    readContract(publicClient, {
-      abi: gatewayAbi,
+    getTreasury(publicClient, { address: gateway }),
+    isInstantRedeemWhitelisted(publicClient, {
+      account: address,
       address: gateway,
-      functionName: "treasury",
-    }),
-    readContract(publicClient, {
-      abi: gatewayAbi,
-      address: gateway,
-      args: [address],
-      functionName: "isInstantRedeemWhitelisted",
     }),
   ]);
 

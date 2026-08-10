@@ -2,7 +2,7 @@ import { Address, Client, zeroAddress } from "viem";
 import { readContract } from "viem/actions";
 import { describe, it, expect, vi } from "vitest";
 
-import { getRedeemRequest } from "../../src/actions/public/getRedeemRequest";
+import { getRedeemRequest } from "../../src/actions/public/getRedeemRequest.ts";
 
 vi.mock("viem/actions", () => ({
   readContract: vi.fn(),

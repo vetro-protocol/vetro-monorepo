@@ -1,3 +1,10 @@
+import { gatewayAbi, gatewayAddresses } from "@vetro-protocol/gateway";
+import {
+  getTreasury,
+  getWithdrawalDelay,
+  getWithdrawalDelayEnabled,
+  isInstantRedeemWhitelisted,
+} from "@vetro-protocol/gateway/actions";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import {
@@ -18,9 +25,6 @@ import {
   writeContract,
 } from "viem/actions";
 import { mainnet } from "viem/chains";
-
-import { gatewayAbi } from "../../packages/gateway/src/abi/gatewayAbi.ts";
-import { gatewayAddresses } from "../../packages/gateway/src/gatewayAddresses.ts";
 
 import { confirmTransaction } from "./utils.ts";
 
@@ -80,16 +84,8 @@ export async function setRedeemDelay({
       address: gateway,
       functionName: "owner",
     }),
-    readContract(publicClient, {
-      abi: gatewayAbi,
-      address: gateway,
-      functionName: "treasury",
-    }),
-    readContract(publicClient, {
-      abi: gatewayAbi,
-      address: gateway,
-      functionName: "withdrawalDelayEnabled",
-    }),
+    getTreasury(publicClient, { address: gateway }),
+    getWithdrawalDelayEnabled(publicClient, { address: gateway }),
   ]);
 
   await impersonateAccount(testClient, { address: owner });
@@ -134,11 +130,9 @@ export async function setRedeemDelay({
           args: [WITHDRAWAL_DELAY_SECONDS],
           functionName: "updateWithdrawalDelay",
         }).then((hash) => confirmTransaction({ client: publicClient, hash })),
-        readContract(publicClient, {
-          abi: gatewayAbi,
+        isInstantRedeemWhitelisted(publicClient, {
+          account: address,
           address: gateway,
-          args: [address],
-          functionName: "isInstantRedeemWhitelisted",
         }),
       ]);
 
@@ -164,16 +158,8 @@ export async function setRedeemDelay({
     }
 
     const [delayEnabledAfter, delay] = await Promise.all([
-      readContract(publicClient, {
-        abi: gatewayAbi,
-        address: gateway,
-        functionName: "withdrawalDelayEnabled",
-      }),
-      readContract(publicClient, {
-        abi: gatewayAbi,
-        address: gateway,
-        functionName: "withdrawalDelay",
-      }),
+      getWithdrawalDelayEnabled(publicClient, { address: gateway }),
+      getWithdrawalDelay(publicClient, { address: gateway }),
     ]);
 
     return { delay, delayEnabledAfter, delayEnabledBefore };

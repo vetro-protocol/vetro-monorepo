@@ -10,11 +10,11 @@ import { sepolia } from "viem/chains";
 import { allowance, approve } from "viem-erc20/actions";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { getMaxWithdraw } from "../../src/actions/public/getMaxWithdraw";
-import { getPeggedToken } from "../../src/actions/public/getPeggedToken";
-import { getWithdrawalDelayEnabled } from "../../src/actions/public/getWithdrawalDelayEnabled";
-import { isInstantRedeemWhitelisted } from "../../src/actions/public/isInstantRedeemWhitelisted";
-import { redeem } from "../../src/actions/wallet/redeem";
+import { getMaxWithdraw } from "../../src/actions/public/getMaxWithdraw.ts";
+import { getPeggedToken } from "../../src/actions/public/getPeggedToken.ts";
+import { getWithdrawalDelayEnabled } from "../../src/actions/public/getWithdrawalDelayEnabled.ts";
+import { isInstantRedeemWhitelisted } from "../../src/actions/public/isInstantRedeemWhitelisted.ts";
+import { redeem } from "../../src/actions/wallet/redeem.ts";
 
 vi.mock("../../src/actions/public/getMaxWithdraw", () => ({
   getMaxWithdraw: vi.fn(),

@@ -11,8 +11,8 @@ import {
 } from "viem";
 import { waitForTransactionReceipt, writeContract } from "viem/actions";
 
-import { gatewayAbi } from "../../abi/gatewayAbi.js";
-import type { CancelRedeemRequestEvents } from "../../types.js";
+import { gatewayAbi } from "../../abi/gatewayAbi.ts";
+import type { CancelRedeemRequestEvents } from "../../types.ts";
 
 export type CancelRedeemRequestParams = {
   gatewayAddress: Address;

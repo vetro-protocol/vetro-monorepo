@@ -9,7 +9,7 @@ import { waitForTransactionReceipt, writeContract } from "viem/actions";
 import { sepolia } from "viem/chains";
 import { describe, expect, it, vi } from "vitest";
 
-import { cancelRedeemRequest } from "../../src/actions/wallet/cancelRedeemRequest";
+import { cancelRedeemRequest } from "../../src/actions/wallet/cancelRedeemRequest.ts";
 
 vi.mock("viem/actions", () => ({
   waitForTransactionReceipt: vi.fn(),

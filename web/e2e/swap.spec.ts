@@ -1,13 +1,12 @@
 import { TEST_ADDRESS } from "@hemilabs/anvil-fork-setup/utils";
 import { expect } from "@playwright/test";
+import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { getRedeemRequest, getTreasury } from "@vetro-protocol/gateway/actions";
 import { getWhitelistedTokens } from "@vetro-protocol/treasury/actions";
 import { parseUnits } from "viem";
-import { getBlock, readContract } from "viem/actions";
+import { getBlock } from "viem/actions";
 import { balanceOf, symbol } from "viem-erc20/actions";
 
-import { gatewayAbi } from "../../packages/gateway/src/abi/gatewayAbi.ts";
-import { gatewayAddresses } from "../../packages/gateway/src/gatewayAddresses.ts";
 import { fastForwardTime } from "../scripts/fastForwardTime.ts";
 import { setRedeemDelay } from "../scripts/redeemDelay.ts";
 import { requestRedeem } from "../scripts/requestRedeem.ts";
@@ -410,11 +409,9 @@ test("redeem VUSD via the gateway (two-step queue redeem)", async function ({
   //    (Gateway._handleRedeemOrWithdraw),
   //  - the browser clock, so the queue row's Date.now-based countdown
   //    (useCountdown) reaches zero and enables the Redeem button.
-  const [, claimableAt] = await readContract(publicClient, {
-    abi: gatewayAbi,
+  const [, claimableAt] = await getRedeemRequest(publicClient, {
     address: gatewayAddresses[0],
-    args: [TEST_ADDRESS],
-    functionName: "getRedeemRequest",
+    user: TEST_ADDRESS,
   });
   // Fail loudly if the request wasn't recorded (claimableAt 0) instead of
   // silently under-advancing the clock below.
