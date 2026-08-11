@@ -1,5 +1,5 @@
+import { SectionHeader } from "components/base/sectionHeader";
 import { Table } from "components/base/table";
-import { TopSection } from "components/base/table/topSection";
 import { useTranslation } from "react-i18next";
 
 import { getColumns } from ".";
@@ -18,7 +18,7 @@ export function ExitTicketsSkeleton() {
 
   return (
     <div>
-      <TopSection title={t("pages.earn.exit-tickets.title")} />
+      <SectionHeader title={t("pages.earn.exit-tickets.title")} />
       <Table
         columns={columns}
         data={emptyArray}
