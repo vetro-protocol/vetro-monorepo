@@ -1,8 +1,8 @@
+import { isAddressValid } from "@vetro-protocol/core";
 import { type Address, type Client } from "viem";
 import { readContract } from "viem/actions";
 
-import { targetYieldEarnVaultAbi } from "../../abi/targetYieldEarnVaultAbi.js";
-import { isAddressValid } from "../../utils/isAddressValid.js";
+import { targetYieldEarnVaultAbi } from "../../abi/targetYieldEarnVaultAbi.ts";
 
 export async function getMaxRequestRedeem(
   client: Client,
