@@ -1,7 +1,7 @@
 import { type ColumnDef } from "@tanstack/react-table";
+import { SectionHeader } from "components/base/sectionHeader";
 import { Table } from "components/base/table";
 import { Header } from "components/base/table/header";
-import { TopSection } from "components/base/table/topSection";
 import { useBorrowAction } from "hooks/borrow/useBorrowAction";
 import { type MarketData, useMarketsData } from "hooks/borrow/useMarketsData";
 import {
@@ -247,7 +247,7 @@ export function PositionsTable({ marketIds }: Props) {
 
   return (
     <div id="borrow-positions" ref={ref}>
-      <TopSection title={t("pages.borrow.positions-title")} />
+      <SectionHeader title={t("pages.borrow.positions-title")} />
       <Table
         columns={columns}
         data={data}

@@ -1,6 +1,6 @@
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import type { FetchStatus, QueryStatus } from "@tanstack/react-query";
-import { TopSection } from "components/base/table/topSection";
+import { SectionHeader } from "components/base/sectionHeader";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useAmount } from "hooks/useAmount";
 import {
@@ -245,7 +245,7 @@ export function RedeemQueue({ peggedToken, whitelistedTokens }: Props) {
 
   return (
     <>
-      <TopSection title={t("pages.swap.redeem-queue.title")} />
+      <SectionHeader title={t("pages.swap.redeem-queue.title")} />
       <RedeemQueueTable
         data={rows}
         loading={isLoading}

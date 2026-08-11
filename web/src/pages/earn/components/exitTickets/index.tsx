@@ -4,10 +4,10 @@ import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { Badge } from "components/base/badge";
 import { Button } from "components/base/button";
 import { FilterMenu } from "components/base/filterMenu";
+import { SectionHeader } from "components/base/sectionHeader";
 import { StatusBadge } from "components/base/statusBadge";
 import { Table } from "components/base/table";
 import { Header } from "components/base/table/header";
-import { TopSection } from "components/base/table/topSection";
 import { Toast } from "components/base/toast";
 import { Tooltip } from "components/tooltip";
 import { TableCellsIcon } from "pages/earn/icons/tableCellsIcon";
@@ -254,7 +254,7 @@ export function ExitTickets() {
   return (
     <div id="exit-tickets">
       {/* Title row */}
-      <TopSection title={t("pages.earn.exit-tickets.title")}>
+      <SectionHeader title={t("pages.earn.exit-tickets.title")}>
         <div className="flex items-center gap-3">
           <FilterMenu
             icon={<TableCellsIcon />}
@@ -280,7 +280,7 @@ export function ExitTickets() {
             onWithdrawAll={() => setIsWithdrawAllDrawerOpen(true)}
           />
         </div>
-      </TopSection>
+      </SectionHeader>
       {/* Table */}
       <Table
         columns={columns}
