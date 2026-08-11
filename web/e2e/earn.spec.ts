@@ -4,7 +4,10 @@ import {
 } from "@hemilabs/anvil-fork-setup/utils";
 import { expect } from "@playwright/test";
 import { stakingVaultAbi, sVusdAddress } from "@vetro-protocol/earn";
-import { getCooldownEnabled } from "@vetro-protocol/earn/actions";
+import {
+  getActiveRequestIds,
+  getCooldownEnabled,
+} from "@vetro-protocol/earn/actions";
 import {
   createWalletClient,
   erc20Abi,
@@ -543,4 +546,173 @@ test("withdraw VUSD from the Earn pool (two-step cooldown exit)", async function
   await expect(page.getByText("Withdrawal complete")).toBeVisible({
     timeout: 10_000,
   });
+});
+
+// Queue an exit ticket for the test account without going through the UI: the
+// request → cooldown flow is already covered by the two-step test above, so this
+// signs the request straight against Anvil and returns the WithdrawRequested
+// args the exit-tickets API would have indexed.
+async function requestWithdrawVusd(assets: bigint) {
+  const walletClient = createWalletClient({
+    account: privateKeyToAccount(TEST_PRIVATE_KEY),
+    chain: mainnet,
+    transport: http(ANVIL_URL),
+  });
+
+  const requestHash = await writeContract(walletClient, {
+    abi: stakingVaultAbi,
+    address: sVusdAddress,
+    args: [assets, TEST_ADDRESS],
+    functionName: "requestWithdraw",
+  });
+  const receipt = await waitForTransactionReceipt(walletClient, {
+    hash: requestHash,
+  });
+  expect(receipt.status).toBe("success");
+
+  const requestLogs = parseEventLogs({
+    abi: stakingVaultAbi,
+    args: { owner: TEST_ADDRESS },
+    eventName: "WithdrawRequested",
+    logs: receipt.logs,
+  });
+  expect(requestLogs).toHaveLength(1);
+
+  return {
+    ...requestLogs[0].args,
+    requestTxHash: receipt.transactionHash,
+  };
+}
+
+test("delete an exit ticket while it is in cooldown", async function ({
+  page,
+  walletTxHashes,
+}) {
+  const publicClient = createEthereumClient();
+
+  // Cooldown on and no instant-withdraw whitelist, so the request lands in the
+  // queue instead of paying out immediately.
+  await stakeVusd(DEPOSIT_AMOUNT);
+  await setCooldownEnabled({ forkUrl: ANVIL_URL });
+
+  const [vusdBefore, svusdBefore] = await Promise.all([
+    balanceOf(publicClient, {
+      account: TEST_ADDRESS,
+      address: vusd.address,
+    }),
+    balanceOf(publicClient, {
+      account: TEST_ADDRESS,
+      address: sVusdAddress,
+    }),
+  ]);
+
+  const { assets, claimableAt, requestId, requestTxHash, shares } =
+    await requestWithdrawVusd(WITHDRAW_AMOUNT);
+
+  // The shares left the wallet at request time — deleting the ticket has to put
+  // them back.
+  expect(
+    await balanceOf(publicClient, {
+      account: TEST_ADDRESS,
+      address: sVusdAddress,
+    }),
+  ).toBe(svusdBefore - shares);
+
+  // Serve the queued ticket from the mocked exit-tickets endpoint (the wallet
+  // fixture otherwise stubs it with []).
+  let exitTicketsBody: ExitTicket[] = [
+    {
+      assets: assets.toString(),
+      claimableAt: claimableAt.toString(),
+      owner: TEST_ADDRESS,
+      requestId: requestId.toString(),
+      requestTxHash,
+      shares: shares.toString(),
+      stakingVaultAddress: sVusdAddress,
+    },
+  ];
+  await page.route("**/variable-stake/exit-tickets/**", (route) =>
+    route.fulfill({ json: exitTicketsBody }),
+  );
+
+  await page.goto("/");
+
+  await expect(
+    page.getByRole("button", { name: /^0x[a-f0-9]{4}/i }),
+  ).toBeVisible({ timeout: 30_000 });
+
+  await page.getByRole("link", { name: "Earn" }).click();
+  await expect(page).toHaveURL(/\/en\/earn/);
+
+  const exitTickets = page.locator("#exit-tickets");
+  await expect(exitTickets.getByText("Cooldown in progress")).toBeVisible({
+    timeout: 20_000,
+  });
+
+  await exitTickets.getByRole("button", { name: "Delete exit ticket" }).click();
+
+  const deleteModal = page.getByRole("dialog", { name: "Delete exit ticket" });
+  await expect(deleteModal).toBeVisible();
+  await expect(
+    deleteModal.getByRole("button", { name: "Cancel" }),
+  ).toBeVisible();
+
+  await deleteModal.getByRole("button", { name: "Delete" }).click();
+
+  await expect(page.getByText("Exit ticket deleted")).toBeVisible({
+    timeout: 40_000,
+  });
+  await expect(deleteModal).toBeHidden();
+
+  // The cancel is the only tx the browser wallet signs — the stake and the
+  // request were seeded with a separate client.
+  expect(walletTxHashes).toHaveLength(1);
+
+  // useCancelWithdraw optimistically drops the ticket from the cache; mirror the
+  // cancellation onto the mocked endpoint too.
+  exitTicketsBody = [
+    { ...exitTicketsBody[0], cancelTxHash: walletTxHashes[0] },
+  ];
+
+  // The vault dropped the request, so the table falls back to its empty state.
+  const activeRequestIds = await getActiveRequestIds(publicClient, {
+    account: TEST_ADDRESS,
+    address: sVusdAddress,
+  });
+  expect(activeRequestIds).not.toContain(requestId);
+
+  await expect(exitTickets.getByText("Request a withdrawal")).toBeVisible();
+
+  // Cancelling re-mints convertToShares(assets) as of the cancel block rather
+  // than handing back the exact share count burned at request time: the vault
+  // accrued yield in between, so the same assets now buy marginally fewer
+  // shares. Read what the cancel tx actually minted instead of expecting the
+  // pre-request balance back to the wei.
+  const cancelReceipt = await getTransactionReceipt(publicClient, {
+    hash: walletTxHashes[0],
+  });
+  const sharesReturned = parseEventLogs({
+    abi: erc20Abi,
+    args: { to: TEST_ADDRESS },
+    eventName: "Transfer",
+    logs: cancelReceipt.logs,
+  })
+    .filter((log) => isAddressEqual(log.address, sVusdAddress))
+    .reduce((sum, log) => sum + log.args.value, 0n);
+
+  // The yield drift is dust, and never in the staker's favour.
+  expect(sharesReturned).toBeLessThanOrEqual(shares);
+  expect(shares - sharesReturned).toBeLessThan(shares / 1_000_000n);
+
+  // The locked shares are back in the wallet, and no VUSD was paid out — the
+  // funds went back to being staked.
+  await waitForBalance({ client: publicClient, token: sVusdAddress }).toBe(
+    svusdBefore - shares + sharesReturned,
+  );
+  expect(
+    await balanceOf(publicClient, {
+      account: TEST_ADDRESS,
+      address: vusd.address,
+    }),
+  ).toBe(vusdBefore);
 });
