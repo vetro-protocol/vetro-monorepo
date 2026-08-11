@@ -205,6 +205,9 @@ importers:
       '@types/node':
         specifier: 24.1.0
         version: 24.1.0
+      '@vetro-protocol/core':
+        specifier: workspace:*
+        version: link:../core
       '@vitest/coverage-v8':
         specifier: 4.1.9
         version: 4.1.9(vitest@4.1.9)

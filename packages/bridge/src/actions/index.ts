@@ -1,7 +1,7 @@
 // Public actions
-export * from "./public/approvalRequired.js";
-export * from "./public/quoteSend.js";
-export * from "./public/token.js";
+export * from "./public/approvalRequired.ts";
+export * from "./public/quoteSend.ts";
+export * from "./public/token.ts";
 
 // Wallet actions
-export * from "./wallet/send.js";
+export * from "./wallet/send.ts";

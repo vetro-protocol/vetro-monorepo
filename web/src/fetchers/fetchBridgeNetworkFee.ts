@@ -1,8 +1,7 @@
 import { estimateFeesQueryOptions } from "@hemilabs/react-hooks/useEstimateFees";
 import { tokenBalanceQueryOptions } from "@hemilabs/react-hooks/useTokenBalance";
 import type { QueryClient } from "@tanstack/react-query";
-import { oftAbi } from "@vetro-protocol/bridge";
-import { encodeSend } from "@vetro-protocol/bridge/actions";
+import { approvalRequired, encodeSend } from "@vetro-protocol/bridge/actions";
 import { previewBridgeQueryOptions } from "hooks/usePreviewBridge";
 import { tokenPricesOptions } from "hooks/useTokenPrices";
 import { config } from "providers/web3Provider";
@@ -10,7 +9,7 @@ import type { BridgeableToken } from "types";
 import { createErc20AllowanceStateOverride } from "utils/erc20StateOverride";
 import { weiToUsd } from "utils/fees";
 import { type Address, type Chain, type Client } from "viem";
-import { estimateGas, readContract } from "viem/actions";
+import { estimateGas } from "viem/actions";
 
 import { estimateApprovalGasUnits } from "./estimateApprovalGasUnits";
 
@@ -59,7 +58,7 @@ export const fetchBridgeNetworkFee = async function ({
     throw new Error("Insufficient token balance");
   }
 
-  const [fee, approvalRequired] = await Promise.all([
+  const [fee, needsApproval] = await Promise.all([
     queryClient.ensureQueryData(
       previewBridgeQueryOptions({
         amount,
@@ -70,14 +69,10 @@ export const fetchBridgeNetworkFee = async function ({
         sourceChainId,
       }),
     ),
-    readContract(client, {
-      abi: oftAbi,
-      address: oftAddress,
-      functionName: "approvalRequired",
-    }),
+    approvalRequired(client, { oftAddress }),
   ]);
 
-  const approvalGasPromise = approvalRequired
+  const approvalGasPromise = needsApproval
     ? estimateApprovalGasUnits({
         amount,
         approveAmount,
@@ -98,7 +93,7 @@ export const fetchBridgeNetworkFee = async function ({
       recipient,
       refundAddress: owner,
     }),
-    stateOverride: approvalRequired
+    stateOverride: needsApproval
       ? createErc20AllowanceStateOverride({
           owner,
           spender: oftAddress,
