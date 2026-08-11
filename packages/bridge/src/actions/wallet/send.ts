@@ -1,3 +1,4 @@
+import { isAddressValid } from "@vetro-protocol/core";
 import { EventEmitter } from "events";
 import { toPromiseEvent } from "to-promise-event";
 import {
@@ -14,13 +15,12 @@ import {
 } from "viem/actions";
 import { allowance, approve } from "viem-erc20/actions";
 
-import { oftAbi } from "../../abi/oftAbi.js";
-import { getLayerZeroEid, layerZeroEids } from "../../layerZeroEids.js";
-import type { MessagingFee, SendEvents, SendParams } from "../../types.js";
-import { addressToBytes32 } from "../../utils/addressToBytes32.js";
-import { isAddressValid } from "../../utils/isAddressValid.js";
-import { approvalRequired } from "../public/approvalRequired.js";
-import { token } from "../public/token.js";
+import { oftAbi } from "../../abi/oftAbi.ts";
+import { getLayerZeroEid, layerZeroEids } from "../../layerZeroEids.ts";
+import type { MessagingFee, SendEvents, SendParams } from "../../types.ts";
+import { addressToBytes32 } from "../../utils/addressToBytes32.ts";
+import { approvalRequired } from "../public/approvalRequired.ts";
+import { token } from "../public/token.ts";
 
 const canSend = function ({
   amount,

@@ -3,7 +3,7 @@ import { readContract } from "viem/actions";
 import { hemi } from "viem/chains";
 import { describe, expect, it, vi } from "vitest";
 
-import { quoteSend } from "../../src/actions/public/quoteSend";
+import { quoteSend } from "../../src/actions/public/quoteSend.ts";
 
 vi.mock("viem/actions", () => ({
   readContract: vi.fn(),

@@ -1,8 +1,8 @@
+import { isAddressValid } from "@vetro-protocol/core";
 import { type Address, type Client } from "viem";
 import { readContract } from "viem/actions";
 
-import { oftAbi } from "../../abi/oftAbi.js";
-import { isAddressValid } from "../../utils/isAddressValid.js";
+import { oftAbi } from "../../abi/oftAbi.ts";
 
 export type TokenParams = {
   oftAddress: Address;
