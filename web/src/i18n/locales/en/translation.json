@@ -381,7 +381,10 @@
         "from-pools_other": "From {{count}} pools",
         "staked-balance": "Your staked balance"
       },
-      "title": "Stake assets to earn variable yield."
+      "title": "Stake assets to earn variable yield.",
+      "variable-yield": {
+        "title": "Variable yield pools"
+      }
     },
     "faq": {
       "title": "Hello Faq"
