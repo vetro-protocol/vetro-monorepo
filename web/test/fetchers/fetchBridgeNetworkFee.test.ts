@@ -1,10 +1,11 @@
 import { estimateFeesQueryOptions } from "@hemilabs/react-hooks/useEstimateFees";
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
+import { approvalRequired } from "@vetro-protocol/bridge/actions";
 import { previewBridgeQueryKey } from "hooks/usePreviewBridge";
 import { tokenPricesOptions } from "hooks/useTokenPrices";
 import type { BridgeableToken } from "types";
 import { type Address, type Client, parseEther, zeroAddress } from "viem";
-import { estimateGas, readContract } from "viem/actions";
+import { estimateGas } from "viem/actions";
 import { bsc, hemi, mainnet } from "viem/chains";
 import { describe, expect, it, vi } from "vitest";
 
@@ -17,12 +18,12 @@ vi.mock("../../src/fetchers/estimateApprovalGasUnits", () => ({
 }));
 
 vi.mock("@vetro-protocol/bridge/actions", () => ({
+  approvalRequired: vi.fn(),
   encodeSend: vi.fn().mockReturnValue("0x"),
 }));
 
 vi.mock("viem/actions", () => ({
   estimateGas: vi.fn(),
-  readContract: vi.fn(),
 }));
 
 vi.mock("utils/erc20StateOverride", () => ({
@@ -109,7 +110,7 @@ describe("fetchBridgeNetworkFee", function () {
     const networkFeeWei = parseEther("0.01");
     const queryClient = createPrepopulatedQueryClient();
 
-    vi.mocked(readContract).mockResolvedValue(true);
+    vi.mocked(approvalRequired).mockResolvedValue(true);
     vi.mocked(estimateApprovalGasUnits).mockResolvedValue(approvalGas);
     vi.mocked(estimateGas).mockResolvedValue(sendGas);
     mockNetworkFeeAndPrices({
@@ -143,7 +144,7 @@ describe("fetchBridgeNetworkFee", function () {
     const networkFeeWei = parseEther("0.01");
     const queryClient = createPrepopulatedQueryClient();
 
-    vi.mocked(readContract).mockResolvedValue(false);
+    vi.mocked(approvalRequired).mockResolvedValue(false);
     vi.mocked(estimateGas).mockResolvedValue(sendGas);
     mockNetworkFeeAndPrices({
       networkFeeWei,
@@ -174,7 +175,7 @@ describe("fetchBridgeNetworkFee", function () {
     const nativeFee = 12_345n;
     const queryClient = createPrepopulatedQueryClient({ nativeFee });
 
-    vi.mocked(readContract).mockResolvedValue(false);
+    vi.mocked(approvalRequired).mockResolvedValue(false);
     vi.mocked(estimateGas).mockResolvedValue(180_000n);
     mockNetworkFeeAndPrices({
       networkFeeWei: 0n,
@@ -210,7 +211,7 @@ describe("fetchBridgeNetworkFee", function () {
       chainId: bsc.id,
     } as BridgeableToken;
 
-    vi.mocked(readContract).mockResolvedValue(false);
+    vi.mocked(approvalRequired).mockResolvedValue(false);
     vi.mocked(estimateGas).mockResolvedValue(sendGas);
     mockNetworkFeeAndPrices({
       networkFeeWei,
@@ -253,7 +254,7 @@ describe("fetchBridgeNetworkFee", function () {
       }),
     ).rejects.toThrow("Insufficient token balance");
 
-    expect(readContract).not.toHaveBeenCalled();
+    expect(approvalRequired).not.toHaveBeenCalled();
     expect(estimateGas).not.toHaveBeenCalled();
     expect(estimateApprovalGasUnits).not.toHaveBeenCalled();
   });
