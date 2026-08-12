@@ -9,7 +9,7 @@ import { readContract } from "viem/actions";
 import { sepolia } from "viem/chains";
 import { describe, expect, it, vi } from "vitest";
 
-import { getMarketParams } from "../../src/actions/public/getMarketParams";
+import { getMarketParams } from "../../src/actions/public/getMarketParams.ts";
 
 vi.mock("viem/actions", () => ({
   readContract: vi.fn(),

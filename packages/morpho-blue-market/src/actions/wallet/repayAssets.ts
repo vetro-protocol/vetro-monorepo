@@ -1,3 +1,4 @@
+import { isAddressValid } from "@vetro-protocol/core";
 import { EventEmitter } from "events";
 import { toPromiseEvent } from "to-promise-event";
 import {
@@ -11,10 +12,9 @@ import {
 import { waitForTransactionReceipt, writeContract } from "viem/actions";
 import { allowance, approve } from "viem-erc20/actions";
 
-import { morphoBlueAbi } from "../../abi/morphoBlueAbi.js";
-import type { MarketParams, RepayAssetsEvents } from "../../types.js";
-import { isAddressValid } from "../../utils/isAddressValid.js";
-import { getMarketParams } from "../public/getMarketParams.js";
+import { morphoBlueAbi } from "../../abi/morphoBlueAbi.ts";
+import type { MarketParams, RepayAssetsEvents } from "../../types.ts";
+import { getMarketParams } from "../public/getMarketParams.ts";
 
 export type RepayAssetsParams = {
   address: Address;

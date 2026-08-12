@@ -1,8 +1,28 @@
 {
   "name": "@vetro-protocol/morpho-blue-market",
   "version": "1.0.0",
+  "description": "Morpho Blue market actions for viem.",
+  "license": "MIT",
+  "files": [
+    "LICENSE",
+    "README.md",
+    "_esm",
+    "_types",
+    "src"
+  ],
+  "repository": {
+    "directory": "packages/morpho-blue-market",
+    "type": "git",
+    "url": "git+https://github.com/vetro-protocol/vetro-monorepo.git"
+  },
   "scripts": {
     "build": "tsc --noEmit",
+    "postbuild": "pnpm bundle && pnpm build:types",
+    "build:types": "tsc -p tsconfig.build.json --declarationDir ./_types --emitDeclarationOnly --declaration --declarationMap",
+    "bundle": "node ../../scripts/bundle-package.js",
+    "clean": "rm -rf ./_esm ./_types",
+    "prepack": "cp ../../LICENSE LICENSE",
+    "prepublishOnly": "pnpm clean && pnpm build",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage"
   },
@@ -12,6 +32,8 @@
   },
   "devDependencies": {
     "@tsconfig/node24": "24.0.4",
+    "@types/node": "24.1.0",
+    "@vetro-protocol/core": "workspace:*",
     "@vitest/coverage-v8": "4.1.9",
     "typescript": "5.9.3",
     "viem": "2.44.4",
@@ -20,7 +42,27 @@
   "peerDependencies": {
     "viem": "^2.x"
   },
+  "engines": {
+    "node": ">=20"
+  },
   "private": true,
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "default": "./_esm/index.js",
+        "types": "./_types/index.d.ts"
+      },
+      "./actions": {
+        "default": "./_esm/actions/index.js",
+        "types": "./_types/actions/index.d.ts"
+      },
+      "./package.json": "./package.json"
+    },
+    "main": "./_esm/index.js",
+    "provenance": true,
+    "types": "./_types/index.d.ts"
+  },
   "type": "module",
   "exports": {
     ".": {
@@ -30,6 +72,8 @@
     "./actions": {
       "types": "./src/actions/index.ts",
       "default": "./src/actions/index.ts"
-    }
-  }
+    },
+    "./package.json": "./package.json"
+  },
+  "sideEffects": false
 }
