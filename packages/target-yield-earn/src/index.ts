@@ -6,15 +6,15 @@ import {
   getMaxRequestDeposit,
   getMaxRequestRedeem,
   pendingDepositRequest,
-} from "./actions/public/index.js";
+} from "./actions/public/index.ts";
 
-export { targetYieldEarnVaultAbi } from "./abi/targetYieldEarnVaultAbi.js";
+export { targetYieldEarnVaultAbi } from "./abi/targetYieldEarnVaultAbi.ts";
 
 export {
   maxExitWindowSeconds,
   minEpochDurationSeconds,
   minExitWindowSeconds,
-} from "./constants.js";
+} from "./constants.ts";
 
 // Export factory functions for .extend() pattern
 export const targetYieldEarnPublicActions = () => (client: Client) => ({
