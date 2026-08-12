@@ -24,7 +24,7 @@ export function PoolInfoItem({ children, isLoading, label, value }: Props) {
   }
 
   return (
-    <div className="relative flex flex-col">
+    <div className="relative flex flex-col sm:shrink-0 sm:whitespace-nowrap">
       <span className="text-b-regular text-gray-500">{label}</span>
       {renderValue()}
     </div>
