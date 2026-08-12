@@ -1,10 +1,10 @@
 import { Badge } from "components/base/badge";
 import { RenderCryptoValue } from "components/base/cryptoValue";
 import { RenderFiatValue } from "components/base/fiatValue";
+import { InfoCard } from "components/base/infoCard";
 import { StripedDivider } from "components/stripedDivider";
 import { useMarketCollateral } from "hooks/borrow/useMarketCollateral";
 import { type MarketData } from "hooks/borrow/useMarketData";
-import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { formatPercentage } from "utils/format";
 import { formatUnits } from "viem";
@@ -62,88 +62,78 @@ const TrendIcon = () => (
   </svg>
 );
 
-const InfoCard = ({
-  badge,
-  children,
-  icon,
-  label,
-}: {
-  badge?: ReactNode;
-  children: ReactNode;
-  icon: ReactNode;
-  label: string;
-}) => (
-  <div className="border-b border-gray-200 px-3 max-md:first:border-t">
-    <div className="relative flex -translate-y-px flex-col items-start gap-y-3 border-t border-blue-500 py-6 *:flex">
-      <div className="flex w-full items-center justify-between">
-        <span className="text-b-medium text-gray-900">{label}</span>
-        {icon}
-      </div>
-      <span className="text-h3">{children}</span>
-      {badge ? <Badge>{badge}</Badge> : null}
-    </div>
-  </div>
-);
-
 export function MarketInfoCards({ market }: { market: MarketData }) {
   const { t } = useTranslation();
-  const { data: collateralAssets, status: collateralStatus } =
-    useMarketCollateral(market.marketId);
+  const collateral = useMarketCollateral(market.marketId);
 
   return (
     <div className="flex flex-col">
       <div className="grid border-b border-gray-200 xl:grid-cols-[1fr_3.5rem_1fr]">
         <div className="xl:pl-14">
           <InfoCard
-            badge={
-              <RenderCryptoValue
-                showSymbol
-                status={collateralStatus}
-                token={market.collateralToken}
-                value={collateralAssets}
-              />
-            }
+            {...collateral}
             icon={<SparkleIcon />}
             label={t("pages.borrow.pool-size")}
-          >
-            <span className="mr-1">$</span>
-            <RenderFiatValue
-              queryStatus={collateralStatus}
-              token={market.collateralToken}
-              value={collateralAssets}
-            />
-          </InfoCard>
+            render={(collateralAssets) => (
+              <>
+                <span className="mr-1">$</span>
+                <RenderFiatValue
+                  token={market.collateralToken}
+                  value={collateralAssets}
+                />
+              </>
+            )}
+            subtitle={
+              <Badge>
+                <RenderCryptoValue
+                  showSymbol
+                  status={collateral.status}
+                  token={market.collateralToken}
+                  value={collateral.data}
+                />
+              </Badge>
+            }
+          />
         </div>
         <div className="hidden size-full border-b border-gray-200 xl:block" />
         <div className="xl:pr-14">
           <InfoCard
-            badge={
-              <RenderCryptoValue
-                showSymbol
-                token={market.loanToken}
-                value={market.liquidity}
-              />
-            }
+            data={market.liquidity}
             icon={<SparkleIcon />}
             label={t("pages.borrow.available-to-borrow")}
-          >
-            <span className="mr-1">$</span>
-            <RenderFiatValue
-              token={market.loanToken}
-              value={market.liquidity}
-            />
-          </InfoCard>
+            render={(liquidity) => (
+              <>
+                <span className="mr-1">$</span>
+                <RenderFiatValue token={market.loanToken} value={liquidity} />
+              </>
+            )}
+            subtitle={
+              <Badge>
+                <RenderCryptoValue
+                  showSymbol
+                  token={market.loanToken}
+                  value={market.liquidity}
+                />
+              </Badge>
+            }
+          />
         </div>
         <div className="xl:pl-14 xl:*:border-0">
-          <InfoCard icon={<BoltIcon />} label={t("pages.borrow.ltv")}>
-            {formatUnits(market.lltv * 100n, 18)}%
-          </InfoCard>
+          <InfoCard
+            data={market.lltv}
+            icon={<BoltIcon />}
+            label={t("pages.borrow.ltv")}
+            render={(lltv) => `${formatUnits(lltv * 100n, 18)}%`}
+          />
         </div>
         <div className="-mb-px hidden size-full xl:block" />
         <div className="xl:pr-14 xl:*:border-0">
-          <InfoCard icon={<TrendIcon />} label={t("pages.borrow.borrow-apr")}>
-            {formatPercentage(market.borrowApy * 100)}
-          </InfoCard>
+          <InfoCard
+            data={market.borrowApy}
+            icon={<TrendIcon />}
+            label={t("pages.borrow.borrow-apr")}
+            render={(borrowApy) => formatPercentage(borrowApy * 100)}
+          />
         </div>
       </div>
       <div className="w-full border-b border-gray-200 max-lg:hidden">
