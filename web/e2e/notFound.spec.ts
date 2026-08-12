@@ -16,12 +16,14 @@ test("renders the 404 page on an unknown path", async function ({ page }) {
 test("renders the 404 page on an unknown path with no language prefix", async function ({
   page,
 }) {
-  await page.goto("/this-page-does-not-exist");
+  await page.goto("/this-page-does-not-exist?foo=bar#section");
 
   await expect(
     page.getByRole("heading", { name: notFoundTitle }),
   ).toBeVisible();
-  await expect(page).toHaveURL(/\/en\/this-page-does-not-exist$/);
+  await expect(page).toHaveURL(
+    /\/en\/this-page-does-not-exist\?foo=bar#section$/,
+  );
 });
 
 test("renders the 404 page on an unsupported language", async function ({
