@@ -18,8 +18,10 @@ export const initializeI18n = () =>
   });
 
 /**
- * Callers must redirect during render — the language routes include an index
- * route that navigates to Swap, and it wins if both redirects run from effects.
+ * The caller must return early on a truthy result. <Navigate> navigates
+ * from an effect, so rendering it alongside the language routes lets the
+ * index route's redirect to Swap win — the early return keeps that route
+ * from ever mounting.
  */
 export const useUnsupportedLanguageRedirect = function () {
   const { lang } = useParams<{ lang: string }>();
