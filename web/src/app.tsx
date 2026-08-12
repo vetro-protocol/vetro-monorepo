@@ -5,7 +5,7 @@ import { AppViewport } from "components/base/appViewport";
 import { ErrorBoundary } from "components/base/errorBoundary";
 import { GeoRestrictionRibbon } from "components/geoRestrictionRibbon";
 import { Header } from "components/header";
-import { I18nInitializer } from "i18n/config";
+import { I18nInitializer, useUnsupportedLanguageRedirect } from "i18n/config";
 import { NuqsAdapter } from "nuqs/adapters/react-router/v8";
 import { Analytics } from "pages/analytics";
 import { Borrow } from "pages/borrow";
@@ -50,6 +50,12 @@ const AppNotifications = lazy(() =>
  */
 function LanguageRoutes() {
   const { pathname } = useLocation();
+  const unsupportedLanguageRedirect = useUnsupportedLanguageRedirect();
+
+  if (unsupportedLanguageRedirect) {
+    return <Navigate replace to={unsupportedLanguageRedirect} />;
+  }
+
   return (
     <ErrorBoundary
       fallback={
