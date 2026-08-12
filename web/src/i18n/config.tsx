@@ -1,7 +1,7 @@
 import i18n from "i18next";
 import { useLayoutEffect } from "react";
 import { initReactI18next } from "react-i18next";
-import { useNavigate, useParams } from "react-router";
+import { useLocation, useParams } from "react-router";
 
 import { resources } from "./resources";
 
@@ -17,22 +17,33 @@ export const initializeI18n = () =>
     supportedLngs,
   });
 
+/**
+ * The caller must return early on a truthy result. <Navigate> navigates
+ * from an effect, so rendering it alongside the language routes lets the
+ * index route's redirect to Swap win — the early return keeps that route
+ * from ever mounting.
+ */
+export const useUnsupportedLanguageRedirect = function () {
+  const { lang } = useParams<{ lang: string }>();
+  const { hash, pathname, search } = useLocation();
+
+  if (!lang || supportedLngs.includes(lang)) {
+    return undefined;
+  }
+  return `/${fallbackLng}${pathname}${search}${hash}`;
+};
+
 // Component to sync the route language parameter with i18n
 export const I18nInitializer = function () {
   const { lang } = useParams<{ lang: string }>();
-  const navigate = useNavigate();
 
   useLayoutEffect(
     function () {
-      if (lang && !supportedLngs.includes(lang)) {
-        navigate(`/${fallbackLng}`, { replace: true });
-        return;
-      }
       if (lang && i18n.language !== lang) {
         i18n.changeLanguage(lang);
       }
     },
-    [lang, navigate],
+    [lang],
   );
 
   return null;

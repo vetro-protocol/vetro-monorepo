@@ -73,9 +73,7 @@ test("deposit VUSD into the Earn pool", async function ({
     page.getByRole("button", { name: /^0x[a-f0-9]{4}/i }),
   ).toBeVisible({ timeout: 30_000 });
 
-  // Navigate to Earn from the navbar. Routes are locale-prefixed (/en/earn), so
-  // a bare page.goto("/earn") is parsed as lang="earn" and falls back to the
-  // default page — clicking the nav link is both correct and what a user does.
+  // Navigate to Earn from the navbar, like a user would.
   await page.getByRole("link", { name: "Earn" }).click();
   await expect(page).toHaveURL(/\/en\/earn/);
 
