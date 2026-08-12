@@ -80,7 +80,7 @@ export function PoolInfoButtons({ stakingVaultAddress }: Props) {
 
   return (
     <>
-      <div className="flex w-full gap-3 *:flex-1 md:w-auto md:*:flex-initial">
+      <div className="flex w-full gap-3 *:flex-1 md:w-auto md:shrink-0 md:*:flex-initial">
         <Button onClick={handleOpenDeposit} size="xSmall" variant="primary">
           {t("pages.earn.pool-info.deposit")}
         </Button>
