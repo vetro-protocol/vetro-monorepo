@@ -26,6 +26,30 @@ test("renders the 404 page on an unknown path with no language prefix", async fu
   );
 });
 
+test("renders the requested page when the path has no language prefix", async function ({
+  page,
+}) {
+  await page.goto("/contact");
+
+  await expect(page).toHaveURL(/\/en\/contact$/);
+  await expect(
+    page.getByRole("heading", {
+      name: "Tell us what happened so we can help",
+    }),
+  ).toBeVisible();
+});
+
+test("preserves a deep link when the path has no language prefix", async function ({
+  page,
+}) {
+  const marketId =
+    "0x7d1306d23f9f1e419697b8275001db9ea74b3c75190a7db8f5d81fed2fb94561";
+
+  await page.goto(`/borrow/${marketId}`);
+
+  await expect(page).toHaveURL(new RegExp(`/en/borrow/${marketId}$`));
+});
+
 test("renders the 404 page on an unsupported language", async function ({
   page,
 }) {
