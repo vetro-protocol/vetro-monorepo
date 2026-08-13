@@ -330,7 +330,12 @@
         "withdrawn": "Retirado"
       },
       "fixed-term": {
-        "title": "Fondos con objetivo de rendimiento fijo"
+        "open-to-deposits": "Abierto a depósitos",
+        "open-to-exit": "Abierto a salidas",
+        "target-fixed-apy": "TEA fija objetivo",
+        "term-state": "Estado del plazo",
+        "title": "Fondos con objetivo de rendimiento fijo",
+        "total-deposits": "Depósitos totales"
       },
       "pool-info": {
         "apy": "TEA",
