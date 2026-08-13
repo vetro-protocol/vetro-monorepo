@@ -1,11 +1,20 @@
 import { useTranslation } from "react-i18next";
+import type { Address } from "viem";
 
 import { useTargetApy } from "../../hooks/targetYieldPool/useTargetApy";
 import { PoolInfoItem } from "../poolInfoBar/poolInfoItem";
 
-export function PoolTargetApy() {
+type Props = {
+  stakingVaultAddress: Address;
+};
+
+export function PoolTargetApy({ stakingVaultAddress }: Props) {
   const { t } = useTranslation();
-  const { data: targetApy, isError, isPending } = useTargetApy();
+  const {
+    data: targetApy,
+    isError,
+    isPending,
+  } = useTargetApy(stakingVaultAddress);
 
   return (
     <PoolInfoItem

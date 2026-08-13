@@ -1,18 +1,18 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { fetchDeposits } from "fetchers/earn/targetYieldPool/fetchDeposits";
 import { useEthereumClient } from "hooks/useEthereumClient";
-import type { Client } from "viem";
-
-import { targetYieldVaultReadAddress } from "../../targetYieldVaults";
+import type { Address, Client } from "viem";
 
 import { useEpochId } from "./useEpochId";
 
 const depositsOptions = ({
   client,
   epochId,
+  stakingVaultAddress,
 }: {
   client: Client | undefined;
   epochId: bigint | undefined;
+  stakingVaultAddress: Address;
 }) =>
   queryOptions({
     enabled: !!client && epochId !== undefined,
@@ -21,19 +21,19 @@ const depositsOptions = ({
         client: client!,
         epochId: epochId!,
         queryClient,
-        stakingVaultAddress: targetYieldVaultReadAddress,
+        stakingVaultAddress,
       }),
     queryKey: [
       "target-yield-pool-deposits",
       client?.chain?.id,
-      targetYieldVaultReadAddress,
+      stakingVaultAddress,
       epochId?.toString(),
     ],
   });
 
-export function useDeposits() {
+export function useDeposits(stakingVaultAddress: Address) {
   const client = useEthereumClient();
-  const { data: epochId } = useEpochId();
+  const { data: epochId } = useEpochId(stakingVaultAddress);
 
-  return useQuery(depositsOptions({ client, epochId }));
+  return useQuery(depositsOptions({ client, epochId, stakingVaultAddress }));
 }

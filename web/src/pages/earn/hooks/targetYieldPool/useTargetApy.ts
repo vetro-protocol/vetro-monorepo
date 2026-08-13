@@ -1,25 +1,29 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { fetchTargetApy } from "fetchers/earn/targetYieldPool/fetchTargetApy";
-import { formatUnits } from "viem";
-
-import { targetYieldVaultReadAddress } from "../../targetYieldVaults";
+import { type Address, formatUnits } from "viem";
 
 import { useEpochId } from "./useEpochId";
 
-const targetApyOptions = (epochId: bigint | undefined) =>
+const targetApyOptions = ({
+  epochId,
+  stakingVaultAddress,
+}: {
+  epochId: bigint | undefined;
+  stakingVaultAddress: Address;
+}) =>
   queryOptions({
     enabled: epochId !== undefined,
     queryFn: () => fetchTargetApy(epochId!),
     queryKey: [
       "target-yield-pool-target-apy",
-      targetYieldVaultReadAddress,
+      stakingVaultAddress,
       epochId?.toString(),
     ],
     select: (rate) => Number(formatUnits(rate, 16)),
   });
 
-export function useTargetApy() {
-  const { data: epochId } = useEpochId();
+export function useTargetApy(stakingVaultAddress: Address) {
+  const { data: epochId } = useEpochId(stakingVaultAddress);
 
-  return useQuery(targetApyOptions(epochId));
+  return useQuery(targetApyOptions({ epochId, stakingVaultAddress }));
 }

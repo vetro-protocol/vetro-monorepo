@@ -11,8 +11,11 @@ export function FixedTermEarn() {
   return (
     <>
       <SectionHeader title={t("pages.earn.fixed-term.title")} />
-      {targetYieldVaultAddresses.map((vaultAddress) => (
-        <PoolInfoBar key={vaultAddress} vaultAddress={vaultAddress} />
+      {targetYieldVaultAddresses.map((stakingVaultAddress) => (
+        <PoolInfoBar
+          key={stakingVaultAddress}
+          stakingVaultAddress={stakingVaultAddress}
+        />
       ))}
     </>
   );

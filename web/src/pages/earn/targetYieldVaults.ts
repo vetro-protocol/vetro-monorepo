@@ -1,12 +1,9 @@
 import { sVusdAddress } from "@vetro-protocol/earn/addresses";
-import { type Address, zeroAddress } from "viem";
+import type { Address } from "viem";
 
-// TODO: the target-yield vaults are not deployed yet. Replace this with the
-// address list exported by `@vetro-protocol/target-yield-earn`.
-export const targetYieldVaultAddresses: Address[] = [zeroAddress];
-
-// TODO: on-chain reads are pointed at the VUSD staking vault until a
-// target-yield vault exists. `VUSDx` initializes its ERC-4626 asset with VUSD
-// and mints ERC-20 shares, so `asset()` and the share balance behave the same
-// and swapping this address is the only change needed.
-export const targetYieldVaultReadAddress = sVusdAddress;
+// TODO: the target-yield vaults are not deployed yet, so the list points at the
+// VUSD staking vault. `VUSDx` initializes its ERC-4626 asset with VUSD and
+// mints ERC-20 shares, so `asset()`, the share balance and the pool contract
+// link all read sensibly from it meanwhile. Replace this with the address list
+// exported by `@vetro-protocol/target-yield-earn` once they are deployed.
+export const targetYieldVaultAddresses: Address[] = [sVusdAddress];
