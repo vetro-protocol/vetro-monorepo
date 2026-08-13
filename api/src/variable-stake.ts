@@ -1,3 +1,4 @@
+import { createMainnetClient } from "@vetro-protocol/core";
 import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import {
   getPeriodFinish,
@@ -11,7 +12,6 @@ import { convertToAssets, totalAssets } from "viem-erc4626/actions";
 
 import { aprWadToApy } from "./apr-wad-to-apy.ts";
 import * as graphql from "./graphql.ts";
-import { createMainnetClient } from "./mainnet-client.ts";
 import * as merkl from "./merkl.ts";
 import { findStakingVaultForPeggedToken } from "./staking-vault.ts";
 

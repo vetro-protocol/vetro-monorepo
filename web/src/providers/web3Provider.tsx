@@ -15,8 +15,9 @@ import {
   walletConnectWallet,
 } from "@rainbow-me/rainbowkit/wallets";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createRpcTransport } from "@vetro-protocol/core";
 import { Trans } from "react-i18next";
-import { http, WagmiProvider } from "wagmi";
+import { WagmiProvider } from "wagmi";
 
 import { ExternalLink } from "../components/base/externalLink";
 import { allChains } from "../networks";
@@ -27,7 +28,9 @@ export const config = getDefaultConfig({
   appUrl: "https://app.vetro.org",
   chains: allChains,
   projectId: import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID,
-  transports: Object.fromEntries(allChains.map((chain) => [chain.id, http()])),
+  transports: Object.fromEntries(
+    allChains.map((chain) => [chain.id, createRpcTransport(chain)]),
+  ),
   wallets: [
     {
       groupName: "Popular",

@@ -1,19 +1,15 @@
 import { type Chain, defineChain } from "viem";
 
-const isValidUrl = function (url: string) {
-  try {
-    new URL(url);
-    return true;
-  } catch {
-    return false;
-  }
-};
-
+/**
+ * Override a chain's default RPC URLs from an env var holding a single URL, or
+ * several joined by "+". Invalid entries are dropped; if none are left, the
+ * chain is returned untouched.
+ */
 export const updateRpcUrls = function (chain: Chain, rpcUrlEnv?: string) {
   if (typeof rpcUrlEnv !== "string") {
     return chain;
   }
-  const urls = rpcUrlEnv.split("+").filter(isValidUrl);
+  const urls = rpcUrlEnv.split("+").filter((url) => URL.canParse(url));
   if (urls.length > 0) {
     return defineChain({
       ...chain,
