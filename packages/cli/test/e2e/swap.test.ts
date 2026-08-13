@@ -15,7 +15,7 @@ import {
   slippage,
   usdc,
   vusd,
-} from "./helpers.js";
+} from "./helpers.ts";
 
 // Spans approve and mint, so it lives here rather than in either command's file.
 describe("swap in (USDC → VUSD)", function () {

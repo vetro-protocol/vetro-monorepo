@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import { type GlobalOptions } from "./lib/client.js";
-import { printError } from "./lib/output.js";
-import { createProgram } from "./program.js";
+import { type GlobalOptions } from "./lib/client.ts";
+import { printError } from "./lib/output.ts";
+import { createProgram } from "./program.ts";
 
 const program = createProgram();
 

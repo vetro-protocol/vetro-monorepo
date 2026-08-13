@@ -2,10 +2,10 @@ import { type Command } from "commander";
 import { type Address, formatUnits } from "viem";
 import { allowance } from "viem-erc20/actions";
 
-import { parseAddress } from "../../../lib/args.js";
-import { type GlobalOptions, createVetroClient } from "../../../lib/client.js";
-import { printResult } from "../../../lib/output.js";
-import { resolveSwapToken } from "../../../lib/tokens.js";
+import { parseAddress } from "../../../lib/args.ts";
+import { type GlobalOptions, createVetroClient } from "../../../lib/client.ts";
+import { printResult } from "../../../lib/output.ts";
+import { resolveSwapToken } from "../../../lib/tokens.ts";
 
 export function register(swap: Command) {
   swap

@@ -2,7 +2,7 @@ import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { type Address, isAddress } from "viem";
 import { afterEach, describe, expect, inject, it } from "vitest";
 
-import { runCli, runCliRaw } from "./helpers.js";
+import { runCli, runCliRaw } from "./helpers.ts";
 
 const [gateway] = gatewayAddresses;
 

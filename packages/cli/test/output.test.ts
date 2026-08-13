@@ -4,7 +4,7 @@ import {
   printError,
   printResult,
   printTransactionRequest,
-} from "../src/lib/output.js";
+} from "../src/lib/output.ts";
 
 const captureStdout = () =>
   vi.spyOn(process.stdout, "write").mockImplementation(() => true);

@@ -6,7 +6,7 @@ import {
   parseGateway,
   parseRpcUrl,
   parseSlippage,
-} from "../src/lib/args.js";
+} from "../src/lib/args.ts";
 
 describe("parseAddress", function () {
   it("returns the checksummed address for valid lowercase input", function () {

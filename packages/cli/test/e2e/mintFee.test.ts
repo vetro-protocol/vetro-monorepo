@@ -1,6 +1,6 @@
 import { describe, expect, inject, it } from "vitest";
 
-import { runCli, runCliRaw, usdc, vusd } from "./helpers.js";
+import { runCli, runCliRaw, usdc, vusd } from "./helpers.ts";
 
 describe("swap mint-fee", function () {
   const rpcUrl = inject("anvilUrl");
