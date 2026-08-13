@@ -50,6 +50,15 @@ describe("updateRpcUrls", function () {
     ]);
   });
 
+  it("should drop URLs that are not http(s)", function () {
+    const result = updateRpcUrls(
+      mainnet,
+      "wss://eth.drpc.org+ftp://eth.drpc.org+https://1rpc.io/eth",
+    );
+
+    expect(result.rpcUrls.default.http).toEqual(["https://1rpc.io/eth"]);
+  });
+
   it("should handle single valid URL", function () {
     const rpcUrlEnv = "https://eth.drpc.org";
     const result = updateRpcUrls(mainnet, rpcUrlEnv);
