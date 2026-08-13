@@ -4,6 +4,10 @@
   "description": "Shared Vetro Protocol types, token metadata and utilities.",
   "scripts": {
     "build": "tsc --noEmit",
+    "postbuild": "pnpm bundle && pnpm build:types",
+    "build:types": "tsc -p tsconfig.build.json --declarationDir ./_types --emitDeclarationOnly --declaration --declarationMap",
+    "bundle": "node ../../scripts/bundle-package.js",
+    "clean": "rm -rf ./_esm ./_types",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage"
   },
