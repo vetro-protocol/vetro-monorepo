@@ -1,30 +1,30 @@
 import type { Address, Client, Hash, WalletClient } from "viem";
 
-import { getMarketParams } from "./actions/public/getMarketParams.js";
+import { getMarketParams } from "./actions/public/getMarketParams.ts";
 import {
   type BorrowAssetsParams,
   borrowAssets,
-} from "./actions/wallet/borrowAssets.js";
+} from "./actions/wallet/borrowAssets.ts";
 import {
   type RepayAssetsParams,
   repayAssets,
-} from "./actions/wallet/repayAssets.js";
+} from "./actions/wallet/repayAssets.ts";
 import {
   type SupplyCollateralParams,
   supplyCollateral,
-} from "./actions/wallet/supplyCollateral.js";
+} from "./actions/wallet/supplyCollateral.ts";
 import {
   type SupplyCollateralAndBorrowParams,
   supplyCollateralAndBorrow,
-} from "./actions/wallet/supplyCollateralAndBorrow.js";
+} from "./actions/wallet/supplyCollateralAndBorrow.ts";
 import {
   type WithdrawCollateralParams,
   withdrawCollateral,
-} from "./actions/wallet/withdrawCollateral.js";
+} from "./actions/wallet/withdrawCollateral.ts";
 
-export { morphoBlueAbi } from "./abi/morphoBlueAbi.js";
+export { morphoBlueAbi } from "./abi/morphoBlueAbi.ts";
 
-export { getMarketParams } from "./actions/public/getMarketParams.js";
+export { getMarketParams } from "./actions/public/getMarketParams.ts";
 
 export {
   type BorrowAssetsEvents,
@@ -33,7 +33,7 @@ export {
   type SupplyCollateralAndBorrowEvents,
   type SupplyCollateralEvents,
   type WithdrawCollateralEvents,
-} from "./types.js";
+} from "./types.ts";
 
 export const morphoBluePublicActions = () => (client: Client) => ({
   getMarketParams: (params: { address: Address; marketId: Hash }) =>

@@ -6,16 +6,16 @@ import type {
   BorrowAssetsEvents,
   SupplyCollateralAndBorrowEvents,
   SupplyCollateralEvents,
-} from "../../types.js";
+} from "../../types.ts";
 
 import {
   type BorrowAssetsParams,
   runBorrowAssetsCore,
-} from "./borrowAssets.js";
+} from "./borrowAssets.ts";
 import {
   type SupplyCollateralParams,
   runSupplyCollateralCore,
-} from "./supplyCollateral.js";
+} from "./supplyCollateral.ts";
 
 export type SupplyCollateralAndBorrowParams = {
   address: Address;

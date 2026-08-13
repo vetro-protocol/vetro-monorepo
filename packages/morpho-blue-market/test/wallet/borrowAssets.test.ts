@@ -14,7 +14,7 @@ import {
 import { sepolia } from "viem/chains";
 import { describe, expect, it, vi } from "vitest";
 
-import { borrowAssets } from "../../src/actions/wallet/borrowAssets";
+import { borrowAssets } from "../../src/actions/wallet/borrowAssets.ts";
 
 vi.mock("viem/actions", () => ({
   readContract: vi.fn(),

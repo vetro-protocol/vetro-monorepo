@@ -15,7 +15,7 @@ import { sepolia } from "viem/chains";
 import { allowance, approve } from "viem-erc20/actions";
 import { describe, expect, it, vi } from "vitest";
 
-import { supplyCollateral } from "../../src/actions/wallet/supplyCollateral";
+import { supplyCollateral } from "../../src/actions/wallet/supplyCollateral.ts";
 
 vi.mock("viem/actions", () => ({
   readContract: vi.fn(),
