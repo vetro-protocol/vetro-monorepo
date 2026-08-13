@@ -25,7 +25,7 @@ export function getExternalDependencies(packageJson) {
   const misplaced = declaredDependencies.filter(isPrivateWorkspacePackage);
   if (misplaced.length > 0) {
     throw new Error(
-      `${misplaced.join(", ")} is private and gets inlined, so it must be a devDependency -- declaring it as a runtime or peer dependency publishes a package npm cannot install.`,
+      `${misplaced.join(", ")}: private workspaces get inlined, so they must be devDependencies -- declaring them as runtime or peer dependencies publishes a package npm cannot install.`,
     );
   }
 
