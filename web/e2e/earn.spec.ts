@@ -769,11 +769,11 @@ test("withdraw all the ready exit tickets", async function ({
 }) {
   const publicClient = createEthereumClient();
 
-  const VETBTC_DEPOSIT_AMOUNT = parseUnits("2", vetBtc.decimals);
-  const VETBTC_TICKET_AMOUNT = parseUnits("1", vetBtc.decimals);
-  const FIRST_VUSD_TICKET_AMOUNT = parseUnits("2", vusd.decimals);
-  const SECOND_VUSD_TICKET_AMOUNT = parseUnits("1", vusd.decimals);
-  const COOLDOWN_VUSD_TICKET_AMOUNT = parseUnits("1", vusd.decimals);
+  const vetBtcDepositAmount = parseUnits("2", vetBtc.decimals);
+  const vetBtcTicketAmount = parseUnits("1", vetBtc.decimals);
+  const firstVusdTicketAmount = parseUnits("2", vusd.decimals);
+  const secondVusdTicketAmount = parseUnits("1", vusd.decimals);
+  const cooldownVusdTicketAmount = parseUnits("1", vusd.decimals);
 
   // Seed a staked position in both pools, with cooldown on and no
   // instant-withdraw whitelist so every request lands in the queue as a ticket.
@@ -783,7 +783,7 @@ test("withdraw all the ready exit tickets", async function ({
     vaultAddress: sVusdAddress,
   });
   await stake({
-    assets: VETBTC_DEPOSIT_AMOUNT,
+    assets: vetBtcDepositAmount,
     token: vetBtc.address,
     vaultAddress: sVetBtcAddress,
   });
@@ -808,20 +808,20 @@ test("withdraw all the ready exit tickets", async function ({
   // groups the ready tickets by vault, so this is one claim tx per pool — not
   // one per ticket. Requests are sequential to keep the nonces in order.
   const firstVusdRequest = await requestWithdraw({
-    assets: FIRST_VUSD_TICKET_AMOUNT,
+    assets: firstVusdTicketAmount,
     vaultAddress: sVusdAddress,
   });
   const secondVusdRequest = await requestWithdraw({
-    assets: SECOND_VUSD_TICKET_AMOUNT,
+    assets: secondVusdTicketAmount,
     vaultAddress: sVusdAddress,
   });
   const vetBtcRequest = await requestWithdraw({
-    assets: VETBTC_TICKET_AMOUNT,
+    assets: vetBtcTicketAmount,
     vaultAddress: sVetBtcAddress,
   });
   // A fourth ticket kept in cooldown below — "Withdraw all" must leave it alone.
   const cooldownRequest = await requestWithdraw({
-    assets: COOLDOWN_VUSD_TICKET_AMOUNT,
+    assets: cooldownVusdTicketAmount,
     vaultAddress: sVusdAddress,
   });
 
@@ -957,14 +957,12 @@ test("withdraw all the ready exit tickets", async function ({
     receipt: vusdClaimReceipt,
     token: vusd.address,
   });
-  expect(vusdReceived).toBe(
-    FIRST_VUSD_TICKET_AMOUNT + SECOND_VUSD_TICKET_AMOUNT,
-  );
+  expect(vusdReceived).toBe(firstVusdTicketAmount + secondVusdTicketAmount);
   const vetBtcReceived = sumTransfersTo({
     receipt: vetBtcClaimReceipt,
     token: vetBtc.address,
   });
-  expect(vetBtcReceived).toBe(VETBTC_TICKET_AMOUNT);
+  expect(vetBtcReceived).toBe(vetBtcTicketAmount);
 
   await waitForBalance({ client: publicClient, token: vusd.address }).toBe(
     vusdBefore + vusdReceived,
