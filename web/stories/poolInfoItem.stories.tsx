@@ -2,49 +2,49 @@ import type { Meta, StoryObj } from "@storybook/react";
 
 import { PoolInfoItem } from "../src/pages/earn/components/poolInfoBar/poolInfoItem";
 
-const meta: Meta<typeof PoolInfoItem> = {
+const meta: Meta<typeof PoolInfoItem<string>> = {
   component: PoolInfoItem,
   title: "Earn/PoolInfoItem",
 };
 
 export default meta;
-type Story = StoryObj<typeof PoolInfoItem>;
+type Story = StoryObj<typeof PoolInfoItem<string>>;
 
 export const Default: Story = {
   args: {
+    data: "0xdcfe...b5f9",
     label: "Pool contract",
-    value: "0xdcfe...b5f9",
   },
 };
 
-export const Loading: Story = {
+export const Pending: Story = {
   args: {
-    isLoading: true,
+    data: undefined,
+    isPending: true,
     label: "Pool deposits",
   },
 };
 
 export const WithValue: Story = {
   args: {
+    data: "$268.24M",
     label: "Pool deposits",
-    value: "$268.24M",
   },
 };
 
-export const WithChildren: Story = {
+export const WithRender: Story = {
   args: {
+    data: "0xdcfe...b5f9",
     label: "Pool contract",
-  },
-  render: (args) => (
-    <PoolInfoItem {...args}>
+    render: (address) => (
       <a
         className="text-xsm font-semibold text-orange-500 hover:underline"
         href="https://etherscan.io"
         rel="noopener noreferrer"
         target="_blank"
       >
-        0xdcfe...b5f9
+        {address}
       </a>
-    </PoolInfoItem>
-  ),
+    ),
+  },
 };
