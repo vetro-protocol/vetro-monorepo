@@ -1,0 +1,28 @@
+import { queryOptions, useQuery } from "@tanstack/react-query";
+import { fetchTerm } from "fetchers/earn/targetYieldPool/fetchTerm";
+import type { Address } from "viem";
+
+import { useEpochId } from "./useEpochId";
+
+const termOptions = ({
+  epochId,
+  stakingVaultAddress,
+}: {
+  epochId: bigint | undefined;
+  stakingVaultAddress: Address;
+}) =>
+  queryOptions({
+    enabled: epochId !== undefined,
+    queryFn: () => fetchTerm(epochId!),
+    queryKey: [
+      "target-yield-pool-term",
+      stakingVaultAddress,
+      epochId?.toString(),
+    ],
+  });
+
+export function useTerm(stakingVaultAddress: Address) {
+  const { data: epochId } = useEpochId(stakingVaultAddress);
+
+  return useQuery(termOptions({ epochId, stakingVaultAddress }));
+}

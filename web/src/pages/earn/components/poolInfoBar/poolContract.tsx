@@ -18,14 +18,18 @@ export function PoolContract({ address }: Props) {
 
   return (
     <div className="contents md:*:w-32">
-      <PoolInfoItem label={t("pages.earn.pool-info.pool-contract")}>
-        <ExternalLink
-          className="text-xsm font-semibold text-gray-600 transition-colors hover:text-gray-900"
-          href={`${explorerBaseUrl}/address/${address}`}
-        >
-          {formatEvmAddress(address)}
-        </ExternalLink>
-      </PoolInfoItem>
+      <PoolInfoItem
+        data={address}
+        label={t("pages.earn.pool-info.pool-contract")}
+        render={(poolAddress) => (
+          <ExternalLink
+            className="text-xsm font-semibold text-gray-600 transition-colors hover:text-gray-900"
+            href={`${explorerBaseUrl}/address/${poolAddress}`}
+          >
+            {formatEvmAddress(poolAddress)}
+          </ExternalLink>
+        )}
+      />
     </div>
   );
 }
