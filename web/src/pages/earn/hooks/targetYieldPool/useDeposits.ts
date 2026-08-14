@@ -25,7 +25,6 @@ const depositsOptions = ({
       }),
     queryKey: [
       "target-yield-pool-deposits",
-      client?.chain?.id,
       stakingVaultAddress,
       epochId?.toString(),
     ],
