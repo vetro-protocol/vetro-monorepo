@@ -1,6 +1,6 @@
 import { describe, expect, inject, it } from "vitest";
 
-import { runCli, runCliRaw, usdc } from "./helpers.js";
+import { runCli, runCliRaw, usdc } from "./helpers.ts";
 
 const untouchedAccount = "0x000000000000000000000000000000000000dead";
 

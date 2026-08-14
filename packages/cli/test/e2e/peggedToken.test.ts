@@ -3,7 +3,7 @@ import { type Address, getAddress } from "viem";
 import { symbol } from "viem-erc20/actions";
 import { describe, expect, inject, it } from "vitest";
 
-import { createClients, runCli, runCliRaw, usdc } from "./helpers.js";
+import { createClients, runCli, runCliRaw, usdc } from "./helpers.ts";
 
 describe("swap pegged-token", function () {
   const rpcUrl = inject("anvilUrl");

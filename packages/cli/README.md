@@ -7,12 +7,20 @@
 
 ## Local development
 
-To test it locally, bundle and then consume it from the terminal.
+Run it straight from the source, with no build step:
+
+```sh
+node packages/cli/src/cli.ts swap pegged-token --gateway 0x...
+```
+
+To run the bundled bin instead:
 
 ```sh
 pnpm --filter @vetro-protocol/cli bundle   # produces _esm/cli.js (the vetro-cli bin)
 node packages/cli/_esm/cli.js swap pegged-token --gateway 0x...
 ```
+
+The `@vetro-protocol/*` packages are external to that bundle, and inside the monorepo they resolve to workspace source, so this exercises the bundled entrypoint rather than what an npm consumer gets. To check that, pack the tarball and install it in a scratch project.
 
 ## Configuration
 

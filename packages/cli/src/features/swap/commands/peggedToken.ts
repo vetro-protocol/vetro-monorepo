@@ -2,9 +2,9 @@ import { getPeggedToken } from "@vetro-protocol/gateway/actions";
 import { type Command } from "commander";
 import { type Address } from "viem";
 
-import { parseGateway } from "../../../lib/args.js";
-import { type GlobalOptions, createVetroClient } from "../../../lib/client.js";
-import { printResult } from "../../../lib/output.js";
+import { parseGateway } from "../../../lib/args.ts";
+import { type GlobalOptions, createVetroClient } from "../../../lib/client.ts";
+import { printResult } from "../../../lib/output.ts";
 
 export function register(swap: Command) {
   swap

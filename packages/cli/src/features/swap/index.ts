@@ -1,11 +1,11 @@
 import { type Command } from "commander";
 
-import { register as allowance } from "./commands/allowance.js";
-import { register as approve } from "./commands/approve.js";
-import { register as mint } from "./commands/mint.js";
-import { register as mintFee } from "./commands/mintFee.js";
-import { register as peggedToken } from "./commands/peggedToken.js";
-import { register as treasury } from "./commands/treasury.js";
+import { register as allowance } from "./commands/allowance.ts";
+import { register as approve } from "./commands/approve.ts";
+import { register as mint } from "./commands/mint.ts";
+import { register as mintFee } from "./commands/mintFee.ts";
+import { register as peggedToken } from "./commands/peggedToken.ts";
+import { register as treasury } from "./commands/treasury.ts";
 
 const swapCommands = [allowance, approve, mint, mintFee, peggedToken, treasury];
 

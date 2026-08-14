@@ -12,7 +12,7 @@ import {
   sendTransactionRequest,
   usdc,
   vusd,
-} from "./helpers.js";
+} from "./helpers.ts";
 
 describe("swap approve", function () {
   const rpcUrl = inject("anvilUrl");

@@ -8,15 +8,15 @@ import { getTokenConfig } from "@vetro-protocol/treasury/actions";
 import { type Command } from "commander";
 import { type Address, formatUnits, parseUnits } from "viem";
 
-import { parseAddress, parseAmount, parseSlippage } from "../../../lib/args.js";
-import { type GlobalOptions, createVetroClient } from "../../../lib/client.js";
-import { printTransactionRequest } from "../../../lib/output.js";
-import { DEFAULT_SLIPPAGE, applySlippage } from "../../../lib/slippage.js";
+import { parseAddress, parseAmount, parseSlippage } from "../../../lib/args.ts";
+import { type GlobalOptions, createVetroClient } from "../../../lib/client.ts";
+import { printTransactionRequest } from "../../../lib/output.ts";
+import { DEFAULT_SLIPPAGE, applySlippage } from "../../../lib/slippage.ts";
 import {
   isTokenMatch,
   resolvePeggedToken,
   resolveWhitelistedToken,
-} from "../../../lib/tokens.js";
+} from "../../../lib/tokens.ts";
 
 export function register(swap: Command) {
   swap

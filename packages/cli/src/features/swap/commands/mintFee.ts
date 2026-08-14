@@ -1,9 +1,9 @@
 import { getMintFee } from "@vetro-protocol/gateway/actions";
 import { type Command } from "commander";
 
-import { type GlobalOptions, createVetroClient } from "../../../lib/client.js";
-import { printResult } from "../../../lib/output.js";
-import { resolveWhitelistedToken } from "../../../lib/tokens.js";
+import { type GlobalOptions, createVetroClient } from "../../../lib/client.ts";
+import { printResult } from "../../../lib/output.ts";
+import { resolveWhitelistedToken } from "../../../lib/tokens.ts";
 
 export function register(swap: Command) {
   swap

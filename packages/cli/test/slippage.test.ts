@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { applySlippage } from "../src/lib/slippage.js";
+import { applySlippage } from "../src/lib/slippage.ts";
 
 describe("applySlippage", function () {
   it("returns the full preview when slippage is 0", function () {
