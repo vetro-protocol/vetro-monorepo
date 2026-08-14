@@ -2,10 +2,10 @@ import { useVaultPeggedToken } from "hooks/useVaultPeggedToken";
 import type { Address } from "viem";
 
 import { PoolContract } from "../poolInfoBar/poolContract";
+import { PoolInfoStakedAmount } from "../poolInfoBar/poolInfoStakedAmount";
 import { PoolToken } from "../poolInfoBar/poolToken";
 
 import { PoolDeposits } from "./poolDeposits";
-import { PoolStakedAmount } from "./poolStakedAmount";
 import { PoolTargetApy } from "./poolTargetApy";
 import { PoolTermState } from "./poolTermState";
 
@@ -24,7 +24,7 @@ export function PoolInfoBar({ stakingVaultAddress }: Props) {
         <PoolDeposits stakingVaultAddress={stakingVaultAddress} />
         <PoolTargetApy stakingVaultAddress={stakingVaultAddress} />
         <PoolTermState stakingVaultAddress={stakingVaultAddress} />
-        <PoolStakedAmount stakingVaultAddress={stakingVaultAddress} />
+        <PoolInfoStakedAmount stakingVaultAddress={stakingVaultAddress} />
       </div>
     </div>
   );
