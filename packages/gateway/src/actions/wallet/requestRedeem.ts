@@ -12,9 +12,9 @@ import {
 import { waitForTransactionReceipt, writeContract } from "viem/actions";
 import { allowance, approve } from "viem-erc20/actions";
 
-import { gatewayAbi } from "../../abi/gatewayAbi.js";
-import type { RequestRedeemEvents } from "../../types.js";
-import { getPeggedToken } from "../public/getPeggedToken.js";
+import { gatewayAbi } from "../../abi/gatewayAbi.ts";
+import type { RequestRedeemEvents } from "../../types.ts";
+import { getPeggedToken } from "../public/getPeggedToken.ts";
 
 export type RequestRedeemParams = {
   approveAmount?: bigint;

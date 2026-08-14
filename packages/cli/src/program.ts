@@ -3,9 +3,9 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { register as swap } from "./features/swap/index.js";
-import { parseRpcUrl } from "./lib/args.js";
-import { redactOptionValues } from "./lib/output.js";
+import { register as swap } from "./features/swap/index.ts";
+import { parseRpcUrl } from "./lib/args.ts";
+import { redactOptionValues } from "./lib/output.ts";
 
 const features = [swap];
 

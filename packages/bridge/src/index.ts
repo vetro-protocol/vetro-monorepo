@@ -1,19 +1,19 @@
 import type { Client, WalletClient } from "viem";
 
-import { approvalRequired } from "./actions/public/approvalRequired.js";
-import { quoteSend } from "./actions/public/quoteSend.js";
-import { token } from "./actions/public/token.js";
-import { send } from "./actions/wallet/send.js";
-import type { SendParams } from "./types.js";
+import { approvalRequired } from "./actions/public/approvalRequired.ts";
+import { quoteSend } from "./actions/public/quoteSend.ts";
+import { token } from "./actions/public/token.ts";
+import { send } from "./actions/wallet/send.ts";
+import type { SendParams } from "./types.ts";
 
 // Export ABI
-export { oftAbi } from "./abi/oftAbi.js";
+export { oftAbi } from "./abi/oftAbi.ts";
 
 // Export types
-export type { SendEvents } from "./types.js";
+export type { SendEvents } from "./types.ts";
 
 // Export encoders
-export { encodeSend } from "./actions/wallet/send.js";
+export { encodeSend } from "./actions/wallet/send.ts";
 
 // Export factory functions for .extend() pattern
 export const bridgePublicActions = () => (client: Client) => ({

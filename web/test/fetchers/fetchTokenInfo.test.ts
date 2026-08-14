@@ -1,10 +1,10 @@
+import { knownTokens } from "@vetro-protocol/core";
 import type { Client } from "viem";
 import { mainnet } from "viem/chains";
 import { decimals, name, symbol } from "viem-erc20/actions";
 import { describe, expect, it, vi } from "vitest";
 
 import { fetchTokenInfo } from "../../src/fetchers/fetchTokenInfo";
-import { knownTokens } from "../../src/utils/tokenList";
 
 vi.mock("viem-erc20/actions", () => ({
   decimals: vi.fn(),

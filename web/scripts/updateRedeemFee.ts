@@ -1,3 +1,5 @@
+import { gatewayAbi, gatewayAddresses } from "@vetro-protocol/gateway";
+import { getRedeemFee, getTreasury } from "@vetro-protocol/gateway/actions";
 import { parseArgs } from "node:util";
 import {
   type Address,
@@ -16,9 +18,6 @@ import {
   writeContract,
 } from "viem/actions";
 import { mainnet } from "viem/chains";
-
-import { gatewayAbi } from "../../packages/gateway/src/abi/gatewayAbi.ts";
-import { gatewayAddresses } from "../../packages/gateway/src/gatewayAddresses.ts";
 
 import { confirmTransaction } from "./utils.ts";
 
@@ -82,11 +81,7 @@ const [admin, treasury] = await Promise.all([
     address: gateway,
     functionName: "owner",
   }),
-  readContract(publicClient, {
-    abi: gatewayAbi,
-    address: gateway,
-    functionName: "treasury",
-  }),
+  getTreasury(publicClient, { address: gateway }),
 ]);
 
 await impersonateAccount(testClient, { address: admin });
@@ -108,11 +103,9 @@ console.log(`Admin: ${admin}`);
 console.log(`Gateway: ${gateway}`);
 console.log(`Token: ${token}`);
 
-const currentFee = await readContract(publicClient, {
-  abi: gatewayAbi,
+const currentFee = await getRedeemFee(publicClient, {
   address: gateway,
-  args: [token],
-  functionName: "redeemFee",
+  token,
 });
 
 console.log(`Current redeem fee: ${currentFee} BPS`);

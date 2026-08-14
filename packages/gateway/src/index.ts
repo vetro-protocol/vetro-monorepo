@@ -15,26 +15,26 @@ import {
   previewDeposit,
   previewRedeem,
   previewWithdraw,
-} from "./actions/public/index.js";
+} from "./actions/public/index.ts";
 import {
   type CancelRedeemRequestParams,
   cancelRedeemRequest,
-} from "./actions/wallet/cancelRedeemRequest.js";
-import { type DepositParams, deposit } from "./actions/wallet/deposit.js";
-import { type RedeemParams, redeem } from "./actions/wallet/redeem.js";
+} from "./actions/wallet/cancelRedeemRequest.ts";
+import { type DepositParams, deposit } from "./actions/wallet/deposit.ts";
+import { type RedeemParams, redeem } from "./actions/wallet/redeem.ts";
 import {
   type RequestRedeemParams,
   requestRedeem,
-} from "./actions/wallet/requestRedeem.js";
+} from "./actions/wallet/requestRedeem.ts";
 
 // Export ABI
-export { gatewayAbi } from "./abi/gatewayAbi.js";
+export { gatewayAbi } from "./abi/gatewayAbi.ts";
 // Export gateway addresses and per-gateway peg-base metadata
 export {
   type Gateway,
   gatewayAddresses,
   gateways,
-} from "./gatewayAddresses.js";
+} from "./gatewayAddresses.ts";
 
 export type { CancelRedeemRequestParams };
 
@@ -43,7 +43,7 @@ export {
   type DepositEvents,
   type RedeemEvents,
   type RequestRedeemEvents,
-} from "./types.js";
+} from "./types.ts";
 
 // Export factory functions for .extend() pattern
 export const gatewayPublicActions = () => (client: Client) => ({

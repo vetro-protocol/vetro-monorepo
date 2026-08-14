@@ -1,7 +1,7 @@
 import { tokenBalanceQueryOptions } from "@hemilabs/react-hooks/useTokenBalance";
 import type { QueryClient } from "@tanstack/react-query";
+import type { Token } from "@vetro-protocol/core";
 import { stakingVaultAbi } from "@vetro-protocol/earn";
-import type { Token } from "types";
 import { createErc20AllowanceStateOverride } from "utils/erc20StateOverride";
 import { type Address, type Client, encodeFunctionData } from "viem";
 import { estimateGas } from "viem/actions";

@@ -1,3 +1,8 @@
+import { gatewayAbi, gatewayAddresses } from "@vetro-protocol/gateway";
+import {
+  getPeggedToken,
+  getRedeemRequest,
+} from "@vetro-protocol/gateway/actions";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import {
@@ -10,15 +15,11 @@ import {
 } from "viem";
 import {
   impersonateAccount,
-  readContract,
   stopImpersonatingAccount,
   writeContract,
 } from "viem/actions";
 import { mainnet } from "viem/chains";
 import { approve, decimals } from "viem-erc20/actions";
-
-import { gatewayAbi } from "../../packages/gateway/src/abi/gatewayAbi.ts";
-import { gatewayAddresses } from "../../packages/gateway/src/gatewayAddresses.ts";
 
 import { confirmTransaction } from "./utils.ts";
 
@@ -47,11 +48,7 @@ export async function requestRedeem({
     transport,
   });
 
-  const peggedToken = await readContract(publicClient, {
-    abi: gatewayAbi,
-    address: gateway,
-    functionName: "PEGGED_TOKEN",
-  });
+  const peggedToken = await getPeggedToken(publicClient, { address: gateway });
 
   await impersonateAccount(testClient, { address });
 
@@ -74,11 +71,9 @@ export async function requestRedeem({
     await stopImpersonatingAccount(testClient, { address });
   }
 
-  const [amountLocked, claimableAt] = await readContract(publicClient, {
-    abi: gatewayAbi,
+  const [amountLocked, claimableAt] = await getRedeemRequest(publicClient, {
     address: gateway,
-    args: [address],
-    functionName: "getRedeemRequest",
+    user: address,
   });
 
   return { amountLocked, claimableAt, peggedToken };
@@ -123,10 +118,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     transport: http(forkUrl),
   });
 
-  const peggedTokenAddress = await readContract(publicClient, {
-    abi: gatewayAbi,
+  const peggedTokenAddress = await getPeggedToken(publicClient, {
     address: gateway,
-    functionName: "PEGGED_TOKEN",
   });
 
   const { amountLocked, claimableAt } = await requestRedeem({

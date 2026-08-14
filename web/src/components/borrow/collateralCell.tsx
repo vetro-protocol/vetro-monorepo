@@ -1,5 +1,5 @@
+import type { Token } from "@vetro-protocol/core";
 import { useMarketCollateral } from "hooks/borrow/useMarketCollateral";
-import type { Token } from "types";
 import type { Hash } from "viem";
 
 import { TokenValueCell } from "./tokenValueCell";

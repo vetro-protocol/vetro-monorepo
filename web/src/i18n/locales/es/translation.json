@@ -329,6 +329,9 @@
         "withdrawing": "Retirando...",
         "withdrawn": "Retirado"
       },
+      "fixed-term": {
+        "title": "Fondos con objetivo de rendimiento fijo"
+      },
       "pool-info": {
         "apy": "TEA",
         "deposit": "Depositar",
@@ -384,7 +387,10 @@
         "from-pools_other": "De {{count}} fondos",
         "staked-balance": "Su balance stakeado"
       },
-      "title": "Haga stake de activos para ganar un rendimiento variable."
+      "title": "Haga stake de activos para ganar un rendimiento variable.",
+      "variable-yield": {
+        "title": "Fondos de rendimiento variable"
+      }
     },
     "faq": {
       "title": "Hola FAQ"

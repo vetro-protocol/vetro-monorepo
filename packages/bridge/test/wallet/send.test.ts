@@ -15,7 +15,7 @@ import { bsc, hemi } from "viem/chains";
 import { allowance, approve } from "viem-erc20/actions";
 import { describe, expect, it, vi } from "vitest";
 
-import { send } from "../../src/actions/wallet/send";
+import { send } from "../../src/actions/wallet/send.ts";
 
 vi.mock("viem/actions", () => ({
   readContract: vi.fn(),

@@ -1,10 +1,9 @@
 import { TEST_ADDRESS } from "@hemilabs/anvil-fork-setup/utils";
 import { expect } from "@playwright/test";
+import { knownTokens } from "@vetro-protocol/core";
 import type { Address } from "viem";
 import { mainnet } from "viem/chains";
 import { balanceOf } from "viem-erc20/actions";
-
-import { knownTokens } from "../src/utils/tokenList.ts";
 
 import type { createEthereumClient } from "./anvil";
 

@@ -10,7 +10,7 @@ import { sepolia } from "viem/chains";
 import { allowance, approve } from "viem-erc20/actions";
 import { describe, expect, it, vi } from "vitest";
 
-import { deposit } from "../../src/actions/wallet/deposit";
+import { deposit } from "../../src/actions/wallet/deposit.ts";
 
 vi.mock("viem/actions", () => ({
   waitForTransactionReceipt: vi.fn(),

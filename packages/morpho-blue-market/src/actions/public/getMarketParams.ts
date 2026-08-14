@@ -1,9 +1,9 @@
+import { isAddressValid } from "@vetro-protocol/core";
 import { type Address, type Client, type Hash, zeroHash } from "viem";
 import { readContract } from "viem/actions";
 
-import { morphoBlueAbi } from "../../abi/morphoBlueAbi.js";
-import type { MarketParams } from "../../types.js";
-import { isAddressValid } from "../../utils/isAddressValid.js";
+import { morphoBlueAbi } from "../../abi/morphoBlueAbi.ts";
+import type { MarketParams } from "../../types.ts";
 
 export const getMarketParams = async function ({
   address,

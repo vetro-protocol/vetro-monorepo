@@ -25,7 +25,7 @@ import {
   slippage,
   usdc,
   vusd,
-} from "./helpers.js";
+} from "./helpers.ts";
 
 describe("swap mint", function () {
   const rpcUrl = inject("anvilUrl");

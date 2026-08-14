@@ -2,7 +2,7 @@ import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { type Address, getAddress } from "viem";
 import { describe, expect, inject, it } from "vitest";
 
-import { runCli, runCliRaw, usdc } from "./helpers.js";
+import { runCli, runCliRaw, usdc } from "./helpers.ts";
 
 describe("swap treasury", function () {
   const rpcUrl = inject("anvilUrl");

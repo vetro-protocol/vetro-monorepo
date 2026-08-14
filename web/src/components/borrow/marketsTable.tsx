@@ -1,8 +1,8 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import { I18nLink } from "components/base/i18nLink";
+import { SectionHeader } from "components/base/sectionHeader";
 import { Table } from "components/base/table";
 import { Header } from "components/base/table/header";
-import { TopSection } from "components/base/table/topSection";
 import { CollateralCell } from "components/borrow/collateralCell";
 import { TokenValueCell } from "components/borrow/tokenValueCell";
 import { TokenLogo } from "components/tokenLogo";
@@ -127,7 +127,7 @@ export function MarketsTable({ marketIds }: Props) {
 
   return (
     <div className="border-t border-gray-200">
-      <TopSection title={t("pages.borrow.markets-title")} />
+      <SectionHeader title={t("pages.borrow.markets-title")} />
       <Table
         columns={columns}
         data={data}

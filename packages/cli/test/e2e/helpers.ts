@@ -3,6 +3,8 @@ import {
   TEST_PRIVATE_KEY,
 } from "@hemilabs/anvil-fork-setup/utils";
 import { gatewayAbi as vetroGatewayAbi } from "@vetro-protocol/gateway";
+import { getMaxMint } from "@vetro-protocol/gateway/actions";
+import { getKeeperRole } from "@vetro-protocol/treasury/actions";
 import { type Command, CommanderError } from "commander";
 import {
   type Address,
@@ -33,9 +35,9 @@ import {
 } from "viem/actions";
 import { mainnet } from "viem/chains";
 
-import { type GlobalOptions } from "../../src/lib/client.js";
-import { printError } from "../../src/lib/output.js";
-import { createProgram } from "../../src/program.js";
+import { type GlobalOptions } from "../../src/lib/client.ts";
+import { printError } from "../../src/lib/output.ts";
+import { createProgram } from "../../src/program.ts";
 
 export const usdc = {
   address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
@@ -213,11 +215,7 @@ export const setMaxMint = async function ({
       address: gateway,
       functionName: "mintLimit",
     }),
-    readContract(publicClient, {
-      abi: vetroGatewayAbi,
-      address: gateway,
-      functionName: "maxMint",
-    }),
+    getMaxMint(publicClient, { address: gateway }),
   ]);
 
   await impersonateAccount(testClient, { address: owner });
@@ -236,17 +234,12 @@ export const setMaxMint = async function ({
     await stopImpersonatingAccount(testClient, { address: owner });
   }
 
-  const maxMintAfter = await readContract(publicClient, {
-    abi: vetroGatewayAbi,
-    address: gateway,
-    functionName: "maxMint",
-  });
+  const maxMintAfter = await getMaxMint(publicClient, { address: gateway });
 
   return { maxMintAfter, maxMintBefore };
 };
 
 const treasuryAbi = parseAbi([
-  "function KEEPER_ROLE() view returns (bytes32)",
   "function defaultAdmin() view returns (address)",
   "function grantRole(bytes32 role, address account)",
   "function hasRole(bytes32 role, address account) view returns (bool)",
@@ -278,11 +271,7 @@ export const setDepositActive = async function ({
       address: treasury,
       functionName: "defaultAdmin",
     }),
-    readContract(publicClient, {
-      abi: treasuryAbi,
-      address: treasury,
-      functionName: "KEEPER_ROLE",
-    }),
+    getKeeperRole(publicClient, { address: treasury }),
   ]);
 
   await impersonateAccount(testClient, { address: admin });

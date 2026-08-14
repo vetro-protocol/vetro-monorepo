@@ -1,7 +1,7 @@
 import { numberToHex } from "viem";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { createVetroClient } from "../src/lib/client.js";
+import { createVetroClient } from "../src/lib/client.ts";
 
 const rpcUrl = "https://rpc.example";
 

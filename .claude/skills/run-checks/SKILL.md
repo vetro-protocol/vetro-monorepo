@@ -20,13 +20,20 @@ a filter (`...<pkg>`) adds dependents, so a change in a shared package still
 re-tests `web`/`api`. (A _trailing_ `...` would instead pull in the package's
 dependencies — the wrong direction here.)
 
-- Changed a **package** (`packages/*`) — its typecheck _is_ its `build`
-  (`tsc --noEmit`, no bundle):
+- Changed a **package** (`packages/*`) — its typecheck _is_ its `build`:
 
   ```bash
-  pnpm --filter @vetro-protocol/<pkg> run build          # typecheck the package
+  pnpm --filter '...@vetro-protocol/<pkg>' run build     # its + dependents' builds
   pnpm --filter '...@vetro-protocol/<pkg>' run test      # its + dependents' tests
   ```
+
+  Packages are consumed as source (`exports` points at `src/`), so each
+  dependent's `build:types` recompiles the changed package's files under _its
+  own_ tsconfig, where a narrower `lib`/`types` set can reject code the package's
+  own build accepts (e.g. an ambient global like `URL`). Selecting the apps too
+  is deliberate: their `build` bundles with Vite, which catches what `tsc`
+  cannot — a broken `exports` map, an import the bundler can't resolve, or a
+  node-only builtin pulled into browser code.
 
 - Changed an **app** (`web`, `api`, `internal-dashboard`):
 
@@ -56,7 +63,7 @@ change, a full local pass before pushing can be worth it: run the §1 steps
 across every workspace instead of a scoped filter.
 
 ```bash
-# typecheck everything — apps via tsc, packages via build (= tsc --noEmit)
+# typecheck everything — apps via tsc, packages via build
 pnpm -r --if-present run tsc && pnpm --filter='./packages/*' run build
 # test every app + package (subgraph matchstick excluded — run it separately if you touched it)
 pnpm --filter='!vetro-app-subgraph' -r --if-present run test
@@ -88,9 +95,9 @@ Run it when a web change warrants a full assertive pass.
 - **One fork at a time.** e2e specs share Anvil port `8545` and dev-server port
   `5174`. Never run two specs concurrently, and never `pnpm --filter web dev`
   while a spec runs — they collide.
-- **Typecheck is two passes:** apps via `tsc`, packages via `build` (= `tsc
---noEmit`). The `--if-present` on the `tsc` pass just skips workspaces without a
-  `tsc` script — packages aren't missed, they're covered by the `build` pass.
+- **Typecheck is two passes:** apps via `tsc`, packages via `build`. The
+  `--if-present` on the `tsc` pass just skips workspaces without a `tsc` script —
+  packages aren't missed, they're covered by the `build` pass.
 - **knip is whole-repo** (can't be meaningfully scoped) — it analyzes every
   workspace and only ignores `web/scripts/*` as a path (see
   [`.knip.json`](../../../.knip.json)). Run it in a whole-repo pass or leave it to

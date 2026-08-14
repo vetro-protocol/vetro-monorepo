@@ -4,8 +4,8 @@ import {
   useQueryClient,
   type QueryClient,
 } from "@tanstack/react-query";
+import type { Token } from "@vetro-protocol/core";
 import { fetchMarketData } from "fetchers/fetchMarketData";
-import type { Token } from "types";
 import type { Address, Chain, Client, Hash } from "viem";
 
 import { useEthereumClient } from "../useEthereumClient";

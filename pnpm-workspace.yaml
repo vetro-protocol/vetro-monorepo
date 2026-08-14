@@ -7,6 +7,7 @@ minimumReleaseAgeExclude:
   - "eslint-config-bloq"
   - "viem-erc20"
   - "viem-erc4626"
+  - "viem-erc7540"
 
 onlyBuiltDependencies: []
 

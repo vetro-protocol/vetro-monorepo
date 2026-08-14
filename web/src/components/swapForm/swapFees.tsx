@@ -1,11 +1,11 @@
 import type { FetchStatus, QueryStatus } from "@tanstack/react-query";
+import type { Token } from "@vetro-protocol/core";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { FeeDetails } from "components/feeDetails";
 import { FeesContainer } from "components/feesContainer";
 import { useMainnet } from "hooks/useMainnet";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import type { Token } from "types";
 import { formatFiatNumber } from "utils/format";
 import { getNativeToken } from "utils/nativeToken";
 

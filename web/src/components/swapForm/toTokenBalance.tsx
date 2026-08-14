@@ -1,7 +1,7 @@
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
+import type { Token } from "@vetro-protocol/core";
 import { Balance } from "components/tokenInput/balance";
 import { useTranslation } from "react-i18next";
-import type { Token } from "types";
 import { formatAmount } from "utils/token";
 
 type Props = {

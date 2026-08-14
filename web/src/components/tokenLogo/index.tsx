@@ -1,6 +1,6 @@
+import type { Token } from "@vetro-protocol/core";
 import { DefaultTokenLogo } from "components/defaultTokenLogo";
 import { useEffect, useState } from "react";
-import type { Token } from "types";
 
 const sizeClasses = {
   base: "size-5",

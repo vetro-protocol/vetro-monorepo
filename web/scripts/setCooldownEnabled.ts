@@ -1,3 +1,4 @@
+import { stakingVaultAbi, sVusdAddress } from "@vetro-protocol/earn";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import {
@@ -16,9 +17,6 @@ import {
   writeContract,
 } from "viem/actions";
 import { mainnet } from "viem/chains";
-
-import { stakingVaultAbi } from "../../packages/earn/src/abi/stakingVaultAbi.ts";
-import { sVusdAddress } from "../../packages/earn/src/stakingVaultAddresses.ts";
 
 import { confirmTransaction } from "./utils.ts";
 

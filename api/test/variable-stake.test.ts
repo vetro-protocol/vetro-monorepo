@@ -25,7 +25,8 @@ vi.mock("../src/merkl.ts", () => ({
   getUserRewards: vi.fn(),
 }));
 
-vi.mock("../src/mainnet-client.ts", () => ({
+vi.mock("@vetro-protocol/core", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@vetro-protocol/core")>()),
   createMainnetClient: vi.fn(() => ({})),
 }));
 

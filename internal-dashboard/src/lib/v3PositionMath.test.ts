@@ -1,14 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { computeBandAmounts } from "./v3PositionMath";
-
-// A real VUSD/USDT pool snapshot (18/6 decimals) with price ~ $1.
-const vusdUsdt = {
-  decimals0: 18,
-  decimals1: 6,
-  liquidity: 131831110600160155n,
-  sqrtPriceX96: 79293867267539787587777n,
-};
+import {
+  computeBandAmounts,
+  priceToTick,
+  type TickLiquidity,
+} from "./v3PositionMath";
 
 const TWO_POW_96 = 2 ** 96;
 const priceToSqrtX96 = ({
@@ -24,12 +20,75 @@ const priceToSqrtX96 = ({
     Math.floor(Math.sqrt(price * 10 ** (decimals1 - decimals0)) * TWO_POW_96),
   );
 
+// An 18/18 pool at exactly $1 whose whole liquidity is a single position ten
+// ticks wide (~$0.999 – $1.001).
+const positionLiquidity = 10n ** 24n;
+const narrowPool = {
+  currentTick: 0,
+  decimals0: 18,
+  decimals1: 18,
+  initializedTicks: [
+    { liquidityNet: positionLiquidity, tick: -10 },
+    { liquidityNet: -positionLiquidity, tick: 10 },
+  ],
+  liquidity: positionLiquidity,
+  sqrtPriceX96: priceToSqrtX96({ decimals0: 18, decimals1: 18, price: 1 }),
+};
+
+// A real VUSD/USDT snapshot (18/6 decimals) at ~$1.0007, taken with the pool
+// holding 26,484 VUSD and 31,660 USDT in ERC-20 balances.
+const vusdUsdt = {
+  currentTick: -276318,
+  decimals0: 18,
+  decimals1: 6,
+  initializedTicks: [
+    { liquidityNet: 15832704246747630n, tick: -278140 },
+    { liquidityNet: 6302778627602425n, tick: -277320 },
+    { liquidityNet: 130732401889084034n, tick: -276720 },
+    { liquidityNet: 456968676566802726n, tick: -276420 },
+    { liquidityNet: 946610042217059006n, tick: -276360 },
+    { liquidityNet: 1997166337273480336n, tick: -276340 },
+    { liquidityNet: 42575805005594985808n, tick: -276320 },
+    { liquidityNet: -44572971342868466144n, tick: -276310 },
+    { liquidityNet: -474186488246365959n, tick: -276300 },
+    { liquidityNet: -472423553970693047n, tick: -276270 },
+    { liquidityNet: -456968676566802726n, tick: -276220 },
+    { liquidityNet: -130732401889084034n, tick: -275920 },
+    { liquidityNet: -6302778627602425n, tick: -275370 },
+    { liquidityNet: -14034507619047145n, tick: -274840 },
+    { liquidityNet: -15832704246747630n, tick: -274500 },
+  ],
+  liquidity: 46144551162745885231n,
+  sqrtPriceX96: 79254568996878735356728n,
+};
+
+// A band no initialized tick falls inside: liquidity is uniform across it.
+const uniformPool = {
+  currentTick: priceToTick({ decimals0: 18, decimals1: 6, price: 1 }),
+  decimals0: 18,
+  decimals1: 6,
+  initializedTicks: [] as TickLiquidity[],
+  liquidity: 131831110600160155n,
+  sqrtPriceX96: priceToSqrtX96({ decimals0: 18, decimals1: 6, price: 1 }),
+};
+
+const atPrice = function <T extends { decimals0: number; decimals1: number }>(
+  pool: T,
+  price: number,
+) {
+  const { decimals0, decimals1 } = pool;
+  return {
+    ...pool,
+    currentTick: priceToTick({ decimals0, decimals1, price }),
+    sqrtPriceX96: priceToSqrtX96({ decimals0, decimals1, price }),
+  };
+};
+
 describe("computeBandAmounts", function () {
   it("holds only token0 when the price is below the band", function () {
     const { amount0, amount1 } = computeBandAmounts({
-      ...vusdUsdt,
+      ...atPrice(uniformPool, 0.5),
       lowerPrice: 0.96,
-      sqrtPriceX96: 1n, // far below the band
       upperPrice: 1.04,
     });
     expect(amount1).toBe(0n);
@@ -38,9 +97,8 @@ describe("computeBandAmounts", function () {
 
   it("holds only token1 when the price is above the band", function () {
     const { amount0, amount1 } = computeBandAmounts({
-      ...vusdUsdt,
+      ...atPrice(uniformPool, 2),
       lowerPrice: 0.96,
-      sqrtPriceX96: 2n ** 160n, // far above the band
       upperPrice: 1.04,
     });
     expect(amount0).toBe(0n);
@@ -49,29 +107,29 @@ describe("computeBandAmounts", function () {
 
   it("splits into both tokens when the price is inside the band", function () {
     const { amount0, amount1 } = computeBandAmounts({
-      ...vusdUsdt,
+      ...uniformPool,
       lowerPrice: 0.96,
       upperPrice: 1.04,
     });
     expect(amount0).toBeGreaterThan(0n);
     expect(amount1).toBeGreaterThan(0n);
-    // Sanity vs the known split (~2451 VUSD / ~2773 USDT).
+    // Sanity vs the known split (~2560 VUSD / ~2663 USDT).
     const vusd = Number(amount0) / 1e18;
     const usdt = Number(amount1) / 1e6;
-    expect(vusd).toBeGreaterThan(2400);
-    expect(vusd).toBeLessThan(2500);
-    expect(usdt).toBeGreaterThan(2700);
-    expect(usdt).toBeLessThan(2800);
+    expect(vusd).toBeGreaterThan(2500);
+    expect(vusd).toBeLessThan(2600);
+    expect(usdt).toBeGreaterThan(2600);
+    expect(usdt).toBeLessThan(2700);
   });
 
   it("holds more of each token in a wider band", function () {
     const narrow = computeBandAmounts({
-      ...vusdUsdt,
+      ...uniformPool,
       lowerPrice: 0.98,
       upperPrice: 1.02,
     });
     const wide = computeBandAmounts({
-      ...vusdUsdt,
+      ...uniformPool,
       lowerPrice: 0.9,
       upperPrice: 1.1,
     });
@@ -81,11 +139,9 @@ describe("computeBandAmounts", function () {
 
   it("splits evenly for a price-symmetric band at $1 (equal decimals)", function () {
     const { amount0, amount1 } = computeBandAmounts({
-      decimals0: 18,
-      decimals1: 18,
+      ...atPrice({ ...uniformPool, decimals1: 18 }, 1),
       liquidity: 10n ** 24n,
       lowerPrice: 0.5,
-      sqrtPriceX96: priceToSqrtX96({ decimals0: 18, decimals1: 18, price: 1 }),
       upperPrice: 2,
     });
     // A band symmetric in price around the current price holds equal token
@@ -94,5 +150,80 @@ describe("computeBandAmounts", function () {
       amount0 > amount1 ? amount0 - amount1 : amount1 - amount0,
     );
     expect(diff / Number(amount0)).toBeLessThan(1e-4);
+  });
+
+  it("counts concentrated liquidity only where it is actually placed", function () {
+    const { amount0, amount1 } = computeBandAmounts({
+      ...narrowPool,
+      lowerPrice: 0.5,
+      upperPrice: 2,
+    });
+    // The pool's whole liquidity sits in a ten-tick position, so the band holds
+    // that position and nothing more — ~0.05% of what spreading the pool's
+    // current liquidity across the full band would claim.
+    const expected = Number(positionLiquidity) * (1 - 1 / 1.0001 ** 5);
+    expect(Number(amount0) / expected).toBeCloseTo(1, 3);
+    expect(Number(amount1) / expected).toBeCloseTo(1, 3);
+  });
+
+  it("stops growing once the band covers all the liquidity", function () {
+    const band = computeBandAmounts({
+      ...narrowPool,
+      lowerPrice: 0.5,
+      upperPrice: 2,
+    });
+    const wider = computeBandAmounts({
+      ...narrowPool,
+      lowerPrice: 0.1,
+      upperPrice: 10,
+    });
+    expect(wider.amount0).toBe(band.amount0);
+    expect(wider.amount1).toBe(band.amount1);
+  });
+
+  it("keeps a band within the pool's real balances", function () {
+    const { amount0, amount1 } = computeBandAmounts({
+      ...vusdUsdt,
+      lowerPrice: 0.96,
+      upperPrice: 1.04,
+    });
+    const vusd = Number(amount0) / 1e18;
+    const usdt = Number(amount1) / 1e6;
+    expect(vusd).toBeGreaterThan(23_000);
+    expect(vusd).toBeLessThan(26_484);
+    expect(usdt).toBeGreaterThan(15_000);
+    expect(usdt).toBeLessThan(31_660);
+  });
+
+  it("ignores initialized ticks outside the band", function () {
+    const band = { lowerPrice: 0.96, upperPrice: 1.04 };
+    const withDistantTicks = computeBandAmounts({
+      ...vusdUsdt,
+      ...band,
+      initializedTicks: [
+        { liquidityNet: 10n ** 30n, tick: -400_000 },
+        ...vusdUsdt.initializedTicks,
+        { liquidityNet: -(10n ** 30n), tick: -100_000 },
+      ],
+    });
+    // Only ticks between the band and the current price move the walk, which is
+    // what lets the on-chain read fetch a window rather than every tick.
+    expect(withDistantTicks).toEqual(
+      computeBandAmounts({ ...vusdUsdt, ...band }),
+    );
+  });
+
+  it("un-crosses ticks below the band when the price sits above it", function () {
+    const above = computeBandAmounts({
+      ...vusdUsdt,
+      lowerPrice: 0.96,
+      upperPrice: 0.99,
+    });
+    // Only the positions reaching down into $0.96–$0.99 are counted; spreading
+    // the liquidity active at the current price over that band instead would
+    // claim ~700k USDT.
+    expect(above.amount0).toBe(0n);
+    expect(Number(above.amount1) / 1e6).toBeGreaterThan(2000);
+    expect(Number(above.amount1) / 1e6).toBeLessThan(3000);
   });
 });

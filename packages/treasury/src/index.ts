@@ -1,17 +1,20 @@
 import type { Client } from "viem";
 
 import {
+  getKeeperRole,
   getPrice,
   getTokenConfig,
   getWhitelistedTokens,
   getWithdrawable,
-} from "./actions/public/index.js";
+} from "./actions/public/index.ts";
 
 // Export ABI
-export { treasuryAbi } from "./abi/treasuryAbi.js";
+export { treasuryAbi } from "./abi/treasuryAbi.ts";
 
 // Export factory function for .extend() pattern
 export const treasuryPublicActions = () => (client: Client) => ({
+  getKeeperRole: (params: Parameters<typeof getKeeperRole>[1]) =>
+    getKeeperRole(client, params),
   getPrice: (params: Parameters<typeof getPrice>[1]) =>
     getPrice(client, params),
   getTokenConfig: (params: Parameters<typeof getTokenConfig>[1]) =>

@@ -1,9 +1,9 @@
+import { createMainnetClient } from "@vetro-protocol/core";
 import { type Address, formatUnits } from "viem";
 import { decimals } from "viem-erc20/actions";
 import { asset, convertToAssets } from "viem-erc4626/actions";
 
 import { appendLivePoint } from "./append-live-point.ts";
-import { createMainnetClient } from "./mainnet-client.ts";
 import { paginateSubgraphQuery } from "./paginate-subgraph-query.ts";
 import { getPeriodStart } from "./vault-history-period.ts";
 

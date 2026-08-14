@@ -2,7 +2,7 @@ import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { InvalidArgumentError } from "commander";
 import { getAddress, isAddressEqual } from "viem";
 
-import { MAX_SLIPPAGE } from "./slippage.js";
+import { MAX_SLIPPAGE } from "./slippage.ts";
 
 export function parseAddress(value: string) {
   try {

@@ -14,7 +14,7 @@ import {
 import { sepolia } from "viem/chains";
 import { describe, expect, it, vi } from "vitest";
 
-import { withdrawCollateral } from "../../src/actions/wallet/withdrawCollateral";
+import { withdrawCollateral } from "../../src/actions/wallet/withdrawCollateral.ts";
 
 vi.mock("viem/actions", () => ({
   readContract: vi.fn(),

@@ -12,12 +12,12 @@ import {
 import { waitForTransactionReceipt, writeContract } from "viem/actions";
 import { allowance, approve } from "viem-erc20/actions";
 
-import { gatewayAbi } from "../../abi/gatewayAbi.js";
-import type { RedeemEvents } from "../../types.js";
-import { getMaxWithdraw } from "../public/getMaxWithdraw.js";
-import { getPeggedToken } from "../public/getPeggedToken.js";
-import { getWithdrawalDelayEnabled } from "../public/getWithdrawalDelayEnabled.js";
-import { isInstantRedeemWhitelisted } from "../public/isInstantRedeemWhitelisted.js";
+import { gatewayAbi } from "../../abi/gatewayAbi.ts";
+import type { RedeemEvents } from "../../types.ts";
+import { getMaxWithdraw } from "../public/getMaxWithdraw.ts";
+import { getPeggedToken } from "../public/getPeggedToken.ts";
+import { getWithdrawalDelayEnabled } from "../public/getWithdrawalDelayEnabled.ts";
+import { isInstantRedeemWhitelisted } from "../public/isInstantRedeemWhitelisted.ts";
 
 export type RedeemParams = {
   approveAmount?: bigint;

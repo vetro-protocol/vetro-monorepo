@@ -8,16 +8,17 @@ Built with React, Viem, Wagmi, and Tailwind CSS.
 
 Vite only exposes variables prefixed with `VITE_` to the client bundle. Set these in `web/.env` (or a `.env.local` override) before running `dev` or `build`.
 
-| Variable                         | Required | Description                                                                                                 |
-| -------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------- |
-| `VITE_ANALYTICS_URL`             | No       | Umami tracker script URL. Analytics (page views) is enabled only when this and the website ID are both set. |
-| `VITE_ANALYTICS_WEBSITE_ID`      | No       | Umami website ID.                                                                                           |
-| `VITE_DEPLOY_ENV`                | No       | Set to `"production"` to hide source maps from browsers. Any other value serves them publicly.              |
-| `VITE_PORTAL_API_URL`            | Yes      | Hemi Portal API base URL (used for token prices).                                                           |
-| `VITE_RPC_URL_MAINNET`           | No       | RPC URL for Ethereum mainnet. Falls back to viem's default when unset.                                      |
-| `VITE_SENTRY_DSN`                | No       | Sentry DSN. When unset, Sentry is disabled.                                                                 |
-| `VITE_WALLET_CONNECT_PROJECT_ID` | No       | WalletConnect project ID.                                                                                   |
-| `VITE_VETRO_API_URL`             | Yes      | Vetro backend API base URL (analytics, APR history, exit tickets, rewards, etc.).                           |
+| Variable                         | Required | Description                                                                                                                       |
+| -------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `VITE_ANALYTICS_URL`             | No       | Umami tracker script URL. Analytics (page views) is enabled only when this and the website ID are both set.                       |
+| `VITE_ANALYTICS_WEBSITE_ID`      | No       | Umami website ID.                                                                                                                 |
+| `VITE_DEPLOY_ENV`                | No       | Set to `"production"` to hide source maps from browsers. Any other value serves them publicly.                                    |
+| `VITE_FIXED_TERM_YIELD_ENABLED`  | No       | Feature flag for the fixed term yield feature. Enabled only when set to `"true"`.                                                 |
+| `VITE_PORTAL_API_URL`            | Yes      | Hemi Portal API base URL (used for token prices).                                                                                 |
+| `VITE_RPC_URL_MAINNET`           | No       | RPC URL(s) for Ethereum mainnet. Several URLs joined by `+` become a fallback transport. Falls back to viem's default when unset. |
+| `VITE_SENTRY_DSN`                | No       | Sentry DSN. When unset, Sentry is disabled.                                                                                       |
+| `VITE_WALLET_CONNECT_PROJECT_ID` | No       | WalletConnect project ID.                                                                                                         |
+| `VITE_VETRO_API_URL`             | Yes      | Vetro backend API base URL (analytics, APR history, exit tickets, rewards, etc.).                                                 |
 
 The following variables are read at build time (not baked into the bundle) and only matter in CI/CD:
 

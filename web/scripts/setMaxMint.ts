@@ -1,3 +1,5 @@
+import { gatewayAbi, gatewayAddresses } from "@vetro-protocol/gateway";
+import { getMaxMint, getPeggedToken } from "@vetro-protocol/gateway/actions";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import {
@@ -18,9 +20,6 @@ import {
 } from "viem/actions";
 import { mainnet } from "viem/chains";
 import { decimals } from "viem-erc20/actions";
-
-import { gatewayAbi } from "../../packages/gateway/src/abi/gatewayAbi.ts";
-import { gatewayAddresses } from "../../packages/gateway/src/gatewayAddresses.ts";
 
 import { confirmTransaction } from "./utils.ts";
 
@@ -53,11 +52,7 @@ export async function setMaxMint({
       address: gateway,
       functionName: "mintLimit",
     }),
-    readContract(publicClient, {
-      abi: gatewayAbi,
-      address: gateway,
-      functionName: "maxMint",
-    }),
+    getMaxMint(publicClient, { address: gateway }),
   ]);
 
   await impersonateAccount(testClient, { address: owner });
@@ -76,11 +71,7 @@ export async function setMaxMint({
     });
     await confirmTransaction({ client: publicClient, hash });
 
-    const maxMintAfter = await readContract(publicClient, {
-      abi: gatewayAbi,
-      address: gateway,
-      functionName: "maxMint",
-    });
+    const maxMintAfter = await getMaxMint(publicClient, { address: gateway });
 
     return { maxMintAfter, maxMintBefore, mintLimitAfter, mintLimitBefore };
   } finally {
@@ -121,11 +112,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     transport: http(forkUrl),
   });
 
-  const peggedToken = await readContract(publicClient, {
-    abi: gatewayAbi,
-    address: gateway,
-    functionName: "PEGGED_TOKEN",
-  });
+  const peggedToken = await getPeggedToken(publicClient, { address: gateway });
 
   const { maxMintAfter, maxMintBefore, mintLimitAfter, mintLimitBefore } =
     await setMaxMint({

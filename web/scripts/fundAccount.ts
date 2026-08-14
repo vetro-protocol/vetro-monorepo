@@ -1,3 +1,4 @@
+import { knownTokens } from "@vetro-protocol/core";
 import {
   type Address,
   createPublicClient,
@@ -13,8 +14,6 @@ import {
 import { getBalance, setBalance, setStorageAt } from "viem/actions";
 import { mainnet } from "viem/chains";
 import { balanceOf } from "viem-erc20/actions";
-
-import { knownTokens } from "../src/utils/tokenList.ts";
 
 export const defaultSetupSymbols = [
   "cbBTC",

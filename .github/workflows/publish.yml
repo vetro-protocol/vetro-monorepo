@@ -10,6 +10,8 @@ jobs:
     permissions:
       contents: read
       id-token: write # for npm provenance
+    # Once target-yield-earn package is ready to be published,
+    # add || startsWith(github.event.release.tag_name, 'target-yield-earn@')  below
     if: |
       startsWith(github.event.release.tag_name, 'bridge@')
       || startsWith(github.event.release.tag_name, 'earn@')

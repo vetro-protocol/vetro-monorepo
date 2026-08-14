@@ -1,11 +1,11 @@
+import { isAddressValid } from "@vetro-protocol/core";
 import { type Client } from "viem";
 import { readContract } from "viem/actions";
 
-import { oftAbi } from "../../abi/oftAbi.js";
-import { getLayerZeroEid } from "../../layerZeroEids.js";
-import type { MessagingFee, QuoteSendParams } from "../../types.js";
-import { addressToBytes32 } from "../../utils/addressToBytes32.js";
-import { isAddressValid } from "../../utils/isAddressValid.js";
+import { oftAbi } from "../../abi/oftAbi.ts";
+import { getLayerZeroEid } from "../../layerZeroEids.ts";
+import type { MessagingFee, QuoteSendParams } from "../../types.ts";
+import { addressToBytes32 } from "../../utils/addressToBytes32.ts";
 
 export async function quoteSend(
   client: Client,

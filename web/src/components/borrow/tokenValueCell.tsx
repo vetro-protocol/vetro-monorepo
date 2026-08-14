@@ -1,7 +1,7 @@
 import { type QueryStatus } from "@tanstack/react-query";
+import type { Token } from "@vetro-protocol/core";
 import { RenderCryptoValue } from "components/base/cryptoValue";
 import { RenderFiatValue } from "components/base/fiatValue";
-import type { Token } from "types";
 
 type Props = {
   align?: "left" | "right";

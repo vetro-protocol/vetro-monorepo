@@ -1,4 +1,4 @@
-import type { Token } from "types";
+import type { Token } from "@vetro-protocol/core";
 
 import { TokenDisplay } from "../tokenDisplay";
 

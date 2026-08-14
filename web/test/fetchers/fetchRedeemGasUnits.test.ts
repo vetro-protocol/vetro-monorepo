@@ -1,10 +1,11 @@
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
+import type { Token } from "@vetro-protocol/core";
 import { redeemDelayOptions } from "hooks/useRedeemDelay";
 import {
   treasuryReservesOptions,
   treasuryReservesQueryKey,
 } from "hooks/useTreasuryReserves";
-import type { Token, TokenWithGateway } from "types";
+import type { TokenWithGateway } from "types";
 import { zeroAddress, type Client } from "viem";
 import { estimateGas } from "viem/actions";
 import { describe, expect, it, vi } from "vitest";

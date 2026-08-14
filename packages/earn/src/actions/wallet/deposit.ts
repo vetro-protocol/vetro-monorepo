@@ -1,3 +1,4 @@
+import { isAddressValid } from "@vetro-protocol/core";
 import { EventEmitter } from "events";
 import { toPromiseEvent } from "to-promise-event";
 import {
@@ -12,9 +13,8 @@ import {
 import { waitForTransactionReceipt, writeContract } from "viem/actions";
 import { allowance, approve } from "viem-erc20/actions";
 
-import { stakingVaultAbi } from "../../abi/stakingVaultAbi.js";
-import type { DepositEvents } from "../../types.js";
-import { isAddressValid } from "../../utils/isAddressValid.js";
+import { stakingVaultAbi } from "../../abi/stakingVaultAbi.ts";
+import type { DepositEvents } from "../../types.ts";
 
 export type DepositParams = {
   approveAmount?: bigint;

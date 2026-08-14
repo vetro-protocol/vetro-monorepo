@@ -1,5 +1,6 @@
 import { useVisualViewportSize } from "@hemilabs/react-hooks/useVisualViewportSize";
 import { useWindowSize } from "@hemilabs/react-hooks/useWindowSize";
+import type { Token } from "@vetro-protocol/core";
 import { ChevronIcon } from "components/base/chevronIcon";
 import { Modal } from "components/base/modal";
 import { SearchInput } from "components/base/searchInput";
@@ -17,7 +18,6 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 import { screenBreakpoints } from "styles/breakpoints";
-import type { Token } from "types";
 
 import { EmptyState } from "./emptyState";
 import { TokenRow } from "./tokenRow";

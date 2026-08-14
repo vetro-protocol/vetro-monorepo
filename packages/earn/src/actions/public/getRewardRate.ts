@@ -1,8 +1,8 @@
+import { isAddressValid } from "@vetro-protocol/core";
 import { type Address, type Client } from "viem";
 import { readContract } from "viem/actions";
 
-import { yieldDistributorAbi } from "../../abi/yieldDistributorAbi.js";
-import { isAddressValid } from "../../utils/isAddressValid.js";
+import { yieldDistributorAbi } from "../../abi/yieldDistributorAbi.ts";
 
 export async function getRewardRate(
   client: Client,

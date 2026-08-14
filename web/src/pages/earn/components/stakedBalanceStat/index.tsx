@@ -2,6 +2,7 @@ import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { Badge } from "components/base/badge";
 import { RenderFiatValue } from "components/base/fiatValue";
+import { InfoCard } from "components/base/infoCard";
 import { TokenLogo } from "components/tokenLogo";
 import { Tooltip } from "components/tooltip";
 import { useEthereumClient } from "hooks/useEthereumClient";
@@ -16,7 +17,6 @@ import { type Address, formatUnits } from "viem";
 import { useAccount } from "wagmi";
 
 import { BoltIcon } from "../../icons/boltIcon";
-import { StatCard } from "../statCard";
 
 type PoolRowProps = {
   balance: bigint;
@@ -112,15 +112,14 @@ function FromPoolsBadge() {
 
 export function StakedBalanceStat() {
   const { t } = useTranslation();
-  const { data, isLoading } = useTotalStakedUsd();
 
   return (
-    <StatCard
-      badge={<FromPoolsBadge />}
+    <InfoCard
+      {...useTotalStakedUsd()}
       icon={<BoltIcon />}
-      isLoading={isLoading}
       label={t("pages.earn.stats.staked-balance")}
-      value={data !== undefined ? formatUsd(data) : ""}
+      render={formatUsd}
+      subtitle={<FromPoolsBadge />}
     />
   );
 }

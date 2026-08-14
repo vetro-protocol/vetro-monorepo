@@ -1,10 +1,10 @@
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
+import type { Token } from "@vetro-protocol/core";
 import { SwapToggleButton } from "components/swapForm/swapToggleButton";
 import { TokenInput } from "components/tokenInput";
 import { Balance } from "components/tokenInput/balance";
 import type { FormEvent, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import type { Token } from "types";
 import { formatAmount } from "utils/token";
 
 import { BridgeTokenFiatValue } from "./bridgeTokenFiatValue";

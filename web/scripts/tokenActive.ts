@@ -1,3 +1,9 @@
+import { gatewayAbi, gatewayAddresses } from "@vetro-protocol/gateway";
+import { getTreasury } from "@vetro-protocol/gateway/actions";
+import {
+  getKeeperRole,
+  getTokenConfig,
+} from "@vetro-protocol/treasury/actions";
 import { parseArgs } from "node:util";
 import {
   type Address,
@@ -5,9 +11,7 @@ import {
   createTestClient,
   http,
   isAddress,
-  keccak256,
   parseEther,
-  stringToBytes,
 } from "viem";
 import {
   impersonateAccount,
@@ -18,13 +22,7 @@ import {
 } from "viem/actions";
 import { mainnet } from "viem/chains";
 
-import { gatewayAbi } from "../../packages/gateway/src/abi/gatewayAbi.ts";
-import { gatewayAddresses } from "../../packages/gateway/src/gatewayAddresses.ts";
-import { treasuryAbi } from "../../packages/treasury/src/abi/treasuryAbi.ts";
-
 import { confirmTransaction } from "./utils.ts";
-
-const KEEPER_ROLE = keccak256(stringToBytes("KEEPER_ROLE"));
 
 const treasuryWriteAbi = [
   {
@@ -105,22 +103,13 @@ export async function setTokenActive({
       address: gateway,
       functionName: "owner",
     }),
-    readContract(publicClient, {
-      abi: gatewayAbi,
-      address: gateway,
-      functionName: "treasury",
-    }),
+    getTreasury(publicClient, { address: gateway }),
   ]);
 
   const readActive = async function () {
-    const [, , , depositActive, withdrawActive] = await readContract(
+    const [, , , depositActive, withdrawActive] = await getTokenConfig(
       publicClient,
-      {
-        abi: treasuryAbi,
-        address: treasury,
-        args: [token],
-        functionName: "tokenConfig",
-      },
+      { address: treasury, token },
     );
     return flag === "deposit" ? depositActive : withdrawActive;
   };
@@ -135,10 +124,11 @@ export async function setTokenActive({
   await setBalance(testClient, { address: owner, value: parseEther("1") });
 
   try {
+    const keeperRole = await getKeeperRole(publicClient, { address: treasury });
     const ownerHasRole = await readContract(publicClient, {
       abi: treasuryWriteAbi,
       address: treasury,
-      args: [KEEPER_ROLE, owner],
+      args: [keeperRole, owner],
       functionName: "hasRole",
     });
 
@@ -147,7 +137,7 @@ export async function setTokenActive({
         abi: treasuryWriteAbi,
         account: owner,
         address: treasury,
-        args: [KEEPER_ROLE, owner],
+        args: [keeperRole, owner],
         functionName: "grantRole",
       });
       await confirmTransaction({ client: publicClient, hash: grantHash });

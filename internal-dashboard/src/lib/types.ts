@@ -67,6 +67,12 @@ export type TrackedToken = {
   symbol: string;
 };
 
+export type WhitelistedToken = {
+  address: Address;
+  decimals: number;
+  symbol: string;
+};
+
 export type GaugeEmission = {
   estCrvPerDay: number; // estimated CRV directed to this gauge per day
   inflationRate: number; // network-wide CRV emitted per second

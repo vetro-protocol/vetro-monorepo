@@ -6,7 +6,8 @@
   "files": [
     "LICENSE",
     "README.md",
-    "_esm"
+    "_esm",
+    "src"
   ],
   "bin": {
     "vetro-cli": "./_esm/cli.js"
@@ -18,11 +19,12 @@
   },
   "scripts": {
     "build": "tsc --noEmit",
-    "bundle": "node esbuild.ts",
+    "postbuild": "pnpm bundle",
+    "bundle": "node esbuild.js",
     "clean": "rm -rf ./_esm",
     "prepack": "cp ../../LICENSE LICENSE",
     "postpack": "rm -f LICENSE",
-    "prepublishOnly": "pnpm clean && pnpm bundle",
+    "prepublishOnly": "pnpm clean && pnpm build",
     "test": "vitest run --project unit",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "vitest run --project e2e"

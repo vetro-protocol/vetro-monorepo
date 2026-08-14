@@ -7,12 +7,20 @@
 
 ## Local development
 
-To test it locally, bundle and then consume it from the terminal.
+Run it straight from the source, with no build step:
+
+```sh
+node packages/cli/src/cli.ts swap pegged-token --gateway 0x...
+```
+
+To run the bundled bin instead:
 
 ```sh
 pnpm --filter @vetro-protocol/cli bundle   # produces _esm/cli.js (the vetro-cli bin)
 node packages/cli/_esm/cli.js swap pegged-token --gateway 0x...
 ```
+
+The `@vetro-protocol/*` packages are external to that bundle, and inside the monorepo they resolve to workspace source, so this exercises the bundled entrypoint rather than what an npm consumer gets. To check that, pack the tarball and install it in a scratch project.
 
 ## Configuration
 
@@ -90,6 +98,7 @@ This is the list of commands available
 | Command                                                   | Reads            | Returns                                                                                                                                                                 |
 | --------------------------------------------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `vetro-cli swap allowance --token <tok> --account <addr>` | `allowance`      | Gateway's spending allowance, in human units. `<tok>` may be a whitelisted token (swap-in) or a pegged token (one-step swap-out; the two-step queue needs no allowance) |
+| `vetro-cli swap mint-fee --token <tok>`                   | `getMintFee`     | Mint fee charged on a deposit of the whitelisted `<tok>`, in bps                                                                                                        |
 | `vetro-cli swap pegged-token --gateway <addr>`            | `getPeggedToken` | Gateway's pegged-token address                                                                                                                                          |
 | `vetro-cli swap treasury --gateway <addr>`                | `getTreasury`    | Gateway's treasury address                                                                                                                                              |
 

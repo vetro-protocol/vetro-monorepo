@@ -41,6 +41,7 @@ The same actions are also available via the `.extend()` factory (`treasuryPublic
 ## API
 
 - Public actions (reads):
+  - `getKeeperRole(client, params)` — the `bytes32` hash of the treasury's keeper role.
   - `getPrice(client, params)` — oracle price for a whitelisted token, in the treasury's peg unit.
   - `getTokenConfig(client, params)` — per-token configuration struct.
   - `getWhitelistedTokens(client, params)` — full list of accepted underlying tokens.

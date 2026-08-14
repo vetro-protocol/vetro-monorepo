@@ -12,38 +12,38 @@ import {
   getRewardRate,
   getTotalAssetsInCooldown,
   getYieldDistributor,
-} from "./actions/public/index.js";
+} from "./actions/public/index.ts";
 import {
   type CancelWithdrawParams,
   cancelWithdraw,
-} from "./actions/wallet/cancelWithdraw.js";
+} from "./actions/wallet/cancelWithdraw.ts";
 import {
   type ClaimWithdrawParams,
   claimWithdraw,
-} from "./actions/wallet/claimWithdraw.js";
+} from "./actions/wallet/claimWithdraw.ts";
 import {
   type ClaimWithdrawBatchParams,
   claimWithdrawBatch,
-} from "./actions/wallet/claimWithdrawBatch.js";
-import { type DepositParams, deposit } from "./actions/wallet/deposit.js";
+} from "./actions/wallet/claimWithdrawBatch.ts";
+import { type DepositParams, deposit } from "./actions/wallet/deposit.ts";
 import {
   type RequestRedeemParams,
   requestRedeem,
-} from "./actions/wallet/requestRedeem.js";
+} from "./actions/wallet/requestRedeem.ts";
 import {
   type RequestWithdrawParams,
   requestWithdraw,
-} from "./actions/wallet/requestWithdraw.js";
+} from "./actions/wallet/requestWithdraw.ts";
 
 // Export ABI
-export { stakingVaultAbi } from "./abi/stakingVaultAbi.js";
+export { stakingVaultAbi } from "./abi/stakingVaultAbi.ts";
 
 // Export staking vault addresses
 export {
   sVetBtcAddress,
   sVusdAddress,
   stakingVaultAddresses,
-} from "./stakingVaultAddresses.js";
+} from "./stakingVaultAddresses.ts";
 
 // Export types
 export type {
@@ -54,7 +54,7 @@ export type {
   DepositEvents,
   RequestRedeemEvents,
   RequestWithdrawEvents,
-} from "./types.js";
+} from "./types.ts";
 
 // Export factory functions for .extend() pattern
 export const earnPublicActions = () => (client: Client) => ({
