@@ -57,13 +57,6 @@ export function PoolInfoBar({ stakingVaultAddress }: Props) {
           data={formatApy()}
           isPending={isPendingApy}
           label={t("pages.earn.pool-info.apy")}
-          render={(formattedApy) => (
-            <div className="flex items-center gap-1">
-              <span className="text-xsm font-semibold text-gray-900">
-                {formattedApy}
-              </span>
-            </div>
-          )}
         />
         <PoolInfoStakedAmount stakingVaultAddress={stakingVaultAddress} />
       </div>
