@@ -220,7 +220,10 @@ async function stakeVusd(assets: bigint) {
     args: [assets, TEST_ADDRESS],
     functionName: "deposit",
   });
-  await waitForTransactionReceipt(walletClient, { hash: depositHash });
+  const receipt = await waitForTransactionReceipt(walletClient, {
+    hash: depositHash,
+  });
+  expect(receipt.status).toBe("success");
 }
 
 test("withdraw VUSD from the Earn pool (whitelisted one-step exit)", async function ({
@@ -603,6 +606,11 @@ test("delete an exit ticket while it is in cooldown", async function ({
       address: sVusdAddress,
     }),
   ]);
+
+  // One block after the deposit, the gas estimate still sees a zero yield drip
+  // while the mined tx sees a non-zero one — the request then runs out of gas.
+  // Forwarding the clock puts both on the same side of the drip.
+  await fastForwardTime({ forkUrl: ANVIL_URL, seconds: 60 });
 
   const { assets, claimableAt, requestId, requestTxHash, shares } =
     await requestWithdrawVusd(WITHDRAW_AMOUNT);
