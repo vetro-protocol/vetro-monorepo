@@ -3,7 +3,14 @@ import { useState } from "react";
 
 import { SearchInput } from "../src/components/base/searchInput";
 
+const placeholder = "Search token name or address...";
+
 const meta = {
+  args: {
+    onChange: () => undefined,
+    placeholder,
+    value: "",
+  },
   component: SearchInput,
   title: "Components/SearchInput",
 } satisfies Meta<typeof SearchInput>;
@@ -12,12 +19,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-const placeholder = "Search token name or address...";
-
 export const Default: Story = {
-  args: {
-    placeholder,
-  },
   render: function Render(args) {
     const [value, setValue] = useState("");
 
@@ -30,9 +32,6 @@ export const Default: Story = {
 };
 
 export const Filled: Story = {
-  args: {
-    placeholder,
-  },
   render: function Render(args) {
     const [value, setValue] = useState("USDC");
 
@@ -45,9 +44,6 @@ export const Filled: Story = {
 };
 
 export const States: Story = {
-  args: {
-    placeholder,
-  },
   render: function Render(args) {
     const [empty, setEmpty] = useState("");
     const [filled, setFilled] = useState("USDC");

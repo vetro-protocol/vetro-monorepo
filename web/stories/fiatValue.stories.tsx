@@ -2,8 +2,10 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { Token } from "@vetro-protocol/core";
 import { parseUnits } from "viem";
+import { createConfig, http, WagmiProvider } from "wagmi";
 
 import { RenderFiatValue } from "../src/components/base/fiatValue";
+import { mainnet } from "../src/networks/mainnet";
 
 const usdc: Token = {
   address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
@@ -14,22 +16,36 @@ const usdc: Token = {
   symbol: "USDC",
 };
 
-const createQueryClient = function (prices?: Record<string, string>) {
-  const client = new QueryClient({
+const wagmiConfig = createConfig({
+  chains: [mainnet],
+  transports: { [mainnet.id]: http() },
+});
+
+const createQueryClient = function () {
+  const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
         retry: false,
       },
     },
   });
-  if (prices) {
-    client.setQueryData(["token-price"], prices);
-  }
-  return client;
+  queryClient.setQueryData(["prices", mainnet.id], { USDC: "1.00" });
+  return queryClient;
 };
+
+const queryClient = createQueryClient();
 
 const meta = {
   component: RenderFiatValue,
+  decorators: [
+    (Story) => (
+      <WagmiProvider config={wagmiConfig}>
+        <QueryClientProvider client={queryClient}>
+          <Story />
+        </QueryClientProvider>
+      </WagmiProvider>
+    ),
+  ],
   title: "Components/FiatValue",
 } satisfies Meta<typeof RenderFiatValue>;
 
@@ -43,13 +59,6 @@ export const WithValue: StoryType = {
     token: usdc,
     value: parseUnits("125.50", usdc.decimals),
   },
-  decorators: [
-    (Story) => (
-      <QueryClientProvider client={createQueryClient({ USDC: "1.00" })}>
-        <Story />
-      </QueryClientProvider>
-    ),
-  ],
 };
 
 export const Loading: StoryType = {
@@ -58,13 +67,6 @@ export const Loading: StoryType = {
     token: usdc,
     value: undefined,
   },
-  decorators: [
-    (Story) => (
-      <QueryClientProvider client={createQueryClient()}>
-        <Story />
-      </QueryClientProvider>
-    ),
-  ],
 };
 
 export const Error: StoryType = {
@@ -73,11 +75,4 @@ export const Error: StoryType = {
     token: usdc,
     value: undefined,
   },
-  decorators: [
-    (Story) => (
-      <QueryClientProvider client={createQueryClient()}>
-        <Story />
-      </QueryClientProvider>
-    ),
-  ],
 };
