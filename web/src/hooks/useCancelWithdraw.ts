@@ -7,7 +7,7 @@ import { cancelWithdraw } from "@vetro-protocol/earn/actions";
 import { exitTicketsQueryKey } from "pages/earn/hooks/useExitTickets";
 import type { ExitTicket } from "pages/earn/types";
 import { type CostBases, bumpCostBasis } from "utils/costBasis";
-import type { Address } from "viem";
+import { type Address, isAddressEqual } from "viem";
 import { useAccount } from "wagmi";
 
 import { costBasisQueryKey } from "./useCostBasis";
@@ -92,11 +92,15 @@ export const useCancelWithdraw = function ({
         updateNativeBalanceAfterReceipt(receipt);
         onStatusChange("completed");
 
-        // Optimistically remove ticket from cache
+        // Optimistically remove ticket from cache.
         queryClient.setQueryData(
           exitTicketsQueryKey(account),
           (old: ExitTicket[] | undefined) =>
-            (old ?? []).filter((t) => t.requestId !== requestId.toString()),
+            (old ?? []).filter(
+              (t) =>
+                !isAddressEqual(t.stakingVaultAddress, stakingVaultAddress) ||
+                t.requestId !== requestId.toString(),
+            ),
         );
 
         // Optimistically add assets back to staked balance
