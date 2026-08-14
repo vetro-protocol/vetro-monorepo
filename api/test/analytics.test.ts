@@ -25,12 +25,13 @@ import {
 } from "../src/analytics.ts";
 import { findStakingVaultForPeggedToken } from "../src/staking-vault.ts";
 
-vi.mock("../src/mainnet-client.ts", () => ({
-  createMainnetClient: vi.fn(() => ({})),
-}));
-
 vi.mock("../src/staking-vault.ts", () => ({
   findStakingVaultForPeggedToken: vi.fn(),
+}));
+
+vi.mock("@vetro-protocol/core", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@vetro-protocol/core")>()),
+  createMainnetClient: vi.fn(() => ({})),
 }));
 
 vi.mock("@vetro-protocol/earn/actions", () => ({

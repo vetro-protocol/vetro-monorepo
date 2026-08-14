@@ -1,6 +1,5 @@
+import { updateRpcUrls } from "@vetro-protocol/core";
 import { mainnet as mainnetDefinition } from "viem/chains";
-
-import { updateRpcUrls } from "./updateRpcUrls";
 
 export const mainnet = updateRpcUrls(
   mainnetDefinition,

@@ -58,3 +58,27 @@ isAddressValid(address: Address | undefined): address is Address;
 ```
 
 Narrows to `Address`, rejecting `undefined`, malformed values, failed checksums, and the zero address.
+
+### `updateRpcUrls`
+
+```ts
+updateRpcUrls(chain: Chain, rpcUrlEnv?: string): Chain;
+```
+
+Overrides a chain's default RPC URLs from an env var holding a single URL, or several joined by `+`. Invalid entries are dropped; if none are left, the chain is returned untouched.
+
+### `createRpcTransport`
+
+```ts
+createRpcTransport(chain: Chain): FallbackTransport | HttpTransport;
+```
+
+Builds a chain's transport from its configured RPC URLs: several URLs become a viem `fallback` transport, so a failing or rate-limited endpoint rolls over to the next one; a single URL becomes a plain `http` transport. Both batch concurrent calls into one JSON-RPC request.
+
+### `createMainnetClient`
+
+```ts
+createMainnetClient(rpcUrl: string | undefined): PublicClient;
+```
+
+An Ethereum mainnet public client built from `updateRpcUrls` + `createRpcTransport`, with Multicall3 read aggregation enabled.

@@ -1,3 +1,4 @@
+import { createMainnetClient } from "@vetro-protocol/core";
 import { getYieldDistributor } from "@vetro-protocol/earn/actions";
 import { gatewayAddresses } from "@vetro-protocol/gateway";
 import {
@@ -15,7 +16,6 @@ import { decimals, totalSupply } from "viem-erc20/actions";
 import { balanceOf, previewRedeem, totalAssets } from "viem-erc4626/actions";
 
 import { getPrice } from "./chainlink.ts";
-import { createMainnetClient } from "./mainnet-client.ts";
 import { findStakingVaultForPeggedToken } from "./staking-vault.ts";
 import {
   getStrategies,

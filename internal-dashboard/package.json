@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "5.90.19",
+    "@vetro-protocol/core": "workspace:*",
     "@vetro-protocol/earn": "workspace:*",
     "@vetro-protocol/gateway": "workspace:*",
     "@vetro-protocol/treasury": "workspace:*",
