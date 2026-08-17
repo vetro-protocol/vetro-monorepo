@@ -6,10 +6,25 @@ import {
 } from "@tanstack/react-query";
 import { gatewayAddresses } from "@vetro-protocol/gateway";
 import type { TokenWithGateway } from "types";
+import { graphPeggedToken } from "utils/protocolGraph";
 import type { Address, Client } from "viem";
 
 import { useEthereumClient } from "./useEthereumClient";
 import { peggedTokenQueryOptions } from "./usePeggedToken";
+
+const graphTokensByGateway = function () {
+  const tokens: Record<Address, TokenWithGateway> = {};
+  for (const gatewayAddress of gatewayAddresses) {
+    const token = graphPeggedToken(gatewayAddress);
+    if (!token) {
+      return undefined;
+    }
+    tokens[gatewayAddress] = token;
+  }
+  return tokens;
+};
+
+const placeholderData = graphTokensByGateway();
 
 export const peggedTokensByGatewayQueryOptions = ({
   client,
@@ -20,6 +35,7 @@ export const peggedTokensByGatewayQueryOptions = ({
 }) =>
   queryOptions({
     enabled: !!client,
+    placeholderData,
     queryFn: () =>
       Promise.all(
         gatewayAddresses.map((gatewayAddress) =>
@@ -27,7 +43,6 @@ export const peggedTokensByGatewayQueryOptions = ({
             peggedTokenQueryOptions({
               client: client!,
               gatewayAddress,
-              queryClient,
             }),
           ),
         ),

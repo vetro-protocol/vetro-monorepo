@@ -3,6 +3,7 @@ import { useEthereumClient } from "hooks/useEthereumClient";
 import { stakingVaultForPeggedTokenOptions } from "hooks/useStakingVaultForPeggedToken";
 import { tokenInfoOptions } from "hooks/useTokenInfo";
 import type { TokenWithGateway } from "types";
+import { graphShareToken } from "utils/protocolGraph";
 import type { Client } from "viem";
 
 const shareTokenForPeggedTokenOptions = ({
@@ -14,6 +15,9 @@ const shareTokenForPeggedTokenOptions = ({
 }) =>
   queryOptions({
     enabled: !!client && !!peggedToken,
+    placeholderData: peggedToken
+      ? graphShareToken(peggedToken.address)
+      : undefined,
     async queryFn({ client: queryClient }) {
       const stakingVaultAddress = await queryClient.ensureQueryData(
         stakingVaultForPeggedTokenOptions({

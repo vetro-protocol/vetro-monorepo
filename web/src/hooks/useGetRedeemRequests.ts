@@ -44,7 +44,6 @@ export const useGetRedeemRequests = function () {
               peggedTokenQueryOptions({
                 client,
                 gatewayAddress,
-                queryClient,
               }),
             ),
           ]);
