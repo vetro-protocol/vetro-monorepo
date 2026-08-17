@@ -39,7 +39,7 @@ test.describe("the protocol graph agrees with the chain", function () {
         });
         expect(
           getAddress(vaultAsset),
-          `Staking vault ${gateway.stakingVault} for gateway ${gateway.address} don't match their asset and pegged token.`,
+          `Staking vault ${gateway.stakingVault} for gateway ${gateway.address} does not match its asset and pegged token.`,
         ).toBe(gateway.peggedToken);
       }
     });
