@@ -21,19 +21,14 @@ const wagmiConfig = createConfig({
   transports: { [mainnet.id]: http() },
 });
 
-const createQueryClient = function () {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false,
-      },
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
     },
-  });
-  queryClient.setQueryData(["prices", mainnet.id], { USDC: "1.00" });
-  return queryClient;
-};
-
-const queryClient = createQueryClient();
+  },
+});
+queryClient.setQueryData(["prices", mainnet.id], { USDC: "1.00" });
 
 const meta = {
   component: RenderFiatValue,
