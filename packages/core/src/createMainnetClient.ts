@@ -7,5 +7,7 @@ import { updateRpcUrls } from "./utils/updateRpcUrls.ts";
  * Create a viem public client for Ethereum mainnet, reading the RPC endpoints
  * from an env var value. See `updateRpcUrls` for the accepted formats.
  */
-export const createMainnetClient = (rpcUrlEnv: string | undefined) =>
+export const createMainnetClient = (
+  rpcUrlEnv: string | undefined,
+): ReturnType<typeof createChainClient> =>
   createChainClient(updateRpcUrls(mainnet, rpcUrlEnv));
