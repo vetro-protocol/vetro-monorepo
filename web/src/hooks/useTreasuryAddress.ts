@@ -1,6 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
 import { getTreasury } from "@vetro-protocol/gateway/actions";
-import { graphTreasury } from "utils/protocolGraph";
 import type { Address, Chain, Client } from "viem";
 
 export const treasuryAddressOptions = ({
@@ -14,7 +13,6 @@ export const treasuryAddressOptions = ({
 }) =>
   queryOptions({
     enabled: !!client,
-    placeholderData: graphTreasury(gatewayAddress),
     queryFn: () => getTreasury(client!, { address: gatewayAddress }),
     queryKey: ["treasury-address", chainId, gatewayAddress],
     staleTime: Infinity,

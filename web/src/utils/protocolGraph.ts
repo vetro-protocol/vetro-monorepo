@@ -23,9 +23,6 @@ const withGateway = function ({
   return token ? { ...token, gatewayAddress } : undefined;
 };
 
-export const graphTreasury = (gatewayAddress: Address) =>
-  graphFor(gatewayAddress)?.treasury;
-
 export const graphPeggedToken = function (gatewayAddress: Address) {
   const peggedToken = graphFor(gatewayAddress)?.peggedToken;
   return peggedToken
@@ -52,9 +49,6 @@ const graphForVault = (stakingVaultAddress: Address) =>
       gateway.stakingVault !== undefined &&
       isAddressEqual(gateway.stakingVault, stakingVaultAddress),
   );
-
-export const graphVaultAsset = (stakingVaultAddress: Address) =>
-  graphForVault(stakingVaultAddress)?.peggedToken;
 
 export const graphShareToken = function (peggedTokenAddress: Address) {
   const gateway = gateways.find((candidate) =>
