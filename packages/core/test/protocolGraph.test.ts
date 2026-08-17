@@ -51,16 +51,20 @@ describe("gateways", function () {
     },
   );
 
-  // The app builds `placeholderData` for the token selector out of the graph
-  // plus `knownTokens`. A token missing from `knownTokens` has no metadata, so
-  // the selector falls back to reading the chain and the graph gains nothing.
+  // The app builds `placeholderData` out of the graph plus `knownTokens`: the
+  // token selector from the pegged and whitelisted tokens, the Analytics share
+  // token from the staking vault. A token missing from `knownTokens` has no
+  // metadata, so that query falls back to reading the chain and the graph
+  // gains nothing.
   it.for(gateways)(
     "$address should have metadata for every token",
     function (gateway) {
       expect(
-        [gateway.peggedToken, ...gateway.whitelistedTokens].filter(
-          (address) => !isKnownOnMainnet(address),
-        ),
+        [
+          gateway.peggedToken,
+          ...gateway.whitelistedTokens,
+          ...(gateway.stakingVault ? [gateway.stakingVault] : []),
+        ].filter((address) => !isKnownOnMainnet(address)),
       ).toEqual([]);
     },
   );
