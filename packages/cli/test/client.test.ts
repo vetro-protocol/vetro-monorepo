@@ -5,20 +5,26 @@ import { createVetroClient } from "../src/lib/client.ts";
 
 const rpcUrl = "https://rpc.example";
 
+// The transport batches, so it sends a JSON-RPC array and expects one back.
 const stubEndpointOnChain = (chainId: number) =>
   vi.stubGlobal(
     "fetch",
-    vi.fn(
-      async () =>
-        new Response(
-          JSON.stringify({
-            id: 1,
-            jsonrpc: "2.0",
-            result: numberToHex(chainId),
-          }),
-          { headers: { "Content-Type": "application/json" } },
+    vi.fn(async function (_url: string, { body }: RequestInit) {
+      const request = JSON.parse(String(body)) as
+        | { id: number }[]
+        | { id: number };
+      const respond = ({ id }: { id: number }) => ({
+        id,
+        jsonrpc: "2.0",
+        result: numberToHex(chainId),
+      });
+      return new Response(
+        JSON.stringify(
+          Array.isArray(request) ? request.map(respond) : respond(request),
         ),
-    ),
+        { headers: { "Content-Type": "application/json" } },
+      );
+    }),
   );
 
 describe("createVetroClient", function () {

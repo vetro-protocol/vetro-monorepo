@@ -1,4 +1,4 @@
-import { createPublicClient, http } from "viem";
+import { createMainnetClient } from "@vetro-protocol/core";
 import { getChainId } from "viem/actions";
 import { mainnet } from "viem/chains";
 
@@ -9,11 +9,7 @@ const localChainId = 31337;
 const supportedChainIds = [mainnet.id, localChainId];
 
 export async function createVetroClient({ rpcUrl }: GlobalOptions) {
-  const client = createPublicClient({
-    batch: { multicall: true },
-    chain: mainnet,
-    transport: http(rpcUrl),
-  });
+  const client = createMainnetClient(rpcUrl);
 
   const chainId = await getChainId(client);
   if (!supportedChainIds.includes(chainId)) {
