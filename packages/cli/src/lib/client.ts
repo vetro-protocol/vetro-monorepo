@@ -1,4 +1,5 @@
-import { createMainnetClient } from "@vetro-protocol/core";
+import { createChainClient } from "@vetro-protocol/core";
+import { defineChain } from "viem";
 import { getChainId } from "viem/actions";
 import { mainnet } from "viem/chains";
 
@@ -8,8 +9,11 @@ export type GlobalOptions = { rpcUrl?: string };
 const localChainId = 31337;
 const supportedChainIds = [mainnet.id, localChainId];
 
+const mainnetOn = (rpcUrl: string) =>
+  defineChain({ ...mainnet, rpcUrls: { default: { http: [rpcUrl] } } });
+
 export async function createVetroClient({ rpcUrl }: GlobalOptions) {
-  const client = createMainnetClient(rpcUrl);
+  const client = createChainClient(rpcUrl ? mainnetOn(rpcUrl) : mainnet);
 
   const chainId = await getChainId(client);
   if (!supportedChainIds.includes(chainId)) {
