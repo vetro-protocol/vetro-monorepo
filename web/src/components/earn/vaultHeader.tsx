@@ -19,7 +19,7 @@ export const VaultHeader = ({
       className="absolute top-1/2 left-1/2 size-70 -translate-x-1/2 -translate-y-1/2 opacity-5 lg:size-100"
       src={peggedToken.logoURI}
     />
-    <h1 className="text-h1 relative flex flex-col items-center gap-2 text-center sm:flex-row sm:gap-4">
+    <h1 className="relative flex flex-col items-center gap-2 text-center sm:flex-row sm:gap-4">
       <span className="flex items-center gap-4">
         <span aria-hidden="true" className="flex shrink-0">
           <TokenLogo {...peggedToken} size="xLarge" />
