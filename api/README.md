@@ -266,7 +266,6 @@ Returns all user's variable stake exit tickets to i.e. allow claiming the withdr
 ```jsonc
 [
   {
-    "id": "0x...",
     "requestId": "1",
     "requestTxHash": "0x0000000000000000000000000000000000000000000000000000000000000001",
     "stakingVaultAddress": "0x0000000000000000000000000000000000000002",

@@ -228,7 +228,6 @@ type ExitTicket = {
   cancelTxHash?: Hash;
   claimableAt: number;
   claimTxHash?: Hash;
-  id: string;
   owner: Address;
   receiver?: Address;
   requestId: string;
