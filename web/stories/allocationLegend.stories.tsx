@@ -1,8 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { AllocationLegend } from "../src/pages/analytics/components/allocationCard/allocationLegend";
+import { formatUsd } from "../src/utils/currency";
 
 const meta = {
+  args: {
+    formatAmount: formatUsd,
+  },
   component: AllocationLegend,
   title: "Analytics/AllocationLegend",
 } satisfies Meta<typeof AllocationLegend>;
