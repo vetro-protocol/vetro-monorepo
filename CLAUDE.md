@@ -33,4 +33,6 @@ The `web/` app exposes the Swap, Earn, Borrow, Bridge, and Analytics pages. The 
 
 ### API project
 
+Return every address in the checksummed format. External sources — subgraphs, third-party APIs — may return addresses in lowercase, so convert them with `checksumAddress` from `viem` before they go into a response.
+
 When changing the API in `api/src/` in a way that affects external behavior — adding, removing, or modifying an endpoint's URL, params, response shape, sample data, or error semantics — review and update `api/README.md` in the same change. Code is the source of truth; the README must reflect it.
