@@ -261,6 +261,8 @@ Returns a summary of the exit tickets queue for the gateway's staking vault: the
 
 Returns all user's variable stake exit tickets to i.e. allow claiming the withdrawn pegged token.
 
+The `owner`, `receiver` and `stakingVaultAddress` fields are returned in the checksummed format.
+
 #### Sample Response
 
 ```jsonc

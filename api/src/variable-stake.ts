@@ -279,7 +279,14 @@ export async function getUserExitTickets({
       `Got exactly 100 exit tickets for ${address}. Implement pagination!`,
     );
   }
-  return exitTickets;
+  return exitTickets.map((ticket) => ({
+    ...ticket,
+    owner: checksumAddress(ticket.owner),
+    receiver: ticket.receiver
+      ? checksumAddress(ticket.receiver)
+      : ticket.receiver,
+    stakingVaultAddress: checksumAddress(ticket.stakingVaultAddress),
+  }));
 }
 
 /**

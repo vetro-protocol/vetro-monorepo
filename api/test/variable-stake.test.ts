@@ -14,7 +14,12 @@ import { describe, expect, it, vi } from "vitest";
 
 import * as graphql from "../src/graphql.ts";
 import * as merkl from "../src/merkl.ts";
-import { getApy, getCostBasis, getUserRewards } from "../src/variable-stake.ts";
+import {
+  getApy,
+  getCostBasis,
+  getUserExitTickets,
+  getUserRewards,
+} from "../src/variable-stake.ts";
 
 vi.mock("../src/graphql.ts", () => ({
   runQuery: vi.fn(),
@@ -478,5 +483,59 @@ describe("variable-stake/getCostBasis", function () {
     expect(result[sVusdAddress]).toBe(10n ** 18n);
     // 8e36 / 1e18 = 8e18
     expect(result[sVetBtcAddress]).toBe(8n * 10n ** 18n);
+  });
+});
+
+describe("variable-stake/getUserExitTickets", function () {
+  const owner: Address = "0x2f1f8B6D6b5A09b6a0a1A9A1d8B2eA3D0e7b1a4c";
+  const receiver: Address = "0x9AE1D5c2B3B0F7A6C5d4E3f2A1b0c9d8e7f6A5B4";
+  const subgraphUrl = "https://subgraph.test";
+
+  const subgraphTicket = (overrides = {}) => ({
+    assets: "1050000000000000000",
+    claimableAt: 1_700_000_000,
+    owner: owner.toLowerCase(),
+    requestId: "1",
+    requestTxHash: `0x${"1".repeat(64)}`,
+    shares: "1000000000000000000",
+    stakingVaultAddress: sVusdAddress.toLowerCase(),
+    ...overrides,
+  });
+
+  it("returns the addresses in checksummed format", async function () {
+    const exitTicket = subgraphTicket({ receiver: receiver.toLowerCase() });
+    vi.mocked(graphql.runQuery).mockResolvedValue({
+      exitTickets: [exitTicket],
+    });
+
+    const [ticket] = await getUserExitTickets({
+      address: owner,
+      url: subgraphUrl,
+    });
+
+    expect(ticket).toEqual({
+      ...exitTicket,
+      owner,
+      receiver,
+      stakingVaultAddress: sVusdAddress,
+    });
+  });
+
+  it("keeps a null receiver as is", async function () {
+    const exitTicket = subgraphTicket({ receiver: null });
+    vi.mocked(graphql.runQuery).mockResolvedValue({
+      exitTickets: [exitTicket],
+    });
+
+    const [ticket] = await getUserExitTickets({
+      address: owner,
+      url: subgraphUrl,
+    });
+
+    expect(ticket).toEqual({
+      ...exitTicket,
+      owner,
+      stakingVaultAddress: sVusdAddress,
+    });
   });
 });
