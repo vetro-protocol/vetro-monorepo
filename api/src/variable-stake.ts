@@ -225,11 +225,11 @@ export async function getUserRewards({
 
 type ExitTicket = {
   assets: string;
-  cancelTxHash?: Hash;
+  cancelTxHash?: Hash | null;
   claimableAt: number;
-  claimTxHash?: Hash;
+  claimTxHash?: Hash | null;
   owner: Address;
-  receiver?: Address;
+  receiver?: Address | null;
   requestId: string;
   requestTxHash: Hash;
   shares: string;
