@@ -1,3 +1,4 @@
+export { createChainClient } from "./createChainClient.ts";
 export { createMainnetClient } from "./createMainnetClient.ts";
 export { createRpcTransport } from "./createRpcTransport.ts";
 export { gatewayAddresses, gateways } from "./protocolGraph.ts";

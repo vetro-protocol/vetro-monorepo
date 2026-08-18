@@ -5,9 +5,18 @@ import { register as approve } from "./commands/approve.ts";
 import { register as mint } from "./commands/mint.ts";
 import { register as mintFee } from "./commands/mintFee.ts";
 import { register as peggedToken } from "./commands/peggedToken.ts";
+import { register as redeemFee } from "./commands/redeemFee.ts";
 import { register as treasury } from "./commands/treasury.ts";
 
-const swapCommands = [allowance, approve, mint, mintFee, peggedToken, treasury];
+const swapCommands = [
+  allowance,
+  approve,
+  mint,
+  mintFee,
+  peggedToken,
+  redeemFee,
+  treasury,
+];
 
 export function register(program: Command) {
   const swap = program
