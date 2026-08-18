@@ -261,7 +261,7 @@ Returns a summary of the exit tickets queue for the gateway's staking vault: the
 
 Returns all user's variable stake exit tickets to i.e. allow claiming the withdrawn pegged token.
 
-The `owner`, `receiver` and `stakingVaultAddress` fields are returned in the checksummed format.
+The `owner` and `stakingVaultAddress` fields are returned in the checksummed format.
 
 #### Sample Response
 
@@ -275,7 +275,8 @@ The `owner`, `receiver` and `stakingVaultAddress` fields are returned in the che
     "assets": "1050000000000000000",
     "shares": "1000000000000000000",
     "claimableAt": 1700000000,
-    // Optionally: cancelTxHash, claimTxHash and receiver address
+    "cancelTxHash": "0x0000000000000000000000000000000000000000000000000000000000000003", // set once the ticket is cancelled
+    "claimTxHash": "0x0000000000000000000000000000000000000000000000000000000000000004", // set once the ticket is claimed
   },
 ]
 ```

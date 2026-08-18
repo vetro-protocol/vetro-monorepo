@@ -229,7 +229,6 @@ type ExitTicket = {
   claimableAt: number;
   claimTxHash?: Hash | null;
   owner: Address;
-  receiver?: Address | null;
   requestId: string;
   requestTxHash: Hash;
   shares: string;
@@ -257,7 +256,6 @@ export async function getUserExitTickets({
         claimableAt
         claimTxHash
         owner
-        receiver
         requestId
         requestTxHash
         shares
@@ -282,9 +280,6 @@ export async function getUserExitTickets({
   return exitTickets.map((ticket) => ({
     ...ticket,
     owner: checksumAddress(ticket.owner),
-    receiver: ticket.receiver
-      ? checksumAddress(ticket.receiver)
-      : ticket.receiver,
     stakingVaultAddress: checksumAddress(ticket.stakingVaultAddress),
   }));
 }
