@@ -263,6 +263,10 @@ Returns all user's variable stake exit tickets to i.e. allow claiming the withdr
 
 The `owner` and `stakingVaultAddress` fields are returned in the checksummed format.
 
+The `cancelTxHash` and `claimTxHash` fields are optional and mutually exclusive: a
+ticket in cooldown or ready to claim has neither, a cancelled ticket has
+`cancelTxHash` and a claimed ticket has `claimTxHash`.
+
 #### Sample Response
 
 ```jsonc
@@ -275,8 +279,7 @@ The `owner` and `stakingVaultAddress` fields are returned in the checksummed for
     "assets": "1050000000000000000",
     "shares": "1000000000000000000",
     "claimableAt": 1700000000,
-    "cancelTxHash": "0x0000000000000000000000000000000000000000000000000000000000000003", // set once the ticket is cancelled
-    "claimTxHash": "0x0000000000000000000000000000000000000000000000000000000000000004", // set once the ticket is claimed
+    "claimTxHash": "0x0000000000000000000000000000000000000000000000000000000000000004",
   },
 ]
 ```
