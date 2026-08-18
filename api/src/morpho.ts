@@ -1,3 +1,4 @@
+import { type Address } from "viem";
 import { mainnet } from "viem/chains";
 
 import * as graphql from "./graphql.ts";
@@ -10,7 +11,7 @@ export async function getLoanAssetAddress({
   marketId,
 }: {
   marketId: string;
-}): Promise<string> {
+}): Promise<Address> {
   const query = `
     query ($chainId: Int!, $marketId: String!) {
       marketById(marketId: $marketId, chainId: $chainId) {
@@ -26,7 +27,7 @@ export async function getLoanAssetAddress({
   const { marketById } = await graphql.runQuery<{
     marketById: {
       loanAsset: {
-        address: string;
+        address: Address;
       };
     };
   }>(morphoApiUrl, query, variables);
