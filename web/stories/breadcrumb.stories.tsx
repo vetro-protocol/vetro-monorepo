@@ -58,3 +58,34 @@ export const WithMenu: Story = {
     ],
   },
 };
+
+export const WithMenuWithoutOptions: Story = {
+  args: {
+    items: [
+      {
+        menu: (
+          <ButtonLink href="/borrow" size="xSmall" variant="tertiary">
+            Borrow
+          </ButtonLink>
+        ),
+      },
+      {
+        menu: (
+          <BreadcrumbSelector
+            getItemKey={(item) => item}
+            getItemUrl={(item) => `/borrow/${item}`}
+            items={[]}
+            renderItem={(item) => <span>{item}</span>}
+            trigger={
+              <>
+                <div className="size-4 rounded-full bg-orange-300" />
+                HemiBTC
+              </>
+            }
+            triggerId="breadcrumb-market-selector"
+          />
+        ),
+      },
+    ],
+  },
+};
