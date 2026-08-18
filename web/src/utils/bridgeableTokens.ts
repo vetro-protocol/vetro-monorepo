@@ -1,4 +1,4 @@
-import { sVusdAddress } from "@vetro-protocol/earn";
+import { sVetBtcAddress, sVusdAddress } from "@vetro-protocol/earn";
 import type { Address, Chain } from "viem";
 import { arbitrum, base, bsc, hemi, mainnet, optimism } from "viem/chains";
 
@@ -71,6 +71,38 @@ export const bridgeableTokens: BridgeTokenChainEntry[] = [
   },
   {
     address: "0x92273Ca3356379C2fe870FE3805cc5e7aB6d19c6",
+    chainId: optimism.id,
+    sharedDecimals: 6,
+  },
+  // svetBTC
+  {
+    address: sVetBtcAddress,
+    chainId: mainnet.id,
+    oftAdapterAddress: "0x010F0Bd6576949e6ac6eEa11Ed8C535388340e94",
+    sharedDecimals: 6,
+  },
+  {
+    address: "0xD8D63De3b64bd06d99F8F5AD8B78Ed2fE7525eC0",
+    chainId: hemi.id,
+    sharedDecimals: 6,
+  },
+  {
+    address: "0x54181404A037757eb5271Ee4a02CA51844f25eaA",
+    chainId: arbitrum.id,
+    sharedDecimals: 6,
+  },
+  {
+    address: "0x781aea37b81F3CF3Fb9a97E9568BdAF36d2DEF3d",
+    chainId: base.id,
+    sharedDecimals: 6,
+  },
+  {
+    address: "0x37D8C0AFeeF48AA9D925475CF6c73E4D8c74d931",
+    chainId: bsc.id,
+    sharedDecimals: 6,
+  },
+  {
+    address: "0x62D2A7D31e8a61a7aCD472c98c657E053EB01b96",
     chainId: optimism.id,
     sharedDecimals: 6,
   },

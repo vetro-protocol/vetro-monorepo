@@ -174,6 +174,68 @@ export const knownTokens: Token[] = [
     chainId: mainnet.id,
     decimals: 18,
     extensions: {
+      allowanceSlot:
+        0x52c63247e1f47db19d5ce0460030c497f067ca4cebf71ba98eeadabe20bace01n,
+      isVaultShare: true,
+    },
+    logoURI: "https://hemilabs.github.io/token-list/l1Logos/svetbtc.svg",
+    name: "Staked Vetro BTC",
+    symbol: "svetBTC",
+  },
+  {
+    address: "0x54181404A037757eb5271Ee4a02CA51844f25eaA",
+    chainId: arbitrum.id,
+    decimals: 18,
+    extensions: {
+      allowanceSlot: 6n,
+      isVaultShare: true,
+    },
+    logoURI: "https://hemilabs.github.io/token-list/l1Logos/svetbtc.svg",
+    name: "Staked Vetro BTC",
+    symbol: "svetBTC",
+  },
+  {
+    address: "0x781aea37b81F3CF3Fb9a97E9568BdAF36d2DEF3d",
+    chainId: base.id,
+    decimals: 18,
+    extensions: {
+      allowanceSlot: 6n,
+      isVaultShare: true,
+    },
+    logoURI: "https://hemilabs.github.io/token-list/l1Logos/svetbtc.svg",
+    name: "Staked Vetro BTC",
+    symbol: "svetBTC",
+  },
+  {
+    address: "0x37D8C0AFeeF48AA9D925475CF6c73E4D8c74d931",
+    chainId: bsc.id,
+    decimals: 18,
+    extensions: {
+      allowanceSlot: 6n,
+      isVaultShare: true,
+    },
+    logoURI: "https://hemilabs.github.io/token-list/l1Logos/svetbtc.svg",
+    name: "Staked Vetro BTC",
+    symbol: "svetBTC",
+  },
+  {
+    address: "0xD8D63De3b64bd06d99F8F5AD8B78Ed2fE7525eC0",
+    chainId: hemi.id,
+    decimals: 18,
+    extensions: {
+      allowanceSlot: 6n,
+      isVaultShare: true,
+    },
+    logoURI: "https://hemilabs.github.io/token-list/l1Logos/svetbtc.svg",
+    name: "Staked Vetro BTC",
+    symbol: "svetBTC",
+  },
+  {
+    address: "0x62D2A7D31e8a61a7aCD472c98c657E053EB01b96",
+    chainId: optimism.id,
+    decimals: 18,
+    extensions: {
+      allowanceSlot: 6n,
       isVaultShare: true,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/svetbtc.svg",
