@@ -5,10 +5,19 @@ import {
   type QueryClient,
 } from "@tanstack/react-query";
 import { gatewayAddresses } from "@vetro-protocol/gateway";
+import { graphWhitelistedTokens } from "utils/protocolGraph";
 import type { Client } from "viem";
 
 import { useEthereumClient } from "./useEthereumClient";
 import { whitelistedTokensByGatewayOptions } from "./useWhitelistedTokensByGateway";
+
+const graphTokens = gatewayAddresses.map((gatewayAddress) =>
+  graphWhitelistedTokens(gatewayAddress),
+);
+
+const placeholderData = graphTokens.every((tokens) => tokens !== undefined)
+  ? graphTokens.flat()
+  : undefined;
 
 const whitelistedTokensOptions = ({
   client,
@@ -19,6 +28,7 @@ const whitelistedTokensOptions = ({
 }) =>
   queryOptions({
     enabled: !!client && !!client.chain,
+    placeholderData,
     queryFn: () =>
       Promise.all(
         gatewayAddresses.map((gatewayAddress) =>
