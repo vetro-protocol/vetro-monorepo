@@ -1,8 +1,6 @@
 import { Breadcrumb } from "components/base/breadcrumb";
-import { Button, ButtonLink } from "components/base/button";
-import { ChevronIcon } from "components/base/chevronIcon";
-import { Dropdown } from "components/base/dropdown";
-import { I18nLink } from "components/base/i18nLink";
+import { BreadcrumbSelector } from "components/base/breadcrumb/breadcrumbSelector";
+import { ButtonLink } from "components/base/button";
 import { BorrowForm } from "components/borrow/borrowForm";
 import { ExistingPositionNotice } from "components/borrow/existingPositionNotice";
 import { MarketHeader } from "components/borrow/marketHeader";
@@ -66,36 +64,21 @@ const BorrowMarketDetailsLoaded = function ({
           },
           {
             menu: (
-              <Dropdown<MarketData>
+              <BreadcrumbSelector
                 getItemKey={(item) => item.marketId}
+                getItemUrl={(item) => `/borrow/${item.marketId}`}
                 items={otherMarkets}
                 renderItem={renderMarketItem}
-                renderItemWrapper={(
-                  { isFocused, item, onActivate, ref, tabIndex },
-                  children,
-                ) => (
-                  <I18nLink
-                    className={`text-xsm flex w-full items-center justify-between gap-2 rounded px-3 py-2 font-medium text-gray-900 focus-visible:outline-0 ${isFocused ? "bg-gray-100" : "hover:bg-gray-50"}`}
-                    onClick={onActivate}
-                    ref={ref}
-                    role="menuitem"
-                    tabIndex={tabIndex}
-                    to={`/borrow/${item.marketId}`}
-                  >
-                    {children}
-                  </I18nLink>
-                )}
-                renderTrigger={(isOpen, triggerProps) => (
-                  <Button {...triggerProps} size="xSmall" variant="tertiary">
+                trigger={
+                  <>
                     <TokenLogo
                       logoURI={market.collateralToken.logoURI}
                       size="small"
                       symbol={market.collateralToken.symbol}
                     />
                     {market.collateralToken.symbol}
-                    <ChevronIcon direction={isOpen ? "up" : "down"} />
-                  </Button>
-                )}
+                  </>
+                }
                 triggerId="breadcrumb-market-selector"
               />
             ),
