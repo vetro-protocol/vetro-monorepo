@@ -6,7 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { claimWithdraw } from "@vetro-protocol/earn/actions";
 import { exitTicketsQueryKey } from "pages/earn/hooks/useExitTickets";
 import type { ExitTicket } from "pages/earn/types";
-import type { Address } from "viem";
+import { type Address, isAddressEqual } from "viem";
 import { useAccount } from "wagmi";
 
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
@@ -82,11 +82,12 @@ export const useClaimWithdraw = function ({
         updateNativeBalanceAfterReceipt(receipt);
         onStatusChange("completed");
 
-        // Optimistically mark ticket as withdrawn by setting claimTxHash
+        // Optimistically mark ticket as withdrawn by setting claimTxHash.
         queryClient.setQueryData(
           exitTicketsQueryKey(account),
           (old: ExitTicket[] | undefined) =>
             (old ?? []).map((t) =>
+              isAddressEqual(t.stakingVaultAddress, stakingVaultAddress) &&
               t.requestId === requestId.toString()
                 ? { ...t, claimTxHash: receipt.transactionHash }
                 : t,

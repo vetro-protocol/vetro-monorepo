@@ -7,7 +7,7 @@ import { claimWithdrawBatch } from "@vetro-protocol/earn/actions";
 import { exitTicketsQueryKey } from "pages/earn/hooks/useExitTickets";
 import type { ExitTicket } from "pages/earn/types";
 import type { TokenWithGateway } from "types";
-import type { Address } from "viem";
+import { type Address, isAddressEqual } from "viem";
 import { useAccount } from "wagmi";
 
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
@@ -139,6 +139,7 @@ export const useClaimWithdrawBatch = function ({
               exitTicketsQueryKey(account),
               (old: ExitTicket[] | undefined) =>
                 (old ?? []).map((t) =>
+                  isAddressEqual(t.stakingVaultAddress, stakingVaultAddress) &&
                   requestIdStrings.includes(t.requestId)
                     ? { ...t, claimTxHash: receipt.transactionHash }
                     : t,
