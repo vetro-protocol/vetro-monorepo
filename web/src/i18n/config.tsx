@@ -8,14 +8,22 @@ import { resources } from "./resources";
 const fallbackLng = "en";
 export const supportedLngs = ["en", "es"];
 
-export const initializeI18n = () =>
-  i18n.use(initReactI18next).init({
+const getLanguageFromPath = function () {
+  const [, lang] = window.location.pathname.split("/");
+  return lang && supportedLngs.includes(lang) ? lang : fallbackLng;
+};
+
+export const initializeI18n = function () {
+  const lng = getLanguageFromPath();
+  document.documentElement.lang = lng;
+  return i18n.use(initReactI18next).init({
     debug: import.meta.env.DEV,
     fallbackLng,
-    lng: "en", // Default language
+    lng,
     resources,
     supportedLngs,
   });
+};
 
 /**
  * The caller must return early on a truthy result. <Navigate> navigates
@@ -39,9 +47,13 @@ export const I18nInitializer = function () {
 
   useLayoutEffect(
     function () {
-      if (lang && i18n.language !== lang) {
+      if (!lang) {
+        return;
+      }
+      if (i18n.language !== lang) {
         i18n.changeLanguage(lang);
       }
+      document.documentElement.lang = lang;
     },
     [lang],
   );
