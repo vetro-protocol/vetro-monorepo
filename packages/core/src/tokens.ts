@@ -3,6 +3,14 @@ import { arbitrum, base, bsc, hemi, mainnet, optimism } from "viem/chains";
 import { sVetBtcAddress, sVusdAddress } from "./stakingVaultAddresses.ts";
 import type { Token } from "./types.ts";
 
+// The staking vaults are OZ 5.x upgradeable contracts, which store ERC20 state
+// in an ERC-7201 namespace ("openzeppelin.storage.ERC20") instead of at small
+// sequential slots. Inside that struct, _balances is at offset 0 and
+// _allowances at offset 1, so the slot below is `ERC20StorageLocation + 1`
+// (see `ERC20Upgradeable.sol` in @openzeppelin/contracts-upgradeable v5).
+const erc7201Erc20AllowanceSlot =
+  0x52c63247e1f47db19d5ce0460030c497f067ca4cebf71ba98eeadabe20bace01n;
+
 export const knownTokens: Token[] = [
   {
     address: "0x06ea695B91700071B161A434fED42D1DcbAD9f00",
@@ -174,8 +182,7 @@ export const knownTokens: Token[] = [
     chainId: mainnet.id,
     decimals: 18,
     extensions: {
-      allowanceSlot:
-        0x52c63247e1f47db19d5ce0460030c497f067ca4cebf71ba98eeadabe20bace01n,
+      allowanceSlot: erc7201Erc20AllowanceSlot,
       isVaultShare: true,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/svetbtc.svg",
@@ -247,14 +254,7 @@ export const knownTokens: Token[] = [
     chainId: mainnet.id,
     decimals: 18,
     extensions: {
-      // The sVUSD vault is an OZ 5.x upgradeable contract, which stores ERC20
-      // state in an ERC-7201 namespace ("openzeppelin.storage.ERC20") instead
-      // of at small sequential slots. Inside that struct, _balances is at
-      // offset 0 and _allowances at offset 1, so the slot below is
-      // `ERC20StorageLocation + 1` (see `ERC20Upgradeable.sol` in
-      // @openzeppelin/contracts-upgradeable v5).
-      allowanceSlot:
-        0x52c63247e1f47db19d5ce0460030c497f067ca4cebf71ba98eeadabe20bace01n,
+      allowanceSlot: erc7201Erc20AllowanceSlot,
       isVaultShare: true,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/svusd.svg",
