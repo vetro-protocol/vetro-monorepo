@@ -7,6 +7,7 @@ import { TokenLogo } from "components/tokenLogo";
 import { useShareToken } from "hooks/useShareToken";
 import { useVaultPeggedToken } from "hooks/useVaultPeggedToken";
 import { targetYieldVaultAddresses } from "pages/earn/targetYieldVaults";
+import { ErrorPage } from "pages/errorPage";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import { Navigate, useParams } from "react-router";
@@ -38,8 +39,14 @@ const FixedTermEarnDetailsContent = function ({
   stakingVaultAddress: Address;
 }) {
   const { t } = useTranslation();
-  const { data: peggedToken } = useVaultPeggedToken(stakingVaultAddress);
-  const { data: shareToken } = useShareToken(stakingVaultAddress);
+  const { data: peggedToken, isError: isPeggedTokenError } =
+    useVaultPeggedToken(stakingVaultAddress);
+  const { data: shareToken, isError: isShareTokenError } =
+    useShareToken(stakingVaultAddress);
+
+  if (isPeggedTokenError || isShareTokenError) {
+    return <ErrorPage />;
+  }
 
   if (!peggedToken || !shareToken) {
     return (

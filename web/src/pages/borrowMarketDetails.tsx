@@ -13,6 +13,7 @@ import { type MarketData, useMarketData } from "hooks/borrow/useMarketData";
 import { useMarketsData } from "hooks/borrow/useMarketsData";
 import { usePositionInfo } from "hooks/borrow/usePositionInfo";
 import { useAmount } from "hooks/useAmount";
+import { ErrorPage } from "pages/errorPage";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
@@ -117,18 +118,21 @@ const BorrowMarketDetailsLoaded = function ({
 };
 
 const BorrowMarketDetailsContent = function ({ marketId }: { marketId: Hash }) {
-  const { data: market, isLoading } = useMarketData(marketId);
+  const { data: market, isError } = useMarketData(marketId);
 
-  if (isLoading || !market) {
-    // TODO handle errors in https://github.com/vetro-protocol/vetro-monorepo/issues/146
-    return (
-      <div className="p-8">
-        <Skeleton count={3} height={40} />
-      </div>
-    );
+  if (market) {
+    return <BorrowMarketDetailsLoaded market={market} />;
   }
 
-  return <BorrowMarketDetailsLoaded market={market} />;
+  if (isError) {
+    return <ErrorPage />;
+  }
+
+  return (
+    <div className="p-8">
+      <Skeleton count={3} height={40} />
+    </div>
+  );
 };
 
 export const BorrowMarketDetails = function () {
