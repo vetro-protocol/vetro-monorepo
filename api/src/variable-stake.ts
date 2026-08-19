@@ -225,12 +225,10 @@ export async function getUserRewards({
 
 type ExitTicket = {
   assets: string;
-  cancelTxHash?: Hash;
+  cancelTxHash?: Hash | null;
   claimableAt: number;
-  claimTxHash?: Hash;
-  id: string;
+  claimTxHash?: Hash | null;
   owner: Address;
-  receiver?: Address;
   requestId: string;
   requestTxHash: Hash;
   shares: string;
@@ -258,7 +256,6 @@ export async function getUserExitTickets({
         claimableAt
         claimTxHash
         owner
-        receiver
         requestId
         requestTxHash
         shares
@@ -280,7 +277,11 @@ export async function getUserExitTickets({
       `Got exactly 100 exit tickets for ${address}. Implement pagination!`,
     );
   }
-  return exitTickets;
+  return exitTickets.map((ticket) => ({
+    ...ticket,
+    owner: checksumAddress(ticket.owner),
+    stakingVaultAddress: checksumAddress(ticket.stakingVaultAddress),
+  }));
 }
 
 /**
