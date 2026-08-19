@@ -27,18 +27,22 @@ const TokenBackground = ({
 );
 
 const TokenSection = ({ token }: { token: Token }) => (
-  <div className="flex flex-1 items-center justify-center gap-4">
-    <TokenLogo {...token} size="xLarge" />
-    <span className="text-h1 max-md:hidden">{token.symbol}</span>
-  </div>
+  <span className="flex flex-1 items-center justify-center gap-4">
+    <span aria-hidden="true" className="flex shrink-0">
+      <TokenLogo {...token} size="xLarge" />
+    </span>
+    <span className="max-md:sr-only">{token.symbol}</span>
+  </span>
 );
 
 export const MarketHeader = ({ collateralToken, loanToken }: Props) => (
   <div className="relative flex h-50 items-center overflow-hidden border-b border-gray-200">
     <TokenBackground logoURI={collateralToken.logoURI} side="left" />
     <TokenBackground logoURI={loanToken.logoURI} side="right" />
-    <TokenSection token={collateralToken} />
-    <span className="text-h1 opacity-48">/</span>
-    <TokenSection token={loanToken} />
+    <h1 className="flex flex-1 items-center">
+      <TokenSection token={collateralToken} />
+      <span className="opacity-48">/</span>
+      <TokenSection token={loanToken} />
+    </h1>
   </div>
 );

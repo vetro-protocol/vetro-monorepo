@@ -26,6 +26,7 @@ import {
   Routes,
   useLocation,
 } from "react-router";
+import { featureFlags } from "utils/featureFlags";
 import { isGeoRestricted } from "utils/geoRestriction";
 
 const SentryRoutes = Sentry.withSentryReactRouterV7Routing(Routes);
@@ -37,6 +38,12 @@ const analyticsEnabled =
 const AppNotifications = lazy(() =>
   import("components/appNotifications").then((m) => ({
     default: m.AppNotifications,
+  })),
+);
+
+const FixedTermEarnDetails = lazy(() =>
+  import("pages/fixedTermEarnDetails").then((m) => ({
+    default: m.FixedTermEarnDetails,
   })),
 );
 
@@ -86,6 +93,16 @@ function LanguageRoutes() {
           >
             <Route element={<Swap />} path="swap" />
             <Route element={<Earn />} path="earn" />
+            {featureFlags.fixedTermYield && (
+              <Route
+                element={
+                  <Suspense>
+                    <FixedTermEarnDetails />
+                  </Suspense>
+                }
+                path="earn/fixed-term/:address"
+              />
+            )}
             <Route element={<Borrow />} path="borrow" />
             <Route element={<BorrowMarketDetails />} path="borrow/:marketId" />
             <Route element={<Bridge />} path="bridge" />

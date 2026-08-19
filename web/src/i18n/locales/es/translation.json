@@ -330,6 +330,7 @@
         "withdrawn": "Retirado"
       },
       "fixed-term": {
+        "header-title": "Objetivo de rendimiento fijo",
         "open-to-deposits": "Abierto a depósitos",
         "open-to-exit": "Abierto a salidas",
         "target-fixed-apy": "TEA fija objetivo",

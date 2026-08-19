@@ -2,9 +2,8 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { MemoryRouter, Route, Routes } from "react-router";
 
 import { Breadcrumb } from "../src/components/base/breadcrumb";
-import { Button, ButtonLink } from "../src/components/base/button";
-import { ChevronIcon } from "../src/components/base/chevronIcon";
-import { Dropdown } from "../src/components/base/dropdown";
+import { BreadcrumbSelector } from "../src/components/base/breadcrumb/breadcrumbSelector";
+import { ButtonLink } from "../src/components/base/button";
 
 const meta: Meta<typeof Breadcrumb> = {
   component: Breadcrumb,
@@ -41,18 +40,48 @@ export const WithMenu: Story = {
       },
       {
         menu: (
-          <Dropdown
+          <BreadcrumbSelector
             getItemKey={(item) => item}
+            getItemUrl={(item) => `/borrow/${item}`}
             items={["WETH / VUSD"]}
-            onChange={() => undefined}
             renderItem={(item) => <span>{item}</span>}
-            renderTrigger={(isOpen, triggerProps) => (
-              <Button {...triggerProps} size="xSmall" variant="tertiary">
+            trigger={
+              <>
                 <div className="size-4 rounded-full bg-orange-300" />
                 HemiBTC
-                <ChevronIcon direction={isOpen ? "up" : "down"} />
-              </Button>
-            )}
+              </>
+            }
+            triggerId="breadcrumb-market-selector"
+          />
+        ),
+      },
+    ],
+  },
+};
+
+export const WithMenuWithoutOptions: Story = {
+  args: {
+    items: [
+      {
+        menu: (
+          <ButtonLink href="/borrow" size="xSmall" variant="tertiary">
+            Borrow
+          </ButtonLink>
+        ),
+      },
+      {
+        menu: (
+          <BreadcrumbSelector
+            getItemKey={(item) => item}
+            getItemUrl={(item) => `/borrow/${item}`}
+            items={[]}
+            renderItem={(item) => <span>{item}</span>}
+            trigger={
+              <>
+                <div className="size-4 rounded-full bg-orange-300" />
+                HemiBTC
+              </>
+            }
             triggerId="breadcrumb-market-selector"
           />
         ),
