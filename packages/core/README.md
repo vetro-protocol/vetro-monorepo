@@ -51,6 +51,14 @@ Entries span every chain the app touches, so filter by `chainId` before using it
 
 `sVusdAddress`, `sVetBtcAddress` and the `stakingVaultAddresses` array.
 
+### `gateways`
+
+`Gateway[]`, plus the derived `gatewayAddresses` array. Both live in `src/protocolGraph.ts`.
+
+The protocol graph on Ethereum mainnet, hand-maintained: per gateway, its Portal-API `pegBaseSymbol`, its pegged token, its treasury, its whitelisted tokens, and its `stakingVault` when the pegged token has one. Gateways are not discovered on chain, so a new gateway needs an entry here and a deployment.
+
+`gatewayAddresses[0]` means "the VUSD gateway" used by default sometimes, so the VUSD gateway stays first.
+
 ### `isAddressValid`
 
 ```ts

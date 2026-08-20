@@ -11,6 +11,7 @@ The `web/` app exposes the Swap, Earn, Borrow, Bridge, and Analytics pages. The 
 
 - Use tailwind v4 classes
 - If setting width and height to the same value (like `w-2 h-2`), use the alternative class `size-*`. For example: `size-2`.
+- **Minimum supported width**: 400px. Layouts must not overflow at 400px or above. Do not check smaller viewports.
 
 ### JavaScript/TypeScript
 
@@ -32,5 +33,7 @@ The `web/` app exposes the Swap, Earn, Borrow, Bridge, and Analytics pages. The 
 - **Component Props naming**: When creating a type for component props, use generic name `Props` if they're the only props defined in the file. Otherwise, use `<ComponentName>Props`
 
 ### API project
+
+Return every address in the checksummed format. External sources — subgraphs, third-party APIs — may return addresses in lowercase, so convert them with `checksumAddress` from `viem` before they go into a response.
 
 When changing the API in `api/src/` in a way that affects external behavior — adding, removing, or modifying an endpoint's URL, params, response shape, sample data, or error semantics — review and update `api/README.md` in the same change. Code is the source of truth; the README must reflect it.

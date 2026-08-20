@@ -7,12 +7,14 @@
     "types": ["node"]
   },
   "include": [
+    ".storybook",
     "e2e",
     "global.d.ts",
     "playwright.config.ts",
     "reset.d.ts",
     "scripts",
     "src",
+    "stories",
     "test"
   ],
   "exclude": ["node_modules", "dist"]

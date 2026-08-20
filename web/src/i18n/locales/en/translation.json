@@ -327,7 +327,13 @@
         "withdrawn": "Withdrawn"
       },
       "fixed-term": {
-        "title": "Target fixed yield pools"
+        "header-title": "Target fixed yield",
+        "open-to-deposits": "Open to deposits",
+        "open-to-exit": "Open to exit",
+        "target-fixed-apy": "Target fixed APY",
+        "term-state": "Term state",
+        "title": "Target fixed yield pools",
+        "total-deposits": "Total deposits"
       },
       "pool-info": {
         "apy": "APY",

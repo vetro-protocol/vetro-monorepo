@@ -1,9 +1,9 @@
 import { RenderFiatValue } from "components/base/fiatValue";
-import { useStakedBalance } from "hooks/useStakedBalance";
-import { useVaultPeggedToken } from "hooks/useVaultPeggedToken";
 import { useTranslation } from "react-i18next";
 import type { Address } from "viem";
 import { useAccount } from "wagmi";
+
+import { usePoolStakedAmount } from "../../hooks/usePoolStakedAmount";
 
 import { PoolInfoItem } from "./poolInfoItem";
 
@@ -14,26 +14,24 @@ type Props = {
 export function PoolInfoStakedAmount({ stakingVaultAddress }: Props) {
   const { t } = useTranslation();
   const { address: account } = useAccount();
-  const { data: peggedToken } = useVaultPeggedToken(stakingVaultAddress);
-  const { data: stakedBalance, status: stakedStatus } =
-    useStakedBalance(stakingVaultAddress);
+  const {
+    data: stakedAmount,
+    isError,
+    isPending,
+  } = usePoolStakedAmount(stakingVaultAddress);
 
   return (
-    <PoolInfoItem label={t("pages.earn.pool-info.staked-amount")}>
-      <span className="text-xsm flex items-center gap-x-1 font-semibold text-gray-900">
-        {account ? (
-          <>
-            $
-            <RenderFiatValue
-              queryStatus={stakedStatus}
-              token={peggedToken}
-              value={stakedBalance}
-            />
-          </>
-        ) : (
-          "-"
-        )}
-      </span>
-    </PoolInfoItem>
+    <PoolInfoItem
+      data={stakedAmount}
+      isError={isError}
+      isPending={!!account && isPending}
+      label={t("pages.earn.pool-info.staked-amount")}
+      render={({ peggedToken, stakedBalance }) => (
+        <span className="text-xsm flex items-center gap-x-1 font-semibold text-gray-900">
+          $
+          <RenderFiatValue token={peggedToken} value={stakedBalance} />
+        </span>
+      )}
+    />
   );
 }

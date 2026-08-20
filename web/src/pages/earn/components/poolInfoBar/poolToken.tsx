@@ -29,7 +29,7 @@ export const PoolToken = ({ peggedToken }: Props) => (
       />
     )}
     <div className="contents md:*:w-16">
-      <PoolInfoItem label="Token" value={peggedToken?.symbol} />
+      <PoolInfoItem data={peggedToken?.symbol} label="Token" />
     </div>
   </>
 );

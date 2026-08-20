@@ -1,8 +1,6 @@
 import { Breadcrumb } from "components/base/breadcrumb";
-import { Button, ButtonLink } from "components/base/button";
-import { ChevronIcon } from "components/base/chevronIcon";
-import { Dropdown } from "components/base/dropdown";
-import { I18nLink } from "components/base/i18nLink";
+import { BreadcrumbSelector } from "components/base/breadcrumb/breadcrumbSelector";
+import { ButtonLink } from "components/base/button";
 import { BorrowForm } from "components/borrow/borrowForm";
 import { ExistingPositionNotice } from "components/borrow/existingPositionNotice";
 import { MarketHeader } from "components/borrow/marketHeader";
@@ -15,6 +13,7 @@ import { type MarketData, useMarketData } from "hooks/borrow/useMarketData";
 import { useMarketsData } from "hooks/borrow/useMarketsData";
 import { usePositionInfo } from "hooks/borrow/usePositionInfo";
 import { useAmount } from "hooks/useAmount";
+import { ErrorPage } from "pages/errorPage";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
@@ -66,36 +65,21 @@ const BorrowMarketDetailsLoaded = function ({
           },
           {
             menu: (
-              <Dropdown<MarketData>
+              <BreadcrumbSelector
                 getItemKey={(item) => item.marketId}
+                getItemUrl={(item) => `/borrow/${item.marketId}`}
                 items={otherMarkets}
                 renderItem={renderMarketItem}
-                renderItemWrapper={(
-                  { isFocused, item, onActivate, ref, tabIndex },
-                  children,
-                ) => (
-                  <I18nLink
-                    className={`text-xsm flex w-full items-center justify-between gap-2 rounded px-3 py-2 font-medium text-gray-900 focus-visible:outline-0 ${isFocused ? "bg-gray-100" : "hover:bg-gray-50"}`}
-                    onClick={onActivate}
-                    ref={ref}
-                    role="menuitem"
-                    tabIndex={tabIndex}
-                    to={`/borrow/${item.marketId}`}
-                  >
-                    {children}
-                  </I18nLink>
-                )}
-                renderTrigger={(isOpen, triggerProps) => (
-                  <Button {...triggerProps} size="xSmall" variant="tertiary">
+                trigger={
+                  <>
                     <TokenLogo
                       logoURI={market.collateralToken.logoURI}
                       size="small"
                       symbol={market.collateralToken.symbol}
                     />
                     {market.collateralToken.symbol}
-                    <ChevronIcon direction={isOpen ? "up" : "down"} />
-                  </Button>
-                )}
+                  </>
+                }
                 triggerId="breadcrumb-market-selector"
               />
             ),
@@ -134,18 +118,21 @@ const BorrowMarketDetailsLoaded = function ({
 };
 
 const BorrowMarketDetailsContent = function ({ marketId }: { marketId: Hash }) {
-  const { data: market, isLoading } = useMarketData(marketId);
+  const { data: market, isError } = useMarketData(marketId);
 
-  if (isLoading || !market) {
-    // TODO handle errors in https://github.com/vetro-protocol/vetro-monorepo/issues/146
-    return (
-      <div className="p-8">
-        <Skeleton count={3} height={40} />
-      </div>
-    );
+  if (market) {
+    return <BorrowMarketDetailsLoaded market={market} />;
   }
 
-  return <BorrowMarketDetailsLoaded market={market} />;
+  if (isError) {
+    return <ErrorPage />;
+  }
+
+  return (
+    <div className="p-8">
+      <Skeleton count={3} height={40} />
+    </div>
+  );
 };
 
 export const BorrowMarketDetails = function () {

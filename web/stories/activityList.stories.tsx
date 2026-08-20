@@ -128,6 +128,7 @@ export const List: Story = {
   args: {},
   render: () => (
     <ActivityList
+      hasTransactions
       items={[
         {
           date: MOCK_DATE,

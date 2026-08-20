@@ -1,32 +1,39 @@
 import type { ReactNode } from "react";
 import Skeleton from "react-loading-skeleton";
 
-type Props = {
-  children?: ReactNode;
-  isLoading?: boolean;
+type Props<T> = {
+  data: T | undefined;
+  isError?: boolean;
+  isPending?: boolean;
   label: string;
-  value?: string;
+  render?: (data: T) => ReactNode;
 };
 
-export function PoolInfoItem({ children, isLoading, label, value }: Props) {
-  function renderValue() {
-    if (children) {
-      return children;
+const valueClassName = "text-xsm font-semibold text-gray-900";
+
+export function PoolInfoItem<T>({
+  data,
+  isError,
+  isPending,
+  label,
+  render = (value: T) => (
+    <span className={valueClassName}>{value as ReactNode}</span>
+  ),
+}: Props<T>) {
+  function renderData() {
+    if (data !== undefined) {
+      return render(data);
     }
-    if (isLoading) {
+    if (!isError && isPending) {
       return <Skeleton height={20} width={80} />;
     }
-    return (
-      <span className="text-xsm font-semibold text-gray-900">
-        {value ?? "-"}
-      </span>
-    );
+    return <span className={valueClassName}>-</span>;
   }
 
   return (
     <div className="relative flex flex-col sm:shrink-0 sm:whitespace-nowrap">
       <span className="text-b-regular text-gray-500">{label}</span>
-      {renderValue()}
+      {renderData()}
     </div>
   );
 }

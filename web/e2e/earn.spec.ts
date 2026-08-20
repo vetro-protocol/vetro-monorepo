@@ -3,12 +3,18 @@ import {
   TEST_PRIVATE_KEY,
 } from "@hemilabs/anvil-fork-setup/utils";
 import { expect } from "@playwright/test";
-import { stakingVaultAbi, sVusdAddress } from "@vetro-protocol/earn";
+import {
+  stakingVaultAbi,
+  sVetBtcAddress,
+  sVusdAddress,
+} from "@vetro-protocol/earn";
 import {
   getActiveRequestIds,
   getCooldownEnabled,
 } from "@vetro-protocol/earn/actions";
 import {
+  type Address,
+  type TransactionReceipt,
   createWalletClient,
   erc20Abi,
   http,
@@ -37,8 +43,27 @@ import { test } from "./fixtures/wallet";
 import { getMainnetToken, waitForBalance } from "./helpers";
 
 const vusd = getMainnetToken("VUSD");
+const vetBtc = getMainnetToken("vetBTC");
 const DEPOSIT_DISPLAY = "5";
 const DEPOSIT_AMOUNT = parseUnits(DEPOSIT_DISPLAY, vusd.decimals);
+
+// The StakingVault ABI has no claim event, so a claim's payout is read from the
+// standard ERC-20 Transfer(to = receiver) logs on the token being paid out.
+const sumTransfersTo = ({
+  receipt,
+  token,
+}: {
+  receipt: TransactionReceipt;
+  token: Address;
+}) =>
+  parseEventLogs({
+    abi: erc20Abi,
+    args: { to: TEST_ADDRESS },
+    eventName: "Transfer",
+    logs: receipt.logs,
+  })
+    .filter((log) => isAddressEqual(log.address, token))
+    .reduce((sum, log) => sum + log.args.value, 0n);
 
 // The VUSD pool is the sVUSD ERC-4626 vault. A deposit emits the standard
 // ERC-4626 Deposit(sender, owner, assets, shares); `shares` is exactly the
@@ -195,12 +220,18 @@ const withdrawEvent = parseAbiItem(
   "event Withdraw(address indexed sender, address indexed receiver, address indexed owner, uint256 assets, uint256 shares)",
 );
 
-// Give the test account a real staked position by actually depositing VUSD into
-// the vault (approve + deposit) as the test account, signing directly against
-// Anvil rather than through the browser mock wallet. A real deposit leaves the
-// vault holding the underlying VUSD, so the later withdraw can pay out — minting
-// sVUSD via storage would leave the vault unbacked and the withdraw would revert.
-async function stakeVusd(assets: bigint) {
+// Give the test account a real staked position by actually depositing the
+// vault's pegged token (approve + deposit) as the test account, signing directly
+// against Anvil rather than through the browser mock wallet.
+async function stake({
+  assets,
+  token,
+  vaultAddress,
+}: {
+  assets: bigint;
+  token: Address;
+  vaultAddress: Address;
+}) {
   const walletClient = createWalletClient({
     account: privateKeyToAccount(TEST_PRIVATE_KEY),
     chain: mainnet,
@@ -208,19 +239,22 @@ async function stakeVusd(assets: bigint) {
   });
 
   const approvalHash = await approve(walletClient, {
-    address: vusd.address,
+    address: token,
     amount: assets,
-    spender: sVusdAddress,
+    spender: vaultAddress,
   });
   await waitForTransactionReceipt(walletClient, { hash: approvalHash });
 
   const depositHash = await writeContract(walletClient, {
     abi: stakingVaultAbi,
-    address: sVusdAddress,
+    address: vaultAddress,
     args: [assets, TEST_ADDRESS],
     functionName: "deposit",
   });
-  await waitForTransactionReceipt(walletClient, { hash: depositHash });
+  const receipt = await waitForTransactionReceipt(walletClient, {
+    hash: depositHash,
+  });
+  expect(receipt.status).toBe("success");
 }
 
 test("withdraw VUSD from the Earn pool (whitelisted one-step exit)", async function ({
@@ -229,7 +263,11 @@ test("withdraw VUSD from the Earn pool (whitelisted one-step exit)", async funct
 }) {
   const publicClient = createEthereumClient();
 
-  await stakeVusd(DEPOSIT_AMOUNT);
+  await stake({
+    assets: DEPOSIT_AMOUNT,
+    token: vusd.address,
+    vaultAddress: sVusdAddress,
+  });
   await whitelistInstantWithdraw({ address: TEST_ADDRESS, forkUrl: ANVIL_URL });
 
   const [vusdBefore, svusdBefore] = await Promise.all([
@@ -328,11 +366,12 @@ test("withdraw VUSD from the Earn pool (two-step cooldown exit)", async function
   const publicClient = createEthereumClient();
 
   // Seed a real staked position, then enable cooldown WITHOUT whitelisting so
-  // the app takes the two-step path: when cooldown is disabled the app treats
-  // everyone as instant (fetchCanInstantWithdraw), and whitelisting would force
-  // the instant one-step form. Leaving the account un-whitelisted keeps the
-  // "Request withdrawal" flow and renders the exit-tickets section.
-  await stakeVusd(DEPOSIT_AMOUNT);
+  // the app takes the two-step path.
+  await stake({
+    assets: DEPOSIT_AMOUNT,
+    token: vusd.address,
+    vaultAddress: sVusdAddress,
+  });
   await setCooldownEnabled({ forkUrl: ANVIL_URL });
 
   expect(
@@ -502,21 +541,16 @@ test("withdraw VUSD from the Earn pool (two-step cooldown exit)", async function
   // Confirm the payout against the claim tx itself: sum the VUSD transferred to
   // the receiver in the claim receipt. walletTxHashes ends with the claim tx
   // (seeding used a separate client; the only browser txs are the request then
-  // the claim). The StakingVault ABI has no claim event, so read the standard
-  // ERC-20 Transfer(to = receiver) logs on the VUSD token.
+  // the claim).
   const claimTxHash = walletTxHashes.at(-1);
   expect(claimTxHash).toBeDefined();
   const claimReceipt = await getTransactionReceipt(publicClient, {
     hash: claimTxHash!,
   });
-  const vusdReceived = parseEventLogs({
-    abi: erc20Abi,
-    args: { to: TEST_ADDRESS },
-    eventName: "Transfer",
-    logs: claimReceipt.logs,
-  })
-    .filter((log) => isAddressEqual(log.address, vusd.address))
-    .reduce((sum, log) => sum + log.args.value, 0n);
+  const vusdReceived = sumTransfersTo({
+    receipt: claimReceipt,
+    token: vusd.address,
+  });
   expect(vusdReceived).toBeGreaterThan(0n);
 
   // useClaimWithdraw optimistically sets claimTxHash on the cached ticket, so the
@@ -550,16 +584,27 @@ test("withdraw VUSD from the Earn pool (two-step cooldown exit)", async function
 // request → cooldown flow is already covered by the two-step test above, so this
 // signs the request straight against Anvil and returns the WithdrawRequested
 // args the exit-tickets API would have indexed.
-async function requestWithdrawVusd(assets: bigint) {
+async function requestWithdraw({
+  assets,
+  vaultAddress,
+}: {
+  assets: bigint;
+  vaultAddress: Address;
+}) {
   const walletClient = createWalletClient({
     account: privateKeyToAccount(TEST_PRIVATE_KEY),
     chain: mainnet,
     transport: http(ANVIL_URL),
   });
 
+  // One block after the deposit, the gas estimate still sees a zero yield drip
+  // while the mined tx sees a non-zero one — the request then runs out of gas.
+  // Forwarding the clock puts both on the same side of the drip.
+  await fastForwardTime({ forkUrl: ANVIL_URL, seconds: 60 });
+
   const requestHash = await writeContract(walletClient, {
     abi: stakingVaultAbi,
-    address: sVusdAddress,
+    address: vaultAddress,
     args: [assets, TEST_ADDRESS],
     functionName: "requestWithdraw",
   });
@@ -590,7 +635,11 @@ test("delete an exit ticket while it is in cooldown", async function ({
 
   // Cooldown on and no instant-withdraw whitelist, so the request lands in the
   // queue instead of paying out immediately.
-  await stakeVusd(DEPOSIT_AMOUNT);
+  await stake({
+    assets: DEPOSIT_AMOUNT,
+    token: vusd.address,
+    vaultAddress: sVusdAddress,
+  });
   await setCooldownEnabled({ forkUrl: ANVIL_URL });
 
   const [vusdBefore, svusdBefore] = await Promise.all([
@@ -605,7 +654,10 @@ test("delete an exit ticket while it is in cooldown", async function ({
   ]);
 
   const { assets, claimableAt, requestId, requestTxHash, shares } =
-    await requestWithdrawVusd(WITHDRAW_AMOUNT);
+    await requestWithdraw({
+      assets: WITHDRAW_AMOUNT,
+      vaultAddress: sVusdAddress,
+    });
 
   // The shares left the wallet at request time — deleting the ticket has to put
   // them back.
@@ -689,14 +741,10 @@ test("delete an exit ticket while it is in cooldown", async function ({
   const cancelReceipt = await getTransactionReceipt(publicClient, {
     hash: walletTxHashes[0],
   });
-  const sharesReturned = parseEventLogs({
-    abi: erc20Abi,
-    args: { to: TEST_ADDRESS },
-    eventName: "Transfer",
-    logs: cancelReceipt.logs,
-  })
-    .filter((log) => isAddressEqual(log.address, sVusdAddress))
-    .reduce((sum, log) => sum + log.args.value, 0n);
+  const sharesReturned = sumTransfersTo({
+    receipt: cancelReceipt,
+    token: sVusdAddress,
+  });
 
   // The yield drift is dust, and never in the staker's favour.
   expect(sharesReturned).toBeLessThanOrEqual(shares);
@@ -713,4 +761,234 @@ test("delete an exit ticket while it is in cooldown", async function ({
       address: vusd.address,
     }),
   ).toBe(vusdBefore);
+});
+
+test("withdraw all the ready exit tickets", async function ({
+  page,
+  walletTxHashes,
+}) {
+  const publicClient = createEthereumClient();
+
+  const vetBtcDepositAmount = parseUnits("2", vetBtc.decimals);
+  const vetBtcTicketAmount = parseUnits("1", vetBtc.decimals);
+  const firstVusdTicketAmount = parseUnits("2", vusd.decimals);
+  const secondVusdTicketAmount = parseUnits("1", vusd.decimals);
+  const cooldownVusdTicketAmount = parseUnits("1", vusd.decimals);
+
+  // Seed a staked position in both pools, with cooldown on and no
+  // instant-withdraw whitelist so every request lands in the queue as a ticket.
+  await stake({
+    assets: DEPOSIT_AMOUNT,
+    token: vusd.address,
+    vaultAddress: sVusdAddress,
+  });
+  await stake({
+    assets: vetBtcDepositAmount,
+    token: vetBtc.address,
+    vaultAddress: sVetBtcAddress,
+  });
+  await setCooldownEnabled({ forkUrl: ANVIL_URL, vaultAddress: sVusdAddress });
+  await setCooldownEnabled({
+    forkUrl: ANVIL_URL,
+    vaultAddress: sVetBtcAddress,
+  });
+
+  const [vusdBefore, vetBtcBefore] = await Promise.all([
+    balanceOf(publicClient, {
+      account: TEST_ADDRESS,
+      address: vusd.address,
+    }),
+    balanceOf(publicClient, {
+      account: TEST_ADDRESS,
+      address: vetBtc.address,
+    }),
+  ]);
+
+  // Two tickets on the VUSD pool and one on the vetBTC pool: "Withdraw all"
+  // groups the ready tickets by vault, so this is one claim tx per pool — not
+  // one per ticket. Requests are sequential to keep the nonces in order.
+  const firstVusdRequest = await requestWithdraw({
+    assets: firstVusdTicketAmount,
+    vaultAddress: sVusdAddress,
+  });
+  const secondVusdRequest = await requestWithdraw({
+    assets: secondVusdTicketAmount,
+    vaultAddress: sVusdAddress,
+  });
+  const vetBtcRequest = await requestWithdraw({
+    assets: vetBtcTicketAmount,
+    vaultAddress: sVetBtcAddress,
+  });
+  // A fourth ticket kept in cooldown below — "Withdraw all" must leave it alone.
+  const cooldownRequest = await requestWithdraw({
+    assets: cooldownVusdTicketAmount,
+    vaultAddress: sVusdAddress,
+  });
+
+  // Fast-forward the fork past the latest claimableAt (the pools have different
+  // cooldown durations) so both claim txs pass the vault's block.timestamp
+  // check. This makes the fourth request claimable on-chain too: it stays out of
+  // the flow purely because the UI still shows it as in cooldown.
+  const { timestamp: chainNow } = await getBlock(publicClient);
+  const latestClaimableAt = [
+    firstVusdRequest,
+    secondVusdRequest,
+    vetBtcRequest,
+    cooldownRequest,
+  ]
+    .map((request) => request.claimableAt)
+    .reduce((latest, claimableAt) =>
+      claimableAt > latest ? claimableAt : latest,
+    );
+  await fastForwardTime({
+    forkUrl: ANVIL_URL,
+    seconds: Number(latestClaimableAt - chainNow),
+  });
+
+  // Serve the four tickets from the mocked exit-tickets endpoint (the wallet
+  // fixture otherwise stubs it with []). getTicketStatus compares claimableAt
+  // against the browser clock, which the fast-forward above left untouched:
+  // "1" (a past unix ts) renders as ready, and the request's real claimableAt —
+  // a cooldown away from when the fork was seeded — renders as in cooldown.
+  const toTicket = ({
+    claimableAt,
+    request,
+    stakingVaultAddress,
+  }: {
+    claimableAt: string;
+    request: Awaited<ReturnType<typeof requestWithdraw>>;
+    stakingVaultAddress: Address;
+  }): ExitTicket => ({
+    assets: request.assets.toString(),
+    claimableAt,
+    owner: TEST_ADDRESS,
+    requestId: request.requestId.toString(),
+    requestTxHash: request.requestTxHash,
+    shares: request.shares.toString(),
+    stakingVaultAddress,
+  });
+
+  let exitTicketsBody: ExitTicket[] = [
+    toTicket({
+      claimableAt: "1",
+      request: firstVusdRequest,
+      stakingVaultAddress: sVusdAddress,
+    }),
+    toTicket({
+      claimableAt: "1",
+      request: secondVusdRequest,
+      stakingVaultAddress: sVusdAddress,
+    }),
+    toTicket({
+      claimableAt: "1",
+      request: vetBtcRequest,
+      stakingVaultAddress: sVetBtcAddress,
+    }),
+    toTicket({
+      claimableAt: cooldownRequest.claimableAt.toString(),
+      request: cooldownRequest,
+      stakingVaultAddress: sVusdAddress,
+    }),
+  ];
+  await page.route("**/variable-stake/exit-tickets/**", (route) =>
+    route.fulfill({ json: exitTicketsBody }),
+  );
+
+  await page.goto("/");
+
+  await expect(
+    page.getByRole("button", { name: /^0x[a-f0-9]{4}/i }),
+  ).toBeVisible({ timeout: 30_000 });
+
+  await page.getByRole("link", { name: "Earn" }).click();
+  await expect(page).toHaveURL(/\/en\/earn/);
+
+  const exitTickets = page.locator("#exit-tickets");
+  await expect(exitTickets.getByText("Ready to withdraw")).toHaveCount(3, {
+    timeout: 20_000,
+  });
+  await expect(exitTickets.getByText("Cooldown in progress")).toHaveCount(1);
+
+  // The badge counts only the ready tickets, so the one in cooldown is excluded.
+  const withdrawAllButton = exitTickets.getByRole("button", {
+    name: /withdraw all/i,
+  });
+  await expect(withdrawAllButton).toHaveText(/withdraw all\s*3/i);
+  await expect(withdrawAllButton).toBeEnabled();
+  await withdrawAllButton.click();
+
+  // The progress drawer lists one step per pool, each labelled with the pegged
+  // token read from the vault on-chain.
+  await expect(
+    page.getByRole("heading", { name: "Withdrawing all exit tickets" }),
+  ).toBeVisible();
+  await expect(page.getByText("Confirm VUSD withdrawal")).toBeVisible({
+    timeout: 20_000,
+  });
+  await expect(page.getByText("Confirm vetBTC withdrawal")).toBeVisible();
+
+  await expect(page.getByText("All exit tickets withdrawn")).toBeVisible({
+    timeout: 60_000,
+  });
+
+  expect(walletTxHashes).toHaveLength(2);
+  const [vusdClaimReceipt, vetBtcClaimReceipt] = await Promise.all(
+    walletTxHashes.map((hash) => getTransactionReceipt(publicClient, { hash })),
+  );
+  expect(isAddressEqual(vusdClaimReceipt.to!, sVusdAddress)).toBe(true);
+  expect(isAddressEqual(vetBtcClaimReceipt.to!, sVetBtcAddress)).toBe(true);
+
+  // useClaimWithdrawBatch optimistically sets claimTxHash on each claimed
+  // ticket, so their rows flip to "Withdrawn". Mirror that onto the mocked
+  // endpoint as soon as the hashes are known, so a background refetch can't
+  // revert them back to "ready" while the assertions below run.
+  exitTicketsBody = exitTicketsBody.map((ticket) =>
+    ticket.claimableAt === "1"
+      ? {
+          ...ticket,
+          claimTxHash: isAddressEqual(ticket.stakingVaultAddress, sVusdAddress)
+            ? vusdClaimReceipt.transactionHash
+            : vetBtcClaimReceipt.transactionHash,
+        }
+      : ticket,
+  );
+
+  const vusdReceived = sumTransfersTo({
+    receipt: vusdClaimReceipt,
+    token: vusd.address,
+  });
+  expect(vusdReceived).toBe(firstVusdTicketAmount + secondVusdTicketAmount);
+  const vetBtcReceived = sumTransfersTo({
+    receipt: vetBtcClaimReceipt,
+    token: vetBtc.address,
+  });
+  expect(vetBtcReceived).toBe(vetBtcTicketAmount);
+
+  await waitForBalance({ client: publicClient, token: vusd.address }).toBe(
+    vusdBefore + vusdReceived,
+  );
+  await waitForBalance({ client: publicClient, token: vetBtc.address }).toBe(
+    vetBtcBefore + vetBtcReceived,
+  );
+
+  // The ticket left in cooldown is the only request the vault still holds.
+  expect(
+    await getActiveRequestIds(publicClient, {
+      account: TEST_ADDRESS,
+      address: sVusdAddress,
+    }),
+  ).toEqual([cooldownRequest.requestId]);
+  expect(
+    await getActiveRequestIds(publicClient, {
+      account: TEST_ADDRESS,
+      address: sVetBtcAddress,
+    }),
+  ).toEqual([]);
+
+  await expect(
+    page.getByRole("heading", { name: "Withdrawing all exit tickets" }),
+  ).toBeHidden({ timeout: 15_000 });
+
+  await expect(exitTickets.getByText("Withdrawn")).toHaveCount(3);
+  await expect(exitTickets.getByText("Cooldown in progress")).toHaveCount(1);
 });

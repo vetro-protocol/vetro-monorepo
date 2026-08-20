@@ -20,8 +20,8 @@ export function PoolInfoBar({ stakingVaultAddress }: Props) {
   const { t } = useTranslation();
   const { data: peggedToken } = useVaultPeggedToken(stakingVaultAddress);
 
-  const { data: apy, isLoading: isLoadingApy } = useApy(stakingVaultAddress);
-  const { data: poolDeposits, isLoading: isLoadingDeposits } =
+  const { data: apy, isPending: isPendingApy } = useApy(stakingVaultAddress);
+  const { data: poolDeposits, isPending: isPendingDeposits } =
     usePoolDeposits(stakingVaultAddress);
   const { data: prices, isError: isPricesError } = usePrices();
 
@@ -49,20 +49,15 @@ export function PoolInfoBar({ stakingVaultAddress }: Props) {
         <PoolToken peggedToken={peggedToken} />
         <PoolContract address={stakingVaultAddress} />
         <PoolInfoItem
-          isLoading={isLoadingDeposits || (!prices && !isPricesError)}
+          data={formatPoolDeposits()}
+          isPending={isPendingDeposits || (!prices && !isPricesError)}
           label={t("pages.earn.pool-info.pool-deposits")}
-          value={formatPoolDeposits()}
         />
         <PoolInfoItem
-          isLoading={isLoadingApy}
+          data={formatApy()}
+          isPending={isPendingApy}
           label={t("pages.earn.pool-info.apy")}
-        >
-          <div className="flex items-center gap-1">
-            <span className="text-xsm font-semibold text-gray-900">
-              {formatApy() ?? "-"}
-            </span>
-          </div>
-        </PoolInfoItem>
+        />
         <PoolInfoStakedAmount stakingVaultAddress={stakingVaultAddress} />
       </div>
       <PoolInfoButtons stakingVaultAddress={stakingVaultAddress} />

@@ -285,7 +285,9 @@ export function ExitTickets() {
       <Table
         columns={columns}
         data={filteredData}
-        getRowId={(ticket) => ticket.requestId}
+        getRowId={(ticket) =>
+          `${ticket.stakingVaultAddress}-${ticket.requestId}`
+        }
         loading={isLoading}
         maxBodyHeight="280px"
         placeholder={<EmptyState stakingVaultAddress={stakingVaultAddress} />}

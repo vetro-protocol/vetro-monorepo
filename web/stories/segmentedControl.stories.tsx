@@ -60,7 +60,7 @@ const labeledTokens = tokenSymbols
 
 export const WithTokenLabels: Story = {
   render: function Component() {
-    const [value, setValue] = useState<TokenSymbol>(labeledTokens[0].symbol);
+    const [value, setValue] = useState<TokenSymbol>(tokenSymbols[0]);
 
     return (
       <div className="flex justify-center">

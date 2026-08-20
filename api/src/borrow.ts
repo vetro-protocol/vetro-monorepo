@@ -1,3 +1,5 @@
+import { isAddressEqual } from "viem";
+
 import * as morpho from "./morpho.ts";
 import { vusdAddress } from "./vusd.ts";
 
@@ -16,7 +18,7 @@ export async function validateMarketId({
   const loanAssetAddress = await morpho.getLoanAssetAddress({
     marketId,
   });
-  if (loanAssetAddress === vusdAddress) {
+  if (isAddressEqual(loanAssetAddress, vusdAddress)) {
     return true;
   }
   if (whitelistedMarketIds.includes(marketId)) {

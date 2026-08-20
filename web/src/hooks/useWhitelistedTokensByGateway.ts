@@ -5,6 +5,7 @@ import {
   type QueryClient,
 } from "@tanstack/react-query";
 import { fetchWhitelistedTokens } from "fetchers/fetchWhitelistedTokens";
+import { graphWhitelistedTokens } from "utils/protocolGraph";
 import type { Address, Client } from "viem";
 
 import { useEthereumClient } from "./useEthereumClient";
@@ -20,6 +21,9 @@ export const whitelistedTokensByGatewayOptions = ({
 }) =>
   queryOptions({
     enabled: !!client && !!client.chain && gatewayAddress !== undefined,
+    placeholderData: gatewayAddress
+      ? graphWhitelistedTokens(gatewayAddress)
+      : undefined,
     queryFn: () =>
       fetchWhitelistedTokens({
         client: client!,
