@@ -74,6 +74,38 @@ export const bridgeableTokens: BridgeTokenChainEntry[] = [
     chainId: optimism.id,
     sharedDecimals: 6,
   },
+  // vetBTC
+  {
+    address: "0xf196C68233464A16CFDa319a47c21f4cECa62001",
+    chainId: mainnet.id,
+    oftAdapterAddress: "0x63413dA01EE7E1cec9d51EE27B3FAf81d786821c",
+    sharedDecimals: 6,
+  },
+  {
+    address: "0xfF16E26B7fFCf24c378D57DF536dC5eC104a7dE4",
+    chainId: hemi.id,
+    sharedDecimals: 6,
+  },
+  {
+    address: "0x0b874b240eF6D9d9543dBDEB224CDDC4BA71FD0f",
+    chainId: arbitrum.id,
+    sharedDecimals: 6,
+  },
+  {
+    address: "0x605EDFDA1EA02cE9d2d2702e31064867F67aF043",
+    chainId: base.id,
+    sharedDecimals: 6,
+  },
+  {
+    address: "0xD46ac62F9C145B64146AFadB848476B209b6b420",
+    chainId: bsc.id,
+    sharedDecimals: 6,
+  },
+  {
+    address: "0x974af4a481895FB9A29829F87980088f6B93E1DF",
+    chainId: optimism.id,
+    sharedDecimals: 6,
+  },
   // svetBTC
   {
     address: sVetBtcAddress,
