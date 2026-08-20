@@ -3,15 +3,11 @@ import { TokenLogo } from "components/tokenLogo";
 
 type Props = {
   peggedToken: Token;
-  shareTokenSymbol: string;
+  symbol: string;
   title: string;
 };
 
-export const VaultHeader = ({
-  peggedToken,
-  shareTokenSymbol,
-  title,
-}: Props) => (
+export const VaultHeader = ({ peggedToken, symbol, title }: Props) => (
   <div className="relative flex h-50 items-center justify-center overflow-hidden border-b border-gray-200 px-4">
     <img
       alt=""
@@ -24,7 +20,7 @@ export const VaultHeader = ({
         <span aria-hidden="true" className="flex shrink-0">
           <TokenLogo {...peggedToken} size="xLarge" />
         </span>
-        {shareTokenSymbol}
+        {symbol}
       </span>
       <span className="opacity-48 max-sm:sr-only">/</span>
       <span>{title}</span>
