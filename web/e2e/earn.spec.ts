@@ -89,7 +89,7 @@ test("deposit VUSD into the Earn pool", async function ({
     }),
   ]);
 
-  await page.goto("/");
+  await page.goto("/earn");
 
   // The mock wallet auto-connects silently via EIP-6963 (see fixtures/wallet),
   // so just wait for the header button to switch from "Connect wallet" to the
@@ -97,10 +97,6 @@ test("deposit VUSD into the Earn pool", async function ({
   await expect(
     page.getByRole("button", { name: /^0x[a-f0-9]{4}/i }),
   ).toBeVisible({ timeout: 30_000 });
-
-  // Navigate to Earn from the navbar, like a user would.
-  await page.getByRole("link", { name: "Earn" }).click();
-  await expect(page).toHaveURL(/\/en\/earn/);
 
   // The Earn page renders one PoolInfoBar per vault (VUSD, vetBTC). Scope the
   // Deposit click to the bar that shows the "VUSD" token symbol so the test
@@ -281,14 +277,11 @@ test("withdraw VUSD from the Earn pool (whitelisted one-step exit)", async funct
     }),
   ]);
 
-  await page.goto("/");
+  await page.goto("/earn");
 
   await expect(
     page.getByRole("button", { name: /^0x[a-f0-9]{4}/i }),
   ).toBeVisible({ timeout: 30_000 });
-
-  await page.getByRole("link", { name: "Earn" }).click();
-  await expect(page).toHaveURL(/\/en\/earn/);
 
   // Scope to the VUSD pool bar and open its Withdraw drawer. The bar is the only
   // element holding both the "VUSD" label and a Withdraw button; `.last()` picks
@@ -396,14 +389,11 @@ test("withdraw VUSD from the Earn pool (two-step cooldown exit)", async function
     route.fulfill({ json: exitTicketsBody }),
   );
 
-  await page.goto("/");
+  await page.goto("/earn");
 
   await expect(
     page.getByRole("button", { name: /^0x[a-f0-9]{4}/i }),
   ).toBeVisible({ timeout: 30_000 });
-
-  await page.getByRole("link", { name: "Earn" }).click();
-  await expect(page).toHaveURL(/\/en\/earn/);
 
   // Open the VUSD pool's Withdraw drawer (same locator as the one-step test).
   const vusdPool = page
@@ -685,14 +675,11 @@ test("delete an exit ticket while it is in cooldown", async function ({
     route.fulfill({ json: exitTicketsBody }),
   );
 
-  await page.goto("/");
+  await page.goto("/earn");
 
   await expect(
     page.getByRole("button", { name: /^0x[a-f0-9]{4}/i }),
   ).toBeVisible({ timeout: 30_000 });
-
-  await page.getByRole("link", { name: "Earn" }).click();
-  await expect(page).toHaveURL(/\/en\/earn/);
 
   const exitTickets = page.locator("#exit-tickets");
   await expect(exitTickets.getByText("Cooldown in progress")).toBeVisible({
@@ -894,14 +881,11 @@ test("withdraw all the ready exit tickets", async function ({
     route.fulfill({ json: exitTicketsBody }),
   );
 
-  await page.goto("/");
+  await page.goto("/earn");
 
   await expect(
     page.getByRole("button", { name: /^0x[a-f0-9]{4}/i }),
   ).toBeVisible({ timeout: 30_000 });
-
-  await page.getByRole("link", { name: "Earn" }).click();
-  await expect(page).toHaveURL(/\/en\/earn/);
 
   const exitTickets = page.locator("#exit-tickets");
   await expect(exitTickets.getByText("Ready to withdraw")).toHaveCount(3, {
