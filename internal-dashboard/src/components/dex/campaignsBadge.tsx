@@ -29,7 +29,7 @@ export const CampaignsBadge = function ({ poolId }: { poolId: string }) {
   return (
     <span className="inline-flex shrink-0 items-center gap-x-1.5">
       <Tooltip label="Reward campaigns running on this pool">
-        <span className="inline-flex items-center gap-x-1 rounded-full bg-emerald-50 px-2.5 py-1 text-sm font-medium text-emerald-700 ring-1 ring-emerald-600/20 ring-inset">
+        <span className="inline-flex items-center gap-x-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-emerald-600/20 ring-inset">
           <span aria-hidden>✓</span>
           {campaigns.length}
         </span>
@@ -38,7 +38,7 @@ export const CampaignsBadge = function ({ poolId }: { poolId: string }) {
         endsSoon(campaign.endTimestamp - nowSeconds),
       ) ? (
         <Tooltip label={endingSoonTooltip}>
-          <CircleWarningIcon />
+          <CircleWarningIcon size={20} />
         </Tooltip>
       ) : null}
     </span>
