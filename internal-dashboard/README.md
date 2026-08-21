@@ -15,7 +15,7 @@ that serves the static assets and injects security headers (see `src/index.ts`).
 
 ## Environment Variables
 
-Set these in `internal-dashboard/.env` (or a `.env.local` override) before you run `dev` or `build`.
+Set these in `internal-dashboard/.env` (or a `.env.local` override) before you run `dev` or `build`. The committed `.env` holds the public development values only.
 
 | Variable               | Required | Description                                                                                                                                                          |
 | ---------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -23,6 +23,8 @@ Set these in `internal-dashboard/.env` (or a `.env.local` override) before you r
 | `VITE_RPC_URL_MAINNET` | Yes      | RPC URL(s) for Ethereum mainnet. Several URLs joined by `+` become a fallback transport. Baked into the client bundle at build time, thus readable by every visitor. |
 
 The Worker builds its `connect-src` CSP directive from the same two variables (see `src/index.ts`), so an override is allowed by the CSP without more changes.
+
+For the deployed dashboard, set the production values as Cloudflare Workers Builds variables in the Cloudflare dashboard. Vite gives these priority over the committed `.env` at build time. Thus the paid RPC URL stays out of the repository.
 
 ## Development
 
@@ -35,4 +37,4 @@ pnpm tsc      # typecheck only
 
 ## Deployment
 
-Deployed to Cloudflare with `wrangler` (see `wrangler.jsonc`).
+Deployed to Cloudflare with `wrangler` (see `wrangler.jsonc`). The production environment variables come from the Cloudflare Workers Builds variables (see [Environment Variables](#environment-variables)).
