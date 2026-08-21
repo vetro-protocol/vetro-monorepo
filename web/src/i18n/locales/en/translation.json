@@ -389,6 +389,7 @@
       },
       "title": "Stake assets to earn variable yield.",
       "variable-yield": {
+        "header-title": "Variable yield",
         "title": "Variable yield pools"
       }
     },
