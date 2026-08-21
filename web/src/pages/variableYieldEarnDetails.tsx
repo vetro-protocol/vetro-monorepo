@@ -1,12 +1,11 @@
+import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { Breadcrumb } from "components/base/breadcrumb";
 import { BreadcrumbSelector } from "components/base/breadcrumb/breadcrumbSelector";
 import { ButtonLink } from "components/base/button";
 import { VaultHeader } from "components/earn/vaultHeader";
 import { EarnIcon } from "components/navbar/earnIcon";
 import { TokenLogo } from "components/tokenLogo";
-import { useShareToken } from "hooks/useShareToken";
 import { useVaultPeggedToken } from "hooks/useVaultPeggedToken";
-import { targetYieldVaultAddresses } from "pages/earn/targetYieldVaults";
 import { ErrorPage } from "pages/errorPage";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
@@ -19,36 +18,33 @@ const VaultDropdownItem = function ({
   stakingVaultAddress: Address;
 }) {
   const { data: peggedToken } = useVaultPeggedToken(stakingVaultAddress);
-  const { data: shareToken } = useShareToken(stakingVaultAddress);
 
-  if (!peggedToken || !shareToken) {
+  if (!peggedToken) {
     return <Skeleton height={20} width={80} />;
   }
 
   return (
     <div className="flex items-center gap-2">
       <TokenLogo {...peggedToken} size="small" />
-      <span>{shareToken.symbol}</span>
+      <span>{peggedToken.symbol}</span>
     </div>
   );
 };
 
-const FixedTermEarnDetailsContent = function ({
+const VariableYieldEarnDetailsContent = function ({
   stakingVaultAddress,
 }: {
   stakingVaultAddress: Address;
 }) {
   const { t } = useTranslation();
-  const { data: peggedToken, isError: isPeggedTokenError } =
+  const { data: peggedToken, isError } =
     useVaultPeggedToken(stakingVaultAddress);
-  const { data: shareToken, isError: isShareTokenError } =
-    useShareToken(stakingVaultAddress);
 
-  if (isPeggedTokenError || isShareTokenError) {
+  if (isError) {
     return <ErrorPage />;
   }
 
-  if (!peggedToken || !shareToken) {
+  if (!peggedToken) {
     return (
       <div className="p-8">
         <Skeleton count={3} height={40} />
@@ -56,7 +52,7 @@ const FixedTermEarnDetailsContent = function ({
     );
   }
 
-  const otherVaultAddresses = targetYieldVaultAddresses.filter(
+  const otherVaultAddresses = stakingVaultAddresses.filter(
     (address) => !isAddressEqual(address, stakingVaultAddress),
   );
 
@@ -76,7 +72,7 @@ const FixedTermEarnDetailsContent = function ({
             menu: (
               <BreadcrumbSelector
                 getItemKey={(item) => item}
-                getItemUrl={(item) => `/earn/fixed-term/${item}`}
+                getItemUrl={(item) => `/earn/variable-yield/${item}`}
                 items={otherVaultAddresses}
                 renderItem={(item) => (
                   <VaultDropdownItem stakingVaultAddress={item} />
@@ -84,7 +80,7 @@ const FixedTermEarnDetailsContent = function ({
                 trigger={
                   <>
                     <TokenLogo {...peggedToken} size="small" />
-                    {shareToken.symbol}
+                    {peggedToken.symbol}
                   </>
                 }
                 triggerId="breadcrumb-vault-selector"
@@ -95,21 +91,19 @@ const FixedTermEarnDetailsContent = function ({
       />
       <VaultHeader
         peggedToken={peggedToken}
-        symbol={shareToken.symbol}
-        title={t("pages.earn.fixed-term.header-title")}
+        symbol={peggedToken.symbol}
+        title={t("pages.earn.variable-yield.header-title")}
       />
     </div>
   );
 };
 
-export const FixedTermEarnDetails = function () {
+export const VariableYieldEarnDetails = function () {
   const { address, lang } = useParams<{ address: string; lang: string }>();
 
   const stakingVaultAddress =
     address && isAddress(address, { strict: false })
-      ? targetYieldVaultAddresses.find((vault) =>
-          isAddressEqual(vault, address),
-        )
+      ? stakingVaultAddresses.find((vault) => isAddressEqual(vault, address))
       : undefined;
 
   if (!stakingVaultAddress) {
@@ -117,6 +111,8 @@ export const FixedTermEarnDetails = function () {
   }
 
   return (
-    <FixedTermEarnDetailsContent stakingVaultAddress={stakingVaultAddress} />
+    <VariableYieldEarnDetailsContent
+      stakingVaultAddress={stakingVaultAddress}
+    />
   );
 };

@@ -47,6 +47,12 @@ const FixedTermEarnDetails = lazy(() =>
   })),
 );
 
+const VariableYieldEarnDetails = lazy(() =>
+  import("pages/variableYieldEarnDetails").then((m) => ({
+    default: m.VariableYieldEarnDetails,
+  })),
+);
+
 /**
  * Two nested ErrorBoundaries handle errors at different stages:
  * - Outer: catches errors before translations load (Header, I18nInitializer) — ErrorPage renders without i18n
@@ -101,6 +107,16 @@ function LanguageRoutes() {
                   </Suspense>
                 }
                 path="earn/fixed-term/:address"
+              />
+            )}
+            {featureFlags.variableYieldDetails && (
+              <Route
+                element={
+                  <Suspense>
+                    <VariableYieldEarnDetails />
+                  </Suspense>
+                }
+                path="earn/variable-yield/:address"
               />
             )}
             <Route element={<Borrow />} path="borrow" />

@@ -395,6 +395,7 @@
       },
       "title": "Haga stake de activos para ganar un rendimiento variable.",
       "variable-yield": {
+        "header-title": "Rendimiento variable",
         "title": "Fondos de rendimiento variable"
       }
     },
