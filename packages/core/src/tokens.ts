@@ -90,6 +90,7 @@ export const knownTokens: Token[] = [
     chainId: arbitrum.id,
     decimals: 18,
     extensions: {
+      allowanceSlot: 6n,
       priceSymbol: "USDT",
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetrousd.svg",
@@ -101,6 +102,7 @@ export const knownTokens: Token[] = [
     chainId: base.id,
     decimals: 18,
     extensions: {
+      allowanceSlot: 6n,
       priceSymbol: "USDT",
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetrousd.svg",
@@ -112,6 +114,7 @@ export const knownTokens: Token[] = [
     chainId: bsc.id,
     decimals: 18,
     extensions: {
+      allowanceSlot: 6n,
       priceSymbol: "USDT",
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetrousd.svg",
@@ -123,6 +126,7 @@ export const knownTokens: Token[] = [
     chainId: hemi.id,
     decimals: 18,
     extensions: {
+      allowanceSlot: 6n,
       priceSymbol: "USDT",
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetrousd.svg",
@@ -134,6 +138,7 @@ export const knownTokens: Token[] = [
     chainId: optimism.id,
     decimals: 18,
     extensions: {
+      allowanceSlot: 6n,
       priceSymbol: "USDT",
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetrousd.svg",
