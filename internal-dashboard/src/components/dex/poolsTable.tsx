@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import { formatPercent, formatUsd } from "../../lib/format";
 import { type TrackedPool } from "../../lib/types";
 
+import { CampaignsBadge } from "./campaignsBadge";
 import { RangeBadge } from "./rangeBadge";
 import { TokenPair } from "./tokenPair";
 import { VenueBadge } from "./venueBadge";
@@ -42,6 +43,7 @@ export const PoolsTable = function ({ pools }: Props) {
               <div className="flex items-center justify-between gap-x-2">
                 <TokenPair {...pool} />
                 <span className="flex shrink-0 items-center gap-x-1.5">
+                  <CampaignsBadge poolId={pool.id} />
                   {pool.rangeLabel ? (
                     <RangeBadge label={pool.rangeLabel} />
                   ) : null}
@@ -82,9 +84,10 @@ export const PoolsTable = function ({ pools }: Props) {
               <th className="py-2 pr-4 text-left font-medium">Pool</th>
               <th className="py-2 pr-4 text-right font-medium">TVL</th>
               <th className="py-2 pr-4 text-right font-medium">24h Volume</th>
-              <th className="py-2 text-right font-medium">
+              <th className="py-2 pr-4 text-right font-medium">
                 Base vAPY (Rewards tAPR)
               </th>
+              <th className="py-2 text-right font-medium">Campaigns</th>
             </tr>
           </thead>
           <tbody>
@@ -115,8 +118,11 @@ export const PoolsTable = function ({ pools }: Props) {
                 <td className="py-3 pr-4 text-right font-medium text-neutral-950">
                   {formatUsd(pool.volumeUsd24h)}
                 </td>
-                <td className="py-3 text-right font-medium text-neutral-950">
+                <td className="py-3 pr-4 text-right font-medium text-neutral-950">
                   {formatApy(pool)}
+                </td>
+                <td className="py-3 text-right">
+                  <CampaignsBadge poolId={pool.id} />
                 </td>
               </tr>
             ))}
