@@ -4,9 +4,23 @@ import { CircleWarningIcon } from "../icons/circleWarningIcon";
 import { Tooltip } from "../tooltip";
 
 export const CampaignsBadge = function ({ poolId }: { poolId: string }) {
-  const { data: campaigns, dataUpdatedAt } = usePoolCampaigns({ poolId });
+  const {
+    data: campaigns,
+    dataUpdatedAt,
+    error,
+  } = usePoolCampaigns({ poolId });
 
-  if (!campaigns || campaigns.length === 0) {
+  if (!campaigns) {
+    return error ? (
+      <span className="inline-flex shrink-0 items-center">
+        <Tooltip label={error.message}>
+          <span className="text-neutral-400">—</span>
+        </Tooltip>
+      </span>
+    ) : null;
+  }
+
+  if (campaigns.length === 0) {
     return null;
   }
 
