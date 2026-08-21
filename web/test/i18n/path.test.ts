@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { normalizePath } from "./path";
+import { normalizePath } from "../../src/i18n/path";
 
 describe("normalizePath", function () {
   it("strips the locale prefix", function () {
