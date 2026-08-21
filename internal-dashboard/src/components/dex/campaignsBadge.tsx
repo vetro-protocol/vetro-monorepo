@@ -4,13 +4,13 @@ import { CircleWarningIcon } from "../icons/circleWarningIcon";
 import { Tooltip } from "../tooltip";
 
 export const CampaignsBadge = function ({ poolId }: { poolId: string }) {
-  const { data: campaigns } = usePoolCampaigns({ poolId });
+  const { data: campaigns, dataUpdatedAt } = usePoolCampaigns({ poolId });
 
   if (!campaigns || campaigns.length === 0) {
     return null;
   }
 
-  const nowSeconds = Date.now() / 1000;
+  const nowSeconds = dataUpdatedAt / 1000;
 
   return (
     <span className="inline-flex shrink-0 items-center gap-x-1.5">

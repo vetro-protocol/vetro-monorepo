@@ -31,8 +31,14 @@ const Metric = ({
   </div>
 );
 
-const CampaignCard = function ({ campaign }: { campaign: PoolCampaign }) {
-  const secondsLeft = campaign.endTimestamp - Date.now() / 1000;
+const CampaignCard = function ({
+  campaign,
+  nowSeconds,
+}: {
+  campaign: PoolCampaign;
+  nowSeconds: number;
+}) {
+  const secondsLeft = campaign.endTimestamp - nowSeconds;
 
   return (
     <div className="rounded-lg border border-neutral-200 p-4">
@@ -87,7 +93,11 @@ const CampaignCard = function ({ campaign }: { campaign: PoolCampaign }) {
 };
 
 export const CampaignsList = function ({ poolId }: { poolId: string }) {
-  const { data: campaigns, isError } = usePoolCampaigns({ poolId });
+  const {
+    data: campaigns,
+    dataUpdatedAt,
+    isError,
+  } = usePoolCampaigns({ poolId });
 
   if (campaigns) {
     return campaigns.length === 0 ? (
@@ -100,6 +110,7 @@ export const CampaignsList = function ({ poolId }: { poolId: string }) {
           <CampaignCard
             campaign={campaign}
             key={`${campaign.source}-${campaign.id}`}
+            nowSeconds={dataUpdatedAt / 1000}
           />
         ))}
       </div>
