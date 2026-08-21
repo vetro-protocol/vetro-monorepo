@@ -1,5 +1,6 @@
 import { type Address } from "viem";
 
+import { type CampaignSource } from "../config/campaignSources";
 import { type Dex } from "../config/dexes";
 
 // Normalized, venue-agnostic shapes the UI consumes. Each DEX source (Curve
@@ -71,6 +72,19 @@ export type WhitelistedToken = {
   address: Address;
   decimals: number;
   symbol: string;
+};
+
+export type PoolCampaign = {
+  aprPercent: number;
+  dailyRewardsUsd: number;
+  endTimestamp: number; // seconds
+  id: string;
+  name: string;
+  protocolAprPercent?: number;
+  rewardTokenSymbol: string;
+  source: CampaignSource;
+  tvlUsd: number;
+  url: string;
 };
 
 export type GaugeEmission = {

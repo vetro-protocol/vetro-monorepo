@@ -79,8 +79,10 @@ const csp = [
   // volumes / gauges) and per-pool 24h fees from Curve's analytics API. Sushi and
   // Uniswap pool data comes from their own APIs via the worker's /api/sushi and
   // /api/uniswap proxies, so they need no extra origin here ('self' covers it).
-  // Token / pool discovery, pool balances and share values are read on-chain from
-  // the mainnet RPC, and token USD prices come from the Portal API.
+  // Reward campaigns come from Merkl via the worker's /api/merkl proxy, so it
+  // needs no extra origin either. Token / pool discovery, pool balances and share
+  // values are read on-chain from the mainnet RPC, and token USD prices come from
+  // the Portal API.
   `connect-src 'self' https://api.curve.finance https://prices.curve.finance ${rpcConnectSrc} ${portalApiUrl}`,
   "default-src 'none'",
   "font-src 'self'",
@@ -127,6 +129,27 @@ const graphqlProxies: Record<
   },
 };
 
+// GET proxies for REST APIs the browser can't call directly. Merkl answers
+// cross-origin calls only from https origins, so a direct call works in
+// production but fails in local dev; proxying keeps both on the same path.
+const restProxies: Record<string, string> = {
+  "/api/merkl/opportunities": "https://api.merkl.xyz/v4/opportunities",
+};
+
+const proxyRest = async function ({
+  search,
+  upstream,
+}: {
+  search: string;
+  upstream: string;
+}) {
+  const response = await fetch(`${upstream}${search}`);
+  return new Response(response.body, {
+    headers: { "content-type": "application/json" },
+    status: response.status,
+  });
+};
+
 const proxyGraphql = async function ({
   headers,
   request,
@@ -149,9 +172,16 @@ const proxyGraphql = async function ({
 
 export default {
   async fetch(request: Request, env: Env) {
-    const proxy = graphqlProxies[new URL(request.url).pathname];
-    if (request.method === "POST" && proxy) {
-      return proxyGraphql({ ...proxy, request });
+    const url = new URL(request.url);
+
+    const graphqlProxy = graphqlProxies[url.pathname];
+    if (request.method === "POST" && graphqlProxy) {
+      return proxyGraphql({ ...graphqlProxy, request });
+    }
+
+    const restUpstream = restProxies[url.pathname];
+    if (request.method === "GET" && restUpstream) {
+      return proxyRest({ search: url.search, upstream: restUpstream });
     }
 
     const response = await env.ASSETS.fetch(request);

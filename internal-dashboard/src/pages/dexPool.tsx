@@ -1,8 +1,9 @@
-import { type ReactNode } from "react";
 import { Link, useParams } from "react-router";
 import { type Address, formatUnits, isAddressEqual } from "viem";
 
+import { CampaignsList } from "../components/dex/campaignsList";
 import { ExplorerLink } from "../components/dex/explorerLink";
+import { ExternalLink } from "../components/dex/externalLink";
 import { RangeBadge } from "../components/dex/rangeBadge";
 import { StatCard } from "../components/dex/statCard";
 import { StateMessage } from "../components/dex/stateMessage";
@@ -24,25 +25,6 @@ import { type PoolCoin, type TrackedPool } from "../lib/types";
 
 // Within 10% of equal value: treat the pair as a peg and surface drift from 1.
 const PEG_THRESHOLD = 1.1;
-
-const ExternalLink = ({
-  children,
-  className,
-  href,
-}: {
-  children: ReactNode;
-  className: string;
-  href: string;
-}) => (
-  <a
-    className={className}
-    href={href}
-    rel="noopener noreferrer"
-    target="_blank"
-  >
-    {children}
-  </a>
-);
 
 // Curve's fees aren't on the pool object; fetch them per pool on demand.
 const CurveFeesCard = function ({ pool }: { pool: TrackedPool }) {
@@ -357,6 +339,16 @@ export const DexPoolPage = function () {
           <GaugeSection pool={pool} />
         </div>
       ) : null}
+
+      <div>
+        <h3 className="mb-1 text-lg font-semibold text-neutral-950">
+          Reward campaigns
+        </h3>
+        <p className="mb-3 text-sm text-neutral-600">
+          Third-party campaigns rewarding liquidity in this pool.
+        </p>
+        <CampaignsList poolId={pool.id} />
+      </div>
 
       <AddressesSection pool={pool} />
     </section>

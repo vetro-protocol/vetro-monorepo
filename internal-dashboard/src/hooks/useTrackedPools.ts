@@ -2,7 +2,7 @@ import { queryOptions, useQuery } from "@tanstack/react-query";
 
 import { fetchTrackedPools } from "../fetchers/fetchTrackedPools";
 
-const trackedPoolsOptions = () =>
+export const trackedPoolsOptions = () =>
   queryOptions({
     queryFn: ({ client: queryClient }) => fetchTrackedPools(queryClient),
     queryKey: ["tracked-pools"],
