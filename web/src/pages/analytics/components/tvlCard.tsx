@@ -1,15 +1,14 @@
+import { AllocationCard } from "components/allocationCard";
 import { useAnalyticsTreasury } from "hooks/useAnalyticsTreasury";
 import { useAnalyticsTvl } from "hooks/useAnalyticsTvl";
 import { usePrices } from "hooks/usePrices";
 import { useWhitelistedTokensByGateway } from "hooks/useWhitelistedTokensByGateway";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
+import { toTvlItems } from "utils/allocations";
 import { formatTokenAmountUsd } from "utils/currency";
 
 import { DatabaseIcon } from "../icons/databaseIcon";
-import { toTvlItems } from "../utils";
-
-import { AllocationCard } from "./allocationCard";
 
 type Props = {
   peggedToken: TokenWithGateway | undefined;

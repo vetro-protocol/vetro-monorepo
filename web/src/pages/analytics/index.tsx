@@ -1,20 +1,20 @@
 import { gatewayAddresses } from "@vetro-protocol/gateway";
+import { ApyHistoryCard } from "components/apyHistoryCard";
 import { PageTitle } from "components/base/pageTitle";
+import { ExitCooldownCard } from "components/exitCooldownCard";
+import { ShareRatioCard } from "components/shareRatioCard";
+import { StakedCard } from "components/stakedCard";
 import { StripedDivider } from "components/stripedDivider";
+import { YieldCard } from "components/yieldCard";
 import { usePeggedTokensByGateway } from "hooks/usePeggedTokensByGateway";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 
-import { ApyHistoryCard } from "./components/apyHistoryCard";
 import { CollateralizationCard } from "./components/collateralizationCard";
-import { ExitQueueCard } from "./components/exitQueueCard";
-import { ShareRatioCard } from "./components/shareRatioCard";
-import { StakedCard } from "./components/stakedCard";
 import { TokenFilter } from "./components/tokenFilter";
 import { TvlCard } from "./components/tvlCard";
-import { YieldCard } from "./components/yieldCard";
 
 const AllocationRow = ({
   children,
@@ -107,33 +107,26 @@ export const Analytics = function () {
         />
       </AllocationRow>
       <AllocationRow className="md:divide-x md:divide-gray-200">
-        <StakedCard
-          peggedToken={selectedToken}
-          peggedTokenError={isPeggedTokensError}
-        />
-        <ExitQueueCard
-          peggedToken={selectedToken}
-          peggedTokenError={isPeggedTokensError}
-        />
+        <div className="flex-1 px-3 *:border-0 md:px-11 lg:px-14">
+          <StakedCard peggedToken={selectedToken} />
+        </div>
+        <div className="flex-1 px-3 *:border-0 md:px-11 lg:px-14">
+          <ExitCooldownCard peggedToken={selectedToken} />
+        </div>
       </AllocationRow>
       <AllocationRow>
-        <ShareRatioCard
-          peggedToken={selectedToken}
-          peggedTokenError={isPeggedTokensError}
-        />
+        <div className="flex-1 px-3 md:px-14">
+          <ShareRatioCard peggedToken={selectedToken} />
+        </div>
       </AllocationRow>
       <AllocationRow>
-        <ApyHistoryCard
-          peggedToken={selectedToken}
-          peggedTokenError={isPeggedTokensError}
-        />
+        <div className="flex-1 px-3 md:px-14">
+          <ApyHistoryCard peggedToken={selectedToken} />
+        </div>
       </AllocationRow>
       <AllocationRow className="md:justify-center" isLast>
-        <div className="md:w-1/2">
-          <YieldCard
-            peggedToken={selectedToken}
-            peggedTokenError={isPeggedTokensError}
-          />
+        <div className="border-x border-gray-200 md:w-1/2">
+          <YieldCard peggedToken={selectedToken} />
         </div>
       </AllocationRow>
     </div>

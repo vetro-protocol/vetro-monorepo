@@ -1,9 +1,8 @@
 import type { Token } from "@vetro-protocol/core";
+import type { TreasuryToken } from "types";
 import { tokenAmountToUsd } from "utils/currency";
 import { formatNumber } from "utils/format";
 import { formatUnits, isAddressEqual, type Address } from "viem";
-
-import type { AllocationItem, TreasuryToken } from "./types";
 
 type Prices = Record<string, string>;
 
@@ -107,7 +106,7 @@ export const toCollateralizationItems = function (
     strategicReserves: string;
     surplus: string;
   },
-): Omit<AllocationItem, "color">[] | undefined {
+) {
   if (!data || BigInt(data.total) <= 0n) {
     return undefined;
   }

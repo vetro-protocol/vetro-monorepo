@@ -5,11 +5,17 @@
     "approve-10x": "Approve 10x",
     "approve-10x-tooltip": "Approves up to 10× your transaction amount, reducing future approval steps. You can revoke it anytime.",
     "charts": {
+      "apy-label": "APY",
       "period-1-month": "1 month",
       "period-1-week": "1 week",
       "period-1-year": "1 year",
       "period-3-month": "3 months",
-      "reload-chart": "Reload chart"
+      "reload-chart": "Reload chart",
+      "reserve-buffer-label": "Reserve buffer",
+      "share-ratio-label": "{{shareSymbol}} / {{peggedSymbol}} ratio",
+      "yield-label": "Yield allocation",
+      "yield-value": "{{count}} strategy",
+      "yield-value_other": "{{count}} strategies"
     },
     "clear-search": "Clear search",
     "close": "Close",
@@ -56,20 +62,12 @@
   },
   "pages": {
     "analytics": {
-      "apy-label": "APY",
       "collateralization-ratio-label": "Collateralization ratio",
-      "exit-queue-label": "Total {{symbol}} on withdrawn cooldown",
       "liquid-reserves-label": "Liquid Reserves",
-      "reserve-buffer-label": "Reserve buffer",
-      "share-ratio-label": "{{shareSymbol}} / {{peggedSymbol}} ratio",
-      "staked-label": "Total {{symbol}} staked",
       "strategic-reserves-label": "Strategic Reserves",
       "surplus-label": "Surplus",
       "title": "Monitor protocol analytics",
-      "tvl-label": "Total Value Locked (TVL)",
-      "yield-label": "Yield allocation",
-      "yield-value": "{{count}} strategy",
-      "yield-value_other": "{{count}} strategies"
+      "tvl-label": "Total Value Locked (TVL)"
     },
     "borrow": {
       "activity": {
@@ -272,6 +270,7 @@
         "instant-withdraw-text": "{{amount}} {{symbol}} withdrawn",
         "request-withdraw-text": "{{amount}} {{symbol}} sent to exit vault"
       },
+      "exit-cooldown-label": "{{symbol}} on exit cooldown",
       "exit-tickets": {
         "actions": "Actions",
         "col-cooldown-left": "Cooldown left",
@@ -381,6 +380,7 @@
         "you-will-stake": "You will stake",
         "you-will-withdraw": "You will withdraw"
       },
+      "staked-label": "{{symbol}} staked",
       "stats": {
         "earned-amount": "Your earned amount",
         "from-pools": "From {{count}} pool",
@@ -389,6 +389,7 @@
       },
       "title": "Stake assets to earn variable yield.",
       "variable-yield": {
+        "apy": "APY",
         "header-title": "Variable yield",
         "title": "Variable yield pools"
       }
