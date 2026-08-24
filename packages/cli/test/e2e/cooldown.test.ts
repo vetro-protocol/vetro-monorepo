@@ -55,6 +55,8 @@ describe("swap cooldown", function () {
   });
 
   it("accepts a non-checksummed gateway address", async function () {
+    await setWithdrawalDelay({ delay, enabled: true, gateway, rpcUrl });
+
     const cooldown = await runCli(
       cooldownOnFork(["--gateway", gateway.toLowerCase()]),
     );
