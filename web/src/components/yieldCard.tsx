@@ -1,7 +1,6 @@
 import { AllocationCard } from "components/allocationCard";
 import { PieChartIcon } from "components/icons/pieChartIcon";
 import { useAnalyticsTreasury } from "hooks/useAnalyticsTreasury";
-import { usePeggedTokensByGateway } from "hooks/usePeggedTokensByGateway";
 import { usePrices } from "hooks/usePrices";
 import { useWhitelistedTokensByGateway } from "hooks/useWhitelistedTokensByGateway";
 import { useTranslation } from "react-i18next";
@@ -14,11 +13,14 @@ import {
 
 type Props = {
   peggedToken: TokenWithGateway | undefined;
+  peggedTokenError?: boolean;
 };
 
-export const YieldCard = function ({ peggedToken }: Props) {
+export const YieldCard = function ({
+  peggedToken,
+  peggedTokenError = false,
+}: Props) {
   const { t } = useTranslation();
-  const { isError: isPeggedTokensError } = usePeggedTokensByGateway();
   const { data: whitelistedTokens, isError: isWhitelistedTokensError } =
     useWhitelistedTokensByGateway(peggedToken?.gatewayAddress);
   const {
@@ -29,7 +31,7 @@ export const YieldCard = function ({ peggedToken }: Props) {
   const { data: prices, isError: isPricesError } = usePrices();
 
   const isError = [
-    isPeggedTokensError,
+    peggedTokenError,
     isWhitelistedTokensError,
     isTreasuryError,
     isPricesError,

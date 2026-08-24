@@ -3,7 +3,6 @@ import { SegmentedControl } from "components/base/segmentedControl";
 import { ClockRevertedIcon } from "components/icons/clockRevertedIcon";
 import { useApyHistory } from "hooks/useApyHistory";
 import { useElementWidth } from "hooks/useElementWidth";
-import { usePeggedTokensByGateway } from "hooks/usePeggedTokensByGateway";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
@@ -32,12 +31,15 @@ import {
 } from "victory";
 type Props = {
   peggedToken: TokenWithGateway | undefined;
+  peggedTokenError?: boolean;
 };
 
-export function ApyHistoryCard({ peggedToken }: Props) {
+export function ApyHistoryCard({
+  peggedToken,
+  peggedTokenError = false,
+}: Props) {
   const { i18n, t } = useTranslation();
   const [period, setPeriod] = useState<ChartPeriod>("1w");
-  const { isError: isPeggedTokensError } = usePeggedTokensByGateway();
   const [chartContainerRef, chartWidth] = useElementWidth();
   const {
     data: chartData,
@@ -45,7 +47,7 @@ export function ApyHistoryCard({ peggedToken }: Props) {
     refetch,
   } = useApyHistory({ peggedToken, period });
 
-  const isError = isPeggedTokensError || isHistoryError;
+  const isError = peggedTokenError || isHistoryError;
   // The API appends the current on-chain APY as the final point, so the last
   // datapoint is the current value shown on top of the card.
   const currentApy = chartData?.at(-1)?.y;

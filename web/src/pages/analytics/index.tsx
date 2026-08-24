@@ -108,25 +108,40 @@ export const Analytics = function () {
       </AllocationRow>
       <AllocationRow className="md:divide-x md:divide-gray-200">
         <div className="flex-1 px-3 *:border-0 md:px-11 lg:px-14">
-          <StakedCard peggedToken={selectedToken} />
+          <StakedCard
+            peggedToken={selectedToken}
+            peggedTokenError={isPeggedTokensError}
+          />
         </div>
         <div className="flex-1 px-3 *:border-0 md:px-11 lg:px-14">
-          <ExitCooldownCard peggedToken={selectedToken} />
+          <ExitCooldownCard
+            peggedToken={selectedToken}
+            peggedTokenError={isPeggedTokensError}
+          />
         </div>
       </AllocationRow>
       <AllocationRow>
         <div className="flex-1 px-3 md:px-14">
-          <ShareRatioCard peggedToken={selectedToken} />
+          <ShareRatioCard
+            peggedToken={selectedToken}
+            peggedTokenError={isPeggedTokensError}
+          />
         </div>
       </AllocationRow>
       <AllocationRow>
         <div className="flex-1 px-3 md:px-14">
-          <ApyHistoryCard peggedToken={selectedToken} />
+          <ApyHistoryCard
+            peggedToken={selectedToken}
+            peggedTokenError={isPeggedTokensError}
+          />
         </div>
       </AllocationRow>
       <AllocationRow className="md:justify-center" isLast>
         <div className="border-x border-gray-200 md:w-1/2">
-          <YieldCard peggedToken={selectedToken} />
+          <YieldCard
+            peggedToken={selectedToken}
+            peggedTokenError={isPeggedTokensError}
+          />
         </div>
       </AllocationRow>
     </div>

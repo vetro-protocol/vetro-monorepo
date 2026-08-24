@@ -2,7 +2,6 @@ import { Button } from "components/base/button";
 import { SegmentedControl } from "components/base/segmentedControl";
 import { ClockRevertedIcon } from "components/icons/clockRevertedIcon";
 import { useElementWidth } from "hooks/useElementWidth";
-import { usePeggedTokensByGateway } from "hooks/usePeggedTokensByGateway";
 import { useShareTokenForPeggedToken } from "hooks/useShareTokenForPeggedToken";
 import { useShareValueHistory } from "hooks/useShareValueHistory";
 import { useState } from "react";
@@ -34,13 +33,13 @@ import {
 type Props = {
   // Undefined while the page still resolves which pegged token to show.
   peggedToken: TokenWithGateway | undefined;
+  peggedTokenError?: boolean;
 };
 
 const formatShareValue = (value: number) => value.toFixed(4);
 
-function ShareRatioLabel({ peggedToken }: Props) {
+function ShareRatioLabel({ peggedToken, peggedTokenError = false }: Props) {
   const { t } = useTranslation();
-  const { isError: isPeggedTokensError } = usePeggedTokensByGateway();
   const { data: shareToken, isError: isShareTokenError } =
     useShareTokenForPeggedToken({ peggedToken });
 
@@ -50,16 +49,18 @@ function ShareRatioLabel({ peggedToken }: Props) {
       shareSymbol: shareToken.symbol,
     });
   }
-  if (isPeggedTokensError || isShareTokenError) {
+  if (peggedTokenError || isShareTokenError) {
     return "-";
   }
   return <Skeleton width={160} />;
 }
 
-export function ShareRatioCard({ peggedToken }: Props) {
+export function ShareRatioCard({
+  peggedToken,
+  peggedTokenError = false,
+}: Props) {
   const { i18n, t } = useTranslation();
   const [period, setPeriod] = useState<ChartPeriod>("1w");
-  const { isError: isPeggedTokensError } = usePeggedTokensByGateway();
   const [chartContainerRef, chartWidth] = useElementWidth();
   const {
     data: chartData,
@@ -67,7 +68,7 @@ export function ShareRatioCard({ peggedToken }: Props) {
     refetch,
   } = useShareValueHistory({ peggedToken, period });
 
-  const isError = isPeggedTokensError || isHistoryError;
+  const isError = peggedTokenError || isHistoryError;
   // The API appends the current on-chain share value as the final point, so the last
   // datapoint is the current value (share token measured in pegged tokens) shown on
   // top of the card.
@@ -78,7 +79,10 @@ export function ShareRatioCard({ peggedToken }: Props) {
       <div className="flex flex-col gap-3">
         <div className="flex w-full items-center justify-between">
           <span className="text-b-medium text-gray-900">
-            <ShareRatioLabel peggedToken={peggedToken} />
+            <ShareRatioLabel
+              peggedToken={peggedToken}
+              peggedTokenError={peggedTokenError}
+            />
           </span>
           <ClockRevertedIcon className="text-blue-500" />
         </div>

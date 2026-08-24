@@ -1,6 +1,5 @@
 import { InfoCard } from "components/base/infoCard";
 import { ExitCooldownIcon } from "components/icons/exitCooldownIcon";
-import { usePeggedTokensByGateway } from "hooks/usePeggedTokensByGateway";
 import { usePrices } from "hooks/usePrices";
 import { useVariableStakeExitQueue } from "hooks/useVariableStakeExitQueue";
 import { useTranslation } from "react-i18next";
@@ -10,11 +9,14 @@ import { formatTokenAmountUsd } from "utils/currency";
 
 type Props = {
   peggedToken: TokenWithGateway | undefined;
+  peggedTokenError?: boolean;
 };
 
-export function ExitCooldownCard({ peggedToken }: Props) {
+export function ExitCooldownCard({
+  peggedToken,
+  peggedTokenError = false,
+}: Props) {
   const { t } = useTranslation();
-  const { isError: isPeggedTokensError } = usePeggedTokensByGateway();
   const {
     data: exitQueue,
     isError: isExitQueueError,
@@ -22,7 +24,7 @@ export function ExitCooldownCard({ peggedToken }: Props) {
   } = useVariableStakeExitQueue(peggedToken?.gatewayAddress);
   const { data: prices, isError: isPricesError } = usePrices();
 
-  const isError = isPeggedTokensError || isExitQueueError || isPricesError;
+  const isError = peggedTokenError || isExitQueueError || isPricesError;
 
   function formatCooldownAmount() {
     if (isError || !peggedToken || !exitQueue || !prices) {

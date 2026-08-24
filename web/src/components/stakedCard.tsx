@@ -1,7 +1,6 @@
 import { InfoCard } from "components/base/infoCard";
 import { StakedIcon } from "components/icons/stakedIcon";
 import { useAnalyticsStaked } from "hooks/useAnalyticsStaked";
-import { usePeggedTokensByGateway } from "hooks/usePeggedTokensByGateway";
 import { usePrices } from "hooks/usePrices";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
@@ -10,11 +9,11 @@ import { formatTokenAmountUsd } from "utils/currency";
 
 type Props = {
   peggedToken: TokenWithGateway | undefined;
+  peggedTokenError?: boolean;
 };
 
-export function StakedCard({ peggedToken }: Props) {
+export function StakedCard({ peggedToken, peggedTokenError = false }: Props) {
   const { t } = useTranslation();
-  const { isError: isPeggedTokensError } = usePeggedTokensByGateway();
   const {
     data: staked,
     isError: isStakedError,
@@ -22,7 +21,7 @@ export function StakedCard({ peggedToken }: Props) {
   } = useAnalyticsStaked(peggedToken?.gatewayAddress);
   const { data: prices, isError: isPricesError } = usePrices();
 
-  const isError = isPeggedTokensError || isStakedError || isPricesError;
+  const isError = peggedTokenError || isStakedError || isPricesError;
 
   function formatStakedAmount() {
     if (isError || !peggedToken || !staked || !prices) {
