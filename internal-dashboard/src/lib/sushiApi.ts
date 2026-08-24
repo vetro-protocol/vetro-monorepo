@@ -1,5 +1,5 @@
 import fetch from "fetch-plus-plus";
-import { type Address } from "viem";
+import { type Address, getAddress } from "viem";
 
 // Sushi's own data API — the backend of sushi.com's pool pages
 // (https://www.sushi.com/ethereum/pool/v3/<address>). Direct browser calls fail
@@ -112,9 +112,9 @@ export const fetchSushiPoolData = async function (
     reserve1: BigInt(pool.reserve1),
     rewardApy: pool.incentiveApr * 100,
     swapFee: pool.swapFee,
-    token0: pool.token0,
+    token0: { ...pool.token0, address: getAddress(pool.token0.address) },
     token0Price: pool.token0Price,
-    token1: pool.token1,
+    token1: { ...pool.token1, address: getAddress(pool.token1.address) },
     token1Price: pool.token1Price,
     volumeUsd24h: pool.volumeUSD1d,
   };

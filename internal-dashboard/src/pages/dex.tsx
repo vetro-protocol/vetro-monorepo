@@ -1,10 +1,38 @@
+import { useState } from "react";
+
+import { PoolFilters } from "../components/dex/poolFilters";
 import { PoolsTable } from "../components/dex/poolsTable";
 import { StateMessage } from "../components/dex/stateMessage";
 import { TokenDistribution } from "../components/dex/tokenDistribution";
+import { useCampaignPoolIds } from "../hooks/usePoolCampaigns";
 import { useTrackedPools } from "../hooks/useTrackedPools";
+import { useTrackedTokens } from "../hooks/useTrackedTokens";
+import { useWhitelistedTokens } from "../hooks/useWhitelistedTokens";
+import {
+  emptyPoolFilters,
+  filterPools,
+  tokenFilterOptions,
+} from "../lib/poolFilters";
 
 export const DexPage = function () {
   const { data: pools, isError, isPending } = useTrackedPools();
+  const { data: trackedTokens, error: trackedTokensError } = useTrackedTokens();
+  const { data: whitelistedTokens, error: whitelistedTokensError } =
+    useWhitelistedTokens();
+  const { data: campaignPoolIds, error: campaignsError } = useCampaignPoolIds();
+  const [filters, setFilters] = useState(emptyPoolFilters);
+
+  const filtersError = [
+    trackedTokensError,
+    whitelistedTokensError,
+    campaignsError,
+  ].find(Boolean);
+
+  const filteredPools = filterPools({
+    campaignPoolIds: campaignPoolIds ?? [],
+    filters,
+    pools: pools ?? [],
+  }).sort((a, b) => b.tvlUsd - a.tvlUsd);
 
   return (
     <section className="flex flex-col gap-y-10">
@@ -31,9 +59,25 @@ export const DexPage = function () {
               <h3 className="mb-3 text-lg font-semibold text-neutral-950">
                 Pools
               </h3>
-              <PoolsTable
-                pools={[...pools].sort((a, b) => b.tvlUsd - a.tvlUsd)}
+              <PoolFilters
+                campaignsDisabled={campaignPoolIds === undefined}
+                error={filtersError}
+                filters={filters}
+                onChange={setFilters}
+                trackedTokenOptions={tokenFilterOptions({
+                  pools,
+                  tokens: trackedTokens ?? [],
+                })}
+                whitelistedTokenOptions={tokenFilterOptions({
+                  pools,
+                  tokens: whitelistedTokens ?? [],
+                })}
               />
+              {filteredPools.length === 0 ? (
+                <StateMessage>No pool matches the filters.</StateMessage>
+              ) : (
+                <PoolsTable pools={filteredPools} />
+              )}
             </div>
             <div>
               <h3 className="mb-1 text-lg font-semibold text-neutral-950">

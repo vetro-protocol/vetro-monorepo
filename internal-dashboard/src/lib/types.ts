@@ -1,3 +1,4 @@
+import { type Token } from "@vetro-protocol/core";
 import { type Address } from "viem";
 
 import { type CampaignSource } from "../config/campaignSources";
@@ -48,31 +49,12 @@ export type TrackedPool = {
   volumeUsd24h: number;
 };
 
-// Tokens whose DEX liquidity we track. Discovered on-chain from the gateway and
-// staking-vault packages (see fetchers/fetchTrackedTokens) rather than hardcoded.
-// Mirrors web's `Token` shape (nested `extensions`), trimmed to the fields this
-// dashboard uses.
-export type TrackedToken = {
-  address: Address;
-  decimals: number;
-  extensions?: {
-    // ERC4626 share tokens (the address is the vault itself). Valued by
-    // converting shares to the underlying via the vault's live share value,
-    // then pricing the underlying by its price symbol.
-    isVaultShare?: boolean;
-    // Symbol used to derive this token's USD price. For pegged tokens it's the
-    // gateway's peg base ("USD" is identity at $1, otherwise a portal spot
-    // price); share tokens inherit their underlying pegged token's.
-    priceSymbol?: string;
-  };
-  symbol: string;
-};
+export type TrackedToken = Pick<
+  Token,
+  "address" | "decimals" | "extensions" | "symbol"
+>;
 
-export type WhitelistedToken = {
-  address: Address;
-  decimals: number;
-  symbol: string;
-};
+export type WhitelistedToken = Pick<Token, "address" | "decimals" | "symbol">;
 
 export type PoolCampaign = {
   aprPercent: number;
