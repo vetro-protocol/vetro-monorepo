@@ -7,7 +7,6 @@ import { VariableYieldInfoCards } from "components/earn/variableYieldInfoCards";
 import { VaultHeader } from "components/earn/vaultHeader";
 import { EarnIcon } from "components/navbar/earnIcon";
 import { ShareRatioCard } from "components/shareRatioCard";
-import { StripedDivider } from "components/stripedDivider";
 import { TokenLogo } from "components/tokenLogo";
 import { YieldCard } from "components/yieldCard";
 import { useVaultPeggedToken } from "hooks/useVaultPeggedToken";
@@ -118,10 +117,7 @@ const VariableYieldEarnDetailsContent = function ({
             <ShareRatioCard peggedToken={peggedToken} />
           </div>
         </div>
-        <div className="bg-gray-100 md:hidden">
-          <StripedDivider />
-        </div>
-        <div className="w-full shrink-0 md:w-[341px] md:border-b md:border-l md:border-gray-200">
+        <div className="w-full shrink-0 max-md:hidden md:w-[341px] md:border-b md:border-l md:border-gray-200">
           {/* Placeholder for the deposit/exit form. */}
           <div className="h-[252px] md:sticky md:top-0" />
         </div>
