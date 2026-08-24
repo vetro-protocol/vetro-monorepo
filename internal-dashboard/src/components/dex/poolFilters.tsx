@@ -31,7 +31,7 @@ export const PoolFilters = ({
       values={filters.trackedTokens}
     />
     <MultiSelect
-      label="Whitelisted Tokens"
+      label="Whitelisted tokens"
       onChange={(whitelistedTokens) =>
         onChange({ ...filters, whitelistedTokens })
       }
