@@ -5,7 +5,7 @@ type Props<T> = {
   data: T | undefined;
   icon: ReactNode;
   isLoading?: boolean;
-  label: string;
+  label: ReactNode;
   render: (data: T) => ReactNode;
   subtitle?: ReactNode;
 };

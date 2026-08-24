@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import type { TreasuryToken } from "../../../src/pages/analytics/types";
+import type { TreasuryToken } from "../../src/types";
 import {
   assignColor,
   toCollateralizationItems,
   toReserveBufferAmount,
   toTvlItems,
   toYieldItems,
-} from "../../../src/pages/analytics/utils";
+} from "../../src/utils/allocations";
 
 const USDT_ADDRESS =
   "0xdAC17F958D2ee523a2206206994597C13D831ec7" as `0x${string}`;

@@ -1,20 +1,25 @@
+import { AllocationCard } from "components/allocationCard";
+import { PieChartIcon } from "components/icons/pieChartIcon";
 import { useAnalyticsTreasury } from "hooks/useAnalyticsTreasury";
 import { usePrices } from "hooks/usePrices";
 import { useWhitelistedTokensByGateway } from "hooks/useWhitelistedTokensByGateway";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
-
-import { PieChartIcon } from "../icons/pieChartIcon";
-import { assignColor, toReserveBufferAmount, toYieldItems } from "../utils";
-
-import { AllocationCard } from "./allocationCard";
+import {
+  assignColor,
+  toReserveBufferAmount,
+  toYieldItems,
+} from "utils/allocations";
 
 type Props = {
   peggedToken: TokenWithGateway | undefined;
-  peggedTokenError: boolean;
+  peggedTokenError?: boolean;
 };
 
-export const YieldCard = function ({ peggedToken, peggedTokenError }: Props) {
+export const YieldCard = function ({
+  peggedToken,
+  peggedTokenError = false,
+}: Props) {
   const { t } = useTranslation();
   const { data: whitelistedTokens, isError: isWhitelistedTokensError } =
     useWhitelistedTokensByGateway(peggedToken?.gatewayAddress);
@@ -57,23 +62,23 @@ export const YieldCard = function ({ peggedToken, peggedTokenError }: Props) {
           {
             amount: bufferAmount,
             color: assignColor(yieldItems.length),
-            label: t("pages.analytics.reserve-buffer-label"),
+            label: t("common.charts.reserve-buffer-label"),
           },
         ]
       : yieldItems;
 
   const value =
     yieldItems && treasury
-      ? t("pages.analytics.yield-value", { count: yieldItems.length })
+      ? t("common.charts.yield-value", { count: yieldItems.length })
       : "";
 
   return (
     <AllocationCard
-      icon={<PieChartIcon />}
+      icon={<PieChartIcon className="text-blue-500" />}
       isError={isError}
       isLoading={isLoading}
       items={items}
-      label={t("pages.analytics.yield-label")}
+      label={t("common.charts.yield-label")}
       value={value}
     />
   );

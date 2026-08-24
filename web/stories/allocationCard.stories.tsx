@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { AllocationCard } from "../src/pages/analytics/components/allocationCard";
+import { AllocationCard } from "../src/components/allocationCard";
+import { PieChartIcon } from "../src/components/icons/pieChartIcon";
 import { DatabaseIcon } from "../src/pages/analytics/icons/databaseIcon";
-import { PieChartIcon } from "../src/pages/analytics/icons/pieChartIcon";
 
 const meta = {
   component: AllocationCard,

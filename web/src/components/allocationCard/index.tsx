@@ -2,10 +2,9 @@ import { type ReactNode, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { formatUsd } from "utils/currency";
 
-import type { AllocationItem } from "../../types";
-
 import { AllocationChart } from "./allocationChart";
 import { AllocationLegend } from "./allocationLegend";
+import type { AllocationItem } from "./types";
 
 type Props = {
   formatAmount?: (value: number) => string;
@@ -36,7 +35,7 @@ export const AllocationCard = function ({
   };
 
   return (
-    <div className="flex flex-1 flex-col only:border-x only:border-gray-200">
+    <div className="flex flex-1 flex-col">
       <div className="px-6 md:px-14">
         <div className="flex -translate-y-px flex-col gap-3 border-t border-blue-500 py-6">
           <div className="flex items-center justify-between">

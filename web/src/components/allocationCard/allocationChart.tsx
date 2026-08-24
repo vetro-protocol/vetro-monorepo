@@ -1,7 +1,7 @@
 import { TokenLogo } from "components/tokenLogo";
 import { Tooltip } from "components/tooltip";
 
-import type { AllocationItem } from "../../types";
+import type { AllocationItem } from "./types";
 
 const skeletonBars = 4;
 

@@ -3,6 +3,7 @@ import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { Badge } from "components/base/badge";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { InfoCard } from "components/base/infoCard";
+import { BoltIcon } from "components/icons/boltIcon";
 import { TokenLogo } from "components/tokenLogo";
 import { Tooltip } from "components/tooltip";
 import { useEthereumClient } from "hooks/useEthereumClient";
@@ -15,8 +16,6 @@ import { formatUsd } from "utils/currency";
 import { formatNumber } from "utils/format";
 import { type Address, formatUnits } from "viem";
 import { useAccount } from "wagmi";
-
-import { BoltIcon } from "../../icons/boltIcon";
 
 type PoolRowProps = {
   balance: bigint;
@@ -116,7 +115,7 @@ export function StakedBalanceStat() {
   return (
     <InfoCard
       {...useTotalStakedUsd()}
-      icon={<BoltIcon />}
+      icon={<BoltIcon className="text-blue-500" />}
       label={t("pages.earn.stats.staked-balance")}
       render={formatUsd}
       subtitle={<FromPoolsBadge />}

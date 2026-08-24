@@ -1,12 +1,11 @@
+import { AllocationCard } from "components/allocationCard";
 import { useCollateralizationRatio } from "hooks/useCollateralizationRatio";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
+import { assignColor, toCollateralizationItems } from "utils/allocations";
 import { formatPercentage } from "utils/format";
 
 import { ShieldIcon } from "../icons/shieldIcon";
-import { assignColor, toCollateralizationItems } from "../utils";
-
-import { AllocationCard } from "./allocationCard";
 
 type Props = {
   peggedToken: TokenWithGateway | undefined;

@@ -1,6 +1,6 @@
 import Skeleton from "react-loading-skeleton";
 
-import type { AllocationItem } from "../../types";
+import type { AllocationItem } from "./types";
 
 const skeletonRows = 4;
 
