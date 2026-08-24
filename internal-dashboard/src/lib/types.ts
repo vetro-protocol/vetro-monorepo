@@ -1,7 +1,6 @@
 import { type Token } from "@vetro-protocol/core";
 import { type Address } from "viem";
 
-import { type CampaignSource } from "../config/campaignSources";
 import { type Dex } from "../config/dexes";
 
 // Normalized, venue-agnostic shapes the UI consumes. Each DEX source (Curve
@@ -56,18 +55,31 @@ export type TrackedToken = Pick<
 
 export type WhitelistedToken = Pick<Token, "address" | "decimals" | "symbol">;
 
-export type PoolCampaign = {
-  aprPercent: number;
-  dailyRewardsUsd: number;
+type PoolCampaignBase = {
   endTimestamp: number; // seconds
   id: string;
-  name: string;
-  protocolAprPercent?: number;
   rewardTokenSymbol: string;
-  source: CampaignSource;
-  tvlUsd: number;
   url: string;
 };
+
+export type MerklPoolCampaign = PoolCampaignBase & {
+  aprPercent: number;
+  dailyRewardsUsd: number;
+  name: string;
+  protocolAprPercent?: number;
+  source: "merkl";
+  tvlUsd: number;
+};
+
+export type StakeDaoPoolCampaign = PoolCampaignBase & {
+  campaignNumber: number;
+  source: "stakeDao";
+  totalRewardUsd: number;
+  usdPerVote: number;
+  weeklyRewardUsd: number;
+};
+
+export type PoolCampaign = MerklPoolCampaign | StakeDaoPoolCampaign;
 
 export type GaugeEmission = {
   estCrvPerDay: number; // estimated CRV directed to this gauge per day

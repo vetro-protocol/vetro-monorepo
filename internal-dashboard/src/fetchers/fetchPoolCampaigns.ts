@@ -4,6 +4,7 @@ import { trackedPoolsOptions } from "../hooks/useTrackedPools";
 import { type PoolCampaign, type TrackedPool } from "../lib/types";
 
 import { fetchMerklCampaigns } from "./fetchMerklCampaigns";
+import { fetchStakeDaoCampaigns } from "./fetchStakeDaoCampaigns";
 
 const poolIdentifiers = (pool: TrackedPool) => [
   ...new Set(
@@ -22,8 +23,10 @@ export const fetchPoolCampaigns = async function (
     return {};
   }
 
-  // TODO add stakeDao campaigns https://github.com/vetro-protocol/vetro-monorepo/issues/699#issuecomment-5357386177
-  const results = await Promise.allSettled([fetchMerklCampaigns(identifiers)]);
+  const results = await Promise.allSettled([
+    fetchMerklCampaigns(identifiers),
+    fetchStakeDaoCampaigns(identifiers),
+  ]);
 
   const fulfilled = results.filter(
     (
