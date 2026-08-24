@@ -3,11 +3,12 @@ import {
   TEST_PRIVATE_KEY,
 } from "@hemilabs/anvil-fork-setup/utils";
 import { gatewayAbi as vetroGatewayAbi } from "@vetro-protocol/gateway";
-import { getMaxMint } from "@vetro-protocol/gateway/actions";
+import { getMaxMint, getTreasury } from "@vetro-protocol/gateway/actions";
 import { getKeeperRole } from "@vetro-protocol/treasury/actions";
 import { type Command, CommanderError } from "commander";
 import {
   type Address,
+  type Client,
   type Hex,
   createPublicClient,
   createTestClient,
@@ -239,6 +240,19 @@ export const setMaxMint = async function ({
   return { maxMintAfter, maxMintBefore };
 };
 
+const confirmWrite = async function ({
+  client,
+  hash,
+}: {
+  client: Client;
+  hash: Hex;
+}) {
+  const { status } = await waitForTransactionReceipt(client, { hash });
+  if (status !== "success") {
+    throw new Error("write reverted");
+  }
+};
+
 const treasuryAbi = parseAbi([
   "function defaultAdmin() view returns (address)",
   "function grantRole(bytes32 role, address account)",
@@ -277,13 +291,6 @@ export const setDepositActive = async function ({
   await impersonateAccount(testClient, { address: admin });
   await setBalance(testClient, { address: admin, value: parseEther("1") });
 
-  const confirm = async function (hash: Hex) {
-    const { status } = await waitForTransactionReceipt(publicClient, { hash });
-    if (status !== "success") {
-      throw new Error("treasury write reverted");
-    }
-  };
-
   try {
     const isKeeper = await readContract(publicClient, {
       abi: treasuryAbi,
@@ -292,25 +299,105 @@ export const setDepositActive = async function ({
       functionName: "hasRole",
     });
     if (!isKeeper) {
-      await confirm(
-        await writeContract(testClient, {
+      await confirmWrite({
+        client: publicClient,
+        hash: await writeContract(testClient, {
           abi: treasuryAbi,
           account: admin,
           address: treasury,
           args: [keeperRole, admin],
           functionName: "grantRole",
         }),
-      );
+      });
     }
-    await confirm(
-      await writeContract(testClient, {
+    await confirmWrite({
+      client: publicClient,
+      hash: await writeContract(testClient, {
         abi: treasuryAbi,
         account: admin,
         address: treasury,
         args: [token, active],
         functionName: "setDepositActive",
       }),
-    );
+    });
+  } finally {
+    await stopImpersonatingAccount(testClient, { address: admin });
+  }
+};
+
+const maintainerRoleAbi = parseAbi([
+  "function MAINTAINER_ROLE() view returns (bytes32)",
+]);
+
+export const setWithdrawalDelay = async function ({
+  delay,
+  enabled,
+  gateway,
+  rpcUrl,
+}: {
+  delay: bigint;
+  enabled: boolean;
+  gateway: Address;
+  rpcUrl: string;
+}) {
+  const { publicClient, testClient } = createClients(rpcUrl);
+
+  const [maintainerRole, treasury] = await Promise.all([
+    readContract(publicClient, {
+      abi: maintainerRoleAbi,
+      address: gateway,
+      functionName: "MAINTAINER_ROLE",
+    }),
+    getTreasury(publicClient, { address: gateway }),
+  ]);
+  const admin = await readContract(publicClient, {
+    abi: treasuryAbi,
+    address: treasury,
+    functionName: "defaultAdmin",
+  });
+
+  await impersonateAccount(testClient, { address: admin });
+  await setBalance(testClient, { address: admin, value: parseEther("1") });
+
+  try {
+    const isMaintainer = await readContract(publicClient, {
+      abi: treasuryAbi,
+      address: treasury,
+      args: [maintainerRole, admin],
+      functionName: "hasRole",
+    });
+    if (!isMaintainer) {
+      await confirmWrite({
+        client: publicClient,
+        hash: await writeContract(testClient, {
+          abi: treasuryAbi,
+          account: admin,
+          address: treasury,
+          args: [maintainerRole, admin],
+          functionName: "grantRole",
+        }),
+      });
+    }
+    await confirmWrite({
+      client: publicClient,
+      hash: await writeContract(testClient, {
+        abi: vetroGatewayAbi,
+        account: admin,
+        address: gateway,
+        args: [delay],
+        functionName: "updateWithdrawalDelay",
+      }),
+    });
+    await confirmWrite({
+      client: publicClient,
+      hash: await writeContract(testClient, {
+        abi: vetroGatewayAbi,
+        account: admin,
+        address: gateway,
+        args: [enabled],
+        functionName: "setWithdrawalDelayEnabled",
+      }),
+    });
   } finally {
     await stopImpersonatingAccount(testClient, { address: admin });
   }
