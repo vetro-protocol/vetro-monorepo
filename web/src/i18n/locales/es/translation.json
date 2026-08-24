@@ -386,7 +386,7 @@
         "you-will-stake": "Usted va a hacer stake de",
         "you-will-withdraw": "Usted va a retirar"
       },
-      "staked-label": "{{symbol}} staked",
+      "staked-label": "{{symbol}} en stake",
       "stats": {
         "earned-amount": "Su monto ganado",
         "from-pools": "De {{count}} fondo",
