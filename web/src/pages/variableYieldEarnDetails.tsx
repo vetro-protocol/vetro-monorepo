@@ -7,9 +7,12 @@ import { VariableYieldInfoCards } from "components/earn/variableYieldInfoCards";
 import { VaultHeader } from "components/earn/vaultHeader";
 import { EarnIcon } from "components/navbar/earnIcon";
 import { ShareRatioCard } from "components/shareRatioCard";
+import { StripedDivider } from "components/stripedDivider";
 import { TokenLogo } from "components/tokenLogo";
 import { YieldCard } from "components/yieldCard";
+import { useShareToken } from "hooks/useShareToken";
 import { useVaultPeggedToken } from "hooks/useVaultPeggedToken";
+import { StakeForm } from "pages/earn/components/stakeForm";
 import { ErrorPage } from "pages/errorPage";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
@@ -44,14 +47,16 @@ const VariableYieldEarnDetailsContent = function ({
   stakingVaultAddress: Address;
 }) {
   const { t } = useTranslation();
-  const { data: peggedToken, isError } =
+  const { data: peggedToken, isError: isPeggedTokenError } =
     useVaultPeggedToken(stakingVaultAddress);
+  const { data: shareToken, isError: isShareTokenError } =
+    useShareToken(stakingVaultAddress);
 
-  if (isError) {
+  if (isPeggedTokenError || isShareTokenError) {
     return <ErrorPage />;
   }
 
-  if (!peggedToken) {
+  if (!peggedToken || !shareToken) {
     return (
       <div className="p-8">
         <Skeleton count={3} height={40} />
@@ -117,9 +122,17 @@ const VariableYieldEarnDetailsContent = function ({
             <ShareRatioCard peggedToken={peggedToken} />
           </div>
         </div>
-        <div className="w-full shrink-0 max-md:hidden md:w-[341px] md:border-b md:border-l md:border-gray-200">
-          {/* Placeholder for the deposit/exit form. */}
-          <div className="h-[252px] md:sticky md:top-0" />
+        <div className="bg-gray-100 md:hidden">
+          <StripedDivider />
+        </div>
+        <div className="w-full shrink-0 md:w-[341px] md:border-b md:border-l md:border-gray-200">
+          <div className="md:sticky md:top-0">
+            <StakeForm
+              peggedToken={peggedToken}
+              shareToken={shareToken}
+              stakingVaultAddress={stakingVaultAddress}
+            />
+          </div>
         </div>
       </div>
     </div>
