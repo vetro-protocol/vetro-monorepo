@@ -345,7 +345,7 @@ export const DexPoolPage = function () {
           Reward campaigns
         </h3>
         <p className="mb-3 text-sm text-neutral-600">
-          Third-party campaigns rewarding liquidity in this pool.
+          Third-party campaigns running on this pool.
         </p>
         <CampaignsList poolId={pool.id} />
       </div>

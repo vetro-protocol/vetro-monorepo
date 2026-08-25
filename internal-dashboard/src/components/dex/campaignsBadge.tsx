@@ -1,7 +1,49 @@
 import { usePoolCampaigns } from "../../hooks/usePoolCampaigns";
-import { endingSoonTooltip, endsSoon } from "../../lib/campaigns";
+import {
+  campaignLabel,
+  endingSoonTooltip,
+  endsSoon,
+} from "../../lib/campaigns";
+import { type PoolCampaign } from "../../lib/types";
 import { CircleWarningIcon } from "../icons/circleWarningIcon";
 import { Tooltip } from "../tooltip";
+
+import { CampaignSourceBadge } from "./campaignSourceBadge";
+
+const CampaignLabels = ({
+  campaigns,
+  heading,
+  nowSeconds,
+}: {
+  campaigns: PoolCampaign[];
+  heading?: string;
+  nowSeconds: number;
+}) => (
+  <span className="flex flex-col gap-y-0.5">
+    {heading ? <span className="text-neutral-400">{heading}</span> : null}
+    {campaigns.map((campaign) => (
+      <span key={`${campaign.source}-${campaign.id}`}>
+        {campaignLabel({ campaign, nowSeconds })}
+      </span>
+    ))}
+  </span>
+);
+
+const SourceCount = ({
+  campaigns,
+  nowSeconds,
+}: {
+  campaigns: PoolCampaign[];
+  nowSeconds: number;
+}) => (
+  <Tooltip
+    label={<CampaignLabels campaigns={campaigns} nowSeconds={nowSeconds} />}
+  >
+    <CampaignSourceBadge source={campaigns[0].source}>
+      {campaigns.length}
+    </CampaignSourceBadge>
+  </Tooltip>
+);
 
 export const CampaignsBadge = function ({ poolId }: { poolId: string }) {
   const {
@@ -11,13 +53,17 @@ export const CampaignsBadge = function ({ poolId }: { poolId: string }) {
   } = usePoolCampaigns({ poolId });
 
   if (!campaigns) {
-    return error ? (
+    return (
       <span className="inline-flex shrink-0 items-center">
-        <Tooltip label={error.message}>
-          <span className="text-neutral-400">—</span>
-        </Tooltip>
+        {error ? (
+          <Tooltip label={error.message}>
+            <span className="text-neutral-400">—</span>
+          </Tooltip>
+        ) : (
+          <span className="h-5 w-11 animate-pulse rounded-full bg-neutral-100" />
+        )}
       </span>
-    ) : null;
+    );
   }
 
   if (campaigns.length === 0) {
@@ -25,19 +71,30 @@ export const CampaignsBadge = function ({ poolId }: { poolId: string }) {
   }
 
   const nowSeconds = dataUpdatedAt / 1000;
+  const sources = [...new Set(campaigns.map((campaign) => campaign.source))];
+  const endingSoon = campaigns.filter((campaign) =>
+    endsSoon(campaign.endTimestamp - nowSeconds),
+  );
 
   return (
     <span className="inline-flex shrink-0 items-center gap-x-1.5">
-      <Tooltip label="Reward campaigns running on this pool">
-        <span className="inline-flex items-center gap-x-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-emerald-600/20 ring-inset">
-          <span aria-hidden>✓</span>
-          {campaigns.length}
-        </span>
-      </Tooltip>
-      {campaigns.some((campaign) =>
-        endsSoon(campaign.endTimestamp - nowSeconds),
-      ) ? (
-        <Tooltip label={endingSoonTooltip}>
+      {sources.map((source) => (
+        <SourceCount
+          campaigns={campaigns.filter((campaign) => campaign.source === source)}
+          key={source}
+          nowSeconds={nowSeconds}
+        />
+      ))}
+      {endingSoon.length > 0 ? (
+        <Tooltip
+          label={
+            <CampaignLabels
+              campaigns={endingSoon}
+              heading={`${endingSoonTooltip}:`}
+              nowSeconds={nowSeconds}
+            />
+          }
+        >
           <CircleWarningIcon size={20} />
         </Tooltip>
       ) : null}

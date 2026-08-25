@@ -2,7 +2,7 @@ import { type ReactNode } from "react";
 
 type Props = {
   children: ReactNode;
-  label: string;
+  label: ReactNode;
 };
 
 export const Tooltip = ({ children, label }: Props) => (
