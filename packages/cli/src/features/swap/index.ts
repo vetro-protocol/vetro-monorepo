@@ -2,6 +2,7 @@ import { type Command } from "commander";
 
 import { register as allowance } from "./commands/allowance.ts";
 import { register as approve } from "./commands/approve.ts";
+import { register as cooldown } from "./commands/cooldown.ts";
 import { register as maxOut } from "./commands/maxOut.ts";
 import { register as mint } from "./commands/mint.ts";
 import { register as mintFee } from "./commands/mintFee.ts";
@@ -12,6 +13,7 @@ import { register as treasury } from "./commands/treasury.ts";
 const swapCommands = [
   allowance,
   approve,
+  cooldown,
   maxOut,
   mint,
   mintFee,
