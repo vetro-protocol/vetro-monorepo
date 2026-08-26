@@ -3,6 +3,7 @@ import { mainnet } from "viem/chains";
 
 type MerklCampaign = {
   apr: number; // %
+  campaignId: string;
   dailyRewards: number; // USD
   endTimestamp: number; // seconds
   id: string;
@@ -34,5 +35,11 @@ export const fetchLiveOpportunities = (
     },
   });
 
-export const merklOpportunityUrl = (opportunityId: string) =>
-  `https://app.merkl.xyz/opportunities/${opportunityId}`;
+export const merklCampaignUrl = ({
+  campaignId,
+  opportunityId,
+}: {
+  campaignId: string;
+  opportunityId: string;
+}) =>
+  `https://app.merkl.xyz/opportunities/${opportunityId}/campaigns/${campaignId}`;

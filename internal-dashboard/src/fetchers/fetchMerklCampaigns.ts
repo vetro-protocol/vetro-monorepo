@@ -1,7 +1,7 @@
 import {
   fetchLiveOpportunities,
+  merklCampaignUrl,
   type MerklOpportunity,
-  merklOpportunityUrl,
 } from "../lib/merklApi";
 import { type PoolCampaign } from "../lib/types";
 
@@ -29,7 +29,10 @@ const runningCampaigns = ({
         rewardTokenSymbol: campaign.rewardToken.symbol,
         source: "merkl",
         tvlUsd: opportunity.tvl,
-        url: merklOpportunityUrl(opportunity.id),
+        url: merklCampaignUrl({
+          campaignId: campaign.campaignId,
+          opportunityId: opportunity.id,
+        }),
       }),
     );
 
