@@ -738,6 +738,56 @@ describe("handleWithdrawCancelled", function () {
     );
   });
 
+  test("restores shares and totalCostBasis when cancelled", function () {
+    handleDeposit(
+      createDepositEvent(
+        BigInt.fromString("3500000000000000000000"),
+        ownerAddress,
+        ownerAddress,
+        BigInt.fromString("3500000000000000000000"),
+      ),
+    );
+
+    const burntShares = BigInt.fromString("3480113636363636363636");
+    const requestId = BigInt.fromI32(1);
+    handleWithdrawRequested(
+      createWithdrawRequestedEvent(
+        BigInt.fromString("3500000000000000000000"),
+        BigInt.fromI32(1769817600),
+        ownerAddress,
+        requestId,
+        burntShares,
+      ),
+    );
+    handleTransfer(
+      createTransferEvent(ownerAddress, Address.zero(), burntShares),
+    );
+
+    handleWithdrawCancelled(
+      createWithdrawCancelledEvent(
+        BigInt.fromString("3500000000000000000000"),
+        ownerAddress,
+        requestId,
+        burntShares,
+      ),
+    );
+
+    const id = `${vaultAddressString}-${ownerAddressString}`;
+    assert.fieldEquals(
+      "UserStakingPosition",
+      id,
+      "shares",
+      "3500000000000000000000",
+    );
+    // The burn left 19.886...e36 behind. The cancel adds 3500e36 back.
+    assert.fieldEquals(
+      "UserStakingPosition",
+      id,
+      "totalCostBasis",
+      "3519886363636363636364000000000000000000",
+    );
+  });
+
   test("ignores missing ExitTicket on cancel", function () {
     const assets = BigInt.fromString("1000000000000000000");
     const requestId = BigInt.fromI32(999);
