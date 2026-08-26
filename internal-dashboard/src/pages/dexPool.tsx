@@ -2,6 +2,7 @@ import { Link, useParams } from "react-router";
 import { type Address, formatUnits, isAddressEqual } from "viem";
 
 import { CampaignsList } from "../components/dex/campaignsList";
+import { ChainLogo } from "../components/dex/chainLogo";
 import { ExplorerLink } from "../components/dex/explorerLink";
 import { ExternalLink } from "../components/dex/externalLink";
 import { RangeBadge } from "../components/dex/rangeBadge";
@@ -10,7 +11,7 @@ import { StateMessage } from "../components/dex/stateMessage";
 import { TokenIcon } from "../components/dex/tokenIcon";
 import { TokenPair } from "../components/dex/tokenPair";
 import { VenueBadge } from "../components/dex/venueBadge";
-import { type Dex } from "../config/dexes";
+import { type Dex, dexLabels } from "../config/dexes";
 import { useCurvePoolStats } from "../hooks/useCurvePoolStats";
 import { useGaugeEmissions } from "../hooks/useGaugeEmissions";
 import { useTrackedPools } from "../hooks/useTrackedPools";
@@ -176,14 +177,16 @@ const GaugeSection = function ({ pool }: { pool: TrackedPool }) {
 
 const AddressRow = ({
   address,
+  chainId,
   label,
 }: {
   address: Address;
+  chainId: number;
   label: string;
 }) => (
   <div className="flex items-center justify-between gap-x-4 py-2 text-sm">
     <span className="text-neutral-600">{label}</span>
-    <ExplorerLink address={address} />
+    <ExplorerLink address={address} chainId={chainId} />
   </div>
 );
 
@@ -194,27 +197,36 @@ const AddressesSection = ({ pool }: { pool: TrackedPool }) => (
       <div className="flex items-center justify-between gap-x-4 py-2 text-sm">
         <span className="text-neutral-600">Pool</span>
         <span className="flex items-center gap-x-3">
-          <ExplorerLink address={pool.address} />
+          <ExplorerLink address={pool.address} chainId={pool.chainId} />
           {pool.url ? (
             <ExternalLink
-              className="font-medium text-blue-600 capitalize hover:underline"
+              className="font-medium text-blue-600 hover:underline"
               href={pool.url}
             >
-              {pool.dex} ↗
+              {dexLabels[pool.dex]} ↗
             </ExternalLink>
           ) : null}
         </span>
       </div>
       {pool.gaugeAddress ? (
-        <AddressRow address={pool.gaugeAddress} label="Gauge" />
+        <AddressRow
+          address={pool.gaugeAddress}
+          chainId={pool.chainId}
+          label="Gauge"
+        />
       ) : null}
       {pool.lpTokenAddress &&
       !isAddressEqual(pool.lpTokenAddress, pool.address) ? (
-        <AddressRow address={pool.lpTokenAddress} label="LP token" />
+        <AddressRow
+          address={pool.lpTokenAddress}
+          chainId={pool.chainId}
+          label="LP token"
+        />
       ) : null}
       {pool.coins.map((coin) => (
         <AddressRow
           address={coin.address}
+          chainId={pool.chainId}
           key={coin.address}
           label={coin.symbol}
         />
@@ -276,6 +288,7 @@ export const DexPoolPage = function () {
                 name={pool.name}
                 size={32}
               />
+              <ChainLogo chainId={pool.chainId} size={20} />
               <VenueBadge dex={pool.dex} />
               {pool.rangeLabel ? <RangeBadge label={pool.rangeLabel} /> : null}
             </div>
@@ -286,7 +299,7 @@ export const DexPoolPage = function () {
               className="self-start rounded-md border border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
               href={pool.url}
             >
-              View on <span className="capitalize">{pool.dex}</span> ↗
+              View on {dexLabels[pool.dex]} ↗
             </ExternalLink>
           ) : null}
         </div>

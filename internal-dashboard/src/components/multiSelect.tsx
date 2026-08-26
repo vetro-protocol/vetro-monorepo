@@ -1,17 +1,16 @@
 import { useOnClickOutside } from "@hemilabs/react-hooks/useOnClickOutside";
 import { useId, useState } from "react";
-import { type Address, isAddressEqual } from "viem";
 
-export type MultiSelectOption = {
+export type MultiSelectOption<T> = {
   label: string;
-  value: Address;
+  value: T;
 };
 
-type Props = {
+type Props<T> = {
   label: string;
-  onChange: (values: Address[]) => void;
-  options: MultiSelectOption[];
-  values: Address[];
+  onChange: (values: T[]) => void;
+  options: MultiSelectOption<T>[];
+  values: T[];
 };
 
 const ChevronDownIcon = () => (
@@ -31,25 +30,24 @@ const ChevronDownIcon = () => (
   </svg>
 );
 
-export const MultiSelect = function ({
+export const MultiSelect = function <T extends number | string>({
   label,
   onChange,
   options,
   values,
-}: Props) {
+}: Props<T>) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useOnClickOutside<HTMLDivElement>(
     isOpen ? () => setIsOpen(false) : undefined,
   );
   const panelId = useId();
 
-  const isSelected = (value: Address) =>
-    values.some((selected) => isAddressEqual(selected, value));
+  const isSelected = (value: T) => values.includes(value);
 
-  const toggle = function (value: Address) {
+  const toggle = function (value: T) {
     onChange(
       isSelected(value)
-        ? values.filter((selected) => !isAddressEqual(selected, value))
+        ? values.filter((selected) => selected !== value)
         : [...values, value],
     );
   };

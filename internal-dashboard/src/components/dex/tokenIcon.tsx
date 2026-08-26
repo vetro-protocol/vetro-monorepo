@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { type Address } from "viem";
 
-import { dexTokenIconUrl } from "../../config/chain";
-import { type Dex } from "../../config/dexes";
+import { type Dex, dexTokenIconUrl } from "../../config/dexes";
 import { tokenListLogoUrl } from "../../config/tokenList";
 
 type Props = {

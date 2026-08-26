@@ -1,8 +1,10 @@
 import { type QueryClient } from "@tanstack/react-query";
-import { type Address, formatUnits, parseUnits } from "viem";
+import { type Address, parseUnits } from "viem";
+import { mainnet } from "viem/chains";
 
 import { trackedTokensOptions } from "../hooks/useTrackedTokens";
 import { whitelistedTokensOptions } from "../hooks/useWhitelistedTokens";
+import { poolTvlUsd } from "../lib/poolMetrics";
 import { type PoolCoin, type TrackedPool } from "../lib/types";
 import { fetchUniswapPoolData } from "../lib/uniswapApi";
 import { buildPoolQueries, findPools, type PoolQuery } from "../lib/uniswapV3";
@@ -27,11 +29,7 @@ const fetchUniswapPool = async function (
 
   // Uniswap's own TVL counts only the legs it can price, so it's the one figure
   // that can't be taken as published; both legs are valued here instead.
-  const tvlUsd = coins.reduce(
-    (sum, coin) =>
-      sum + Number(formatUnits(coin.balance, coin.decimals)) * coin.usdPrice,
-    0,
-  );
+  const tvlUsd = poolTvlUsd(coins);
   // Uniswap publishes no fee figure, so it follows from the volume it does
   // publish: the tier is charged on every swap's input.
   const feesUsd24h = (data.volumeUsd24h * data.feeTier) / 1_000_000;
@@ -39,6 +37,7 @@ const fetchUniswapPool = async function (
   return {
     address: pool.address,
     baseApy: tvlUsd > 0 ? ((feesUsd24h * 365) / tvlUsd) * 100 : 0,
+    chainId: mainnet.id,
     coins,
     dex: "uniswap",
     feesUsd24h,

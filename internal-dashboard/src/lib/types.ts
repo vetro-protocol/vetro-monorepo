@@ -20,6 +20,7 @@ export type PoolCoin = {
 export type TrackedPool = {
   address: Address;
   baseApy: number; // % from trading fees
+  chainId: number;
   coins: PoolCoin[];
   dex: Dex; // venue this pool belongs to
   // Rolling-24h trading fees in USD, when the venue's API hands them to us

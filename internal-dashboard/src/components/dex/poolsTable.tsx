@@ -4,6 +4,7 @@ import { formatPercent, formatUsd } from "../../lib/format";
 import { type TrackedPool } from "../../lib/types";
 
 import { CampaignsBadge } from "./campaignsBadge";
+import { ChainLogo } from "./chainLogo";
 import { RangeBadge } from "./rangeBadge";
 import { TokenPair } from "./tokenPair";
 import { VenueBadge } from "./venueBadge";
@@ -43,6 +44,7 @@ export const PoolsTable = function ({ pools }: Props) {
               <div className="flex items-center justify-between gap-x-2">
                 <TokenPair {...pool} />
                 <span className="flex shrink-0 items-center gap-x-1.5">
+                  <ChainLogo chainId={pool.chainId} />
                   <CampaignsBadge poolId={pool.id} />
                   {pool.rangeLabel ? (
                     <RangeBadge label={pool.rangeLabel} />
@@ -81,6 +83,7 @@ export const PoolsTable = function ({ pools }: Props) {
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="border-b border-neutral-200 text-xs font-medium text-neutral-500">
+              <th className="py-2 pr-4 text-left font-medium">Chain</th>
               <th className="py-2 pr-4 text-left font-medium">Pool</th>
               <th className="py-2 pr-4 text-right font-medium">TVL</th>
               <th className="py-2 pr-4 text-right font-medium">24h Volume</th>
@@ -97,6 +100,9 @@ export const PoolsTable = function ({ pools }: Props) {
                 key={pool.id}
                 onClick={() => navigate(poolPath(pool))}
               >
+                <td className="py-3 pr-4">
+                  <ChainLogo chainId={pool.chainId} size={20} />
+                </td>
                 <td className="py-3 pr-4">
                   <div className="flex items-center gap-x-2">
                     <Link

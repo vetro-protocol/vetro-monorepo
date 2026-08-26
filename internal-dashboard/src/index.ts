@@ -8,6 +8,7 @@ import type { StakeDaoCampaign } from "./lib/stakeDaoApi";
 
 type Env = {
   ASSETS: Fetcher;
+  THEGRAPH_API_KEY: string;
 };
 
 // Deny all permissions – mirrors web/src/index.ts.
@@ -79,14 +80,6 @@ const scriptSrc = [
 
 const csp = [
   "base-uri 'none'",
-  // The DEX tab reads Curve liquidity straight from the Curve API (pool list /
-  // volumes / gauges) and per-pool 24h fees from Curve's analytics API. Sushi and
-  // Uniswap pool data comes from their own APIs via the worker's /api/sushi and
-  // /api/uniswap proxies, so they need no extra origin here ('self' covers it).
-  // Reward campaigns come from Merkl and StakeDAO via the worker's /api/merkl
-  // and /api/stakedao proxies, so they need no extra origin either. Token / pool discovery, pool balances and share
-  // values are read on-chain from the mainnet RPC, and token USD prices come from
-  // the Portal API.
   `connect-src 'self' https://api.curve.finance https://prices.curve.finance ${rpcConnectSrc} ${portalApiUrl}`,
   "default-src 'none'",
   "font-src 'self'",
@@ -122,14 +115,22 @@ const htmlHeaders = {
   "X-Frame-Options": "DENY",
 };
 
+const brownfiSubgraphId = "D1UwhrB45geUZTNQ2QwrXwGEhk69iBESApJJzz378ZeS";
+
 const graphqlProxies: Record<
   string,
-  { headers?: Record<string, string>; upstream: string }
+  { headers?: Record<string, string>; upstream: (env: Env) => string }
 > = {
-  "/api/sushi": { upstream: "https://production.data-gcp.sushi.com/graphql" },
+  "/api/brownfi": {
+    upstream: (env) =>
+      `https://gateway.thegraph.com/api/${env.THEGRAPH_API_KEY}/subgraphs/id/${brownfiSubgraphId}`,
+  },
+  "/api/sushi": {
+    upstream: () => "https://production.data-gcp.sushi.com/graphql",
+  },
   "/api/uniswap": {
     headers: { origin: "https://app.uniswap.org" },
-    upstream: "https://interface.gateway.uniswap.org/v1/graphql",
+    upstream: () => "https://interface.gateway.uniswap.org/v1/graphql",
   },
 };
 
@@ -241,7 +242,11 @@ export default {
 
     const graphqlProxy = graphqlProxies[url.pathname];
     if (request.method === "POST" && graphqlProxy) {
-      return proxyGraphql({ ...graphqlProxy, request });
+      return proxyGraphql({
+        headers: graphqlProxy.headers,
+        request,
+        upstream: graphqlProxy.upstream(env),
+      });
     }
 
     const restHandler = restHandlers[url.pathname];

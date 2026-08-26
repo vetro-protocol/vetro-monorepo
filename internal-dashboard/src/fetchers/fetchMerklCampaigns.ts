@@ -1,3 +1,4 @@
+import { campaignKey } from "../lib/campaigns";
 import {
   fetchLiveOpportunities,
   merklCampaignUrl,
@@ -44,7 +45,10 @@ export const fetchMerklCampaigns = async function (
 
   const campaigns: Record<string, PoolCampaign[]> = {};
   for (const opportunity of opportunities) {
-    const key = opportunity.identifier.toLowerCase();
+    const key = campaignKey({
+      address: opportunity.identifier,
+      chainId: opportunity.chainId,
+    });
     campaigns[key] = [
       ...(campaigns[key] ?? []),
       ...runningCampaigns({ nowSeconds, opportunity }),

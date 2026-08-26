@@ -1,4 +1,5 @@
-import { type Address, getAddress } from "viem";
+import { type Address } from "viem";
+import { hemi, mainnet } from "viem/chains";
 import { describe, expect, it } from "vitest";
 
 import { computeDistributions } from "../src/lib/distribution.ts";
@@ -20,23 +21,34 @@ const makeToken = ({
   symbol: string;
 }): TrackedToken => ({ address, decimals: 18, symbol });
 
+const symbolByAddress: Record<string, string> = {
+  [tokenA]: "A",
+  [tokenB]: "B",
+  [tokenC]: "C",
+};
+
 const makeCoin = ({
   address,
   balance,
+  symbol = symbolByAddress[address],
 }: {
   address: Address;
   balance: bigint;
-}): PoolCoin => ({ address, balance, decimals: 18, symbol: "X", usdPrice: 1 });
+  symbol?: string;
+}): PoolCoin => ({ address, balance, decimals: 18, symbol, usdPrice: 1 });
 
 const makePool = ({
   address,
+  chainId = mainnet.id,
   coins,
 }: {
   address: Address;
+  chainId?: number;
   coins: PoolCoin[];
 }): TrackedPool => ({
   address,
   baseApy: 0,
+  chainId,
   coins,
   dex: "curve",
   gaugeAddress: undefined,
@@ -161,12 +173,16 @@ describe("distribution/computeDistributions", function () {
     ]);
   });
 
-  it("matches token and coin addresses case-insensitively", function () {
+  it("merges the same token across chains into one distribution", function () {
     const pools = [
       makePool({
         address: poolOne,
-        // Coin recorded in checksummed form; token tracked in lowercase.
-        coins: [makeCoin({ address: getAddress(tokenA), balance: 42n })],
+        coins: [makeCoin({ address: tokenA, balance: 40n })],
+      }),
+      makePool({
+        address: poolTwo,
+        chainId: hemi.id,
+        coins: [makeCoin({ address: tokenC, balance: 60n, symbol: "A" })],
       }),
     ];
     const [distribution] = computeDistributions({
@@ -174,8 +190,11 @@ describe("distribution/computeDistributions", function () {
       tokens: [makeToken({ address: tokenA, symbol: "A" })],
     });
 
-    expect(distribution.slices).toHaveLength(1);
-    expect(distribution.slices[0].balance).toBe(42n);
+    expect(distribution.totalBalance).toBe(100n);
+    expect(distribution.slices.map((slice) => slice.pool.chainId)).toEqual([
+      hemi.id,
+      mainnet.id,
+    ]);
   });
 
   it("assigns a zero share to every slice when total balance is zero", function () {

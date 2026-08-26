@@ -1,3 +1,5 @@
+import { type Address } from "viem";
+
 import {
   emptyPoolFilters,
   hasActiveFilters,
@@ -8,27 +10,35 @@ import { Tooltip } from "../tooltip";
 
 type Props = {
   campaignsDisabled: boolean;
+  chainOptions: MultiSelectOption<number>[];
   error?: Error | null;
   filters: PoolFilterState;
   onChange: (filters: PoolFilterState) => void;
-  trackedTokenOptions: MultiSelectOption[];
-  whitelistedTokenOptions: MultiSelectOption[];
+  trackedSymbolOptions: MultiSelectOption<string>[];
+  whitelistedTokenOptions: MultiSelectOption<Address>[];
 };
 
 export const PoolFilters = ({
   campaignsDisabled,
+  chainOptions,
   error,
   filters,
   onChange,
-  trackedTokenOptions,
+  trackedSymbolOptions,
   whitelistedTokenOptions,
 }: Props) => (
   <div className="mb-3 flex flex-wrap items-center gap-2">
     <MultiSelect
+      label="Chain"
+      onChange={(chainIds) => onChange({ ...filters, chainIds })}
+      options={chainOptions}
+      values={filters.chainIds}
+    />
+    <MultiSelect
       label="Vetro tokens"
-      onChange={(trackedTokens) => onChange({ ...filters, trackedTokens })}
-      options={trackedTokenOptions}
-      values={filters.trackedTokens}
+      onChange={(trackedSymbols) => onChange({ ...filters, trackedSymbols })}
+      options={trackedSymbolOptions}
+      values={filters.trackedSymbols}
     />
     <MultiSelect
       label="Whitelisted tokens"

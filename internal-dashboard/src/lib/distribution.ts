@@ -1,5 +1,3 @@
-import { isAddressEqual } from "viem";
-
 import { type TrackedPool, type TrackedToken } from "./types";
 
 // Fixed-point scale for the bigint share ratio: 6 decimals of share precision,
@@ -31,8 +29,8 @@ export const computeDistributions = ({
   tokens.map(function (token) {
     const entries = pools
       .map(function (pool) {
-        const coin = pool.coins.find((candidate) =>
-          isAddressEqual(candidate.address, token.address),
+        const coin = pool.coins.find(
+          (candidate) => candidate.symbol === token.symbol,
         );
         return coin ? { balance: coin.balance, pool } : undefined;
       })

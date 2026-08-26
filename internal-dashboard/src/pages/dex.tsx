@@ -9,9 +9,11 @@ import { useTrackedPools } from "../hooks/useTrackedPools";
 import { useTrackedTokens } from "../hooks/useTrackedTokens";
 import { useWhitelistedTokens } from "../hooks/useWhitelistedTokens";
 import {
+  chainFilterOptions,
   emptyPoolFilters,
   filterPools,
   tokenFilterOptions,
+  trackedSymbolOptions,
 } from "../lib/poolFilters";
 
 export const DexPage = function () {
@@ -61,10 +63,11 @@ export const DexPage = function () {
               </h3>
               <PoolFilters
                 campaignsDisabled={campaignPoolIds === undefined}
+                chainOptions={chainFilterOptions(pools)}
                 error={filtersError}
                 filters={filters}
                 onChange={setFilters}
-                trackedTokenOptions={tokenFilterOptions({
+                trackedSymbolOptions={trackedSymbolOptions({
                   pools,
                   tokens: trackedTokens ?? [],
                 })}

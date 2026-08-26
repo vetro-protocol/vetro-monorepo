@@ -1,6 +1,7 @@
-import { formatUnits } from "viem";
+import { mainnet } from "viem/chains";
 
 import { type SushiPoolConfig, sushiPools } from "../config/sushiPools";
+import { poolTvlUsd } from "../lib/poolMetrics";
 import { fetchSushiPoolData, type SushiToken } from "../lib/sushiApi";
 import { type PoolCoin, type TrackedPool } from "../lib/types";
 import { fetchV3PoolState } from "../lib/v3PoolState";
@@ -77,6 +78,7 @@ const fetchSushiPool = async function ({
     return {
       address: pool.address,
       baseApy: metrics?.baseApy ?? 0,
+      chainId: mainnet.id,
       coins,
       dex: "sushi",
       feesUsd24h: metrics?.feesUsd24h ?? 0,
@@ -147,13 +149,7 @@ const fetchSushiPool = async function ({
       id: `${pool.address}-${range.lowerPrice}-${range.upperPrice}`,
       isRangeView: true,
       rangeLabel: `$${range.lowerPrice}–$${range.upperPrice}`,
-      // The band's TVL is the one figure the API can't give us directly.
-      tvlUsd: coins.reduce(
-        (sum, coin) =>
-          sum +
-          Number(formatUnits(coin.balance, coin.decimals)) * coin.usdPrice,
-        0,
-      ),
+      tvlUsd: poolTvlUsd(coins),
     });
   });
 

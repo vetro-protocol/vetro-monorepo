@@ -13,6 +13,14 @@ export const endingSoonTooltip = `Ends in less than ${endingSoonThresholdDays} d
 export const endsSoon = (secondsLeft: number) =>
   secondsLeft < endingSoonThresholdSeconds;
 
+export const campaignKey = ({
+  address,
+  chainId,
+}: {
+  address: string;
+  chainId: number;
+}) => `${chainId}-${address.toLowerCase()}`;
+
 export const campaignLabel = ({
   campaign,
   nowSeconds,

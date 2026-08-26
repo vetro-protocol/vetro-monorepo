@@ -1,16 +1,22 @@
 import { type QueryClient } from "@tanstack/react-query";
 
 import { trackedPoolsOptions } from "../hooks/useTrackedPools";
+import { campaignKey } from "../lib/campaigns";
 import { type PoolCampaign, type TrackedPool } from "../lib/types";
 
 import { fetchMerklCampaigns } from "./fetchMerklCampaigns";
 import { fetchStakeDaoCampaigns } from "./fetchStakeDaoCampaigns";
 
-const poolIdentifiers = (pool: TrackedPool) => [
+const poolAddresses = (pool: TrackedPool) =>
+  [pool.address, pool.gaugeAddress, pool.lpTokenAddress].filter(
+    (address) => address !== undefined,
+  );
+
+const poolKeys = (pool: TrackedPool) => [
   ...new Set(
-    [pool.address, pool.gaugeAddress, pool.lpTokenAddress]
-      .filter((address) => address !== undefined)
-      .map((address) => address.toLowerCase()),
+    poolAddresses(pool).map((address) =>
+      campaignKey({ address, chainId: pool.chainId }),
+    ),
   ),
 ];
 
@@ -18,14 +24,18 @@ export const fetchPoolCampaigns = async function (
   queryClient: QueryClient,
 ): Promise<Record<string, PoolCampaign[]>> {
   const pools = await queryClient.ensureQueryData(trackedPoolsOptions());
-  const identifiers = [...new Set(pools.flatMap(poolIdentifiers))];
-  if (identifiers.length === 0) {
+  const addresses = [
+    ...new Set(
+      pools.flatMap(poolAddresses).map((address) => address.toLowerCase()),
+    ),
+  ];
+  if (addresses.length === 0) {
     return {};
   }
 
   const results = await Promise.allSettled([
-    fetchMerklCampaigns(identifiers),
-    fetchStakeDaoCampaigns(identifiers),
+    fetchMerklCampaigns(addresses),
+    fetchStakeDaoCampaigns(addresses),
   ]);
 
   const fulfilled = results.filter(
@@ -41,8 +51,8 @@ export const fetchPoolCampaigns = async function (
   return Object.fromEntries(
     pools.map((pool) => [
       pool.id,
-      poolIdentifiers(pool).flatMap((identifier) =>
-        fulfilled.flatMap((result) => result.value[identifier] ?? []),
+      poolKeys(pool).flatMap((key) =>
+        fulfilled.flatMap((result) => result.value[key] ?? []),
       ),
     ]),
   );

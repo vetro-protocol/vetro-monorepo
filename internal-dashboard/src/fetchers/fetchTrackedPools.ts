@@ -3,6 +3,7 @@ import { type QueryClient } from "@tanstack/react-query";
 import { trackedTokensOptions } from "../hooks/useTrackedTokens";
 import { type TrackedPool } from "../lib/types";
 
+import { fetchBrownfiPools } from "./fetchBrownfiPools";
 import { fetchCurvePools } from "./fetchCurvePools";
 import { fetchSushiPools } from "./fetchSushiPools";
 import { fetchUniswapPools } from "./fetchUniswapPools";
@@ -14,11 +15,13 @@ export const fetchTrackedPools = async function (
   const trackedAddresses = new Set(
     tokens.map((token) => token.address.toLowerCase()),
   );
+  const trackedSymbols = new Set(tokens.map((token) => token.symbol));
 
   // Keep the rest of the list alive when a single source fails. Only surface an
   // error when every source fails, so a real outage isn't silently shown as an
   // empty pool list.
   const results = await Promise.allSettled([
+    fetchBrownfiPools(trackedSymbols),
     fetchCurvePools(trackedAddresses),
     fetchSushiPools(trackedAddresses),
     fetchUniswapPools(queryClient),

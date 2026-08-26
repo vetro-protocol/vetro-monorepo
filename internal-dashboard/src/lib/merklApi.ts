@@ -1,5 +1,6 @@
 import fetch from "fetch-plus-plus";
-import { mainnet } from "viem/chains";
+
+import { trackedChains } from "../config/chains";
 
 type MerklCampaign = {
   apr: number; // %
@@ -13,6 +14,7 @@ type MerklCampaign = {
 
 export type MerklOpportunity = {
   campaigns: MerklCampaign[];
+  chainId: number;
   id: string;
   identifier: string;
   name: string;
@@ -28,7 +30,7 @@ export const fetchLiveOpportunities = (
   fetch(`${merklProxyApiUrl}/opportunities`, {
     queryString: {
       campaigns: true,
-      chainId: mainnet.id,
+      chainId: trackedChains.map((chain) => chain.id).join(","),
       identifier: identifiers.join(","),
       items: maxItems,
       status: "LIVE",
