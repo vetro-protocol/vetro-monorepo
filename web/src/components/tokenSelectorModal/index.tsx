@@ -4,25 +4,19 @@ import type { Token } from "@vetro-protocol/core";
 import { ChevronIcon } from "components/base/chevronIcon";
 import { Modal } from "components/base/modal";
 import { SearchInput } from "components/base/searchInput";
-import { TokenChainLogo } from "components/bridgeForm/tokenChainLogo";
+import {
+  TokenChainLogo,
+  type TokenChainLogoSize,
+} from "components/bridgeForm/tokenChainLogo";
 import { CloseIcon } from "components/icons/closeIcon";
 import { TokenLogo } from "components/tokenLogo";
 import { getChainById } from "networks";
-import {
-  type ComponentProps,
-  type KeyboardEvent,
-  useEffect,
-  useId,
-  useRef,
-  useState,
-} from "react";
+import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { screenBreakpoints } from "styles/breakpoints";
 
 import { EmptyState } from "./emptyState";
 import { TokenRow } from "./tokenRow";
-
-type LogoSize = ComponentProps<typeof TokenLogo>["size"];
 
 type Props<T extends Token = Token> = {
   onChange: (token: T) => void;
@@ -44,7 +38,7 @@ const Logo = <T extends Token>({
   token,
 }: {
   showChainLogo: boolean;
-  size?: LogoSize;
+  size?: TokenChainLogoSize;
   token: T;
 }) =>
   showChainLogo ? (

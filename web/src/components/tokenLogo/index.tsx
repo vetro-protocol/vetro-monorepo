@@ -1,17 +1,13 @@
 import type { Token } from "@vetro-protocol/core";
-import { DefaultTokenLogo } from "components/defaultTokenLogo";
+import {
+  DefaultTokenLogo,
+  type LogoSize,
+  logoSizeClasses,
+} from "components/defaultTokenLogo";
 import { useEffect, useState } from "react";
 
-const sizeClasses = {
-  base: "size-5",
-  large: "size-8",
-  medium: "size-6",
-  small: "size-4",
-  xLarge: "size-11",
-};
-
 type Props = Pick<Token, "logoURI" | "symbol"> & {
-  size?: keyof typeof sizeClasses;
+  size?: LogoSize;
 };
 
 export const TokenLogo = function ({ logoURI, size = "base", symbol }: Props) {
@@ -31,7 +27,7 @@ export const TokenLogo = function ({ logoURI, size = "base", symbol }: Props) {
   return (
     <img
       alt={`${symbol} logo`}
-      className={`${sizeClasses[size]} rounded-full`}
+      className={`${logoSizeClasses[size]} rounded-full`}
       onError={() => setHasError(true)}
       src={logoURI}
     />

@@ -11,68 +11,59 @@ export const fetchEarnedAmountUsd = async function ({
   account,
   client,
   queryClient,
-  stakingVaultAddresses,
+  stakingVaultAddress,
 }: {
   account: Address;
   client: Client;
   queryClient: QueryClient;
-  stakingVaultAddresses: readonly Address[];
+  stakingVaultAddress: Address;
 }): Promise<number> {
   const chainId = client.chain?.id;
   if (chainId === undefined) {
     throw new Error("Client is missing a chain");
   }
 
-  const [prices, costBases] = await Promise.all([
-    queryClient.ensureQueryData(pricesOptions({ client, queryClient })),
-    queryClient.ensureQueryData(costBasisQueryOptions({ address: account })),
-  ]);
+  const [costBases, peggedToken, prices, userShares, userStakedAssets] =
+    await Promise.all([
+      queryClient.ensureQueryData(costBasisQueryOptions({ address: account })),
+      queryClient.ensureQueryData(
+        vaultPeggedTokenQueryOptions({
+          client,
+          queryClient,
+          stakingVaultAddress,
+        }),
+      ),
+      queryClient.ensureQueryData(pricesOptions({ client, queryClient })),
+      queryClient.ensureQueryData(
+        tokenBalanceQueryOptions({
+          account,
+          client,
+          token: { address: stakingVaultAddress, chainId },
+        }),
+      ),
+      queryClient.ensureQueryData(
+        stakedBalanceQueryOptions({
+          account,
+          chainId,
+          client,
+          queryClient,
+          stakingVaultAddress,
+        }),
+      ),
+    ]);
 
-  const perVaultUsd = await Promise.all(
-    stakingVaultAddresses.map(async function (stakingVaultAddress) {
-      const [peggedToken, userStakedAssets, userShares] = await Promise.all([
-        queryClient.ensureQueryData(
-          vaultPeggedTokenQueryOptions({
-            client,
-            queryClient,
-            stakingVaultAddress,
-          }),
-        ),
-        queryClient.ensureQueryData(
-          stakedBalanceQueryOptions({
-            account,
-            chainId,
-            client,
-            queryClient,
-            stakingVaultAddress,
-          }),
-        ),
-        queryClient.ensureQueryData(
-          tokenBalanceQueryOptions({
-            account,
-            client,
-            token: { address: stakingVaultAddress, chainId },
-          }),
-        ),
-      ]);
+  if (userShares === 0n) {
+    return 0;
+  }
 
-      if (userShares === 0n) {
-        return 0;
-      }
+  const costBasis = costBases[stakingVaultAddress] ?? 0n;
+  if (costBasis === 0n) {
+    return 0;
+  }
 
-      const costBasis = costBases[stakingVaultAddress] ?? 0n;
-      if (costBasis === 0n) {
-        return 0;
-      }
-
-      const earnedAssets = userStakedAssets - costBasis;
-      return tokenAmountToUsd({
-        amount: earnedAssets,
-        prices,
-        token: peggedToken,
-      });
-    }),
-  );
-
-  return perVaultUsd.reduce((sum, value) => sum + value, 0);
+  return tokenAmountToUsd({
+    amount: userStakedAssets - costBasis,
+    prices,
+    token: peggedToken,
+  });
 };

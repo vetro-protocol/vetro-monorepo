@@ -4,6 +4,7 @@ import { Breadcrumb } from "components/base/breadcrumb";
 import { BreadcrumbSelector } from "components/base/breadcrumb/breadcrumbSelector";
 import { ButtonLink } from "components/base/button";
 import { VariableYieldInfoCards } from "components/earn/variableYieldInfoCards";
+import { VariableYieldPositionCards } from "components/earn/variableYieldPositionCards";
 import { VaultHeader } from "components/earn/vaultHeader";
 import { EarnIcon } from "components/navbar/earnIcon";
 import { ShareRatioCard } from "components/shareRatioCard";
@@ -121,6 +122,11 @@ const VariableYieldEarnDetailsContent = function ({
           <div className={chartCardContainer}>
             <ShareRatioCard peggedToken={peggedToken} />
           </div>
+          <StripedDivider variant="small" />
+          <VariableYieldPositionCards
+            shareToken={shareToken}
+            stakingVaultAddress={stakingVaultAddress}
+          />
         </div>
         <div className="bg-gray-100 md:hidden">
           <StripedDivider />

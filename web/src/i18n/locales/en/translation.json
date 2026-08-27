@@ -399,7 +399,8 @@
       "variable-yield": {
         "apy": "APY",
         "header-title": "Variable yield",
-        "title": "Variable yield pools"
+        "title": "Variable yield pools",
+        "your-position": "Your position"
       }
     },
     "faq": {

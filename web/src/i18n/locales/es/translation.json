@@ -405,7 +405,8 @@
       "variable-yield": {
         "apy": "TEA",
         "header-title": "Rendimiento variable",
-        "title": "Fondos de rendimiento variable"
+        "title": "Fondos de rendimiento variable",
+        "your-position": "Su posición"
       }
     },
     "faq": {
