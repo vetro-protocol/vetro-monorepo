@@ -13,6 +13,9 @@ const tokenA: Address = "0x1111111111111111111111111111111111111111";
 const tokenB: Address = "0x2222222222222222222222222222222222222222";
 const tokenC: Address = "0x3333333333333333333333333333333333333333";
 
+const vusdMainnet: Address = "0xCa83DDE9c22254f58e771bE5E157773212AcBAc3";
+const vusdHemi: Address = "0xD3599AE62EE280709A22268a46d23164214e345B";
+
 const makeToken = ({
   address,
   symbol,
@@ -177,17 +180,19 @@ describe("distribution/computeDistributions", function () {
     const pools = [
       makePool({
         address: poolOne,
-        coins: [makeCoin({ address: tokenA, balance: 40n })],
+        coins: [
+          makeCoin({ address: vusdMainnet, balance: 40n, symbol: "VUSD" }),
+        ],
       }),
       makePool({
         address: poolTwo,
         chainId: hemi.id,
-        coins: [makeCoin({ address: tokenC, balance: 60n, symbol: "A" })],
+        coins: [makeCoin({ address: vusdHemi, balance: 60n, symbol: "VUSD" })],
       }),
     ];
     const [distribution] = computeDistributions({
       pools,
-      tokens: [makeToken({ address: tokenA, symbol: "A" })],
+      tokens: [makeToken({ address: vusdMainnet, symbol: "VUSD" })],
     });
 
     expect(distribution.totalBalance).toBe(100n);
@@ -195,6 +200,30 @@ describe("distribution/computeDistributions", function () {
       hemi.id,
       mainnet.id,
     ]);
+  });
+
+  it("leaves out a token that only shares the symbol", function () {
+    const pools = [
+      makePool({
+        address: poolOne,
+        coins: [
+          makeCoin({ address: vusdMainnet, balance: 40n, symbol: "VUSD" }),
+        ],
+      }),
+      makePool({
+        address: poolTwo,
+        chainId: hemi.id,
+        coins: [makeCoin({ address: tokenC, balance: 60n, symbol: "VUSD" })],
+      }),
+    ];
+    const [distribution] = computeDistributions({
+      pools,
+      tokens: [makeToken({ address: vusdMainnet, symbol: "VUSD" })],
+    });
+
+    expect(distribution.totalBalance).toBe(40n);
+    expect(distribution.slices).toHaveLength(1);
+    expect(distribution.slices[0].pool.address).toBe(poolOne);
   });
 
   it("assigns a zero share to every slice when total balance is zero", function () {
