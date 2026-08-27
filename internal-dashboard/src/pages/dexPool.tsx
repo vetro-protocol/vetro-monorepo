@@ -16,6 +16,8 @@ import { useCurvePoolStats } from "../hooks/useCurvePoolStats";
 import { useGaugeEmissions } from "../hooks/useGaugeEmissions";
 import { useTrackedPools } from "../hooks/useTrackedPools";
 import {
+  formatOptionalPercent,
+  formatOptionalUsd,
   formatPercent,
   formatPrice,
   formatRate,
@@ -99,11 +101,15 @@ const CoinBreakdown = function ({
 }: {
   coin: PoolCoin;
   dex: Dex;
-  tvlUsd: number;
+  tvlUsd: number | undefined;
 }) {
   const balance = Number(formatUnits(coin.balance, coin.decimals));
-  const balanceUsd = balance * coin.usdPrice;
-  const share = tvlUsd > 0 ? (balanceUsd / tvlUsd) * 100 : 0;
+  const balanceUsd =
+    coin.usdPrice === undefined ? undefined : balance * coin.usdPrice;
+  const share =
+    balanceUsd !== undefined && tvlUsd
+      ? (balanceUsd / tvlUsd) * 100
+      : undefined;
 
   return (
     <div className="rounded-lg border border-neutral-200 p-4">
@@ -111,7 +117,7 @@ const CoinBreakdown = function ({
         <TokenIcon address={coin.address} dex={dex} symbol={coin.symbol} />
         <span className="font-medium text-neutral-950">{coin.symbol}</span>
         <span className="ml-auto text-xs text-neutral-500">
-          {formatPercent(share)}
+          {formatOptionalPercent(share)}
         </span>
       </div>
       <dl className="mt-3 grid grid-cols-3 gap-2 text-sm">
@@ -124,13 +130,13 @@ const CoinBreakdown = function ({
         <div>
           <dt className="text-xs text-neutral-500">Value</dt>
           <dd className="font-medium text-neutral-950">
-            {formatUsd(balanceUsd)}
+            {formatOptionalUsd(balanceUsd)}
           </dd>
         </div>
         <div>
           <dt className="text-xs text-neutral-500">Price</dt>
           <dd className="font-medium text-neutral-950">
-            {formatPrice(coin.usdPrice)}
+            {coin.usdPrice === undefined ? "—" : formatPrice(coin.usdPrice)}
           </dd>
         </div>
       </dl>
@@ -306,21 +312,25 @@ export const DexPoolPage = function () {
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        <StatCard label="TVL" value={formatUsd(pool.tvlUsd)} />
+        <StatCard label="TVL" value={formatOptionalUsd(pool.tvlUsd)} />
         {!pool.isRangeView ? (
           <>
             <StatCard label="24h Volume" value={formatUsd(pool.volumeUsd24h)} />
             <FeesCard pool={pool} />
             <StatCard
-              hint={`${formatPercent(pool.baseApy)} base + ${formatPercent(pool.rewardApy)} rewards`}
+              hint={`${formatOptionalPercent(pool.baseApy)} base + ${formatPercent(pool.rewardApy)} rewards`}
               label="APY"
-              value={formatPercent(pool.baseApy + pool.rewardApy)}
+              value={formatOptionalPercent(
+                pool.baseApy === undefined
+                  ? undefined
+                  : pool.baseApy + pool.rewardApy,
+              )}
             />
             <StatCard
               hint="24h volume / TVL"
               label="Liquidity utilization"
               value={
-                pool.tvlUsd > 0
+                pool.tvlUsd
                   ? formatPercent((pool.volumeUsd24h / pool.tvlUsd) * 100)
                   : "—"
               }

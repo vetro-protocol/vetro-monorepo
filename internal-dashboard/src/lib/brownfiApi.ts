@@ -78,8 +78,10 @@ export const fetchVetroPools = async function ({
   if (!body.data) {
     throw new Error("BrownFi subgraph returned no data");
   }
+
+  const nativeUsdPrice = Number(body.data.bundles[0]?.maticPriceUSD);
   return {
-    nativeUsdPrice: Number(body.data.bundles[0]?.maticPriceUSD ?? 0),
+    nativeUsdPrice: nativeUsdPrice > 0 ? nativeUsdPrice : undefined,
     pools: body.data.pools,
   };
 };

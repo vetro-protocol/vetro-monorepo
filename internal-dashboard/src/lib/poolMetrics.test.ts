@@ -11,7 +11,7 @@ const coin = ({
 }: {
   balance: string;
   decimals: number;
-  usdPrice: number;
+  usdPrice: number | undefined;
 }): PoolCoin => ({
   address: `0x${"1".repeat(40)}` as Address,
   balance: parseUnits(balance, decimals),
@@ -45,13 +45,22 @@ describe("poolTvlUsd", function () {
     ).toBe(30_000);
   });
 
-  it("counts an unpriced leg as nothing", function () {
+  it("counts a leg worth zero as nothing", function () {
     expect(
       poolTvlUsd([
         coin({ balance: "100", decimals: 18, usdPrice: 1 }),
         coin({ balance: "999", decimals: 18, usdPrice: 0 }),
       ]),
     ).toBe(100);
+  });
+
+  it("is undefined when a leg has no price", function () {
+    expect(
+      poolTvlUsd([
+        coin({ balance: "100", decimals: 18, usdPrice: 1 }),
+        coin({ balance: "999", decimals: 18, usdPrice: undefined }),
+      ]),
+    ).toBeUndefined();
   });
 
   it("sums more than two legs", function () {

@@ -19,16 +19,20 @@ const buildCoin = function ({
   token,
 }: {
   balance: string;
-  nativeUsdPrice: number;
+  nativeUsdPrice: number | undefined;
   token: BrownfiPool["token0"];
 }): PoolCoin {
   const decimals = Number(token.decimals);
+  const derived = Number(token.derivedMatic);
   return {
     address: getAddress(token.id),
     balance: parseUnits(balance, decimals),
     decimals,
     symbol: token.symbol,
-    usdPrice: Number(token.derivedMatic) * nativeUsdPrice,
+    usdPrice:
+      nativeUsdPrice !== undefined && derived > 0
+        ? derived * nativeUsdPrice
+        : undefined,
   };
 };
 
@@ -36,7 +40,7 @@ const buildPool = function ({
   nativeUsdPrice,
   pool,
 }: {
-  nativeUsdPrice: number;
+  nativeUsdPrice: number | undefined;
   pool: BrownfiPool;
 }): TrackedPool {
   const coins = [
@@ -70,7 +74,12 @@ const buildPool = function ({
 
   return {
     address,
-    baseApy: tvlUsd > 0 ? ((feesUsd24h * 365) / tvlUsd) * 100 : 0,
+    baseApy:
+      tvlUsd === undefined
+        ? undefined
+        : tvlUsd > 0
+          ? ((feesUsd24h * 365) / tvlUsd) * 100
+          : 0,
     chainId: hemi.id,
     coins,
     dex: "brownfi",

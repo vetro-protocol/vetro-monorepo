@@ -36,7 +36,7 @@ const fetchUniswapPool = async function (
 
   return {
     address: pool.address,
-    baseApy: tvlUsd > 0 ? ((feesUsd24h * 365) / tvlUsd) * 100 : 0,
+    baseApy: tvlUsd ? ((feesUsd24h * 365) / tvlUsd) * 100 : 0,
     chainId: mainnet.id,
     coins,
     dex: "uniswap",

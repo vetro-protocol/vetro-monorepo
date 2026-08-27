@@ -34,7 +34,7 @@ export const DexPage = function () {
     campaignPoolIds: campaignPoolIds ?? [],
     filters,
     pools: pools ?? [],
-  }).sort((a, b) => b.tvlUsd - a.tvlUsd);
+  }).sort((a, b) => (b.tvlUsd ?? 0) - (a.tvlUsd ?? 0));
 
   return (
     <section className="flex flex-col gap-y-10">

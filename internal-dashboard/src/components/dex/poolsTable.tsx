@@ -1,6 +1,11 @@
 import { Link, useNavigate } from "react-router";
 
-import { formatPercent, formatUsd } from "../../lib/format";
+import {
+  formatOptionalPercent,
+  formatOptionalUsd,
+  formatPercent,
+  formatUsd,
+} from "../../lib/format";
 import { type TrackedPool } from "../../lib/types";
 
 import { CampaignsBadge } from "./campaignsBadge";
@@ -20,13 +25,13 @@ const poolPath = (pool: TrackedPool) => `/dex/${pool.id}`;
 // there's no boost spread; pools with no rewards show the base APY alone.
 const formatApy = function ({ baseApy, rewardApy, rewardApyMax }: TrackedPool) {
   if (rewardApy === 0) {
-    return formatPercent(baseApy);
+    return formatOptionalPercent(baseApy);
   }
   const rewards =
     rewardApyMax > rewardApy
       ? `${formatPercent(rewardApy)} → ${formatPercent(rewardApyMax)}`
       : formatPercent(rewardApy);
-  return `${formatPercent(baseApy)} (${rewards} CRV)`;
+  return `${formatOptionalPercent(baseApy)} (${rewards} CRV)`;
 };
 
 export const PoolsTable = function ({ pools }: Props) {
@@ -56,7 +61,7 @@ export const PoolsTable = function ({ pools }: Props) {
                 <div>
                   <dt className="text-xs text-neutral-500">TVL</dt>
                   <dd className="font-semibold text-neutral-950">
-                    {formatUsd(pool.tvlUsd)}
+                    {formatOptionalUsd(pool.tvlUsd)}
                   </dd>
                 </div>
                 <div>
@@ -119,7 +124,7 @@ export const PoolsTable = function ({ pools }: Props) {
                   </div>
                 </td>
                 <td className="py-3 pr-4 text-right font-medium text-neutral-950">
-                  {formatUsd(pool.tvlUsd)}
+                  {formatOptionalUsd(pool.tvlUsd)}
                 </td>
                 <td className="py-3 pr-4 text-right font-medium text-neutral-950">
                   {formatUsd(pool.volumeUsd24h)}

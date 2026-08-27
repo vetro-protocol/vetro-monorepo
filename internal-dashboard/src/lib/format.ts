@@ -11,6 +11,12 @@ export const formatUsd = (value: number) => usdFormatter.format(value);
 
 export const formatPercent = (value: number) => `${value.toFixed(2)}%`;
 
+export const formatOptionalUsd = (value: number | undefined) =>
+  value === undefined ? "—" : formatUsd(value);
+
+export const formatOptionalPercent = (value: number | undefined) =>
+  value === undefined ? "—" : formatPercent(value);
+
 export const formatTokenAmount = (value: number) =>
   value.toLocaleString("en-US", {
     maximumFractionDigits: value !== 0 && Math.abs(value) < 1 ? 6 : 2,

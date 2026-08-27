@@ -70,7 +70,7 @@ const fetchSushiPool = async function ({
     id: string;
     isRangeView?: boolean;
     rangeLabel: string;
-    tvlUsd: number;
+    tvlUsd: number | undefined;
   }): TrackedPool {
     // Volume / fees / APR are whole-pool metrics, so range views (sub-slices of
     // the same pool) drop them to avoid double-counting.
