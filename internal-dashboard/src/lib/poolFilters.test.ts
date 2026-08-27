@@ -90,10 +90,10 @@ describe("filterPools", function () {
     expect(
       filterPools({
         campaignPoolIds: [],
-        filters: { ...emptyPoolFilters, trackedSymbols: ["sVUSD"] },
+        filters: { ...emptyPoolFilters, trackedSymbols: ["VUSD"] },
         pools,
       }),
-    ).toEqual([svusdUsdt]);
+    ).toEqual([vusdUsdt, vusdUsdc, hemiVusdUsdc]);
   });
 
   it("keeps the pools on the selected chains", function () {
