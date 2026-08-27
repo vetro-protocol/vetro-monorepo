@@ -99,6 +99,22 @@ function handleDailyApr(
   }
 }
 
+function loadOrCreateUserStakingPosition(
+  vaultAddress: Address,
+  owner: Address,
+): UserStakingPosition {
+  const id = buildId(vaultAddress, owner.toHexString());
+  let position = UserStakingPosition.load(id);
+  if (position == null) {
+    position = new UserStakingPosition(id);
+    position.owner = owner;
+    position.shares = BigInt.fromI32(0);
+    position.stakingVaultAddress = vaultAddress;
+    position.totalCostBasis = BigInt.fromI32(0);
+  }
+  return position;
+}
+
 function loadOrCreateQueueSummary(
   vaultAddress: Address,
 ): ExitTicketQueueSummary {
@@ -168,17 +184,10 @@ export function handleBlock(block: ethereum.Block): void {
 
 export function handleDeposit(event: Deposit): void {
   const vaultAddress = dataSource.address();
-  const owner = event.params.owner;
-  const id = buildId(vaultAddress, owner.toHexString());
-
-  let entity = UserStakingPosition.load(id);
-  if (entity == null) {
-    entity = new UserStakingPosition(id);
-    entity.owner = owner;
-    entity.shares = BigInt.fromI32(0);
-    entity.stakingVaultAddress = vaultAddress;
-    entity.totalCostBasis = BigInt.fromI32(0);
-  }
+  const entity = loadOrCreateUserStakingPosition(
+    vaultAddress,
+    event.params.owner,
+  );
 
   entity.shares = entity.shares.plus(event.params.shares);
   entity.totalCostBasis = entity.totalCostBasis.plus(
@@ -240,15 +249,10 @@ export function handleTransfer(event: Transfer): void {
   const assetValueResult = vault.try_convertToAssets(value);
   const assetValue = assetValueResult.reverted ? value : assetValueResult.value;
 
-  const toId = buildId(vaultAddress, event.params.to.toHexString());
-  let toEntity = UserStakingPosition.load(toId);
-  if (toEntity == null) {
-    toEntity = new UserStakingPosition(toId);
-    toEntity.owner = event.params.to;
-    toEntity.shares = BigInt.fromI32(0);
-    toEntity.stakingVaultAddress = vaultAddress;
-    toEntity.totalCostBasis = BigInt.fromI32(0);
-  }
+  const toEntity = loadOrCreateUserStakingPosition(
+    vaultAddress,
+    event.params.to,
+  );
 
   toEntity.shares = toEntity.shares.plus(value);
   toEntity.totalCostBasis = toEntity.totalCostBasis.plus(assetValue.times(WAD));
@@ -282,6 +286,19 @@ export function handleWithdrawRequested(event: WithdrawRequested): void {
 
 export function handleWithdrawCancelled(event: WithdrawCancelled): void {
   const vaultAddress = dataSource.address();
+
+  const position = loadOrCreateUserStakingPosition(
+    vaultAddress,
+    event.params.owner,
+  );
+
+  position.shares = position.shares.plus(event.params.shares);
+  position.totalCostBasis = position.totalCostBasis.plus(
+    event.params.assets.times(WAD),
+  );
+
+  position.save();
+
   const id = buildId(vaultAddress, event.params.requestId.toString());
   const entity = ExitTicket.load(id);
   if (entity == null) {
