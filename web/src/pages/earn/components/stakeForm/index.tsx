@@ -1,7 +1,7 @@
 import type { Token } from "@vetro-protocol/core";
 import { SegmentedControl } from "components/base/segmentedControl";
 import { Toast } from "components/base/toast";
-import { useCallback, useReducer, useState } from "react";
+import { useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
 import type { Address } from "viem";
@@ -42,23 +42,18 @@ export function StakeForm({
   const [mode, setMode] = useState<StakeMode>("deposit");
   const [toast, setToast] = useState<ToastData | null>(null);
 
-  const handleInputChange = useCallback(function handleInputChange(
-    value: string,
-  ) {
+  function handleInputChange(value: string) {
     dispatch({ payload: value, type: "SET_INPUT_VALUE" });
-  }, []);
+  }
 
-  const handleSuccess = useCallback(
-    function handleSuccess(toastData: ToastData) {
-      handleInputChange("0");
-      setToast(toastData);
-    },
-    [handleInputChange],
-  );
+  function handleSuccess(toastData: ToastData) {
+    handleInputChange("0");
+    setToast(toastData);
+  }
 
-  const handleResetSteps = useCallback(function handleResetSteps() {
+  function handleResetSteps() {
     dispatch({ type: "RESET_STEPS" });
-  }, []);
+  }
 
   function handleDepositStepChange(step: DepositStep) {
     dispatch({ payload: step, type: "SET_DEPOSIT_STEP" });
