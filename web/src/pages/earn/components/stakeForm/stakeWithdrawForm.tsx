@@ -228,7 +228,7 @@ export function StakeWithdrawForm({
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!inputError && canInstantWithdraw !== undefined) {
+    if (!inputError) {
       setSubmitted({ amount: inputValue, assets: amountBigInt });
       onResetSteps();
       onDrawerOpenChange(true);
