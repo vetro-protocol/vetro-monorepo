@@ -52,6 +52,26 @@ export const ThreeOptions: Story = {
   },
 };
 
+export const Disabled: Story = {
+  render: function Component() {
+    const [value, setValue] = useState<"deposit" | "withdraw">("deposit");
+
+    return (
+      <div className="w-[400px] border-y border-gray-200 bg-gray-50 px-6 py-3">
+        <SegmentedControl
+          disabled
+          onChange={setValue}
+          options={[
+            { label: "Deposit", value: "deposit" },
+            { label: "Exit", value: "withdraw" },
+          ]}
+          value={value}
+        />
+      </div>
+    );
+  },
+};
+
 const tokenSymbols = ["USDC", "USDT"] as const;
 type TokenSymbol = (typeof tokenSymbols)[number];
 const labeledTokens = tokenSymbols

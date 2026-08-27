@@ -29,6 +29,7 @@ type StakeDrawerAction =
   | { payload: DepositStep; type: "SET_DEPOSIT_STEP" }
   | { payload: string; type: "SET_INPUT_VALUE" }
   | { payload: WithdrawStep; type: "SET_WITHDRAW_STEP" }
+  | { type: "RESET_STEPS" }
   | { type: "TOGGLE_APPROVE_10X" };
 
 export const initialStakeDrawerState: StakeDrawerState = {
@@ -44,6 +45,13 @@ export function stakeDrawerReducer(
   action: StakeDrawerAction,
 ): StakeDrawerState {
   switch (action.type) {
+    case "RESET_STEPS":
+      return {
+        ...state,
+        approvalCompleted: false,
+        depositStep: "idle",
+        withdrawStep: "idle",
+      };
     case "SET_DEPOSIT_STEP":
       return {
         ...state,

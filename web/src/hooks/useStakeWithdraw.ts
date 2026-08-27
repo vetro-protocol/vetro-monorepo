@@ -68,10 +68,13 @@ export const useStakeWithdraw = function ({
       if (!account) {
         throw new Error("No account connected");
       }
+      if (!walletClient) {
+        throw new Error("No wallet client available");
+      }
 
       await ensureConnectedTo(chain.id);
 
-      const { emitter, promise } = requestWithdraw(walletClient!, {
+      const { emitter, promise } = requestWithdraw(walletClient, {
         assets,
         owner: account,
         vaultAddress: stakingVaultAddress,
