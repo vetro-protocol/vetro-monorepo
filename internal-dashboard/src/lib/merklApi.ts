@@ -28,13 +28,15 @@ export const fetchLiveOpportunities = (
   identifiers: string[],
 ): Promise<MerklOpportunity[]> =>
   fetch(`${merklProxyApiUrl}/opportunities`, {
-    queryString: {
+    body: JSON.stringify({
       campaigns: true,
-      chainId: trackedChains.map((chain) => chain.id).join(","),
-      identifier: identifiers.join(","),
+      chainIds: trackedChains.map((chain) => chain.id),
+      identifiers,
       items: maxItems,
       status: "LIVE",
-    },
+    }),
+    headers: { "content-type": "application/json" },
+    method: "QUERY",
   });
 
 export const merklCampaignUrl = ({

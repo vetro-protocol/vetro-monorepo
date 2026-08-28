@@ -134,6 +134,9 @@ const graphqlProxies: Record<
   },
 };
 
+const merklOpportunitiesPath = "/api/merkl/opportunities";
+const merklOpportunitiesUpstream = "https://api.merkl.xyz/v4/opportunities";
+
 // StakeDAO answers with every campaign ever created (several MB)
 // and offers no server-side filter, so the worker trims the list to
 // the requested gauges. The upstream response is cached because of this.
@@ -196,14 +199,25 @@ const proxyStakeDaoCampaigns = async function (searchParams: URLSearchParams) {
   });
 };
 
-const proxyRest = async function ({
-  search,
-  upstream,
-}: {
-  search: string;
-  upstream: string;
-}) {
-  const response = await fetch(`${upstream}${search}`);
+type MerklOpportunitiesQuery = {
+  campaigns: boolean;
+  chainIds: number[];
+  identifiers: string[];
+  items: number;
+  status: string;
+};
+
+const proxyMerklOpportunities = async function (request: Request) {
+  const { campaigns, chainIds, identifiers, items, status } =
+    (await request.json()) as MerklOpportunitiesQuery;
+  const search = new URLSearchParams({
+    campaigns: String(campaigns),
+    chainId: chainIds.join(","),
+    identifier: identifiers.join(","),
+    items: String(items),
+    status,
+  });
+  const response = await fetch(`${merklOpportunitiesUpstream}?${search}`);
   return jsonResponse({ body: response.body, status: response.status });
 };
 
@@ -227,13 +241,14 @@ const proxyGraphql = async function ({
   });
 };
 
-const restHandlers: Record<string, (url: URL) => Promise<Response>> = {
-  "/api/merkl/opportunities": (url) =>
-    proxyRest({
-      search: url.search,
-      upstream: "https://api.merkl.xyz/v4/opportunities",
-    }),
-  [stakeDaoCampaignsPath]: (url) => proxyStakeDaoCampaigns(url.searchParams),
+const apiHandlers: Record<
+  string,
+  (params: { request: Request; url: URL }) => Promise<Response>
+> = {
+  [`GET ${stakeDaoCampaignsPath}`]: ({ url }) =>
+    proxyStakeDaoCampaigns(url.searchParams),
+  [`QUERY ${merklOpportunitiesPath}`]: ({ request }) =>
+    proxyMerklOpportunities(request),
 };
 
 export default {
@@ -249,9 +264,9 @@ export default {
       });
     }
 
-    const restHandler = restHandlers[url.pathname];
-    if (request.method === "GET" && restHandler) {
-      return restHandler(url);
+    const apiHandler = apiHandlers[`${request.method} ${url.pathname}`];
+    if (apiHandler) {
+      return apiHandler({ request, url });
     }
 
     const response = await env.ASSETS.fetch(request);
