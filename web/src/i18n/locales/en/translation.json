@@ -339,6 +339,7 @@
         "deposit": "Deposit",
         "pool-contract": "Pool contract",
         "pool-deposits": "Pool deposits",
+        "pool-details": "Pool details",
         "staked-amount": "Your staked amount",
         "withdraw": "Withdraw"
       },

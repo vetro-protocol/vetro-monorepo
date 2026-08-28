@@ -342,6 +342,7 @@
         "deposit": "Depositar",
         "pool-contract": "Contrato del fondo",
         "pool-deposits": "Depósitos del fondo",
+        "pool-details": "Detalles del fondo",
         "staked-amount": "Su monto stakeado",
         "withdraw": "Retirar"
       },
