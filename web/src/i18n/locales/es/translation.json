@@ -339,12 +339,10 @@
       },
       "pool-info": {
         "apy": "TEA",
-        "deposit": "Depositar",
         "pool-contract": "Contrato del fondo",
         "pool-deposits": "Depósitos del fondo",
         "pool-details": "Detalles del fondo",
-        "staked-amount": "Su monto stakeado",
-        "withdraw": "Retirar"
+        "staked-amount": "Su monto stakeado"
       },
       "stake": {
         "approve-and-deposit": "Aprobar y depositar",
@@ -368,7 +366,6 @@
         "instant-withdraw-toast-description": "Sus fondos han sido retirados exitosamente a su billetera.",
         "instant-withdraw-toast-title": "Retiro completado",
         "instant-withdrawing": "Retirando...",
-        "manage-position": "Administre su posición de stake",
         "ready-to-withdraw-in_one": "Listo para retirar en {{count}} día",
         "ready-to-withdraw-in_other": "Listo para retirar en {{count}} días",
         "request-withdrawal": "Solicitar retiro",
