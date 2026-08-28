@@ -1,6 +1,6 @@
 import { InfoCard } from "components/base/infoCard";
 import { TrendingUpIcon } from "components/icons/trendingUpIcon";
-import { useEarnedAmountUsd } from "hooks/useEarnedAmountUsd";
+import { useTotalEarnedAmountUsd } from "hooks/useTotalEarnedAmountUsd";
 import { useTranslation } from "react-i18next";
 import { formatUsd } from "utils/currency";
 
@@ -9,7 +9,7 @@ export function EarnedAmountStat() {
 
   return (
     <InfoCard
-      {...useEarnedAmountUsd()}
+      {...useTotalEarnedAmountUsd()}
       icon={<TrendingUpIcon className="text-blue-500" />}
       label={t("pages.earn.stats.earned-amount")}
       render={formatUsd}

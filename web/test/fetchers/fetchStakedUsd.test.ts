@@ -6,7 +6,7 @@ import type { Address, Client } from "viem";
 import { mainnet } from "viem/chains";
 import { describe, expect, it } from "vitest";
 
-import { fetchTotalStakedUsd } from "../../src/fetchers/fetchTotalStakedUsd";
+import { fetchStakedUsd } from "../../src/fetchers/fetchStakedUsd";
 import { createTestQueryClient } from "../utils";
 
 const account = "0x0000000000000000000000000000000000000abc" as Address;
@@ -24,8 +24,8 @@ const usdc = {
   gatewayAddress: "0x0000000000000000000000000000000000000002" as Address,
 };
 
-describe("fetchTotalStakedUsd", function () {
-  it("returns staked amount times price for a single vault", async function () {
+describe("fetchStakedUsd", function () {
+  it("returns staked amount times price", async function () {
     const queryClient = createTestQueryClient();
     queryClient.setQueryData(
       vaultPeggedTokenQueryOptions({
@@ -50,26 +50,18 @@ describe("fetchTotalStakedUsd", function () {
       USDT: "1",
     });
 
-    const result = await fetchTotalStakedUsd({
+    const result = await fetchStakedUsd({
       account,
       client,
       queryClient,
-      stakingVaultAddresses: [vault1],
+      stakingVaultAddress: vault1,
     });
 
     expect(result).toBe(10);
   });
 
-  it("sums staked values across multiple vaults", async function () {
+  it("uses the vault's own pegged token decimals and price", async function () {
     const queryClient = createTestQueryClient();
-    queryClient.setQueryData(
-      vaultPeggedTokenQueryOptions({
-        client,
-        queryClient,
-        stakingVaultAddress: vault1,
-      }).queryKey,
-      vusd,
-    );
     queryClient.setQueryData(
       vaultPeggedTokenQueryOptions({
         client,
@@ -84,37 +76,26 @@ describe("fetchTotalStakedUsd", function () {
         chainId: mainnet.id,
         client,
         queryClient,
-        stakingVaultAddress: vault1,
-      }).queryKey,
-      5n * 10n ** 18n,
-    );
-    queryClient.setQueryData(
-      stakedBalanceQueryOptions({
-        account,
-        chainId: mainnet.id,
-        client,
-        queryClient,
         stakingVaultAddress: vault2,
       }).queryKey,
       25n * 10n ** 6n,
     );
     queryClient.setQueryData(pricesOptions({ client, queryClient }).queryKey, {
       USDC: "1.1",
-      USDT: "1",
     } as Record<string, string>);
 
-    const result = await fetchTotalStakedUsd({
+    const result = await fetchStakedUsd({
       account,
       client,
       queryClient,
-      stakingVaultAddresses: [vault1, vault2],
+      stakingVaultAddress: vault2,
     });
 
-    // 5 VUSD * $1 + 25 USDC * $1.1 = 32.5
-    expect(result).toBe(32.5);
+    // 25 USDC * $1.1 = 27.5
+    expect(result).toBeCloseTo(27.5, 6);
   });
 
-  it("contributes 0 when the pegged token has no price entry", async function () {
+  it("returns 0 when the pegged token has no price entry", async function () {
     const queryClient = createTestQueryClient();
     queryClient.setQueryData(
       vaultPeggedTokenQueryOptions({
@@ -139,11 +120,11 @@ describe("fetchTotalStakedUsd", function () {
       {},
     );
 
-    const result = await fetchTotalStakedUsd({
+    const result = await fetchStakedUsd({
       account,
       client,
       queryClient,
-      stakingVaultAddresses: [vault1],
+      stakingVaultAddress: vault1,
     });
 
     expect(result).toBe(0);
@@ -153,11 +134,11 @@ describe("fetchTotalStakedUsd", function () {
     const clientWithoutChain = {} as Client;
 
     await expect(
-      fetchTotalStakedUsd({
+      fetchStakedUsd({
         account,
         client: clientWithoutChain,
         queryClient: createTestQueryClient(),
-        stakingVaultAddresses: [vault1],
+        stakingVaultAddress: vault1,
       }),
     ).rejects.toThrow(/Client is missing a chain/);
   });

@@ -70,7 +70,7 @@ describe("fetchEarnedAmountUsd", function () {
       account,
       client,
       queryClient,
-      stakingVaultAddresses: [vault1],
+      stakingVaultAddress: vault1,
     });
 
     expect(result).toBe(2);
@@ -117,22 +117,14 @@ describe("fetchEarnedAmountUsd", function () {
       account,
       client,
       queryClient,
-      stakingVaultAddresses: [vault1],
+      stakingVaultAddress: vault1,
     });
 
     expect(result).toBe(-2);
   });
 
-  it("sums P&L across multiple vaults", async function () {
+  it("prices the P&L with the vault's own pegged token", async function () {
     const queryClient = createTestQueryClient();
-    queryClient.setQueryData(
-      vaultPeggedTokenQueryOptions({
-        client,
-        queryClient,
-        stakingVaultAddress: vault1,
-      }).queryKey,
-      vusd,
-    );
     queryClient.setQueryData(
       vaultPeggedTokenQueryOptions({
         client,
@@ -140,14 +132,6 @@ describe("fetchEarnedAmountUsd", function () {
         stakingVaultAddress: vault2,
       }).queryKey,
       vetBtc,
-    );
-    queryClient.setQueryData(
-      tokenBalanceQueryOptions({
-        account,
-        client,
-        token: { address: vault1, chainId: mainnet.id },
-      }).queryKey,
-      5n * 10n ** 18n,
     );
     queryClient.setQueryData(
       tokenBalanceQueryOptions({
@@ -163,29 +147,15 @@ describe("fetchEarnedAmountUsd", function () {
         chainId: mainnet.id,
         client,
         queryClient,
-        stakingVaultAddress: vault1,
-      }).queryKey,
-      6n * 10n ** 18n,
-    );
-    queryClient.setQueryData(
-      stakedBalanceQueryOptions({
-        account,
-        chainId: mainnet.id,
-        client,
-        queryClient,
         stakingVaultAddress: vault2,
       }).queryKey,
       (21n * 10n ** 18n) / 10n,
     );
     queryClient.setQueryData(
       costBasisQueryOptions({ address: account }).queryKey,
-      {
-        [vault1]: 5n * 10n ** 18n,
-        [vault2]: 2n * 10n ** 18n,
-      } as Record<Address, bigint>,
+      { [vault2]: 2n * 10n ** 18n } as Record<Address, bigint>,
     );
     queryClient.setQueryData(pricesOptions({ client, queryClient }).queryKey, {
-      USDT: "1",
       WBTC: "60000",
     } as Record<string, string>);
 
@@ -193,15 +163,14 @@ describe("fetchEarnedAmountUsd", function () {
       account,
       client,
       queryClient,
-      stakingVaultAddresses: [vault1, vault2],
+      stakingVaultAddress: vault2,
     });
 
-    // vault1: 6 - 5 = 1 vUSD * $1 = $1
-    // vault2: 2.1 - 2 = 0.1 vetBTC * $60_000 = $6000
-    expect(result).toBeCloseTo(6001, 6);
+    // 2.1 - 2 = 0.1 vetBTC * $60_000 = $6000
+    expect(result).toBeCloseTo(6000, 6);
   });
 
-  it("contributes 0 when shares are 0", async function () {
+  it("returns 0 when shares are 0", async function () {
     const queryClient = createTestQueryClient();
     queryClient.setQueryData(
       vaultPeggedTokenQueryOptions({
@@ -241,13 +210,13 @@ describe("fetchEarnedAmountUsd", function () {
       account,
       client,
       queryClient,
-      stakingVaultAddresses: [vault1],
+      stakingVaultAddress: vault1,
     });
 
     expect(result).toBe(0);
   });
 
-  it("contributes 0 when cost basis is missing for a vault with shares", async function () {
+  it("returns 0 when cost basis is missing for a vault with shares", async function () {
     const queryClient = createTestQueryClient();
     queryClient.setQueryData(
       vaultPeggedTokenQueryOptions({
@@ -288,7 +257,7 @@ describe("fetchEarnedAmountUsd", function () {
       account,
       client,
       queryClient,
-      stakingVaultAddresses: [vault1],
+      stakingVaultAddress: vault1,
     });
 
     expect(result).toBe(0);
@@ -302,7 +271,7 @@ describe("fetchEarnedAmountUsd", function () {
         account,
         client: clientWithoutChain,
         queryClient: createTestQueryClient(),
-        stakingVaultAddresses: [vault1],
+        stakingVaultAddress: vault1,
       }),
     ).rejects.toThrow(/Client is missing a chain/);
   });
