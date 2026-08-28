@@ -203,6 +203,19 @@ test("deposit VUSD into the Earn pool", async function ({
   ).toBeHidden({ timeout: 15_000 });
 
   await expectPositionShares({ page, shares: svusdAfter });
+
+  await page.goto("/earn");
+  await expect(
+    page.getByRole("button", { name: /^0x[a-f0-9]{4}/i }),
+  ).toBeVisible({ timeout: 30_000 });
+
+  const fromPoolsBadge = page.getByText(/from 1 pool/i);
+  await expect(fromPoolsBadge).toBeVisible({ timeout: 20_000 });
+
+  await fromPoolsBadge.hover();
+  await expect(page.getByText(/\([\d.,]+\s*VUSD\)/)).toBeVisible({
+    timeout: 10_000,
+  });
 });
 
 const WITHDRAW_DISPLAY = "3";
