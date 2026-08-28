@@ -3,7 +3,11 @@ import {
   TEST_PRIVATE_KEY,
 } from "@hemilabs/anvil-fork-setup/utils";
 import { gatewayAbi as vetroGatewayAbi } from "@vetro-protocol/gateway";
-import { getMaxMint, getTreasury } from "@vetro-protocol/gateway/actions";
+import {
+  getMaxMint,
+  getTreasury,
+  getWithdrawalDelayEnabled,
+} from "@vetro-protocol/gateway/actions";
 import { getKeeperRole } from "@vetro-protocol/treasury/actions";
 import { type Command, CommanderError } from "commander";
 import {
@@ -61,8 +65,12 @@ export type TransactionRequest = {
   value: Hex;
 };
 
-export const gatewayAbi = parseAbi([
+export const depositAbi = parseAbi([
   "function deposit(address tokenIn, uint256 amountIn, uint256 minPeggedTokenOut, address receiver)",
+]);
+
+export const requestRedeemAbi = parseAbi([
+  "function requestRedeem(uint256 peggedTokenAmount)",
 ]);
 
 export const swapAmount = "100";
@@ -77,6 +85,16 @@ export const mintArgs = (extra: string[] = []) => [
   swapAmount,
   "--receiver",
   TEST_ADDRESS,
+  ...extra,
+];
+
+export const sendToQueueArgs = (extra: string[] = []) => [
+  "swap",
+  "send-to-queue",
+  "--from",
+  vusd.symbol,
+  "--amount",
+  swapAmount,
   ...extra,
 ];
 
@@ -335,7 +353,7 @@ export const setWithdrawalDelay = async function ({
   gateway,
   rpcUrl,
 }: {
-  delay: bigint;
+  delay?: bigint;
   enabled: boolean;
   gateway: Address;
   rpcUrl: string;
@@ -378,16 +396,19 @@ export const setWithdrawalDelay = async function ({
         }),
       });
     }
-    await confirmWrite({
-      client: publicClient,
-      hash: await writeContract(testClient, {
-        abi: vetroGatewayAbi,
-        account: admin,
-        address: gateway,
-        args: [delay],
-        functionName: "updateWithdrawalDelay",
-      }),
-    });
+    // updateWithdrawalDelay reverts on 0, so only write a delay the caller gave.
+    if (delay !== undefined) {
+      await confirmWrite({
+        client: publicClient,
+        hash: await writeContract(testClient, {
+          abi: vetroGatewayAbi,
+          account: admin,
+          address: gateway,
+          args: [delay],
+          functionName: "updateWithdrawalDelay",
+        }),
+      });
+    }
     await confirmWrite({
       client: publicClient,
       hash: await writeContract(testClient, {
@@ -401,6 +422,24 @@ export const setWithdrawalDelay = async function ({
   } finally {
     await stopImpersonatingAccount(testClient, { address: admin });
   }
+};
+
+/** Turns the gateway's redeem queue on or off, and returns a restore for its previous state. */
+export const setRedeemQueueEnabled = async function ({
+  enabled,
+  gateway,
+  rpcUrl,
+}: {
+  enabled: boolean;
+  gateway: Address;
+  rpcUrl: string;
+}) {
+  const { publicClient } = createClients(rpcUrl);
+  const enabledBefore = await getWithdrawalDelayEnabled(publicClient, {
+    address: gateway,
+  });
+  await setWithdrawalDelay({ enabled, gateway, rpcUrl });
+  return () => setWithdrawalDelay({ enabled: enabledBefore, gateway, rpcUrl });
 };
 
 /** Broadcasts a TransactionRequest the CLI emitted, exactly as an agent would. */

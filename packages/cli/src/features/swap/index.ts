@@ -8,6 +8,7 @@ import { register as mint } from "./commands/mint.ts";
 import { register as mintFee } from "./commands/mintFee.ts";
 import { register as peggedToken } from "./commands/peggedToken.ts";
 import { register as redeemFee } from "./commands/redeemFee.ts";
+import { register as sendToQueue } from "./commands/sendToQueue.ts";
 import { register as treasury } from "./commands/treasury.ts";
 
 const swapCommands = [
@@ -19,6 +20,7 @@ const swapCommands = [
   mintFee,
   peggedToken,
   redeemFee,
+  sendToQueue,
   treasury,
 ];
 
