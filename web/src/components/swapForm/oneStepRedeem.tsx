@@ -372,10 +372,10 @@ export function OneStepRedeem({
           flowStatus={flowStatus}
           fromAmount={fromInputValue}
           fromToken={fromToken}
+          isOutputError={isPreviewError}
           networkFee={networkFee}
           onClose={handleDrawerClose}
           onRetry={handleRetry}
-          isOutputError={isPreviewError}
           oracleToken={toToken.address}
           outputAmount={redeemPreview}
           outputValue={outputValue}
