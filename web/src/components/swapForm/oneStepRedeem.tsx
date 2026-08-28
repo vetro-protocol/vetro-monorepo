@@ -375,7 +375,9 @@ export function OneStepRedeem({
           networkFee={networkFee}
           onClose={handleDrawerClose}
           onRetry={handleRetry}
+          isOutputError={isPreviewError}
           oracleToken={toToken.address}
+          outputAmount={redeemPreview}
           outputValue={outputValue}
           protocolFee={protocolFeeQueryData}
           showApproveStep={startedWithApproval}

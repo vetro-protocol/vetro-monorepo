@@ -1,5 +1,6 @@
 import { Button } from "components/base/button";
 import { DrawerTitle } from "components/base/drawer/drawerTitle";
+import { RenderFiatValue } from "components/base/fiatValue";
 import {
   TokenInteraction,
   TokenInteractionList,
@@ -10,6 +11,7 @@ import { useAnimatedVisibility } from "hooks/useAnimatedVisibility";
 import type { ComponentProps, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
+import { parseTokenUnits } from "utils/token";
 import type { Address } from "viem";
 
 import { OutputLabel, type UnitPreview } from "./outputLabel";
@@ -18,8 +20,10 @@ import { SwapFees } from "./swapFees";
 type Props = {
   fromAmount: string;
   fromToken: TokenWithGateway;
+  isOutputError?: boolean;
   onRetry?: VoidFunction;
   oracleToken?: Address;
+  outputAmount?: bigint;
   outputValue?: string;
   steps: Step[];
   subtitle?: ReactNode;
@@ -33,9 +37,11 @@ type Props = {
 export function SwapProgressDrawer({
   fromAmount,
   fromToken,
+  isOutputError,
   networkFee,
   onRetry,
   oracleToken,
+  outputAmount,
   outputValue,
   protocolFee,
   steps,
@@ -56,7 +62,15 @@ export function SwapProgressDrawer({
         <TokenInteractionList>
           <TokenInteraction
             amount={fromAmount}
-            detail={`$${fromAmount}`}
+            detail={
+              <>
+                $
+                <RenderFiatValue
+                  token={fromToken}
+                  value={parseTokenUnits(fromAmount, fromToken)}
+                />
+              </>
+            }
             label={t("pages.swap.form.you-are-swapping")}
             subtitle={subtitle}
             token={fromToken}
@@ -65,7 +79,16 @@ export function SwapProgressDrawer({
           {toToken && outputValue !== undefined && (
             <TokenInteraction
               amount={outputValue}
-              detail={`$${outputValue}`}
+              detail={
+                <>
+                  $
+                  <RenderFiatValue
+                    queryStatus={isOutputError ? "error" : "success"}
+                    token={toToken}
+                    value={outputAmount}
+                  />
+                </>
+              }
               label={t("pages.swap.form.you-will-receive-estimated")}
               token={toToken}
             />

@@ -371,7 +371,9 @@ export function Deposit({
           networkFee={networkFee}
           onClose={handleDrawerClose}
           onRetry={handleRetry}
+          isOutputError={isDepositPreviewError}
           oracleToken={fromToken.address}
+          outputAmount={depositPreview}
           outputValue={outputValue}
           protocolFee={protocolFeeQueryData}
           showApproveStep={startedWithApproval}
