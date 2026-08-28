@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { StakeSubmitButton } from "../src/pages/earn/components/stakeDrawer/stakeSubmitButton";
+import { StakeSubmitButton } from "../src/pages/earn/components/stakeForm/stakeSubmitButton";
 
 const meta: Meta<typeof StakeSubmitButton> = {
   args: {

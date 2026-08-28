@@ -16,7 +16,7 @@ import Skeleton from "react-loading-skeleton";
 import type { TokenWithGateway } from "types";
 import type { Address } from "viem";
 
-import type { WithdrawStep } from "../stakeDrawer/stakeDrawerReducer";
+import type { WithdrawStep } from "./stakeFormReducer";
 
 type SummaryProps = {
   amount: string;
