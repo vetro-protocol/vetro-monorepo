@@ -2,10 +2,13 @@ import type { Token } from "@vetro-protocol/core";
 import { Button } from "components/base/button";
 import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { RenderFiatValue } from "components/base/fiatValue";
+import {
+  TokenInteraction,
+  TokenInteractionList,
+} from "components/base/tokenInteraction";
 import { type Step, VerticalStepper } from "components/base/verticalStepper";
 import { DrawerFeesContainer } from "components/feesContainer";
 import { NetworkFees } from "components/networkFees";
-import { TokenLogo } from "components/tokenLogo";
 import { useTotalSupplyAndBorrowFees } from "hooks/borrow/useSupplyAndBorrowFees";
 import { useAnimatedVisibility } from "hooks/useAnimatedVisibility";
 import { useTranslation } from "react-i18next";
@@ -32,10 +35,16 @@ export function BorrowProgressDrawer({
 }: Props) {
   const { t } = useTranslation();
 
+  const parsedBorrowAmount = parseUnits(borrowAmount, borrowToken.decimals);
+  const parsedCollateralAmount = parseUnits(
+    collateralAmount,
+    collateralToken.decimals,
+  );
+
   const networkFee = useTotalSupplyAndBorrowFees({
     approveAmount: undefined,
-    borrowAmount: parseUnits(borrowAmount, borrowToken.decimals),
-    collateralAmount: parseUnits(collateralAmount, collateralToken.decimals),
+    borrowAmount: parsedBorrowAmount,
+    collateralAmount: parsedCollateralAmount,
     collateralToken,
     marketId,
   });
@@ -47,47 +56,34 @@ export function BorrowProgressDrawer({
     <div className="flex h-full flex-col">
       <DrawerTitle>{t("pages.borrow.progress.title")}</DrawerTitle>
 
-      <div className="flex flex-col gap-10 border-y border-gray-200 bg-gray-50 p-6">
-        <div className="flex flex-col gap-2">
-          <p className="text-xsm text-gray-500">
-            {t("pages.borrow.you-are-depositing")}
-          </p>
-          <div className="flex items-center gap-3">
-            <p className="flex items-center gap-x-2 text-4xl leading-10 font-semibold tracking-tight text-gray-900">
-              <span>{collateralAmount}</span>
-              <span className="text-gray-500">{collateralToken.symbol}</span>
-            </p>
-            <TokenLogo {...collateralToken} size="large" />
-          </div>
-          <p className="text-xsm text-gray-500">
-            <span className="mr-1">$</span>
-            <RenderFiatValue
-              token={collateralToken}
-              value={parseUnits(collateralAmount, collateralToken.decimals)}
-            />
-          </p>
-        </div>
+      <TokenInteractionList>
+        <TokenInteraction
+          amount={collateralAmount}
+          detail={
+            <>
+              <span className="mr-1">$</span>
+              <RenderFiatValue
+                token={collateralToken}
+                value={parsedCollateralAmount}
+              />
+            </>
+          }
+          label={t("pages.borrow.you-are-depositing")}
+          token={collateralToken}
+        />
 
-        <div className="flex flex-col gap-2">
-          <p className="text-xsm text-gray-500">
-            {t("pages.borrow.you-are-borrowing")}
-          </p>
-          <div className="flex items-center gap-3">
-            <p className="flex items-center gap-x-2 text-4xl leading-10 font-semibold tracking-tight text-gray-900">
-              <span>{borrowAmount}</span>
-              <span className="text-gray-500">{borrowToken.symbol}</span>
-            </p>
-            <TokenLogo {...borrowToken} size="large" />
-          </div>
-          <p className="text-xsm text-gray-500">
-            <span className="mr-1">$</span>
-            <RenderFiatValue
-              token={borrowToken}
-              value={parseUnits(borrowAmount, borrowToken.decimals)}
-            />
-          </p>
-        </div>
-      </div>
+        <TokenInteraction
+          amount={borrowAmount}
+          detail={
+            <>
+              <span className="mr-1">$</span>
+              <RenderFiatValue token={borrowToken} value={parsedBorrowAmount} />
+            </>
+          }
+          label={t("pages.borrow.you-are-borrowing")}
+          token={borrowToken}
+        />
+      </TokenInteractionList>
       <DrawerFeesContainer>
         <NetworkFees networkFee={networkFee} />
       </DrawerFeesContainer>

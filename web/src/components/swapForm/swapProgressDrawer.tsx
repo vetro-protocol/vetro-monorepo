@@ -1,8 +1,11 @@
 import { Button } from "components/base/button";
 import { DrawerTitle } from "components/base/drawer/drawerTitle";
+import {
+  TokenInteraction,
+  TokenInteractionList,
+} from "components/base/tokenInteraction";
 import { type Step, VerticalStepper } from "components/base/verticalStepper";
 import { DrawerFeesContainer } from "components/feesContainer";
-import { TokenLogo } from "components/tokenLogo";
 import { useAnimatedVisibility } from "hooks/useAnimatedVisibility";
 import type { ComponentProps, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
@@ -50,42 +53,24 @@ export function SwapProgressDrawer({
       <div className="flex h-full flex-col">
         <DrawerTitle>{t("pages.swap.progress.title")}</DrawerTitle>
 
-        <div className="flex flex-col gap-10 border-y border-gray-200 bg-gray-50 p-6">
-          <div className="flex flex-col gap-2">
-            <p className="text-xsm text-gray-500">
-              {t("pages.swap.form.you-are-swapping")}
-            </p>
-            <div className="flex items-center gap-3">
-              <p className="flex items-center gap-x-2 text-4xl leading-10 font-semibold tracking-tight text-gray-900">
-                <span>{fromAmount}</span>
-                <span className="text-gray-500">{fromToken.symbol}</span>
-              </p>
-              <TokenLogo {...fromToken} size="large" />
-            </div>
-            <p className="text-xsm text-gray-500">${fromAmount}</p>
-            {subtitle && (
-              <p className="text-base font-semibold text-gray-500">
-                {subtitle}
-              </p>
-            )}
-          </div>
+        <TokenInteractionList>
+          <TokenInteraction
+            amount={fromAmount}
+            detail={`$${fromAmount}`}
+            label={t("pages.swap.form.you-are-swapping")}
+            subtitle={subtitle}
+            token={fromToken}
+          />
 
           {toToken && outputValue !== undefined && (
-            <div className="flex flex-col gap-2">
-              <p className="text-xsm text-gray-500">
-                {t("pages.swap.form.you-will-receive-estimated")}
-              </p>
-              <div className="flex items-center gap-3">
-                <p className="flex items-center gap-x-2 text-4xl leading-10 font-semibold tracking-tight text-gray-900">
-                  <span>{outputValue}</span>
-                  <span className="text-gray-500">{toToken.symbol}</span>
-                </p>
-                <TokenLogo {...toToken} size="large" />
-              </div>
-              <p className="text-xsm text-gray-500">${outputValue}</p>
-            </div>
+            <TokenInteraction
+              amount={outputValue}
+              detail={`$${outputValue}`}
+              label={t("pages.swap.form.you-will-receive-estimated")}
+              token={toToken}
+            />
           )}
-        </div>
+        </TokenInteractionList>
         <DrawerFeesContainer>
           <SwapFees
             fromToken={fromToken}
