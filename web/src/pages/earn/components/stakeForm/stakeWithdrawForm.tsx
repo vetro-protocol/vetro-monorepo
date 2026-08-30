@@ -110,6 +110,7 @@ export function StakeWithdrawForm({
   const [submitted, setSubmitted] = useState<{
     amount: string;
     assets: bigint;
+    canInstantWithdraw: boolean | undefined;
   } | null>(null);
 
   const instantTracking = useActivityTracking({
@@ -229,7 +230,11 @@ export function StakeWithdrawForm({
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!inputError) {
-      setSubmitted({ amount: inputValue, assets: amountBigInt });
+      setSubmitted({
+        amount: inputValue,
+        assets: amountBigInt,
+        canInstantWithdraw,
+      });
       onResetSteps();
       onDrawerOpenChange(true);
       withdrawMutation.mutate();
@@ -296,23 +301,25 @@ export function StakeWithdrawForm({
           </div>
         </CollapsibleSection>
       </form>
-      {isDrawerOpen && submitted && canInstantWithdraw !== undefined && (
-        <Drawer onClose={handleCloseDrawer} requestClose={requestCloseDrawer}>
-          <Suspense fallback={<DrawerLoader />}>
-            <StakeWithdrawProgressDrawer
-              amount={submitted.amount}
-              assets={submitted.assets}
-              canInstantWithdraw={canInstantWithdraw}
-              cooldownDays={cooldownDays}
-              networkFee={withdrawFeesQuery}
-              peggedToken={peggedToken}
-              shareToken={shareToken}
-              stakingVaultAddress={stakingVaultAddress}
-              withdrawStep={withdrawStep}
-            />
-          </Suspense>
-        </Drawer>
-      )}
+      {isDrawerOpen &&
+        submitted &&
+        submitted.canInstantWithdraw !== undefined && (
+          <Drawer onClose={handleCloseDrawer} requestClose={requestCloseDrawer}>
+            <Suspense fallback={<DrawerLoader />}>
+              <StakeWithdrawProgressDrawer
+                amount={submitted.amount}
+                assets={submitted.assets}
+                canInstantWithdraw={submitted.canInstantWithdraw}
+                cooldownDays={cooldownDays}
+                networkFee={withdrawFeesQuery}
+                peggedToken={peggedToken}
+                shareToken={shareToken}
+                stakingVaultAddress={stakingVaultAddress}
+                withdrawStep={withdrawStep}
+              />
+            </Suspense>
+          </Drawer>
+        )}
     </>
   );
 }
