@@ -1,6 +1,7 @@
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { Badge } from "components/base/badge";
+import { DollarSign } from "components/base/dollarSign";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { InfoCard } from "components/base/infoCard";
 import { BoltIcon } from "components/icons/boltIcon";
@@ -44,7 +45,7 @@ function PoolRow({ balance, stakingVaultAddress }: PoolRowProps) {
         {peggedToken.symbol}
       </span>
       <span className="text-xsm font-medium text-white">
-        <span className="mr-1">$</span>
+        <DollarSign />
         <RenderFiatValue token={peggedToken} value={balance} />
       </span>
       <span className="text-xsm font-medium text-gray-400">

@@ -1,5 +1,6 @@
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { Button } from "components/base/button";
+import { DollarSign } from "components/base/dollarSign";
 import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { Spinner } from "components/base/spinner";
@@ -87,7 +88,7 @@ const Row = ({ amount, peggedToken, status }: RowProps) => (
       })}
       detail={
         <>
-          <span className="mr-1">$</span>
+          <DollarSign />
           <RenderFiatValue token={peggedToken} value={amount} />
         </>
       }

@@ -1,5 +1,6 @@
 import type { Token } from "@vetro-protocol/core";
 import { Button } from "components/base/button";
+import { DollarSign } from "components/base/dollarSign";
 import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { RenderFiatValue } from "components/base/fiatValue";
 import {
@@ -61,7 +62,7 @@ export function BorrowProgressDrawer({
           amount={collateralAmount}
           detail={
             <>
-              <span className="mr-1">$</span>
+              <DollarSign />
               <RenderFiatValue
                 token={collateralToken}
                 value={parsedCollateralAmount}
@@ -76,7 +77,7 @@ export function BorrowProgressDrawer({
           amount={borrowAmount}
           detail={
             <>
-              <span className="mr-1">$</span>
+              <DollarSign />
               <RenderFiatValue token={borrowToken} value={parsedBorrowAmount} />
             </>
           }

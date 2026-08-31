@@ -1,6 +1,7 @@
 import { type QueryStatus } from "@tanstack/react-query";
 import type { Token } from "@vetro-protocol/core";
 import { RenderCryptoValue } from "components/base/cryptoValue";
+import { DollarSign } from "components/base/dollarSign";
 import { RenderFiatValue } from "components/base/fiatValue";
 
 type Props = {
@@ -22,7 +23,7 @@ export const TokenValueCell = ({
     <span
       className={`text-b-medium ${align === "left" ? "text-left" : "text-right"} text-gray-900`}
     >
-      <span className="mr-1">$</span>
+      <DollarSign />
       <RenderFiatValue queryStatus={status} token={token} value={value} />
     </span>
     <span className="text-caption text-gray-500 *:w-full">
