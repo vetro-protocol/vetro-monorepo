@@ -368,10 +368,12 @@ export function Deposit({
           flowStatus={flowStatus}
           fromAmount={fromInputValue}
           fromToken={fromToken}
+          isOutputError={isDepositPreviewError}
           networkFee={networkFee}
           onClose={handleDrawerClose}
           onRetry={handleRetry}
           oracleToken={fromToken.address}
+          outputAmount={depositPreview}
           outputValue={outputValue}
           protocolFee={protocolFeeQueryData}
           showApproveStep={startedWithApproval}

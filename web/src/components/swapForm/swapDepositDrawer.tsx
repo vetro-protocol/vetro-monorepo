@@ -56,9 +56,11 @@ type Props = {
   flowStatus: Exclude<DepositFlowStatus, "idle">;
   fromAmount: string;
   fromToken: TokenWithGateway;
+  isOutputError: boolean;
   onClose: VoidFunction;
   onRetry: VoidFunction;
   oracleToken: Address;
+  outputAmount: bigint | undefined;
   outputValue: string;
   showApproveStep: boolean;
   toToken: TokenWithGateway;

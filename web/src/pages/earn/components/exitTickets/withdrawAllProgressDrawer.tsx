@@ -4,12 +4,12 @@ import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { Spinner } from "components/base/spinner";
 import { CheckCircleIcon } from "components/base/toast/checkCircleIcon";
+import { TokenInteraction } from "components/base/tokenInteraction";
 import {
   type Step,
   stepStatus,
   VerticalStepper,
 } from "components/base/verticalStepper";
-import { TokenLogo } from "components/tokenLogo";
 import { useAnimatedVisibility } from "hooks/useAnimatedVisibility";
 import { useEthereumClient } from "hooks/useEthereumClient";
 import {
@@ -79,24 +79,19 @@ const Row = ({ amount, peggedToken, status }: RowProps) => (
       status === "pending" ? "opacity-40" : ""
     }`}
   >
-    <div className="flex flex-col gap-y-2">
-      <div className="flex items-center gap-3">
-        <p className="flex items-center gap-x-2 text-4xl leading-10 font-semibold tracking-tight text-gray-900">
-          <span>
-            {formatAmount({
-              amount,
-              decimals: peggedToken.decimals,
-              isError: false,
-            })}
-          </span>
-          <span className="text-gray-500">{peggedToken.symbol}</span>
-        </p>
-        <TokenLogo {...peggedToken} size="large" />
-      </div>
-      <p className="text-xsm text-gray-500">
-        $<RenderFiatValue token={peggedToken} value={amount} />
-      </p>
-    </div>
+    <TokenInteraction
+      amount={formatAmount({
+        amount,
+        decimals: peggedToken.decimals,
+        isError: false,
+      })}
+      detail={
+        <>
+          $<RenderFiatValue token={peggedToken} value={amount} />
+        </>
+      }
+      token={peggedToken}
+    />
     <StatusIcon status={status} />
   </div>
 );

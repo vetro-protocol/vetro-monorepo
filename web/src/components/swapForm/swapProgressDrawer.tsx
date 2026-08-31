@@ -1,12 +1,17 @@
 import { Button } from "components/base/button";
 import { DrawerTitle } from "components/base/drawer/drawerTitle";
+import { RenderFiatValue } from "components/base/fiatValue";
+import {
+  TokenInteraction,
+  TokenInteractionList,
+} from "components/base/tokenInteraction";
 import { type Step, VerticalStepper } from "components/base/verticalStepper";
 import { DrawerFeesContainer } from "components/feesContainer";
-import { TokenLogo } from "components/tokenLogo";
 import { useAnimatedVisibility } from "hooks/useAnimatedVisibility";
 import type { ComponentProps, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
+import { parseTokenUnits } from "utils/token";
 import type { Address } from "viem";
 
 import { OutputLabel, type UnitPreview } from "./outputLabel";
@@ -15,8 +20,10 @@ import { SwapFees } from "./swapFees";
 type Props = {
   fromAmount: string;
   fromToken: TokenWithGateway;
+  isOutputError?: boolean;
   onRetry?: VoidFunction;
   oracleToken?: Address;
+  outputAmount?: bigint;
   outputValue?: string;
   steps: Step[];
   subtitle?: ReactNode;
@@ -30,9 +37,11 @@ type Props = {
 export function SwapProgressDrawer({
   fromAmount,
   fromToken,
+  isOutputError,
   networkFee,
   onRetry,
   oracleToken,
+  outputAmount,
   outputValue,
   protocolFee,
   steps,
@@ -50,42 +59,41 @@ export function SwapProgressDrawer({
       <div className="flex h-full flex-col">
         <DrawerTitle>{t("pages.swap.progress.title")}</DrawerTitle>
 
-        <div className="flex flex-col gap-10 border-y border-gray-200 bg-gray-50 p-6">
-          <div className="flex flex-col gap-2">
-            <p className="text-xsm text-gray-500">
-              {t("pages.swap.form.you-are-swapping")}
-            </p>
-            <div className="flex items-center gap-3">
-              <p className="flex items-center gap-x-2 text-4xl leading-10 font-semibold tracking-tight text-gray-900">
-                <span>{fromAmount}</span>
-                <span className="text-gray-500">{fromToken.symbol}</span>
-              </p>
-              <TokenLogo {...fromToken} size="large" />
-            </div>
-            <p className="text-xsm text-gray-500">${fromAmount}</p>
-            {subtitle && (
-              <p className="text-base font-semibold text-gray-500">
-                {subtitle}
-              </p>
-            )}
-          </div>
+        <TokenInteractionList>
+          <TokenInteraction
+            amount={fromAmount}
+            detail={
+              <>
+                $
+                <RenderFiatValue
+                  token={fromToken}
+                  value={parseTokenUnits(fromAmount, fromToken)}
+                />
+              </>
+            }
+            label={t("pages.swap.form.you-are-swapping")}
+            subtitle={subtitle}
+            token={fromToken}
+          />
 
           {toToken && outputValue !== undefined && (
-            <div className="flex flex-col gap-2">
-              <p className="text-xsm text-gray-500">
-                {t("pages.swap.form.you-will-receive-estimated")}
-              </p>
-              <div className="flex items-center gap-3">
-                <p className="flex items-center gap-x-2 text-4xl leading-10 font-semibold tracking-tight text-gray-900">
-                  <span>{outputValue}</span>
-                  <span className="text-gray-500">{toToken.symbol}</span>
-                </p>
-                <TokenLogo {...toToken} size="large" />
-              </div>
-              <p className="text-xsm text-gray-500">${outputValue}</p>
-            </div>
+            <TokenInteraction
+              amount={outputValue}
+              detail={
+                <>
+                  $
+                  <RenderFiatValue
+                    queryStatus={isOutputError ? "error" : "success"}
+                    token={toToken}
+                    value={outputAmount}
+                  />
+                </>
+              }
+              label={t("pages.swap.form.you-will-receive-estimated")}
+              token={toToken}
+            />
           )}
-        </div>
+        </TokenInteractionList>
         <DrawerFeesContainer>
           <SwapFees
             fromToken={fromToken}
