@@ -1,4 +1,5 @@
 import { Button } from "components/base/button";
+import { DollarSign } from "components/base/dollarSign";
 import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { RenderFiatValue } from "components/base/fiatValue";
 import {
@@ -64,7 +65,7 @@ export function SwapProgressDrawer({
             amount={fromAmount}
             detail={
               <>
-                $
+                <DollarSign />
                 <RenderFiatValue
                   token={fromToken}
                   value={parseTokenUnits(fromAmount, fromToken)}
@@ -81,7 +82,7 @@ export function SwapProgressDrawer({
               amount={outputValue}
               detail={
                 <>
-                  $
+                  <DollarSign />
                   <RenderFiatValue
                     queryStatus={isOutputError ? "error" : "success"}
                     token={toToken}

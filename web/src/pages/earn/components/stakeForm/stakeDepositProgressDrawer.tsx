@@ -1,5 +1,6 @@
 import type { Token } from "@vetro-protocol/core";
 import { RenderCryptoValue } from "components/base/cryptoValue";
+import { DollarSign } from "components/base/dollarSign";
 import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { RenderFiatValue } from "components/base/fiatValue";
 import {
@@ -124,7 +125,8 @@ export function StakeDepositProgressDrawer({
 
   const fiatDetail = (
     <>
-      $<RenderFiatValue token={peggedToken} value={assets} />
+      <DollarSign />
+      <RenderFiatValue token={peggedToken} value={assets} />
     </>
   );
 

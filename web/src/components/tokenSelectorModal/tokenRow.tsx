@@ -1,6 +1,7 @@
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
 import type { Token } from "@vetro-protocol/core";
 import { RenderCryptoValue } from "components/base/cryptoValue";
+import { DollarSign } from "components/base/dollarSign";
 import { BridgeTokenFiatValue } from "components/bridgeForm/bridgeTokenFiatValue";
 import { TokenChainLogo } from "components/bridgeForm/tokenChainLogo";
 import { TokenLogo } from "components/tokenLogo";
@@ -49,7 +50,8 @@ export function TokenRow<T extends Token>({
             <RenderCryptoValue status={status} token={token} value={balance} />
           </div>
           <span className="text-b-regular text-gray-500">
-            $<BridgeTokenFiatValue token={token} value={balance} />
+            <DollarSign />
+            <BridgeTokenFiatValue token={token} value={balance} />
           </span>
         </div>
       ) : null}

@@ -1,5 +1,6 @@
 import type { Token } from "@vetro-protocol/core";
 import { RenderCryptoValue } from "components/base/cryptoValue";
+import { DollarSign } from "components/base/dollarSign";
 import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { RenderFiatValue } from "components/base/fiatValue";
 import {
@@ -111,7 +112,8 @@ function InstantWithdrawSummary({
 
   const fiatDetail = (
     <>
-      $<RenderFiatValue token={peggedToken} value={assets} />
+      <DollarSign />
+      <RenderFiatValue token={peggedToken} value={assets} />
     </>
   );
 
@@ -152,7 +154,8 @@ function QueuedWithdrawSummary({
       amount={amount}
       detail={
         <>
-          $<RenderFiatValue token={peggedToken} value={assets} />
+          <DollarSign />
+          <RenderFiatValue token={peggedToken} value={assets} />
         </>
       }
       label={t("pages.earn.stake.you-are-requesting-to-withdraw")}
