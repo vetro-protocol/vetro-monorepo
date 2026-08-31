@@ -4,9 +4,11 @@ import { usePrices } from "hooks/usePrices";
 import { useVaultPeggedToken } from "hooks/useVaultPeggedToken";
 import { useTranslation } from "react-i18next";
 import { formatTokenAmountUsd } from "utils/currency";
+import { featureFlags } from "utils/featureFlags";
 import type { Address } from "viem";
 
 import { PoolContract } from "./poolContract";
+import { PoolDetailsLink } from "./poolDetailsLink";
 import { PoolInfoButtons } from "./poolInfoButtons";
 import { PoolInfoItem } from "./poolInfoItem";
 import { PoolInfoStakedAmount } from "./poolInfoStakedAmount";
@@ -60,7 +62,11 @@ export function PoolInfoBar({ stakingVaultAddress }: Props) {
         />
         <PoolInfoStakedAmount stakingVaultAddress={stakingVaultAddress} />
       </div>
-      <PoolInfoButtons stakingVaultAddress={stakingVaultAddress} />
+      {featureFlags.variableYieldDetails ? (
+        <PoolDetailsLink stakingVaultAddress={stakingVaultAddress} />
+      ) : (
+        <PoolInfoButtons stakingVaultAddress={stakingVaultAddress} />
+      )}
     </div>
   );
 }
