@@ -26,8 +26,8 @@ import { formatAmount } from "utils/token";
 import { type Address, parseUnits } from "viem";
 import { useAccount } from "wagmi";
 
-import type { DepositStep } from "../stakeDrawer/stakeDrawerReducer";
-import { StakeSubmitButton } from "../stakeDrawer/stakeSubmitButton";
+import type { DepositStep } from "./stakeFormReducer";
+import { StakeSubmitButton } from "./stakeSubmitButton";
 
 const StakeDepositProgressDrawer = lazy(() =>
   import("./stakeDepositProgressDrawer").then((m) => ({

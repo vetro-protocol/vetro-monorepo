@@ -336,12 +336,10 @@
       },
       "pool-info": {
         "apy": "APY",
-        "deposit": "Deposit",
         "pool-contract": "Pool contract",
         "pool-deposits": "Pool deposits",
         "pool-details": "Pool details",
-        "staked-amount": "Your staked amount",
-        "withdraw": "Withdraw"
+        "staked-amount": "Your staked amount"
       },
       "stake": {
         "approve-and-deposit": "Approve and deposit",
@@ -365,7 +363,6 @@
         "instant-withdraw-toast-description": "Your funds have been successfully withdrawn to your wallet.",
         "instant-withdraw-toast-title": "Withdrawal complete",
         "instant-withdrawing": "Withdrawing...",
-        "manage-position": "Manage your stake position",
         "ready-to-withdraw-in_one": "Ready to withdraw in {{count}} day",
         "ready-to-withdraw-in_other": "Ready to withdraw in {{count}} days",
         "request-withdrawal": "Request withdrawal",

@@ -6,16 +6,15 @@ import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
 import type { Address } from "viem";
 
+import { StakeDepositForm } from "./stakeDepositForm";
 import {
   type DepositStep,
   type WithdrawStep,
-  initialStakeDrawerState,
-  stakeDrawerReducer,
-} from "../stakeDrawer/stakeDrawerReducer";
-import type { StakeMode } from "../stakeDrawer/types";
-
-import { StakeDepositForm } from "./stakeDepositForm";
+  initialStakeFormState,
+  stakeFormReducer,
+} from "./stakeFormReducer";
 import { StakeWithdrawForm } from "./stakeWithdrawForm";
+import type { StakeMode } from "./types";
 
 type ToastData = {
   description: string;
@@ -34,10 +33,7 @@ export function StakeForm({
   stakingVaultAddress,
 }: Props) {
   const { t } = useTranslation();
-  const [state, dispatch] = useReducer(
-    stakeDrawerReducer,
-    initialStakeDrawerState,
-  );
+  const [state, dispatch] = useReducer(stakeFormReducer, initialStakeFormState);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [mode, setMode] = useState<StakeMode>("deposit");
   const [toast, setToast] = useState<ToastData | null>(null);
