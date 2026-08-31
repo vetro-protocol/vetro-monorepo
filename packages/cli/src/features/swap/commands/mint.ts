@@ -13,8 +13,8 @@ import { type GlobalOptions, createVetroClient } from "../../../lib/client.ts";
 import { printTransactionRequest } from "../../../lib/output.ts";
 import { DEFAULT_SLIPPAGE, applySlippage } from "../../../lib/slippage.ts";
 import {
+  getGatewayPeggedToken,
   isTokenMatch,
-  resolvePeggedToken,
   resolveWhitelistedToken,
 } from "../../../lib/tokens.ts";
 
@@ -61,7 +61,7 @@ export function register(swap: Command) {
       });
 
       if (options.to !== undefined) {
-        const peggedToken = await resolvePeggedToken({
+        const peggedToken = await getGatewayPeggedToken({
           client,
           gatewayAddress: tokenIn.gatewayAddress,
         });
@@ -100,7 +100,7 @@ export function register(swap: Command) {
       }
 
       if (peggedTokenOut > maxMint) {
-        const peggedToken = await resolvePeggedToken({
+        const peggedToken = await getGatewayPeggedToken({
           client,
           gatewayAddress: tokenIn.gatewayAddress,
         });
