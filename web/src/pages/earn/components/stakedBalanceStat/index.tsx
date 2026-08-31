@@ -44,7 +44,8 @@ function PoolRow({ balance, stakingVaultAddress }: PoolRowProps) {
         {peggedToken.symbol}
       </span>
       <span className="text-xsm font-medium text-white">
-        $<RenderFiatValue token={peggedToken} value={balance} />
+        <span className="mr-1">$</span>
+        <RenderFiatValue token={peggedToken} value={balance} />
       </span>
       <span className="text-xsm font-medium text-gray-400">
         ({formattedTokenAmount} {peggedToken.symbol})

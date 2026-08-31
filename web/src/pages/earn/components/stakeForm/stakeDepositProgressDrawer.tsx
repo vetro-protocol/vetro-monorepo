@@ -124,7 +124,8 @@ export function StakeDepositProgressDrawer({
 
   const fiatDetail = (
     <>
-      $<RenderFiatValue token={peggedToken} value={assets} />
+      <span className="mr-1">$</span>
+      <RenderFiatValue token={peggedToken} value={assets} />
     </>
   );
 

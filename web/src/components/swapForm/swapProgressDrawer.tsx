@@ -64,7 +64,7 @@ export function SwapProgressDrawer({
             amount={fromAmount}
             detail={
               <>
-                $
+                <span className="mr-1">$</span>
                 <RenderFiatValue
                   token={fromToken}
                   value={parseTokenUnits(fromAmount, fromToken)}
@@ -81,7 +81,7 @@ export function SwapProgressDrawer({
               amount={outputValue}
               detail={
                 <>
-                  $
+                  <span className="mr-1">$</span>
                   <RenderFiatValue
                     queryStatus={isOutputError ? "error" : "success"}
                     token={toToken}

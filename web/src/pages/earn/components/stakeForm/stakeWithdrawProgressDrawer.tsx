@@ -111,7 +111,8 @@ function InstantWithdrawSummary({
 
   const fiatDetail = (
     <>
-      $<RenderFiatValue token={peggedToken} value={assets} />
+      <span className="mr-1">$</span>
+      <RenderFiatValue token={peggedToken} value={assets} />
     </>
   );
 
@@ -152,7 +153,8 @@ function QueuedWithdrawSummary({
       amount={amount}
       detail={
         <>
-          $<RenderFiatValue token={peggedToken} value={assets} />
+          <span className="mr-1">$</span>
+          <RenderFiatValue token={peggedToken} value={assets} />
         </>
       }
       label={t("pages.earn.stake.you-are-requesting-to-withdraw")}

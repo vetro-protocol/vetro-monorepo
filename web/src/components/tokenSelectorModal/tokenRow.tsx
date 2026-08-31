@@ -49,7 +49,8 @@ export function TokenRow<T extends Token>({
             <RenderCryptoValue status={status} token={token} value={balance} />
           </div>
           <span className="text-b-regular text-gray-500">
-            $<BridgeTokenFiatValue token={token} value={balance} />
+            <span className="mr-1">$</span>
+            <BridgeTokenFiatValue token={token} value={balance} />
           </span>
         </div>
       ) : null}

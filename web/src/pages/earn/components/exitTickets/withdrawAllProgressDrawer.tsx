@@ -87,7 +87,8 @@ const Row = ({ amount, peggedToken, status }: RowProps) => (
       })}
       detail={
         <>
-          $<RenderFiatValue token={peggedToken} value={amount} />
+          <span className="mr-1">$</span>
+          <RenderFiatValue token={peggedToken} value={amount} />
         </>
       }
       token={peggedToken}
