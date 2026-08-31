@@ -1,8 +1,7 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { stakingVaultAddresses } from "@vetro-protocol/earn";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { fetchEarnedAmountUsd } from "fetchers/fetchEarnedAmountUsd";
 import { useEthereumClient } from "hooks/useEthereumClient";
-import type { Address } from "viem";
+import type { Address, Client } from "viem";
 import { useAccount } from "wagmi";
 
 const apiUrl = import.meta.env.VITE_VETRO_API_URL;
@@ -10,26 +9,44 @@ const apiUrl = import.meta.env.VITE_VETRO_API_URL;
 export const earnedAmountUsdQueryKey = ({
   account,
   chainId,
+  stakingVaultAddress,
 }: {
   account: Address | undefined;
   chainId: number | undefined;
-}) => ["earned-amount-usd", chainId, account];
+  stakingVaultAddress: Address;
+}) => ["earned-amount-usd", chainId, stakingVaultAddress, account];
 
-export function useEarnedAmountUsd() {
-  const { address: account } = useAccount();
-  const client = useEthereumClient();
-  const queryClient = useQueryClient();
-
-  return useQuery({
+export const earnedAmountUsdQueryOptions = ({
+  account,
+  client,
+  stakingVaultAddress,
+}: {
+  account: Address | undefined;
+  client: Client | undefined;
+  stakingVaultAddress: Address;
+}) =>
+  queryOptions({
     enabled:
       apiUrl !== undefined && URL.canParse(apiUrl) && !!client && !!account,
-    queryFn: () =>
+    queryFn: ({ client: queryClient }) =>
       fetchEarnedAmountUsd({
         account: account!,
         client: client!,
         queryClient,
-        stakingVaultAddresses,
+        stakingVaultAddress,
       }),
-    queryKey: earnedAmountUsdQueryKey({ account, chainId: client?.chain?.id }),
+    queryKey: earnedAmountUsdQueryKey({
+      account,
+      chainId: client?.chain?.id,
+      stakingVaultAddress,
+    }),
   });
+
+export function useEarnedAmountUsd(stakingVaultAddress: Address) {
+  const { address: account } = useAccount();
+  const client = useEthereumClient();
+
+  return useQuery(
+    earnedAmountUsdQueryOptions({ account, client, stakingVaultAddress }),
+  );
 }

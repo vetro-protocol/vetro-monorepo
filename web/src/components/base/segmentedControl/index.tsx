@@ -6,6 +6,7 @@ type SegmentOption<T extends string> = {
 };
 
 type Props<T extends string> = {
+  disabled?: boolean;
   onChange: (value: T) => void;
   options: SegmentOption<T>[];
   size?: "s" | "xs";
@@ -24,6 +25,7 @@ const variantClasses = {
 };
 
 export const SegmentedControl = <T extends string>({
+  disabled = false,
   onChange,
   options,
   size = "s",
@@ -33,11 +35,12 @@ export const SegmentedControl = <T extends string>({
   <div className="flex gap-2">
     {options.map((option) => (
       <button
-        className={`${sizeClasses[size]} ${variantClasses[variant]} cursor-pointer rounded-full font-semibold transition-all ${
+        className={`${sizeClasses[size]} ${variantClasses[variant]} rounded-full font-semibold transition-all not-disabled:cursor-pointer disabled:opacity-65 ${
           value === option.value
             ? "bg-white text-gray-900 shadow-sm"
-            : "text-gray-500 hover:text-gray-700"
+            : "text-gray-500 not-disabled:hover:text-gray-700"
         }`}
+        disabled={disabled}
         key={option.value}
         onClick={() => onChange(option.value)}
         type="button"

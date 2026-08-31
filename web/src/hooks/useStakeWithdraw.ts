@@ -17,7 +17,7 @@ import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { useMainnet } from "./useMainnet";
 import { poolDepositsQueryKey } from "./usePoolDeposits";
 import { stakedBalanceQueryKey } from "./useStakedBalance";
-import { totalStakedUsdQueryKey } from "./useTotalStakedUsd";
+import { stakedUsdQueryKey } from "./useStakedUsd";
 
 type WithdrawStatus = "completed" | "request-failed" | "requesting";
 
@@ -68,10 +68,13 @@ export const useStakeWithdraw = function ({
       if (!account) {
         throw new Error("No account connected");
       }
+      if (!walletClient) {
+        throw new Error("No wallet client available");
+      }
 
       await ensureConnectedTo(chain.id);
 
-      const { emitter, promise } = requestWithdraw(walletClient!, {
+      const { emitter, promise } = requestWithdraw(walletClient, {
         assets,
         owner: account,
         vaultAddress: stakingVaultAddress,
@@ -166,11 +169,19 @@ export const useStakeWithdraw = function ({
       });
 
       queryClient.invalidateQueries({
-        queryKey: totalStakedUsdQueryKey({ account, chainId: chain.id }),
+        queryKey: stakedUsdQueryKey({
+          account,
+          chainId: chain.id,
+          stakingVaultAddress,
+        }),
       });
 
       queryClient.invalidateQueries({
-        queryKey: earnedAmountUsdQueryKey({ account, chainId: chain.id }),
+        queryKey: earnedAmountUsdQueryKey({
+          account,
+          chainId: chain.id,
+          stakingVaultAddress,
+        }),
       });
 
       queryClient.invalidateQueries({

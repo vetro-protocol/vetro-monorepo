@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { AllocationChart } from "../src/pages/analytics/components/allocationCard/allocationChart";
+import { AllocationChart } from "../src/components/allocationCard/allocationChart";
 
 const meta = {
   component: AllocationChart,

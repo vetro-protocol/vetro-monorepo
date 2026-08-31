@@ -16,7 +16,7 @@ import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { useMainnet } from "./useMainnet";
 import { poolDepositsQueryKey } from "./usePoolDeposits";
 import { stakedBalanceQueryKey } from "./useStakedBalance";
-import { totalStakedUsdQueryKey } from "./useTotalStakedUsd";
+import { stakedUsdQueryKey } from "./useStakedUsd";
 
 type CancelWithdrawStatus = "cancelling" | "completed" | "failed";
 
@@ -134,11 +134,19 @@ export const useCancelWithdraw = function ({
       });
 
       queryClient.invalidateQueries({
-        queryKey: totalStakedUsdQueryKey({ account, chainId: chain.id }),
+        queryKey: stakedUsdQueryKey({
+          account,
+          chainId: chain.id,
+          stakingVaultAddress,
+        }),
       });
 
       queryClient.invalidateQueries({
-        queryKey: earnedAmountUsdQueryKey({ account, chainId: chain.id }),
+        queryKey: earnedAmountUsdQueryKey({
+          account,
+          chainId: chain.id,
+          stakingVaultAddress,
+        }),
       });
 
       queryClient.invalidateQueries({

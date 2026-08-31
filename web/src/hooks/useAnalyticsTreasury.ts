@@ -1,6 +1,6 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import fetch from "fetch-plus-plus";
-import type { TreasuryToken } from "pages/analytics/types";
+import type { TreasuryToken } from "types";
 import type { Address } from "viem";
 
 const apiUrl = import.meta.env.VITE_VETRO_API_URL;

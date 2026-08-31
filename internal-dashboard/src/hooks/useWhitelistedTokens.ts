@@ -1,4 +1,4 @@
-import { queryOptions } from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 
 import { fetchWhitelistedTokens } from "../fetchers/fetchWhitelistedTokens";
 
@@ -8,3 +8,5 @@ export const whitelistedTokensOptions = () =>
     queryKey: ["whitelisted-tokens"],
     staleTime: 10 * 60 * 1000,
   });
+
+export const useWhitelistedTokens = () => useQuery(whitelistedTokensOptions());

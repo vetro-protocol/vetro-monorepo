@@ -2,6 +2,10 @@
 
 /// <reference types="@cloudflare/workers-types" />
 
+import { getAddress } from "viem";
+
+import type { StakeDaoCampaign } from "./lib/stakeDaoApi";
+
 type Env = {
   ASSETS: Fetcher;
 };
@@ -79,8 +83,10 @@ const csp = [
   // volumes / gauges) and per-pool 24h fees from Curve's analytics API. Sushi and
   // Uniswap pool data comes from their own APIs via the worker's /api/sushi and
   // /api/uniswap proxies, so they need no extra origin here ('self' covers it).
-  // Token / pool discovery, pool balances and share values are read on-chain from
-  // the mainnet RPC, and token USD prices come from the Portal API.
+  // Reward campaigns come from Merkl and StakeDAO via the worker's /api/merkl
+  // and /api/stakedao proxies, so they need no extra origin either. Token / pool discovery, pool balances and share
+  // values are read on-chain from the mainnet RPC, and token USD prices come from
+  // the Portal API.
   `connect-src 'self' https://api.curve.finance https://prices.curve.finance ${rpcConnectSrc} ${portalApiUrl}`,
   "default-src 'none'",
   "font-src 'self'",
@@ -127,6 +133,79 @@ const graphqlProxies: Record<
   },
 };
 
+// StakeDAO answers with every campaign ever created (several MB)
+// and offers no server-side filter, so the worker trims the list to
+// the requested gauges. The upstream response is cached because of this.
+const stakeDaoCampaignsPath = "/api/stakedao/campaigns";
+const stakeDaoCampaignsUpstream =
+  "https://api-v3.stakedao.org/votemarket/curve";
+const stakeDaoCacheSeconds = 3 * 60;
+
+const jsonResponse = ({
+  body,
+  status = 200,
+}: {
+  body: BodyInit | null;
+  status?: number;
+}) =>
+  new Response(body, {
+    headers: { "content-type": "application/json" },
+    status,
+  });
+
+const servedCampaign = (campaign: StakeDaoCampaign): StakeDaoCampaign => ({
+  currentPeriod: {
+    rewardPerPeriod: campaign.currentPeriod.rewardPerPeriod,
+    rewardPerVote: campaign.currentPeriod.rewardPerVote,
+  },
+  endTimestamp: campaign.endTimestamp,
+  gauge: getAddress(campaign.gauge),
+  gaugeChainId: campaign.gaugeChainId,
+  id: campaign.id,
+  isCanceled: campaign.isCanceled,
+  isClosed: campaign.isClosed,
+  key: campaign.key,
+  rewardToken: {
+    price: campaign.rewardToken.price,
+    symbol: campaign.rewardToken.symbol,
+  },
+  totalRewardAmount: campaign.totalRewardAmount,
+});
+
+const proxyStakeDaoCampaigns = async function (searchParams: URLSearchParams) {
+  const gauges = (searchParams.get("gauges") ?? "").toLowerCase().split(",");
+  const response = await fetch(stakeDaoCampaignsUpstream, {
+    cf: {
+      cacheEverything: true,
+      cacheTtlByStatus: { "200-299": stakeDaoCacheSeconds, "400-599": 0 },
+    },
+  });
+  if (!response.ok) {
+    return jsonResponse({ body: response.body, status: response.status });
+  }
+  const { campaigns } = (await response.json()) as {
+    campaigns: StakeDaoCampaign[];
+  };
+  return jsonResponse({
+    body: JSON.stringify(
+      campaigns
+        .filter((campaign) => gauges.includes(campaign.gauge.toLowerCase()))
+        .map(servedCampaign),
+    ),
+  });
+};
+
+const proxyRest = async function ({
+  search,
+  upstream,
+}: {
+  search: string;
+  upstream: string;
+}) {
+  const response = await fetch(`${upstream}${search}`);
+  return jsonResponse({ body: response.body, status: response.status });
+};
+
 const proxyGraphql = async function ({
   headers,
   request,
@@ -147,11 +226,27 @@ const proxyGraphql = async function ({
   });
 };
 
+const restHandlers: Record<string, (url: URL) => Promise<Response>> = {
+  "/api/merkl/opportunities": (url) =>
+    proxyRest({
+      search: url.search,
+      upstream: "https://api.merkl.xyz/v4/opportunities",
+    }),
+  [stakeDaoCampaignsPath]: (url) => proxyStakeDaoCampaigns(url.searchParams),
+};
+
 export default {
   async fetch(request: Request, env: Env) {
-    const proxy = graphqlProxies[new URL(request.url).pathname];
-    if (request.method === "POST" && proxy) {
-      return proxyGraphql({ ...proxy, request });
+    const url = new URL(request.url);
+
+    const graphqlProxy = graphqlProxies[url.pathname];
+    if (request.method === "POST" && graphqlProxy) {
+      return proxyGraphql({ ...graphqlProxy, request });
+    }
+
+    const restHandler = restHandlers[url.pathname];
+    if (request.method === "GET" && restHandler) {
+      return restHandler(url);
     }
 
     const response = await env.ASSETS.fetch(request);

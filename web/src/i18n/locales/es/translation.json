@@ -5,11 +5,17 @@
     "approve-10x": "Aprobar 10x",
     "approve-10x-tooltip": "Apruebe hasta 10× el monto de su transacción, reduciendo futuros pasos de aprobación. Puede revocarlo en cualquier momento.",
     "charts": {
+      "apy-label": "TEA",
       "period-1-month": "1 mes",
       "period-1-week": "1 semana",
       "period-1-year": "1 año",
       "period-3-month": "3 meses",
-      "reload-chart": "Recargar gráfico"
+      "reload-chart": "Recargar gráfico",
+      "reserve-buffer-label": "Reserva de liquidez",
+      "share-ratio-label": "Ratio {{shareSymbol}} / {{peggedSymbol}}",
+      "yield-label": "Asignación de yield",
+      "yield-value": "{{count}} estrategia",
+      "yield-value_other": "{{count}} estrategias"
     },
     "clear-search": "Limpiar búsqueda",
     "close": "Cerrar",
@@ -56,20 +62,12 @@
   },
   "pages": {
     "analytics": {
-      "apy-label": "TEA",
       "collateralization-ratio-label": "Ratio de colateralización",
-      "exit-queue-label": "Total {{symbol}} en período de espera de retiro",
       "liquid-reserves-label": "Reservas líquidas",
-      "reserve-buffer-label": "Reserva de liquidez",
-      "share-ratio-label": "Ratio {{shareSymbol}} / {{peggedSymbol}}",
-      "staked-label": "Total {{symbol}} depositado",
       "strategic-reserves-label": "Reservas estratégicas",
       "surplus-label": "Excedente",
       "title": "Monitorear analíticas del protocolo",
-      "tvl-label": "Valor Total Bloqueado (TVL)",
-      "yield-label": "Asignación de yield",
-      "yield-value": "{{count}} estrategia",
-      "yield-value_other": "{{count}} estrategias"
+      "tvl-label": "Valor Total Bloqueado (TVL)"
     },
     "borrow": {
       "activity": {
@@ -273,6 +271,7 @@
         "instant-withdraw-text": "{{amount}} {{symbol}} retirado",
         "request-withdraw-text": "{{amount}} {{symbol}} enviado al exit vault"
       },
+      "exit-cooldown-label": "{{symbol}} en período de espera de salida",
       "exit-tickets": {
         "actions": "Acciones",
         "col-cooldown-left": "Tiempo restante",
@@ -352,6 +351,7 @@
         "available-to-deposit": "Disponible para depositar",
         "available-to-withdraw": "Disponible para retirar",
         "deposit": "Depositar",
+        "deposit-in-progress": "Depósito en progreso",
         "deposit-progress": "Progreso del depósito",
         "deposit-step-approve-description": "Esto permite que la app use este token para su depósito.",
         "deposit-step-approve-title": "Aprobar en billetera",
@@ -368,9 +368,12 @@
         "instant-withdraw-toast-title": "Retiro completado",
         "instant-withdrawing": "Retirando...",
         "manage-position": "Administre su posición de stake",
+        "ready-to-withdraw-in_one": "Listo para retirar en {{count}} día",
+        "ready-to-withdraw-in_other": "Listo para retirar en {{count}} días",
         "request-withdrawal": "Solicitar retiro",
         "requesting": "Solicitando...",
         "withdraw": "Retirar",
+        "withdraw-in-progress": "Retiro en progreso",
         "withdraw-progress": "Progreso del retiro",
         "withdraw-step-1-description": "Inicie el proceso de retiro. Sus fondos estarán bloqueados en un período de espera y ya no generarán rendimiento.",
         "withdraw-step-1-title": "Solicitar retiro",
@@ -384,9 +387,14 @@
         "withdraw-toast-description_other": "Su período de espera de {{count}} días ha comenzado.",
         "withdraw-toast-title": "Solicitud de retiro confirmada",
         "withdrawing-fees-label": "Retirando {{amount}} {{token}}",
+        "you-are-requesting-to-withdraw": "Usted está solicitando el retiro de",
+        "you-will-receive": "Usted va a recibir",
+        "you-will-receive-estimated": "Usted va a recibir (estimado)",
         "you-will-stake": "Usted va a hacer stake de",
+        "you-will-unstake-estimated": "Usted va a retirar del stake (estimado)",
         "you-will-withdraw": "Usted va a retirar"
       },
+      "staked-label": "{{symbol}} en stake",
       "stats": {
         "earned-amount": "Su monto ganado",
         "from-pools": "De {{count}} fondo",
@@ -395,8 +403,10 @@
       },
       "title": "Haga stake de activos para ganar un rendimiento variable.",
       "variable-yield": {
+        "apy": "TEA",
         "header-title": "Rendimiento variable",
-        "title": "Fondos de rendimiento variable"
+        "title": "Fondos de rendimiento variable",
+        "your-position": "Su posición"
       }
     },
     "faq": {

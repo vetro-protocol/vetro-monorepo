@@ -1,16 +1,27 @@
 import { stakingVaultAddresses } from "@vetro-protocol/earn";
+import { ApyHistoryCard } from "components/apyHistoryCard";
 import { Breadcrumb } from "components/base/breadcrumb";
 import { BreadcrumbSelector } from "components/base/breadcrumb/breadcrumbSelector";
 import { ButtonLink } from "components/base/button";
+import { VariableYieldInfoCards } from "components/earn/variableYieldInfoCards";
+import { VariableYieldPositionCards } from "components/earn/variableYieldPositionCards";
 import { VaultHeader } from "components/earn/vaultHeader";
 import { EarnIcon } from "components/navbar/earnIcon";
+import { ShareRatioCard } from "components/shareRatioCard";
+import { StripedDivider } from "components/stripedDivider";
 import { TokenLogo } from "components/tokenLogo";
+import { YieldCard } from "components/yieldCard";
+import { useShareToken } from "hooks/useShareToken";
 import { useVaultPeggedToken } from "hooks/useVaultPeggedToken";
+import { StakeForm } from "pages/earn/components/stakeForm";
 import { ErrorPage } from "pages/errorPage";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import { Navigate, useParams } from "react-router";
 import { type Address, isAddress, isAddressEqual } from "viem";
+
+const chartCardContainer =
+  "border-b border-gray-200 px-3 *:px-1 md:*:px-3 lg:px-0 xl:px-14";
 
 const VaultDropdownItem = function ({
   stakingVaultAddress,
@@ -37,14 +48,16 @@ const VariableYieldEarnDetailsContent = function ({
   stakingVaultAddress: Address;
 }) {
   const { t } = useTranslation();
-  const { data: peggedToken, isError } =
+  const { data: peggedToken, isError: isPeggedTokenError } =
     useVaultPeggedToken(stakingVaultAddress);
+  const { data: shareToken, isError: isShareTokenError } =
+    useShareToken(stakingVaultAddress);
 
-  if (isError) {
+  if (isPeggedTokenError || isShareTokenError) {
     return <ErrorPage />;
   }
 
-  if (!peggedToken) {
+  if (!peggedToken || !shareToken) {
     return (
       <div className="p-8">
         <Skeleton count={3} height={40} />
@@ -94,6 +107,40 @@ const VariableYieldEarnDetailsContent = function ({
         symbol={peggedToken.symbol}
         title={t("pages.earn.variable-yield.header-title")}
       />
+      <div className="flex flex-col-reverse md:flex-row">
+        <div className="min-w-0 flex-1 bg-gray-100">
+          <VariableYieldInfoCards
+            peggedToken={peggedToken}
+            stakingVaultAddress={stakingVaultAddress}
+          />
+          <div className={chartCardContainer}>
+            <ApyHistoryCard peggedToken={peggedToken} />
+          </div>
+          <div className="border-b border-gray-200">
+            <YieldCard peggedToken={peggedToken} />
+          </div>
+          <div className={chartCardContainer}>
+            <ShareRatioCard peggedToken={peggedToken} />
+          </div>
+          <StripedDivider variant="small" />
+          <VariableYieldPositionCards
+            shareToken={shareToken}
+            stakingVaultAddress={stakingVaultAddress}
+          />
+        </div>
+        <div className="bg-gray-100 md:hidden">
+          <StripedDivider />
+        </div>
+        <div className="w-full shrink-0 md:w-[341px] md:border-b md:border-l md:border-gray-200">
+          <div className="md:sticky md:top-0">
+            <StakeForm
+              peggedToken={peggedToken}
+              shareToken={shareToken}
+              stakingVaultAddress={stakingVaultAddress}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

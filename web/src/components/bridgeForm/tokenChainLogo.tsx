@@ -4,8 +4,10 @@ import { TokenLogo } from "components/tokenLogo";
 import { getChainById } from "networks";
 import type { ComponentProps } from "react";
 
+export type TokenChainLogoSize = ComponentProps<typeof ChainLogo>["size"];
+
 type Props = {
-  size?: ComponentProps<typeof TokenLogo>["size"];
+  size?: TokenChainLogoSize;
   token: Token;
 };
 

@@ -1,11 +1,10 @@
-import { supportedLngs } from "./config";
+import { getLanguageFromPath } from "./language";
 
 export function normalizePath(pathname: string) {
-  const locale = supportedLngs.find(
-    (candidate) =>
-      pathname === `/${candidate}` || pathname.startsWith(`/${candidate}/`),
-  );
-  const withoutLocale = locale ? pathname.slice(locale.length + 1) : pathname;
-  const withoutTrailingSlash = withoutLocale.replace(/\/$/, "");
+  const language = getLanguageFromPath(pathname);
+  const withoutLanguage = language
+    ? pathname.slice(language.length + 1)
+    : pathname;
+  const withoutTrailingSlash = withoutLanguage.replace(/\/$/, "");
   return withoutTrailingSlash || "/";
 }
