@@ -60,7 +60,7 @@ export function PoolInfoBar({ stakingVaultAddress }: Props) {
         />
         <PoolInfoStakedAmount stakingVaultAddress={stakingVaultAddress} />
       </div>
-      <PoolDetailsLink stakingVaultAddress={stakingVaultAddress} />
+      <PoolDetailsLink to={`/earn/variable-yield/${stakingVaultAddress}`} />
     </div>
   );
 }
