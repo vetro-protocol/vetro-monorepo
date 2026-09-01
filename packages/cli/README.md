@@ -80,7 +80,7 @@ Because a token belongs to exactly one gateway, the gateway is inferred from the
 
 `--amount` is in human units; decimals are resolved from the token.
 
-To discover the symbols a gateway takes, `swap whitelisted-tokens --gateway <addr>` lists them.
+To discover the symbols a gateway takes, run `swap whitelisted-tokens --gateway <addr>` — a gateway-level read, so it takes the gateway explicitly instead of inferring it from a token.
 
 ## Commands
 
