@@ -24,10 +24,10 @@ const tokens = knownTokens.filter((t) => storyTokens.includes(t.symbol));
 export const SwitchToken: Story = {
   args: {
     balance: (
-      <>
+      <div className="flex items-center gap-1">
         <span className="text-gray-500">Balance:</span>
-        <span className="mr-1 text-gray-900">2</span>
-      </>
+        <span className="text-gray-900">2</span>
+      </div>
     ),
     fiatValue: "0.00",
     label: "You are swapping",
@@ -66,10 +66,10 @@ export const SwitchToken: Story = {
 export const ReadOnlyToken: Story = {
   args: {
     balance: (
-      <>
+      <div className="flex items-center gap-1">
         <span className="text-gray-500">Available to withdraw:</span>
-        <span className="mr-1 text-gray-900">200</span>
-      </>
+        <span className="text-gray-900">200</span>
+      </div>
     ),
     fiatValue: "0.00",
     label: "You will withdraw",
@@ -97,10 +97,10 @@ export const ReadOnlyToken: Story = {
 export const WithHeaderAction: Story = {
   args: {
     balance: (
-      <>
+      <div className="flex items-center gap-1">
         <span className="text-gray-500">Balance:</span>
-        <span className="mr-1 text-gray-900">2</span>
-      </>
+        <span className="text-gray-900">2</span>
+      </div>
     ),
     fiatValue: "0.00",
     headerAction: (
@@ -145,10 +145,10 @@ export const WithHeaderAction: Story = {
 export const WithError: Story = {
   args: {
     balance: (
-      <>
+      <div className="flex items-center gap-1">
         <span className="text-gray-500">Balance:</span>
-        <span className="mr-1 text-gray-900">2</span>
-      </>
+        <span className="text-gray-900">2</span>
+      </div>
     ),
     errorKey: "insufficient-balance",
     fiatValue: "100.00",
