@@ -374,23 +374,28 @@ const impersonateMaintainer = async function ({
   await impersonateAccount(testClient, { address: admin });
   await setBalance(testClient, { address: admin, value: parseEther("1") });
 
-  const isMaintainer = await readContract(publicClient, {
-    abi: treasuryAbi,
-    address: treasury,
-    args: [maintainerRole, admin],
-    functionName: "hasRole",
-  });
-  if (!isMaintainer) {
-    await confirmWrite({
-      client: publicClient,
-      hash: await writeContract(testClient, {
-        abi: treasuryAbi,
-        account: admin,
-        address: treasury,
-        args: [maintainerRole, admin],
-        functionName: "grantRole",
-      }),
+  try {
+    const isMaintainer = await readContract(publicClient, {
+      abi: treasuryAbi,
+      address: treasury,
+      args: [maintainerRole, admin],
+      functionName: "hasRole",
     });
+    if (!isMaintainer) {
+      await confirmWrite({
+        client: publicClient,
+        hash: await writeContract(testClient, {
+          abi: treasuryAbi,
+          account: admin,
+          address: treasury,
+          args: [maintainerRole, admin],
+          functionName: "grantRole",
+        }),
+      });
+    }
+  } catch (error) {
+    await stopImpersonatingAccount(testClient, { address: admin });
+    throw error;
   }
   return admin;
 };
