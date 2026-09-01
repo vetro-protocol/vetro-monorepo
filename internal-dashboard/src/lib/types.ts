@@ -14,12 +14,13 @@ export type PoolCoin = {
   balance: bigint;
   decimals: number;
   symbol: string;
-  usdPrice: number;
+  usdPrice: number | undefined;
 };
 
 export type TrackedPool = {
   address: Address;
-  baseApy: number; // % from trading fees
+  baseApy: number | undefined; // % from trading fees, undefined when the TVL is unknown
+  chainId: number;
   coins: PoolCoin[];
   dex: Dex; // venue this pool belongs to
   // Rolling-24h trading fees in USD, when the venue's API hands them to us
@@ -42,7 +43,7 @@ export type TrackedPool = {
   rangeLabel?: string; // short label for the view (e.g. "Full range", "$0.96–$1.04")
   rewardApy: number; // % from incentive emissions, unboosted (range minimum)
   rewardApyMax: number; // % from incentive emissions, max boost (range maximum)
-  tvlUsd: number;
+  tvlUsd: number | undefined;
   url: string; // the pool's page on its DEX
   virtualPrice: number;
   volumeUsd24h: number;

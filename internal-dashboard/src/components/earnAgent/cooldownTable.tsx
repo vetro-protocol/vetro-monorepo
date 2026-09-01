@@ -1,4 +1,5 @@
 import { formatUnits } from "viem";
+import { mainnet } from "viem/chains";
 
 import { type VaultCooldownPosition } from "../../fetchers/fetchEarnAgentStatus";
 import { summarizeCooldown } from "../../lib/cooldownSummary";
@@ -63,7 +64,10 @@ export const CooldownTable = ({ nowSeconds, vaults }: Props) => (
                     {vault.symbol}
                   </span>
                   <span className="text-xs">
-                    <ExplorerLink address={vault.address} />
+                    <ExplorerLink
+                      address={vault.address}
+                      chainId={mainnet.id}
+                    />
                   </span>
                 </div>
               </td>

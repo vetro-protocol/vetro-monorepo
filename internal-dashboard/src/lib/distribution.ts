@@ -1,3 +1,4 @@
+import { knownTokens } from "@vetro-protocol/core";
 import { isAddressEqual } from "viem";
 
 import { type TrackedPool, type TrackedToken } from "./types";
@@ -29,10 +30,19 @@ export const computeDistributions = ({
   tokens: TrackedToken[];
 }): TokenDistribution[] =>
   tokens.map(function (token) {
+    const addresses = [
+      token.address,
+      ...knownTokens
+        .filter((known) => known.symbol === token.symbol)
+        .map((known) => known.address),
+    ];
+
     const entries = pools
       .map(function (pool) {
         const coin = pool.coins.find((candidate) =>
-          isAddressEqual(candidate.address, token.address),
+          addresses.some((address) =>
+            isAddressEqual(address, candidate.address),
+          ),
         );
         return coin ? { balance: coin.balance, pool } : undefined;
       })
