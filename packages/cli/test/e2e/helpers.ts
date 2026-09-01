@@ -7,6 +7,7 @@ import {
   getMaxMint,
   getTreasury,
   getWithdrawalDelayEnabled,
+  isInstantRedeemWhitelisted,
 } from "@vetro-protocol/gateway/actions";
 import { getKeeperRole } from "@vetro-protocol/treasury/actions";
 import { type Command, CommanderError } from "commander";
@@ -347,14 +348,10 @@ const maintainerRoleAbi = parseAbi([
   "function MAINTAINER_ROLE() view returns (bytes32)",
 ]);
 
-export const setWithdrawalDelay = async function ({
-  delay,
-  enabled,
+const impersonateMaintainer = async function ({
   gateway,
   rpcUrl,
 }: {
-  delay?: bigint;
-  enabled: boolean;
   gateway: Address;
   rpcUrl: string;
 }) {
@@ -396,13 +393,35 @@ export const setWithdrawalDelay = async function ({
         }),
       });
     }
+  } catch (error) {
+    await stopImpersonatingAccount(testClient, { address: admin });
+    throw error;
+  }
+  return admin;
+};
+
+export const setWithdrawalDelay = async function ({
+  delay,
+  enabled,
+  gateway,
+  rpcUrl,
+}: {
+  delay?: bigint;
+  enabled: boolean;
+  gateway: Address;
+  rpcUrl: string;
+}) {
+  const { publicClient, testClient } = createClients(rpcUrl);
+  const maintainer = await impersonateMaintainer({ gateway, rpcUrl });
+
+  try {
     // updateWithdrawalDelay reverts on 0, so only write a delay the caller gave.
     if (delay !== undefined) {
       await confirmWrite({
         client: publicClient,
         hash: await writeContract(testClient, {
           abi: vetroGatewayAbi,
-          account: admin,
+          account: maintainer,
           address: gateway,
           args: [delay],
           functionName: "updateWithdrawalDelay",
@@ -413,14 +432,55 @@ export const setWithdrawalDelay = async function ({
       client: publicClient,
       hash: await writeContract(testClient, {
         abi: vetroGatewayAbi,
-        account: admin,
+        account: maintainer,
         address: gateway,
         args: [enabled],
         functionName: "setWithdrawalDelayEnabled",
       }),
     });
   } finally {
-    await stopImpersonatingAccount(testClient, { address: admin });
+    await stopImpersonatingAccount(testClient, { address: maintainer });
+  }
+};
+
+/** Adds an account to the gateway's instant-redeem whitelist, or removes it. */
+export const setInstantRedeemWhitelisted = async function ({
+  account,
+  gateway,
+  rpcUrl,
+  whitelisted,
+}: {
+  account: Address;
+  gateway: Address;
+  rpcUrl: string;
+  whitelisted: boolean;
+}) {
+  const { publicClient, testClient } = createClients(rpcUrl);
+  // Both writes revert when the account is already in the wanted state.
+  const isWhitelisted = await isInstantRedeemWhitelisted(publicClient, {
+    account,
+    address: gateway,
+  });
+  if (isWhitelisted === whitelisted) {
+    return;
+  }
+
+  const maintainer = await impersonateMaintainer({ gateway, rpcUrl });
+  try {
+    await confirmWrite({
+      client: publicClient,
+      hash: await writeContract(testClient, {
+        abi: vetroGatewayAbi,
+        account: maintainer,
+        address: gateway,
+        args: [account],
+        functionName: whitelisted
+          ? "addToInstantRedeemWhitelist"
+          : "removeFromInstantRedeemWhitelist",
+      }),
+    });
+  } finally {
+    await stopImpersonatingAccount(testClient, { address: maintainer });
   }
 };
 
