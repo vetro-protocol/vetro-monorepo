@@ -23,27 +23,26 @@ export function register(swap: Command) {
       const treasury = await getTreasury(client, { address: options.gateway });
       const tokens = await getWhitelistedTokens(client, { address: treasury });
 
-      printResult(
-        await Promise.all(
-          tokens.map(async function (address) {
-            const [
-              tokenDecimals,
-              tokenSymbol,
-              [, , , depositActive, withdrawActive],
-            ] = await Promise.all([
-              decimals(client, { address }),
-              symbol(client, { address }),
-              getTokenConfig(client, { address: treasury, token: address }),
-            ]);
-            return {
-              address,
-              decimals: tokenDecimals,
-              depositActive,
-              symbol: tokenSymbol,
-              withdrawActive,
-            };
-          }),
-        ),
+      const whitelistedTokens = await Promise.all(
+        tokens.map(async function (address) {
+          const [
+            tokenDecimals,
+            tokenSymbol,
+            [, , , depositActive, withdrawActive],
+          ] = await Promise.all([
+            decimals(client, { address }),
+            symbol(client, { address }),
+            getTokenConfig(client, { address: treasury, token: address }),
+          ]);
+          return {
+            address,
+            decimals: tokenDecimals,
+            depositActive,
+            symbol: tokenSymbol,
+            withdrawActive,
+          };
+        }),
       );
+      printResult(whitelistedTokens);
     });
 }
