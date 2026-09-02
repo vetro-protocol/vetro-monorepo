@@ -181,6 +181,10 @@ function ActiveRedeemDrawer({
         onFailed();
         setFlowStatus("redeem-error");
       });
+      emitter.on("unexpected-error", function () {
+        onFailed();
+        setFlowStatus("redeem-error");
+      });
     },
     peggedToken,
     peggedTokenIn: amountBigInt,

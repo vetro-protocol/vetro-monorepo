@@ -274,6 +274,10 @@ export function BorrowForm({
         onFailed();
         setFlowStatus("borrow-error");
       });
+      emitter.on("unexpected-error", function () {
+        onFailed();
+        setFlowStatus("borrow-error");
+      });
     },
   });
 

@@ -170,6 +170,10 @@ export function TwoStepRedeem({
         onFailed();
         setFlowStatus("request-redeem-error");
       });
+      emitter.on("unexpected-error", function () {
+        onFailed();
+        setFlowStatus("request-redeem-error");
+      });
     },
     peggedToken: fromToken,
     peggedTokenAmount: amountBigInt,

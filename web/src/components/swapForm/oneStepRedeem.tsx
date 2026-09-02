@@ -203,6 +203,10 @@ export function OneStepRedeem({
         onFailed();
         setFlowStatus("redeem-error");
       });
+      emitter.on("unexpected-error", function () {
+        onFailed();
+        setFlowStatus("redeem-error");
+      });
     },
     peggedToken: fromToken,
     peggedTokenIn: amountBigInt,
