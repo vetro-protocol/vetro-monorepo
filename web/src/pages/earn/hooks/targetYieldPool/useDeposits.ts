@@ -3,6 +3,7 @@ import { fetchDeposits } from "fetchers/earn/targetYieldPool/fetchDeposits";
 import { useEthereumClient } from "hooks/useEthereumClient";
 import type { Address, Client } from "viem";
 
+import { combineWithEpochId } from "./combineWithEpochId";
 import { useEpochId } from "./useEpochId";
 
 const depositsOptions = ({
@@ -32,7 +33,10 @@ const depositsOptions = ({
 
 export function useDeposits(stakingVaultAddress: Address) {
   const client = useEthereumClient();
-  const { data: epochId } = useEpochId(stakingVaultAddress);
+  const epochId = useEpochId(stakingVaultAddress);
+  const query = useQuery(
+    depositsOptions({ client, epochId: epochId.data, stakingVaultAddress }),
+  );
 
-  return useQuery(depositsOptions({ client, epochId, stakingVaultAddress }));
+  return combineWithEpochId({ epochId, query });
 }

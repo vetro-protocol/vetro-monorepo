@@ -329,10 +329,17 @@
         "withdrawn": "Retirado"
       },
       "fixed-term": {
+        "capacity-remaining": "<amount>{{amount}}</amount> restante",
+        "fixed-until": "Fija hasta el {{date}}",
         "header-title": "Objetivo de rendimiento fijo",
         "open-to-deposits": "Abierto a depósitos",
         "open-to-exit": "Abierto a salidas",
+        "pool-capacity": "Capacidad del fondo",
         "target-fixed-apy": "TEA fija objetivo",
+        "term-end-date": "Fecha de fin del plazo",
+        "term-length": "Duración del plazo",
+        "term-length-days": "{{count}} día",
+        "term-length-days_other": "{{count}} días",
         "term-state": "Estado del plazo",
         "title": "Fondos con objetivo de rendimiento fijo",
         "total-deposits": "Depósitos totales"
