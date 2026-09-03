@@ -129,6 +129,12 @@ function getInputError({
   return undefined;
 }
 
+const getActivityType = (position?: AccrualPosition) =>
+  position ? "borrow-more" : "open-position";
+
+const getInputContainerClassName = (position?: AccrualPosition) =>
+  `flex flex-col gap-1 ${position ? "border-t border-gray-200 p-6" : "p-2 md:px-1.5 xl:px-2"}`;
+
 type Props = {
   borrowInput: string;
   collateralInput: string;
@@ -216,16 +222,29 @@ export function BorrowForm({
     collateralToken,
     marketId,
   });
+  const activityType = getActivityType(position);
 
   const { onCompleted, onFailed, onPending, onTransactionHash } =
     useActivityTracking({
       page: "borrow",
-      text: t("pages.borrow.activity.open-position-text", {
+      text: t(`pages.borrow.activity.${activityType}-text`, {
         amount: borrowInput,
         symbol: loanToken.symbol,
       }),
-      title: `${t("nav.borrow")} · ${t("pages.borrow.activity.open-position-title", { symbol: loanToken.symbol })}`,
+      title: `${t("nav.borrow")} · ${t(`pages.borrow.activity.${activityType}-title`, { symbol: loanToken.symbol })}`,
     });
+
+  const handleBorrowSuccess = function () {
+    onCompleted();
+    setFlowStatus("borrowed");
+    setShowToast(true);
+    watchToken();
+  };
+
+  const handleBorrowFailure = function () {
+    onFailed();
+    setFlowStatus("borrow-error");
+  };
 
   const borrowMutation = useSupplyAndBorrow({
     borrowAmount: borrowAmountBigInt,
@@ -270,42 +289,14 @@ export function BorrowForm({
         onPending();
         setFlowStatus("borrowing");
       });
-      emitter.on("borrow-assets-transaction-succeeded", function () {
-        onCompleted();
-        setFlowStatus("borrowed");
-        setShowToast(true);
-        watchToken();
-      });
-      emitter.on("borrow-assets-transaction-reverted", function () {
-        onFailed();
-        setFlowStatus("borrow-error");
-      });
-      emitter.on("borrow-assets-failed", function () {
-        onFailed();
-        setFlowStatus("borrow-error");
-      });
-      emitter.on("borrow-assets-failed-validation", function () {
-        onFailed();
-        setFlowStatus("borrow-error");
-      });
-      emitter.on("user-signing-borrow-assets-error", function () {
-        onFailed();
-        setFlowStatus("borrow-error");
-      });
+      emitter.on("borrow-assets-transaction-succeeded", handleBorrowSuccess);
+      emitter.on("borrow-assets-transaction-reverted", handleBorrowFailure);
+      emitter.on("borrow-assets-failed", handleBorrowFailure);
+      emitter.on("borrow-assets-failed-validation", handleBorrowFailure);
+      emitter.on("user-signing-borrow-assets-error", handleBorrowFailure);
+      emitter.on("unexpected-error", handleBorrowFailure);
     },
   });
-
-  const handleBorrowMoreSuccess = function () {
-    onCompleted();
-    setFlowStatus("borrowed");
-    setShowToast(true);
-    watchToken();
-  };
-
-  const handleBorrowMoreFailure = function () {
-    onFailed();
-    setFlowStatus("borrow-error");
-  };
 
   const borrowMoreMutation = useBorrowMoreAssets({
     borrowAmount: borrowAmountBigInt,
@@ -317,15 +308,12 @@ export function BorrowForm({
         onPending();
         setFlowStatus("borrowing");
       });
-      emitter.on(
-        "borrow-assets-transaction-succeeded",
-        handleBorrowMoreSuccess,
-      );
-      emitter.on("borrow-assets-transaction-reverted", handleBorrowMoreFailure);
-      emitter.on("borrow-assets-failed", handleBorrowMoreFailure);
-      emitter.on("borrow-assets-failed-validation", handleBorrowMoreFailure);
-      emitter.on("user-signing-borrow-assets-error", handleBorrowMoreFailure);
-      emitter.on("unexpected-error", handleBorrowMoreFailure);
+      emitter.on("borrow-assets-transaction-succeeded", handleBorrowSuccess);
+      emitter.on("borrow-assets-transaction-reverted", handleBorrowFailure);
+      emitter.on("borrow-assets-failed", handleBorrowFailure);
+      emitter.on("borrow-assets-failed-validation", handleBorrowFailure);
+      emitter.on("user-signing-borrow-assets-error", handleBorrowFailure);
+      emitter.on("unexpected-error", handleBorrowFailure);
     },
   });
 
@@ -381,7 +369,7 @@ export function BorrowForm({
   return (
     <>
       <form className="flex flex-col bg-white" onSubmit={handleSubmit}>
-        <div className="flex flex-col gap-1 p-2 md:px-1.5 xl:px-2">
+        <div className={getInputContainerClassName(position)}>
           <TokenInput
             balance={
               <Balance
