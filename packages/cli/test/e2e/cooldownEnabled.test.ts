@@ -1,11 +1,10 @@
 import { gatewayAddresses } from "@vetro-protocol/gateway";
-import { getWithdrawalDelayEnabled } from "@vetro-protocol/gateway/actions";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 
 import {
-  createClients,
   runCli,
   runCliRaw,
+  setRedeemQueueEnabled,
   setWithdrawalDelay,
   usdc,
 } from "./helpers.ts";
@@ -22,18 +21,17 @@ describe("swap cooldown-enabled", function () {
     rpcUrl,
   ];
 
-  let enabledBefore: boolean;
+  let restoreQueue: (() => Promise<void>) | undefined;
 
   beforeAll(async function () {
-    const { publicClient } = createClients(rpcUrl);
-    enabledBefore = await getWithdrawalDelayEnabled(publicClient, {
-      address: gateway,
+    restoreQueue = await setRedeemQueueEnabled({
+      enabled: true,
+      gateway,
+      rpcUrl,
     });
   });
 
-  afterAll(() =>
-    setWithdrawalDelay({ enabled: enabledBefore, gateway, rpcUrl }),
-  );
+  afterAll(() => restoreQueue?.());
 
   it("prints true when the delay is enabled", async function () {
     await setWithdrawalDelay({ enabled: true, gateway, rpcUrl });
