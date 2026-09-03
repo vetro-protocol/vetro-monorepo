@@ -1,10 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { type ColumnDef } from "@tanstack/react-table";
 
 import { Badge } from "../src/components/base/badge";
 import { Button } from "../src/components/base/button";
 import { StatusBadge } from "../src/components/base/statusBadge";
-import { Table } from "../src/components/base/table";
+import { Table, type TableColumnDef } from "../src/components/base/table";
 import { Header } from "../src/components/base/table/header";
 
 type ExampleRow = {
@@ -22,7 +21,7 @@ const statusLabels = {
   withdrawn: "Withdrawn",
 } as const;
 
-const columns: ColumnDef<ExampleRow>[] = [
+const columns: TableColumnDef<ExampleRow>[] = [
   {
     cell: ({ row }) => (
       <span className="text-xsm font-normal text-gray-500">
