@@ -1,7 +1,6 @@
-import { type ColumnDef } from "@tanstack/react-table";
 import { I18nLink } from "components/base/i18nLink";
 import { SectionHeader } from "components/base/sectionHeader";
-import { Table } from "components/base/table";
+import { Table, type TableColumnDef } from "components/base/table";
 import { Header } from "components/base/table/header";
 import { CollateralCell } from "components/borrow/collateralCell";
 import { TokenValueCell } from "components/borrow/tokenValueCell";
@@ -25,7 +24,7 @@ export function MarketsTable({ marketIds }: Props) {
     navigate(`/borrow/${row.marketId}`);
 
   const columns = useMemo(
-    (): ColumnDef<MarketData>[] => [
+    (): TableColumnDef<MarketData>[] => [
       {
         cell: ({ row }) => (
           <div className="flex items-center gap-2">

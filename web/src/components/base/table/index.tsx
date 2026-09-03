@@ -1,10 +1,11 @@
 import { useWindowSize } from "@hemilabs/react-hooks/useWindowSize";
 import {
   type ColumnDef,
-  type Table as TanStackTable,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
+  type ReactTable,
+  type RowData,
+  columnOrderingFeature,
+  tableFeatures,
+  useTable,
 } from "@tanstack/react-table";
 import { type MouseEvent, Fragment, type ReactNode, useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
@@ -13,12 +14,31 @@ import { screenBreakpoints } from "styles/breakpoints";
 import { Column } from "./column";
 import { ColumnHeader } from "./columnHeader";
 
-const getColumnOrder = function <T>({
+type ColumnMeta = {
+  className?: string;
+  width?: string;
+};
+
+const features = tableFeatures({
+  columnMeta: {} as ColumnMeta,
+  columnOrderingFeature,
+});
+
+type TableFeatureSet = typeof features;
+
+type TableInstance<TData extends RowData> = ReactTable<TableFeatureSet, TData>;
+
+export type TableColumnDef<TData extends RowData> = ColumnDef<
+  TableFeatureSet,
+  TData
+>;
+
+const getColumnOrder = function <T extends RowData>({
   columns,
   priorityColumnIds = [],
   width,
 }: {
-  columns: ColumnDef<T>[];
+  columns: TableColumnDef<T>[];
   priorityColumnIds?: string[];
   width: number;
 }) {
@@ -34,8 +54,8 @@ const getColumnOrder = function <T>({
   ];
 };
 
-type Props<TData> = {
-  columns: ColumnDef<TData>[];
+type Props<TData extends RowData> = {
+  columns: TableColumnDef<TData>[];
   data: TData[];
   getRowId?: (row: TData) => string;
   loading?: boolean;
@@ -47,12 +67,12 @@ type Props<TData> = {
   skeletonRowCount?: number;
 };
 
-type TableHeaderProps<TData> = {
+type TableHeaderProps<TData extends RowData> = {
   getColumnClassName: (columnId: string, meta?: string) => string;
-  table: TanStackTable<TData>;
+  table: TableInstance<TData>;
 };
 
-const TableHeader = <TData,>({
+const TableHeader = <TData extends RowData>({
   getColumnClassName,
   table,
 }: TableHeaderProps<TData>) => (
@@ -70,10 +90,7 @@ const TableHeader = <TData,>({
                 key={header.id}
                 style={{ width: header.column.columnDef.meta?.width }}
               >
-                {flexRender(
-                  header.column.columnDef.header,
-                  header.getContext(),
-                )}
+                <table.FlexRender header={header} />
               </ColumnHeader>
             ))}
           </tr>
@@ -83,15 +100,15 @@ const TableHeader = <TData,>({
   </div>
 );
 
-type TableBodyProps<TData> = {
+type TableBodyProps<TData extends RowData> = {
   getColumnClassName: (columnId: string, meta?: string) => string;
   maxBodyHeight?: string;
   onRowClick?: (row: TData) => void;
   renderAfterRow?: (row: TData) => ReactNode;
-  table: TanStackTable<TData>;
+  table: TableInstance<TData>;
 };
 
-const TableBody = <TData,>({
+const TableBody = <TData extends RowData>({
   getColumnClassName,
   maxBodyHeight,
   onRowClick,
@@ -130,7 +147,7 @@ const TableBody = <TData,>({
               }
               role={onRowClick ? "link" : undefined}
             >
-              {row.getVisibleCells().map((cell) => (
+              {row.getAllCells().map((cell) => (
                 <Column
                   className={getColumnClassName(
                     cell.column.id,
@@ -139,7 +156,7 @@ const TableBody = <TData,>({
                   key={cell.id}
                   style={{ width: cell.column.columnDef.meta?.width }}
                 >
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  <table.FlexRender cell={cell} />
                 </Column>
               ))}
             </tr>
@@ -151,7 +168,7 @@ const TableBody = <TData,>({
   </div>
 );
 
-export function Table<TData>({
+export function Table<TData extends RowData>({
   columns,
   data,
   getRowId,
@@ -195,10 +212,10 @@ export function Table<TData>({
     width,
   });
 
-  const table = useReactTable({
+  const table = useTable({
     columns: columnsWithSkeleton,
     data: data.length > 0 ? data : showSkeleton ? skeletonData : [],
-    getCoreRowModel: getCoreRowModel(),
+    features,
     getRowId: showSkeleton ? undefined : getRowId,
     state: { columnOrder },
   });
