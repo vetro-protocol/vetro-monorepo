@@ -1,12 +1,15 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
+import { getTransactionReceipt } from "viem/actions";
 import { useAccount } from "wagmi";
 
 import { updateActivity, useActivities } from "../stores/activityStore";
+import { SECONDS_PER_DAY, unixNowTimestamp } from "../utils/date";
 import { getPendingActivityStatus } from "../utils/reconcilePendingActivity";
 
 import { useEthereumClient } from "./useEthereumClient";
 
 const pendingActivityPollInterval = 10_000;
+const pendingActivityMaxAge = SECONDS_PER_DAY;
 
 export function usePendingActivityReconciliation() {
   const { address } = useAccount();
@@ -17,12 +20,22 @@ export function usePendingActivityReconciliation() {
   // does not mean that the bridged funds have arrived. They need separate
   // delivery tracking.
   const pendingActivities = useMemo(
-    () =>
-      activities.filter(
+    function getPendingActivities() {
+      const now = unixNowTimestamp();
+      return activities.filter(
         (activity) =>
-          activity.status === "pending" && activity.page !== "bridge",
-      ),
+          activity.status === "pending" &&
+          activity.page !== "bridge" &&
+          now - activity.date < pendingActivityMaxAge,
+      );
+    },
     [activities],
+  );
+  const pendingActivitiesRef = useRef(pendingActivities);
+  pendingActivitiesRef.current = pendingActivities;
+  const pendingActivityHashes = useMemo(
+    () => pendingActivities.map(({ txHash }) => txHash).join(","),
+    [pendingActivities],
   );
 
   useEffect(
@@ -43,19 +56,30 @@ export function usePendingActivityReconciliation() {
 
         isChecking = true;
         try {
-          await Promise.all(
-            pendingActivities.map(async function reconcileActivity(activity) {
-              const status = await getPendingActivityStatus({
-                activity,
-                getReceipt: (hash) =>
-                  publicClient.getTransactionReceipt({ hash }),
-              });
+          const reconciledActivities = await Promise.all(
+            pendingActivitiesRef.current.map(
+              async function reconcileActivity(activity) {
+                const status = await getPendingActivityStatus({
+                  activity,
+                  getReceipt: (hash) =>
+                    getTransactionReceipt(publicClient, { hash }),
+                });
 
-              if (isActive && status) {
+                return { activity, status };
+              },
+            ),
+          );
+
+          if (isActive) {
+            reconciledActivities.forEach(function updateReconciledActivity({
+              activity,
+              status,
+            }) {
+              if (status) {
                 updateActivity(account, activity.txHash, { status });
               }
-            }),
-          );
+            });
+          }
         } finally {
           isChecking = false;
         }
@@ -72,6 +96,6 @@ export function usePendingActivityReconciliation() {
         clearInterval(interval);
       };
     },
-    [address, client, pendingActivities],
+    [address, client, pendingActivityHashes],
   );
 }
