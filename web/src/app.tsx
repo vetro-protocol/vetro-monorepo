@@ -29,6 +29,8 @@ import {
 import { featureFlags } from "utils/featureFlags";
 import { isGeoRestricted } from "utils/geoRestriction";
 
+import { usePendingActivityReconciliation } from "./hooks/usePendingActivityReconciliation";
+
 const SentryRoutes = Sentry.withSentryReactRouterV7Routing(Routes);
 
 const analyticsEnabled =
@@ -141,22 +143,26 @@ function LanguageRoutes() {
   );
 }
 
-export const App = () => (
-  <BrowserRouter>
-    <NuqsAdapter>
-      {analyticsEnabled && <AnalyticsTracker />}
-      <AppViewport>
-        <SentryRoutes>
-          {/* Redirect root to English */}
-          <Route element={<Navigate replace to="/en" />} path="/" />
+export function App() {
+  usePendingActivityReconciliation();
 
-          {/* Language-prefixed routes */}
-          <Route element={<LanguageRoutes />} path="/:lang/*" />
+  return (
+    <BrowserRouter>
+      <NuqsAdapter>
+        {analyticsEnabled && <AnalyticsTracker />}
+        <AppViewport>
+          <SentryRoutes>
+            {/* Redirect root to English */}
+            <Route element={<Navigate replace to="/en" />} path="/" />
 
-          {/* Catch-all: redirect unknown paths to English */}
-          <Route element={<Navigate replace to="/en" />} path="*" />
-        </SentryRoutes>
-      </AppViewport>
-    </NuqsAdapter>
-  </BrowserRouter>
-);
+            {/* Language-prefixed routes */}
+            <Route element={<LanguageRoutes />} path="/:lang/*" />
+
+            {/* Catch-all: redirect unknown paths to English */}
+            <Route element={<Navigate replace to="/en" />} path="*" />
+          </SentryRoutes>
+        </AppViewport>
+      </NuqsAdapter>
+    </BrowserRouter>
+  );
+}
