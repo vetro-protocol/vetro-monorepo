@@ -2,6 +2,7 @@ import { queryOptions, useQuery } from "@tanstack/react-query";
 import { fetchTerm } from "fetchers/earn/targetYieldPool/fetchTerm";
 import type { Address } from "viem";
 
+import { combineWithEpochId } from "./combineWithEpochId";
 import { useEpochId } from "./useEpochId";
 
 const termOptions = ({
@@ -22,7 +23,10 @@ const termOptions = ({
   });
 
 export function useTerm(stakingVaultAddress: Address) {
-  const { data: epochId } = useEpochId(stakingVaultAddress);
+  const epochId = useEpochId(stakingVaultAddress);
+  const query = useQuery(
+    termOptions({ epochId: epochId.data, stakingVaultAddress }),
+  );
 
-  return useQuery(termOptions({ epochId, stakingVaultAddress }));
+  return combineWithEpochId({ epochId, query });
 }

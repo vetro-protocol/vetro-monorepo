@@ -5,6 +5,7 @@ import { StakedCard } from "components/stakedCard";
 import { useApy } from "hooks/useApy";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
+import { formatPercentage } from "utils/format";
 import type { Address } from "viem";
 
 const ApyCard = function ({
@@ -21,7 +22,7 @@ const ApyCard = function ({
       icon={<SparklesIcon className="text-blue-500" />}
       isLoading={isLoading}
       label={t("pages.earn.variable-yield.apy")}
-      render={(value) => `${value.toFixed(2)}%`}
+      render={formatPercentage}
     />
   );
 };
