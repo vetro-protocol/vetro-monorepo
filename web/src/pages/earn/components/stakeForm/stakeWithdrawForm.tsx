@@ -20,7 +20,14 @@ import { useStakeWithdraw } from "hooks/useStakeWithdraw";
 import { useCanInstantWithdraw } from "pages/earn/hooks/useCanInstantWithdraw";
 import { useCooldownDuration } from "pages/earn/hooks/useCooldownDuration";
 import { useTotalWithdrawFees } from "pages/earn/hooks/useTotalWithdrawFees";
-import { type FormEvent, Suspense, lazy, useCallback, useState } from "react";
+import {
+  type FormEvent,
+  Suspense,
+  lazy,
+  useCallback,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
 import { type Address, parseUnits } from "viem";
@@ -131,7 +138,8 @@ export function StakeWithdrawForm({
     title: `${t("nav.earn")} · ${t("pages.earn.stake.withdraw")}`,
   });
 
-  const tracking = canInstantWithdraw ? instantTracking : requestTracking;
+  const trackingRef = useRef(instantTracking);
+  const withdrawPathRef = useRef<boolean | undefined>(undefined);
 
   const { data: stakedBalance, status: stakedBalanceStatus } =
     useStakedBalance(stakingVaultAddress);
@@ -160,6 +168,7 @@ export function StakeWithdrawForm({
   const handleWithdrawStepChange = useCallback(
     function handleWithdrawStepChange(step: WithdrawStep) {
       onWithdrawStepChange(step);
+      const tracking = trackingRef.current;
       const handlers: Partial<Record<WithdrawStep, () => void>> = {
         completed: tracking.onCompleted,
         failed: tracking.onFailed,
@@ -169,14 +178,20 @@ export function StakeWithdrawForm({
       };
       handlers[step]?.();
     },
-    [onWithdrawStepChange, tracking],
+    [onWithdrawStepChange],
   );
+
+  const handleTransactionHash = useCallback(function handleTransactionHash(
+    hash: string,
+  ) {
+    trackingRef.current.onTransactionHash(hash);
+  }, []);
 
   const requestWithdrawMutation = useStakeWithdraw({
     assets: amountBigInt,
     onStatusChange: handleWithdrawStepChange,
     onSuccess: handleRequestWithdrawSuccess,
-    onTransactionHash: tracking.onTransactionHash,
+    onTransactionHash: handleTransactionHash,
     stakingVaultAddress,
   });
 
@@ -184,14 +199,13 @@ export function StakeWithdrawForm({
     assets: amountBigInt,
     onStatusChange: handleWithdrawStepChange,
     onSuccess: handleInstantWithdrawSuccess,
-    onTransactionHash: tracking.onTransactionHash,
+    onTransactionHash: handleTransactionHash,
     peggedToken,
     stakingVaultAddress,
   });
 
-  const withdrawMutation = canInstantWithdraw
-    ? instantWithdrawMutation
-    : requestWithdrawMutation;
+  const isWithdrawPending =
+    instantWithdrawMutation.isPending || requestWithdrawMutation.isPending;
 
   const withdrawFeesQuery = useTotalWithdrawFees({
     amount: amountBigInt,
@@ -209,7 +223,12 @@ export function StakeWithdrawForm({
 
   const isWithdrawPathLoading = canInstantWithdraw === undefined;
 
-  const { actionText, pendingText } = getSubmitTexts({ canInstantWithdraw, t });
+  const { actionText, pendingText } = getSubmitTexts({
+    canInstantWithdraw: isWithdrawPending
+      ? withdrawPathRef.current
+      : canInstantWithdraw,
+    t,
+  });
 
   const startCloseDrawer = useCallback(() => setRequestCloseDrawer(true), []);
 
@@ -229,7 +248,11 @@ export function StakeWithdrawForm({
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!inputError) {
+    if (!inputError && canInstantWithdraw !== undefined) {
+      withdrawPathRef.current = canInstantWithdraw;
+      trackingRef.current = canInstantWithdraw
+        ? instantTracking
+        : requestTracking;
       setSubmitted({
         amount: inputValue,
         assets: amountBigInt,
@@ -237,7 +260,11 @@ export function StakeWithdrawForm({
       });
       onResetSteps();
       onDrawerOpenChange(true);
-      withdrawMutation.mutate();
+      if (canInstantWithdraw) {
+        instantWithdrawMutation.mutate();
+      } else {
+        requestWithdrawMutation.mutate();
+      }
     }
   }
 
@@ -283,7 +310,7 @@ export function StakeWithdrawForm({
             balancesLoaded={balancesLoaded && !isWithdrawPathLoading}
             inputError={inputError}
             isConnected={isConnected}
-            isPending={withdrawMutation.isPending}
+            isPending={isWithdrawPending}
             onConnectWallet={openConnectModal}
             pendingText={pendingText}
           />
