@@ -1,10 +1,9 @@
-import { type ColumnDef } from "@tanstack/react-table";
 import { Badge } from "components/base/badge";
 import { Button, ButtonIcon } from "components/base/button";
 import { DisplayAmount } from "components/base/displayAmount";
 import { Spinner } from "components/base/spinner";
 import { StatusBadge } from "components/base/statusBadge";
-import { Table } from "components/base/table";
+import { Table, type TableColumnDef } from "components/base/table";
 import { Header } from "components/base/table/header";
 import { TokenLogo } from "components/tokenLogo";
 import { Tooltip } from "components/tooltip";
@@ -136,7 +135,7 @@ export function RedeemQueueTable({
   const { t } = useTranslation();
 
   const columns = useMemo(
-    (): ColumnDef<RedeemRequest>[] => [
+    (): TableColumnDef<RedeemRequest>[] => [
       {
         cell: ({ row }) => (
           <div className="text-b-medium flex items-center gap-2 text-gray-900">

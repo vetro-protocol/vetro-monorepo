@@ -4,6 +4,7 @@ const HEMI_LOGO_BASE = "https://hemilabs.github.io/token-list/l1Logos";
 
 // Symbols whose logo file name differs from the lowercased symbol.
 const logoSlugOverrides: Record<string, string> = {
+  "usdc.e": "usdc",
   vusd: "vetrousd",
 };
 

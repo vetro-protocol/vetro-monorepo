@@ -2,6 +2,10 @@ import { Button } from "components/base/button";
 import { Drawer } from "components/base/drawer";
 import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import {
+  TokenInteraction,
+  TokenInteractionList,
+} from "components/base/tokenInteraction";
+import {
   type Step,
   VerticalStepper,
   stepStatus,
@@ -118,39 +122,25 @@ export function BridgeSubmitDrawer({
       <div className="flex h-full flex-col">
         <DrawerTitle>{t("pages.bridge.progress.title")}</DrawerTitle>
 
-        <div className="flex flex-col gap-10 border-y border-gray-200 bg-gray-50 p-6">
-          <div className="flex flex-col gap-2">
-            <p className="text-xsm text-gray-500">
-              {t("pages.bridge.form.you-are-sending")}
-            </p>
-            <div className="flex items-center gap-3">
-              <p className="flex items-center gap-x-2 text-4xl leading-10 font-semibold tracking-tight text-gray-900">
-                <span>{fromAmount}</span>
-                <span className="text-gray-500">{fromToken.symbol}</span>
-              </p>
-              <TokenChainLogo size="large" token={fromToken} />
-            </div>
-            <p className="text-xsm text-gray-500">
-              {t("pages.bridge.form.from-chain", { chain: fromChain.name })}
-            </p>
-          </div>
+        <TokenInteractionList>
+          <TokenInteraction
+            amount={fromAmount}
+            detail={t("pages.bridge.form.from-chain", {
+              chain: fromChain.name,
+            })}
+            label={t("pages.bridge.form.you-are-sending")}
+            logo={<TokenChainLogo size="large" token={fromToken} />}
+            token={fromToken}
+          />
 
-          <div className="flex flex-col gap-2">
-            <p className="text-xsm text-gray-500">
-              {t("pages.bridge.form.you-will-receive")}
-            </p>
-            <div className="flex items-center gap-3">
-              <p className="flex items-center gap-x-2 text-4xl leading-10 font-semibold tracking-tight text-gray-900">
-                <span>{toAmount}</span>
-                <span className="text-gray-500">{toToken.symbol}</span>
-              </p>
-              <TokenChainLogo size="large" token={toToken} />
-            </div>
-            <p className="text-xsm text-gray-500">
-              {t("pages.bridge.form.on-chain", { chain: toChain.name })}
-            </p>
-          </div>
-        </div>
+          <TokenInteraction
+            amount={toAmount}
+            detail={t("pages.bridge.form.on-chain", { chain: toChain.name })}
+            label={t("pages.bridge.form.you-will-receive")}
+            logo={<TokenChainLogo size="large" token={toToken} />}
+            token={toToken}
+          />
+        </TokenInteractionList>
 
         <DrawerFeesContainer>
           <BridgeFees

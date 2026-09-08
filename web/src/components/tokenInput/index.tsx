@@ -47,7 +47,7 @@ export const TokenInput = ({
         ${fiatValue}
       </span>
       {balance || maxButton ? (
-        <div className="text-xsm flex items-center gap-1">
+        <div className="text-xsm flex items-center gap-2">
           {balance}
           {maxButton}
         </div>

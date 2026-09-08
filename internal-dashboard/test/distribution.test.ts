@@ -1,4 +1,5 @@
-import { type Address, getAddress } from "viem";
+import { type Address } from "viem";
+import { hemi, mainnet } from "viem/chains";
 import { describe, expect, it } from "vitest";
 
 import { computeDistributions } from "../src/lib/distribution.ts";
@@ -12,6 +13,9 @@ const tokenA: Address = "0x1111111111111111111111111111111111111111";
 const tokenB: Address = "0x2222222222222222222222222222222222222222";
 const tokenC: Address = "0x3333333333333333333333333333333333333333";
 
+const vusdMainnet: Address = "0xCa83DDE9c22254f58e771bE5E157773212AcBAc3";
+const vusdHemi: Address = "0xD3599AE62EE280709A22268a46d23164214e345B";
+
 const makeToken = ({
   address,
   symbol,
@@ -20,23 +24,34 @@ const makeToken = ({
   symbol: string;
 }): TrackedToken => ({ address, decimals: 18, symbol });
 
+const symbolByAddress: Record<string, string> = {
+  [tokenA]: "A",
+  [tokenB]: "B",
+  [tokenC]: "C",
+};
+
 const makeCoin = ({
   address,
   balance,
+  symbol = symbolByAddress[address],
 }: {
   address: Address;
   balance: bigint;
-}): PoolCoin => ({ address, balance, decimals: 18, symbol: "X", usdPrice: 1 });
+  symbol?: string;
+}): PoolCoin => ({ address, balance, decimals: 18, symbol, usdPrice: 1 });
 
 const makePool = ({
   address,
+  chainId = mainnet.id,
   coins,
 }: {
   address: Address;
+  chainId?: number;
   coins: PoolCoin[];
 }): TrackedPool => ({
   address,
   baseApy: 0,
+  chainId,
   coins,
   dex: "curve",
   gaugeAddress: undefined,
@@ -161,21 +176,54 @@ describe("distribution/computeDistributions", function () {
     ]);
   });
 
-  it("matches token and coin addresses case-insensitively", function () {
+  it("merges the same token across chains into one distribution", function () {
     const pools = [
       makePool({
         address: poolOne,
-        // Coin recorded in checksummed form; token tracked in lowercase.
-        coins: [makeCoin({ address: getAddress(tokenA), balance: 42n })],
+        coins: [
+          makeCoin({ address: vusdMainnet, balance: 40n, symbol: "VUSD" }),
+        ],
+      }),
+      makePool({
+        address: poolTwo,
+        chainId: hemi.id,
+        coins: [makeCoin({ address: vusdHemi, balance: 60n, symbol: "VUSD" })],
       }),
     ];
     const [distribution] = computeDistributions({
       pools,
-      tokens: [makeToken({ address: tokenA, symbol: "A" })],
+      tokens: [makeToken({ address: vusdMainnet, symbol: "VUSD" })],
     });
 
+    expect(distribution.totalBalance).toBe(100n);
+    expect(distribution.slices.map((slice) => slice.pool.chainId)).toEqual([
+      hemi.id,
+      mainnet.id,
+    ]);
+  });
+
+  it("leaves out a token that only shares the symbol", function () {
+    const pools = [
+      makePool({
+        address: poolOne,
+        coins: [
+          makeCoin({ address: vusdMainnet, balance: 40n, symbol: "VUSD" }),
+        ],
+      }),
+      makePool({
+        address: poolTwo,
+        chainId: hemi.id,
+        coins: [makeCoin({ address: tokenC, balance: 60n, symbol: "VUSD" })],
+      }),
+    ];
+    const [distribution] = computeDistributions({
+      pools,
+      tokens: [makeToken({ address: vusdMainnet, symbol: "VUSD" })],
+    });
+
+    expect(distribution.totalBalance).toBe(40n);
     expect(distribution.slices).toHaveLength(1);
-    expect(distribution.slices[0].balance).toBe(42n);
+    expect(distribution.slices[0].pool.address).toBe(poolOne);
   });
 
   it("assigns a zero share to every slice when total balance is zero", function () {

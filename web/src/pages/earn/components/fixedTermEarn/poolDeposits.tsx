@@ -1,5 +1,5 @@
+import { DepositsOverCapacity } from "components/earn/depositsOverCapacity";
 import { useTranslation } from "react-i18next";
-import { formatUsd } from "utils/currency";
 import type { Address } from "viem";
 
 import { useDeposits } from "../../hooks/targetYieldPool/useDeposits";
@@ -24,9 +24,11 @@ export function PoolDeposits({ stakingVaultAddress }: Props) {
       isPending={isPending}
       label={t("pages.earn.fixed-term.total-deposits")}
       render={({ maxDepositsUsd, totalDepositsUsd }) => (
-        <div className="text-xsm flex items-center gap-1 font-semibold">
-          <span className="text-gray-900">{formatUsd(totalDepositsUsd)}</span>
-          <span className="text-gray-500">/ {formatUsd(maxDepositsUsd)}</span>
+        <div className="text-xsm font-semibold">
+          <DepositsOverCapacity
+            maxDepositsUsd={maxDepositsUsd}
+            totalDepositsUsd={totalDepositsUsd}
+          />
         </div>
       )}
     />

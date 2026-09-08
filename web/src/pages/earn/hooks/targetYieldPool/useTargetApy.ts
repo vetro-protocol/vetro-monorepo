@@ -2,6 +2,7 @@ import { queryOptions, useQuery } from "@tanstack/react-query";
 import { fetchTargetApy } from "fetchers/earn/targetYieldPool/fetchTargetApy";
 import { type Address, formatUnits } from "viem";
 
+import { combineWithEpochId } from "./combineWithEpochId";
 import { useEpochId } from "./useEpochId";
 
 const targetApyOptions = ({
@@ -23,7 +24,10 @@ const targetApyOptions = ({
   });
 
 export function useTargetApy(stakingVaultAddress: Address) {
-  const { data: epochId } = useEpochId(stakingVaultAddress);
+  const epochId = useEpochId(stakingVaultAddress);
+  const query = useQuery(
+    targetApyOptions({ epochId: epochId.data, stakingVaultAddress }),
+  );
 
-  return useQuery(targetApyOptions({ epochId, stakingVaultAddress }));
+  return combineWithEpochId({ epochId, query });
 }

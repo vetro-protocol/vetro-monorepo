@@ -75,6 +75,10 @@ export const test = base.extend<WalletFixtures>({
       Object.defineProperty(Document.prototype, "cookie", desc);
     });
 
+    await page.route("**/prices", (route) =>
+      route.fulfill({ json: { prices: {} } }),
+    );
+
     // VITE_VETRO_API_URL points at a fake localhost host (see playwright.config)
     await page.route("**/variable-stake/apy", (route) =>
       route.fulfill({ json: {} }),

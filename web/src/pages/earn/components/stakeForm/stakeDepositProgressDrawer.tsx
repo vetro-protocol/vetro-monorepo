@@ -1,7 +1,12 @@
 import type { Token } from "@vetro-protocol/core";
 import { RenderCryptoValue } from "components/base/cryptoValue";
+import { DollarSign } from "components/base/dollarSign";
 import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { RenderFiatValue } from "components/base/fiatValue";
+import {
+  TokenInteraction,
+  TokenInteractionList,
+} from "components/base/tokenInteraction";
 import { VerticalStepper, stepStatus } from "components/base/verticalStepper";
 import { DrawerFeesContainer } from "components/feesContainer";
 import { NetworkFees } from "components/networkFees";
@@ -11,9 +16,7 @@ import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
 import type { Address } from "viem";
 
-import type { DepositStep } from "../stakeDrawer/stakeDrawerReducer";
-
-import { ProgressAmount } from "./progressAmount";
+import type { DepositStep } from "./stakeFormReducer";
 
 type Props = {
   amount: string;
@@ -120,18 +123,25 @@ export function StakeDepositProgressDrawer({
     needsApproval,
   });
 
+  const fiatDetail = (
+    <>
+      <DollarSign />
+      <RenderFiatValue token={peggedToken} value={assets} />
+    </>
+  );
+
   return (
     <div className="flex h-full flex-col">
       <DrawerTitle>{t("pages.earn.stake.deposit-in-progress")}</DrawerTitle>
 
-      <div className="flex flex-col gap-10 border-y border-gray-200 bg-gray-50 p-6">
-        <ProgressAmount
+      <TokenInteractionList>
+        <TokenInteraction
           amount={amount}
-          fiatValue={<RenderFiatValue token={peggedToken} value={assets} />}
+          detail={fiatDetail}
           label={t("pages.earn.stake.you-will-stake")}
           token={peggedToken}
         />
-        <ProgressAmount
+        <TokenInteraction
           amount={
             <RenderCryptoValue
               status={sharesReceivedStatus}
@@ -139,11 +149,11 @@ export function StakeDepositProgressDrawer({
               value={sharesReceived}
             />
           }
-          fiatValue={<RenderFiatValue token={peggedToken} value={assets} />}
+          detail={fiatDetail}
           label={t("pages.earn.stake.you-will-receive-estimated")}
           token={shareToken}
         />
-      </div>
+      </TokenInteractionList>
 
       <DrawerFeesContainer>
         <NetworkFees networkFee={networkFee} />

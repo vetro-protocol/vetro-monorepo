@@ -2,6 +2,7 @@ import { Link, useParams } from "react-router";
 import { type Address, formatUnits, isAddressEqual } from "viem";
 
 import { CampaignsList } from "../components/dex/campaignsList";
+import { ChainLogo } from "../components/dex/chainLogo";
 import { ExplorerLink } from "../components/dex/explorerLink";
 import { ExternalLink } from "../components/dex/externalLink";
 import { RangeBadge } from "../components/dex/rangeBadge";
@@ -10,11 +11,13 @@ import { StateMessage } from "../components/dex/stateMessage";
 import { TokenIcon } from "../components/dex/tokenIcon";
 import { TokenPair } from "../components/dex/tokenPair";
 import { VenueBadge } from "../components/dex/venueBadge";
-import { type Dex } from "../config/dexes";
+import { type Dex, dexLabels } from "../config/dexes";
 import { useCurvePoolStats } from "../hooks/useCurvePoolStats";
 import { useGaugeEmissions } from "../hooks/useGaugeEmissions";
 import { useTrackedPools } from "../hooks/useTrackedPools";
 import {
+  formatOptionalPercent,
+  formatOptionalUsd,
   formatPercent,
   formatPrice,
   formatRate,
@@ -98,11 +101,15 @@ const CoinBreakdown = function ({
 }: {
   coin: PoolCoin;
   dex: Dex;
-  tvlUsd: number;
+  tvlUsd: number | undefined;
 }) {
   const balance = Number(formatUnits(coin.balance, coin.decimals));
-  const balanceUsd = balance * coin.usdPrice;
-  const share = tvlUsd > 0 ? (balanceUsd / tvlUsd) * 100 : 0;
+  const balanceUsd =
+    coin.usdPrice === undefined ? undefined : balance * coin.usdPrice;
+  const share =
+    balanceUsd !== undefined && tvlUsd
+      ? (balanceUsd / tvlUsd) * 100
+      : undefined;
 
   return (
     <div className="rounded-lg border border-neutral-200 p-4">
@@ -110,7 +117,7 @@ const CoinBreakdown = function ({
         <TokenIcon address={coin.address} dex={dex} symbol={coin.symbol} />
         <span className="font-medium text-neutral-950">{coin.symbol}</span>
         <span className="ml-auto text-xs text-neutral-500">
-          {formatPercent(share)}
+          {formatOptionalPercent(share)}
         </span>
       </div>
       <dl className="mt-3 grid grid-cols-3 gap-2 text-sm">
@@ -123,13 +130,13 @@ const CoinBreakdown = function ({
         <div>
           <dt className="text-xs text-neutral-500">Value</dt>
           <dd className="font-medium text-neutral-950">
-            {formatUsd(balanceUsd)}
+            {formatOptionalUsd(balanceUsd)}
           </dd>
         </div>
         <div>
           <dt className="text-xs text-neutral-500">Price</dt>
           <dd className="font-medium text-neutral-950">
-            {formatPrice(coin.usdPrice)}
+            {coin.usdPrice === undefined ? "—" : formatPrice(coin.usdPrice)}
           </dd>
         </div>
       </dl>
@@ -176,14 +183,16 @@ const GaugeSection = function ({ pool }: { pool: TrackedPool }) {
 
 const AddressRow = ({
   address,
+  chainId,
   label,
 }: {
   address: Address;
+  chainId: number;
   label: string;
 }) => (
   <div className="flex items-center justify-between gap-x-4 py-2 text-sm">
     <span className="text-neutral-600">{label}</span>
-    <ExplorerLink address={address} />
+    <ExplorerLink address={address} chainId={chainId} />
   </div>
 );
 
@@ -194,27 +203,36 @@ const AddressesSection = ({ pool }: { pool: TrackedPool }) => (
       <div className="flex items-center justify-between gap-x-4 py-2 text-sm">
         <span className="text-neutral-600">Pool</span>
         <span className="flex items-center gap-x-3">
-          <ExplorerLink address={pool.address} />
+          <ExplorerLink address={pool.address} chainId={pool.chainId} />
           {pool.url ? (
             <ExternalLink
-              className="font-medium text-blue-600 capitalize hover:underline"
+              className="font-medium text-blue-600 hover:underline"
               href={pool.url}
             >
-              {pool.dex} ↗
+              {dexLabels[pool.dex]} ↗
             </ExternalLink>
           ) : null}
         </span>
       </div>
       {pool.gaugeAddress ? (
-        <AddressRow address={pool.gaugeAddress} label="Gauge" />
+        <AddressRow
+          address={pool.gaugeAddress}
+          chainId={pool.chainId}
+          label="Gauge"
+        />
       ) : null}
       {pool.lpTokenAddress &&
       !isAddressEqual(pool.lpTokenAddress, pool.address) ? (
-        <AddressRow address={pool.lpTokenAddress} label="LP token" />
+        <AddressRow
+          address={pool.lpTokenAddress}
+          chainId={pool.chainId}
+          label="LP token"
+        />
       ) : null}
       {pool.coins.map((coin) => (
         <AddressRow
           address={coin.address}
+          chainId={pool.chainId}
           key={coin.address}
           label={coin.symbol}
         />
@@ -276,6 +294,7 @@ export const DexPoolPage = function () {
                 name={pool.name}
                 size={32}
               />
+              <ChainLogo chainId={pool.chainId} size={20} />
               <VenueBadge dex={pool.dex} />
               {pool.rangeLabel ? <RangeBadge label={pool.rangeLabel} /> : null}
             </div>
@@ -286,28 +305,32 @@ export const DexPoolPage = function () {
               className="self-start rounded-md border border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
               href={pool.url}
             >
-              View on <span className="capitalize">{pool.dex}</span> ↗
+              View on {dexLabels[pool.dex]} ↗
             </ExternalLink>
           ) : null}
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        <StatCard label="TVL" value={formatUsd(pool.tvlUsd)} />
+        <StatCard label="TVL" value={formatOptionalUsd(pool.tvlUsd)} />
         {!pool.isRangeView ? (
           <>
             <StatCard label="24h Volume" value={formatUsd(pool.volumeUsd24h)} />
             <FeesCard pool={pool} />
             <StatCard
-              hint={`${formatPercent(pool.baseApy)} base + ${formatPercent(pool.rewardApy)} rewards`}
+              hint={`${formatOptionalPercent(pool.baseApy)} base + ${formatPercent(pool.rewardApy)} rewards`}
               label="APY"
-              value={formatPercent(pool.baseApy + pool.rewardApy)}
+              value={formatOptionalPercent(
+                pool.baseApy === undefined
+                  ? undefined
+                  : pool.baseApy + pool.rewardApy,
+              )}
             />
             <StatCard
               hint="24h volume / TVL"
               label="Liquidity utilization"
               value={
-                pool.tvlUsd > 0
+                pool.tvlUsd
                   ? formatPercent((pool.volumeUsd24h / pool.tvlUsd) * 100)
                   : "—"
               }

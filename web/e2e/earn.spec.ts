@@ -2,7 +2,7 @@ import {
   TEST_ADDRESS,
   TEST_PRIVATE_KEY,
 } from "@hemilabs/anvil-fork-setup/utils";
-import { expect } from "@playwright/test";
+import { type Page, expect } from "@playwright/test";
 import {
   stakingVaultAbi,
   sVetBtcAddress,
@@ -17,6 +17,7 @@ import {
   type TransactionReceipt,
   createWalletClient,
   erc20Abi,
+  formatUnits,
   http,
   isAddressEqual,
   parseAbiItem,
@@ -37,12 +38,14 @@ import { fastForwardTime } from "../scripts/fastForwardTime.ts";
 import { setCooldownEnabled } from "../scripts/setCooldownEnabled.ts";
 import { whitelistInstantWithdraw } from "../scripts/whitelistInstantWithdraw.ts";
 import type { ExitTicket } from "../src/pages/earn/types.ts";
+import { formatNumber } from "../src/utils/format.ts";
 
 import { ANVIL_URL, createEthereumClient } from "./anvil";
 import { test } from "./fixtures/wallet";
 import { getMainnetToken, waitForBalance } from "./helpers";
 
 const vusd = getMainnetToken("VUSD");
+const sVusd = getMainnetToken("sVUSD");
 const vetBtc = getMainnetToken("vetBTC");
 const DEPOSIT_DISPLAY = "5";
 const DEPOSIT_AMOUNT = parseUnits(DEPOSIT_DISPLAY, vusd.decimals);
@@ -72,6 +75,47 @@ const depositEvent = parseAbiItem(
   "event Deposit(address indexed sender, address indexed owner, uint256 assets, uint256 shares)",
 );
 
+async function openVusdPoolDetails(page: Page) {
+  await page.goto("/earn");
+
+  // The mock wallet auto-connects silently via EIP-6963 (see fixtures/wallet),
+  // so just wait for the header button to switch from "Connect wallet" to the
+  // 0x… short address — don't open the RainbowKit connect modal.
+  await expect(
+    page.getByRole("button", { name: /^0x[a-f0-9]{4}/i }),
+  ).toBeVisible({ timeout: 30_000 });
+
+  const vusdPool = page
+    .locator("div")
+    .filter({ has: page.getByText("VUSD", { exact: true }) })
+    .filter({ has: page.getByRole("link", { name: "Pool details" }) })
+    .last();
+  await vusdPool.getByRole("link", { name: "Pool details" }).click();
+
+  await expect(
+    page.getByRole("heading", { level: 1, name: /variable yield/i }),
+  ).toBeVisible();
+}
+
+async function expectPositionShares({
+  page,
+  shares,
+}: {
+  page: Page;
+  shares: bigint;
+}) {
+  const positionCard = page
+    .locator("div")
+    .filter({ has: page.getByText("Your position", { exact: true }) })
+    .filter({ has: page.getByText(sVusd.symbol) })
+    .last();
+  await expect(
+    positionCard.getByText(
+      `${formatNumber(formatUnits(shares, sVusd.decimals))} ${sVusd.symbol}`,
+    ),
+  ).toBeVisible({ timeout: 20_000 });
+}
+
 test("deposit VUSD into the Earn pool", async function ({
   page,
   walletTxHashes,
@@ -89,31 +133,7 @@ test("deposit VUSD into the Earn pool", async function ({
     }),
   ]);
 
-  await page.goto("/earn");
-
-  // The mock wallet auto-connects silently via EIP-6963 (see fixtures/wallet),
-  // so just wait for the header button to switch from "Connect wallet" to the
-  // 0x… short address — don't open the RainbowKit connect modal.
-  await expect(
-    page.getByRole("button", { name: /^0x[a-f0-9]{4}/i }),
-  ).toBeVisible({ timeout: 30_000 });
-
-  // The Earn page renders one PoolInfoBar per vault (VUSD, vetBTC). Scope the
-  // Deposit click to the bar that shows the "VUSD" token symbol so the test
-  // doesn't depend on pool ordering. The only element containing both the VUSD
-  // label and a Deposit button is the pool bar itself; `.last()` picks that
-  // innermost match rather than an ancestor container.
-  const vusdPool = page
-    .locator("div")
-    .filter({ has: page.getByText("VUSD", { exact: true }) })
-    .filter({ has: page.getByRole("button", { name: "Deposit" }) })
-    .last();
-  await vusdPool.getByRole("button", { name: "Deposit" }).click();
-
-  // The stake drawer slides in ("Manage your stake position").
-  await expect(
-    page.getByRole("heading", { name: "Manage your stake position" }),
-  ).toBeVisible();
+  await openVusdPoolDetails(page);
 
   await page
     .locator('input[type="text"]:not([disabled])')
@@ -178,19 +198,13 @@ test("deposit VUSD into the Earn pool", async function ({
   });
   expect(svusdAfter - svusdBefore).toBe(svusdMinted);
 
-  // Assertion 3 — the staked position surfaces on the Earn page without any
-  // backend API. The drawer auto-closes ~2s after success and clears its
-  // stake-mode URL params (nuqs); wait for that so the reload lands on a clean
-  // /en/earn — otherwise the persisted params reopen the drawer and its backdrop
-  // overlay intercepts the badge hover below.
   await expect(
-    page.getByRole("heading", { name: "Manage your stake position" }),
+    page.getByRole("heading", { name: "Deposit in progress" }),
   ).toBeHidden({ timeout: 15_000 });
 
-  // Reload so the staked-balance queries refetch the post-deposit state, then
-  // assert the on-chain-derived "From 1 pool" badge appears and its tooltip
-  // shows the staked VUSD amount (vault.convertToAssets(sVUSD)).
-  await page.reload();
+  await expectPositionShares({ page, shares: svusdAfter });
+
+  await page.goto("/earn");
   await expect(
     page.getByRole("button", { name: /^0x[a-f0-9]{4}/i }),
   ).toBeVisible({ timeout: 30_000 });
@@ -199,7 +213,6 @@ test("deposit VUSD into the Earn pool", async function ({
   await expect(fromPoolsBadge).toBeVisible({ timeout: 20_000 });
 
   await fromPoolsBadge.hover();
-  // The tooltip lists the pool's staked balance as "(<amount> VUSD)".
   await expect(page.getByText(/\([\d.,]+\s*VUSD\)/)).toBeVisible({
     timeout: 10_000,
   });
@@ -277,37 +290,18 @@ test("withdraw VUSD from the Earn pool (whitelisted one-step exit)", async funct
     }),
   ]);
 
-  await page.goto("/earn");
+  await openVusdPoolDetails(page);
 
-  await expect(
-    page.getByRole("button", { name: /^0x[a-f0-9]{4}/i }),
-  ).toBeVisible({ timeout: 30_000 });
-
-  // Scope to the VUSD pool bar and open its Withdraw drawer. The bar is the only
-  // element holding both the "VUSD" label and a Withdraw button; `.last()` picks
-  // that innermost match rather than an ancestor container.
-  const vusdPool = page
-    .locator("div")
-    .filter({ has: page.getByText("VUSD", { exact: true }) })
-    .filter({ has: page.getByRole("button", { name: "Withdraw" }) })
-    .last();
-  await vusdPool.getByRole("button", { name: "Withdraw" }).click();
-
-  // The drawer slides in directly in withdraw mode.
-  await expect(
-    page.getByRole("heading", { name: "Manage your stake position" }),
-  ).toBeVisible();
-
-  await expect(page.getByText("Confirm withdrawal")).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Request withdrawal" }),
-  ).toBeHidden();
+  await page.getByRole("button", { exact: true, name: "Withdraw" }).click();
 
   await page
     .locator('input[type="text"]:not([disabled])')
     .first()
     .fill(WITHDRAW_DISPLAY);
 
+  await expect(
+    page.getByRole("button", { name: "Request withdrawal" }),
+  ).toBeHidden();
   const submitButton = page
     .locator("form")
     .getByRole("button", { exact: true, name: "Withdraw" });
@@ -350,6 +344,8 @@ test("withdraw VUSD from the Earn pool (whitelisted one-step exit)", async funct
     address: sVusdAddress,
   });
   expect(svusdBefore - svusdBurned).toBe(svusdAfter);
+
+  await expectPositionShares({ page, shares: svusdAfter });
 });
 
 test("withdraw VUSD from the Earn pool (two-step cooldown exit)", async function ({
@@ -389,23 +385,9 @@ test("withdraw VUSD from the Earn pool (two-step cooldown exit)", async function
     route.fulfill({ json: exitTicketsBody }),
   );
 
-  await page.goto("/earn");
+  await openVusdPoolDetails(page);
 
-  await expect(
-    page.getByRole("button", { name: /^0x[a-f0-9]{4}/i }),
-  ).toBeVisible({ timeout: 30_000 });
-
-  // Open the VUSD pool's Withdraw drawer (same locator as the one-step test).
-  const vusdPool = page
-    .locator("div")
-    .filter({ has: page.getByText("VUSD", { exact: true }) })
-    .filter({ has: page.getByRole("button", { name: "Withdraw" }) })
-    .last();
-  await vusdPool.getByRole("button", { name: "Withdraw" }).click();
-
-  await expect(
-    page.getByRole("heading", { name: "Manage your stake position" }),
-  ).toBeVisible();
+  await page.getByRole("button", { exact: true, name: "Withdraw" }).click();
 
   // Fill the amount first: with an empty input the submit button reads "Enter an
   // amount", and only resolves to its action label once a valid amount is set.
@@ -414,12 +396,6 @@ test("withdraw VUSD from the Earn pool (two-step cooldown exit)", async function
     .first()
     .fill(WITHDRAW_DISPLAY);
 
-  // Two-step path: with an amount entered the submit reads "Request withdrawal"
-  // (the instant path would read "Withdraw" instead) — this proves the account
-  // is on the request → cooldown → claim flow. Generous timeout: the drawer's
-  // form body is gated on the canInstantWithdraw/staked-balance reads, and this
-  // is the first hit to the Earn route when the test runs in isolation (Vite
-  // compiles it on demand).
   const submitButton = page
     .locator("form")
     .getByRole("button", { name: "Request withdrawal" });
@@ -432,12 +408,9 @@ test("withdraw VUSD from the Earn pool (two-step cooldown exit)", async function
     timeout: 60_000,
   });
 
-  // The drawer auto-closes ~2s after success and clears its stake-mode URL
-  // params (nuqs). Wait for that before reloading below — otherwise the
-  // persisted params reopen the drawer and its overlay intercepts clicks on the
-  // exit-tickets table (see the deposit test for the same rationale).
+  // The progress drawer auto-closes ~2s after success.
   await expect(
-    page.getByRole("heading", { name: "Manage your stake position" }),
+    page.getByRole("heading", { name: "Withdrawal in progress" }),
   ).toBeHidden({ timeout: 15_000 });
 
   // Read the request tx: WithdrawRequested carries the requestId, the locked
@@ -483,9 +456,11 @@ test("withdraw VUSD from the Earn pool (two-step cooldown exit)", async function
     stakingVaultAddress: sVusdAddress,
   };
 
-  // Cooldown state — mock returns the ticket with its real (future) claimableAt.
+  // Cooldown state — mock returns the ticket with its real (future)
+  // claimableAt. The exit-tickets table lives on the Earn page, not on the
+  // pool's details page.
   exitTicketsBody = [ticket];
-  await page.reload();
+  await page.goto("/earn");
   await expect(
     page.getByRole("button", { name: /^0x[a-f0-9]{4}/i }),
   ).toBeVisible({ timeout: 30_000 });

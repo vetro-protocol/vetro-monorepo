@@ -79,13 +79,18 @@ export const useCancelWithdraw = function ({
         onStatusChange("cancelling");
       });
 
-      emitter.on("user-signing-cancel-withdraw-error", function () {
+      const markFailed = function () {
         onStatusChange("failed");
-      });
+      };
+
+      emitter.on("user-signing-cancel-withdraw-error", markFailed);
+      emitter.on("cancel-withdraw-failed", markFailed);
+      emitter.on("cancel-withdraw-failed-validation", markFailed);
+      emitter.on("unexpected-error", markFailed);
 
       emitter.on("cancel-withdraw-transaction-reverted", function (receipt) {
         updateNativeBalanceAfterReceipt(receipt);
-        onStatusChange("failed");
+        markFailed();
       });
 
       emitter.on("cancel-withdraw-transaction-succeeded", function (receipt) {

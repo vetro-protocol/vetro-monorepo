@@ -7,7 +7,7 @@ import { formatTokenAmountUsd } from "utils/currency";
 import type { Address } from "viem";
 
 import { PoolContract } from "./poolContract";
-import { PoolInfoButtons } from "./poolInfoButtons";
+import { PoolDetailsLink } from "./poolDetailsLink";
 import { PoolInfoItem } from "./poolInfoItem";
 import { PoolInfoStakedAmount } from "./poolInfoStakedAmount";
 import { PoolToken } from "./poolToken";
@@ -60,7 +60,7 @@ export function PoolInfoBar({ stakingVaultAddress }: Props) {
         />
         <PoolInfoStakedAmount stakingVaultAddress={stakingVaultAddress} />
       </div>
-      <PoolInfoButtons stakingVaultAddress={stakingVaultAddress} />
+      <PoolDetailsLink to={`/earn/variable-yield/${stakingVaultAddress}`} />
     </div>
   );
 }

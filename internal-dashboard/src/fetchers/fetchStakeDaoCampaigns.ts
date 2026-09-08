@@ -1,3 +1,4 @@
+import { campaignKey } from "../lib/campaigns";
 import {
   fetchCurveCampaigns,
   type StakeDaoCampaign,
@@ -52,7 +53,10 @@ export const fetchStakeDaoCampaigns = async function (
   for (const campaign of allCampaigns.filter((candidate) =>
     isRunning({ campaign: candidate, nowSeconds }),
   )) {
-    const key = campaign.gauge.toLowerCase();
+    const key = campaignKey({
+      address: campaign.gauge,
+      chainId: campaign.gaugeChainId,
+    });
     campaigns[key] = [...(campaigns[key] ?? []), toPoolCampaign(campaign)];
   }
   return campaigns;

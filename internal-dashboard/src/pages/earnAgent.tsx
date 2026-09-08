@@ -1,5 +1,6 @@
 import { type ReactNode } from "react";
 import { type Address } from "viem";
+import { mainnet } from "viem/chains";
 
 import { ExplorerLink } from "../components/dex/explorerLink";
 import { StateMessage } from "../components/dex/stateMessage";
@@ -24,7 +25,7 @@ const AddressRow = ({
       {method ? <code className="text-neutral-400">{method}</code> : null}
     </span>
     {address ? (
-      <ExplorerLink address={address} />
+      <ExplorerLink address={address} chainId={mainnet.id} />
     ) : (
       <span className="text-neutral-400">—</span>
     )}

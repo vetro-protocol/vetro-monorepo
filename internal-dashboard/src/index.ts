@@ -8,6 +8,7 @@ import type { StakeDaoCampaign } from "./lib/stakeDaoApi";
 
 type Env = {
   ASSETS: Fetcher;
+  THEGRAPH_API_KEY: string;
 };
 
 // Deny all permissions – mirrors web/src/index.ts.
@@ -79,14 +80,6 @@ const scriptSrc = [
 
 const csp = [
   "base-uri 'none'",
-  // The DEX tab reads Curve liquidity straight from the Curve API (pool list /
-  // volumes / gauges) and per-pool 24h fees from Curve's analytics API. Sushi and
-  // Uniswap pool data comes from their own APIs via the worker's /api/sushi and
-  // /api/uniswap proxies, so they need no extra origin here ('self' covers it).
-  // Reward campaigns come from Merkl and StakeDAO via the worker's /api/merkl
-  // and /api/stakedao proxies, so they need no extra origin either. Token / pool discovery, pool balances and share
-  // values are read on-chain from the mainnet RPC, and token USD prices come from
-  // the Portal API.
   `connect-src 'self' https://api.curve.finance https://prices.curve.finance ${rpcConnectSrc} ${portalApiUrl}`,
   "default-src 'none'",
   "font-src 'self'",
@@ -122,16 +115,27 @@ const htmlHeaders = {
   "X-Frame-Options": "DENY",
 };
 
+const brownfiSubgraphId = "D1UwhrB45geUZTNQ2QwrXwGEhk69iBESApJJzz378ZeS";
+
 const graphqlProxies: Record<
   string,
-  { headers?: Record<string, string>; upstream: string }
+  { headers?: Record<string, string>; upstream: (env: Env) => string }
 > = {
-  "/api/sushi": { upstream: "https://production.data-gcp.sushi.com/graphql" },
+  "/api/brownfi": {
+    upstream: (env) =>
+      `https://gateway.thegraph.com/api/${env.THEGRAPH_API_KEY}/subgraphs/id/${brownfiSubgraphId}`,
+  },
+  "/api/sushi": {
+    upstream: () => "https://production.data-gcp.sushi.com/graphql",
+  },
   "/api/uniswap": {
     headers: { origin: "https://app.uniswap.org" },
-    upstream: "https://interface.gateway.uniswap.org/v1/graphql",
+    upstream: () => "https://interface.gateway.uniswap.org/v1/graphql",
   },
 };
+
+const merklOpportunitiesPath = "/api/merkl/opportunities";
+const merklOpportunitiesUpstream = "https://api.merkl.xyz/v4/opportunities";
 
 // StakeDAO answers with every campaign ever created (several MB)
 // and offers no server-side filter, so the worker trims the list to
@@ -195,14 +199,25 @@ const proxyStakeDaoCampaigns = async function (searchParams: URLSearchParams) {
   });
 };
 
-const proxyRest = async function ({
-  search,
-  upstream,
-}: {
-  search: string;
-  upstream: string;
-}) {
-  const response = await fetch(`${upstream}${search}`);
+type MerklOpportunitiesQuery = {
+  campaigns: boolean;
+  chainIds: number[];
+  identifiers: string[];
+  items: number;
+  status: string;
+};
+
+const proxyMerklOpportunities = async function (request: Request) {
+  const { campaigns, chainIds, identifiers, items, status } =
+    (await request.json()) as MerklOpportunitiesQuery;
+  const search = new URLSearchParams({
+    campaigns: String(campaigns),
+    chainId: chainIds.join(","),
+    identifier: identifiers.join(","),
+    items: String(items),
+    status,
+  });
+  const response = await fetch(`${merklOpportunitiesUpstream}?${search}`);
   return jsonResponse({ body: response.body, status: response.status });
 };
 
@@ -226,13 +241,14 @@ const proxyGraphql = async function ({
   });
 };
 
-const restHandlers: Record<string, (url: URL) => Promise<Response>> = {
-  "/api/merkl/opportunities": (url) =>
-    proxyRest({
-      search: url.search,
-      upstream: "https://api.merkl.xyz/v4/opportunities",
-    }),
-  [stakeDaoCampaignsPath]: (url) => proxyStakeDaoCampaigns(url.searchParams),
+const apiHandlers: Record<
+  string,
+  (params: { request: Request; url: URL }) => Promise<Response>
+> = {
+  [`GET ${stakeDaoCampaignsPath}`]: ({ url }) =>
+    proxyStakeDaoCampaigns(url.searchParams),
+  [`QUERY ${merklOpportunitiesPath}`]: ({ request }) =>
+    proxyMerklOpportunities(request),
 };
 
 export default {
@@ -241,12 +257,16 @@ export default {
 
     const graphqlProxy = graphqlProxies[url.pathname];
     if (request.method === "POST" && graphqlProxy) {
-      return proxyGraphql({ ...graphqlProxy, request });
+      return proxyGraphql({
+        headers: graphqlProxy.headers,
+        request,
+        upstream: graphqlProxy.upstream(env),
+      });
     }
 
-    const restHandler = restHandlers[url.pathname];
-    if (request.method === "GET" && restHandler) {
-      return restHandler(url);
+    const apiHandler = apiHandlers[`${request.method} ${url.pathname}`];
+    if (apiHandler) {
+      return apiHandler({ request, url });
     }
 
     const response = await env.ASSETS.fetch(request);

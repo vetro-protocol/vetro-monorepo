@@ -26,8 +26,8 @@ import type { TokenWithGateway } from "types";
 import { type Address, parseUnits } from "viem";
 import { useAccount } from "wagmi";
 
-import type { WithdrawStep } from "../stakeDrawer/stakeDrawerReducer";
-import { StakeSubmitButton } from "../stakeDrawer/stakeSubmitButton";
+import type { WithdrawStep } from "./stakeFormReducer";
+import { StakeSubmitButton } from "./stakeSubmitButton";
 
 const StakeWithdrawProgressDrawer = lazy(() =>
   import("./stakeWithdrawProgressDrawer").then((m) => ({

@@ -21,14 +21,21 @@ type Story = StoryObj<typeof meta>;
 const storyTokens = ["USDC", "USDT"];
 const tokens = knownTokens.filter((t) => storyTokens.includes(t.symbol));
 
+type Props = {
+  label: string;
+  value: string;
+};
+
+const StoryBalance = ({ label, value }: Props) => (
+  <div className="flex items-center gap-1">
+    <span className="text-gray-500">{label}:</span>
+    <span className="text-gray-900">{value}</span>
+  </div>
+);
+
 export const SwitchToken: Story = {
   args: {
-    balance: (
-      <>
-        <span className="text-gray-500">Balance:</span>
-        <span className="mr-1 text-gray-900">2</span>
-      </>
-    ),
+    balance: <StoryBalance label="Balance" value="2" />,
     fiatValue: "0.00",
     label: "You are swapping",
     maxButton: <MaxButton onClick={() => alert("max clicked")} />,
@@ -65,12 +72,7 @@ export const SwitchToken: Story = {
 
 export const ReadOnlyToken: Story = {
   args: {
-    balance: (
-      <>
-        <span className="text-gray-500">Available to withdraw:</span>
-        <span className="mr-1 text-gray-900">200</span>
-      </>
-    ),
+    balance: <StoryBalance label="Available to withdraw" value="200" />,
     fiatValue: "0.00",
     label: "You will withdraw",
     maxButton: <MaxButton onClick={() => alert("max clicked")} />,
@@ -96,12 +98,7 @@ export const ReadOnlyToken: Story = {
 
 export const WithHeaderAction: Story = {
   args: {
-    balance: (
-      <>
-        <span className="text-gray-500">Balance:</span>
-        <span className="mr-1 text-gray-900">2</span>
-      </>
-    ),
+    balance: <StoryBalance label="Balance" value="2" />,
     fiatValue: "0.00",
     headerAction: (
       <button
@@ -144,12 +141,7 @@ export const WithHeaderAction: Story = {
 
 export const WithError: Story = {
   args: {
-    balance: (
-      <>
-        <span className="text-gray-500">Balance:</span>
-        <span className="mr-1 text-gray-900">2</span>
-      </>
-    ),
+    balance: <StoryBalance label="Balance" value="2" />,
     errorKey: "insufficient-balance",
     fiatValue: "100.00",
     label: "You are swapping",

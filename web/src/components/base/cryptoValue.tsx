@@ -39,5 +39,5 @@ export const RenderCryptoValue = function ({
     return <>-</>;
   }
   // Loading state
-  return <Skeleton className="h-full" containerClassName="basis-1/3" />;
+  return <Skeleton inline width={80} />;
 };

@@ -1,9 +1,15 @@
 import { Link, useNavigate } from "react-router";
 
-import { formatPercent, formatUsd } from "../../lib/format";
+import {
+  formatOptionalPercent,
+  formatOptionalUsd,
+  formatPercent,
+  formatUsd,
+} from "../../lib/format";
 import { type TrackedPool } from "../../lib/types";
 
 import { CampaignsBadge } from "./campaignsBadge";
+import { ChainLogo } from "./chainLogo";
 import { RangeBadge } from "./rangeBadge";
 import { TokenPair } from "./tokenPair";
 import { VenueBadge } from "./venueBadge";
@@ -19,13 +25,13 @@ const poolPath = (pool: TrackedPool) => `/dex/${pool.id}`;
 // there's no boost spread; pools with no rewards show the base APY alone.
 const formatApy = function ({ baseApy, rewardApy, rewardApyMax }: TrackedPool) {
   if (rewardApy === 0) {
-    return formatPercent(baseApy);
+    return formatOptionalPercent(baseApy);
   }
   const rewards =
     rewardApyMax > rewardApy
       ? `${formatPercent(rewardApy)} → ${formatPercent(rewardApyMax)}`
       : formatPercent(rewardApy);
-  return `${formatPercent(baseApy)} (${rewards} CRV)`;
+  return `${formatOptionalPercent(baseApy)} (${rewards} CRV)`;
 };
 
 export const PoolsTable = function ({ pools }: Props) {
@@ -43,6 +49,7 @@ export const PoolsTable = function ({ pools }: Props) {
               <div className="flex items-center justify-between gap-x-2">
                 <TokenPair {...pool} />
                 <span className="flex shrink-0 items-center gap-x-1.5">
+                  <ChainLogo chainId={pool.chainId} />
                   <CampaignsBadge poolId={pool.id} />
                   {pool.rangeLabel ? (
                     <RangeBadge label={pool.rangeLabel} />
@@ -54,7 +61,7 @@ export const PoolsTable = function ({ pools }: Props) {
                 <div>
                   <dt className="text-xs text-neutral-500">TVL</dt>
                   <dd className="font-semibold text-neutral-950">
-                    {formatUsd(pool.tvlUsd)}
+                    {formatOptionalUsd(pool.tvlUsd)}
                   </dd>
                 </div>
                 <div>
@@ -81,6 +88,7 @@ export const PoolsTable = function ({ pools }: Props) {
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="border-b border-neutral-200 text-xs font-medium text-neutral-500">
+              <th className="py-2 pr-4 text-left font-medium">Chain</th>
               <th className="py-2 pr-4 text-left font-medium">Pool</th>
               <th className="py-2 pr-4 text-right font-medium">TVL</th>
               <th className="py-2 pr-4 text-right font-medium">24h Volume</th>
@@ -98,6 +106,9 @@ export const PoolsTable = function ({ pools }: Props) {
                 onClick={() => navigate(poolPath(pool))}
               >
                 <td className="py-3 pr-4">
+                  <ChainLogo chainId={pool.chainId} size={20} />
+                </td>
+                <td className="py-3 pr-4">
                   <div className="flex items-center gap-x-2">
                     <Link
                       className="hover:underline"
@@ -113,7 +124,7 @@ export const PoolsTable = function ({ pools }: Props) {
                   </div>
                 </td>
                 <td className="py-3 pr-4 text-right font-medium text-neutral-950">
-                  {formatUsd(pool.tvlUsd)}
+                  {formatOptionalUsd(pool.tvlUsd)}
                 </td>
                 <td className="py-3 pr-4 text-right font-medium text-neutral-950">
                   {formatUsd(pool.volumeUsd24h)}

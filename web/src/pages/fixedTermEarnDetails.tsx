@@ -1,8 +1,10 @@
 import { Breadcrumb } from "components/base/breadcrumb";
 import { BreadcrumbSelector } from "components/base/breadcrumb/breadcrumbSelector";
 import { ButtonLink } from "components/base/button";
+import { FixedTermInfoCards } from "components/earn/fixedTermInfoCards";
 import { VaultHeader } from "components/earn/vaultHeader";
 import { EarnIcon } from "components/navbar/earnIcon";
+import { StripedDivider } from "components/stripedDivider";
 import { TokenLogo } from "components/tokenLogo";
 import { useShareToken } from "hooks/useShareToken";
 import { useVaultPeggedToken } from "hooks/useVaultPeggedToken";
@@ -32,6 +34,14 @@ const VaultDropdownItem = function ({
     </div>
   );
 };
+
+// TODO: replace with the target-yield stake form
+// See https://github.com/vetro-protocol/vetro-monorepo/issues/646
+const StakeFormPlaceholder = () => (
+  <div className="text-b-medium flex h-[615px] items-center justify-center text-gray-500">
+    Form goes here
+  </div>
+);
 
 const FixedTermEarnDetailsContent = function ({
   stakingVaultAddress,
@@ -98,6 +108,19 @@ const FixedTermEarnDetailsContent = function ({
         symbol={shareToken.symbol}
         title={t("pages.earn.fixed-term.header-title")}
       />
+      <div className="flex flex-col-reverse md:flex-row">
+        <div className="min-w-0 flex-1 bg-gray-100">
+          <FixedTermInfoCards stakingVaultAddress={stakingVaultAddress} />
+        </div>
+        <div className="bg-gray-100 md:hidden">
+          <StripedDivider />
+        </div>
+        <div className="w-full shrink-0 md:w-[341px] md:border-b md:border-l md:border-gray-200">
+          <div className="md:sticky md:top-0">
+            <StakeFormPlaceholder />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

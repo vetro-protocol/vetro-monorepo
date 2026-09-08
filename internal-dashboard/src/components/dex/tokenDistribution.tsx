@@ -1,6 +1,7 @@
 import { VictoryPie, VictoryTooltip } from "victory";
 import { formatUnits } from "viem";
 
+import { getTrackedChain } from "../../config/chains";
 import { type Dex, dexLabels } from "../../config/dexes";
 import { useTokenPrices } from "../../hooks/useTokenPrices";
 import { useTrackedTokens } from "../../hooks/useTrackedTokens";
@@ -11,6 +12,7 @@ import {
 import { formatPercent, formatTokenAmount, formatUsd } from "../../lib/format";
 import { type TrackedPool } from "../../lib/types";
 
+import { ChainLogo } from "./chainLogo";
 import { TokenIcon } from "./tokenIcon";
 import { VenueBadge } from "./venueBadge";
 
@@ -64,6 +66,7 @@ const DistributionCard = function ({
               );
               return {
                 balance,
+                chain: getTrackedChain(slice.pool.chainId)?.name,
                 dex: slice.pool.dex,
                 usd: price !== undefined ? balance * price : undefined,
                 x: slice.pool.name,
@@ -82,7 +85,9 @@ const DistributionCard = function ({
             labels={({ datum }) =>
               [
                 datum.x,
-                dexLabels[datum.dex as Dex],
+                [dexLabels[datum.dex as Dex], datum.chain]
+                  .filter(Boolean)
+                  .join(" · "),
                 `${formatTokenAmount(datum.balance)} ${token.symbol}`,
                 datum.usd !== undefined ? formatUsd(datum.usd) : undefined,
               ]
@@ -101,7 +106,7 @@ const DistributionCard = function ({
         {slices.map((slice, index) => (
           <li
             className="flex items-center justify-between gap-x-2"
-            key={slice.pool.address}
+            key={slice.pool.id}
           >
             <span className="flex min-w-0 items-center gap-x-2">
               <span
@@ -111,6 +116,7 @@ const DistributionCard = function ({
               <span className="truncate text-neutral-700">
                 {slice.pool.name}
               </span>
+              <ChainLogo chainId={slice.pool.chainId} />
               <VenueBadge dex={slice.pool.dex} />
             </span>
             <span className="shrink-0 font-medium text-neutral-950">

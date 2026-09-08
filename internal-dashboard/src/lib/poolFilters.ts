@@ -1,22 +1,27 @@
 import { type Address, isAddressEqual } from "viem";
 
+import { trackedChains } from "../config/chains";
+
 import { type TrackedPool, type TrackedToken } from "./types";
 
 export type PoolFilterState = {
   campaignsOnly: boolean;
-  trackedTokens: Address[];
+  chainIds: number[];
+  trackedSymbols: string[];
   whitelistedTokens: Address[];
 };
 
 export const emptyPoolFilters: PoolFilterState = {
   campaignsOnly: false,
-  trackedTokens: [],
+  chainIds: [],
+  trackedSymbols: [],
   whitelistedTokens: [],
 };
 
 export const hasActiveFilters = (filters: PoolFilterState) =>
   filters.campaignsOnly ||
-  filters.trackedTokens.length > 0 ||
+  filters.chainIds.length > 0 ||
+  filters.trackedSymbols.length > 0 ||
   filters.whitelistedTokens.length > 0;
 
 const holdsToken = ({
@@ -27,17 +32,23 @@ const holdsToken = ({
   pool: TrackedPool;
 }) => pool.coins.some((coin) => isAddressEqual(coin.address, address));
 
-// A pool matches a dropdown when it holds any of the selected tokens, and it must
-// match every dropdown that has a selection. An empty dropdown filters nothing.
-const matchesTokens = ({
-  pool,
+const holdsSymbol = ({ pool, symbol }: { pool: TrackedPool; symbol: string }) =>
+  pool.coins.some((coin) => coin.symbol === symbol);
+
+// A pool matches a dropdown when any of its selections match, and it must match
+// every dropdown that has a selection. An empty dropdown filters nothing.
+const matchesAny = <T>({
+  matches,
   selected,
 }: {
-  pool: TrackedPool;
-  selected: Address[];
-}) =>
-  selected.length === 0 ||
-  selected.some((address) => holdsToken({ address, pool }));
+  matches: (value: T) => boolean;
+  selected: T[];
+}) => selected.length === 0 || selected.some(matches);
+
+export const chainFilterOptions = (pools: TrackedPool[]) =>
+  trackedChains
+    .filter((chain) => pools.some((pool) => pool.chainId === chain.id))
+    .map((chain) => ({ label: chain.name, value: chain.id }));
 
 export const tokenFilterOptions = ({
   pools,
@@ -57,6 +68,18 @@ export const tokenFilterOptions = ({
     .map((token) => ({ label: token.symbol, value: token.address }))
     .sort((a, b) => a.label.localeCompare(b.label));
 
+export const trackedSymbolOptions = ({
+  pools,
+  tokens,
+}: {
+  pools: TrackedPool[];
+  tokens: TrackedToken[];
+}) =>
+  [...new Set(tokens.map((token) => token.symbol))]
+    .filter((symbol) => pools.some((pool) => holdsSymbol({ pool, symbol })))
+    .map((symbol) => ({ label: symbol, value: symbol }))
+    .sort((a, b) => a.label.localeCompare(b.label));
+
 export const filterPools = ({
   campaignPoolIds,
   filters,
@@ -68,7 +91,17 @@ export const filterPools = ({
 }) =>
   pools.filter(
     (pool) =>
-      matchesTokens({ pool, selected: filters.trackedTokens }) &&
-      matchesTokens({ pool, selected: filters.whitelistedTokens }) &&
+      matchesAny({
+        matches: (chainId) => pool.chainId === chainId,
+        selected: filters.chainIds,
+      }) &&
+      matchesAny({
+        matches: (symbol) => holdsSymbol({ pool, symbol }),
+        selected: filters.trackedSymbols,
+      }) &&
+      matchesAny({
+        matches: (address) => holdsToken({ address, pool }),
+        selected: filters.whitelistedTokens,
+      }) &&
       (!filters.campaignsOnly || campaignPoolIds.includes(pool.id)),
   );

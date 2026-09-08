@@ -109,16 +109,14 @@ function LanguageRoutes() {
                 path="earn/fixed-term/:address"
               />
             )}
-            {featureFlags.variableYieldDetails && (
-              <Route
-                element={
-                  <Suspense>
-                    <VariableYieldEarnDetails />
-                  </Suspense>
-                }
-                path="earn/variable-yield/:address"
-              />
-            )}
+            <Route
+              element={
+                <Suspense>
+                  <VariableYieldEarnDetails />
+                </Suspense>
+              }
+              path="earn/variable-yield/:address"
+            />
             <Route element={<Borrow />} path="borrow" />
             <Route element={<BorrowMarketDetails />} path="borrow/:marketId" />
             <Route element={<Bridge />} path="bridge" />

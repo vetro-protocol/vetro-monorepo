@@ -1,8 +1,10 @@
 import fetch from "fetch-plus-plus";
-import { mainnet } from "viem/chains";
+
+import { trackedChains } from "../config/chains";
 
 type MerklCampaign = {
   apr: number; // %
+  campaignId: string;
   dailyRewards: number; // USD
   endTimestamp: number; // seconds
   id: string;
@@ -12,6 +14,7 @@ type MerklCampaign = {
 
 export type MerklOpportunity = {
   campaigns: MerklCampaign[];
+  chainId: number;
   id: string;
   identifier: string;
   name: string;
@@ -25,14 +28,22 @@ export const fetchLiveOpportunities = (
   identifiers: string[],
 ): Promise<MerklOpportunity[]> =>
   fetch(`${merklProxyApiUrl}/opportunities`, {
-    queryString: {
+    body: JSON.stringify({
       campaigns: true,
-      chainId: mainnet.id,
-      identifier: identifiers.join(","),
+      chainIds: trackedChains.map((chain) => chain.id),
+      identifiers,
       items: maxItems,
       status: "LIVE",
-    },
+    }),
+    headers: { "content-type": "application/json" },
+    method: "QUERY",
   });
 
-export const merklOpportunityUrl = (opportunityId: string) =>
-  `https://app.merkl.xyz/opportunities/${opportunityId}`;
+export const merklCampaignUrl = ({
+  campaignId,
+  opportunityId,
+}: {
+  campaignId: string;
+  opportunityId: string;
+}) =>
+  `https://app.merkl.xyz/opportunities/${opportunityId}/campaigns/${campaignId}`;

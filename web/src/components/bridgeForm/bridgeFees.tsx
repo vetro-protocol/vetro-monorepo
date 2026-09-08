@@ -1,14 +1,13 @@
 import type { Token } from "@vetro-protocol/core";
+import { DollarSign } from "components/base/dollarSign";
 import { FeeDetails } from "components/feeDetails";
 import { FeesContainer } from "components/feesContainer";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { formatFiatNumber } from "utils/format";
 
-const DollarSign = () => <span>$</span>;
-
 const Container = ({ children }: { children: ReactNode }) => (
-  <div className="flex items-center gap-x-1">{children}</div>
+  <div className="flex items-center">{children}</div>
 );
 
 type FeeData = {

@@ -1,6 +1,5 @@
-import { type ColumnDef } from "@tanstack/react-table";
 import { SectionHeader } from "components/base/sectionHeader";
-import { Table } from "components/base/table";
+import { Table, type TableColumnDef } from "components/base/table";
 import { Header } from "components/base/table/header";
 import { useBorrowAction } from "hooks/borrow/useBorrowAction";
 import { type MarketData, useMarketsData } from "hooks/borrow/useMarketsData";
@@ -98,7 +97,7 @@ export function PositionsTable({ marketIds }: Props) {
   );
 
   const columns = useMemo(
-    (): ColumnDef<PositionRow>[] => [
+    (): TableColumnDef<PositionRow>[] => [
       {
         cell: ({ row }) => (
           <TokenValueCell

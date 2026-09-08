@@ -1,10 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { Token } from "@vetro-protocol/core";
+import { mocked } from "storybook/test";
 import { parseUnits } from "viem";
 import { createConfig, http, WagmiProvider } from "wagmi";
 
 import { RenderFiatValue } from "../src/components/base/fiatValue";
+import { fetchPrices } from "../src/fetchers/fetchPrices";
 import { mainnet } from "../src/networks/mainnet";
 
 const usdc: Token = {
@@ -15,6 +17,8 @@ const usdc: Token = {
   name: "USD Coin",
   symbol: "USDC",
 };
+
+const prices = { USDC: "1.00" };
 
 const wagmiConfig = createConfig({
   chains: [mainnet],
@@ -28,9 +32,13 @@ const queryClient = new QueryClient({
     },
   },
 });
-queryClient.setQueryData(["prices", mainnet.id], { USDC: "1.00" });
+queryClient.setQueryData(["prices", mainnet.id], prices);
 
 const meta = {
+  beforeEach() {
+    mocked(fetchPrices).mockResolvedValue(prices);
+    return () => mocked(fetchPrices).mockReset();
+  },
   component: RenderFiatValue,
   decorators: [
     (Story) => (

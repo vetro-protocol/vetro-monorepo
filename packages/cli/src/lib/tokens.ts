@@ -111,10 +111,24 @@ export const resolveWhitelistedToken = async ({
     value,
   });
 
+export const resolvePeggedToken = async ({
+  client,
+  value,
+}: {
+  client: Client;
+  value: string;
+}) =>
+  resolveCandidate({
+    candidates: await getPeggedCandidates(client),
+    client,
+    kind: "pegged",
+    value,
+  });
+
 /**
  * Resolves either side of a swap by symbol or address: a whitelisted token,
  * spent by the gateway on swap-in, or a pegged token, spent by the gateway on
- * a one-step swap-out.
+ * swap-out.
  */
 export async function resolveSwapToken({
   client,
@@ -135,7 +149,7 @@ export async function resolveSwapToken({
   });
 }
 
-export async function resolvePeggedToken({
+export async function getGatewayPeggedToken({
   client,
   gatewayAddress,
 }: {

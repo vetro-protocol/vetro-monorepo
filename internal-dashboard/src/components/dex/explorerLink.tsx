@@ -1,22 +1,28 @@
 import { type Address } from "viem";
-import { mainnet } from "viem/chains";
 
+import { getTrackedChain } from "../../config/chains";
 import { shortenAddress } from "../../lib/format";
 
 import { ExternalLink } from "./externalLink";
 
 type Props = {
   address: Address;
+  chainId: number;
 };
 
-const explorerAddressUrl = (address: Address) =>
-  `${mainnet.blockExplorers.default.url}/address/${address}`;
+export const ExplorerLink = function ({ address, chainId }: Props) {
+  const explorerUrl = getTrackedChain(chainId)?.blockExplorers.default.url;
 
-export const ExplorerLink = ({ address }: Props) => (
-  <ExternalLink
-    className="font-medium text-blue-600 hover:underline"
-    href={explorerAddressUrl(address)}
-  >
-    {shortenAddress(address)}
-  </ExternalLink>
-);
+  if (!explorerUrl) {
+    return <span className="text-neutral-600">{shortenAddress(address)}</span>;
+  }
+
+  return (
+    <ExternalLink
+      className="font-medium text-blue-600 hover:underline"
+      href={`${explorerUrl}/address/${address}`}
+    >
+      {shortenAddress(address)}
+    </ExternalLink>
+  );
+};

@@ -1,12 +1,11 @@
 import { useConnectModal } from "@rainbow-me/rainbowkit";
-import { type ColumnDef } from "@tanstack/react-table";
 import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { Badge } from "components/base/badge";
 import { Button } from "components/base/button";
 import { FilterMenu } from "components/base/filterMenu";
 import { SectionHeader } from "components/base/sectionHeader";
 import { StatusBadge } from "components/base/statusBadge";
-import { Table } from "components/base/table";
+import { Table, type TableColumnDef } from "components/base/table";
 import { Header } from "components/base/table/header";
 import { Toast } from "components/base/toast";
 import { Tooltip } from "components/tooltip";
@@ -45,7 +44,7 @@ export const getColumns = ({
   onDeleteSuccess: VoidFunction;
   onWithdrawingChange: (isWithdrawing: boolean) => void;
   t: ReturnType<typeof useTranslation>["t"];
-}): ColumnDef<ExitTicket>[] => [
+}): TableColumnDef<ExitTicket>[] => [
   {
     cell: ({ row }) => <DateCreatedCell ticket={row.original} />,
     header: () => (

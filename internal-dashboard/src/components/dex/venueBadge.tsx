@@ -2,6 +2,7 @@ import { type Dex, dexLabels } from "../../config/dexes";
 
 // Per-venue pill so pools are scannable by DEX in the list and on the details page.
 const styles: Record<Dex, string> = {
+  brownfi: "bg-amber-50 text-amber-800 ring-amber-700/20",
   curve: "bg-blue-50 text-blue-700 ring-blue-600/20",
   sushi: "bg-pink-50 text-pink-700 ring-pink-600/20",
   uniswap: "bg-fuchsia-50 text-fuchsia-700 ring-fuchsia-600/20",

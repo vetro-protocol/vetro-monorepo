@@ -1,7 +1,12 @@
 import type { Token } from "@vetro-protocol/core";
 import { RenderCryptoValue } from "components/base/cryptoValue";
+import { DollarSign } from "components/base/dollarSign";
 import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { RenderFiatValue } from "components/base/fiatValue";
+import {
+  TokenInteraction,
+  TokenInteractionList,
+} from "components/base/tokenInteraction";
 import { VerticalStepper, stepStatus } from "components/base/verticalStepper";
 import { DrawerFeesContainer } from "components/feesContainer";
 import { NetworkFees } from "components/networkFees";
@@ -12,9 +17,7 @@ import Skeleton from "react-loading-skeleton";
 import type { TokenWithGateway } from "types";
 import type { Address } from "viem";
 
-import type { WithdrawStep } from "../stakeDrawer/stakeDrawerReducer";
-
-import { ProgressAmount } from "./progressAmount";
+import type { WithdrawStep } from "./stakeFormReducer";
 
 type SummaryProps = {
   amount: string;
@@ -107,9 +110,16 @@ function InstantWithdrawSummary({
   const { data: sharesBurned, status: sharesBurnedStatus } =
     useVaultPreviewWithdraw({ assets, stakingVaultAddress });
 
+  const fiatDetail = (
+    <>
+      <DollarSign />
+      <RenderFiatValue token={peggedToken} value={assets} />
+    </>
+  );
+
   return (
     <>
-      <ProgressAmount
+      <TokenInteraction
         amount={
           <RenderCryptoValue
             status={sharesBurnedStatus}
@@ -117,13 +127,13 @@ function InstantWithdrawSummary({
             value={sharesBurned}
           />
         }
-        fiatValue={<RenderFiatValue token={peggedToken} value={assets} />}
+        detail={fiatDetail}
         label={t("pages.earn.stake.you-will-unstake-estimated")}
         token={shareToken}
       />
-      <ProgressAmount
+      <TokenInteraction
         amount={amount}
-        fiatValue={<RenderFiatValue token={peggedToken} value={assets} />}
+        detail={fiatDetail}
         label={t("pages.earn.stake.you-will-receive")}
         token={peggedToken}
       />
@@ -140,9 +150,14 @@ function QueuedWithdrawSummary({
   const { t } = useTranslation();
 
   return (
-    <ProgressAmount
+    <TokenInteraction
       amount={amount}
-      fiatValue={<RenderFiatValue token={peggedToken} value={assets} />}
+      detail={
+        <>
+          <DollarSign />
+          <RenderFiatValue token={peggedToken} value={assets} />
+        </>
+      }
       label={t("pages.earn.stake.you-are-requesting-to-withdraw")}
       subtitle={
         cooldownDays !== undefined ? (
@@ -179,7 +194,7 @@ export function StakeWithdrawProgressDrawer({
     <div className="flex h-full flex-col">
       <DrawerTitle>{t("pages.earn.stake.withdraw-in-progress")}</DrawerTitle>
 
-      <div className="flex flex-col gap-10 border-y border-gray-200 bg-gray-50 p-6">
+      <TokenInteractionList>
         {canInstantWithdraw ? (
           <InstantWithdrawSummary
             amount={amount}
@@ -196,7 +211,7 @@ export function StakeWithdrawProgressDrawer({
             peggedToken={peggedToken}
           />
         )}
-      </div>
+      </TokenInteractionList>
 
       <DrawerFeesContainer>
         <NetworkFees networkFee={networkFee} />

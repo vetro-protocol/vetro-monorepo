@@ -1,5 +1,6 @@
 import type { FetchStatus, QueryStatus } from "@tanstack/react-query";
 import type { Token } from "@vetro-protocol/core";
+import { DollarSign } from "components/base/dollarSign";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { FeeDetails } from "components/feeDetails";
 import { FeesContainer } from "components/feesContainer";
@@ -8,8 +9,6 @@ import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { formatFiatNumber } from "utils/format";
 import { getNativeToken } from "utils/nativeToken";
-
-const DollarSign = () => <span>$</span>;
 
 type FeeData = {
   data: bigint | undefined;
@@ -33,7 +32,7 @@ type Props = {
 };
 
 const Container = ({ children }: { children: ReactNode }) => (
-  <div className="flex items-center gap-x-1">{children}</div>
+  <div className="flex items-center">{children}</div>
 );
 
 export const SwapFees = function ({

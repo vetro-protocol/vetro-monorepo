@@ -69,13 +69,18 @@ export const useClaimWithdraw = function ({
         onStatusChange("claiming");
       });
 
-      emitter.on("user-signing-claim-withdraw-error", function () {
+      const markFailed = function () {
         onStatusChange("failed");
-      });
+      };
+
+      emitter.on("user-signing-claim-withdraw-error", markFailed);
+      emitter.on("claim-withdraw-failed", markFailed);
+      emitter.on("claim-withdraw-failed-validation", markFailed);
+      emitter.on("unexpected-error", markFailed);
 
       emitter.on("claim-withdraw-transaction-reverted", function (receipt) {
         updateNativeBalanceAfterReceipt(receipt);
-        onStatusChange("failed");
+        markFailed();
       });
 
       emitter.on("claim-withdraw-transaction-succeeded", function (receipt) {

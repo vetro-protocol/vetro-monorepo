@@ -1,5 +1,6 @@
 import { Badge } from "components/base/badge";
 import { RenderCryptoValue } from "components/base/cryptoValue";
+import { DollarSign } from "components/base/dollarSign";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { InfoCard } from "components/base/infoCard";
 import { BoltIcon } from "components/icons/boltIcon";
@@ -28,7 +29,7 @@ export function MarketInfoCards({ market }: { market: MarketData }) {
             label={t("pages.borrow.pool-size")}
             render={(collateralAssets) => (
               <>
-                <span className="mr-1">$</span>
+                <DollarSign />
                 <RenderFiatValue
                   token={market.collateralToken}
                   value={collateralAssets}
@@ -55,7 +56,7 @@ export function MarketInfoCards({ market }: { market: MarketData }) {
             label={t("pages.borrow.available-to-borrow")}
             render={(liquidity) => (
               <>
-                <span className="mr-1">$</span>
+                <DollarSign />
                 <RenderFiatValue token={market.loanToken} value={liquidity} />
               </>
             )}

@@ -16,7 +16,7 @@ import {
   type TransactionRequest,
   swapAmount,
   createClients,
-  gatewayAbi,
+  depositAbi,
   mintArgs,
   runCli,
   runCliRaw,
@@ -63,7 +63,7 @@ describe("swap mint", function () {
       mintOnFork(["--slippage", slippage]),
     );
     const { args } = decodeFunctionData({
-      abi: gatewayAbi,
+      abi: depositAbi,
       data: request.data,
     });
     const [tokenIn, amountIn, minPeggedTokenOut, receiver] = args;
@@ -78,7 +78,7 @@ describe("swap mint", function () {
   it("requires the full preview when --slippage is omitted", async function () {
     const request = await runCli<TransactionRequest>(mintOnFork());
     const { args } = decodeFunctionData({
-      abi: gatewayAbi,
+      abi: depositAbi,
       data: request.data,
     });
     // Read independently of the CLI, to check its slippage math against the source.
@@ -95,7 +95,7 @@ describe("swap mint", function () {
       mintOnFork(["--to", vusd.symbol]),
     );
     const { args } = decodeFunctionData({
-      abi: gatewayAbi,
+      abi: depositAbi,
       data: request.data,
     });
     const [tokenIn, amountIn, , receiver] = args;

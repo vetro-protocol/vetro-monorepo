@@ -44,7 +44,7 @@ const RenderFiatValueUnsafe = function ({
   }
 
   // Loading state (either balance or prices are loading)
-  return <Skeleton className="h-full" containerClassName="w-8" />;
+  return <Skeleton inline width={32} />;
 };
 
 export const RenderFiatValue = (

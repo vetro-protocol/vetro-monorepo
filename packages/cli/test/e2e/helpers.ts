@@ -3,7 +3,12 @@ import {
   TEST_PRIVATE_KEY,
 } from "@hemilabs/anvil-fork-setup/utils";
 import { gatewayAbi as vetroGatewayAbi } from "@vetro-protocol/gateway";
-import { getMaxMint, getTreasury } from "@vetro-protocol/gateway/actions";
+import {
+  getMaxMint,
+  getTreasury,
+  getWithdrawalDelayEnabled,
+  isInstantRedeemWhitelisted,
+} from "@vetro-protocol/gateway/actions";
 import { getKeeperRole } from "@vetro-protocol/treasury/actions";
 import { type Command, CommanderError } from "commander";
 import {
@@ -61,8 +66,12 @@ export type TransactionRequest = {
   value: Hex;
 };
 
-export const gatewayAbi = parseAbi([
+export const depositAbi = parseAbi([
   "function deposit(address tokenIn, uint256 amountIn, uint256 minPeggedTokenOut, address receiver)",
+]);
+
+export const requestRedeemAbi = parseAbi([
+  "function requestRedeem(uint256 peggedTokenAmount)",
 ]);
 
 export const swapAmount = "100";
@@ -77,6 +86,16 @@ export const mintArgs = (extra: string[] = []) => [
   swapAmount,
   "--receiver",
   TEST_ADDRESS,
+  ...extra,
+];
+
+export const sendToQueueArgs = (extra: string[] = []) => [
+  "swap",
+  "send-to-queue",
+  "--from",
+  vusd.symbol,
+  "--amount",
+  swapAmount,
   ...extra,
 ];
 
@@ -329,14 +348,10 @@ const maintainerRoleAbi = parseAbi([
   "function MAINTAINER_ROLE() view returns (bytes32)",
 ]);
 
-export const setWithdrawalDelay = async function ({
-  delay,
-  enabled,
+const impersonateMaintainer = async function ({
   gateway,
   rpcUrl,
 }: {
-  delay: bigint;
-  enabled: boolean;
   gateway: Address;
   rpcUrl: string;
 }) {
@@ -378,29 +393,113 @@ export const setWithdrawalDelay = async function ({
         }),
       });
     }
+  } catch (error) {
+    await stopImpersonatingAccount(testClient, { address: admin });
+    throw error;
+  }
+  return admin;
+};
+
+export const setWithdrawalDelay = async function ({
+  delay,
+  enabled,
+  gateway,
+  rpcUrl,
+}: {
+  delay?: bigint;
+  enabled: boolean;
+  gateway: Address;
+  rpcUrl: string;
+}) {
+  const { publicClient, testClient } = createClients(rpcUrl);
+  const maintainer = await impersonateMaintainer({ gateway, rpcUrl });
+
+  try {
+    // updateWithdrawalDelay reverts on 0, so only write a delay the caller gave.
+    if (delay !== undefined) {
+      await confirmWrite({
+        client: publicClient,
+        hash: await writeContract(testClient, {
+          abi: vetroGatewayAbi,
+          account: maintainer,
+          address: gateway,
+          args: [delay],
+          functionName: "updateWithdrawalDelay",
+        }),
+      });
+    }
     await confirmWrite({
       client: publicClient,
       hash: await writeContract(testClient, {
         abi: vetroGatewayAbi,
-        account: admin,
-        address: gateway,
-        args: [delay],
-        functionName: "updateWithdrawalDelay",
-      }),
-    });
-    await confirmWrite({
-      client: publicClient,
-      hash: await writeContract(testClient, {
-        abi: vetroGatewayAbi,
-        account: admin,
+        account: maintainer,
         address: gateway,
         args: [enabled],
         functionName: "setWithdrawalDelayEnabled",
       }),
     });
   } finally {
-    await stopImpersonatingAccount(testClient, { address: admin });
+    await stopImpersonatingAccount(testClient, { address: maintainer });
   }
+};
+
+/** Adds an account to the gateway's instant-redeem whitelist, or removes it. */
+export const setInstantRedeemWhitelisted = async function ({
+  account,
+  gateway,
+  rpcUrl,
+  whitelisted,
+}: {
+  account: Address;
+  gateway: Address;
+  rpcUrl: string;
+  whitelisted: boolean;
+}) {
+  const { publicClient, testClient } = createClients(rpcUrl);
+  // Both writes revert when the account is already in the wanted state.
+  const isWhitelisted = await isInstantRedeemWhitelisted(publicClient, {
+    account,
+    address: gateway,
+  });
+  if (isWhitelisted === whitelisted) {
+    return;
+  }
+
+  const maintainer = await impersonateMaintainer({ gateway, rpcUrl });
+  try {
+    await confirmWrite({
+      client: publicClient,
+      hash: await writeContract(testClient, {
+        abi: vetroGatewayAbi,
+        account: maintainer,
+        address: gateway,
+        args: [account],
+        functionName: whitelisted
+          ? "addToInstantRedeemWhitelist"
+          : "removeFromInstantRedeemWhitelist",
+      }),
+    });
+  } finally {
+    await stopImpersonatingAccount(testClient, { address: maintainer });
+  }
+};
+
+/** Turns the gateway's redeem queue on or off, and returns a restore for its previous state. */
+export const setRedeemQueueEnabled = async function ({
+  enabled,
+  gateway,
+  rpcUrl,
+}: {
+  enabled: boolean;
+  gateway: Address;
+  rpcUrl: string;
+}) {
+  const { publicClient } = createClients(rpcUrl);
+  const enabledBefore = await getWithdrawalDelayEnabled(publicClient, {
+    address: gateway,
+  });
+  await setWithdrawalDelay({ enabled, gateway, rpcUrl });
+  return () => setWithdrawalDelay({ enabled: enabledBefore, gateway, rpcUrl });
 };
 
 /** Broadcasts a TransactionRequest the CLI emitted, exactly as an agent would. */

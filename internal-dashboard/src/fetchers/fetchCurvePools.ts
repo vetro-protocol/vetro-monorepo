@@ -1,4 +1,5 @@
 import { getAddress } from "viem";
+import { mainnet } from "viem/chains";
 
 import { fetchAllPools, fetchVolumes } from "../lib/curveApi";
 import { normalizeAddress } from "../lib/format";
@@ -47,6 +48,7 @@ export const fetchCurvePools = async function (
       return {
         address,
         baseApy,
+        chainId: mainnet.id,
         coins,
         dex: "curve",
         gaugeAddress: normalizeAddress(pool.gaugeAddress),
