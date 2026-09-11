@@ -161,6 +161,7 @@ export function StakeDepositForm({
     function handleDepositStepChange(step: DepositStep) {
       onDepositStepChange(step);
       const handlers: Partial<Record<DepositStep, () => void>> = {
+        "approve-failed": onFailed,
         completed: onCompleted,
         "deposit-failed": onFailed,
         depositing: onPending,
@@ -184,12 +185,20 @@ export function StakeDepositForm({
   const depositMutation = useStakeDeposit({
     approveAmount,
     assets: amountBigInt,
+    needsApproval,
     onStatusChange: handleDepositStepChange,
     onSuccess: handleDepositSuccess,
     onTransactionHash,
     peggedToken,
     stakingVaultAddress,
   });
+
+  function handleRetry() {
+    onDepositStepChange(
+      depositStep === "approve-failed" ? "approving" : "depositing",
+    );
+    depositMutation.mutate();
+  }
 
   const depositFeesQuery = useTotalDepositFees({
     amount: amountBigInt,
@@ -309,6 +318,12 @@ export function StakeDepositForm({
               depositStep={depositStep}
               needsApproval={needsApproval}
               networkFee={depositFeesQuery}
+              onRetry={
+                depositStep === "approve-failed" ||
+                depositStep === "deposit-failed"
+                  ? handleRetry
+                  : undefined
+              }
               peggedToken={peggedToken}
               shareToken={shareToken}
               stakingVaultAddress={stakingVaultAddress}
