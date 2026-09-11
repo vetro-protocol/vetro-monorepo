@@ -29,9 +29,17 @@ export function register(swap: Command) {
         client,
         value: options.from,
       });
+
+      const amountIn = parseUnits(options.amount, tokenIn.decimals);
+      if (amountIn === 0n) {
+        throw new Error(
+          `Amount is below one unit of "${options.from}": it rounds down to 0`,
+        );
+      }
+
       const peggedTokenOut = await previewDeposit(client, {
         address: tokenIn.gatewayAddress,
-        amountIn: parseUnits(options.amount, tokenIn.decimals),
+        amountIn,
         tokenIn: tokenIn.address,
       });
       printResult(peggedTokenOut);

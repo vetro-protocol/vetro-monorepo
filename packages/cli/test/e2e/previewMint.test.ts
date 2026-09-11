@@ -54,6 +54,16 @@ describe("swap preview-mint", function () {
     },
   );
 
+  it("rejects an amount that rounds down to zero", async function () {
+    const { exitCode, stderr } = await runCliRaw(
+      previewMintOnFork(["--from", usdc.symbol, "--amount", "0.0000001"]),
+    );
+    expect(exitCode).toBe(1);
+    expect(JSON.parse(stderr).error).toBe(
+      `Amount is below one unit of "${usdc.symbol}": it rounds down to 0`,
+    );
+  });
+
   it.for(["0", "abc", "-1"])(
     "rejects --amount %s as a usage error",
     async function (amount) {
