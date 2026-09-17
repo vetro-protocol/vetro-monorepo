@@ -1,0 +1,155 @@
+import type { Market } from "@morpho-org/blue-sdk";
+import { describe, expect, it, vi } from "vitest";
+
+import {
+  getEffectiveRepaymentAssets,
+  getMaxRepayable,
+  getRepayApprovalAmount,
+  getRepayPositionArgs,
+  getRepayShares,
+} from "../../src/utils/repay";
+
+describe("getRepayShares", function () {
+  const repayment = {
+    borrowAssets: 1000n,
+    borrowShares: 500n,
+    loanTokenBalance: 1010n,
+  };
+
+  it("returns the borrow shares for a full repayment", function () {
+    expect(
+      getRepayShares({
+        ...repayment,
+        amount: 1000n,
+      }),
+    ).toBe(repayment.borrowShares);
+  });
+
+  it("keeps a partial repayment asset-based", function () {
+    expect(
+      getRepayShares({
+        ...repayment,
+        amount: 995n,
+      }),
+    ).toBeUndefined();
+  });
+
+  it("does not use shares when the wallet has no buffer headroom", function () {
+    expect(
+      getRepayShares({
+        ...repayment,
+        amount: 1000n,
+        loanTokenBalance: 1000n,
+      }),
+    ).toBeUndefined();
+  });
+
+  it("does not use shares when the wallet cannot cover the debt", function () {
+    expect(
+      getRepayShares({
+        ...repayment,
+        amount: 1000n,
+        loanTokenBalance: 999n,
+      }),
+    ).toBeUndefined();
+  });
+});
+
+describe("getRepayApprovalAmount", function () {
+  it("uses the input amount for an asset-based repayment", function () {
+    expect(
+      getRepayApprovalAmount({
+        amount: 100n,
+        loanTokenBalance: 1000n,
+        shares: undefined,
+      }),
+    ).toBe(100n);
+  });
+
+  it("adds a small buffer for a share-based repayment", function () {
+    expect(
+      getRepayApprovalAmount({
+        amount: 1000n,
+        loanTokenBalance: 10_000n,
+        shares: 500n,
+      }),
+    ).toBe(1010n);
+  });
+
+  it("caps the share-based approval at the wallet balance", function () {
+    expect(
+      getRepayApprovalAmount({
+        amount: 1000n,
+        loanTokenBalance: 1005n,
+        shares: 500n,
+      }),
+    ).toBe(1005n);
+  });
+});
+
+describe("getEffectiveRepaymentAssets", function () {
+  it("caps repayment assets at the cached total borrow assets", function () {
+    expect(
+      getEffectiveRepaymentAssets({
+        assets: 1001n,
+        totalBorrowAssets: 1000n,
+      }),
+    ).toBe(1000n);
+  });
+
+  it("keeps repayment assets below the cached total unchanged", function () {
+    expect(
+      getEffectiveRepaymentAssets({
+        assets: 900n,
+        totalBorrowAssets: 1000n,
+      }),
+    ).toBe(900n);
+  });
+});
+
+describe("getMaxRepayable", function () {
+  it("uses the market repayment capacity", function () {
+    const getRepayCapacityLimit = vi.fn().mockReturnValue({ value: 900n });
+
+    expect(
+      getMaxRepayable({
+        borrowShares: 500n,
+        loanTokenBalance: 1000n,
+        market: { getRepayCapacityLimit } as unknown as Market,
+      }),
+    ).toBe(900n);
+    expect(getRepayCapacityLimit).toHaveBeenCalledWith(500n, 1000n);
+  });
+
+  it("waits for the repayment data before enabling MAX", function () {
+    expect(
+      getMaxRepayable({
+        borrowShares: undefined,
+        loanTokenBalance: 1000n,
+        market: undefined,
+      }),
+    ).toBeUndefined();
+  });
+});
+
+describe("getRepayPositionArgs", function () {
+  it("uses assets only for an asset-based repayment", function () {
+    expect(
+      getRepayPositionArgs({
+        assets: 100n,
+        repayShares: undefined,
+        shares: 50n,
+      }),
+    ).toEqual({ assets: 100n, shares: 0n });
+  });
+
+  it("uses shares only for a share-based repayment", function () {
+    expect(
+      getRepayPositionArgs({
+        assets: 100n,
+        repayShares: 50n,
+        shares: 50n,
+      }),
+    ).toEqual({ assets: 0n, shares: 50n });
+  });
+});
