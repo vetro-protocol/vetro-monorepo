@@ -157,14 +157,20 @@ const fetchSushiPool = async function ({
     return [fullEntry];
   }
   // With no swap before the window, measure from the first swap: the pool may
-  // not have existed earlier.
+  // not have existed earlier. That swap's start tick is unknown, so its volume
+  // isn't counted.
+  const openingSwap =
+    poolSwaps.startTick === undefined ? poolSwaps.swaps[0] : undefined;
   const opening =
     poolSwaps.startTick !== undefined
       ? { tick: poolSwaps.startTick, timestamp: sinceSeconds }
-      : (poolSwaps.swaps[0] ?? {
+      : (openingSwap ?? {
           tick: poolState.currentTick,
           timestamp: sinceSeconds,
         });
+  const measuredSwaps = openingSwap
+    ? poolSwaps.swaps.slice(1)
+    : poolSwaps.swaps;
 
   // Each configured band: how much of the pool's liquidity sits within it.
   const rangeEntries = ranges.map(function (range) {
@@ -178,7 +184,7 @@ const fetchSushiPool = async function ({
       lowerTick: priceToTick({ ...decimals, price: range.lowerPrice }),
       nowSeconds,
       opening,
-      swaps: poolSwaps.swaps,
+      swaps: measuredSwaps,
       upperTick: priceToTick({ ...decimals, price: range.upperPrice }),
     });
     const coins = buildCoins({

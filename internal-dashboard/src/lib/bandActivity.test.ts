@@ -91,13 +91,12 @@ describe("bandActivity", function () {
   });
 
   it("measures time from the opening, not the window start", function () {
-    const firstSwap = { tick: 0, timestamp: 600, volumeUsd: 40 };
     expect(
       bandActivity({
         ...band,
-        opening: firstSwap,
-        swaps: [firstSwap, { tick: 500, timestamp: 800, volumeUsd: 40 }],
+        opening: { tick: 0, timestamp: 600 },
+        swaps: [{ tick: 500, timestamp: 800, volumeUsd: 40 }],
       }),
-    ).toEqual({ timeShare: 0.5, volumeShare: 0.6 });
+    ).toEqual({ timeShare: 0.5, volumeShare: 0.2 });
   });
 });
