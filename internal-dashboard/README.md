@@ -29,7 +29,7 @@ For the deployed dashboard, set the production values as Cloudflare Workers Buil
 
 ### Worker secrets
 
-`THEGRAPH_API_KEY` is a The Graph gateway key, used to read the BrownFi subgraph.
+`THEGRAPH_API_KEY` is a The Graph gateway key, used to read the BrownFi and Sushi subgraphs.
 For development, put it in `internal-dashboard/.dev.vars` (gitignored):
 
 ```ini

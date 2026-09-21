@@ -274,9 +274,7 @@ export const DexPoolPage = function () {
     );
   }
 
-  // The volume / fees / APY cards apply to any full pool; range views are
-  // sub-slices of one pool, so they'd double-count and are hidden. The gauge
-  // section stays Curve-only — Sushi has no gauge.
+  // The gauge section stays Curve-only — Sushi has no gauge.
   const isCurve = pool.dex === "curve";
 
   return (
@@ -313,30 +311,26 @@ export const DexPoolPage = function () {
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         <StatCard label="TVL" value={formatOptionalUsd(pool.tvlUsd)} />
-        {!pool.isRangeView ? (
-          <>
-            <StatCard label="24h Volume" value={formatUsd(pool.volumeUsd24h)} />
-            <FeesCard pool={pool} />
-            <StatCard
-              hint={`${formatOptionalPercent(pool.baseApy)} base + ${formatPercent(pool.rewardApy)} rewards`}
-              label="APY"
-              value={formatOptionalPercent(
-                pool.baseApy === undefined
-                  ? undefined
-                  : pool.baseApy + pool.rewardApy,
-              )}
-            />
-            <StatCard
-              hint="24h volume / TVL"
-              label="Liquidity utilization"
-              value={
-                pool.tvlUsd
-                  ? formatPercent((pool.volumeUsd24h / pool.tvlUsd) * 100)
-                  : "—"
-              }
-            />
-          </>
-        ) : null}
+        <StatCard label="24h Volume" value={formatUsd(pool.volumeUsd24h)} />
+        <FeesCard pool={pool} />
+        <StatCard
+          hint={`${formatOptionalPercent(pool.baseApy)} base + ${formatPercent(pool.rewardApy)} rewards`}
+          label="APY"
+          value={formatOptionalPercent(
+            pool.baseApy === undefined
+              ? undefined
+              : pool.baseApy + pool.rewardApy,
+          )}
+        />
+        <StatCard
+          hint="24h volume / TVL"
+          label="Liquidity utilization"
+          value={
+            pool.tvlUsd
+              ? formatPercent((pool.volumeUsd24h / pool.tvlUsd) * 100)
+              : "—"
+          }
+        />
         <ExchangeRateCard pool={pool} />
       </div>
 

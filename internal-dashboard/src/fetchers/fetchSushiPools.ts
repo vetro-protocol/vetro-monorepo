@@ -1,8 +1,10 @@
 import { mainnet } from "viem/chains";
 
 import { type SushiPoolConfig, sushiPools } from "../config/sushiPools";
+import { bandActivity } from "../lib/bandActivity";
 import { poolTvlUsd } from "../lib/poolMetrics";
 import { fetchSushiPoolData, type SushiToken } from "../lib/sushiApi";
+import { fetchPoolSwaps } from "../lib/sushiSubgraph";
 import { type PoolCoin, type TrackedPool } from "../lib/types";
 import { fetchV3PoolState } from "../lib/v3PoolState";
 import { computeBandAmounts, priceToTick } from "../lib/v3PositionMath";
@@ -29,7 +31,9 @@ const buildCoins = ({
 // identity, balances, TVL, prices, 24h volume / fees / APR. A configured price
 // band additionally needs the pool's liquidity spread across ticks, which no data
 // API publishes, so that much is read on-chain (lib/v3PoolState) and turned into
-// token amounts with Uniswap's own Position math (lib/v3PositionMath). USD prices
+// token amounts with Uniswap's own Position math (lib/v3PositionMath). A band's
+// part of the 24h volume, fees and incentives comes from the price path of the
+// pool's swaps (lib/sushiSubgraph, lib/bandActivity). USD prices
 // anchor the reference leg (the non-tracked stable) at $1 and take the tracked
 // leg's price from the pool rate. Gauge emissions aren't a Sushi concept, so that
 // stays unset.
@@ -64,24 +68,34 @@ const fetchSushiPool = async function ({
     id,
     isRangeView,
     rangeLabel,
+    timeShare = 1,
     tvlUsd,
+    volumeShare = 1,
   }: {
     coins: PoolCoin[];
     id: string;
     isRangeView?: boolean;
     rangeLabel: string;
+    timeShare?: number;
     tvlUsd: number | undefined;
+    volumeShare?: number;
   }): TrackedPool {
-    // Volume / fees / APR are whole-pool metrics, so range views (sub-slices of
-    // the same pool) drop them to avoid double-counting.
-    const metrics = isRangeView ? undefined : data;
+    const feesUsd24h = data.feesUsd24h * volumeShare;
+    const rewardApy = tvlUsd
+      ? data.rewardApy * (data.liquidityUsd / tvlUsd) * timeShare
+      : 0;
     return {
       address: pool.address,
-      baseApy: metrics?.baseApy ?? 0,
+      baseApy:
+        tvlUsd === undefined
+          ? undefined
+          : tvlUsd > 0
+            ? ((feesUsd24h * 365) / tvlUsd) * 100
+            : 0,
       chainId: mainnet.id,
       coins,
       dex: "sushi",
-      feesUsd24h: metrics?.feesUsd24h ?? 0,
+      feesUsd24h,
       gaugeAddress: undefined,
       id,
       isRangeView,
@@ -89,12 +103,12 @@ const fetchSushiPool = async function ({
       name: data.name,
       poolType: isRangeView ? `${baseType} · ${rangeLabel}` : baseType,
       rangeLabel,
-      rewardApy: metrics?.rewardApy ?? 0,
-      rewardApyMax: metrics?.rewardApy ?? 0,
+      rewardApy,
+      rewardApyMax: rewardApy,
       tvlUsd,
       url,
       virtualPrice: 0,
-      volumeUsd24h: metrics?.volumeUsd24h ?? 0,
+      volumeUsd24h: data.volumeUsd24h * volumeShare,
     };
   };
 
@@ -118,18 +132,39 @@ const fetchSushiPool = async function ({
     decimals0: data.token0.decimals,
     decimals1: data.token1.decimals,
   };
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  const sinceSeconds = nowSeconds - 24 * 60 * 60;
   // One read spanning every configured band, so they all value the same snapshot.
-  const poolState = await fetchV3PoolState({
-    lowerTick: priceToTick({
-      ...decimals,
-      price: Math.min(...ranges.map((range) => range.lowerPrice)),
+  const [poolState, poolSwaps] = await Promise.all([
+    fetchV3PoolState({
+      lowerTick: priceToTick({
+        ...decimals,
+        price: Math.min(...ranges.map((range) => range.lowerPrice)),
+      }),
+      poolAddress: pool.address,
+      upperTick: priceToTick({
+        ...decimals,
+        price: Math.max(...ranges.map((range) => range.upperPrice)),
+      }),
     }),
-    poolAddress: pool.address,
-    upperTick: priceToTick({
-      ...decimals,
-      price: Math.max(...ranges.map((range) => range.upperPrice)),
-    }),
-  });
+    fetchPoolSwaps({ poolAddress: pool.address, sinceSeconds }).catch(
+      () => undefined,
+    ),
+  ]);
+  // Without the swaps there's no telling what traded inside a band, so list the
+  // full pool alone rather than bands with made-up activity.
+  if (!poolSwaps) {
+    return [fullEntry];
+  }
+  // With no swap before the window, measure from the first swap: the pool may
+  // not have existed earlier.
+  const opening =
+    poolSwaps.startTick !== undefined
+      ? { tick: poolSwaps.startTick, timestamp: sinceSeconds }
+      : (poolSwaps.swaps[0] ?? {
+          tick: poolState.currentTick,
+          timestamp: sinceSeconds,
+        });
 
   // Each configured band: how much of the pool's liquidity sits within it.
   const rangeEntries = ranges.map(function (range) {
@@ -138,6 +173,13 @@ const fetchSushiPool = async function ({
       ...poolState,
       lowerPrice: range.lowerPrice,
       upperPrice: range.upperPrice,
+    });
+    const { timeShare, volumeShare } = bandActivity({
+      lowerTick: priceToTick({ ...decimals, price: range.lowerPrice }),
+      nowSeconds,
+      opening,
+      swaps: poolSwaps.swaps,
+      upperTick: priceToTick({ ...decimals, price: range.upperPrice }),
     });
     const coins = buildCoins({
       balances: [amount0, amount1],
@@ -149,7 +191,9 @@ const fetchSushiPool = async function ({
       id: `${pool.address}-${range.lowerPrice}-${range.upperPrice}`,
       isRangeView: true,
       rangeLabel: `$${range.lowerPrice}–$${range.upperPrice}`,
+      timeShare,
       tvlUsd: poolTvlUsd(coins),
+      volumeShare,
     });
   });
 
