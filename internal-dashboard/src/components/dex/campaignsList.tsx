@@ -205,7 +205,7 @@ export const CampaignsList = function ({ poolId }: { poolId: string }) {
         No reward campaigns are running on this pool.
       </p>
     ) : (
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         {campaigns.map((campaign) => (
           <CampaignCard
             campaign={campaign}
