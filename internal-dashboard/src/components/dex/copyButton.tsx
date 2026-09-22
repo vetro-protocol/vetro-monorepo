@@ -36,6 +36,9 @@ export const CopyButton = function ({ text }: Props) {
       >
         <CopyIcon />
       </button>
+      <span aria-live="polite" className="sr-only">
+        {copied ? "Copied!" : ""}
+      </span>
     </Tooltip>
   );
 };
