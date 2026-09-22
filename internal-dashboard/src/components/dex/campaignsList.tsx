@@ -5,6 +5,7 @@ import {
   campaignSourceLabels,
 } from "../../config/campaignSources";
 import { usePoolCampaigns } from "../../hooks/usePoolCampaigns";
+import { useStakeDaoStrategyKey } from "../../hooks/useStakeDaoStrategyKey";
 import { endingSoonTooltip, endsSoon } from "../../lib/campaigns";
 import {
   formatDuration,
@@ -12,6 +13,7 @@ import {
   formatPrice,
   formatUsd,
 } from "../../lib/format";
+import { strategyUrl } from "../../lib/stakeDaoApi";
 import {
   type MerklPoolCampaign,
   type PoolCampaign,
@@ -21,6 +23,7 @@ import { CircleWarningIcon } from "../icons/circleWarningIcon";
 import { Tooltip } from "../tooltip";
 
 import { CampaignSourceBadge } from "./campaignSourceBadge";
+import { CopyButton } from "./copyButton";
 import { ExternalLink } from "./externalLink";
 
 const Metric = ({
@@ -57,15 +60,15 @@ const TimeLeftMetric = ({ secondsLeft }: { secondsLeft: number }) => (
 );
 
 const CampaignHeader = ({
+  link,
   source,
   subtitle,
   title,
-  url,
 }: {
+  link: { label: string; url: string } | undefined;
   source: CampaignSource;
   subtitle: string;
   title: string;
-  url: string;
 }) => (
   <div className="flex items-start justify-between gap-x-3">
     <div className="min-w-0">
@@ -74,12 +77,17 @@ const CampaignHeader = ({
     </div>
     <span className="flex shrink-0 items-center gap-x-1.5">
       <CampaignSourceBadge source={source} />
-      <ExternalLink
-        className="text-sm font-medium text-blue-600 hover:underline"
-        href={url}
-      >
-        {campaignSourceLabels[source]} ↗
-      </ExternalLink>
+      {link ? (
+        <>
+          <ExternalLink
+            className="text-sm font-medium text-blue-600 hover:underline"
+            href={link.url}
+          >
+            {link.label} ↗
+          </ExternalLink>
+          <CopyButton text={link.url} />
+        </>
+      ) : null}
     </span>
   </div>
 );
@@ -93,10 +101,13 @@ const MerklCampaignCard = ({
 }) => (
   <div className="rounded-lg border border-neutral-200 p-4">
     <CampaignHeader
+      link={{
+        label: campaignSourceLabels[campaign.source],
+        url: campaign.url,
+      }}
       source={campaign.source}
       subtitle={campaign.name}
       title={`${campaign.rewardTokenSymbol} rewards`}
-      url={campaign.url}
     />
     <dl className="mt-3 grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
       <Metric
@@ -120,34 +131,53 @@ const MerklCampaignCard = ({
   </div>
 );
 
-const StakeDaoCampaignCard = ({
+const StakeDaoCampaignCard = function ({
   campaign,
   nowSeconds,
 }: {
   campaign: StakeDaoPoolCampaign;
   nowSeconds: number;
-}) => (
-  <div className="rounded-lg border border-neutral-200 p-4">
-    <CampaignHeader
-      source={campaign.source}
-      subtitle={`Votemarket campaign ${campaign.campaignNumber} · paid to veCRV voters`}
-      title={`${campaign.rewardTokenSymbol} vote incentives`}
-      url={campaign.url}
-    />
-    <dl className="mt-3 grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
-      <Metric label="Total budget" value={formatUsd(campaign.totalRewardUsd)} />
-      <Metric
-        label="Weekly rewards"
-        value={formatPrice(campaign.weeklyRewardUsd)}
+}) {
+  const { data: strategyKey } = useStakeDaoStrategyKey({
+    chainId: campaign.gaugeChainId,
+    gauge: campaign.gauge,
+  });
+
+  return (
+    <div className="rounded-lg border border-neutral-200 p-4">
+      <CampaignHeader
+        link={
+          strategyKey
+            ? {
+                label: `Deposit LP on ${campaignSourceLabels[campaign.source]}`,
+                url: strategyUrl(strategyKey),
+              }
+            : undefined
+        }
+        source={campaign.source}
+        subtitle={`Votemarket campaign ${campaign.campaignNumber} · paid to veCRV voters`}
+        title={`${campaign.rewardTokenSymbol} vote incentives`}
       />
-      <Metric
-        label="Per vote"
-        value={campaign.usdPerVote > 0 ? formatPrice(campaign.usdPerVote) : "—"}
-      />
-      <TimeLeftMetric secondsLeft={campaign.endTimestamp - nowSeconds} />
-    </dl>
-  </div>
-);
+      <dl className="mt-3 grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
+        <Metric
+          label="Total budget"
+          value={formatUsd(campaign.totalRewardUsd)}
+        />
+        <Metric
+          label="Weekly rewards"
+          value={formatPrice(campaign.weeklyRewardUsd)}
+        />
+        <Metric
+          label="Per vote"
+          value={
+            campaign.usdPerVote > 0 ? formatPrice(campaign.usdPerVote) : "—"
+          }
+        />
+        <TimeLeftMetric secondsLeft={campaign.endTimestamp - nowSeconds} />
+      </dl>
+    </div>
+  );
+};
 
 const CampaignCard = ({
   campaign,

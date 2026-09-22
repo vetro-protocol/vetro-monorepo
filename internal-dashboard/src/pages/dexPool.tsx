@@ -14,6 +14,7 @@ import { VenueBadge } from "../components/dex/venueBadge";
 import { type Dex, dexLabels } from "../config/dexes";
 import { useCurvePoolStats } from "../hooks/useCurvePoolStats";
 import { useGaugeEmissions } from "../hooks/useGaugeEmissions";
+import { useStakeDaoStrategyKey } from "../hooks/useStakeDaoStrategyKey";
 import { useTrackedPools } from "../hooks/useTrackedPools";
 import {
   formatOptionalPercent,
@@ -24,6 +25,7 @@ import {
   formatTokenAmount,
   formatUsd,
 } from "../lib/format";
+import { strategyUrl } from "../lib/stakeDaoApi";
 import { type PoolCoin, type TrackedPool } from "../lib/types";
 
 // Within 10% of equal value: treat the pair as a peg and surface drift from 1.
@@ -196,6 +198,33 @@ const AddressRow = ({
   </div>
 );
 
+const GaugeRow = function ({
+  chainId,
+  gauge,
+}: {
+  chainId: number;
+  gauge: Address;
+}) {
+  const { data: strategyKey } = useStakeDaoStrategyKey({ chainId, gauge });
+
+  return (
+    <div className="flex items-center justify-between gap-x-4 py-2 text-sm">
+      <span className="text-neutral-600">Gauge</span>
+      <span className="flex items-center gap-x-3">
+        <ExplorerLink address={gauge} chainId={chainId} />
+        {strategyKey ? (
+          <ExternalLink
+            className="font-medium text-blue-600 hover:underline"
+            href={strategyUrl(strategyKey)}
+          >
+            Deposit LP on StakeDAO ↗
+          </ExternalLink>
+        ) : null}
+      </span>
+    </div>
+  );
+};
+
 const AddressesSection = ({ pool }: { pool: TrackedPool }) => (
   <div>
     <h3 className="mb-1 text-lg font-semibold text-neutral-950">Addresses</h3>
@@ -215,11 +244,7 @@ const AddressesSection = ({ pool }: { pool: TrackedPool }) => (
         </span>
       </div>
       {pool.gaugeAddress ? (
-        <AddressRow
-          address={pool.gaugeAddress}
-          chainId={pool.chainId}
-          label="Gauge"
-        />
+        <GaugeRow chainId={pool.chainId} gauge={pool.gaugeAddress} />
       ) : null}
       {pool.lpTokenAddress &&
       !isAddressEqual(pool.lpTokenAddress, pool.address) ? (
