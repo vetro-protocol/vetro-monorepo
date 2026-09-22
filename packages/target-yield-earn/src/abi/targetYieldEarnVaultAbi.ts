@@ -1,15 +1,43 @@
 export const targetYieldEarnVaultAbi = [
   {
     inputs: [],
-    name: "currentRate",
+    name: "epochId",
     outputs: [{ type: "uint256" }],
     stateMutability: "view",
     type: "function",
   },
   {
+    inputs: [{ name: "epochId_", type: "uint256" }],
+    name: "getEpoch",
+    outputs: [
+      {
+        components: [
+          { name: "start", type: "uint64" },
+          { name: "end", type: "uint64" },
+          { name: "entryWindow", type: "uint64" },
+          { name: "accrualInterval", type: "uint64" },
+          { name: "exitWindow", type: "uint64" },
+          { name: "rate", type: "uint128" },
+          { name: "maxDeposits", type: "uint256" },
+          { name: "deposits", type: "uint256" },
+        ],
+        type: "tuple",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [],
-    name: "epochId",
-    outputs: [{ type: "uint256" }],
+    name: "isShutdown",
+    outputs: [{ type: "bool" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "isTerminated",
+    outputs: [{ type: "bool" }],
     stateMutability: "view",
     type: "function",
   },
@@ -23,6 +51,20 @@ export const targetYieldEarnVaultAbi = [
   {
     inputs: [{ name: "owner_", type: "address" }],
     name: "maxRequestRedeem",
+    outputs: [{ type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "paused",
+    outputs: [{ type: "bool" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [{ name: "epochId_", type: "uint256" }],
+    name: "rate",
     outputs: [{ type: "uint256" }],
     stateMutability: "view",
     type: "function",
