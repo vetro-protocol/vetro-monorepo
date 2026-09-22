@@ -116,6 +116,7 @@ const htmlHeaders = {
 };
 
 const brownfiSubgraphId = "D1UwhrB45geUZTNQ2QwrXwGEhk69iBESApJJzz378ZeS";
+const sushiSubgraphId = "2tGWMrDha4164KkFAfkU3rDCtuxGb4q1emXmFdLLzJ8x";
 
 const graphqlProxies: Record<
   string,
@@ -127,6 +128,10 @@ const graphqlProxies: Record<
   },
   "/api/sushi": {
     upstream: () => "https://production.data-gcp.sushi.com/graphql",
+  },
+  "/api/sushi-subgraph": {
+    upstream: (env) =>
+      `https://gateway.thegraph.com/api/${env.THEGRAPH_API_KEY}/subgraphs/id/${sushiSubgraphId}`,
   },
   "/api/uniswap": {
     headers: { origin: "https://app.uniswap.org" },
