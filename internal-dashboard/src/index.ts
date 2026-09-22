@@ -2,7 +2,7 @@
 
 /// <reference types="@cloudflare/workers-types" />
 
-import { getAddress } from "viem";
+import { getAddress, isAddress, isAddressEqual } from "viem";
 
 import type { StakeDaoCampaign, StakeDaoStrategy } from "./lib/stakeDaoApi";
 
@@ -216,14 +216,19 @@ const proxyStakeDaoStrategy = async function (searchParams: URLSearchParams) {
   if (!Number.isSafeInteger(chainId) || chainId <= 0) {
     return jsonResponse({ body: null, status: 400 });
   }
-  const gauge = (searchParams.get("gauge") ?? "").toLowerCase();
+  const gauge = searchParams.get("gauge") ?? "";
+  if (!isAddress(gauge)) {
+    return jsonResponse({ body: null, status: 400 });
+  }
   const response = await fetchStakeDao(stakeDaoStrategiesUpstream(chainId));
   if (!response.ok) {
     return jsonResponse({ body: response.body, status: response.status });
   }
   const strategies = (await response.json()) as StakeDaoStrategy[];
   const strategy = strategies.find(
-    (candidate) => candidate.gaugeAddress?.toLowerCase() === gauge,
+    (candidate) =>
+      candidate.gaugeAddress !== null &&
+      isAddressEqual(candidate.gaugeAddress, gauge),
   );
   return jsonResponse({ body: JSON.stringify(strategy?.key ?? null) });
 };
