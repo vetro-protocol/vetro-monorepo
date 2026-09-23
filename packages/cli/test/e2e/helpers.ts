@@ -66,6 +66,12 @@ export type TransactionRequest = {
   value: Hex;
 };
 
+export type RedeemRequest = {
+  amountLocked: string;
+  claimableAt: string;
+  status: "cooldown" | "none" | "ready";
+};
+
 export const depositAbi = parseAbi([
   "function deposit(address tokenIn, uint256 amountIn, uint256 minPeggedTokenOut, address receiver)",
 ]);
@@ -96,6 +102,12 @@ export const sendToQueueArgs = (extra: string[] = []) => [
   vusd.symbol,
   "--amount",
   swapAmount,
+  ...extra,
+];
+
+export const requestArgs = (extra: string[] = []) => [
+  "swap",
+  "request",
   ...extra,
 ];
 
