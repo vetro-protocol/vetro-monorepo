@@ -122,6 +122,8 @@ For the VUSD gateway, whose peg unit is USD:
 
 The vetBTC gateway returns the same shape with that day's BTC price, e.g. `"pegBaseUsdPrice": 77248.73`.
 
+`pegBaseUsdPrice` is `null` when the Portal price API fails for a gateway whose peg unit is not USD. A token's `price` and `unitPrice` are `null` for a day on which the oracle read failed.
+
 ### `GET /borrow/:marketId/apr-history/:period`
 
 Returns the historical borrow APR for a given market and period.
