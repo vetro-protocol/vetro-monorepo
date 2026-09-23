@@ -9,6 +9,7 @@ interface Env {
   MERKL_OPPORTUNITY_SVETBTC?: string;
   MERKL_OPPORTUNITY_SVUSD?: string;
   ORIGINS: string;
+  PORTAL_API_URL: string;
   SEND_EMAIL: SendEmail;
   CF_VERSION_METADATA?: WorkerVersionMetadata;
   SENTRY_DSN?: string;

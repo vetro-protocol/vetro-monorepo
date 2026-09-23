@@ -25,6 +25,7 @@ import {
 import { securityHeaders } from "./security-headers.ts";
 import { getShareValueHistory } from "./share-value-history.ts";
 import { getTotalDepositsHistory } from "./total-deposits-history.ts";
+import { getTvlHistory } from "./tvl-history.ts";
 import { createOriginFn, parseOrigins } from "./validate-origin.ts";
 import * as variableStake from "./variable-stake.ts";
 import { validPeriods as vaultHistoryValidPeriods } from "./vault-history-period.ts";
@@ -134,6 +135,33 @@ app.get(
       return c.json(data);
     } catch (error) {
       throw new Error(`Failed to get treasury composition: ${error.message}`);
+    }
+  },
+);
+
+app.get(
+  "/analytics/tvl-history/:gatewayAddress/:period",
+  validateGatewayAddress,
+  validateParam("period", vaultHistoryValidPeriods),
+  cache({
+    cacheControl: "max-age=300",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const gatewayAddress = c.get("gatewayAddress");
+      const period = c.req.param("period");
+      const url = getSubgraphUrl(c.env);
+      const data = await getTvlHistory({
+        c,
+        gatewayAddress,
+        period,
+        portalApiUrl: c.env.PORTAL_API_URL,
+        url,
+      });
+      return c.json(data);
+    } catch (error) {
+      throw new Error(`Failed to get TVL history: ${error.message}`);
     }
   },
 );
