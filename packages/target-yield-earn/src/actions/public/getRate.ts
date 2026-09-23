@@ -4,30 +4,33 @@ import { readContract } from "viem/actions";
 
 import { targetYieldEarnVaultAbi } from "../../abi/targetYieldEarnVaultAbi.ts";
 
-export async function getCurrentRate(
+export async function getRate(
   client: Client,
   parameters: {
     address: Address;
+    epochId: bigint;
   },
 ) {
-  // Validate client
   if (!client) {
     throw new Error("Client is not defined");
   }
 
-  // Validate parameters exist
   if (!parameters) {
     throw new Error("Parameters are required");
   }
 
-  // Validate vault address
   if (!isAddressValid(parameters.address)) {
     throw new Error("Vault address is invalid");
+  }
+
+  if (typeof parameters.epochId !== "bigint") {
+    throw new Error("Epoch ID must be a bigint");
   }
 
   return readContract(client, {
     abi: targetYieldEarnVaultAbi,
     address: parameters.address,
-    functionName: "currentRate",
+    args: [parameters.epochId],
+    functionName: "rate",
   });
 }

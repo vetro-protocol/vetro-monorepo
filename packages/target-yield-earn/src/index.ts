@@ -1,10 +1,14 @@
 import type { Client } from "viem";
 
 import {
-  getCurrentRate,
+  getEpoch,
   getEpochId,
+  getIsPaused,
+  getIsShutdown,
+  getIsTerminated,
   getMaxRequestDeposit,
   getMaxRequestRedeem,
+  getRate,
   pendingDepositRequest,
 } from "./actions/public/index.ts";
 
@@ -18,14 +22,21 @@ export {
 
 // Export factory functions for .extend() pattern
 export const targetYieldEarnPublicActions = () => (client: Client) => ({
-  getCurrentRate: (params: Parameters<typeof getCurrentRate>[1]) =>
-    getCurrentRate(client, params),
+  getEpoch: (params: Parameters<typeof getEpoch>[1]) =>
+    getEpoch(client, params),
   getEpochId: (params: Parameters<typeof getEpochId>[1]) =>
     getEpochId(client, params),
+  getIsPaused: (params: Parameters<typeof getIsPaused>[1]) =>
+    getIsPaused(client, params),
+  getIsShutdown: (params: Parameters<typeof getIsShutdown>[1]) =>
+    getIsShutdown(client, params),
+  getIsTerminated: (params: Parameters<typeof getIsTerminated>[1]) =>
+    getIsTerminated(client, params),
   getMaxRequestDeposit: (params: Parameters<typeof getMaxRequestDeposit>[1]) =>
     getMaxRequestDeposit(client, params),
   getMaxRequestRedeem: (params: Parameters<typeof getMaxRequestRedeem>[1]) =>
     getMaxRequestRedeem(client, params),
+  getRate: (params: Parameters<typeof getRate>[1]) => getRate(client, params),
   pendingDepositRequest: (
     params: Parameters<typeof pendingDepositRequest>[1],
   ) => pendingDepositRequest(client, params),
