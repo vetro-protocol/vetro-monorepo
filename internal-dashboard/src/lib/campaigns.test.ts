@@ -44,11 +44,12 @@ const merklCampaign = {
 const stakeDaoCampaign = {
   campaignNumber: 1891,
   endTimestamp: nowSeconds + 30 * day,
+  gauge: "0x737e7700e03A8c451C9B72103554a40760F1B57A",
+  gaugeChainId: 1,
   id: "stake-dao-1",
   rewardTokenSymbol: "USDC",
   source: "stakeDao",
   totalRewardUsd: 11000,
-  url: "https://votemarket.stakedao.org",
   usdPerVote: 0.000065,
   weeklyRewardUsd: 211,
 } satisfies PoolCampaign;
