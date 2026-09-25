@@ -76,6 +76,10 @@ export const depositAbi = parseAbi([
   "function deposit(address tokenIn, uint256 amountIn, uint256 minPeggedTokenOut, address receiver)",
 ]);
 
+export const redeemAbi = parseAbi([
+  "function redeem(address tokenOut, uint256 peggedTokenIn, uint256 minAmountOut, address receiver)",
+]);
+
 export const requestRedeemAbi = parseAbi([
   "function requestRedeem(uint256 peggedTokenAmount)",
 ]);
@@ -102,6 +106,18 @@ export const sendToQueueArgs = (extra: string[] = []) => [
   vusd.symbol,
   "--amount",
   swapAmount,
+  ...extra,
+];
+
+export const redeemArgs = (extra: string[] = []) => [
+  "swap",
+  "redeem",
+  "--to",
+  usdc.symbol,
+  "--amount",
+  swapAmount,
+  "--receiver",
+  TEST_ADDRESS,
   ...extra,
 ];
 
@@ -289,19 +305,24 @@ const treasuryAbi = parseAbi([
   "function grantRole(bytes32 role, address account)",
   "function hasRole(bytes32 role, address account) view returns (bool)",
   "function setDepositActive(address token, bool active)",
+  "function setWithdrawActive(address token, bool active)",
 ]);
 
-/** Flips the treasury's `depositActive` for a whitelisted token, as a keeper. */
-export const setDepositActive = async function ({
-  active,
-  gateway,
-  rpcUrl,
-  token,
-}: {
+type SetTokenActiveParams = {
   active: boolean;
   gateway: Address;
   rpcUrl: string;
   token: Address;
+};
+
+const setTokenActive = async function ({
+  active,
+  functionName,
+  gateway,
+  rpcUrl,
+  token,
+}: SetTokenActiveParams & {
+  functionName: "setDepositActive" | "setWithdrawActive";
 }) {
   const { publicClient, testClient } = createClients(rpcUrl);
 
@@ -348,13 +369,19 @@ export const setDepositActive = async function ({
         account: admin,
         address: treasury,
         args: [token, active],
-        functionName: "setDepositActive",
+        functionName,
       }),
     });
   } finally {
     await stopImpersonatingAccount(testClient, { address: admin });
   }
 };
+
+export const setDepositActive = (params: SetTokenActiveParams) =>
+  setTokenActive({ ...params, functionName: "setDepositActive" });
+
+export const setWithdrawActive = (params: SetTokenActiveParams) =>
+  setTokenActive({ ...params, functionName: "setWithdrawActive" });
 
 const maintainerRoleAbi = parseAbi([
   "function MAINTAINER_ROLE() view returns (bytes32)",

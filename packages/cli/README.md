@@ -74,11 +74,11 @@ Every numeric field is a hex `QUANTITY`, so the object can be lifted straight in
 
 ## Token arguments
 
-`--token`, `--from` and `--to` accept either a **symbol** (case-insensitive, e.g. `USDT`) or an **address**. `--from` is the token the operation spends, so it is whitelisted-only on `mint` and pegged-only on `send-to-queue`. `--to` is the token the operation pays out, so it is pegged on `mint` and whitelisted-only on `preview-redeem`. `--token` takes either side.
+`--token`, `--from` and `--to` accept either a **symbol** (case-insensitive, e.g. `USDT`) or an **address**. `--from` is the token the operation spends, so it is whitelisted-only on `mint` and pegged-only on `send-to-queue`. `--to` is the token the operation pays out, so it is pegged on `mint` and whitelisted-only on `preview-redeem` and `redeem`. `--token` takes either side.
 
 Because a token belongs to exactly one gateway, the gateway is inferred from the token and never passed explicitly. For the same reason `swap mint --to` is optional — the pegged token is whatever that gateway mints.
 
-`--amount` is in human units of the token the operation spends. Its decimals come from `--from` or `--token` when the command takes one. On `preview-redeem` the spent token is the pegged token of the gateway inferred from `--to`, so the decimals come from that pegged token, not from `--to`.
+`--amount` is in human units of the token the operation spends. Its decimals come from `--from` or `--token` when the command takes one. On `preview-redeem` and `redeem` the spent token is the pegged token of the gateway inferred from `--to`, so the decimals come from that pegged token, not from `--to`.
 
 To discover the symbols a gateway takes, run `swap whitelisted-tokens --gateway <addr>` — a gateway-level read, so it takes the gateway explicitly instead of inferring it from a token.
 
@@ -95,6 +95,7 @@ This is the list of commands available
 | `vetro-cli swap approve --token <tok> --amount <n>`                                                   | `encodeApproveData`   | Approves the inferred gateway to spend the token — a whitelisted token to `mint`, or a pegged token to `send-to-queue` or to redeem in one step. Prepend it when the allowance is short.                                                                                                                                                                                                                                                    |
 | `vetro-cli swap mint --from <tok> [--to <tok>] --amount <n> --receiver <addr> [--slippage <percent>]` | `encodeDeposit`       | Swap-in. `--slippage` is a percent off `previewDeposit`, in `[0, 100]` with at most one decimal (e.g. `0.5`); **it defaults to `0`**, so `minPeggedTokenOut` is the full previewed amount unless a tolerance is given. Fails when the previewed output is above `maxMint`, the gateway's remaining mint capacity, or when the treasury has deposits paused for the token (`tokenConfig.depositActive` is false) — the deposit would revert. |
 | `vetro-cli swap send-to-queue --from <tok> --amount <n>`                                              | `encodeRequestRedeem` | Swap-out step 1: locks the pegged token in the gateway and starts the cooldown. The token to redeem into is chosen at step 2, so it is not given here. A second request **adds to the open one and restarts the cooldown on the whole locked amount**, so queue the full amount at once. Fails when the gateway has the redeem queue disabled — the request would revert, and the redeem is one-step instead.                               |
+| `vetro-cli swap redeem --to <tok> --amount <n> --receiver <addr> [--slippage <percent>]`              | `encodeRedeem`        | Swap-out: step 2 of the Redeem Queue, or the whole redeem when it is one step. `--slippage` works as on `mint`. Fails when the payout is 0, above the treasury reserves, or when withdrawals are paused for the token.                                                                                                                                                                                                                      |
 
 #### Read operations
 
@@ -135,3 +136,20 @@ vetro-cli swap send-to-queue --from VUSD --amount 100
 `send-to-queue` fails on its own when the queue is off, so no preflight read is needed. To read the cooldown itself, `swap cooldown` takes `--gateway`, and the gateway address is the `to` of any write command's output. `swap cooldown` is gateway-wide, so it does not tell you whether _your_ address skips the queue: `swap is-instant-redeem --account <addr> --gateway <addr>` reads that per-account. When it returns `true`, skip `send-to-queue` — the redeem is one step.
 
 To follow the cooldown, run `swap request --account <addr> --gateway <addr>`. Its `status` changes from `cooldown` to `ready` when the request can be redeemed.
+
+### Swapping out, step 2
+
+When `swap request` shows `ready`, redeem the locked amount:
+
+```sh
+vetro-cli swap redeem --to USDT --amount 100 --receiver 0xAgent --slippage 0.5
+```
+
+### Swapping out in one step
+
+When the queue is off for your address, skip `send-to-queue`. Approve the pegged token, then redeem:
+
+```sh
+vetro-cli swap approve --token VUSD --amount 100
+vetro-cli swap redeem --to USDT --amount 100 --receiver 0xAgent --slippage 0.5
+```
