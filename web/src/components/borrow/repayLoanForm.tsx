@@ -5,6 +5,7 @@ import { getChainAddresses } from "@morpho-org/blue-sdk";
 import { Button } from "components/base/button";
 import { RenderCryptoValue } from "components/base/cryptoValue";
 import { RenderFiatValue } from "components/base/fiatValue";
+import { MaxButton } from "components/base/maxButton";
 import { Toast } from "components/base/toast";
 import {
   type Step,
@@ -37,7 +38,15 @@ import { useTranslation } from "react-i18next";
 import { formatLtvAsPercentage } from "utils/borrowReview";
 import { formatNumber } from "utils/format";
 import { isGeoRestricted } from "utils/geoRestriction";
+import {
+  getCurrentBorrowAssets,
+  getMaxRepayable,
+  getRepayApprovalAmount,
+  getRepayShares,
+  isFullMaxRepayment,
+} from "utils/repay";
 import { parseTokenUnits } from "utils/token";
+import { formatUnits } from "viem";
 import { useAccount } from "wagmi";
 
 import { PositionReview } from "./positionReview";
@@ -226,6 +235,8 @@ export function RepayLoanForm({ market, onClose }: Props) {
 
   const [repayInput, onRepayChange] = useAmount();
   const [flowStatus, setFlowStatus] = useState<RepayFlowStatus>("idle");
+  const [isFullMaxRepaymentAtClick, setIsFullMaxRepaymentAtClick] =
+    useState(false);
   const [showToast, setShowToast] = useState(false);
   const [startedWithApproval, setStartedWithApproval] = useState(false);
 
@@ -252,25 +263,65 @@ export function RepayLoanForm({ market, onClose }: Props) {
 
   const { data: nativeBalanceData } = useNativeBalance(ethereumChain.id);
 
-  const { data: needsApproval } = useNeedsApproval({
-    amount: repayAmountBigInt,
-    spender: getChainAddresses(ethereumChain.id).morpho,
-    token: loanToken,
-  });
-
   const { data: positionInfo } = usePositionInfo(marketId);
 
   const { data: morphoMarket } = useMorphoMarket(marketId);
 
-  const currentBorrowAssets =
-    positionInfo && morphoMarket
-      ? morphoMarket.toBorrowAssets(positionInfo.borrowShares)
-      : undefined;
+  const currentBorrowAssets = getCurrentBorrowAssets({
+    borrowShares: positionInfo?.borrowShares,
+    market: morphoMarket,
+  });
+
+  const maxRepayable = getMaxRepayable({
+    borrowShares: positionInfo?.borrowShares,
+    loanTokenBalance: loanBalance,
+    market: morphoMarket,
+  });
+
+  const handleRepayChange = function (value: string) {
+    setIsFullMaxRepaymentAtClick(false);
+    onRepayChange(value);
+  };
+
+  const handleMaxRepay = function () {
+    if (maxRepayable === undefined) {
+      return;
+    }
+
+    setIsFullMaxRepaymentAtClick(
+      isFullMaxRepayment({
+        currentBorrowAssets,
+        maxRepayable,
+      }),
+    );
+    onRepayChange(formatUnits(maxRepayable, loanToken.decimals));
+  };
+
+  const repayShares = getRepayShares({
+    amount: repayAmountBigInt,
+    borrowAssets: currentBorrowAssets,
+    borrowShares: positionInfo?.borrowShares,
+    isMaxRepayment: isFullMaxRepaymentAtClick,
+    loanTokenBalance: loanBalance,
+  });
+
+  const repayApprovalAmount = getRepayApprovalAmount({
+    amount: repayAmountBigInt,
+    loanTokenBalance: loanBalance,
+    shares: repayShares,
+  });
+
+  const { data: needsApproval } = useNeedsApproval({
+    amount: repayApprovalAmount,
+    spender: getChainAddresses(ethereumChain.id).morpho,
+    token: loanToken,
+  });
 
   const networkFee = useTotalRepayFees({
     amount: repayAmountBigInt,
-    approveAmount: undefined,
+    approveAmount: repayShares !== undefined ? repayApprovalAmount : undefined,
     marketId,
+    shares: repayShares,
     token: loanToken,
   });
 
@@ -285,6 +336,7 @@ export function RepayLoanForm({ market, onClose }: Props) {
     });
 
   const repayMutation = useRepayAssets({
+    approveAmount: repayShares !== undefined ? repayApprovalAmount : undefined,
     marketId,
     onEmitter(emitter) {
       emitter.on("user-signed-approval", () => setFlowStatus("approving"));
@@ -330,6 +382,7 @@ export function RepayLoanForm({ market, onClose }: Props) {
       });
     },
     repayAmount: repayAmountBigInt,
+    repayShares,
   });
 
   const nativeBalance = nativeBalanceData?.value;
@@ -402,7 +455,13 @@ export function RepayLoanForm({ market, onClose }: Props) {
               <RenderFiatValue token={loanToken} value={repayAmountBigInt} />
             }
             label={t("pages.borrow.repay-loan-progress.you-will-repay")}
-            onChange={onRepayChange}
+            maxButton={
+              <MaxButton
+                disabled={maxRepayable === undefined}
+                onClick={handleMaxRepay}
+              />
+            }
+            onChange={handleRepayChange}
             tokenSelector={<TokenSelectorReadOnly {...loanToken} />}
             value={repayInput}
           />
