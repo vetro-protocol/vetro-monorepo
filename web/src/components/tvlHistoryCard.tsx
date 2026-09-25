@@ -1,16 +1,23 @@
+import { useQueries } from "@tanstack/react-query";
 import { SegmentedControl } from "components/base/segmentedControl";
 import { ChartPlaceholder } from "components/chartPlaceholders";
 import { ClockRevertedIcon } from "components/icons/clockRevertedIcon";
 import { useAnalyticsTvl } from "hooks/useAnalyticsTvl";
 import { useElementWidth } from "hooks/useElementWidth";
+import { useEthereumClient } from "hooks/useEthereumClient";
+import { useMainnet } from "hooks/useMainnet";
 import { usePrices } from "hooks/usePrices";
+import { tokenInfoOptions } from "hooks/useTokenInfo";
 import { useTvlHistory } from "hooks/useTvlHistory";
 import { useWhitelistedTokensByGateway } from "hooks/useWhitelistedTokensByGateway";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import type { TokenWithGateway } from "types";
-import { toTvlHistorySeries } from "utils/allocations";
+import {
+  getHistoryOnlyTokenAddresses,
+  toTvlHistorySeries,
+} from "utils/allocations";
 import {
   type ChartPeriod,
   chartPeriods,
@@ -210,6 +217,8 @@ export function TvlHistoryCard({
   const { t } = useTranslation();
   const [period, setPeriod] = useState<ChartPeriod>("3m");
   const [chartContainerRef, chartWidth] = useElementWidth();
+  const client = useEthereumClient();
+  const mainnet = useMainnet();
   const {
     data: whitelistedTokens,
     isError: isWhitelistedTokensError,
@@ -224,17 +233,41 @@ export function TvlHistoryCard({
     period,
   });
 
+  const historyOnlyTokens = useQueries({
+    combine: (results) => ({
+      data: results.every((result) => result.data !== undefined)
+        ? results.map((result) => result.data!)
+        : undefined,
+      isError: results.some((result) => result.isError),
+      refetch: () =>
+        results
+          .filter((result) => result.isError)
+          .forEach((result) => result.refetch()),
+    }),
+    queries:
+      history && whitelistedTokens
+        ? getHistoryOnlyTokenAddresses({ history, whitelistedTokens }).map(
+            (address) =>
+              tokenInfoOptions({ address, chainId: mainnet.id, client }),
+          )
+        : [],
+  });
+
   const series = useMemo(
     () =>
-      history && whitelistedTokens
-        ? toTvlHistorySeries({ history, whitelistedTokens })
+      history && whitelistedTokens && historyOnlyTokens.data
+        ? toTvlHistorySeries({
+            history,
+            tokens: [...whitelistedTokens, ...historyOnlyTokens.data],
+          })
         : undefined,
-    [history, whitelistedTokens],
+    [history, historyOnlyTokens.data, whitelistedTokens],
   );
 
   const reloadChart = function () {
     if (isHistoryError) refetchHistory();
     if (isWhitelistedTokensError) refetchWhitelistedTokens();
+    if (historyOnlyTokens.isError) historyOnlyTokens.refetch();
   };
 
   const renderChart = function () {
@@ -251,7 +284,11 @@ export function TvlHistoryCard({
     return (
       <ChartPlaceholder
         chartWidth={chartWidth}
-        isError={isHistoryError || isWhitelistedTokensError}
+        isError={
+          isHistoryError ||
+          isWhitelistedTokensError ||
+          historyOnlyTokens.isError
+        }
         onReload={reloadChart}
         period={period}
         skeleton={

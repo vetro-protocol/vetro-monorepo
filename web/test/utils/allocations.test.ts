@@ -1,9 +1,11 @@
 import { knownTokens } from "@vetro-protocol/core";
+import type { Address } from "viem";
 import { describe, expect, it } from "vitest";
 
 import type { TreasuryToken, TvlHistoryEntry } from "../../src/types";
 import {
   assignColor,
+  getHistoryOnlyTokenAddresses,
   toCollateralizationItems,
   toReserveBufferAmount,
   toTvlHistorySeries,
@@ -215,8 +217,39 @@ describe("pages/analytics/utils", function () {
     });
   });
 
+  describe("getHistoryOnlyTokenAddresses", function () {
+    it("returns each token absent from the whitelist once", function () {
+      const holding = {
+        price: ONE_USD_PRICE,
+        unitPrice: ONE_USD_PRICE,
+        withdrawable: "1000000",
+      };
+      const addresses = getHistoryOnlyTokenAddresses({
+        history: [
+          tvlHistoryEntry({
+            tokens: [
+              { ...holding, tokenAddress: usdcToken.address },
+              { ...holding, tokenAddress: usdtToken.address },
+            ],
+          }),
+          tvlHistoryEntry({
+            tokens: [
+              {
+                ...holding,
+                tokenAddress: usdtToken.address.toLowerCase() as Address,
+              },
+            ],
+          }),
+        ],
+        whitelistedTokens: [usdcToken],
+      });
+
+      expect(addresses).toEqual([usdtToken.address]);
+    });
+  });
+
   describe("toTvlHistorySeries", function () {
-    const whitelistedTokens = [usdcToken, frxUsdToken];
+    const tokens = [usdcToken, frxUsdToken];
 
     it("scales each holding by its decimals and oracle rate", function () {
       const series = toTvlHistorySeries({
@@ -238,7 +271,7 @@ describe("pages/analytics/utils", function () {
             ],
           }),
         ],
-        whitelistedTokens,
+        tokens,
       });
 
       expect(series[0]?.data[0]?.y).toBeCloseTo(258_566.87, 1);
@@ -260,7 +293,7 @@ describe("pages/analytics/utils", function () {
             ],
           }),
         ],
-        whitelistedTokens,
+        tokens,
       });
 
       expect(series[0]?.data[0]?.y).toBeCloseTo(154_000);
@@ -281,14 +314,14 @@ describe("pages/analytics/utils", function () {
             ],
           }),
         ],
-        whitelistedTokens,
+        tokens,
       });
 
       expect(series[0]?.data[0]?.y).toBe(0);
     });
 
-    it("orders and colors the series by the whitelisted token order", function () {
-      const series = toTvlHistorySeries({ history: [], whitelistedTokens });
+    it("orders and colors the series by the token order", function () {
+      const series = toTvlHistorySeries({ history: [], tokens });
 
       expect(series.map((s) => s.symbol)).toEqual(["USDC", "frxUSD"]);
       expect(series[0]?.color).toBe("var(--color-emerald-400)");
@@ -309,7 +342,7 @@ describe("pages/analytics/utils", function () {
             ],
           }),
         ],
-        whitelistedTokens,
+        tokens,
       });
 
       expect(series[0]?.data[0]?.y).toBe(0);
@@ -329,7 +362,7 @@ describe("pages/analytics/utils", function () {
             ],
           }),
         ],
-        whitelistedTokens,
+        tokens,
       });
 
       expect(series[1]?.data[0]).toEqual({ x: 1_789_084_800_000, y: 0 });

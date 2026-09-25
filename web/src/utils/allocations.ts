@@ -59,15 +59,31 @@ export const toTvlItems = ({
     ];
   });
 
-// A day the oracle could not price contributes zero rather than dropping the column.
-export const toTvlHistorySeries = ({
+export const getHistoryOnlyTokenAddresses = ({
   history,
   whitelistedTokens,
 }: {
   history: TvlHistoryEntry[];
   whitelistedTokens: Token[];
 }) =>
-  whitelistedTokens.map((token, index) => ({
+  history
+    .flatMap((entry) => entry.tokens.map((token) => token.tokenAddress))
+    .filter(
+      (address, index, addresses) =>
+        !findToken(address, whitelistedTokens) &&
+        addresses.findIndex((candidate) =>
+          isAddressEqual(candidate, address),
+        ) === index,
+    );
+
+export const toTvlHistorySeries = ({
+  history,
+  tokens,
+}: {
+  history: TvlHistoryEntry[];
+  tokens: Token[];
+}) =>
+  tokens.map((token, index) => ({
     address: token.address,
     color: assignChartColor(index),
     data: history.map(function (entry) {
