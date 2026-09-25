@@ -25,3 +25,34 @@ export type CancelRedeemRequestEvents = CommonEvents & {
   "user-signed-cancel-redeem-request": [Hash];
   "user-signing-cancel-redeem-request-error": [Error];
 };
+
+type ApprovalEvents = {
+  "approve-transaction-reverted": [TransactionReceipt];
+  "approve-transaction-succeeded": [TransactionReceipt];
+  "pre-approve": [];
+  "user-signed-approval": [Hash];
+  "user-signing-approval-error": [Error];
+};
+
+export type RequestDepositEvents = ApprovalEvents &
+  CommonEvents & {
+    "pre-request-deposit": [];
+    "request-deposit-failed": [Error];
+    "request-deposit-failed-validation": [string];
+    "request-deposit-settled": [];
+    "request-deposit-transaction-reverted": [TransactionReceipt];
+    "request-deposit-transaction-succeeded": [TransactionReceipt];
+    "user-signed-request-deposit": [Hash];
+    "user-signing-request-deposit-error": [Error];
+  };
+
+export type RequestRedeemEvents = CommonEvents & {
+  "pre-request-redeem": [];
+  "request-redeem-failed": [Error];
+  "request-redeem-failed-validation": [string];
+  "request-redeem-settled": [];
+  "request-redeem-transaction-reverted": [TransactionReceipt];
+  "request-redeem-transaction-succeeded": [TransactionReceipt];
+  "user-signed-request-redeem": [Hash];
+  "user-signing-request-redeem-error": [Error];
+};

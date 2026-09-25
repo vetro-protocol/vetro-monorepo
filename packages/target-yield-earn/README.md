@@ -70,13 +70,13 @@ const pendingAssets = await pendingDepositRequest(publicClient, {
   - `getMaxRequestRedeem(client, params)` — the shares the owner can still request for redemption. `0n` whenever a redeem request would revert — outside the exit window, while shutdown, or when a redeem batch from an earlier epoch is still pending and the vault hasn't terminated.
   - `getRate(client, params)` — the fixed rate an epoch pays during its accrual interval, WAD-scaled per annum. It returns the same value at any time, so use it (or `getEpoch`) to show the rate.
   - `pendingDepositRequest(client, params)` — assets in an unfulfilled deposit request, re-exported from `viem-erc7540`.
-- Wallet actions (writes), exported from `/actions` only. The cancel actions return `{ emitter, promise }`:
+- Wallet actions (writes), exported from `/actions` only. All of them return `{ emitter, promise }`:
   - `cancelDepositRequest(walletClient, { address, controller })` — cancels the controller's unfulfilled deposit request. The vault sends the assets back to the controller. Allowed at any time before fulfillment.
   - `cancelRedeemRequest(walletClient, { address, controller })` — cancels the controller's unfulfilled redeem request. The vault sends the escrowed shares back to the controller. Allowed only during the exit window of the epoch of the request.
   - Both cancel actions are specific to VUSDx. ERC-8416 does not define them.
   - `encodeCancelDepositRequest(params)` and `encodeCancelRedeemRequest(params)` — return the calldata for the cancel call without sending anything. Useful for gas estimation or for batching into a multicall.
-  - `requestDeposit(walletClient, { address, assets, controller, owner })` — requests a deposit, re-exported from `viem-erc7540`. It returns the transaction hash. The caller must approve the pegged token first.
-  - `requestRedeem(walletClient, { address, controller, owner, shares })` — requests a redemption, re-exported from `viem-erc7540`. It returns the transaction hash.
+  - `requestDeposit(walletClient, { address, approveAmount?, assets, controller, owner })` — requests a deposit. It reads the pegged token from the vault's `asset()` and approves it first if the owner's allowance is lower than `assets`. `approveAmount` defaults to `assets`.
+  - `requestRedeem(walletClient, { address, controller, owner, shares })` — requests a redemption.
 - `targetYieldEarnPublicActions()` — viem extension factory that wires the public actions onto a client via `.extend()`.
 - `targetYieldEarnVaultAbi` — the minimal ABI subset used by the package.
 - Constants: `maxExitWindowSeconds`, `minEpochDurationSeconds`, `minExitWindowSeconds`.
