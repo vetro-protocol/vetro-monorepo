@@ -24,8 +24,8 @@ const mockWalletClient = {
 } as unknown as WalletClient;
 
 const validParameters = {
+  address: "0x1234567890123456789012345678901234567890" as Address,
   controller: "0x1111111111111111111111111111111111111111" as Address,
-  vaultAddress: "0x1234567890123456789012345678901234567890" as Address,
 };
 
 describe("cancelRedeemRequest", function () {
@@ -101,7 +101,7 @@ describe("cancelRedeemRequest", function () {
   it("should emit 'cancel-redeem-request-failed-validation' if vault address is invalid", async function () {
     const parameters = {
       ...validParameters,
-      vaultAddress: zeroAddress,
+      address: zeroAddress,
     };
 
     const { emitter, promise } = cancelRedeemRequest(
@@ -187,7 +187,7 @@ describe("cancelRedeemRequest", function () {
     expect(writeContract).toHaveBeenCalledExactlyOnceWith(mockWalletClient, {
       abi: expect.anything(),
       account: mockWalletClient.account,
-      address: validParameters.vaultAddress,
+      address: validParameters.address,
       args: [validParameters.controller],
       chain: mockWalletClient.chain,
       functionName: "cancelRedeemRequest",

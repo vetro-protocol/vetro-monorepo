@@ -13,18 +13,18 @@ import { targetYieldEarnVaultAbi } from "../../abi/targetYieldEarnVaultAbi.ts";
 import type { CancelDepositRequestEvents } from "../../types.ts";
 
 export type CancelDepositRequestParams = {
+  address: Address;
   controller: Address;
-  vaultAddress: Address;
 };
 
 const canCancelDepositRequest = function ({
+  address,
   client,
   controller,
-  vaultAddress,
 }: {
+  address: Address;
   client: WalletClient;
   controller: Address;
-  vaultAddress: Address;
 }): {
   canCancelDepositRequest: boolean;
   reason?: string;
@@ -47,7 +47,7 @@ const canCancelDepositRequest = function ({
       reason: "Client must have an account",
     };
   }
-  if (!isAddressValid(vaultAddress)) {
+  if (!isAddressValid(address)) {
     return {
       canCancelDepositRequest: false,
       reason: "Invalid vault address",
@@ -65,15 +65,15 @@ const canCancelDepositRequest = function ({
 
 const runCancelDepositRequest = (
   walletClient: WalletClient,
-  { controller, vaultAddress }: CancelDepositRequestParams,
+  { address, controller }: CancelDepositRequestParams,
 ) =>
   async function (emitter: EventEmitter<CancelDepositRequestEvents>) {
     try {
       const { canCancelDepositRequest: canCancelDepositRequestFlag, reason } =
         canCancelDepositRequest({
+          address,
           client: walletClient,
           controller,
-          vaultAddress,
         });
 
       if (!canCancelDepositRequestFlag) {
@@ -86,7 +86,7 @@ const runCancelDepositRequest = (
       const cancelDepositRequestHash = await writeContract(walletClient, {
         abi: targetYieldEarnVaultAbi,
         account: walletClient.account!,
-        address: vaultAddress,
+        address,
         args: [controller],
         chain: walletClient.chain,
         functionName: "cancelDepositRequest",

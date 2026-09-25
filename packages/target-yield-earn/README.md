@@ -71,8 +71,8 @@ const pendingAssets = await pendingDepositRequest(publicClient, {
   - `getRate(client, params)` — the fixed rate an epoch pays during its accrual interval, WAD-scaled per annum. It returns the same value at any time, so use it (or `getEpoch`) to show the rate.
   - `pendingDepositRequest(client, params)` — assets in an unfulfilled deposit request, re-exported from `viem-erc7540`.
 - Wallet actions (writes), exported from `/actions` only. The cancel actions return `{ emitter, promise }`:
-  - `cancelDepositRequest(walletClient, { controller, vaultAddress })` — cancels the controller's unfulfilled deposit request. The vault sends the assets back to the controller. Allowed at any time before fulfillment.
-  - `cancelRedeemRequest(walletClient, { controller, vaultAddress })` — cancels the controller's unfulfilled redeem request. The vault sends the escrowed shares back to the controller. Allowed only during the exit window of the epoch of the request.
+  - `cancelDepositRequest(walletClient, { address, controller })` — cancels the controller's unfulfilled deposit request. The vault sends the assets back to the controller. Allowed at any time before fulfillment.
+  - `cancelRedeemRequest(walletClient, { address, controller })` — cancels the controller's unfulfilled redeem request. The vault sends the escrowed shares back to the controller. Allowed only during the exit window of the epoch of the request.
   - Both cancel actions are specific to VUSDx. ERC-8416 does not define them.
   - `requestDeposit(walletClient, { address, assets, controller, owner })` — requests a deposit, re-exported from `viem-erc7540`. It returns the transaction hash. The caller must approve the pegged token first.
   - `requestRedeem(walletClient, { address, controller, owner, shares })` — requests a redemption, re-exported from `viem-erc7540`. It returns the transaction hash.

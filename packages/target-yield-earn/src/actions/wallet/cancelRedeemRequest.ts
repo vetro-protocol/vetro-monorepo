@@ -13,18 +13,18 @@ import { targetYieldEarnVaultAbi } from "../../abi/targetYieldEarnVaultAbi.ts";
 import type { CancelRedeemRequestEvents } from "../../types.ts";
 
 export type CancelRedeemRequestParams = {
+  address: Address;
   controller: Address;
-  vaultAddress: Address;
 };
 
 const canCancelRedeemRequest = function ({
+  address,
   client,
   controller,
-  vaultAddress,
 }: {
+  address: Address;
   client: WalletClient;
   controller: Address;
-  vaultAddress: Address;
 }): {
   canCancelRedeemRequest: boolean;
   reason?: string;
@@ -47,7 +47,7 @@ const canCancelRedeemRequest = function ({
       reason: "Client must have an account",
     };
   }
-  if (!isAddressValid(vaultAddress)) {
+  if (!isAddressValid(address)) {
     return {
       canCancelRedeemRequest: false,
       reason: "Invalid vault address",
@@ -65,15 +65,15 @@ const canCancelRedeemRequest = function ({
 
 const runCancelRedeemRequest = (
   walletClient: WalletClient,
-  { controller, vaultAddress }: CancelRedeemRequestParams,
+  { address, controller }: CancelRedeemRequestParams,
 ) =>
   async function (emitter: EventEmitter<CancelRedeemRequestEvents>) {
     try {
       const { canCancelRedeemRequest: canCancelRedeemRequestFlag, reason } =
         canCancelRedeemRequest({
+          address,
           client: walletClient,
           controller,
-          vaultAddress,
         });
 
       if (!canCancelRedeemRequestFlag) {
@@ -86,7 +86,7 @@ const runCancelRedeemRequest = (
       const cancelRedeemRequestHash = await writeContract(walletClient, {
         abi: targetYieldEarnVaultAbi,
         account: walletClient.account!,
-        address: vaultAddress,
+        address,
         args: [controller],
         chain: walletClient.chain,
         functionName: "cancelRedeemRequest",
