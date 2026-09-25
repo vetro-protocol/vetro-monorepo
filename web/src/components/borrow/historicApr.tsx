@@ -10,6 +10,7 @@ import Skeleton from "react-loading-skeleton";
 import {
   type ChartPeriod,
   chartPeriods,
+  getPlaceholderXTicks,
   periodLabelKeys,
 } from "utils/chartPeriods";
 import {
@@ -55,25 +56,9 @@ const AreaGradient = () => (
 
 const periods = chartPeriods;
 
-const periodDurations: Record<ChartPeriod, number> = {
-  "1m": 30 * 24 * 60 * 60 * 1000,
-  "1w": 7 * 24 * 60 * 60 * 1000,
-  "1y": 365 * 24 * 60 * 60 * 1000,
-  "3m": 90 * 24 * 60 * 60 * 1000,
-};
-
 // Narrower left padding than the shared chartPadding: this chart's y-axis
 // shows short percentage labels, so it needs less room.
 const chartPadding = { bottom: 30, left: 40, right: 16, top: 10 };
-
-const getPlaceholderXTicks = function (period: ChartPeriod) {
-  const now = Date.now();
-  const duration = periodDurations[period];
-  return Array.from(
-    { length: 4 },
-    (_, i) => now - duration + (i * duration) / 3,
-  );
-};
 
 const EmptyChart = ({
   locale,

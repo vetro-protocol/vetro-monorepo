@@ -1,5 +1,5 @@
 import type { Token } from "@vetro-protocol/core";
-import type { TreasuryToken } from "types";
+import type { TreasuryToken, TvlHistoryEntry } from "types";
 import { tokenAmountToUsd } from "utils/currency";
 import { formatNumber } from "utils/format";
 import { formatUnits, isAddressEqual, type Address } from "viem";
@@ -19,6 +19,9 @@ const colorPalette = [
 
 export const assignColor = (index: number) =>
   colorPalette[index % colorPalette.length] ?? "bg-gray-400";
+
+const assignChartColor = (index: number) =>
+  assignColor(index).replace(/^bg-(.+)$/, "var(--color-$1)");
 
 const findToken = (tokenAddress: Address, whitelistedTokens: Token[]) =>
   whitelistedTokens.find((t) => isAddressEqual(t.address, tokenAddress));
@@ -55,6 +58,38 @@ export const toTvlItems = ({
       },
     ];
   });
+
+// A day the oracle could not price contributes zero rather than dropping the column.
+export const toTvlHistorySeries = ({
+  history,
+  whitelistedTokens,
+}: {
+  history: TvlHistoryEntry[];
+  whitelistedTokens: Token[];
+}) =>
+  whitelistedTokens.map((token, index) => ({
+    address: token.address,
+    color: assignChartColor(index),
+    data: history.map(function (entry) {
+      const holding = entry.tokens.find((candidate) =>
+        isAddressEqual(candidate.tokenAddress, token.address),
+      );
+      const rate =
+        holding?.price && holding.unitPrice
+          ? Number(holding.price) / Number(holding.unitPrice)
+          : 0;
+      return {
+        x: entry.timestamp,
+        y:
+          Number(
+            formatUnits(BigInt(holding?.withdrawable ?? 0), token.decimals),
+          ) *
+          rate *
+          (entry.pegBaseUsdPrice ?? 0),
+      };
+    }),
+    symbol: token.symbol,
+  }));
 
 // Transforms /analytics/treasury response into yield allocation items,
 // one item per active strategy across all tokens.
