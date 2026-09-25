@@ -74,6 +74,7 @@ const pendingAssets = await pendingDepositRequest(publicClient, {
   - `cancelDepositRequest(walletClient, { address, controller })` — cancels the controller's unfulfilled deposit request. The vault sends the assets back to the controller. Allowed at any time before fulfillment.
   - `cancelRedeemRequest(walletClient, { address, controller })` — cancels the controller's unfulfilled redeem request. The vault sends the escrowed shares back to the controller. Allowed only during the exit window of the epoch of the request.
   - Both cancel actions are specific to VUSDx. ERC-8416 does not define them.
+  - `encodeCancelDepositRequest(params)` and `encodeCancelRedeemRequest(params)` — return the calldata for the cancel call without sending anything. Useful for gas estimation or for batching into a multicall.
   - `requestDeposit(walletClient, { address, assets, controller, owner })` — requests a deposit, re-exported from `viem-erc7540`. It returns the transaction hash. The caller must approve the pegged token first.
   - `requestRedeem(walletClient, { address, controller, owner, shares })` — requests a redemption, re-exported from `viem-erc7540`. It returns the transaction hash.
 - `targetYieldEarnPublicActions()` — viem extension factory that wires the public actions onto a client via `.extend()`.
