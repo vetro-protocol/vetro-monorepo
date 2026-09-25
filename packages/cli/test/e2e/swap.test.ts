@@ -17,6 +17,8 @@ import {
   depositAbi,
   fundTestAccount,
   mintArgs,
+  redeemAbi,
+  redeemArgs,
   requestArgs,
   runCli,
   sendToQueueArgs,
@@ -31,6 +33,12 @@ const rpcUrl = inject("anvilUrl");
 const { publicClient, testClient } = createClients(rpcUrl);
 
 const onFork = (args: string[]) => [...args, "--rpc-url", rpcUrl];
+
+const readBalances = () =>
+  Promise.all([
+    balanceOf(publicClient, { account: TEST_ADDRESS, address: usdc.address }),
+    balanceOf(publicClient, { account: TEST_ADDRESS, address: vusd.address }),
+  ]);
 
 const broadcast = async function (args: string[]) {
   const receipt = await sendTransactionRequest({
@@ -74,7 +82,7 @@ describe("swap in (USDC → VUSD)", function () {
   });
 });
 
-describe("swap out step 1 (VUSD → queue) and swap request", function () {
+describe("swap out in two steps (VUSD → queue → USDC) and swap request", function () {
   const [gateway] = gatewayAddresses;
 
   const queuedAmount = "50";
@@ -148,5 +156,95 @@ describe("swap out step 1 (VUSD → queue) and swap request", function () {
     } finally {
       await revert(testClient, { id });
     }
+  });
+
+  it("pays out at least minAmountOut from the locked amount once the redeem calldata is broadcast after the cooldown", async function () {
+    const id = await snapshot(testClient);
+    try {
+      const delay = await getWithdrawalDelay(publicClient, {
+        address: gateway,
+      });
+      await increaseTime(testClient, { seconds: Number(delay) });
+      await mine(testClient, { blocks: 1 });
+
+      const redeemRequest = await runCli<TransactionRequest>(
+        onFork(redeemArgs(["--amount", queuedAmount, "--slippage", slippage])),
+      );
+      const { args } = decodeFunctionData({
+        abi: redeemAbi,
+        data: redeemRequest.data,
+      });
+      const [[amountLockedBefore], [usdcBefore, vusdBefore]] =
+        await Promise.all([
+          getRedeemRequest(publicClient, {
+            address: gateway,
+            user: TEST_ADDRESS,
+          }),
+          readBalances(),
+        ]);
+
+      const receipt = await sendTransactionRequest({
+        request: redeemRequest,
+        rpcUrl,
+      });
+      expect(receipt.status).toBe("success");
+
+      const [[amountLockedAfter], [usdcAfter, vusdAfter]] = await Promise.all([
+        getRedeemRequest(publicClient, {
+          address: gateway,
+          user: TEST_ADDRESS,
+        }),
+        readBalances(),
+      ]);
+      expect(amountLockedBefore - amountLockedAfter).toBe(
+        parseUnits(queuedAmount, vusd.decimals),
+      );
+      expect(usdcAfter - usdcBefore).toBeGreaterThanOrEqual(args[2]);
+      expect(vusdAfter).toBe(vusdBefore);
+    } finally {
+      await revert(testClient, { id });
+    }
+  });
+});
+
+describe("swap out in one step (VUSD → USDC)", function () {
+  const [gateway] = gatewayAddresses;
+
+  let restoreQueue: (() => Promise<void>) | undefined;
+
+  beforeAll(async function () {
+    restoreQueue = await setRedeemQueueEnabled({
+      enabled: false,
+      gateway,
+      rpcUrl,
+    });
+  });
+
+  afterAll(() => restoreQueue?.());
+
+  it("burns the pegged token from the wallet once the redeem calldata is broadcast", async function () {
+    await fundTestAccount({ amount: "1000", rpcUrl });
+    await broadcast(approveArgs(usdc.symbol));
+    await broadcast(mintArgs());
+    await broadcast(approveArgs(vusd.symbol));
+
+    const redeemRequest = await runCli<TransactionRequest>(
+      onFork(redeemArgs(["--slippage", slippage])),
+    );
+    const { args } = decodeFunctionData({
+      abi: redeemAbi,
+      data: redeemRequest.data,
+    });
+    const [usdcBefore, vusdBefore] = await readBalances();
+
+    const receipt = await sendTransactionRequest({
+      request: redeemRequest,
+      rpcUrl,
+    });
+    expect(receipt.status).toBe("success");
+
+    const [usdcAfter, vusdAfter] = await readBalances();
+    expect(vusdBefore - vusdAfter).toBe(args[1]);
+    expect(usdcAfter - usdcBefore).toBeGreaterThanOrEqual(args[2]);
   });
 });
