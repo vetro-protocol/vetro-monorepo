@@ -19,7 +19,7 @@ npm add @vetro-protocol/target-yield-earn viem
 
 ```ts
 import {
-  getCurrentRate,
+  getEpoch,
   getEpochId,
   getMaxRequestDeposit,
   getMaxRequestRedeem,
@@ -35,8 +35,8 @@ const vaultAddress = "0x...";
 // Current epoch, or 0n if the vault hasn't started one yet.
 const epochId = await getEpochId(publicClient, { address: vaultAddress });
 
-// Rate accruing now, WAD-scaled per annum. 0n outside an accrual interval.
-const rate = await getCurrentRate(publicClient, { address: vaultAddress });
+// Full epoch: rate, deposit cap and windows as absolute timestamps.
+const epoch = await getEpoch(publicClient, { address: vaultAddress, epochId });
 
 // Max amount of assets this controller can still request for deposit.
 const maxAssets = await getMaxRequestDeposit(publicClient, {
@@ -61,10 +61,14 @@ const pendingAssets = await pendingDepositRequest(publicClient, {
 ## API
 
 - Public actions (reads):
-  - `getCurrentRate(client, params)` — the rate currently accruing, WAD-scaled per annum, `0n` outside an accrual interval.
+  - `getEpoch(client, params)` — an epoch's `start`, `end`, `rate`, `maxDeposits` (the deposit cap), `deposits` (the assets requested so far) and its `entryWindow`, `accrualInterval` and `exitWindow` as `{ end, start }` absolute timestamps.
   - `getEpochId(client, params)` — the current epoch id, `0n` when no epoch has started.
+  - `getIsPaused(client, params)` — whether the keeper paused the vault. Pausing blocks new deposit requests only.
+  - `getIsShutdown(client, params)` — whether the owner shut the vault down. Shutdown blocks every request and claim, but not cancellations. Reversible.
+  - `getIsTerminated(client, params)` — whether the vault was permanently wound down. Once terminated, no new epochs or deposits, and withdrawal requests are claimable right away.
   - `getMaxRequestDeposit(client, params)` — the assets the controller can still request for deposit, capped by the epoch's remaining deposit capacity. `0n` whenever a deposit request would revert — outside the entry window, while paused, shutdown or terminated, or when the controller has a pending request from an earlier epoch.
   - `getMaxRequestRedeem(client, params)` — the shares the owner can still request for redemption. `0n` whenever a redeem request would revert — outside the exit window, while shutdown, or when a redeem batch from an earlier epoch is still pending and the vault hasn't terminated.
+  - `getRate(client, params)` — the fixed rate an epoch pays during its accrual interval, WAD-scaled per annum. It returns the same value at any time, so use it (or `getEpoch`) to show the rate.
   - `pendingDepositRequest(client, params)` — assets in an unfulfilled deposit request, re-exported from `viem-erc7540`.
 - `targetYieldEarnPublicActions()` — viem extension factory that wires the same actions onto a client via `.extend()`.
 - `targetYieldEarnVaultAbi` — the minimal ABI subset used by the package.

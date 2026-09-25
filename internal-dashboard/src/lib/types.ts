@@ -60,7 +60,6 @@ type PoolCampaignBase = {
   endTimestamp: number; // seconds
   id: string;
   rewardTokenSymbol: string;
-  url: string;
 };
 
 export type MerklPoolCampaign = PoolCampaignBase & {
@@ -70,10 +69,13 @@ export type MerklPoolCampaign = PoolCampaignBase & {
   protocolAprPercent?: number;
   source: "merkl";
   tvlUsd: number;
+  url: string;
 };
 
 export type StakeDaoPoolCampaign = PoolCampaignBase & {
   campaignNumber: number;
+  gauge: Address;
+  gaugeChainId: number;
   source: "stakeDao";
   totalRewardUsd: number;
   usdPerVote: number;

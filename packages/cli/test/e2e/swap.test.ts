@@ -5,17 +5,19 @@ import {
   getWithdrawalDelay,
 } from "@vetro-protocol/gateway/actions";
 import { decodeFunctionData, parseUnits } from "viem";
-import { getBlock } from "viem/actions";
+import { getBlock, increaseTime, mine, revert, snapshot } from "viem/actions";
 import { balanceOf } from "viem-erc20/actions";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 
 import {
+  type RedeemRequest,
   type TransactionRequest,
   approveArgs,
   createClients,
   depositAbi,
   fundTestAccount,
   mintArgs,
+  requestArgs,
   runCli,
   sendToQueueArgs,
   sendTransactionRequest,
@@ -26,7 +28,7 @@ import {
 } from "./helpers.ts";
 
 const rpcUrl = inject("anvilUrl");
-const { publicClient } = createClients(rpcUrl);
+const { publicClient, testClient } = createClients(rpcUrl);
 
 const onFork = (args: string[]) => [...args, "--rpc-url", rpcUrl];
 
@@ -72,10 +74,13 @@ describe("swap in (USDC → VUSD)", function () {
   });
 });
 
-describe("swap out step 1 (VUSD → queue)", function () {
+describe("swap out step 1 (VUSD → queue) and swap request", function () {
   const [gateway] = gatewayAddresses;
 
   const queuedAmount = "50";
+
+  const requestOnFork = () =>
+    onFork(requestArgs(["--account", TEST_ADDRESS, "--gateway", gateway]));
 
   let restoreQueue: (() => Promise<void>) | undefined;
 
@@ -113,5 +118,35 @@ describe("swap out step 1 (VUSD → queue)", function () {
       parseUnits(queuedAmount, vusd.decimals),
     );
     expect(claimableAt).toBe(block.timestamp + delay);
+  });
+
+  it("reports the queued request in cooldown", async function () {
+    const [[amountLocked, claimableAt], request] = await Promise.all([
+      getRedeemRequest(publicClient, { address: gateway, user: TEST_ADDRESS }),
+      runCli<RedeemRequest>(requestOnFork()),
+    ]);
+
+    expect(request).toEqual({
+      amountLocked: amountLocked.toString(),
+      claimableAt: claimableAt.toString(),
+      status: "cooldown",
+    });
+  });
+
+  it("reports the queued request as ready once the cooldown ends", async function () {
+    const id = await snapshot(testClient);
+    try {
+      const delay = await getWithdrawalDelay(publicClient, {
+        address: gateway,
+      });
+      await increaseTime(testClient, { seconds: Number(delay) });
+      await mine(testClient, { blocks: 1 });
+
+      const request = await runCli<RedeemRequest>(requestOnFork());
+
+      expect(request.status).toBe("ready");
+    } finally {
+      await revert(testClient, { id });
+    }
   });
 });
