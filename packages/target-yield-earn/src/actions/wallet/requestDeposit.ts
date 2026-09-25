@@ -1,7 +1,12 @@
 import { isAddressValid } from "@vetro-protocol/core";
 import { EventEmitter } from "events";
 import { toPromiseEvent } from "to-promise-event";
-import { type Address, type TransactionReceipt, type WalletClient } from "viem";
+import {
+  type Address,
+  isAddressEqual,
+  type TransactionReceipt,
+  type WalletClient,
+} from "viem";
 import { waitForTransactionReceipt } from "viem/actions";
 import {
   allowance,
@@ -17,7 +22,7 @@ export type RequestDepositParams = {
   approveAmount?: bigint;
   assets: bigint;
   controller: Address;
-  owner: Address;
+  owner?: Address;
 };
 
 const canRequestDeposit = function ({
@@ -33,7 +38,7 @@ const canRequestDeposit = function ({
   assets: bigint;
   client: WalletClient;
   controller: Address;
-  owner: Address;
+  owner?: Address;
 }): {
   canRequestDeposit: boolean;
   reason?: string;
@@ -68,7 +73,7 @@ const canRequestDeposit = function ({
       reason: "Invalid controller address",
     };
   }
-  if (!isAddressValid(owner)) {
+  if (owner !== undefined && !isAddressValid(owner)) {
     return {
       canRequestDeposit: false,
       reason: "Invalid owner address",
@@ -101,7 +106,7 @@ const runRequestDeposit = (
   params: RequestDepositParams,
 ) =>
   async function (emitter: EventEmitter<RequestDepositEvents>) {
-    const { address, assets, controller, owner } = params;
+    const { address, assets, controller } = params;
     const approveAmount = params.approveAmount ?? assets;
 
     try {
@@ -112,13 +117,16 @@ const runRequestDeposit = (
           assets,
           client: walletClient,
           controller,
-          owner,
+          owner: params.owner,
         });
 
       if (!canRequestDepositFlag) {
         emitter.emit("request-deposit-failed-validation", reason!);
         return;
       }
+
+      const account = walletClient.account!.address;
+      const owner = params.owner ?? account;
 
       const token = await asset(walletClient, { address });
 
@@ -129,6 +137,14 @@ const runRequestDeposit = (
       });
 
       if (currentAllowance < assets) {
+        if (!isAddressEqual(owner, account)) {
+          emitter.emit(
+            "request-deposit-failed-validation",
+            "Owner allowance is lower than assets",
+          );
+          return;
+        }
+
         emitter.emit("pre-approve");
 
         const approvalHash = await approve(walletClient, {

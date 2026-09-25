@@ -230,6 +230,55 @@ describe("requestDeposit", function () {
     expect(onSettled).toHaveBeenCalledOnce();
   });
 
+  it("should default the owner to the wallet account", async function () {
+    const { owner, ...parametersWithoutOwner } = validParameters;
+
+    vi.mocked(allowance).mockResolvedValue(validParameters.assets);
+    vi.mocked(erc7540RequestDeposit).mockResolvedValue(zeroHash);
+    vi.mocked(waitForTransactionReceipt).mockResolvedValue(successReceipt);
+
+    const { promise } = requestDeposit(
+      mockWalletClient,
+      parametersWithoutOwner,
+    );
+
+    await promise;
+
+    expect(allowance).toHaveBeenCalledExactlyOnceWith(mockWalletClient, {
+      address: token,
+      owner,
+      spender: validParameters.address,
+    });
+    expect(erc7540RequestDeposit).toHaveBeenCalledExactlyOnceWith(
+      mockWalletClient,
+      { ...parametersWithoutOwner, owner },
+    );
+  });
+
+  it("should emit 'request-deposit-failed-validation' if the owner is not the wallet account and the allowance is not enough", async function () {
+    vi.mocked(allowance).mockResolvedValue(BigInt(0));
+
+    const { emitter, promise } = requestDeposit(mockWalletClient, {
+      ...validParameters,
+      owner: "0x2222222222222222222222222222222222222222",
+    });
+
+    const onFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("request-deposit-failed-validation", onFailedValidation);
+    emitter.on("request-deposit-settled", onSettled);
+
+    await promise;
+
+    expect(onFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "Owner allowance is lower than assets",
+    );
+    expect(approve).not.toHaveBeenCalled();
+    expect(erc7540RequestDeposit).not.toHaveBeenCalled();
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
   it("should emit 'user-signing-approval-error' when signing the approval fails", async function () {
     vi.mocked(allowance).mockResolvedValue(BigInt(0));
     vi.mocked(approve).mockRejectedValue(new Error("Signing error"));
