@@ -89,6 +89,41 @@ Get the composition of the treasury by whitelisted token for a given gateway.
 ]
 ```
 
+### `GET /analytics/tvl-history/:gatewayAddress/:period`
+
+Returns the daily TVL history for a gateway's pegged token: the circulating supply, plus the Treasury's withdrawable holdings per whitelisted token. One record per UTC day, plus a live point for today.
+Valid periods are: `"1w"`, `"1m"`, `"3m"` and `"1y"`.
+`:gatewayAddress` must be a known gateway address. Returns `400` if malformed or the period is invalid, and `404` if the address is not a whitelisted gateway.
+
+#### Sample response
+
+For the VUSD gateway, whose peg unit is USD:
+
+```jsonc
+[
+  {
+    "pegBaseUsdPrice": 1,
+    "peggedTokenAddress": "0xCa83DDE9c22254f58e771bE5E157773212AcBAc3",
+    "timestamp": 1788998400000,
+    "tokens": [
+      {
+        "price": "99991000",
+        "tokenAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        "unitPrice": "100000000",
+        "withdrawable": "258609609875",
+      },
+      // ...one entry per whitelisted token...
+    ],
+    "totalSupply": "443736408129313428461563",
+  },
+  // ...one record per day...
+]
+```
+
+The vetBTC gateway returns the same shape with that day's BTC price, e.g. `"pegBaseUsdPrice": 77248.73`.
+
+`pegBaseUsdPrice` is `null` when the Portal price API fails for a gateway whose peg unit is not USD. A token's `price` and `unitPrice` are `null` for a day on which the oracle read failed.
+
 ### `GET /borrow/:marketId/apr-history/:period`
 
 Returns the historical borrow APR for a given market and period.
@@ -345,6 +380,7 @@ Secrets are set separately using the Wrangler CLI.
 | MERKL_OPPORTUNITY_SVETBTC   | Merkl opportunity id for the sVetBTC staking vault. Optional; if unset, that vault yields no rewards.                                                                           |                           |
 | MERKL_OPPORTUNITY_SVUSD     | Merkl opportunity id for the sVUSD staking vault. Optional; if unset, that vault yields no rewards.                                                                             |                           |
 | ORIGINS                     | Comma-separated list of allowed origins. (1)                                                                                                                                    | `http://localhost:5173`   |
+| PORTAL_API_URL              | Base URL of the portal API. `GET /analytics/tvl-history` reads the daily and current USD price of a non-USD peg unit (BTC) from it.                                             | `http://localhost:3006`   |
 | SENTRY_DSN                  | Sentry DSN. When unset, Sentry is disabled.                                                                                                                                     |                           |
 | SUBGRAPH_API_KEY            | The subgraph API key.                                                                                                                                                           |                           |
 | SUBGRAPH_ID                 | The subgraph id.                                                                                                                                                                |                           |
