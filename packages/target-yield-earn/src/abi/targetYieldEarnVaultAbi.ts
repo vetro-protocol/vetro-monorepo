@@ -1,5 +1,19 @@
 export const targetYieldEarnVaultAbi = [
   {
+    inputs: [{ name: "controller_", type: "address" }],
+    name: "cancelDepositRequest",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [{ name: "controller_", type: "address" }],
+    name: "cancelRedeemRequest",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "epochId",
     outputs: [{ type: "uint256" }],

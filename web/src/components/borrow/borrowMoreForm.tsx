@@ -108,7 +108,12 @@ function SubmitButton({
     );
   }
   return (
-    <Button size="small" type="submit" variant="primary">
+    <Button
+      disabled={!balancesLoaded}
+      size="small"
+      type="submit"
+      variant="primary"
+    >
       {t("pages.borrow.borrow-more-progress.submit")}
     </Button>
   );

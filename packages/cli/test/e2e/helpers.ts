@@ -40,6 +40,11 @@ import {
   writeContract,
 } from "viem/actions";
 import { mainnet } from "viem/chains";
+import {
+  defaultAdmin,
+  grantRole,
+  hasRole,
+} from "viem-oz-access-control/actions";
 
 import { type GlobalOptions } from "../../src/lib/client.ts";
 import { printError } from "../../src/lib/output.ts";
@@ -76,6 +81,10 @@ export const depositAbi = parseAbi([
   "function deposit(address tokenIn, uint256 amountIn, uint256 minPeggedTokenOut, address receiver)",
 ]);
 
+export const redeemAbi = parseAbi([
+  "function redeem(address tokenOut, uint256 peggedTokenIn, uint256 minAmountOut, address receiver)",
+]);
+
 export const requestRedeemAbi = parseAbi([
   "function requestRedeem(uint256 peggedTokenAmount)",
 ]);
@@ -105,9 +114,27 @@ export const sendToQueueArgs = (extra: string[] = []) => [
   ...extra,
 ];
 
+export const redeemArgs = (extra: string[] = []) => [
+  "swap",
+  "redeem",
+  "--to",
+  usdc.symbol,
+  "--amount",
+  swapAmount,
+  "--receiver",
+  TEST_ADDRESS,
+  ...extra,
+];
+
 export const requestArgs = (extra: string[] = []) => [
   "swap",
   "request",
+  ...extra,
+];
+
+export const cancelRedeemArgs = (extra: string[] = []) => [
+  "swap",
+  "cancel-redeem",
   ...extra,
 ];
 
@@ -285,23 +312,25 @@ const confirmWrite = async function ({
 };
 
 const treasuryAbi = parseAbi([
-  "function defaultAdmin() view returns (address)",
-  "function grantRole(bytes32 role, address account)",
-  "function hasRole(bytes32 role, address account) view returns (bool)",
   "function setDepositActive(address token, bool active)",
+  "function setWithdrawActive(address token, bool active)",
 ]);
 
-/** Flips the treasury's `depositActive` for a whitelisted token, as a keeper. */
-export const setDepositActive = async function ({
-  active,
-  gateway,
-  rpcUrl,
-  token,
-}: {
+type SetTokenActiveParams = {
   active: boolean;
   gateway: Address;
   rpcUrl: string;
   token: Address;
+};
+
+const setTokenActive = async function ({
+  active,
+  functionName,
+  gateway,
+  rpcUrl,
+  token,
+}: SetTokenActiveParams & {
+  functionName: "setDepositActive" | "setWithdrawActive";
 }) {
   const { publicClient, testClient } = createClients(rpcUrl);
 
@@ -311,11 +340,7 @@ export const setDepositActive = async function ({
     functionName: "treasury",
   });
   const [admin, keeperRole] = await Promise.all([
-    readContract(publicClient, {
-      abi: treasuryAbi,
-      address: treasury,
-      functionName: "defaultAdmin",
-    }),
+    defaultAdmin(publicClient, { address: treasury }),
     getKeeperRole(publicClient, { address: treasury }),
   ]);
 
@@ -323,22 +348,22 @@ export const setDepositActive = async function ({
   await setBalance(testClient, { address: admin, value: parseEther("1") });
 
   try {
-    const isKeeper = await readContract(publicClient, {
-      abi: treasuryAbi,
+    const isKeeper = await hasRole(publicClient, {
+      account: admin,
       address: treasury,
-      args: [keeperRole, admin],
-      functionName: "hasRole",
+      role: keeperRole,
     });
     if (!isKeeper) {
       await confirmWrite({
         client: publicClient,
-        hash: await writeContract(testClient, {
-          abi: treasuryAbi,
-          account: admin,
-          address: treasury,
-          args: [keeperRole, admin],
-          functionName: "grantRole",
-        }),
+        hash: await grantRole(
+          createWalletClient({
+            account: admin,
+            chain: mainnet,
+            transport: http(rpcUrl),
+          }),
+          { account: admin, address: treasury, role: keeperRole },
+        ),
       });
     }
     await confirmWrite({
@@ -348,13 +373,19 @@ export const setDepositActive = async function ({
         account: admin,
         address: treasury,
         args: [token, active],
-        functionName: "setDepositActive",
+        functionName,
       }),
     });
   } finally {
     await stopImpersonatingAccount(testClient, { address: admin });
   }
 };
+
+export const setDepositActive = (params: SetTokenActiveParams) =>
+  setTokenActive({ ...params, functionName: "setDepositActive" });
+
+export const setWithdrawActive = (params: SetTokenActiveParams) =>
+  setTokenActive({ ...params, functionName: "setWithdrawActive" });
 
 const maintainerRoleAbi = parseAbi([
   "function MAINTAINER_ROLE() view returns (bytes32)",
@@ -377,32 +408,28 @@ const impersonateMaintainer = async function ({
     }),
     getTreasury(publicClient, { address: gateway }),
   ]);
-  const admin = await readContract(publicClient, {
-    abi: treasuryAbi,
-    address: treasury,
-    functionName: "defaultAdmin",
-  });
+  const admin = await defaultAdmin(publicClient, { address: treasury });
 
   await impersonateAccount(testClient, { address: admin });
   await setBalance(testClient, { address: admin, value: parseEther("1") });
 
   try {
-    const isMaintainer = await readContract(publicClient, {
-      abi: treasuryAbi,
+    const isMaintainer = await hasRole(publicClient, {
+      account: admin,
       address: treasury,
-      args: [maintainerRole, admin],
-      functionName: "hasRole",
+      role: maintainerRole,
     });
     if (!isMaintainer) {
       await confirmWrite({
         client: publicClient,
-        hash: await writeContract(testClient, {
-          abi: treasuryAbi,
-          account: admin,
-          address: treasury,
-          args: [maintainerRole, admin],
-          functionName: "grantRole",
-        }),
+        hash: await grantRole(
+          createWalletClient({
+            account: admin,
+            chain: mainnet,
+            transport: http(rpcUrl),
+          }),
+          { account: admin, address: treasury, role: maintainerRole },
+        ),
       });
     }
   } catch (error) {
