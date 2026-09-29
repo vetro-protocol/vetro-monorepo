@@ -2,12 +2,14 @@ import { useState } from "react";
 
 import { PoolFilters } from "../components/dex/poolFilters";
 import { PoolsTable } from "../components/dex/poolsTable";
+import { StatCard } from "../components/dex/statCard";
 import { StateMessage } from "../components/dex/stateMessage";
 import { TokenDistribution } from "../components/dex/tokenDistribution";
 import { useCampaignPoolIds } from "../hooks/usePoolCampaigns";
 import { useTrackedPools } from "../hooks/useTrackedPools";
 import { useTrackedTokens } from "../hooks/useTrackedTokens";
 import { useWhitelistedTokens } from "../hooks/useWhitelistedTokens";
+import { formatUsd } from "../lib/format";
 import {
   chainFilterOptions,
   emptyPoolFilters,
@@ -15,6 +17,27 @@ import {
   tokenFilterOptions,
   trackedSymbolOptions,
 } from "../lib/poolFilters";
+import { totalTvlUsd } from "../lib/poolMetrics";
+import { type TrackedPool } from "../lib/types";
+
+type Props = {
+  pools: TrackedPool[];
+};
+
+const TotalTvlCard = function ({ pools }: Props) {
+  const { totalUsd, unpricedCount } = totalTvlUsd(pools);
+  const unpricedHint =
+    unpricedCount > 0
+      ? ` · ${unpricedCount} unpriced ${unpricedCount === 1 ? "pool" : "pools"} not included`
+      : "";
+  return (
+    <StatCard
+      hint={`Excludes price-range views${unpricedHint}`}
+      label="Total DEX TVL"
+      value={formatUsd(totalUsd)}
+    />
+  );
+};
 
 export const DexPage = function () {
   const { data: pools, isError, isPending } = useTrackedPools();
@@ -79,7 +102,12 @@ export const DexPage = function () {
               {filteredPools.length === 0 ? (
                 <StateMessage>No pool matches the filters.</StateMessage>
               ) : (
-                <PoolsTable pools={filteredPools} />
+                <>
+                  <div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+                    <TotalTvlCard pools={filteredPools} />
+                  </div>
+                  <PoolsTable pools={filteredPools} />
+                </>
               )}
             </div>
             <div>

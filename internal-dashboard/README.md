@@ -4,8 +4,8 @@ Internal-facing dashboard for tracking various operational metrics. Each metric 
 lives on its own tab, mapped to a URL.
 
 - **DEX** (`/dex`) — liquidity of the tracked Vetro pools on Curve, Sushi and
-  Uniswap (Ethereum) and BrownFi (Hemi). Each pool also has a detail view at
-  `/dex/:poolId`.
+  Uniswap (Ethereum) and BrownFi (Hemi), with the total TVL (in USD) of the
+  listed pools. Each pool also has a detail view at `/dex/:poolId`.
 - **Hemi Earn** (`/hemi-earn`) — status of the Hemi Earn agent: keepers,
   ownership, proxy implementation and its pending vault cooldowns.
 
