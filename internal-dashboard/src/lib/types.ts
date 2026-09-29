@@ -35,7 +35,8 @@ export type TrackedPool = {
   // so the id disambiguates those entries while `address` stays the real pool.
   id: string;
   // A derived sub-range view of another entry (e.g. liquidity within a price band).
-  // Excluded from token-distribution stats so its liquidity isn't double-counted.
+  // Excluded from token-distribution stats and the TVL total so its liquidity isn't
+  // double-counted.
   isRangeView?: boolean;
   lpTokenAddress: Address | undefined;
   name: string;

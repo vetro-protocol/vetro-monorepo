@@ -1,8 +1,8 @@
 import { type Address, parseUnits } from "viem";
 import { describe, expect, it } from "vitest";
 
-import { poolTvlUsd } from "./poolMetrics";
-import { type PoolCoin } from "./types";
+import { poolTvlUsd, totalTvlUsd } from "./poolMetrics";
+import { type PoolCoin, type TrackedPool } from "./types";
 
 const coin = ({
   balance,
@@ -19,6 +19,16 @@ const coin = ({
   symbol: "TKN",
   usdPrice,
 });
+
+const trackedPool = ({
+  id,
+  isRangeView,
+  tvlUsd,
+}: {
+  id: string;
+  isRangeView?: boolean;
+  tvlUsd: number | undefined;
+}) => ({ id, isRangeView, tvlUsd }) as TrackedPool;
 
 describe("poolTvlUsd", function () {
   it("values every leg and sums them", function () {
@@ -90,5 +100,78 @@ describe("poolTvlUsd", function () {
     expect(
       poolTvlUsd([coin({ balance: "10000000", decimals: 18, usdPrice: 1.5 })]),
     ).toBeCloseTo(15_000_000, 2);
+  });
+});
+
+describe("totalTvlUsd", function () {
+  it("sums the TVL of every pool", function () {
+    expect(
+      totalTvlUsd([
+        trackedPool({ id: "a", tvlUsd: 100 }),
+        trackedPool({ id: "b", tvlUsd: 250.5 }),
+        trackedPool({ id: "c", tvlUsd: 1000 }),
+      ]),
+    ).toEqual({ totalUsd: 1350.5, unpricedCount: 0 });
+  });
+
+  it("excludes price-range views but keeps the full-range entry", function () {
+    expect(
+      totalTvlUsd([
+        trackedPool({ id: "full", isRangeView: false, tvlUsd: 1000 }),
+        trackedPool({ id: "band-1", isRangeView: true, tvlUsd: 400 }),
+        trackedPool({ id: "band-2", isRangeView: true, tvlUsd: 300 }),
+      ]),
+    ).toEqual({ totalUsd: 1000, unpricedCount: 0 });
+  });
+
+  it("counts a pool without isRangeView set", function () {
+    expect(
+      totalTvlUsd([
+        trackedPool({ id: "full", tvlUsd: 1000 }),
+        trackedPool({ id: "band", isRangeView: true, tvlUsd: 400 }),
+      ]),
+    ).toEqual({ totalUsd: 1000, unpricedCount: 0 });
+  });
+
+  it("skips and counts unpriced pools", function () {
+    expect(
+      totalTvlUsd([
+        trackedPool({ id: "a", tvlUsd: 100 }),
+        trackedPool({ id: "b", tvlUsd: undefined }),
+        trackedPool({ id: "c", tvlUsd: 50 }),
+        trackedPool({ id: "d", tvlUsd: undefined }),
+      ]),
+    ).toEqual({ totalUsd: 150, unpricedCount: 2 });
+  });
+
+  it("does not count an unpriced range view as unpriced", function () {
+    expect(
+      totalTvlUsd([
+        trackedPool({ id: "band", isRangeView: true, tvlUsd: undefined }),
+        trackedPool({ id: "full", tvlUsd: 10 }),
+      ]),
+    ).toEqual({ totalUsd: 10, unpricedCount: 0 });
+  });
+
+  it("is zero for an empty list", function () {
+    expect(totalTvlUsd([])).toEqual({ totalUsd: 0, unpricedCount: 0 });
+  });
+
+  it("is zero when every pool is a range view", function () {
+    expect(
+      totalTvlUsd([
+        trackedPool({ id: "band-1", isRangeView: true, tvlUsd: 400 }),
+        trackedPool({ id: "band-2", isRangeView: true, tvlUsd: undefined }),
+      ]),
+    ).toEqual({ totalUsd: 0, unpricedCount: 0 });
+  });
+
+  it("adds nothing for a zero-TVL pool and does not count it as unpriced", function () {
+    expect(
+      totalTvlUsd([
+        trackedPool({ id: "a", tvlUsd: 0 }),
+        trackedPool({ id: "b", tvlUsd: 75 }),
+      ]),
+    ).toEqual({ totalUsd: 75, unpricedCount: 0 });
   });
 });
