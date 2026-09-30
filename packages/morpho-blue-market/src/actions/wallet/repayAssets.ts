@@ -16,12 +16,96 @@ import { morphoBlueAbi } from "../../abi/morphoBlueAbi.ts";
 import type { MarketParams, RepayAssetsEvents } from "../../types.ts";
 import { getMarketParams } from "../public/getMarketParams.ts";
 
-export type RepayAssetsParams = {
+type RepayAssetsParamsBase = {
   address: Address;
-  amount: bigint;
   approveAmount?: bigint;
   marketId: Hash;
   onBehalf: Address;
+};
+
+type RepayAssetsMode =
+  | {
+      amount: bigint;
+      shares?: never;
+    }
+  | {
+      amount?: never;
+      shares: bigint;
+    };
+
+export type RepayAssetsParams = RepayAssetsParamsBase & RepayAssetsMode;
+
+const canRepayAmounts = function ({
+  amount,
+  approveAmount,
+  shares,
+}: {
+  amount?: bigint;
+  approveAmount?: bigint;
+  shares?: bigint;
+}): {
+  canRepayAssets: boolean;
+  reason?: string;
+} {
+  const hasAmount = amount !== undefined;
+  const hasShares = shares !== undefined;
+
+  if (hasAmount === hasShares) {
+    return {
+      canRepayAssets: false,
+      reason: "Exactly one of amount or shares must be provided",
+    };
+  }
+
+  if (hasAmount && typeof amount !== "bigint") {
+    return {
+      canRepayAssets: false,
+      reason: "Amount must be a bigint",
+    };
+  }
+  if (hasAmount && amount! <= 0n) {
+    return {
+      canRepayAssets: false,
+      reason: "Amount must be greater than 0",
+    };
+  }
+  if (hasShares && typeof shares !== "bigint") {
+    return {
+      canRepayAssets: false,
+      reason: "Shares must be a bigint",
+    };
+  }
+  if (hasShares && shares! <= 0n) {
+    return {
+      canRepayAssets: false,
+      reason: "Shares must be greater than 0",
+    };
+  }
+
+  const resolvedApproveAmount = approveAmount ?? amount;
+
+  if (typeof resolvedApproveAmount !== "bigint") {
+    return {
+      canRepayAssets: false,
+      reason: hasShares
+        ? "Approve amount is required for share-based repayment"
+        : "Approve amount must be a bigint",
+    };
+  }
+  if (amount !== undefined && resolvedApproveAmount < amount) {
+    return {
+      canRepayAssets: false,
+      reason: "Approve amount must be greater than or equal to amount",
+    };
+  }
+  if (resolvedApproveAmount <= 0n) {
+    return {
+      canRepayAssets: false,
+      reason: "Approve amount must be greater than 0",
+    };
+  }
+
+  return { canRepayAssets: true };
 };
 
 const canRepayAssets = function ({
@@ -31,13 +115,15 @@ const canRepayAssets = function ({
   client,
   marketId,
   onBehalf,
+  shares,
 }: {
   address: Address;
-  amount: bigint;
-  approveAmount: bigint;
+  amount?: bigint;
+  approveAmount?: bigint;
   client: WalletClient;
   marketId: Hash;
   onBehalf: Address;
+  shares?: bigint;
 }): {
   canRepayAssets: boolean;
   reason?: string;
@@ -78,32 +164,8 @@ const canRepayAssets = function ({
       reason: "Invalid onBehalf address",
     };
   }
-  if (typeof amount !== "bigint") {
-    return {
-      canRepayAssets: false,
-      reason: "Amount must be a bigint",
-    };
-  }
-  if (amount <= 0n) {
-    return {
-      canRepayAssets: false,
-      reason: "Amount must be greater than 0",
-    };
-  }
-  if (typeof approveAmount !== "bigint") {
-    return {
-      canRepayAssets: false,
-      reason: "Approve amount must be a bigint",
-    };
-  }
-  if (approveAmount < amount) {
-    return {
-      canRepayAssets: false,
-      reason: "Approve amount must be greater than or equal to amount",
-    };
-  }
 
-  return { canRepayAssets: true };
+  return canRepayAmounts({ amount, approveAmount, shares });
 };
 
 const runRepayAssets = (
@@ -111,9 +173,10 @@ const runRepayAssets = (
   {
     address,
     amount,
-    approveAmount = amount,
+    approveAmount,
     marketId,
     onBehalf,
+    shares,
   }: RepayAssetsParams,
 ) =>
   async function (emitter: EventEmitter<RepayAssetsEvents>) {
@@ -125,6 +188,7 @@ const runRepayAssets = (
         client: walletClient,
         marketId,
         onBehalf,
+        shares,
       });
 
       if (!canRepayAssetsFlag) {
@@ -132,6 +196,7 @@ const runRepayAssets = (
         return;
       }
 
+      const resolvedApproveAmount = approveAmount ?? amount!;
       const marketParams = await getMarketParams({
         address,
         client: walletClient,
@@ -144,12 +209,15 @@ const runRepayAssets = (
         spender: address,
       });
 
-      if (currentAllowance < amount) {
+      const requiredAllowance =
+        shares === undefined ? amount! : resolvedApproveAmount;
+
+      if (currentAllowance < requiredAllowance) {
         emitter.emit("pre-approve");
 
         const approvalHash = await approve(walletClient, {
           address: marketParams.loanToken,
-          amount: approveAmount,
+          amount: resolvedApproveAmount,
           spender: address,
         }).catch(function (error: Error) {
           emitter.emit("user-signing-approval-error", error);
@@ -185,7 +253,13 @@ const runRepayAssets = (
         abi: morphoBlueAbi,
         account: walletClient.account!,
         address,
-        args: [marketParams, amount, 0n, onBehalf, "0x"],
+        args: [
+          marketParams,
+          shares === undefined ? amount! : 0n,
+          shares ?? 0n,
+          onBehalf,
+          "0x",
+        ],
         chain: walletClient.chain,
         functionName: "repay",
       }).catch(function (error: Error) {
@@ -227,17 +301,28 @@ const runRepayAssets = (
 export const repayAssets = (...args: Parameters<typeof runRepayAssets>) =>
   toPromiseEvent<RepayAssetsEvents>(runRepayAssets(...args));
 
-export const encodeRepayAssets = ({
+export const encodeRepayAssets = function ({
   amount,
   marketParams,
   onBehalf,
+  shares,
 }: {
-  amount: bigint;
   marketParams: MarketParams;
   onBehalf: Address;
-}) =>
-  encodeFunctionData({
+} & RepayAssetsMode) {
+  if ((amount === undefined) === (shares === undefined)) {
+    throw new Error("Exactly one of amount or shares must be provided");
+  }
+
+  return encodeFunctionData({
     abi: morphoBlueAbi,
-    args: [marketParams, amount, 0n, onBehalf, "0x"],
+    args: [
+      marketParams,
+      shares === undefined ? amount : 0n,
+      shares ?? 0n,
+      onBehalf,
+      "0x",
+    ],
     functionName: "repay",
   });
+};
