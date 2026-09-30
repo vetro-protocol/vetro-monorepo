@@ -73,6 +73,15 @@ function getStakeErrors({
   return undefined;
 }
 
+const isDepositTransactionPending = ({
+  isMutationPending,
+  step,
+}: {
+  isMutationPending: boolean;
+  step: DepositStep;
+}) =>
+  isMutationPending || step === "approve-unknown" || step === "deposit-unknown";
+
 const getSubmitTexts = ({
   depositStep,
   needsApproval,
@@ -86,7 +95,7 @@ const getSubmitTexts = ({
     ? t("pages.earn.stake.approve-and-deposit")
     : t("pages.earn.stake.deposit"),
   pendingText:
-    depositStep === "approving"
+    depositStep === "approving" || depositStep === "approve-unknown"
       ? t("pages.earn.stake.approving")
       : t("pages.earn.stake.depositing"),
 });
@@ -161,6 +170,7 @@ export function StakeDepositForm({
     function handleDepositStepChange(step: DepositStep) {
       onDepositStepChange(step);
       const handlers: Partial<Record<DepositStep, () => void>> = {
+        "approve-failed": onFailed,
         completed: onCompleted,
         "deposit-failed": onFailed,
         depositing: onPending,
@@ -184,12 +194,20 @@ export function StakeDepositForm({
   const depositMutation = useStakeDeposit({
     approveAmount,
     assets: amountBigInt,
+    needsApproval,
     onStatusChange: handleDepositStepChange,
     onSuccess: handleDepositSuccess,
     onTransactionHash,
     peggedToken,
     stakingVaultAddress,
   });
+
+  function handleRetry() {
+    onDepositStepChange(
+      depositStep === "approve-failed" ? "approving" : "depositing",
+    );
+    depositMutation.mutate();
+  }
 
   const depositFeesQuery = useTotalDepositFees({
     amount: amountBigInt,
@@ -278,7 +296,10 @@ export function StakeDepositForm({
             balancesLoaded={balancesLoaded}
             inputError={inputError}
             isConnected={isConnected}
-            isPending={depositMutation.isPending}
+            isPending={isDepositTransactionPending({
+              isMutationPending: depositMutation.isPending,
+              step: depositStep,
+            })}
             onConnectWallet={openConnectModal}
             pendingText={pendingText}
           />
@@ -309,6 +330,12 @@ export function StakeDepositForm({
               depositStep={depositStep}
               needsApproval={needsApproval}
               networkFee={depositFeesQuery}
+              onRetry={
+                depositStep === "approve-failed" ||
+                depositStep === "deposit-failed"
+                  ? handleRetry
+                  : undefined
+              }
               peggedToken={peggedToken}
               shareToken={shareToken}
               stakingVaultAddress={stakingVaultAddress}
