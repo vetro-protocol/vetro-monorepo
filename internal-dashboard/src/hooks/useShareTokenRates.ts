@@ -9,4 +9,5 @@ export const shareTokenRatesOptions = () =>
     staleTime: 60 * 1000,
   });
 
-export const useShareTokenRates = () => useQuery(shareTokenRatesOptions());
+export const useShareTokenRates = ({ enabled }: { enabled: boolean }) =>
+  useQuery({ ...shareTokenRatesOptions(), enabled });

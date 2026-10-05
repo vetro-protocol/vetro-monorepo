@@ -31,7 +31,11 @@ import {
 } from "../lib/format";
 import { strategyUrl } from "../lib/stakeDaoApi";
 import { tokenAddresses } from "../lib/tokenAddresses";
-import { type PoolCoin, type TrackedPool } from "../lib/types";
+import {
+  type PoolCoin,
+  type TrackedPool,
+  type TrackedToken,
+} from "../lib/types";
 
 // Curve's fees aren't on the pool object; fetch them per pool on demand.
 const CurveFeesCard = function ({ pool }: { pool: TrackedPool }) {
@@ -63,9 +67,19 @@ const FeesCard = function ({ pool }: { pool: TrackedPool }) {
   return <CurveFeesCard pool={pool} />;
 };
 
+const getShareTokenAddresses = (trackedTokens: TrackedToken[] = []) =>
+  trackedTokens
+    .filter((token) => token.extensions?.isVaultShare)
+    .flatMap(tokenAddresses);
+
 const ExchangeRateCard = function ({ pool }: { pool: TrackedPool }) {
-  const { data: shareRates } = useShareTokenRates();
   const { data: trackedTokens } = useTrackedTokens();
+  const shareTokenAddresses = getShareTokenAddresses(trackedTokens);
+  const { data: shareRates } = useShareTokenRates({
+    enabled: pool.coins.some((coin) =>
+      shareTokenAddresses.some((share) => isAddressEqual(share, coin.address)),
+    ),
+  });
 
   if (pool.coins.length !== 2) {
     return null;
@@ -82,9 +96,7 @@ const ExchangeRateCard = function ({ pool }: { pool: TrackedPool }) {
         quote: quote.address,
         rate,
         shareRates: shareRates ?? {},
-        shareTokenAddresses: trackedTokens
-          .filter((token) => token.extensions?.isVaultShare)
-          .flatMap(tokenAddresses),
+        shareTokenAddresses,
       })
     : undefined;
 
