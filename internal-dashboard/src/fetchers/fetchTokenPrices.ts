@@ -1,10 +1,9 @@
 import { type QueryClient } from "@tanstack/react-query";
 import fetch from "fetch-plus-plus";
 
+import { shareTokenRatesOptions } from "../hooks/useShareTokenRates";
 import { trackedTokensOptions } from "../hooks/useTrackedTokens";
 import { type TrackedToken } from "../lib/types";
-
-import { fetchAssetsPerShare } from "./fetchAssetsPerShare";
 
 // Overridable per environment (see .env / .env.local), like web's VITE_PORTAL_API_URL.
 const PORTAL_API_BASE = import.meta.env.VITE_PORTAL_API_URL;
@@ -26,11 +25,13 @@ const pegToUsd = ({
   priceSymbol: string;
 }) => (priceSymbol === "USD" ? 1 : Number(portal[priceSymbol] ?? 0));
 
-const tokenUsdPrice = async function ({
+const tokenUsdPrice = function ({
   portal,
+  shareRates,
   token,
 }: {
   portal: PortalPrices;
+  shareRates: Partial<Record<string, number>>;
   token: TrackedToken;
 }) {
   const baseUsd = pegToUsd({
@@ -40,7 +41,8 @@ const tokenUsdPrice = async function ({
   if (!token.extensions?.isVaultShare) {
     return baseUsd;
   }
-  return baseUsd * (await fetchAssetsPerShare({ token }));
+  const rate = shareRates[token.address.toLowerCase()];
+  return rate === undefined ? undefined : baseUsd * rate;
 };
 
 // USD price per whole token, keyed by lowercased address — consumed by the Stats
@@ -50,22 +52,20 @@ export const fetchTokenPrices = async function ({
 }: {
   queryClient: QueryClient;
 }): Promise<Record<string, number>> {
-  const [portal, tokens] = await Promise.all([
+  // fetchQuery rather than ensureQueryData: nothing observes share-token-rates on
+  // the list page, so ensureQueryData would reuse rates past their staleTime.
+  const [portal, tokens, shareRates] = await Promise.all([
     fetchPortalPrices(),
     queryClient.ensureQueryData(trackedTokensOptions()),
+    queryClient.fetchQuery(shareTokenRatesOptions()),
   ]);
 
-  // Price each token independently: a single vault whose on-chain call reverts
-  // shouldn't wipe out every other token's price on this internal dashboard.
-  const entries = await Promise.all(
-    tokens.map(async function (token) {
-      try {
-        const usd = await tokenUsdPrice({ portal, token });
-        return [token.address.toLowerCase(), usd] as const;
-      } catch {
-        return undefined;
-      }
+  return Object.fromEntries(
+    tokens.flatMap(function (token) {
+      const usd = tokenUsdPrice({ portal, shareRates, token });
+      return usd === undefined
+        ? []
+        : [[token.address.toLowerCase(), usd] as const];
     }),
   );
-  return Object.fromEntries(entries.filter(Boolean));
 };

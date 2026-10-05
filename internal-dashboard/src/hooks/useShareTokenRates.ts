@@ -2,7 +2,7 @@ import { queryOptions, useQuery } from "@tanstack/react-query";
 
 import { fetchShareTokenRates } from "../fetchers/fetchShareTokenRates";
 
-const shareTokenRatesOptions = () =>
+export const shareTokenRatesOptions = () =>
   queryOptions({
     queryFn: ({ client: queryClient }) => fetchShareTokenRates({ queryClient }),
     queryKey: ["share-token-rates"],
