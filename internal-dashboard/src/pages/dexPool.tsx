@@ -14,8 +14,11 @@ import { VenueBadge } from "../components/dex/venueBadge";
 import { type Dex, dexLabels } from "../config/dexes";
 import { useCurvePoolStats } from "../hooks/useCurvePoolStats";
 import { useGaugeEmissions } from "../hooks/useGaugeEmissions";
+import { useShareTokenRates } from "../hooks/useShareTokenRates";
 import { useStakeDaoStrategy } from "../hooks/useStakeDaoStrategy";
 import { useTrackedPools } from "../hooks/useTrackedPools";
+import { useTrackedTokens } from "../hooks/useTrackedTokens";
+import { pegDeviation } from "../lib/exchangeRate";
 import {
   formatAprRange,
   formatOptionalPercent,
@@ -28,9 +31,6 @@ import {
 } from "../lib/format";
 import { strategyUrl } from "../lib/stakeDaoApi";
 import { type PoolCoin, type TrackedPool } from "../lib/types";
-
-// Within 10% of equal value: treat the pair as a peg and surface drift from 1.
-const PEG_THRESHOLD = 1.1;
 
 // Curve's fees aren't on the pool object; fetch them per pool on demand.
 const CurveFeesCard = function ({ pool }: { pool: TrackedPool }) {
@@ -63,6 +63,9 @@ const FeesCard = function ({ pool }: { pool: TrackedPool }) {
 };
 
 const ExchangeRateCard = function ({ pool }: { pool: TrackedPool }) {
+  const { data: shareRates } = useShareTokenRates();
+  const { data: trackedTokens } = useTrackedTokens();
+
   if (pool.coins.length !== 2) {
     return null;
   }
@@ -72,20 +75,36 @@ const ExchangeRateCard = function ({ pool }: { pool: TrackedPool }) {
     return null;
   }
   const rate = base.usdPrice / quote.usdPrice;
-  const isPeg = Math.max(rate, 1 / rate) < PEG_THRESHOLD;
-  const deviation = (rate - 1) * 100;
+  // Until the tracked tokens load, share legs can't be told apart from pegged
+  // ones, so don't compare against a possibly wrong reference.
+  const peg = trackedTokens
+    ? pegDeviation({
+        base: base.address,
+        quote: quote.address,
+        rate,
+        shareRates: shareRates ?? {},
+        shareTokenAddresses: trackedTokens
+          .filter((token) => token.extensions?.isVaultShare)
+          .map((token) => token.address),
+      })
+    : undefined;
 
   return (
     <StatCard
       hint={
-        isPeg ? (
+        peg ? (
           <span
             className={
-              Math.abs(deviation) >= 0.5 ? "text-amber-600" : "text-emerald-600"
+              Math.abs(peg.deviation) >= 0.5
+                ? "text-amber-600"
+                : "text-emerald-600"
             }
           >
-            {deviation >= 0 ? "+" : ""}
-            {deviation.toFixed(3)}% vs. peg
+            {peg.deviation >= 0 ? "+" : ""}
+            {peg.deviation.toFixed(3)}%{" "}
+            {peg.expectedRate === 1
+              ? "vs. peg"
+              : `vs. vault rate (${formatRate(peg.expectedRate)})`}
           </span>
         ) : (
           `1 ${quote.symbol} = ${formatRate(1 / rate)} ${base.symbol}`
