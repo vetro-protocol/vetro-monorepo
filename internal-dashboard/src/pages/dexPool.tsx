@@ -30,6 +30,7 @@ import {
   formatUsd,
 } from "../lib/format";
 import { strategyUrl } from "../lib/stakeDaoApi";
+import { tokenAddresses } from "../lib/tokenAddresses";
 import { type PoolCoin, type TrackedPool } from "../lib/types";
 
 // Curve's fees aren't on the pool object; fetch them per pool on demand.
@@ -83,7 +84,7 @@ const ExchangeRateCard = function ({ pool }: { pool: TrackedPool }) {
         shareRates: shareRates ?? {},
         shareTokenAddresses: trackedTokens
           .filter((token) => token.extensions?.isVaultShare)
-          .map((token) => token.address),
+          .flatMap(tokenAddresses),
       })
     : undefined;
 

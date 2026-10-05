@@ -1,6 +1,6 @@
-import { knownTokens } from "@vetro-protocol/core";
 import { isAddressEqual } from "viem";
 
+import { tokenAddresses } from "./tokenAddresses";
 import { type TrackedPool, type TrackedToken } from "./types";
 
 // Fixed-point scale for the bigint share ratio: 6 decimals of share precision,
@@ -30,12 +30,7 @@ export const computeDistributions = ({
   tokens: TrackedToken[];
 }): TokenDistribution[] =>
   tokens.map(function (token) {
-    const addresses = [
-      token.address,
-      ...knownTokens
-        .filter((known) => known.symbol === token.symbol)
-        .map((known) => known.address),
-    ];
+    const addresses = tokenAddresses(token);
 
     const entries = pools
       .map(function (pool) {

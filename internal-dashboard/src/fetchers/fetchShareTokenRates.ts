@@ -1,6 +1,7 @@
 import { type QueryClient } from "@tanstack/react-query";
 
 import { trackedTokensOptions } from "../hooks/useTrackedTokens";
+import { tokenAddresses } from "../lib/tokenAddresses";
 
 import { fetchAssetsPerShare } from "./fetchAssetsPerShare";
 
@@ -17,11 +18,13 @@ export const fetchShareTokenRates = async function ({
       .map(async function (token) {
         try {
           const rate = await fetchAssetsPerShare({ token });
-          return [token.address.toLowerCase(), rate] as const;
+          return tokenAddresses(token).map(
+            (address) => [address.toLowerCase(), rate] as const,
+          );
         } catch {
-          return undefined;
+          return [];
         }
       }),
   );
-  return Object.fromEntries(entries.filter(Boolean));
+  return Object.fromEntries(entries.flat());
 };

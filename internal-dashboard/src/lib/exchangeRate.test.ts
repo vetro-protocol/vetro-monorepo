@@ -2,6 +2,7 @@ import { type Address, getAddress } from "viem";
 import { describe, expect, it } from "vitest";
 
 import { pegDeviation } from "./exchangeRate";
+import { tokenAddresses } from "./tokenAddresses";
 
 const peggedToken: Address = "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd";
 const stablecoin: Address = "0x1111111111111111111111111111111111111111";
@@ -176,5 +177,29 @@ describe("pegDeviation", function () {
     const expectedRate = 1.0249 / 1.1;
     expect(result?.expectedRate).toBeCloseTo(expectedRate, 12);
     expect(result?.deviation).toBeCloseTo((rate / expectedRate - 1) * 100, 10);
+  });
+
+  it("compares a bridged share token against its mainnet vault rate", function () {
+    const hemiSVusd: Address = "0xfe875CC86cC6BC2E93ab330D6b2c408C3Cd79710";
+    const result = pegDeviation({
+      base: hemiSVusd,
+      quote: peggedToken,
+      rate: 1.02424,
+      // As fetchShareTokenRates stores it: the mainnet vault rate fanned out to
+      // the lowercased bridged address.
+      shareRates: { [hemiSVusd.toLowerCase()]: sharePrice },
+      shareTokenAddresses: tokenAddresses({
+        address: "0x476310E34D2810f7d79C43A74E4D79405bd7a925",
+        assetDecimals: 18,
+        decimals: 18,
+        extensions: { isVaultShare: true },
+        symbol: "sVUSD",
+      }),
+    });
+
+    expect(result?.expectedRate).toBe(sharePrice);
+    // ≈ -0.0644%, not the +2.424% of treating the Hemi share as a 1:1 coin.
+    expect(result?.deviation).toBeCloseTo((1.02424 / 1.0249 - 1) * 100, 10);
+    expect(result?.deviation).toBeCloseTo(-0.0644, 3);
   });
 });
