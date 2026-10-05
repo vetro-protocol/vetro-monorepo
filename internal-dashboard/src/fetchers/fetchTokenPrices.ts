@@ -42,7 +42,6 @@ const tokenUsdPrice = async function ({
   if (!token.extensions?.isVaultShare) {
     return baseUsd;
   }
-  // Share token: price one whole share as its underlying assets.
   return baseUsd * (await fetchAssetsPerShare({ queryClient, token }));
 };
 

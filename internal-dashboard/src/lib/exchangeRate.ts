@@ -1,7 +1,5 @@
 import { type Address, isAddressEqual } from "viem";
 
-// Within 10% of the expected rate: treat the pair as a peg and surface drift
-// from the expected rate.
 const PEG_THRESHOLD = 1.1;
 
 // Value of one coin in its peg unit. Vault share tokens are worth their
@@ -21,8 +19,6 @@ const pegValue = function ({
   return shareRates[address.toLowerCase()];
 };
 
-// Drift (in %) of the pool rate from the rate implied by each leg's peg value.
-// Undefined when a share leg's rate is unknown or the pair isn't a peg.
 export const pegDeviation = function ({
   base,
   quote,

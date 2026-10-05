@@ -75,8 +75,6 @@ const ExchangeRateCard = function ({ pool }: { pool: TrackedPool }) {
     return null;
   }
   const rate = base.usdPrice / quote.usdPrice;
-  // Until the tracked tokens load, share legs can't be told apart from pegged
-  // ones, so don't compare against a possibly wrong reference.
   const peg = trackedTokens
     ? pegDeviation({
         base: base.address,

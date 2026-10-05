@@ -5,7 +5,6 @@ import { tokenInfoOptions } from "../hooks/useTokenInfo";
 import { client } from "../lib/client";
 import { type TrackedToken } from "../lib/types";
 
-// Underlying assets per one whole share of a vault share token, read on-chain.
 export const fetchAssetsPerShare = async function ({
   queryClient,
   token,
@@ -14,8 +13,6 @@ export const fetchAssetsPerShare = async function ({
   token: TrackedToken;
 }) {
   const assetAddress = await asset(client, { address: token.address });
-  // The underlying's decimals are read on demand (cached) rather than stored on
-  // the token.
   const { decimals: assetDecimals } = await queryClient.ensureQueryData(
     tokenInfoOptions(assetAddress),
   );

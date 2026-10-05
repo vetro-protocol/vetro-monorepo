@@ -4,8 +4,6 @@ import { trackedTokensOptions } from "../hooks/useTrackedTokens";
 
 import { fetchAssetsPerShare } from "./fetchAssetsPerShare";
 
-// Underlying assets per whole share of each tracked vault share token, keyed by
-// lowercased address.
 export const fetchShareTokenRates = async function ({
   queryClient,
 }: {
@@ -13,7 +11,6 @@ export const fetchShareTokenRates = async function ({
 }) {
   const tokens = await queryClient.ensureQueryData(trackedTokensOptions());
 
-  // Read each vault independently: one reverting vault shouldn't drop the rest.
   const entries = await Promise.all(
     tokens
       .filter((token) => token.extensions?.isVaultShare)
