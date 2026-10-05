@@ -115,7 +115,7 @@ const ExchangeRateCard = function ({ pool }: { pool: TrackedPool }) {
             {peg.deviation.toFixed(3)}%{" "}
             {peg.expectedRate === 1
               ? "vs. peg"
-              : `vs. vault rate (${formatRate(peg.expectedRate)})`}
+              : `vs. expected rate (${formatRate(peg.expectedRate)})`}
           </span>
         ) : (
           `1 ${quote.symbol} = ${formatRate(1 / rate)} ${base.symbol}`
