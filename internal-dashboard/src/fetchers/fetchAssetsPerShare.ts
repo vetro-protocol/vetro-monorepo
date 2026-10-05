@@ -1,4 +1,5 @@
 import { type QueryClient } from "@tanstack/react-query";
+import { formatUnits } from "viem";
 import { asset, convertToAssets } from "viem-erc4626/actions";
 
 import { tokenInfoOptions } from "../hooks/useTokenInfo";
@@ -20,5 +21,5 @@ export const fetchAssetsPerShare = async function ({
     address: token.address,
     shares: 10n ** BigInt(token.decimals),
   });
-  return Number(assetsRaw) / 10 ** assetDecimals;
+  return Number(formatUnits(assetsRaw, assetDecimals));
 };
