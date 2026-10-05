@@ -16,7 +16,7 @@ export const fetchShareTokenRates = async function ({
       .filter((token) => token.extensions?.isVaultShare)
       .map(async function (token) {
         try {
-          const rate = await fetchAssetsPerShare({ queryClient, token });
+          const rate = await fetchAssetsPerShare({ token });
           return [token.address.toLowerCase(), rate] as const;
         } catch {
           return undefined;

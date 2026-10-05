@@ -28,11 +28,9 @@ const pegToUsd = ({
 
 const tokenUsdPrice = async function ({
   portal,
-  queryClient,
   token,
 }: {
   portal: PortalPrices;
-  queryClient: QueryClient;
   token: TrackedToken;
 }) {
   const baseUsd = pegToUsd({
@@ -42,7 +40,7 @@ const tokenUsdPrice = async function ({
   if (!token.extensions?.isVaultShare) {
     return baseUsd;
   }
-  return baseUsd * (await fetchAssetsPerShare({ queryClient, token }));
+  return baseUsd * (await fetchAssetsPerShare({ token }));
 };
 
 // USD price per whole token, keyed by lowercased address — consumed by the Stats
@@ -62,7 +60,7 @@ export const fetchTokenPrices = async function ({
   const entries = await Promise.all(
     tokens.map(async function (token) {
       try {
-        const usd = await tokenUsdPrice({ portal, queryClient, token });
+        const usd = await tokenUsdPrice({ portal, token });
         return [token.address.toLowerCase(), usd] as const;
       } catch {
         return undefined;

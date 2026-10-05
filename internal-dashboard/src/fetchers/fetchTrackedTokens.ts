@@ -12,8 +12,8 @@ import { type TrackedToken } from "../lib/types";
 // pegged token, plus each staking vault (the vault address is the ERC4626 share
 // token itself). Pegged tokens carry their gateway's peg base symbol (as
 // extensions.priceSymbol); share tokens inherit it from the pegged token they hold.
-// A share's underlying decimals are read on demand at pricing time (see
-// fetchAssetsPerShare), not stored here. The gateway/vault address lists come from the
+// Share tokens also store their underlying's decimals (as assetDecimals), taken from
+// the tracked pegged token the vault holds. The gateway/vault address lists come from the
 // shared @vetro-protocol packages, so new gateways/vaults are picked up
 // automatically when those packages update.
 export const fetchTrackedTokens = async function (): Promise<TrackedToken[]> {
@@ -51,6 +51,7 @@ export const fetchTrackedTokens = async function (): Promise<TrackedToken[]> {
       }
       return {
         address,
+        assetDecimals: underlying.decimals,
         decimals: tokenDecimals,
         extensions: {
           isVaultShare: true,

@@ -55,7 +55,10 @@ export type TrackedPool = {
 export type TrackedToken = Pick<
   Token,
   "address" | "decimals" | "extensions" | "symbol"
->;
+> & {
+  // Decimals of the pegged token a share token's vault holds. Set only on share tokens.
+  assetDecimals?: number;
+};
 
 export type WhitelistedToken = Pick<Token, "address" | "decimals" | "symbol">;
 
