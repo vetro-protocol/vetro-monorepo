@@ -1,11 +1,10 @@
 import { type QueryClient } from "@tanstack/react-query";
 import fetch from "fetch-plus-plus";
-import { asset, convertToAssets } from "viem-erc4626/actions";
 
-import { tokenInfoOptions } from "../hooks/useTokenInfo";
 import { trackedTokensOptions } from "../hooks/useTrackedTokens";
-import { client } from "../lib/client";
 import { type TrackedToken } from "../lib/types";
+
+import { fetchAssetsPerShare } from "./fetchAssetsPerShare";
 
 // Overridable per environment (see .env / .env.local), like web's VITE_PORTAL_API_URL.
 const PORTAL_API_BASE = import.meta.env.VITE_PORTAL_API_URL;
@@ -43,19 +42,8 @@ const tokenUsdPrice = async function ({
   if (!token.extensions?.isVaultShare) {
     return baseUsd;
   }
-  // Share token: convert one whole share to underlying assets on-chain, then
-  // price. The underlying's decimals are read on demand (cached) rather than
-  // stored on the token.
-  const assetAddress = await asset(client, { address: token.address });
-  const { decimals: assetDecimals } = await queryClient.ensureQueryData(
-    tokenInfoOptions(assetAddress),
-  );
-  const assetsRaw = await convertToAssets(client, {
-    address: token.address,
-    shares: 10n ** BigInt(token.decimals),
-  });
-  const assetsPerShare = Number(assetsRaw) / 10 ** assetDecimals;
-  return baseUsd * assetsPerShare;
+  // Share token: price one whole share as its underlying assets.
+  return baseUsd * (await fetchAssetsPerShare({ queryClient, token }));
 };
 
 // USD price per whole token, keyed by lowercased address — consumed by the Stats
