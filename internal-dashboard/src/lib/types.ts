@@ -52,13 +52,21 @@ export type TrackedPool = {
   volumeUsd24h: number;
 };
 
-export type TrackedToken = Pick<
-  Token,
-  "address" | "decimals" | "extensions" | "symbol"
-> & {
-  // Decimals of the pegged token a share token's vault holds. Set only on share tokens.
-  assetDecimals?: number;
+type TokenExtensions = NonNullable<Token["extensions"]>;
+
+type TrackedTokenBase = Pick<Token, "address" | "decimals" | "symbol">;
+
+type PeggedTrackedToken = TrackedTokenBase & {
+  extensions?: TokenExtensions & { isVaultShare?: false };
 };
+
+export type ShareToken = TrackedTokenBase & {
+  // Decimals of the pegged token the share token's vault holds.
+  assetDecimals: number;
+  extensions: TokenExtensions & { isVaultShare: true };
+};
+
+export type TrackedToken = PeggedTrackedToken | ShareToken;
 
 export type WhitelistedToken = Pick<Token, "address" | "decimals" | "symbol">;
 

@@ -36,18 +36,4 @@ describe("fetchAssetsPerShare", function () {
     });
     expect(asset).not.toHaveBeenCalled();
   });
-
-  it("throws without reading the vault when assetDecimals is missing", async function () {
-    await expect(
-      fetchAssetsPerShare({
-        token: {
-          address: shareAddress,
-          decimals: 18,
-          extensions: { isVaultShare: true },
-          symbol: "sTEST",
-        },
-      }),
-    ).rejects.toThrow(`Missing asset decimals for share token ${shareAddress}`);
-    expect(convertToAssets).not.toHaveBeenCalled();
-  });
 });

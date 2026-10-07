@@ -29,6 +29,7 @@ import {
   formatTokenAmount,
   formatUsd,
 } from "../lib/format";
+import { isShareToken } from "../lib/isShareToken";
 import { strategyUrl } from "../lib/stakeDaoApi";
 import { tokenAddresses } from "../lib/tokenAddresses";
 import {
@@ -68,9 +69,7 @@ const FeesCard = function ({ pool }: { pool: TrackedPool }) {
 };
 
 const getShareTokenAddresses = (trackedTokens: TrackedToken[] = []) =>
-  trackedTokens
-    .filter((token) => token.extensions?.isVaultShare)
-    .flatMap(tokenAddresses);
+  trackedTokens.filter(isShareToken).flatMap(tokenAddresses);
 
 const PegDeviationHint = ({
   peg,
