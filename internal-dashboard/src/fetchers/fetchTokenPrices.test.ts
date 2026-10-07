@@ -97,7 +97,6 @@ describe("fetchTokenPrices", function () {
 
     const prices = await fetchTokenPrices({ queryClient });
 
-    // Share price = peg USD price × assets per share. The unrated share is absent.
     expect(prices).toEqual({
       [btcPegAddress]: 60000,
       [btcShareAddress]: 75000,

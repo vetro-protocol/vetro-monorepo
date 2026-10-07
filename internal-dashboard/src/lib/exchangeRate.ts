@@ -2,8 +2,6 @@ import { type Address, isAddressEqual } from "viem";
 
 const PEG_THRESHOLD = 1.1;
 
-// Value of one coin in its peg unit. Vault share tokens are worth their
-// assets-per-share; every other coin is assumed to sit at its peg.
 const pegValue = function ({
   address,
   shareRates,

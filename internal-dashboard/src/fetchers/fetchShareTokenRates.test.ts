@@ -89,7 +89,6 @@ describe("fetchShareTokenRates", function () {
       ...ratesOf({ addresses: sVusdDeployments, rate: 1.0249 }),
       ...ratesOf({ addresses: svetBtcDeployments, rate: 1.01 }),
     });
-    // One read per vault, fanned out to the bridged addresses.
     expect(fetchAssetsPerShare).toHaveBeenCalledTimes(2);
   });
 

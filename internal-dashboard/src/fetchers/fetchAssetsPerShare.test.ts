@@ -16,7 +16,6 @@ const shareAddress = "0x1111111111111111111111111111111111111111";
 
 describe("fetchAssetsPerShare", function () {
   it("converts one whole share using the stored asset decimals", async function () {
-    // 1.05 units of a 6-decimals asset per whole 18-decimals share.
     vi.mocked(convertToAssets).mockResolvedValue(1_050_000n);
 
     const rate = await fetchAssetsPerShare({
