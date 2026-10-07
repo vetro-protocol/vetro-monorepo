@@ -16,7 +16,7 @@ const pegValue = function ({
   shareTokenAddresses,
 }: {
   address: Address;
-  shareRates: Record<string, number>;
+  shareRates: Partial<Record<string, number>>;
   shareTokenAddresses: Address[];
 }) {
   if (!isShareToken({ address, shareTokenAddresses })) {
@@ -35,7 +35,7 @@ export const pegDeviation = function ({
   base: Address;
   quote: Address;
   rate: number;
-  shareRates: Record<string, number>;
+  shareRates: Partial<Record<string, number>>;
   shareTokenAddresses: Address[];
 }) {
   const basePeg = pegValue({ address: base, shareRates, shareTokenAddresses });

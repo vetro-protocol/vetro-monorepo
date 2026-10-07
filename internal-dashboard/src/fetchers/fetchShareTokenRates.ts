@@ -23,7 +23,7 @@ export const fetchShareTokenRates = async function ({
 
   // Vaults may share a symbol (e.g. a v1 and a v2), so key each vault's own
   // address first and never let a same-symbol bridged address replace it.
-  const rates: Record<string, number> = Object.fromEntries(
+  const rates: Partial<Record<string, number>> = Object.fromEntries(
     rated.map(({ rate, token }) => [token.address.toLowerCase(), rate]),
   );
   rated.forEach(function ({ rate, token }) {
