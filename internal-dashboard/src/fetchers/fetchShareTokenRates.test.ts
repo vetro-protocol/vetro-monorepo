@@ -1,4 +1,5 @@
 import { QueryClient } from "@tanstack/react-query";
+import { isAddressEqual } from "viem";
 import { describe, expect, it, vi } from "vitest";
 
 import { type TrackedToken } from "../lib/types";
@@ -72,10 +73,10 @@ describe("fetchShareTokenRates", function () {
     vi.mocked(fetchAssetsPerShare).mockImplementation(async function ({
       token,
     }) {
-      if (token.address === sVusdAddress) {
+      if (isAddressEqual(token.address, sVusdAddress)) {
         return 1.0249;
       }
-      if (token.address === sVetBtcAddress) {
+      if (isAddressEqual(token.address, sVetBtcAddress)) {
         return 1.01;
       }
       throw new Error("unexpected token");
@@ -96,7 +97,7 @@ describe("fetchShareTokenRates", function () {
     vi.mocked(fetchAssetsPerShare).mockImplementation(async function ({
       token,
     }) {
-      if (token.address === sVusdAddress) {
+      if (isAddressEqual(token.address, sVusdAddress)) {
         return 1.0249;
       }
       throw new Error("revert");
