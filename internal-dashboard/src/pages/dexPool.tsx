@@ -72,14 +72,33 @@ const getShareTokenAddresses = (trackedTokens: TrackedToken[] = []) =>
     .filter((token) => token.extensions?.isVaultShare)
     .flatMap(tokenAddresses);
 
+const PegDeviationHint = ({
+  peg,
+}: {
+  peg: NonNullable<ReturnType<typeof pegDeviation>>;
+}) => (
+  <span
+    className={
+      Math.abs(peg.deviation) >= 0.5 ? "text-amber-600" : "text-emerald-600"
+    }
+  >
+    {peg.deviation >= 0 ? "+" : ""}
+    {peg.deviation.toFixed(3)}%{" "}
+    {peg.expectedRate === 1
+      ? "vs. peg"
+      : `vs. expected rate (${formatRate(peg.expectedRate)})`}
+  </span>
+);
+
 const ExchangeRateCard = function ({ pool }: { pool: TrackedPool }) {
-  const { data: trackedTokens } = useTrackedTokens();
+  const { data: trackedTokens, isPending: isTrackedTokensPending } =
+    useTrackedTokens();
   const shareTokenAddresses = getShareTokenAddresses(trackedTokens);
-  const { data: shareRates } = useShareTokenRates({
-    enabled: pool.coins.some((coin) =>
-      shareTokenAddresses.some((share) => isAddressEqual(share, coin.address)),
-    ),
-  });
+  const hasShareLeg = pool.coins.some((coin) =>
+    shareTokenAddresses.some((share) => isAddressEqual(share, coin.address)),
+  );
+  const { data: shareRates, isPending: isShareRatesPending } =
+    useShareTokenRates({ enabled: hasShareLeg });
 
   if (pool.coins.length !== 2) {
     return null;
@@ -90,6 +109,10 @@ const ExchangeRateCard = function ({ pool }: { pool: TrackedPool }) {
     return null;
   }
   const rate = base.usdPrice / quote.usdPrice;
+  // Showing the fallback hint while loading would read as "rate not available".
+  // A disabled query is also pending, so only wait on share rates when they run.
+  const isLoadingPeg =
+    isTrackedTokensPending || (hasShareLeg && isShareRatesPending);
   const peg = trackedTokens
     ? pegDeviation({
         base: base.address,
@@ -103,20 +126,8 @@ const ExchangeRateCard = function ({ pool }: { pool: TrackedPool }) {
   return (
     <StatCard
       hint={
-        peg ? (
-          <span
-            className={
-              Math.abs(peg.deviation) >= 0.5
-                ? "text-amber-600"
-                : "text-emerald-600"
-            }
-          >
-            {peg.deviation >= 0 ? "+" : ""}
-            {peg.deviation.toFixed(3)}%{" "}
-            {peg.expectedRate === 1
-              ? "vs. peg"
-              : `vs. expected rate (${formatRate(peg.expectedRate)})`}
-          </span>
+        isLoadingPeg ? undefined : peg ? (
+          <PegDeviationHint peg={peg} />
         ) : (
           `1 ${quote.symbol} = ${formatRate(1 / rate)} ${base.symbol}`
         )
