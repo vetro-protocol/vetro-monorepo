@@ -84,9 +84,9 @@ const PegDeviationHint = ({
   >
     {peg.deviation >= 0 ? "+" : ""}
     {peg.deviation.toFixed(3)}%{" "}
-    {peg.expectedRate === 1
-      ? "vs. peg"
-      : `vs. expected rate (${formatRate(peg.expectedRate)})`}
+    {peg.hasShareLeg
+      ? `vs. expected rate (${formatRate(peg.expectedRate)})`
+      : "vs. peg"}
   </span>
 );
 

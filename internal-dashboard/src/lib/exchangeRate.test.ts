@@ -202,4 +202,90 @@ describe("pegDeviation", function () {
     expect(result?.deviation).toBeCloseTo((1.02424 / 1.0249 - 1) * 100, 10);
     expect(result?.deviation).toBeCloseTo(-0.0644, 3);
   });
+  describe("hasShareLeg", function () {
+    it("is false for a plain peg pair", function () {
+      const result = pegDeviation({
+        base: peggedToken,
+        quote: stablecoin,
+        rate: 1.002,
+        shareRates: {},
+        shareTokenAddresses: [shareToken],
+      });
+
+      expect(result).toEqual({
+        deviation: (1.002 - 1) * 100,
+        expectedRate: 1,
+        hasShareLeg: false,
+      });
+    });
+
+    it("is true when the share token is the base", function () {
+      const result = pegDeviation({
+        base: shareToken,
+        quote: peggedToken,
+        rate: 1.02424,
+        shareRates: { [shareToken]: sharePrice },
+        shareTokenAddresses: [shareToken],
+      });
+
+      expect(result?.hasShareLeg).toBe(true);
+    });
+
+    it("is true when the share token is the quote", function () {
+      const result = pegDeviation({
+        base: peggedToken,
+        quote: shareToken,
+        rate: 1 / 1.02424,
+        shareRates: { [shareToken]: sharePrice },
+        shareTokenAddresses: [shareToken],
+      });
+
+      expect(result?.hasShareLeg).toBe(true);
+    });
+
+    it("is true when the share token's vault rate is exactly 1", function () {
+      const result = pegDeviation({
+        base: shareToken,
+        quote: peggedToken,
+        rate: 1.002,
+        shareRates: { [shareToken]: 1 },
+        shareTokenAddresses: [shareToken],
+      });
+
+      expect(result).toEqual({
+        deviation: (1.002 - 1) * 100,
+        expectedRate: 1,
+        hasShareLeg: true,
+      });
+    });
+
+    it("is true when both legs are share tokens with equal vault rates", function () {
+      const result = pegDeviation({
+        base: shareToken,
+        quote: otherShareToken,
+        rate: 0.999,
+        shareRates: {
+          [otherShareToken]: sharePrice,
+          [shareToken]: sharePrice,
+        },
+        shareTokenAddresses: [shareToken, otherShareToken],
+      });
+
+      expect(result?.expectedRate).toBe(1);
+      expect(result?.deviation).toBeCloseTo((0.999 - 1) * 100, 10);
+      expect(result?.hasShareLeg).toBe(true);
+    });
+
+    it("is true when the share leg's address case differs from the tracked entry", function () {
+      const result = pegDeviation({
+        base: peggedToken,
+        quote: getAddress(shareToken),
+        rate: 1,
+        shareRates: { [shareToken]: 1 },
+        shareTokenAddresses: [shareToken],
+      });
+
+      expect(result?.hasShareLeg).toBe(true);
+    });
+  });
 });

@@ -253,6 +253,17 @@ describe("DexPoolPage exchange rate card", function () {
       expect(exchangeRateCard().hint).toBe(shareDriftHint);
     });
 
+    it("labels the drift against the expected rate when the vault rate is exactly 1", function () {
+      mockQueries({
+        shareRates: settled({ [shareToken.toLowerCase()]: 1 }),
+        tokens: settled(trackedTokens),
+        trackedPool: sharePool,
+      });
+
+      // (1.02424 / 1 - 1) * 100 = 2.424; the share leg keeps the expected-rate label.
+      expect(exchangeRateCard().hint).toBe("+2.424% vs. expected rate (1)");
+    });
+
     it("shows the inverse rate once loaded when the vault has no rate", function () {
       mockQueries({
         shareRates: settled({}),
