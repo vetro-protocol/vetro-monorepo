@@ -81,7 +81,8 @@ const ratesOf = ({ addresses, rate }: { addresses: string[]; rate: number }) =>
 
 const createQueryClient = function () {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
+    // No delay between the retries fetchTokenPrices makes, to keep tests fast.
+    defaultOptions: { queries: { retry: false, retryDelay: 0 } },
   });
   queryClient.setQueryData(["tracked-tokens"], tokens);
   return queryClient;
@@ -107,7 +108,7 @@ describe("fetchTokenPrices", function () {
     expect(fetchAssetsPerShare).not.toHaveBeenCalled();
   });
 
-  it("fetches share-token rates when not cached and omits shares whose rate read fails", async function () {
+  it("fetches share-token rates when not cached", async function () {
     vi.mocked(fetch).mockResolvedValue({ prices: { BTC: "60000" } });
     vi.mocked(fetchAssetsPerShare).mockImplementation(async function ({
       token,
@@ -115,6 +116,77 @@ describe("fetchTokenPrices", function () {
       if (isAddressEqual(token.address, btcShareAddress)) {
         return 1.25;
       }
+      if (isAddressEqual(token.address, usdShareAddress)) {
+        return 1.5;
+      }
+      if (isAddressEqual(token.address, unratedShareAddress)) {
+        return 1.1;
+      }
+      throw new Error("unexpected token");
+    });
+    const queryClient = createQueryClient();
+
+    const prices = await fetchTokenPrices({ queryClient });
+
+    expect(prices).toEqual({
+      [btcPegAddress]: 60000,
+      [btcShareAddress]: 75000,
+      [unratedShareAddress.toLowerCase()]: 1.1,
+      [usdPegAddress]: 1,
+      [usdShareAddress]: 1.5,
+    });
+    expect(fetchAssetsPerShare).toHaveBeenCalledTimes(3);
+    // The rates land in the shared cache for the pool pages to reuse, also
+    // keyed by the bridged deployments of each share in @vetro-protocol/core.
+    expect(queryClient.getQueryData(["share-token-rates"])).toEqual({
+      [btcShareAddress]: 1.25,
+      [unratedShareAddress.toLowerCase()]: 1.1,
+      [usdShareAddress]: 1.5,
+      ...ratesOf({ addresses: svetBtcDeployments, rate: 1.25 }),
+      ...ratesOf({ addresses: sVusdDeployments, rate: 1.5 }),
+    });
+  });
+
+  it("retries the share-token rates when a vault read fails once", async function () {
+    vi.mocked(fetch).mockResolvedValue({ prices: { BTC: "60000" } });
+    let btcShareReads = 0;
+    vi.mocked(fetchAssetsPerShare).mockImplementation(async function ({
+      token,
+    }) {
+      if (isAddressEqual(token.address, btcShareAddress)) {
+        btcShareReads += 1;
+        if (btcShareReads === 1) {
+          throw new Error("transient");
+        }
+        return 1.25;
+      }
+      if (isAddressEqual(token.address, usdShareAddress)) {
+        return 1.5;
+      }
+      if (isAddressEqual(token.address, unratedShareAddress)) {
+        return 1.1;
+      }
+      throw new Error("unexpected token");
+    });
+    const queryClient = createQueryClient();
+
+    const prices = await fetchTokenPrices({ queryClient });
+
+    expect(prices).toEqual({
+      [btcPegAddress]: 60000,
+      [btcShareAddress]: 75000,
+      [unratedShareAddress.toLowerCase()]: 1.1,
+      [usdPegAddress]: 1,
+      [usdShareAddress]: 1.5,
+    });
+    expect(btcShareReads).toBe(2);
+  });
+
+  it("still prices the non-share tokens when a vault read keeps failing", async function () {
+    vi.mocked(fetch).mockResolvedValue({ prices: { BTC: "60000" } });
+    vi.mocked(fetchAssetsPerShare).mockImplementation(async function ({
+      token,
+    }) {
       if (isAddressEqual(token.address, usdShareAddress)) {
         return 1.5;
       }
@@ -126,18 +198,11 @@ describe("fetchTokenPrices", function () {
 
     expect(prices).toEqual({
       [btcPegAddress]: 60000,
-      [btcShareAddress]: 75000,
       [usdPegAddress]: 1,
-      [usdShareAddress]: 1.5,
     });
-    expect(fetchAssetsPerShare).toHaveBeenCalledTimes(3);
-    // The rates land in the shared cache for the pool pages to reuse, also
-    // keyed by the bridged deployments of each share in @vetro-protocol/core.
-    expect(queryClient.getQueryData(["share-token-rates"])).toEqual({
-      [btcShareAddress]: 1.25,
-      [usdShareAddress]: 1.5,
-      ...ratesOf({ addresses: svetBtcDeployments, rate: 1.25 }),
-      ...ratesOf({ addresses: sVusdDeployments, rate: 1.5 }),
-    });
+    // The first attempt plus 3 retries, each reading the 3 vaults.
+    expect(fetchAssetsPerShare).toHaveBeenCalledTimes(12);
+    // The failed rates query stays uncached, so the next price fetch retries it.
+    expect(queryClient.getQueryData(["share-token-rates"])).toBeUndefined();
   });
 });

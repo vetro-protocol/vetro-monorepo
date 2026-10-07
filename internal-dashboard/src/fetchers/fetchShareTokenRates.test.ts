@@ -94,7 +94,7 @@ describe("fetchShareTokenRates", function () {
     expect(fetchAssetsPerShare).toHaveBeenCalledTimes(2);
   });
 
-  it("omits the mainnet and bridged addresses of a vault whose read fails", async function () {
+  it("rejects when a vault read fails", async function () {
     vi.mocked(fetchAssetsPerShare).mockImplementation(async function ({
       token,
     }) {
@@ -104,13 +104,9 @@ describe("fetchShareTokenRates", function () {
       throw new Error("revert");
     });
 
-    const rates = await fetchShareTokenRates({
-      queryClient: createQueryClient(),
-    });
-
-    expect(rates).toEqual(
-      ratesOf({ addresses: sVusdDeployments, rate: 1.0249 }),
-    );
+    await expect(
+      fetchShareTokenRates({ queryClient: createQueryClient() }),
+    ).rejects.toThrow("revert");
   });
 
   describe("with two vaults that share a symbol", function () {

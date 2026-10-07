@@ -12,20 +12,15 @@ export const fetchShareTokenRates = async function ({
 }) {
   const tokens = await queryClient.ensureQueryData(trackedTokensOptions());
 
-  const vaults = await Promise.all(
+  const rated = await Promise.all(
     tokens
       .filter((token) => token.extensions?.isVaultShare)
-      .map(async function (token) {
-        try {
-          const rate = await fetchAssetsPerShare({ token });
-          return [{ rate, token }];
-        } catch {
-          return [];
-        }
-      }),
+      .map(async (token) => ({
+        rate: await fetchAssetsPerShare({ token }),
+        token,
+      })),
   );
 
-  const rated = vaults.flat();
   // Vaults may share a symbol (e.g. a v1 and a v2), so key each vault's own
   // address first and never let a same-symbol bridged address replace it.
   const rates: Record<string, number> = Object.fromEntries(

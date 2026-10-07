@@ -54,10 +54,16 @@ export const fetchTokenPrices = async function ({
 }): Promise<Record<string, number>> {
   // fetchQuery rather than ensureQueryData: nothing observes share-token-rates on
   // the list page, so ensureQueryData would reuse rates past their staleTime.
+  // fetchQuery doesn't retry by default, so retry like a hook would before
+  // giving up: otherwise one transient vault read error caches token prices
+  // without the share tokens. A failed vault read only leaves the share tokens
+  // unpriced; it must not drop the prices of every other token.
   const [portal, tokens, shareRates] = await Promise.all([
     fetchPortalPrices(),
     queryClient.ensureQueryData(trackedTokensOptions()),
-    queryClient.fetchQuery(shareTokenRatesOptions()),
+    queryClient
+      .fetchQuery({ ...shareTokenRatesOptions(), retry: 3 })
+      .catch(() => ({})),
   ]);
 
   return Object.fromEntries(
