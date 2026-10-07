@@ -14,6 +14,7 @@ vi.mock("./fetchTrackedTokens", () => ({ fetchTrackedTokens: vi.fn() }));
 const vusdAddress = "0x1111111111111111111111111111111111111111";
 const sVusdAddress = "0x476310E34D2810f7d79C43A74E4D79405bd7a925";
 const sVetBtcAddress = "0x0cB9D84d4bcEc8d3D5B2d99a6F07f4605325987e";
+const sVusdV2Address = "0x2222222222222222222222222222222222222222";
 
 const tokens: TrackedToken[] = [
   {
@@ -60,11 +61,11 @@ const svetBtcDeployments = [
 const ratesOf = ({ addresses, rate }: { addresses: string[]; rate: number }) =>
   Object.fromEntries(addresses.map((address) => [address, rate]));
 
-const createQueryClient = function () {
+const createQueryClient = function (trackedTokens = tokens) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
-  queryClient.setQueryData(["tracked-tokens"], tokens);
+  queryClient.setQueryData(["tracked-tokens"], trackedTokens);
   return queryClient;
 };
 
@@ -110,5 +111,56 @@ describe("fetchShareTokenRates", function () {
     expect(rates).toEqual(
       ratesOf({ addresses: sVusdDeployments, rate: 1.0249 }),
     );
+  });
+
+  describe("with two vaults that share a symbol", function () {
+    const sVusdV1 = tokens[1];
+    const sVusdV2: TrackedToken = { ...sVusdV1, address: sVusdV2Address };
+    // knownTokens has no entry for the v2 address; the other five are bridged.
+    const bridgedSvusd = sVusdDeployments.slice(1);
+
+    const mockVaultRates = function () {
+      vi.mocked(fetchAssetsPerShare).mockImplementation(async function ({
+        token,
+      }) {
+        if (isAddressEqual(token.address, sVusdAddress)) {
+          return 1.0249;
+        }
+        if (isAddressEqual(token.address, sVusdV2Address)) {
+          return 1.05;
+        }
+        throw new Error("unexpected token");
+      });
+    };
+
+    it("keeps each vault's own rate when the v1 vault comes first", async function () {
+      mockVaultRates();
+
+      const rates = await fetchShareTokenRates({
+        queryClient: createQueryClient([sVusdV1, sVusdV2]),
+      });
+
+      expect(rates).toEqual({
+        ...ratesOf({ addresses: bridgedSvusd, rate: 1.0249 }),
+        [sVusdAddress.toLowerCase()]: 1.0249,
+        [sVusdV2Address]: 1.05,
+      });
+    });
+
+    it("keeps each vault's own rate when the v2 vault comes first", async function () {
+      mockVaultRates();
+
+      const rates = await fetchShareTokenRates({
+        queryClient: createQueryClient([sVusdV2, sVusdV1]),
+      });
+
+      // The first vault wins the shared bridged addresses, but not the other
+      // vault's own address.
+      expect(rates).toEqual({
+        ...ratesOf({ addresses: bridgedSvusd, rate: 1.05 }),
+        [sVusdAddress.toLowerCase()]: 1.0249,
+        [sVusdV2Address]: 1.05,
+      });
+    });
   });
 });
