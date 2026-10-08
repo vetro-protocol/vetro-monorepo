@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { knownTokens, type Token } from "@vetro-protocol/core";
 import { useState } from "react";
+import { mainnet } from "viem/chains";
 
 import { TokenDropdown } from "../src/components/tokenDropdown";
 
@@ -15,7 +16,9 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 const storyTokens = ["USDC", "USDT"];
-const tokens = knownTokens.filter((t) => storyTokens.includes(t.symbol));
+const tokens = knownTokens.filter(
+  (t) => t.chainId === mainnet.id && storyTokens.includes(t.symbol),
+);
 
 export const Default: Story = {
   args: {
