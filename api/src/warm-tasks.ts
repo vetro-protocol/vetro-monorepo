@@ -7,6 +7,7 @@ import {
   getTvl,
 } from "./analytics.ts";
 import { convertBigIntsToString } from "./convert-bigints-to-string.ts";
+import { getDexPools } from "./dex-liquidity/index.ts";
 import { getApy } from "./variable-stake.ts";
 import { globalWarmTask, keyedWarmTask } from "./warm-cache.ts";
 
@@ -72,10 +73,22 @@ export const apyTask = globalWarmTask({
     ),
 });
 
+// Warms `GET /dex-liquidity/pools`.
+export const dexPoolsTask = globalWarmTask({
+  cron: "*/5 * * * *",
+  key: () => "dex-liquidity:pools",
+  produce: (env) =>
+    getDexPools({
+      rpcUrl: env.CUSTOM_RPC_URL_MAINNET,
+      subgraphApiKey: env.SUBGRAPH_API_KEY,
+    }),
+});
+
 export const warmTasks = [
   treasuryTask,
   collateralizationRatioTask,
   tvlTask,
   stakedTask,
   apyTask,
+  dexPoolsTask,
 ];

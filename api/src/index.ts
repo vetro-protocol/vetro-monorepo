@@ -20,6 +20,7 @@ import {
   validateAddress,
   validateGatewayAddress,
   validateParam,
+  validateQueryParams,
   validateStakingVaultAddress,
 } from "./param-validators.ts";
 import { securityHeaders } from "./security-headers.ts";
@@ -33,6 +34,7 @@ import { readWarmedTask, warmScheduled } from "./warm-cache.ts";
 import {
   apyTask,
   collateralizationRatioTask,
+  dexPoolsTask,
   stakedTask,
   treasuryTask,
   tvlTask,
@@ -231,6 +233,29 @@ app.get(
       return c.json(collateralAssets);
     } catch (error) {
       throw new Error(`Failed to get collateral assets: ${error.message}`);
+    }
+  },
+);
+
+const includesRanges = (c: Context) => c.req.query("includeRanges") === "true";
+
+app.get(
+  "/dex-liquidity/pools",
+  validateQueryParams({ includeRanges: ["true", "false"] }),
+  cache({
+    cacheControl: "max-age=60",
+    cacheName: "vetro-api",
+    keyGenerator: (c) =>
+      `${new URL(c.req.url).origin}${c.req.path}?includeRanges=${includesRanges(c)}`,
+  }),
+  async function (c) {
+    try {
+      const pools = await readWarmedTask({ c, task: dexPoolsTask });
+      return c.json(
+        includesRanges(c) ? pools : pools.filter((pool) => !pool.range),
+      );
+    } catch (error) {
+      throw new Error(`Failed to get DEX pools: ${error.message}`);
     }
   },
 );
