@@ -2,7 +2,7 @@ import { type Address, isAddressEqual } from "viem";
 
 const PEG_THRESHOLD = 1.1;
 
-const isShareToken = ({
+const isShareTokenAddress = ({
   address,
   shareTokenAddresses,
 }: {
@@ -19,7 +19,7 @@ const pegValue = function ({
   shareRates: Partial<Record<string, number>>;
   shareTokenAddresses: Address[];
 }) {
-  if (!isShareToken({ address, shareTokenAddresses })) {
+  if (!isShareTokenAddress({ address, shareTokenAddresses })) {
     return 1;
   }
   return shareRates[address.toLowerCase()];
@@ -53,7 +53,7 @@ export const pegDeviation = function ({
     return undefined;
   }
   const hasShareLeg = [base, quote].some((address) =>
-    isShareToken({ address, shareTokenAddresses }),
+    isShareTokenAddress({ address, shareTokenAddresses }),
   );
   return { deviation: (relative - 1) * 100, expectedRate, hasShareLeg };
 };
