@@ -5,7 +5,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useShareTokenRates } from "../hooks/useShareTokenRates";
 import { useTrackedPools } from "../hooks/useTrackedPools";
 import { useTrackedTokens } from "../hooks/useTrackedTokens";
-import { type TrackedPool, type TrackedToken } from "../lib/types";
+import { useWhitelistedTokens } from "../hooks/useWhitelistedTokens";
+import {
+  type TrackedPool,
+  type TrackedToken,
+  type WhitelistedToken,
+} from "../lib/types";
 
 import { DexPoolPage } from "./dexPool";
 
@@ -19,6 +24,9 @@ vi.mock("../hooks/useShareTokenRates", () => ({
 }));
 vi.mock("../hooks/useTrackedPools", () => ({ useTrackedPools: vi.fn() }));
 vi.mock("../hooks/useTrackedTokens", () => ({ useTrackedTokens: vi.fn() }));
+vi.mock("../hooks/useWhitelistedTokens", () => ({
+  useWhitelistedTokens: vi.fn(),
+}));
 
 // The page's other sections run their own queries; they don't affect the card.
 vi.mock("../components/dex/campaignsList", () => ({
@@ -72,6 +80,15 @@ const trackedTokens: TrackedToken[] = [
     decimals: 18,
     extensions: { isVaultShare: true, priceSymbol: "USD" },
     symbol: "sPEG",
+  },
+];
+
+const whitelistedTokens: WhitelistedToken[] = [
+  {
+    address: stablecoin,
+    decimals: 6,
+    peggedTokenAddress: peggedToken,
+    symbol: "USDC",
   },
 ];
 
@@ -140,14 +157,34 @@ const plainInverseHint = "1 USDC = 0.998004 PEG";
 const shareDriftHint = "-0.064% vs. expected rate (1.0249)";
 const shareInverseHint = "1 PEG = 0.976334 sPEG";
 
+// Rate 1.0001 against a stable that isn't on PEG's whitelist.
+const nonPegPool = pool([
+  {
+    address: peggedToken,
+    balance: 0n,
+    decimals: 18,
+    symbol: "PEG",
+    usdPrice: 1.0001,
+  },
+  {
+    address: "0x3333333333333333333333333333333333333333",
+    balance: 0n,
+    decimals: 18,
+    symbol: "crvUSD",
+    usdPrice: 1,
+  },
+]);
+
 const mockQueries = function ({
   shareRates,
   tokens,
   trackedPool,
+  whitelist = settled(whitelistedTokens),
 }: {
   shareRates: QueryState<Record<string, number>>;
   tokens: QueryState<TrackedToken[]>;
   trackedPool: TrackedPool;
+  whitelist?: QueryState<WhitelistedToken[]>;
 }) {
   // @ts-expect-error only the fields the page reads are mocked
   vi.mocked(useTrackedPools).mockReturnValue(settled([trackedPool]));
@@ -155,6 +192,8 @@ const mockQueries = function ({
   vi.mocked(useTrackedTokens).mockReturnValue(tokens);
   // @ts-expect-error only the fields the card reads are mocked
   vi.mocked(useShareTokenRates).mockReturnValue(shareRates);
+  // @ts-expect-error only the fields the card reads are mocked
+  vi.mocked(useWhitelistedTokens).mockReturnValue(whitelist);
 };
 
 // Returns the card's value and hint (undefined when no hint is rendered).
@@ -216,6 +255,61 @@ describe("DexPoolPage exchange rate card", function () {
       });
 
       expect(exchangeRateCard().hint).toBe(plainInverseHint);
+    });
+
+    it("shows no hint while the whitelist loads", function () {
+      mockQueries({
+        shareRates: pending(),
+        tokens: settled(trackedTokens),
+        trackedPool: plainPool,
+        whitelist: pending(),
+      });
+
+      const card = exchangeRateCard();
+
+      expect(card.value).toBe("1 PEG = 1.002 USDC");
+      expect(card.hint).toBeUndefined();
+    });
+
+    it("shows the inverse rate when the whitelist fails to load", function () {
+      mockQueries({
+        shareRates: pending(),
+        tokens: settled(trackedTokens),
+        trackedPool: plainPool,
+        whitelist: failed(),
+      });
+
+      expect(exchangeRateCard().hint).toBe(plainInverseHint);
+    });
+
+    it("shows the drift of a 30% depeg", function () {
+      mockQueries({
+        shareRates: pending(),
+        tokens: settled(trackedTokens),
+        trackedPool: pool([
+          { ...plainPool.coins[0], usdPrice: 0.7 },
+          plainPool.coins[1],
+        ]),
+      });
+
+      // (0.7 - 1) * 100 = -30.
+      expect(exchangeRateCard().hint).toBe("-30.000% vs. peg");
+    });
+  });
+
+  describe("pool with a stable off the whitelist", function () {
+    it("shows the inverse rate, not a peg drift, though the rate is near 1", function () {
+      mockQueries({
+        shareRates: pending(),
+        tokens: settled(trackedTokens),
+        trackedPool: nonPegPool,
+      });
+
+      const card = exchangeRateCard();
+
+      expect(card.value).toBe("1 PEG = 1.0001 crvUSD");
+      // 1 / 1.0001 = 0.99990001, at 6 significant digits.
+      expect(card.hint).toBe("1 crvUSD = 0.9999 PEG");
     });
   });
 
@@ -283,6 +377,28 @@ describe("DexPoolPage exchange rate card", function () {
       });
 
       expect(exchangeRateCard().hint).toBe(shareInverseHint);
+    });
+
+    it("shows no hint while the whitelist loads", function () {
+      mockQueries({
+        shareRates: settled({ [shareToken.toLowerCase()]: sharePrice }),
+        tokens: settled(trackedTokens),
+        trackedPool: sharePool,
+        whitelist: pending(),
+      });
+
+      expect(exchangeRateCard().hint).toBeUndefined();
+    });
+
+    it("still shows the drift from the vault rate when the whitelist fails to load", function () {
+      mockQueries({
+        shareRates: settled({ [shareToken.toLowerCase()]: sharePrice }),
+        tokens: settled(trackedTokens),
+        trackedPool: sharePool,
+        whitelist: failed(),
+      });
+
+      expect(exchangeRateCard().hint).toBe(shareDriftHint);
     });
   });
 });

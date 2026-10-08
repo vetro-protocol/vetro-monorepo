@@ -18,6 +18,7 @@ import { useShareTokenRates } from "../hooks/useShareTokenRates";
 import { useStakeDaoStrategy } from "../hooks/useStakeDaoStrategy";
 import { useTrackedPools } from "../hooks/useTrackedPools";
 import { useTrackedTokens } from "../hooks/useTrackedTokens";
+import { useWhitelistedTokens } from "../hooks/useWhitelistedTokens";
 import { pegDeviation } from "../lib/exchangeRate";
 import {
   formatAprRange,
@@ -89,15 +90,36 @@ const PegDeviationHint = ({
   </span>
 );
 
-const ExchangeRateCard = function ({ pool }: { pool: TrackedPool }) {
+const usePegInputs = function (coins: PoolCoin[]) {
   const { data: trackedTokens, isPending: isTrackedTokensPending } =
     useTrackedTokens();
+  const { data: whitelistedTokens, isPending: isWhitelistedTokensPending } =
+    useWhitelistedTokens();
   const shareTokenAddresses = getShareTokenAddresses(trackedTokens);
-  const hasShareLeg = pool.coins.some((coin) =>
+  const hasShareLeg = coins.some((coin) =>
     shareTokenAddresses.some((share) => isAddressEqual(share, coin.address)),
   );
   const { data: shareRates, isPending: isShareRatesPending } =
     useShareTokenRates({ enabled: hasShareLeg });
+
+  return {
+    // Showing the fallback hint while loading would read as "rate not
+    // available". A disabled query is also pending, so only wait on share
+    // rates when they run.
+    isLoading:
+      isTrackedTokensPending ||
+      isWhitelistedTokensPending ||
+      (hasShareLeg && isShareRatesPending),
+    shareRates: shareRates ?? {},
+    trackedTokens,
+    // A failed whitelist only drops the whitelist pairs; share pairs still work.
+    whitelistedTokens: whitelistedTokens ?? [],
+  };
+};
+
+const ExchangeRateCard = function ({ pool }: { pool: TrackedPool }) {
+  const { isLoading, shareRates, trackedTokens, whitelistedTokens } =
+    usePegInputs(pool.coins);
 
   if (pool.coins.length !== 2) {
     return null;
@@ -108,24 +130,22 @@ const ExchangeRateCard = function ({ pool }: { pool: TrackedPool }) {
     return null;
   }
   const rate = base.usdPrice / quote.usdPrice;
-  // Showing the fallback hint while loading would read as "rate not available".
-  // A disabled query is also pending, so only wait on share rates when they run.
-  const isLoadingPeg =
-    isTrackedTokensPending || (hasShareLeg && isShareRatesPending);
   const peg = trackedTokens
     ? pegDeviation({
-        base: base.address,
-        quote: quote.address,
+        base,
+        chainId: pool.chainId,
+        quote,
         rate,
-        shareRates: shareRates ?? {},
-        shareTokenAddresses,
+        shareRates,
+        trackedTokens,
+        whitelistedTokens,
       })
     : undefined;
 
   return (
     <StatCard
       hint={
-        isLoadingPeg ? undefined : peg ? (
+        isLoading ? undefined : peg ? (
           <PegDeviationHint peg={peg} />
         ) : (
           `1 ${quote.symbol} = ${formatRate(1 / rate)} ${base.symbol}`
