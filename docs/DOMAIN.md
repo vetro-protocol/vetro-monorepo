@@ -146,6 +146,20 @@ Key terms: **health factor** (above 1.0 safe; at/below 1.0 liquidatable), **LTV*
 
 "Monitor protocol analytics." A read-only dashboard of protocol health, per pegged token: **TVL**, **collateralization ratio** (backing vs circulating, broken down into strategic reserves / liquid reserves / surplus), **peg stability**, total **staked**, **exit queue** (total on cooldown), and **yield allocation** (number of active strategies, plus the idle reserve buffer not yet deployed to a strategy).
 
+### Dex liquidity
+
+> [!NOTE]
+> This page is in development. Its scope and data can change.
+
+A read-only list of the DEX pools that hold a pegged token or a share token, with their TVL, 24h volume, fee APR and rewards. The data comes from `GET /dex-liquidity/pools` in `api/`. Each venue has its own sources:
+
+- **Curve** (Ethereum): the Curve API only, for the pools, TVL, volume, fee APR and the gauge APR.
+- **Uniswap v3** (Ethereum): on-chain factory calls find the pools; the Uniswap interface GraphQL API gives TVL, volume and prices.
+- **Sushi v3** (Ethereum): on-chain factory calls find the pools; the Sushi data API gives TVL, volume and fees. Pools with a configured price range also show one row per range. These rows read the on-chain pool state (ticks and liquidity) and the 24h swaps from the Sushi subgraph.
+- **BrownFi** (Hemi): the BrownFi subgraph only.
+
+Rewards come from three other sources: the Curve gauge (in the Curve API data), the StakeDAO strategies (shown only while a Votemarket campaign runs on the gauge), and the live Merkl campaigns.
+
 ## Where things live
 
 Sources of truth for which instances exist (read these; don't hardcode symbols):
