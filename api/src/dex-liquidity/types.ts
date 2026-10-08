@@ -1,4 +1,4 @@
-import type { Address } from "viem";
+import type { Address, Hash } from "viem";
 
 type PoolCoin = { address: Address; amount: number };
 
@@ -14,7 +14,7 @@ export type PoolReward = {
   | { source: "curveGauge"; sourceMetadata: { gaugeAddress: Address } }
   | {
       source: "merkl";
-      sourceMetadata: { campaignId: string; opportunityId: string };
+      sourceMetadata: { campaignId: Hash; opportunityId: string };
     }
   | { source: "stakeDao"; sourceMetadata: { strategyKey: string } }
 );
