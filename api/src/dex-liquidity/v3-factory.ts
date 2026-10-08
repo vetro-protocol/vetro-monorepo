@@ -1,4 +1,6 @@
-import { gateways } from "@vetro-protocol/core";
+import { gatewayAddresses } from "@vetro-protocol/gateway";
+import { getTreasury } from "@vetro-protocol/gateway/actions";
+import { getWhitelistedTokens } from "@vetro-protocol/treasury/actions";
 import { type Address, type Client, isAddressEqual, zeroAddress } from "viem";
 import { multicall } from "viem/actions";
 
@@ -24,11 +26,17 @@ type PoolQuery = { fee: number; token0: Address; token1: Address };
 
 export type V3Pool = PoolQuery & { address: Address };
 
-const whitelistedTokenAddresses = gateways.flatMap(
-  (gateway) => gateway.whitelistedTokens,
-);
+async function getWhitelistedTokenAddresses(client: Client) {
+  const perGateway = await Promise.all(
+    gatewayAddresses.map(async function (address) {
+      const treasuryAddress = await getTreasury(client, { address });
+      return getWhitelistedTokens(client, { address: treasuryAddress });
+    }),
+  );
+  return perGateway.flat();
+}
 
-const buildPoolQueries = () =>
+const buildPoolQueries = (whitelistedTokenAddresses: readonly Address[]) =>
   trackedTokenAddresses.flatMap((tracked, index) =>
     [
       ...trackedTokenAddresses.slice(index + 1),
@@ -49,7 +57,7 @@ export async function findV3Pools({
   client: Client;
   factoryAddress: Address;
 }): Promise<V3Pool[]> {
-  const queries = buildPoolQueries();
+  const queries = buildPoolQueries(await getWhitelistedTokenAddresses(client));
   const addresses = await multicall(client, {
     allowFailure: false,
     batchSize: 0,
