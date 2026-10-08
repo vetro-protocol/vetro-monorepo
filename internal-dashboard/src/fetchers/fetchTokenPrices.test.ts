@@ -30,6 +30,7 @@ const tokens: TrackedToken[] = [
   },
   {
     address: usdShareAddress,
+    assetAddress: usdPegAddress,
     assetDecimals: 18,
     decimals: 18,
     extensions: { isVaultShare: true, priceSymbol: "USD" },
@@ -43,6 +44,7 @@ const tokens: TrackedToken[] = [
   },
   {
     address: btcShareAddress,
+    assetAddress: btcPegAddress,
     assetDecimals: 8,
     decimals: 18,
     extensions: { isVaultShare: true, priceSymbol: "BTC" },
@@ -50,6 +52,7 @@ const tokens: TrackedToken[] = [
   },
   {
     address: unratedShareAddress,
+    assetAddress: usdPegAddress,
     assetDecimals: 18,
     decimals: 18,
     extensions: { isVaultShare: true, priceSymbol: "USD" },

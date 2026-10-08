@@ -43,7 +43,7 @@ const tokenData: Record<string, { decimals: number; symbol: string }> = {
 };
 
 describe("fetchTrackedTokens", function () {
-  it("stores the underlying pegged token decimals on share tokens", async function () {
+  it("stores the underlying pegged token address and decimals on share tokens", async function () {
     vi.mocked(getPeggedToken).mockResolvedValue(peggedAddress);
     vi.mocked(asset).mockResolvedValue(peggedAddress);
     vi.mocked(decimals).mockImplementation(
@@ -67,6 +67,7 @@ describe("fetchTrackedTokens", function () {
       },
       {
         address: vaultAddress,
+        assetAddress: peggedAddress,
         assetDecimals: 6,
         decimals: 18,
         extensions: { isVaultShare: true, priceSymbol: "USD" },

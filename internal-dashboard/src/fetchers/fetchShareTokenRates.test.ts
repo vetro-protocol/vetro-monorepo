@@ -15,6 +15,7 @@ const vusdAddress = "0x1111111111111111111111111111111111111111";
 const sVusdAddress = "0x476310E34D2810f7d79C43A74E4D79405bd7a925";
 const sVetBtcAddress = "0x0cB9D84d4bcEc8d3D5B2d99a6F07f4605325987e";
 const sVusdV2Address = "0x2222222222222222222222222222222222222222";
+const vetBtcAddress = "0x3333333333333333333333333333333333333333";
 
 const tokens: TrackedToken[] = [
   {
@@ -25,6 +26,7 @@ const tokens: TrackedToken[] = [
   },
   {
     address: sVusdAddress,
+    assetAddress: vusdAddress,
     assetDecimals: 18,
     decimals: 18,
     extensions: { isVaultShare: true, priceSymbol: "USD" },
@@ -32,6 +34,7 @@ const tokens: TrackedToken[] = [
   },
   {
     address: sVetBtcAddress,
+    assetAddress: vetBtcAddress,
     assetDecimals: 8,
     decimals: 18,
     extensions: { isVaultShare: true, priceSymbol: "BTC" },

@@ -190,6 +190,8 @@ describe("pegDeviation", function () {
       shareRates: { [hemiSVusd.toLowerCase()]: sharePrice },
       shareTokenAddresses: tokenAddresses({
         address: "0x476310E34D2810f7d79C43A74E4D79405bd7a925",
+        // Mainnet VUSD, the asset of the mainnet sVUSD vault.
+        assetAddress: "0xCa83DDE9c22254f58e771bE5E157773212AcBAc3",
         assetDecimals: 18,
         decimals: 18,
         extensions: { isVaultShare: true },

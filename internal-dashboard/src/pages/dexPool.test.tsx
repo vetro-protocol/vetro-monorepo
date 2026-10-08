@@ -67,6 +67,7 @@ const trackedTokens: TrackedToken[] = [
   },
   {
     address: shareToken,
+    assetAddress: peggedToken,
     assetDecimals: 18,
     decimals: 18,
     extensions: { isVaultShare: true, priceSymbol: "USD" },

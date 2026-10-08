@@ -12,6 +12,7 @@ vi.mock("viem-erc4626/actions", () => ({
   convertToAssets: vi.fn(),
 }));
 
+const assetAddress = "0x2222222222222222222222222222222222222222";
 const shareAddress = "0x1111111111111111111111111111111111111111";
 
 describe("fetchAssetsPerShare", function () {
@@ -21,6 +22,7 @@ describe("fetchAssetsPerShare", function () {
     const rate = await fetchAssetsPerShare({
       token: {
         address: shareAddress,
+        assetAddress,
         assetDecimals: 6,
         decimals: 18,
         extensions: { isVaultShare: true },

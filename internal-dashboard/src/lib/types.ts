@@ -61,6 +61,8 @@ type PeggedTrackedToken = TrackedTokenBase & {
 };
 
 export type ShareToken = TrackedTokenBase & {
+  // Address of the pegged token the share token's vault holds.
+  assetAddress: Address;
   // Decimals of the pegged token the share token's vault holds.
   assetDecimals: number;
   extensions: TokenExtensions & { isVaultShare: true };
@@ -68,7 +70,13 @@ export type ShareToken = TrackedTokenBase & {
 
 export type TrackedToken = PeggedTrackedToken | ShareToken;
 
-export type WhitelistedToken = Pick<Token, "address" | "decimals" | "symbol">;
+export type WhitelistedToken = Pick<
+  Token,
+  "address" | "decimals" | "symbol"
+> & {
+  // The pegged token of the gateway that whitelists this token.
+  peggedTokenAddress: Address;
+};
 
 type PoolCampaignBase = {
   endTimestamp: number; // seconds
