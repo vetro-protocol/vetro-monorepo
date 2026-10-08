@@ -9,8 +9,6 @@ const wagmiConfig = createConfig({
   transports: { [mainnet.id]: http() },
 });
 
-// .storybook/preview.tsx only spies on wagmi, so components that call real
-// wagmi or react-query hooks still need these providers.
 export const withWagmi =
   (
     queryClient: QueryClient = new QueryClient({
