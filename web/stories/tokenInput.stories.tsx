@@ -10,8 +10,11 @@ import { TokenInput } from "../src/components/tokenInput";
 import { TokenSelectorReadOnly } from "../src/components/tokenSelectorReadOnly";
 import { useAmount } from "../src/hooks/useAmount";
 
+import { withWagmi } from "./withWagmi";
+
 const meta = {
   component: TokenInput,
+  decorators: [withWagmi()],
   title: "Components/TokenInput",
 } satisfies Meta<typeof TokenInput>;
 

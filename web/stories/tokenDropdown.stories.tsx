@@ -5,9 +5,12 @@ import { mainnet } from "viem/chains";
 
 import { TokenDropdown } from "../src/components/tokenDropdown";
 
+import { withWagmi } from "./withWagmi";
+
 const meta = {
   args: {},
   component: TokenDropdown,
+  decorators: [withWagmi()],
   title: "Components/TokenDropdown",
 } satisfies Meta<typeof TokenDropdown>;
 
