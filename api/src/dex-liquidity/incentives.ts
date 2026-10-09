@@ -2,15 +2,9 @@ import { type Address, checksumAddress, type Hash, isAddressEqual } from "viem";
 import { hemi, mainnet } from "viem/chains";
 
 import { getLiveOpportunities } from "../merkl.ts";
-import {
-  throwIfAllRejected,
-  valueOrEmpty,
-  withTimeout,
-} from "../utils/promises.ts";
 
 import { crvAddress } from "./curve.ts";
 import {
-  getCampaignGauges,
   getStrategies,
   type StakeDaoStrategy,
   strategyRewardsApr,
@@ -44,7 +38,7 @@ const poolAddresses = (pool: Pool) =>
     pool.dex === "curve" ? pool.dexMetadata.lpTokenAddress : undefined,
   ].filter((address) => address !== undefined);
 
-const getMerklRewards = async function ({
+export const getMerklRewards = async function ({
   nowSeconds,
   pools,
 }: {
@@ -80,35 +74,12 @@ const getMerklRewards = async function ({
 };
 
 // Curve pools are only on Ethereum today.
-const getGaugedStrategies = () =>
+export const getGaugedStrategies = () =>
   getStrategies(mainnet.id).then((strategies) =>
     strategies.filter(
       (strategy): strategy is GaugedStrategy => strategy.gaugeAddress !== null,
     ),
   );
-
-export async function getIncentiveSources({
-  nowSeconds,
-  pools,
-}: {
-  nowSeconds: number;
-  pools: Promise<Pool[]>;
-}): Promise<IncentiveSources> {
-  const results = await Promise.allSettled([
-    withTimeout(getCampaignGauges(nowSeconds)),
-    pools.then((discovered) =>
-      withTimeout(getMerklRewards({ nowSeconds, pools: discovered })),
-    ),
-    withTimeout(getGaugedStrategies()),
-  ]);
-  throwIfAllRejected(results);
-  const [campaignGauges, merklRewards, strategies] = results;
-  return {
-    campaignGauges: valueOrEmpty(campaignGauges),
-    merklRewards: valueOrEmpty(merklRewards),
-    strategies: valueOrEmpty(strategies),
-  };
-}
 
 const stakeDaoReward = function ({
   chainId,

@@ -7,7 +7,14 @@ import {
   getTvl,
 } from "./analytics.ts";
 import { convertBigIntsToString } from "./convert-bigints-to-string.ts";
-import { getDexPools } from "./dex-liquidity/index.ts";
+import {
+  getGaugedStrategies,
+  getMerklRewards,
+} from "./dex-liquidity/incentives.ts";
+import { getVenuePools, venues } from "./dex-liquidity/index.ts";
+import { getCampaignGauges } from "./dex-liquidity/stake-dao.ts";
+import type { Pool } from "./dex-liquidity/types.ts";
+import { withTimeout } from "./utils/promises.ts";
 import { getApy } from "./variable-stake.ts";
 import { globalWarmTask, keyedWarmTask } from "./warm-cache.ts";
 
@@ -73,15 +80,50 @@ export const apyTask = globalWarmTask({
     ),
 });
 
-// Warms `GET /dex-liquidity/pools`.
-export const dexPoolsTask = globalWarmTask({
+const nowSeconds = () => Math.floor(Date.now() / 1000);
+
+export const dexVenuePoolsTask = keyedWarmTask({
   cron: "*/5 * * * *",
-  key: () => "dex-liquidity:pools",
-  produce: (env) =>
-    getDexPools({
-      rpcUrl: env.CUSTOM_RPC_URL_MAINNET,
-      subgraphApiKey: env.SUBGRAPH_API_KEY,
-    }),
+  items: venues,
+  key: (venue) => `dex-liquidity:pools:${venue}`,
+  produce: (env, venue) =>
+    withTimeout(
+      getVenuePools({
+        nowSeconds: nowSeconds(),
+        rpcUrl: env.CUSTOM_RPC_URL_MAINNET,
+        subgraphApiKey: env.SUBGRAPH_API_KEY,
+        venue,
+      }),
+    ),
+});
+
+export const dexCampaignGaugesTask = globalWarmTask({
+  cron: "*/5 * * * *",
+  key: () => "dex-liquidity:campaign-gauges",
+  produce: () => withTimeout(getCampaignGauges(nowSeconds())),
+});
+
+export const dexMerklRewardsTask = globalWarmTask({
+  cron: "*/5 * * * *",
+  key: () => "dex-liquidity:merkl-rewards",
+  async produce(env) {
+    const cached = await Promise.all(
+      venues.map((venue) =>
+        env.CACHE_KV.get<Pool[]>(dexVenuePoolsTask.key(venue), "json"),
+      ),
+    );
+    const pools = cached.filter((venuePools) => venuePools !== null).flat();
+    if (pools.length === 0) {
+      throw new Error("No cached DEX pools to read Merkl rewards for");
+    }
+    return withTimeout(getMerklRewards({ nowSeconds: nowSeconds(), pools }));
+  },
+});
+
+export const dexStrategiesTask = globalWarmTask({
+  cron: "*/5 * * * *",
+  key: () => "dex-liquidity:strategies",
+  produce: () => withTimeout(getGaugedStrategies()),
 });
 
 export const warmTasks = [
@@ -90,5 +132,8 @@ export const warmTasks = [
   tvlTask,
   stakedTask,
   apyTask,
-  dexPoolsTask,
+  dexVenuePoolsTask,
+  dexCampaignGaugesTask,
+  dexMerklRewardsTask,
+  dexStrategiesTask,
 ];

@@ -15,6 +15,8 @@ import {
   verifyTurnstile,
 } from "./contact.ts";
 import { convertBigIntsToString } from "./convert-bigints-to-string.ts";
+import { addIncentives } from "./dex-liquidity/incentives.ts";
+import { venues } from "./dex-liquidity/index.ts";
 import { getSubgraphUrl } from "./env.ts";
 import {
   validateAddress,
@@ -27,6 +29,11 @@ import { securityHeaders } from "./security-headers.ts";
 import { getShareValueHistory } from "./share-value-history.ts";
 import { getTotalDepositsHistory } from "./total-deposits-history.ts";
 import { getTvlHistory } from "./tvl-history.ts";
+import {
+  fulfilledValues,
+  throwIfAllRejected,
+  valueOrEmpty,
+} from "./utils/promises.ts";
 import { createOriginFn, parseOrigins } from "./validate-origin.ts";
 import * as variableStake from "./variable-stake.ts";
 import { validPeriods as vaultHistoryValidPeriods } from "./vault-history-period.ts";
@@ -34,7 +41,10 @@ import { readWarmedTask, warmScheduled } from "./warm-cache.ts";
 import {
   apyTask,
   collateralizationRatioTask,
-  dexPoolsTask,
+  dexCampaignGaugesTask,
+  dexMerklRewardsTask,
+  dexStrategiesTask,
+  dexVenuePoolsTask,
   stakedTask,
   treasuryTask,
   tvlTask,
@@ -239,6 +249,32 @@ app.get(
 
 const includesRanges = (c: Context) => c.req.query("includeRanges") === "true";
 
+const readDexPools = async function (c: Context<{ Bindings: Env }>) {
+  const [venueResults, sourceResults] = await Promise.all([
+    Promise.allSettled(
+      venues.map((venue) =>
+        readWarmedTask({ c, item: venue, task: dexVenuePoolsTask }),
+      ),
+    ),
+    Promise.allSettled([
+      readWarmedTask({ c, task: dexCampaignGaugesTask }),
+      readWarmedTask({ c, task: dexMerklRewardsTask }),
+      readWarmedTask({ c, task: dexStrategiesTask }),
+    ]),
+  ]);
+  throwIfAllRejected(venueResults);
+  const [campaignGauges, merklRewards, strategies] = sourceResults;
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  const sources = {
+    campaignGauges: valueOrEmpty(campaignGauges),
+    merklRewards: valueOrEmpty(merklRewards),
+    strategies: valueOrEmpty(strategies),
+  };
+  return fulfilledValues(venueResults)
+    .flat()
+    .map((pool) => addIncentives({ nowSeconds, pool, sources }));
+};
+
 app.get(
   "/dex-liquidity/pools",
   validateQueryParams({ includeRanges: ["true", "false"] }),
@@ -250,7 +286,7 @@ app.get(
   }),
   async function (c) {
     try {
-      const pools = await readWarmedTask({ c, task: dexPoolsTask });
+      const pools = await readDexPools(c);
       return c.json(
         includesRanges(c) ? pools : pools.filter((pool) => !pool.range),
       );
