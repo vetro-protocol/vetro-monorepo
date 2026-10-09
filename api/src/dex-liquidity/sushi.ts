@@ -249,7 +249,12 @@ const getSushiPool = async function ({
           poolAddress: address,
           sinceSeconds,
           subgraphApiKey,
-        }).catch(() => undefined)
+        }).catch(function (error) {
+          console.warn(
+            `Failed to get the 24h swaps of Sushi pool ${address}, so it has no range rows: ${error.message}`,
+          );
+          return undefined;
+        })
       : undefined;
   const data = await fetchPoolData(address);
   const tokens = [data.token0, data.token1].map((token) => ({
@@ -310,7 +315,12 @@ const getSushiPool = async function ({
         ...decimals,
         price: Math.max(...ranges.map((range) => range.upperPrice)),
       }),
-    }).catch(() => undefined),
+    }).catch(function (error) {
+      console.warn(
+        `Failed to read the state of Sushi pool ${address}, so it has no range rows: ${error.message}`,
+      );
+      return undefined;
+    }),
     poolSwapsPromise,
     getUsdPrices(portalApiUrl).catch(function (error) {
       console.warn(`Failed to get USD prices: ${error.message}`);
@@ -400,5 +410,12 @@ export async function getSushiPools({
       }),
     ),
   );
+  results.forEach(function (result, index) {
+    if (result.status === "rejected") {
+      console.warn(
+        `Failed to get Sushi pool ${addresses[index]}: ${result.reason.message}`,
+      );
+    }
+  });
   return fulfilledValues(results).flat();
 }

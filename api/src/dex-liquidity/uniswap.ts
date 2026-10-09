@@ -130,5 +130,13 @@ const buildPool = async function (pool: V3Pool): Promise<Pool> {
 
 export async function getUniswapPools(client: Client) {
   const pools = await findV3Pools({ client, factoryAddress });
-  return fulfilledValues(await Promise.allSettled(pools.map(buildPool)));
+  const results = await Promise.allSettled(pools.map(buildPool));
+  results.forEach(function (result, index) {
+    if (result.status === "rejected") {
+      console.warn(
+        `Failed to get Uniswap pool ${pools[index].address}: ${result.reason.message}`,
+      );
+    }
+  });
+  return fulfilledValues(results);
 }
