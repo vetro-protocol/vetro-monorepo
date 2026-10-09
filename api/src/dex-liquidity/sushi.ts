@@ -10,6 +10,7 @@ import { mainnet } from "viem/chains";
 
 import { theGraphUrl } from "../env.ts";
 import { runQuery } from "../graphql.ts";
+import { paginateSubgraphQuery } from "../paginate-subgraph-query.ts";
 import { getUsdPrices } from "../portal-prices.ts";
 import { fulfilledValues } from "../utils/promises.ts";
 
@@ -57,10 +58,9 @@ const poolQuery = `
   }
 `;
 
-// No pagination - we'll take care once there are > 1k pools
-const swapsQuery = `
-  query PoolSwaps($pool: String!, $since: BigInt!) {
-    before: swaps(
+const lastSwapQuery = `
+  query LastSwap($pool: String!, $since: BigInt!) {
+    swaps(
       first: 1
       orderBy: timestamp
       orderDirection: desc
@@ -68,10 +68,21 @@ const swapsQuery = `
     ) {
       tick
     }
-    window: swaps(
-      first: 1000
+  }
+`;
+
+const windowSwapsQuery = `
+  query WindowSwaps(
+    $first: Int!
+    $pool: String!
+    $since: BigInt!
+    $skip: Int!
+  ) {
+    swaps(
+      first: $first
       orderBy: timestamp
       orderDirection: asc
+      skip: $skip
       where: { pool: $pool, timestamp_gt: $since }
     ) {
       amountInUSD
@@ -128,22 +139,33 @@ const fetchPoolSwaps = async function ({
   sinceSeconds: number;
   subgraphApiKey: string | undefined;
 }) {
-  const data = await runQuery<{
-    before: { tick: string | null }[];
-    window: RawSwap[];
-  }>({
-    query: swapsQuery,
-    url: theGraphUrl({ apiKey: subgraphApiKey, subgraphId: sushiSubgraphId }),
-    variables: {
-      pool: poolAddress.toLowerCase(),
-      since: String(Math.floor(sinceSeconds)),
-    },
+  const url = theGraphUrl({
+    apiKey: subgraphApiKey,
+    subgraphId: sushiSubgraphId,
   });
-  const startTick = data.before[0]?.tick;
+  const variables = {
+    pool: poolAddress.toLowerCase(),
+    since: String(Math.floor(sinceSeconds)),
+  };
+  const [lastSwap, windowSwaps] = await Promise.all([
+    runQuery<{ swaps: { tick: string | null }[] }>({
+      query: lastSwapQuery,
+      url,
+      variables,
+    }),
+    paginateSubgraphQuery<RawSwap>({
+      field: "swaps",
+      pageSize: 1000,
+      query: windowSwapsQuery,
+      url,
+      variables,
+    }),
+  ]);
+  const startTick = lastSwap.swaps[0]?.tick;
   return {
     startTick: startTick ? Number(startTick) : undefined,
     // Swaps in one block share a timestamp, so sort them by execution order.
-    swaps: data.window
+    swaps: windowSwaps
       .filter((swap) => swap.tick !== null)
       .sort(
         (a, b) =>
