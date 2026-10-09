@@ -47,7 +47,8 @@
     "@vetro-protocol/treasury": "workspace:*",
     "commander": "15.0.0",
     "viem": "2.44.4",
-    "viem-erc20": "2.2.1"
+    "viem-erc20": "2.2.1",
+    "viem-erc4626": "1.0.0"
   },
   "devDependencies": {
     "@hemilabs/anvil-fork-setup": "2.0.0",
@@ -57,7 +58,6 @@
     "@vitest/coverage-v8": "5.0.1",
     "esbuild": "0.28.2",
     "typescript": "5.9.3",
-    "viem-erc4626": "1.0.0",
     "viem-oz-access-control": "1.0.0",
     "vitest": "5.0.1"
   },

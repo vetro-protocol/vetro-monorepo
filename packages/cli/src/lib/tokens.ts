@@ -1,3 +1,4 @@
+import { gateways } from "@vetro-protocol/core";
 import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { getPeggedToken, getTreasury } from "@vetro-protocol/gateway/actions";
 import { getWhitelistedTokens } from "@vetro-protocol/treasury/actions";
@@ -162,4 +163,20 @@ export async function getGatewayPeggedToken({
     symbol(client, { address }),
   ]);
   return { address, decimals: tokenDecimals, symbol: tokenSymbol };
+}
+
+export function getStakingVault({
+  gatewayAddress,
+  token,
+}: {
+  gatewayAddress: Address;
+  token: string;
+}) {
+  const stakingVault = gateways.find((gateway) =>
+    isAddressEqual(gateway.address, gatewayAddress),
+  )?.stakingVault;
+  if (!stakingVault) {
+    throw new Error(`No staking vault for pegged token: "${token}"`);
+  }
+  return stakingVault;
 }
