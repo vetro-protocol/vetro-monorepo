@@ -40,6 +40,9 @@ async function getPricesByDay({
   );
 }
 
+export const getUsdPrices = (portalApiUrl: string) =>
+  fetchJson(`${portalApiUrl}/prices`).then((body) => (body as Prices).prices);
+
 async function getCurrentPrice({
   pegBaseSymbol,
   portalApiUrl,
@@ -47,7 +50,7 @@ async function getCurrentPrice({
   pegBaseSymbol: string;
   portalApiUrl: string;
 }) {
-  const { prices } = (await fetchJson(`${portalApiUrl}/prices`)) as Prices;
+  const prices = await getUsdPrices(portalApiUrl);
   const price = prices[pegBaseSymbol];
   return price === undefined ? null : Number(price);
 }

@@ -41,7 +41,7 @@ const fetchHistory = (period = "1w", address = gatewayAddress) =>
   });
 
 const lastCallVariables = <T>() =>
-  vi.mocked(graphql.runQuery).mock.calls.at(-1)?.[2] as T | undefined;
+  vi.mocked(graphql.runQuery).mock.calls.at(-1)?.[0].variables as T | undefined;
 
 const peggedTokenChecksummed = vusdGateway.peggedToken;
 // The subgraph stores addresses lowercased, so the checksum is what the
