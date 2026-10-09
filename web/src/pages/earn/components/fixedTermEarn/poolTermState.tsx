@@ -1,5 +1,6 @@
+import { useNowTickingPast } from "hooks/useNowTickingPast";
 import { useTranslation } from "react-i18next";
-import { unixNowTimestamp } from "utils/date";
+import { SECONDS_PER_DAY, unixNowTimestamp } from "utils/date";
 import type { Address } from "viem";
 
 import { useDepositState } from "../../hooks/targetYieldPool/useDepositState";
@@ -18,6 +19,20 @@ export function PoolTermState({ stakingVaultAddress }: Props) {
     isError,
     isPending,
   } = useDepositState(stakingVaultAddress);
+
+  useNowTickingPast(
+    depositState
+      ? [depositState.entryWindow.start, depositState.entryWindow.end]
+      : undefined,
+    function (timestamp) {
+      // setTimeout overflows past ~24.8 days; skip far bounds, a page is not
+      // kept open that long.
+      const seconds = Number(timestamp);
+      return seconds - unixNowTimestamp() < SECONDS_PER_DAY
+        ? seconds
+        : undefined;
+    },
+  );
 
   function getLabel() {
     if (!depositState) {
