@@ -2,6 +2,7 @@ import {
   TEST_ADDRESS,
   TEST_PRIVATE_KEY,
 } from "@hemilabs/anvil-fork-setup/utils";
+import { stakingVaultAbi } from "@vetro-protocol/earn";
 import { gatewayAbi as vetroGatewayAbi } from "@vetro-protocol/gateway";
 import {
   getMaxMint,
@@ -538,6 +539,59 @@ export const setRedeemQueueEnabled = async function ({
   });
   await setWithdrawalDelay({ enabled, gateway, rpcUrl });
   return () => setWithdrawalDelay({ enabled: enabledBefore, gateway, rpcUrl });
+};
+
+const updateCooldownDurationAbi = parseAbi([
+  "function updateCooldownDuration(uint256 duration_)",
+]);
+
+/** Turns the staking vault's unstake cooldown on or off, and sets its duration when given. */
+export const setStakingCooldown = async function ({
+  duration,
+  enabled,
+  rpcUrl,
+  vault,
+}: {
+  duration?: bigint;
+  enabled: boolean;
+  rpcUrl: string;
+  vault: Address;
+}) {
+  const { publicClient, testClient } = createClients(rpcUrl);
+  const owner = await readContract(publicClient, {
+    abi: stakingVaultAbi,
+    address: vault,
+    functionName: "owner",
+  });
+
+  await impersonateAccount(testClient, { address: owner });
+  await setBalance(testClient, { address: owner, value: parseEther("1") });
+  try {
+    if (duration !== undefined) {
+      await confirmWrite({
+        client: publicClient,
+        hash: await writeContract(testClient, {
+          abi: updateCooldownDurationAbi,
+          account: owner,
+          address: vault,
+          args: [duration],
+          functionName: "updateCooldownDuration",
+        }),
+      });
+    }
+    await confirmWrite({
+      client: publicClient,
+      hash: await writeContract(testClient, {
+        abi: stakingVaultAbi,
+        account: owner,
+        address: vault,
+        args: [enabled],
+        functionName: "updateCooldownEnabled",
+      }),
+    });
+  } finally {
+    await stopImpersonatingAccount(testClient, { address: owner });
+  }
 };
 
 /** Broadcasts a TransactionRequest the CLI emitted, exactly as an agent would. */
