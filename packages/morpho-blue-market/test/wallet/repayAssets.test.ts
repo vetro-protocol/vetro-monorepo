@@ -15,7 +15,10 @@ import { sepolia } from "viem/chains";
 import { allowance, approve } from "viem-erc20/actions";
 import { describe, expect, it, vi } from "vitest";
 
-import { repayAssets } from "../../src/actions/wallet/repayAssets.ts";
+import {
+  encodeRepayAssets,
+  repayAssets,
+} from "../../src/actions/wallet/repayAssets.ts";
 
 vi.mock("viem/actions", () => ({
   readContract: vi.fn(),
@@ -49,6 +52,12 @@ const validParameters = {
   marketId:
     "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef" as Hash,
   onBehalf: "0x1111111111111111111111111111111111111111" as Address,
+};
+
+const validShareParameters = {
+  address: validParameters.address,
+  marketId: validParameters.marketId,
+  onBehalf: validParameters.onBehalf,
 };
 
 describe("repayAssets", function () {
@@ -284,6 +293,48 @@ describe("repayAssets", function () {
     expect(onSettled).toHaveBeenCalledOnce();
   });
 
+  it("should emit 'repay-assets-failed-validation' if amount and shares are both provided", async function () {
+    const { emitter, promise } = repayAssets(
+      mockWalletClient,
+      // @ts-expect-error - Testing invalid input
+      { ...validParameters, shares: 500n },
+    );
+
+    const onFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("repay-assets-failed-validation", onFailedValidation);
+    emitter.on("repay-assets-settled", onSettled);
+
+    await promise;
+
+    expect(onFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "Exactly one of amount or shares must be provided",
+    );
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("should emit 'repay-assets-failed-validation' if share repayment has no approval amount", async function () {
+    const { emitter, promise } = repayAssets(
+      mockWalletClient,
+      // @ts-expect-error - Testing invalid input
+      { ...validShareParameters, shares: 500n },
+    );
+
+    const onFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("repay-assets-failed-validation", onFailedValidation);
+    emitter.on("repay-assets-settled", onSettled);
+
+    await promise;
+
+    expect(onFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "Approve amount is required for share-based repayment",
+    );
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
   it("should emit 'repay-assets-failed-validation' if approveAmount is not a bigint", async function () {
     const { emitter, promise } = repayAssets(mockWalletClient, {
       ...validParameters,
@@ -363,6 +414,67 @@ describe("repayAssets", function () {
     expect(approve).not.toHaveBeenCalled();
     expect(writeContract).toHaveBeenCalledOnce();
     expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("should repay by shares when shares are provided", async function () {
+    const receipt = {
+      status: "success",
+    } as TransactionReceipt;
+    const shares = 500n;
+    const approveAmount = 1200n;
+
+    vi.mocked(readContract).mockResolvedValue(mockMarketParams);
+    vi.mocked(allowance).mockResolvedValue(validParameters.amount);
+    vi.mocked(approve).mockResolvedValue(zeroHash);
+    vi.mocked(writeContract).mockResolvedValue(zeroHash);
+    vi.mocked(waitForTransactionReceipt)
+      .mockResolvedValueOnce(receipt)
+      .mockResolvedValueOnce(receipt);
+
+    const { promise } = repayAssets(mockWalletClient, {
+      ...validShareParameters,
+      approveAmount,
+      shares,
+    });
+
+    await promise;
+
+    expect(approve).toHaveBeenCalledWith(
+      mockWalletClient,
+      expect.objectContaining({
+        amount: approveAmount,
+      }),
+    );
+    expect(writeContract).toHaveBeenCalledWith(
+      mockWalletClient,
+      expect.objectContaining({
+        args: [
+          expect.objectContaining({
+            collateralToken: mockMarketParams[1],
+            irm: mockMarketParams[3],
+            lltv: mockMarketParams[4],
+            loanToken: mockMarketParams[0],
+            oracle: mockMarketParams[2],
+          }),
+          0n,
+          shares,
+          validParameters.onBehalf,
+          "0x",
+        ],
+      }),
+    );
+  });
+
+  it("should reject encoded repayments with both amount and shares", function () {
+    expect(() =>
+      encodeRepayAssets({
+        amount: validParameters.amount,
+        marketParams: mockMarketParams,
+        onBehalf: validParameters.onBehalf,
+        // @ts-expect-error - Testing invalid input
+        shares: 500n,
+      }),
+    ).toThrow("Exactly one of amount or shares must be provided");
   });
 
   it("should approve first if allowance is insufficient, then repay", async function () {
