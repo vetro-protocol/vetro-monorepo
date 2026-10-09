@@ -75,15 +75,15 @@ const windowSwapsQuery = `
   query WindowSwaps(
     $first: Int!
     $pool: String!
-    $since: BigInt!
     $skip: Int!
+    $start: BigInt!
   ) {
     swaps(
       first: $first
       orderBy: timestamp
       orderDirection: asc
       skip: $skip
-      where: { pool: $pool, timestamp_gt: $since }
+      where: { pool: $pool, timestamp_gte: $start }
     ) {
       amountInUSD
       blockNumber
@@ -143,22 +143,25 @@ const fetchPoolSwaps = async function ({
     apiKey: subgraphApiKey,
     subgraphId: sushiSubgraphId,
   });
-  const variables = {
-    pool: poolAddress.toLowerCase(),
-    since: String(Math.floor(sinceSeconds)),
-  };
+  const pool = poolAddress.toLowerCase();
+  const since = Math.floor(sinceSeconds);
   const [lastSwap, windowSwaps] = await Promise.all([
     runQuery<{ swaps: { tick: string | null }[] }>({
       query: lastSwapQuery,
       url,
-      variables,
+      variables: { pool, since: String(since) },
     }),
     paginateSubgraphQuery<RawSwap>({
+      cursor: {
+        getId: (swap) => `${swap.blockNumber}-${swap.logIndex}`,
+        getValue: (swap) => swap.timestamp,
+        variable: "start",
+      },
       field: "swaps",
       pageSize: 1000,
       query: windowSwapsQuery,
       url,
-      variables,
+      variables: { pool, start: String(since + 1) },
     }),
   ]);
   const startTick = lastSwap.swaps[0]?.tick;
