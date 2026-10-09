@@ -262,11 +262,11 @@ const getSushiPool = async function ({
         ...decimals,
         price: Math.max(...ranges.map((range) => range.upperPrice)),
       }),
-    }),
+    }).catch(() => undefined),
     poolSwapsPromise,
   ]);
 
-  if (!poolSwaps) {
+  if (!poolState || !poolSwaps) {
     return [fullRange];
   }
   const { opening, swaps } = splitOpeningSwap({
