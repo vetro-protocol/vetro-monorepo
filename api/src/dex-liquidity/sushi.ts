@@ -1,3 +1,4 @@
+import { knownTokens } from "@vetro-protocol/core";
 import {
   type Address,
   type Client,
@@ -9,6 +10,7 @@ import { mainnet } from "viem/chains";
 
 import { theGraphUrl } from "../env.ts";
 import { runQuery } from "../graphql.ts";
+import { getUsdPrices } from "../portal-prices.ts";
 import { fulfilledValues } from "../utils/promises.ts";
 
 import { bandActivity } from "./band-activity.ts";
@@ -175,15 +177,41 @@ const splitOpeningSwap = function ({
   return { opening: { tick: currentTick, timestamp: sinceSeconds }, swaps };
 };
 
+const referenceUsdPrice = function ({
+  address,
+  prices,
+}: {
+  address: Address;
+  prices: Record<string, string>;
+}) {
+  const token = knownTokens.find(
+    (known) =>
+      known.chainId === mainnet.id && isAddressEqual(known.address, address),
+  );
+  const priceSymbol = (
+    token?.extensions?.priceSymbol ?? token?.symbol
+  )?.toUpperCase();
+  const price = priceSymbol === undefined ? undefined : prices[priceSymbol];
+  if (price === undefined) {
+    console.warn(
+      `No USD price for ${address}, so its Sushi ranges have no TVL`,
+    );
+    return undefined;
+  }
+  return Number(price);
+};
+
 const getSushiPool = async function ({
   address,
   client,
   nowSeconds,
+  portalApiUrl,
   subgraphApiKey,
 }: {
   address: Address;
   client: Client;
   nowSeconds: number;
+  portalApiUrl: string;
   subgraphApiKey: string | undefined;
 }) {
   const ranges =
@@ -240,17 +268,12 @@ const getSushiPool = async function ({
     return [fullRange];
   }
 
-  // Price the non-VETRO coin at $1 and the VETRO coin from the pool rate.
-  const token1IsReference = !isTrackedToken(tokens[1].address);
-  const usdPrices = token1IsReference
-    ? [data.token1Price, 1]
-    : [1, data.token0Price];
   const decimals = {
     decimals0: tokens[0].decimals,
     decimals1: tokens[1].decimals,
   };
 
-  const [poolState, poolSwaps] = await Promise.all([
+  const [poolState, poolSwaps, prices] = await Promise.all([
     fetchV3PoolState({
       client,
       lowerTick: priceToTick({
@@ -264,11 +287,27 @@ const getSushiPool = async function ({
       }),
     }).catch(() => undefined),
     poolSwapsPromise,
+    getUsdPrices(portalApiUrl).catch(function (error) {
+      console.warn(`Failed to get USD prices: ${error.message}`);
+      return {};
+    }),
   ]);
 
   if (!poolState || !poolSwaps) {
     return [fullRange];
   }
+
+  const token1IsReference = !isTrackedToken(tokens[1].address);
+  const referencePrice = referenceUsdPrice({
+    address: tokens[token1IsReference ? 1 : 0].address,
+    prices,
+  });
+  const usdPrices =
+    referencePrice === undefined
+      ? [undefined, undefined]
+      : token1IsReference
+        ? [data.token1Price * referencePrice, referencePrice]
+        : [referencePrice, data.token0Price * referencePrice];
   const { opening, swaps } = splitOpeningSwap({
     currentTick: poolState.currentTick,
     poolSwaps,
@@ -307,10 +346,12 @@ const getSushiPool = async function ({
 export async function getSushiPools({
   client,
   nowSeconds,
+  portalApiUrl,
   subgraphApiKey,
 }: {
   client: Client;
   nowSeconds: number;
+  portalApiUrl: string;
   subgraphApiKey: string | undefined;
 }) {
   const discovered = await findV3Pools({ client, factoryAddress });
@@ -325,7 +366,13 @@ export async function getSushiPools({
   ];
   const results = await Promise.allSettled(
     addresses.map((address) =>
-      getSushiPool({ address, client, nowSeconds, subgraphApiKey }),
+      getSushiPool({
+        address,
+        client,
+        nowSeconds,
+        portalApiUrl,
+        subgraphApiKey,
+      }),
     ),
   );
   return fulfilledValues(results).flat();

@@ -90,6 +90,7 @@ export const dexVenuePoolsTask = keyedWarmTask({
     withTimeout(
       getVenuePools({
         nowSeconds: nowSeconds(),
+        portalApiUrl: env.PORTAL_API_URL,
         rpcUrl: env.CUSTOM_RPC_URL_MAINNET,
         subgraphApiKey: env.SUBGRAPH_API_KEY,
         venue,

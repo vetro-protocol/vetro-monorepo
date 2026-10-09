@@ -8,6 +8,7 @@ import { getUniswapPools } from "./uniswap.ts";
 
 type VenueArgs = {
   nowSeconds: number;
+  portalApiUrl: string;
   rpcUrl: string | undefined;
   subgraphApiKey: string | undefined;
 };
@@ -16,10 +17,11 @@ const venuePools = {
   brownfi: ({ nowSeconds, subgraphApiKey }: VenueArgs) =>
     getBrownfiPools({ nowSeconds, subgraphApiKey }),
   curve: () => getCurvePools(),
-  sushi: ({ nowSeconds, rpcUrl, subgraphApiKey }: VenueArgs) =>
+  sushi: ({ nowSeconds, portalApiUrl, rpcUrl, subgraphApiKey }: VenueArgs) =>
     getSushiPools({
       client: createMainnetClient(rpcUrl),
       nowSeconds,
+      portalApiUrl,
       subgraphApiKey,
     }),
   uniswap: ({ rpcUrl }: VenueArgs) =>
