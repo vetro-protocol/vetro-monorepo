@@ -5,11 +5,12 @@ import { fileURLToPath } from "node:url";
 
 import { register as gateways } from "./features/gateways/index.ts";
 import { register as swap } from "./features/swap/index.ts";
+import { register as variableYield } from "./features/variable-yield/index.ts";
 import { parseRpcUrl } from "./lib/args.ts";
 import { defaultRpcUrl } from "./lib/client.ts";
 import { redactOptionValues } from "./lib/output.ts";
 
-const features = [gateways, swap];
+const features = [gateways, swap, variableYield];
 
 /**
  * The option, paired with the redactor for the usage errors it can raise.

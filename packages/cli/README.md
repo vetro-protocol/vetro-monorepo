@@ -72,7 +72,7 @@ Every numeric field is a hex `QUANTITY`, so the object can be lifted straight in
 
 ## Token arguments
 
-`--token`, `--from` and `--to` accept either a **symbol** (case-insensitive, e.g. `USDT`) or an **address**. `--from` is the token the operation spends, so it is whitelisted-only on `mint` and pegged-only on `send-to-queue`. `--to` is the token the operation pays out, so it is pegged on `mint` and whitelisted-only on `preview-redeem` and `redeem`. `--token` takes either side.
+`--token`, `--from` and `--to` accept either a **symbol** (case-insensitive, e.g. `USDT`) or an **address**. `--from` is the token the operation spends, so it is whitelisted-only on `mint` and pegged-only on `send-to-queue`. `--to` is the token the operation pays out, so it is pegged on `mint` and whitelisted-only on `preview-redeem` and `redeem`. `--token` takes either side on `swap`, and only the pegged token on `variable-yield`.
 
 Because a token belongs to exactly one gateway, the gateway is inferred from the token and never passed explicitly. For the same reason `swap mint --to` is optional — the pegged token is whatever that gateway mints.
 
@@ -168,3 +168,13 @@ When the queue is off for your address, skip `send-to-queue`. Approve the pegged
 vetro-cli swap approve --token VUSD --amount 100
 vetro-cli swap redeem --to USDT --amount 100 --receiver 0xAgent --slippage 0.5
 ```
+
+### `variable-yield` — pegged ↔ share token
+
+A pegged token has exactly one staking vault, so the vault is inferred from `--token` and never passed explicitly. `vetro-cli gateways` lists the `stakingVault` of each gateway. Commands that take `<pegged>` accept only the pegged token, by symbol or address.
+
+#### Read operations
+
+| Command                                                                | Reads            | Returns                                                                                                                                                                                                      |
+| ---------------------------------------------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `vetro-cli variable-yield preview-stake --token <pegged> --amount <n>` | `previewDeposit` | Share token that a stake of `<n>` of the pegged token would mint, in the share token's decimals. Fails when the stake would mint 0, which happens when `<n>` is worth less than one unit of the share token. |
