@@ -232,6 +232,9 @@ importers:
 
   packages/cli:
     dependencies:
+      '@vetro-protocol/earn':
+        specifier: workspace:*
+        version: link:../earn
       '@vetro-protocol/gateway':
         specifier: workspace:*
         version: link:../gateway

@@ -180,3 +180,38 @@ export function getStakingVault({
   }
   return stakingVault;
 }
+
+const getShareCandidates = () =>
+  gateways.flatMap(({ address, stakingVault }) =>
+    stakingVault ? [{ address: stakingVault, gatewayAddress: address }] : [],
+  );
+
+/**
+ * Resolves either side of a stake by symbol or address, along with its
+ * staking vault: a pegged token, or its share token, which is the staking
+ * vault itself.
+ */
+export async function resolveStakingToken({
+  client,
+  value,
+}: {
+  client: Client;
+  value: string;
+}) {
+  const token = await resolveCandidate({
+    candidates: [
+      ...(await getPeggedCandidates(client)),
+      ...getShareCandidates(),
+    ],
+    client,
+    kind: "pegged or share",
+    value,
+  });
+  return {
+    ...token,
+    stakingVault: getStakingVault({
+      gatewayAddress: token.gatewayAddress,
+      token: value,
+    }),
+  };
+}

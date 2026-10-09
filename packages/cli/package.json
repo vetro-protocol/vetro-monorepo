@@ -43,6 +43,7 @@
     "test:e2e": "vitest run --project e2e"
   },
   "dependencies": {
+    "@vetro-protocol/earn": "workspace:*",
     "@vetro-protocol/gateway": "workspace:*",
     "@vetro-protocol/treasury": "workspace:*",
     "commander": "15.0.0",

@@ -1,8 +1,9 @@
 import { type Command } from "commander";
 
+import { register as cooldown } from "./commands/cooldown.ts";
 import { register as previewStake } from "./commands/previewStake.ts";
 
-const variableYieldCommands = [previewStake];
+const variableYieldCommands = [cooldown, previewStake];
 
 export function register(program: Command) {
   const variableYield = program
