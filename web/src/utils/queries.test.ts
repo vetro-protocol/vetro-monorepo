@@ -92,6 +92,27 @@ describe("combineQueryResults", function () {
     expect(select).not.toHaveBeenCalled();
   });
 
+  it("stops loading and pending once any result failed", function () {
+    const select = vi.fn(([amount]) => amount);
+
+    expect(
+      combineQueryResults({
+        results: [
+          result({ isError: true }),
+          result({ isLoading: true, isPending: true }),
+          result({ isPending: true }),
+        ],
+        select,
+      }),
+    ).toEqual({
+      data: undefined,
+      isError: true,
+      isLoading: false,
+      isPending: false,
+    });
+    expect(select).not.toHaveBeenCalled();
+  });
+
   it("keeps the data when a result with data fails to refetch", function () {
     const select = vi.fn(([first, second]: [number, number]) => first * second);
 

@@ -9,7 +9,7 @@ type QueriesData<Results extends readonly QueryState[]> = {
   -readonly [K in keyof Results]: Exclude<Results[K]["data"], undefined>;
 };
 
-export const combineQueryResults = <
+export function combineQueryResults<
   const Results extends readonly QueryState[],
   T,
 >({
@@ -18,14 +18,18 @@ export const combineQueryResults = <
 }: {
   results: Results;
   select: (data: QueriesData<Results>) => T;
-}) => ({
-  data: results.every((result) => result.data !== undefined)
-    ? select(results.map((result) => result.data) as QueriesData<Results>)
-    : undefined,
-  isError: results.some((result) => result.isError),
-  isLoading: results.some((result) => result.isLoading),
-  isPending: results.some((result) => result.isPending),
-});
+}) {
+  const isError = results.some((result) => result.isError);
+
+  return {
+    data: results.every((result) => result.data !== undefined)
+      ? select(results.map((result) => result.data) as QueriesData<Results>)
+      : undefined,
+    isError,
+    isLoading: !isError && results.some((result) => result.isLoading),
+    isPending: !isError && results.some((result) => result.isPending),
+  };
+}
 
 export const sumUsdResults = (results: UseQueryResult<number>[]) =>
   combineQueryResults({
