@@ -4,12 +4,11 @@ import { stakingVaultAbi } from "@vetro-protocol/earn";
 import {
   getActiveRequestIds,
   getClaimableRequests,
-  getCooldownDuration,
-  getCooldownEnabled,
   getTotalAssetsInCooldown,
 } from "@vetro-protocol/earn/actions";
 import {
   type Address,
+  type Hex,
   decodeFunctionData,
   isAddressEqual,
   numberToHex,
@@ -17,7 +16,7 @@ import {
   parseUnits,
 } from "viem";
 import { generatePrivateKey, privateKeyToAddress } from "viem/accounts";
-import { getChainId } from "viem/actions";
+import { getChainId, revert, snapshot } from "viem/actions";
 import { balanceOf, symbol } from "viem-erc20/actions";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 
@@ -44,11 +43,11 @@ const untouchedAccount = privateKeyToAddress(generatePrivateKey());
 
 describe("variable-yield claim-all", function () {
   const rpcUrl = inject("anvilUrl");
-  const { publicClient } = createClients(rpcUrl);
+  const { publicClient, testClient } = createClients(rpcUrl);
   const cooldownDuration = 86_400n;
   const vaults = [sVusdAddress, sVetBtcAddress];
 
-  let before: { duration: bigint; enabled: boolean }[];
+  let snapshotId: Hex;
 
   const claimAllOnFork = (extra: string[] = []) => [
     "variable-yield",
@@ -100,12 +99,7 @@ describe("variable-yield claim-all", function () {
   };
 
   beforeAll(async function () {
-    before = await Promise.all(
-      vaults.map(async (vault) => ({
-        duration: await getCooldownDuration(publicClient, { address: vault }),
-        enabled: await getCooldownEnabled(publicClient, { address: vault }),
-      })),
-    );
+    snapshotId = await snapshot(testClient);
     for (const vault of vaults) {
       await setStakingCooldown({
         duration: cooldownDuration,
@@ -130,11 +124,7 @@ describe("variable-yield claim-all", function () {
     });
   });
 
-  afterAll(async function () {
-    for (const [index, vault] of vaults.entries()) {
-      await setStakingCooldown({ ...before[index], rpcUrl, vault });
-    }
-  });
+  afterAll(() => revert(testClient, { id: snapshotId }));
 
   it("targets the vault on the chain the RPC is on, with no native value", async function () {
     await withSnapshot({
@@ -225,6 +215,7 @@ describe("variable-yield claim-all", function () {
           getTotalAssetsInCooldown(publicClient, { address: sVusdAddress }),
         ]);
 
+        await fastForward({ rpcUrl, seconds: 60n });
         const request = await runCli<TransactionRequest>(claimAllArgs());
         const receipt = await sendTransactionRequest({ request, rpcUrl });
         expect(receipt.status).toBe("success");
