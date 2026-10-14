@@ -225,6 +225,7 @@ describe("variable-yield claim-all", function () {
           getTotalAssetsInCooldown(publicClient, { address: sVusdAddress }),
         ]);
 
+        await fastForward({ rpcUrl, seconds: 60n });
         const request = await runCli<TransactionRequest>(claimAllArgs());
         const receipt = await sendTransactionRequest({ request, rpcUrl });
         expect(receipt.status).toBe("success");
