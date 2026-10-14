@@ -53,6 +53,13 @@ export function parseGateway(value: string) {
   return address;
 }
 
+export function parseRequestId(value: string) {
+  if (!/^\d+$/.test(value)) {
+    throw new InvalidArgumentError(`Invalid request id: "${value}"`);
+  }
+  return BigInt(value);
+}
+
 export function parseRpcUrl(value: string) {
   let url: URL;
   try {
