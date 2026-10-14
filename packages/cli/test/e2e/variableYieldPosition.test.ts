@@ -2,9 +2,8 @@ import { TEST_ADDRESS } from "@hemilabs/anvil-fork-setup/utils";
 import { sVetBtcAddress, sVusdAddress } from "@vetro-protocol/core";
 import { type Address, parseUnits } from "viem";
 import { generatePrivateKey, privateKeyToAddress } from "viem/accounts";
-import { waitForTransactionReceipt } from "viem/actions";
-import { approve, balanceOf, symbol } from "viem-erc20/actions";
-import { convertToAssets, deposit } from "viem-erc4626/actions";
+import { balanceOf, symbol } from "viem-erc20/actions";
+import { convertToAssets } from "viem-erc4626/actions";
 import { beforeAll, describe, expect, inject, it } from "vitest";
 
 import {
@@ -12,6 +11,7 @@ import {
   fundTestAccount,
   runCli,
   runCliRaw,
+  stake,
   usdc,
   vetBtc,
   vusd,
@@ -23,7 +23,7 @@ const untouchedAccount = privateKeyToAddress(generatePrivateKey());
 
 describe("variable-yield position", function () {
   const rpcUrl = inject("anvilUrl");
-  const { publicClient, walletClient } = createClients(rpcUrl);
+  const { publicClient } = createClients(rpcUrl);
 
   const positionOnFork = (extra: string[] = []) => [
     "variable-yield",
@@ -32,29 +32,6 @@ describe("variable-yield position", function () {
     "--rpc-url",
     rpcUrl,
   ];
-
-  const stake = async function ({
-    amount,
-    token,
-    vault,
-  }: {
-    amount: bigint;
-    token: Address;
-    vault: Address;
-  }) {
-    const approvalHash = await approve(walletClient, {
-      address: token,
-      amount,
-      spender: vault,
-    });
-    await waitForTransactionReceipt(publicClient, { hash: approvalHash });
-    const hash = await deposit(walletClient, {
-      address: vault,
-      assets: amount,
-      receiver: TEST_ADDRESS,
-    });
-    await waitForTransactionReceipt(publicClient, { hash });
-  };
 
   const readPosition = async function (vault: Address) {
     const shares = await balanceOf(publicClient, {
@@ -73,11 +50,13 @@ describe("variable-yield position", function () {
     await fundTestAccount({ amount: "1", rpcUrl, token: vetBtc });
     await stake({
       amount: parseUnits("250", vusd.decimals),
+      rpcUrl,
       token: vusd.address,
       vault: sVusdAddress,
     });
     await stake({
       amount: parseUnits("0.25", vetBtc.decimals),
+      rpcUrl,
       token: vetBtc.address,
       vault: sVetBtcAddress,
     });
