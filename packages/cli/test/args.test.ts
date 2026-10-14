@@ -5,6 +5,7 @@ import {
   parseAmount,
   parseGateway,
   parseNonNegativeAmount,
+  parseRequestId,
   parseRpcUrl,
   parseSlippage,
   parseTokenAmount,
@@ -134,6 +135,22 @@ describe("parseGateway", function () {
 
   it("throws for a malformed address", function () {
     expect(() => parseGateway("nope")).toThrow('Invalid address: "nope"');
+  });
+});
+
+describe("parseRequestId", function () {
+  it("returns the id as a bigint", function () {
+    expect(parseRequestId("0")).toBe(0n);
+    expect(parseRequestId("42")).toBe(42n);
+    expect(parseRequestId("18446744073709551616")).toBe(2n ** 64n);
+  });
+
+  it("throws for malformed values", function () {
+    expect(() => parseRequestId("abc")).toThrow('Invalid request id: "abc"');
+    expect(() => parseRequestId("-1")).toThrow('Invalid request id: "-1"');
+    expect(() => parseRequestId("1.5")).toThrow('Invalid request id: "1.5"');
+    expect(() => parseRequestId("0x1")).toThrow('Invalid request id: "0x1"');
+    expect(() => parseRequestId("")).toThrow('Invalid request id: ""');
   });
 });
 
