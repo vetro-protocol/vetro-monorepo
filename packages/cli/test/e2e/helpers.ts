@@ -105,6 +105,10 @@ export const requestRedeemAbi = parseAbi([
   "function requestRedeem(uint256 peggedTokenAmount)",
 ]);
 
+export const withdrawClaimedAbi = parseAbi([
+  "event WithdrawClaimed(address indexed owner, address indexed receiver, uint256 indexed requestId, uint256 assets)",
+]);
+
 export const swapAmount = "100";
 export const slippage = "0.5";
 
