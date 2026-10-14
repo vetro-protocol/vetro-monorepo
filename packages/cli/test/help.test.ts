@@ -13,6 +13,7 @@ describe("help", function () {
     ["variable-yield", "allowance"],
     ["variable-yield", "approve"],
     ["variable-yield", "claim"],
+    ["variable-yield", "claim-all"],
     ["variable-yield", "cooldown"],
     ["variable-yield", "exit-tickets"],
     ["variable-yield", "is-instant-withdraw"],

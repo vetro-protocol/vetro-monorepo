@@ -175,11 +175,12 @@ A pegged token has exactly one staking vault, so the vault is inferred from `--t
 
 #### Write operations
 
-| Command                                                                                          | Encodes                                        | Notes                                                                                                                                                                                                               |
-| ------------------------------------------------------------------------------------------------ | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `vetro-cli variable-yield approve --token <pegged> --amount <n>`                                 | `encodeApproveData`                            | Generates the calldata that allows the staking vault to spend the pegged token. `--amount 0` resets the allowance.                                                                                                  |
-| `vetro-cli variable-yield claim --token <tok> --request-id <id> --receiver <addr>`               | `encodeClaimWithdraw`                          | Claims a ready exit ticket. The vault pays its locked pegged token to `<addr>`. Only the ticket owner can claim. Fails when the ticket does not exist or is still in cooldown. `<addr>` cannot be the zero address. |
-| `vetro-cli variable-yield unstake --token <tok> (--amount <n> \| --shares <n>) --account <addr>` | `encodeRequestWithdraw`, `encodeRequestRedeem` | Opens an exit ticket. The shares are burned, and the pegged token goes into cooldown. Fails when the vault's cooldown is disabled.                                                                                  |
+| Command                                                                                          | Encodes                                            | Notes                                                                                                                                                                                                                                                                            |
+| ------------------------------------------------------------------------------------------------ | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `vetro-cli variable-yield approve --token <pegged> --amount <n>`                                 | `encodeApproveData`                                | Generates the calldata that allows the staking vault to spend the pegged token. `--amount 0` resets the allowance.                                                                                                                                                               |
+| `vetro-cli variable-yield claim --token <tok> --request-id <id> --receiver <addr>`               | `encodeClaimWithdraw`                              | Claims a ready exit ticket. The vault pays its locked pegged token to `<addr>`. Only the ticket owner can claim. Fails when the ticket does not exist or is still in cooldown. `<addr>` cannot be the zero address.                                                              |
+| `vetro-cli variable-yield claim-all --token <tok> --account <addr> --receiver <addr>`            | `getClaimableRequests`, `encodeClaimWithdrawBatch` | Claims every ready exit ticket of `<account>` in one transaction. The vault pays their locked pegged token to `<receiver>`. Tickets in cooldown stay open. Only the ticket owner can claim. Fails when `<account>` has no ready ticket. `<receiver>` cannot be the zero address. |
+| `vetro-cli variable-yield unstake --token <tok> (--amount <n> \| --shares <n>) --account <addr>` | `encodeRequestWithdraw`, `encodeRequestRedeem`     | Opens an exit ticket. The shares are burned, and the pegged token goes into cooldown. Fails when the vault's cooldown is disabled.                                                                                                                                               |
 
 #### Read operations
 
@@ -222,4 +223,10 @@ vetro-cli variable-yield claim --token VUSD --request-id 7 --receiver 0xAgent   
 
 Only the ticket owner can claim. Sign the transaction with the account that opened the ticket. From a different account, the transaction reverts, even though `claim` printed it. `--receiver` can be any address except the zero address.
 
-`claim` fails when the ticket does not exist or is still in cooldown. Each ticket is claimed on its own; the CLI does not encode a batch claim yet.
+To claim every ready ticket in one transaction, pass the owner instead of a ticket id. The tickets still in cooldown stay open:
+
+```sh
+vetro-cli variable-yield claim-all --token VUSD --account 0xAgent --receiver 0xAgent   # sign + broadcast
+```
+
+`claim` fails when the ticket does not exist or is still in cooldown. `claim-all` fails when no ticket is ready. `exit-tickets` lists what `claim-all` claims: every ticket with `status` `ready`.
