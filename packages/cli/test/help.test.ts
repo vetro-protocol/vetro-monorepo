@@ -12,6 +12,7 @@ describe("help", function () {
     ["variable-yield"],
     ["variable-yield", "allowance"],
     ["variable-yield", "approve"],
+    ["variable-yield", "cancel"],
     ["variable-yield", "claim"],
     ["variable-yield", "claim-all"],
     ["variable-yield", "cooldown"],
