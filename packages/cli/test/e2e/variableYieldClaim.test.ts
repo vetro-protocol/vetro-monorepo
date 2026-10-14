@@ -14,7 +14,6 @@ import {
   decodeFunctionData,
   isAddressEqual,
   numberToHex,
-  parseAbi,
   parseEventLogs,
   parseUnits,
 } from "viem";
@@ -38,13 +37,10 @@ import {
   vetBtc,
   vusd,
   withSnapshot,
+  withdrawClaimedAbi,
 } from "./helpers.ts";
 
 const receiver = privateKeyToAddress(generatePrivateKey());
-
-const withdrawClaimedAbi = parseAbi([
-  "event WithdrawClaimed(address indexed owner, address indexed receiver, uint256 indexed requestId, uint256 assets)",
-]);
 
 describe("variable-yield claim", function () {
   const rpcUrl = inject("anvilUrl");
