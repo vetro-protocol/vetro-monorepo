@@ -230,3 +230,11 @@ vetro-cli variable-yield claim-all --token VUSD --account 0xAgent --receiver 0xA
 ```
 
 `claim` fails when the ticket does not exist or is still in cooldown. `claim-all` fails when no ticket is ready. `exit-tickets` lists what `claim-all` claims: every ticket with `status` `ready`.
+
+To keep the funds staked instead, cancel the ticket by its `requestId`, in cooldown or ready. The vault stakes the locked pegged token again, at the current share price, and it earns yield again from then on:
+
+```sh
+vetro-cli variable-yield cancel --token VUSD --request-id 7   # sign + broadcast
+```
+
+`cancel` fails when the ticket does not exist.
