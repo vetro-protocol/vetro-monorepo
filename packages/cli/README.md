@@ -173,6 +173,12 @@ vetro-cli swap redeem --to USDT --amount 100 --receiver 0xAgent --slippage 0.5
 
 A pegged token has exactly one staking vault, so the vault is inferred from `--token` and never passed explicitly. `vetro-cli gateways` lists the `stakingVault` of each gateway. Commands that take `<pegged>` accept only the pegged token, by symbol or address. Commands that take `<tok>` accept the pegged token or its share token, by symbol or address.
 
+#### Write operations
+
+| Command                                                          | Encodes             | Notes                                                                                                                            |
+| ---------------------------------------------------------------- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `vetro-cli variable-yield approve --token <pegged> --amount <n>` | `encodeApproveData` | Approves the staking vault to spend the pegged token. Prepend it when the allowance is short. `--amount 0` resets the allowance. |
+
 #### Read operations
 
 | Command                                                                       | Reads                                               | Returns                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
@@ -184,3 +190,12 @@ A pegged token has exactly one staking vault, so the vault is inferred from `--t
 | `vetro-cli variable-yield position --token <tok> --account <addr>`            | `balanceOf`, `convertToAssets`                      | `{ assets, shares }` of `<addr>`: `shares` is its share token balance, in the share token's decimals, and `assets` is their value in the pegged token, in the pegged token's decimals. Both are `0` when `<addr>` has no stake. Exit tickets are not included: their shares are burned when the cooldown starts.                                                                                                                                                                                                                                                                     |
 | `vetro-cli variable-yield preview-stake --token <pegged> --amount <n>`        | `previewDeposit`                                    | Share token that a stake of `<n>` of the pegged token would mint, in the share token's decimals. Fails when the stake would mint 0, which happens when `<n>` is worth less than one unit of the share token.                                                                                                                                                                                                                                                                                                                                                                         |
 | `vetro-cli variable-yield total-assets --token <tok>`                         | `totalAssets`                                       | Pegged token staked in the vault, in the pegged token's decimals. It includes yield that accrued but was not pulled from the yield distributor yet. It excludes the pegged token locked in exit tickets: funds in cooldown earn no yield, so they do not back the share token.                                                                                                                                                                                                                                                                                                       |
+
+### Approving the staking vault
+
+The vault pulls the pegged token at the stake, so approve it first:
+
+```sh
+vetro-cli variable-yield allowance --token VUSD --account 0xAgent   # "0" → approval needed
+vetro-cli variable-yield approve --token VUSD --amount 100          # sign + broadcast
+```
