@@ -212,3 +212,13 @@ vetro-cli variable-yield unstake --token sVUSD --shares 100 --account 0xAgent   
 Give `--shares` to unstake an amount of the share token, or `--amount` to unstake an amount of the pegged token. Do not give both. To unstake the full position, use `--shares` with the value from `position` formatted with the token's decimals.
 
 To follow the cooldown, run `variable-yield exit-tickets --token sVUSD --account 0xAgent`. The `status` of each ticket changes from `cooldown` to `ready` at its `claimableAt`.
+
+When `exit-tickets` shows the ticket as `ready`, claim it by its `requestId`. The vault pays the locked pegged token to `--receiver`:
+
+```sh
+vetro-cli variable-yield claim --token VUSD --request-id 7 --receiver 0xAgent   # sign + broadcast
+```
+
+`claim` fails on its own while the ticket is in cooldown, so no preflight read is needed. Each ticket is claimed on its own; the CLI does not encode a batch claim yet.
+
+To unstake the whole position with no dust, pass the `shares` of `position` instead of an amount. `position` prints them in the share token's decimals, and `--shares` takes human units, so convert them first. The share token has 18 decimals here:

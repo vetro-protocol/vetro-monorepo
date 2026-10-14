@@ -26,6 +26,7 @@ import {
   pad,
   parseAbi,
   parseEther,
+  parseEventLogs,
   parseUnits,
   toHex,
 } from "viem";
@@ -724,4 +725,35 @@ export const sendTransactionRequest = async function ({
     value: hexToBigInt(request.value),
   });
   return waitForTransactionReceipt(publicClient, { hash });
+};
+
+export const requestWithdraw = async function ({
+  assets,
+  rpcUrl,
+  vault,
+}: {
+  assets: bigint;
+  rpcUrl: string;
+  vault: Address;
+}) {
+  const { publicClient, walletClient } = createClients(rpcUrl);
+  await fastForward({ rpcUrl, seconds: 60n });
+  const hash = await writeContract(walletClient, {
+    abi: stakingVaultAbi,
+    address: vault,
+    args: [assets, TEST_ADDRESS],
+    functionName: "requestWithdraw",
+  });
+  const { logs, status } = await waitForTransactionReceipt(publicClient, {
+    hash,
+  });
+  if (status !== "success") {
+    throw new Error("requestWithdraw reverted");
+  }
+  const [{ args }] = parseEventLogs({
+    abi: stakingVaultAbi,
+    eventName: "WithdrawRequested",
+    logs,
+  });
+  return args;
 };
