@@ -182,6 +182,7 @@ A pegged token has exactly one staking vault, so the vault is inferred from `--t
 | `vetro-cli variable-yield unstake --token <tok> --shares <n> --account <addr>`        | `encodeRequestRedeem`                              | Same as above, but `<n>` is in the share token. Use it to unstake the whole position with no dust: pass the `shares` of `position`, converted from the share token's decimals to human units. `--amount` and `--shares` are mutually exclusive, and one of them is required. The broadcast reverts when `<n>` is above the share token balance of `<addr>`.                                                                                                                                                                                                                          |
 | `vetro-cli variable-yield claim --token <tok> --request-id <id> --receiver <addr>`    | `encodeClaimWithdraw`                              | Claims one exit ticket: the vault pays the pegged token locked in ticket `<id>` to `<addr>`. `<id>` is the `requestId` of `exit-tickets`. Fails when the ticket is still in cooldown, or when `<id>` is not an open ticket — it was never opened, or it was claimed or cancelled. The signer must be the ticket owner; the broadcast reverts otherwise. A ready ticket can be claimed even after the vault's cooldown is disabled.                                                                                                                                                   |
 | `vetro-cli variable-yield claim-all --token <tok> --account <addr> --receiver <addr>` | `getClaimableRequests`, `encodeClaimWithdrawBatch` | Claims every ready exit ticket of `<account>` on the vault of `<tok>` in one transaction: the vault pays the pegged token locked in each of them to `<receiver>`. "Withdraw all" on the web sends this transaction once for each vault that has a ready ticket. Tickets in cooldown are left open. The ticket ids go in ascending order, the order of `exit-tickets`. Fails when `<account>` has no ready ticket. The signer must be `<account>`, the owner of every ticket; the broadcast reverts otherwise. The contract has no batch limit: gas grows with the number of tickets. |
+| `vetro-cli variable-yield cancel --token <tok> --request-id <id>`                     | `encodeCancelWithdraw`                             | Cancels one exit ticket, in cooldown or ready: the vault deletes ticket `<id>` and stakes its locked pegged token again, minting the share token that amount is worth at the current share price — not the shares burned when the ticket was opened. `<id>` is the `requestId` of `exit-tickets`. Fails when `<id>` is not an open ticket — it was never opened, or it was claimed or cancelled. The signer must be the ticket owner; the broadcast reverts otherwise. A ticket can be cancelled even after the vault's cooldown is disabled.                                        |
 
 #### Read operations
 
@@ -228,6 +229,14 @@ vetro-cli variable-yield claim-all --token VUSD --account 0xAgent --receiver 0xA
 ```
 
 `claim-all` fails on its own when no ticket is ready, so no preflight read is needed either. `exit-tickets` lists what it would claim: every ticket with `status` `ready`.
+
+To keep the funds staked instead, cancel the ticket by its `requestId`, in cooldown or ready. The vault stakes the locked pegged token again, at the current share price, and it earns yield again from then on:
+
+```sh
+vetro-cli variable-yield cancel --token VUSD --request-id 7   # sign + broadcast
+```
+
+`cancel` fails on its own when the ticket is not open, so no preflight read is needed.
 
 To unstake the whole position with no dust, pass the `shares` of `position` instead of an amount. `position` prints them in the share token's decimals, and `--shares` takes human units, so convert them first. The share token has 18 decimals here:
 

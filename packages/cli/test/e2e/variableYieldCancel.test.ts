@@ -1,0 +1,370 @@
+import { TEST_ADDRESS } from "@hemilabs/anvil-fork-setup/utils";
+import { sVetBtcAddress, sVusdAddress } from "@vetro-protocol/core";
+import { stakingVaultAbi } from "@vetro-protocol/earn";
+import {
+  getActiveRequestIds,
+  getClaimableRequests,
+  getCooldownDuration,
+  getCooldownEnabled,
+  getPendingRequests,
+  getRequestDetails,
+  getTotalAssetsInCooldown,
+} from "@vetro-protocol/earn/actions";
+import {
+  decodeFunctionData,
+  isAddressEqual,
+  numberToHex,
+  parseAbi,
+  parseEventLogs,
+  parseUnits,
+} from "viem";
+import { getBlock, getChainId, setNextBlockTimestamp } from "viem/actions";
+import { balanceOf, symbol } from "viem-erc20/actions";
+import { previewDeposit } from "viem-erc4626/actions";
+import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
+
+import {
+  type TransactionRequest,
+  createClients,
+  fastForward,
+  fundTestAccount,
+  requestWithdraw,
+  runCli,
+  runCliRaw,
+  sendTransactionRequest,
+  setStakingCooldown,
+  stake,
+  usdc,
+  vetBtc,
+  vusd,
+  withSnapshot,
+} from "./helpers.ts";
+
+const withdrawCancelledAbi = parseAbi([
+  "event WithdrawCancelled(address indexed owner, uint256 indexed requestId, uint256 assets, uint256 shares)",
+]);
+
+describe("variable-yield cancel", function () {
+  const rpcUrl = inject("anvilUrl");
+  const { publicClient, testClient } = createClients(rpcUrl);
+  const cooldownDuration = 86_400n;
+  const vaults = [sVusdAddress, sVetBtcAddress];
+  const assets = parseUnits("10", vusd.decimals);
+
+  let before: { duration: bigint; enabled: boolean }[];
+
+  const cancelOnFork = (extra: string[] = []) => [
+    "variable-yield",
+    "cancel",
+    ...extra,
+    "--rpc-url",
+    rpcUrl,
+  ];
+
+  const cancelArgs = ({
+    requestId,
+    token = vusd.symbol,
+  }: {
+    requestId: bigint | string;
+    token?: string;
+  }) => cancelOnFork(["--token", token, "--request-id", requestId.toString()]);
+
+  const decodeRequest = function (request: TransactionRequest) {
+    const { args, functionName } = decodeFunctionData({
+      abi: stakingVaultAbi,
+      data: request.data,
+    });
+    const [requestId] = args as [bigint];
+    return { functionName, requestId };
+  };
+
+  const openTicket = (amount = assets) =>
+    requestWithdraw({ assets: amount, rpcUrl, vault: sVusdAddress });
+
+  const readShares = () =>
+    balanceOf(publicClient, { account: TEST_ADDRESS, address: sVusdAddress });
+
+  const cancelTicket = async function (ticket: {
+    assets: bigint;
+    requestId: bigint;
+  }) {
+    const previewedShares = await previewDeposit(publicClient, {
+      address: sVusdAddress,
+      assets: ticket.assets,
+    });
+    const latest = await getBlock(publicClient);
+    await setNextBlockTimestamp(testClient, { timestamp: latest.timestamp });
+    const request = await runCli<TransactionRequest>(
+      cancelArgs({ requestId: ticket.requestId }),
+    );
+    const receipt = await sendTransactionRequest({ request, rpcUrl });
+    expect(receipt.status).toBe("success");
+    const [{ args: event }] = parseEventLogs({
+      abi: withdrawCancelledAbi,
+      logs: receipt.logs,
+    });
+    return { event, previewedShares };
+  };
+
+  beforeAll(async function () {
+    before = await Promise.all(
+      vaults.map(async (vault) => ({
+        duration: await getCooldownDuration(publicClient, { address: vault }),
+        enabled: await getCooldownEnabled(publicClient, { address: vault }),
+      })),
+    );
+    for (const vault of vaults) {
+      await setStakingCooldown({
+        duration: cooldownDuration,
+        enabled: true,
+        rpcUrl,
+        vault,
+      });
+    }
+    await fundTestAccount({ amount: "1000", rpcUrl, token: vusd });
+    await fundTestAccount({ amount: "1", rpcUrl, token: vetBtc });
+    await stake({
+      amount: parseUnits("250", vusd.decimals),
+      rpcUrl,
+      token: vusd.address,
+      vault: sVusdAddress,
+    });
+    await stake({
+      amount: parseUnits("0.25", vetBtc.decimals),
+      rpcUrl,
+      token: vetBtc.address,
+      vault: sVetBtcAddress,
+    });
+  });
+
+  afterAll(async function () {
+    for (const [index, vault] of vaults.entries()) {
+      await setStakingCooldown({ ...before[index], rpcUrl, vault });
+    }
+  });
+
+  it("targets the vault on the chain the RPC is on, with no native value", async function () {
+    await withSnapshot({
+      rpcUrl,
+      async run() {
+        const ticket = await openTicket();
+        const request = await runCli<TransactionRequest>(
+          cancelArgs({ requestId: ticket.requestId }),
+        );
+        expect(request.chainId).toBe(
+          numberToHex(await getChainId(publicClient)),
+        );
+        expect(isAddressEqual(request.to, sVusdAddress)).toBe(true);
+        expect(request.value).toBe("0x0");
+      },
+    });
+  });
+
+  it("encodes cancelWithdraw(requestId) as given", async function () {
+    await withSnapshot({
+      rpcUrl,
+      async run() {
+        const ticket = await openTicket();
+        const request = await runCli<TransactionRequest>(
+          cancelArgs({ requestId: ticket.requestId }),
+        );
+        const { functionName, requestId } = decodeRequest(request);
+        expect(functionName).toBe("cancelWithdraw");
+        expect(requestId).toBe(ticket.requestId);
+      },
+    });
+  });
+
+  it("encodes the same request by pegged or share token, by symbol or address", async function () {
+    await withSnapshot({
+      rpcUrl,
+      async run() {
+        const ticket = await openTicket();
+        const shareSymbol = await symbol(publicClient, {
+          address: sVusdAddress,
+        });
+
+        const requests: TransactionRequest[] = [];
+        for (const token of [
+          vusd.symbol,
+          vusd.address,
+          shareSymbol,
+          sVusdAddress,
+        ]) {
+          requests.push(
+            await runCli<TransactionRequest>(
+              cancelArgs({ requestId: ticket.requestId, token }),
+            ),
+          );
+        }
+
+        expect(requests).toEqual(Array(4).fill(requests[0]));
+      },
+    });
+  });
+
+  it("targets the vault of the given token", async function () {
+    await withSnapshot({
+      rpcUrl,
+      async run() {
+        const ticket = await requestWithdraw({
+          assets: parseUnits("0.01", vetBtc.decimals),
+          rpcUrl,
+          vault: sVetBtcAddress,
+        });
+        const request = await runCli<TransactionRequest>(
+          cancelArgs({ requestId: ticket.requestId, token: vetBtc.symbol }),
+        );
+        expect(isAddressEqual(request.to, sVetBtcAddress)).toBe(true);
+        expect(decodeRequest(request).requestId).toBe(ticket.requestId);
+      },
+    });
+  });
+
+  it("stakes the ticket's pegged token again at the current share price once the calldata is broadcast", async function () {
+    await withSnapshot({
+      rpcUrl,
+      async run() {
+        const ticket = await openTicket();
+        const params = { account: TEST_ADDRESS, address: sVusdAddress };
+        const [sharesBefore, inCooldownBefore] = await Promise.all([
+          readShares(),
+          getTotalAssetsInCooldown(publicClient, { address: sVusdAddress }),
+        ]);
+
+        const { event, previewedShares } = await cancelTicket(ticket);
+
+        expect(isAddressEqual(event.owner, TEST_ADDRESS)).toBe(true);
+        expect(event.requestId).toBe(ticket.requestId);
+        expect(event.assets).toBe(ticket.assets);
+        expect(event.shares).toBe(previewedShares);
+        expect(previewedShares).toBeGreaterThan(0n);
+
+        const [sharesAfter, inCooldownAfter, details, [pendingIds], activeIds] =
+          await Promise.all([
+            readShares(),
+            getTotalAssetsInCooldown(publicClient, { address: sVusdAddress }),
+            getRequestDetails(publicClient, {
+              address: sVusdAddress,
+              requestId: ticket.requestId,
+            }),
+            getPendingRequests(publicClient, params),
+            getActiveRequestIds(publicClient, params),
+          ]);
+        expect(sharesAfter - sharesBefore).toBe(previewedShares);
+        expect(inCooldownBefore - inCooldownAfter).toBe(ticket.assets);
+        expect(details.assets).toBe(0n);
+        expect(pendingIds).not.toContain(ticket.requestId);
+        expect(activeIds).not.toContain(ticket.requestId);
+      },
+    });
+  });
+
+  it("cancels a ready ticket too", async function () {
+    await withSnapshot({
+      rpcUrl,
+      async run() {
+        const ticket = await openTicket();
+        await fastForward({ rpcUrl, seconds: cooldownDuration });
+        const params = { account: TEST_ADDRESS, address: sVusdAddress };
+        const [claimableBefore] = await getClaimableRequests(
+          publicClient,
+          params,
+        );
+        expect(claimableBefore).toContain(ticket.requestId);
+        const sharesBefore = await readShares();
+
+        const { event, previewedShares } = await cancelTicket(ticket);
+
+        expect(event.assets).toBe(ticket.assets);
+        expect(event.shares).toBe(previewedShares);
+        expect((await readShares()) - sharesBefore).toBe(previewedShares);
+        const [claimableAfter] = await getClaimableRequests(
+          publicClient,
+          params,
+        );
+        expect(claimableAfter).not.toContain(ticket.requestId);
+      },
+    });
+  });
+
+  it("cancels a ticket when the cooldown was disabled after it was opened", async function () {
+    await withSnapshot({
+      rpcUrl,
+      async run() {
+        const ticket = await openTicket();
+        await setStakingCooldown({
+          enabled: false,
+          rpcUrl,
+          vault: sVusdAddress,
+        });
+        const sharesBefore = await readShares();
+
+        const { event, previewedShares } = await cancelTicket(ticket);
+
+        expect(event.assets).toBe(ticket.assets);
+        expect((await readShares()) - sharesBefore).toBe(previewedShares);
+      },
+    });
+  });
+
+  it("rejects a ticket that was already cancelled", async function () {
+    await withSnapshot({
+      rpcUrl,
+      async run() {
+        const ticket = await openTicket();
+        await cancelTicket(ticket);
+
+        const { exitCode, stderr } = await runCliRaw(
+          cancelArgs({ requestId: ticket.requestId }),
+        );
+        expect(exitCode).toBe(1);
+        expect(JSON.parse(stderr).error).toBe(
+          `No open exit ticket "${ticket.requestId}" on the vault of "${vusd.symbol}": it was never opened, or it was claimed or cancelled`,
+        );
+      },
+    });
+  });
+
+  it("rejects a request id that was never opened", async function () {
+    const requestId = (2n ** 64n).toString();
+    const { exitCode, stderr } = await runCliRaw(cancelArgs({ requestId }));
+    expect(exitCode).toBe(1);
+    expect(JSON.parse(stderr).error).toBe(
+      `No open exit ticket "${requestId}" on the vault of "${vusd.symbol}": it was never opened, or it was claimed or cancelled`,
+    );
+  });
+
+  it("rejects a token that is not pegged or share", async function () {
+    const { exitCode, stderr } = await runCliRaw(
+      cancelArgs({ requestId: "1", token: usdc.symbol }),
+    );
+    expect(exitCode).toBe(1);
+    expect(JSON.parse(stderr).error).toBe(
+      `Not a pegged or share token: "${usdc.symbol}"`,
+    );
+  });
+
+  it.for(["abc", "-1"])(
+    "rejects --request-id %s as a usage error",
+    async function (value) {
+      const { exitCode, stderr } = await runCliRaw(
+        cancelArgs({ requestId: value }),
+      );
+      expect(exitCode).toBe(1);
+      expect(stderr).toContain(`Invalid request id: "${value}"`);
+    },
+  );
+
+  it.for([
+    [["--request-id", "1"], "required option '--token <token>'"],
+    [["--token", vusd.symbol], "required option '--request-id <id>'"],
+  ] as const)(
+    "rejects a missing option: %s",
+    async function ([extra, message]) {
+      const { exitCode, stderr } = await runCliRaw(cancelOnFork([...extra]));
+      expect(exitCode).toBe(1);
+      expect(stderr).toContain(message);
+    },
+  );
+});
