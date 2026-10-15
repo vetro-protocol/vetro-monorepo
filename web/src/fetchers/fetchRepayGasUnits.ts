@@ -14,7 +14,8 @@ import { estimateApprovalGasUnits } from "./estimateApprovalGasUnits";
 /**
  * Estimates gas units for a repay operation. Returns the total gas units
  * for the whole flow (approval + repay).
- * Throws if the amount exceeds the user's current debt or loan token balance.
+ * Throws if the amount exceeds the user's current debt or the required
+ * approval amount exceeds the user's loan token balance.
  */
 export const fetchRepayGasUnits = async function ({
   amount,
@@ -23,6 +24,7 @@ export const fetchRepayGasUnits = async function ({
   marketId,
   owner,
   queryClient,
+  shares,
   token,
 }: {
   amount: bigint;
@@ -31,6 +33,7 @@ export const fetchRepayGasUnits = async function ({
   marketId: Hash;
   owner: Address;
   queryClient: QueryClient;
+  shares?: bigint;
   token: Token;
 }) {
   const chainId = client.chain!.id;
@@ -60,13 +63,24 @@ export const fetchRepayGasUnits = async function ({
     throw new Error("Amount exceeds current debt");
   }
 
-  if (amount > loanBalance) {
+  if (shares !== undefined && approveAmount === undefined) {
+    throw new Error("Approval amount is required for share-based repayment");
+  }
+
+  const amountForApproval = shares === undefined ? amount : approveAmount!;
+
+  if (amountForApproval > loanBalance) {
     throw new Error("Insufficient loan token balance");
   }
 
+  const repayParams =
+    shares === undefined
+      ? { amount, marketParams: morphoMarket.params, onBehalf: owner }
+      : { marketParams: morphoMarket.params, onBehalf: owner, shares };
+
   const [approvalGas, repayGas] = await Promise.all([
     estimateApprovalGasUnits({
-      amount,
+      amount: amountForApproval,
       approveAmount,
       client,
       owner,
@@ -76,11 +90,7 @@ export const fetchRepayGasUnits = async function ({
     }),
     estimateGas(client, {
       account: owner,
-      data: encodeRepayAssets({
-        amount,
-        marketParams: morphoMarket.params,
-        onBehalf: owner,
-      }),
+      data: encodeRepayAssets(repayParams),
       stateOverride: createErc20AllowanceStateOverride({
         owner,
         spender: morphoAddress,
