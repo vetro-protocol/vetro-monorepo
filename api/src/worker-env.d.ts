@@ -15,7 +15,7 @@ interface Env {
   SENTRY_DSN?: string;
   SUBGRAPH_API_KEY?: string;
   SUBGRAPH_ID?: string;
-  SUBGRAPH_URL_TEMPLATE: string;
+  SUBGRAPH_URL?: string;
   TURNSTILE_ALLOWED_HOSTNAMES?: string;
   TURNSTILE_SECRET_KEY?: string;
   WEBSITE_URL: string;

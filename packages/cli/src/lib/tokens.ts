@@ -1,3 +1,4 @@
+import { gateways } from "@vetro-protocol/core";
 import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { getPeggedToken, getTreasury } from "@vetro-protocol/gateway/actions";
 import { getWhitelistedTokens } from "@vetro-protocol/treasury/actions";
@@ -162,4 +163,55 @@ export async function getGatewayPeggedToken({
     symbol(client, { address }),
   ]);
   return { address, decimals: tokenDecimals, symbol: tokenSymbol };
+}
+
+export function getStakingVault({
+  gatewayAddress,
+  token,
+}: {
+  gatewayAddress: Address;
+  token: string;
+}) {
+  const stakingVault = gateways.find((gateway) =>
+    isAddressEqual(gateway.address, gatewayAddress),
+  )?.stakingVault;
+  if (!stakingVault) {
+    throw new Error(`No staking vault for pegged token: "${token}"`);
+  }
+  return stakingVault;
+}
+
+const getShareCandidates = () =>
+  gateways.flatMap(({ address, stakingVault }) =>
+    stakingVault ? [{ address: stakingVault, gatewayAddress: address }] : [],
+  );
+
+/**
+ * Resolves either side of a stake by symbol or address, along with its
+ * staking vault: a pegged token, or its share token, which is the staking
+ * vault itself.
+ */
+export async function resolveStakingToken({
+  client,
+  value,
+}: {
+  client: Client;
+  value: string;
+}) {
+  const token = await resolveCandidate({
+    candidates: [
+      ...(await getPeggedCandidates(client)),
+      ...getShareCandidates(),
+    ],
+    client,
+    kind: "pegged or share",
+    value,
+  });
+  return {
+    ...token,
+    stakingVault: getStakingVault({
+      gatewayAddress: token.gatewayAddress,
+      token: value,
+    }),
+  };
 }

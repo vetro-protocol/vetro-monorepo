@@ -1,8 +1,5 @@
 # @vetro-protocol/cli
 
-> [!NOTE]
-> This CLI is still under development. Docs may not reflect the actual state yet.
-
 `vetro-cli` — a command-line interface that sits on top of the `@vetro-protocol/*` packages so agents and users can read Vetro state and generate transaction calldata.
 
 ## Local development
@@ -35,13 +32,13 @@ It sets the endpoint every read goes to, and therefore the chain the emitted cal
 
 1. `--rpc-url`
 2. `RPC_URL`
-3. a public Ethereum mainnet RPC (viem's default for mainnet)
+3. `https://eth.drpc.org`, a public Ethereum mainnet RPC
 
 Only `http`/`https` endpoints are accepted; anything else is rejected as a usage error before any request is made.
 
 ### Supported chains
 
-Vetro is deployed on Ethereum mainnet only, so every command starts by reading the endpoint's `eth_chainId` and fails if it is anything other than:
+Vetro is deployed on Ethereum mainnet only, so every command that reads the chain starts by reading the endpoint's `eth_chainId` and fails if it is anything other than:
 
 | Chain ID | Endpoint                           |
 | -------- | ---------------------------------- |
@@ -56,6 +53,7 @@ Successful output is JSON on stdout, so it's directly consumable by an agent.
 
 - Addresses and other strings are emitted as JSON strings; booleans as JSON booleans.
 - `uint256` on-chain values are serialized as decimal strings, since `bigint` can't be represented in JSON.
+- Amounts are in human units on input and in the token's decimals on output.
 
 Failures always exit non-zero, but come in two shapes:
 
@@ -74,11 +72,11 @@ Every numeric field is a hex `QUANTITY`, so the object can be lifted straight in
 
 ## Token arguments
 
-`--token`, `--from` and `--to` accept either a **symbol** (case-insensitive, e.g. `USDT`) or an **address**. `--from` is the token the operation spends, so it is whitelisted-only on `mint` and pegged-only on `send-to-queue`. `--to` is the token the operation pays out, so it is pegged on `mint` and whitelisted-only on `preview-redeem` and `redeem`. `--token` takes either side.
+`--token`, `--from` and `--to` accept either a **symbol** (case-insensitive, e.g. `USDT`) or an **address**. `--from` is the token the operation spends, so it is whitelisted-only on `mint` and pegged-only on `send-to-queue`. `--to` is the token the operation pays out, so it is pegged on `mint` and whitelisted-only on `preview-redeem` and `redeem`. `--token` takes either side on `swap`. On `variable-yield` it takes the pegged token, or its share token where the command allows it.
 
 Because a token belongs to exactly one gateway, the gateway is inferred from the token and never passed explicitly. For the same reason `swap mint --to` is optional — the pegged token is whatever that gateway mints.
 
-`--amount` is in human units of the token the operation spends. Its decimals come from `--from` or `--token` when the command takes one. On `preview-redeem` and `redeem` the spent token is the pegged token of the gateway inferred from `--to`, so the decimals come from that pegged token, not from `--to`.
+`--amount` is in human units of the token the operation spends. Its decimals come from `--from` or `--token` when the command takes one. On `preview-redeem` and `redeem` the spent token is the pegged token of the gateway inferred from `--to`, so the decimals come from that pegged token, not from `--to`. An amount with more decimals than that token has fails instead of being rounded.
 
 To discover the symbols a gateway takes, run `swap whitelisted-tokens --gateway <addr>` — a gateway-level read, so it takes the gateway explicitly instead of inferring it from a token.
 
@@ -86,13 +84,19 @@ To discover the symbols a gateway takes, run `swap whitelisted-tokens --gateway 
 
 This is the list of commands available
 
+### `gateways` — the enabled gateways
+
+| Command              | Reads | Returns                                                                                                                                                                                                                                                                                                                                                                                  |
+| -------------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `vetro-cli gateways` | —     | Every enabled gateway. Each entry carries `address`, `peggedToken` (the pegged token the gateway mints) and `stakingVault` (the vault that stakes that pegged token, or `null` when the gateway has none). `address` is the `--gateway` of the gateway-level `swap` reads. The list is static and covers Ethereum mainnet only. The command makes no RPC call, so it ignores `--rpc-url` |
+
 ### `swap` — whitelisted ↔ pegged token
 
 #### Write operations
 
 | Command                                                                                               | Encodes                     | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | ----------------------------------------------------------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `vetro-cli swap approve --token <tok> --amount <n>`                                                   | `encodeApproveData`         | Approves the inferred gateway to spend the token — a whitelisted token to `mint`, or a pegged token to `send-to-queue` or to redeem in one step. Prepend it when the allowance is short.                                                                                                                                                                                                                                                    |
+| `vetro-cli swap approve --token <tok> --amount <n>`                                                   | `encodeApproveData`         | Approves the inferred gateway to spend the token — a whitelisted token to `mint`, or a pegged token to `send-to-queue` or to redeem in one step. Prepend it when the allowance is short. `--amount 0` resets the allowance.                                                                                                                                                                                                                 |
 | `vetro-cli swap cancel-redeem --account <addr> --gateway <addr>`                                      | `encodeCancelRedeemRequest` | Cancels the open redeem request of `<addr>`. The gateway sends the whole locked amount of the pegged token back to `<addr>`. Fails when `<addr>` has no open request.                                                                                                                                                                                                                                                                       |
 | `vetro-cli swap mint --from <tok> [--to <tok>] --amount <n> --receiver <addr> [--slippage <percent>]` | `encodeDeposit`             | Swap-in. `--slippage` is a percent off `previewDeposit`, in `[0, 100]` with at most one decimal (e.g. `0.5`); **it defaults to `0`**, so `minPeggedTokenOut` is the full previewed amount unless a tolerance is given. Fails when the previewed output is above `maxMint`, the gateway's remaining mint capacity, or when the treasury has deposits paused for the token (`tokenConfig.depositActive` is false) — the deposit would revert. |
 | `vetro-cli swap send-to-queue --from <tok> --amount <n>`                                              | `encodeRequestRedeem`       | Swap-out step 1: locks the pegged token in the gateway and starts the cooldown. The token to redeem into is chosen at step 2, so it is not given here. A second request **adds to the open one and restarts the cooldown on the whole locked amount**, so queue the full amount at once. Fails when the gateway has the redeem queue disabled — the request would revert, and the redeem is one-step instead.                               |
@@ -102,7 +106,7 @@ This is the list of commands available
 
 | Command                                                              | Reads                                                                         | Returns                                                                                                                                                                                                                                                                                                                                                       |
 | -------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `vetro-cli swap allowance --token <tok> --account <addr>`            | `allowance`                                                                   | Gateway's spending allowance, in human units. `<tok>` may be a whitelisted token (swap-in) or a pegged token (swap-out; the gateway pulls the pegged token at `send-to-queue`, or at the redeem itself when it is one step)                                                                                                                                   |
+| `vetro-cli swap allowance --token <tok> --account <addr>`            | `allowance`                                                                   | Gateway's spending allowance, in the token's decimals. `<tok>` may be a whitelisted token (swap-in) or a pegged token (swap-out; the gateway pulls the pegged token at `send-to-queue`, or at the redeem itself when it is one step)                                                                                                                          |
 | `vetro-cli swap cooldown --gateway <addr>`                           | `getWithdrawalDelayEnabled`, `getWithdrawalDelay`                             | Redeem Queue cooldown of the gateway, in seconds. `0` when the delay is disabled — a redeem is then one-step, with no queue. This is the gateway-wide contract value, not a per-account one.                                                                                                                                                                  |
 | `vetro-cli swap cooldown-enabled --gateway <addr>`                   | `getWithdrawalDelayEnabled`                                                   | Whether the gateway's Redeem Queue is on. `false` means a redeem is one-step for every account, and `swap send-to-queue` fails.                                                                                                                                                                                                                               |
 | `vetro-cli swap is-instant-redeem --account <addr> --gateway <addr>` | `isInstantRedeemWhitelisted`                                                  | Whether `<addr>` is whitelisted to skip the gateway's Redeem Queue. `true` means its redeem is one-step: no `send-to-queue`, no cooldown.                                                                                                                                                                                                                     |
@@ -164,3 +168,14 @@ When the queue is off for your address, skip `send-to-queue`. Approve the pegged
 vetro-cli swap approve --token VUSD --amount 100
 vetro-cli swap redeem --to USDT --amount 100 --receiver 0xAgent --slippage 0.5
 ```
+
+### `variable-yield` — pegged ↔ share token
+
+A pegged token has exactly one staking vault, so the vault is inferred from `--token` and never passed explicitly. `vetro-cli gateways` lists the `stakingVault` of each gateway. Commands that take `<pegged>` accept only the pegged token, by symbol or address. Commands that take `<tok>` accept the pegged token or its share token, by symbol or address.
+
+#### Read operations
+
+| Command                                                                | Reads                                       | Returns                                                                                                                                                                                                      |
+| ---------------------------------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `vetro-cli variable-yield cooldown --token <tok>`                      | `getCooldownEnabled`, `getCooldownDuration` | Unstake cooldown of the vault, in seconds. `0` when the cooldown is disabled — an unstake is then instant.                                                                                                   |
+| `vetro-cli variable-yield preview-stake --token <pegged> --amount <n>` | `previewDeposit`                            | Share token that a stake of `<n>` of the pegged token would mint, in the share token's decimals. Fails when the stake would mint 0, which happens when `<n>` is worth less than one unit of the share token. |

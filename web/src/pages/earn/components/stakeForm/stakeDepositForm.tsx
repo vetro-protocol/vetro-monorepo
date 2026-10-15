@@ -2,7 +2,6 @@ import { useAddTokenToWallet } from "@hemilabs/react-hooks/useAddTokenToWallet";
 import { useAllowance } from "@hemilabs/react-hooks/useAllowance";
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
-import { useConnectModal } from "@rainbow-me/rainbowkit";
 import type { Token } from "@vetro-protocol/core";
 import { ApproveSection } from "components/approveSection";
 import { Drawer } from "components/base/drawer";
@@ -12,17 +11,16 @@ import { CollapsibleSection } from "components/collapsibleSection";
 import { NetworkFees } from "components/networkFees";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenInput } from "components/tokenInput";
-import { Balance } from "components/tokenInput/balance";
+import { TokenBalance } from "components/tokenInput/tokenBalance";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
-import { useMainnet } from "hooks/useMainnet";
 import { useStakeDeposit } from "hooks/useStakeDeposit";
+import { mainnet } from "networks/mainnet";
 import { useTotalDepositFees } from "pages/earn/hooks/useTotalDepositFees";
 import { type FormEvent, Suspense, lazy, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
-import { formatAmount } from "utils/token";
 import { type Address, parseUnits } from "viem";
 import { useAccount } from "wagmi";
 
@@ -107,9 +105,7 @@ export function StakeDepositForm({
   shareToken,
   stakingVaultAddress,
 }: Props) {
-  const { address: account, isConnected } = useAccount();
-  const chain = useMainnet();
-  const { openConnectModal } = useConnectModal();
+  const { address: account } = useAccount();
   const { t } = useTranslation();
   const [requestCloseDrawer, setRequestCloseDrawer] = useState(false);
   const [submitted, setSubmitted] = useState<{
@@ -120,18 +116,17 @@ export function StakeDepositForm({
   const { mutate: watchToken } = useAddTokenToWallet({
     token: {
       address: shareToken.address,
-      chainId: chain.id,
+      chainId: mainnet.id,
       extensions: { logoURI: shareToken.logoURI },
     },
   });
 
-  const { data: peggedTokenBalance, isError: isPeggedTokenBalanceError } =
-    useTokenBalance({
-      address: peggedToken.address,
-      chainId: chain.id,
-    });
+  const { data: peggedTokenBalance } = useTokenBalance({
+    address: peggedToken.address,
+    chainId: mainnet.id,
+  });
 
-  const { data: nativeBalanceData } = useNativeBalance(chain.id);
+  const { data: nativeBalanceData } = useNativeBalance(mainnet.id);
   const nativeBalance = nativeBalanceData?.value;
 
   const { data: currentAllowance } = useAllowance({
@@ -204,12 +199,6 @@ export function StakeDepositForm({
     tokenBalance: peggedTokenBalance,
   });
 
-  const formattedBalance = formatAmount({
-    amount: peggedTokenBalance,
-    decimals: peggedToken.decimals,
-    isError: isPeggedTokenBalanceError,
-  });
-
   const balancesLoaded =
     nativeBalance !== undefined && peggedTokenBalance !== undefined;
 
@@ -251,9 +240,9 @@ export function StakeDepositForm({
         <div className="p-2">
           <TokenInput
             balance={
-              <Balance
+              <TokenBalance
                 label={t("pages.earn.stake.available-to-deposit")}
-                value={formattedBalance}
+                token={peggedToken}
               />
             }
             errorKey={balancesLoaded ? inputError : undefined}
@@ -275,11 +264,9 @@ export function StakeDepositForm({
         <div className="flex border-y border-gray-200 p-3 *:flex-1">
           <StakeSubmitButton
             actionText={actionText}
-            balancesLoaded={balancesLoaded}
             inputError={inputError}
-            isConnected={isConnected}
+            isLoading={!balancesLoaded}
             isPending={depositMutation.isPending}
-            onConnectWallet={openConnectModal}
             pendingText={pendingText}
           />
         </div>
