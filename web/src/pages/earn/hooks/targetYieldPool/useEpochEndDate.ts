@@ -18,6 +18,6 @@ export function useEpochEndDate(stakingVaultAddress: Address) {
           i18n.language,
           termTimeZone,
         )
-      : undefined,
+      : epochPeriod.data,
   };
 }

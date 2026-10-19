@@ -7,7 +7,14 @@ export const combineWithEpochId = <T>({
   epochId: QueryState<bigint>;
   query: QueryState<T>;
 }) =>
-  combineQueryResults({
-    results: [epochId, query],
-    select: ([, data]) => data,
-  });
+  epochId.data === 0n
+    ? {
+        data: null,
+        isError: false,
+        isLoading: false,
+        isPending: false,
+      }
+    : combineQueryResults({
+        results: [epochId, query],
+        select: ([, data]) => data,
+      });

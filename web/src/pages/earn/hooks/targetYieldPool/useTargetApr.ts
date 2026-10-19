@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useEthereumClient } from "hooks/useEthereumClient";
 import { type Address, formatUnits } from "viem";
 
 import { combineWithEpochId } from "./combineWithEpochId";
@@ -9,9 +10,11 @@ import { targetRateOptions } from "./useTargetRate";
 const toApr = (rate: bigint) => Number(formatUnits(rate, 16));
 
 export function useTargetApr(stakingVaultAddress: Address) {
+  const client = useEthereumClient();
   const epochId = useEpochId(stakingVaultAddress);
   const query = useQuery(
     targetRateOptions({
+      client,
       epochId: epochId.data,
       select: toApr,
       stakingVaultAddress,

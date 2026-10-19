@@ -1,32 +1,18 @@
-import { queryOptions, useQuery } from "@tanstack/react-query";
-import { fetchAccrualInterval } from "fetchers/earn/targetYieldPool/fetchAccrualInterval";
+import { useQuery } from "@tanstack/react-query";
+import { useEthereumClient } from "hooks/useEthereumClient";
 import type { Address } from "viem";
 
 import { combineWithEpochId } from "./combineWithEpochId";
+import { epochOptions } from "./useEpoch";
 import { useEpochId } from "./useEpochId";
 
-const accrualIntervalOptions = ({
-  epochId,
-  stakingVaultAddress,
-}: {
-  epochId: bigint | undefined;
-  stakingVaultAddress: Address;
-}) =>
-  queryOptions({
-    enabled: epochId !== undefined,
-    queryFn: fetchAccrualInterval,
-    queryKey: [
-      "target-yield-pool-accrual-interval",
-      stakingVaultAddress,
-      epochId?.toString(),
-    ],
-  });
-
 export function useAccrualInterval(stakingVaultAddress: Address) {
+  const client = useEthereumClient();
   const epochId = useEpochId(stakingVaultAddress);
-  const query = useQuery(
-    accrualIntervalOptions({ epochId: epochId.data, stakingVaultAddress }),
-  );
+  const query = useQuery({
+    ...epochOptions({ client, epochId: epochId.data, stakingVaultAddress }),
+    select: (epoch) => epoch.accrualInterval,
+  });
 
   return combineWithEpochId({ epochId, query });
 }

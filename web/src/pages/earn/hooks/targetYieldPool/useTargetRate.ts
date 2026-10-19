@@ -3,8 +3,9 @@ import {
   queryOptions,
   useQuery,
 } from "@tanstack/react-query";
-import { fetchTargetRate } from "fetchers/earn/targetYieldPool/fetchTargetRate";
-import type { Address } from "viem";
+import { getRate } from "@vetro-protocol/target-yield-earn/actions";
+import { useEthereumClient } from "hooks/useEthereumClient";
+import type { Address, Client } from "viem";
 
 import { combineWithEpochId } from "./combineWithEpochId";
 import { useEpochId } from "./useEpochId";
@@ -15,17 +16,20 @@ type QueryOptions<TSelect = bigint> = Omit<
 >;
 
 export const targetRateOptions = <TSelect = bigint>({
+  client,
   epochId,
   stakingVaultAddress,
   ...options
 }: {
+  client: Client | undefined;
   epochId: bigint | undefined;
   stakingVaultAddress: Address;
 } & QueryOptions<TSelect>) =>
   queryOptions({
     ...options,
-    enabled: epochId !== undefined,
-    queryFn: () => fetchTargetRate(epochId!),
+    enabled: !!client && !!epochId,
+    queryFn: () =>
+      getRate(client!, { address: stakingVaultAddress, epochId: epochId! }),
     queryKey: [
       "target-yield-pool-target-rate",
       stakingVaultAddress,
@@ -34,9 +38,10 @@ export const targetRateOptions = <TSelect = bigint>({
   });
 
 export function useTargetRate(stakingVaultAddress: Address) {
+  const client = useEthereumClient();
   const epochId = useEpochId(stakingVaultAddress);
   const query = useQuery(
-    targetRateOptions({ epochId: epochId.data, stakingVaultAddress }),
+    targetRateOptions({ client, epochId: epochId.data, stakingVaultAddress }),
   );
 
   return combineWithEpochId({ epochId, query });

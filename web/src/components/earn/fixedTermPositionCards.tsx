@@ -4,13 +4,12 @@ import { CardRow } from "components/earn/cardRow";
 import { DepositClaimCard } from "components/earn/depositClaimCard";
 import { ExitClaimCard } from "components/earn/exitClaimCard";
 import { PositionCard } from "components/earn/positionCard";
-import { Subtitle } from "components/earn/subtitle";
 import { InfoIcon } from "components/icons/infoIcon";
 import { RefreshIcon } from "components/icons/refreshIcon";
 import { TrendingUpIcon } from "components/icons/trendingUpIcon";
 import { Tooltip } from "components/tooltip";
 import { useEarnedThisTerm } from "pages/earn/hooks/targetYieldPool/useEarnedThisTerm";
-import { useRolloverStatus } from "pages/earn/hooks/targetYieldPool/useRolloverStatus";
+import { useTermState } from "pages/earn/hooks/targetYieldPool/useTermState";
 import { useTranslation } from "react-i18next";
 import { formatUsd } from "utils/currency";
 import type { Address } from "viem";
@@ -23,13 +22,6 @@ type Props = CardProps & {
   peggedToken: Token;
   shareToken: Token;
 };
-
-const rolloverStatusKeys = {
-  "auto-rolling": {
-    description: "pages.earn.fixed-term.auto-rolling-description",
-    title: "pages.earn.fixed-term.auto-rolling",
-  },
-} as const;
 
 const EarnedThisTermCard = function ({ stakingVaultAddress }: CardProps) {
   const { t } = useTranslation();
@@ -55,22 +47,17 @@ const EarnedThisTermCard = function ({ stakingVaultAddress }: CardProps) {
   );
 };
 
-const RolloverStatusCard = function ({ stakingVaultAddress }: CardProps) {
+const StateCard = function ({ stakingVaultAddress }: CardProps) {
   const { t } = useTranslation();
-  const { data: status, isLoading } = useRolloverStatus(stakingVaultAddress);
+  const { data: termState, isLoading } = useTermState(stakingVaultAddress);
 
   return (
     <InfoCard
-      data={status}
+      data={termState}
       icon={<RefreshIcon className="text-blue-500" />}
       isLoading={isLoading}
-      label={t("pages.earn.fixed-term.rollover-status")}
-      render={(rolloverStatus) => t(rolloverStatusKeys[rolloverStatus].title)}
-      subtitle={
-        status ? (
-          <Subtitle>{t(rolloverStatusKeys[status].description)}</Subtitle>
-        ) : undefined
-      }
+      label={t("pages.earn.fixed-term.state")}
+      render={(state) => state}
     />
   );
 };
@@ -107,7 +94,7 @@ export const FixedTermPositionCards = ({
       }
     />
     <div className="xl:px-14 xl:*:border-0">
-      <RolloverStatusCard stakingVaultAddress={stakingVaultAddress} />
+      <StateCard stakingVaultAddress={stakingVaultAddress} />
     </div>
   </div>
 );

@@ -16,7 +16,7 @@ const depositsOptions = ({
   stakingVaultAddress: Address;
 }) =>
   queryOptions({
-    enabled: !!client && epochId !== undefined,
+    enabled: !!client && !!epochId,
     queryFn: ({ client: queryClient }) =>
       fetchDeposits({
         client: client!,
