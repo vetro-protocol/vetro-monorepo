@@ -1,3 +1,4 @@
+import { zeroAddress } from "viem";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -5,6 +6,7 @@ import {
   parseAmount,
   parseGateway,
   parseNonNegativeAmount,
+  parseReceiver,
   parseRequestId,
   parseRpcUrl,
   parseSlippage,
@@ -135,6 +137,26 @@ describe("parseGateway", function () {
 
   it("throws for a malformed address", function () {
     expect(() => parseGateway("nope")).toThrow('Invalid address: "nope"');
+  });
+});
+
+describe("parseReceiver", function () {
+  it("returns the checksummed address", function () {
+    expect(parseReceiver("0xdad503f8b9d42bb7af3afc588358d30163e4416f")).toBe(
+      "0xDaD503f8B9d42bb7af3AfC588358D30163e4416F",
+    );
+  });
+
+  it("throws for the zero address", function () {
+    expect(() => parseReceiver(zeroAddress)).toThrow(
+      `Receiver cannot be the zero address: "${zeroAddress}"`,
+    );
+  });
+
+  it("throws for an invalid address", function () {
+    expect(() => parseReceiver("not-an-address")).toThrow(
+      'Invalid address: "not-an-address"',
+    );
   });
 });
 

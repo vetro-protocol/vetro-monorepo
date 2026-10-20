@@ -7,8 +7,8 @@ import { type Command } from "commander";
 import { type Address, formatUnits } from "viem";
 
 import {
-  parseAddress,
   parseAmount,
+  parseReceiver,
   parseSlippage,
   parseTokenAmount,
 } from "../../../lib/args.ts";
@@ -39,7 +39,7 @@ export function register(swap: Command) {
     .requiredOption(
       "--receiver <addr>",
       "Address receiving the whitelisted token",
-      parseAddress,
+      parseReceiver,
     )
     .option(
       "--slippage <percent>",

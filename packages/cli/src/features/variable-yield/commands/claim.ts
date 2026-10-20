@@ -6,7 +6,7 @@ import { type Command } from "commander";
 import { type Address } from "viem";
 import { getBlock } from "viem/actions";
 
-import { parseAddress, parseRequestId } from "../../../lib/args.ts";
+import { parseReceiver, parseRequestId } from "../../../lib/args.ts";
 import { type GlobalOptions, createVetroClient } from "../../../lib/client.ts";
 import { printTransactionRequest } from "../../../lib/output.ts";
 import { resolveStakingToken } from "../../../lib/tokens.ts";
@@ -29,7 +29,7 @@ export function register(variableYield: Command) {
     .requiredOption(
       "--receiver <addr>",
       "Address receiving the pegged token",
-      parseAddress,
+      parseReceiver,
     )
     .action(async function (
       options: { receiver: Address; requestId: bigint; token: string },

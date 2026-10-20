@@ -1,6 +1,6 @@
 import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { InvalidArgumentError } from "commander";
-import { getAddress, isAddressEqual, parseUnits } from "viem";
+import { getAddress, isAddressEqual, parseUnits, zeroAddress } from "viem";
 
 import { MAX_SLIPPAGE } from "./slippage.ts";
 
@@ -49,6 +49,16 @@ export function parseGateway(value: string) {
   const address = parseAddress(value);
   if (!gatewayAddresses.some((gateway) => isAddressEqual(gateway, address))) {
     throw new InvalidArgumentError(`Not an enabled gateway: "${value}"`);
+  }
+  return address;
+}
+
+export function parseReceiver(value: string) {
+  const address = parseAddress(value);
+  if (isAddressEqual(address, zeroAddress)) {
+    throw new InvalidArgumentError(
+      `Receiver cannot be the zero address: "${value}"`,
+    );
   }
   return address;
 }
