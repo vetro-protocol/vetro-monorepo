@@ -1,32 +1,18 @@
-import { queryOptions, useQuery } from "@tanstack/react-query";
-import { fetchEpochPeriod } from "fetchers/earn/targetYieldPool/fetchEpochPeriod";
+import { useQuery } from "@tanstack/react-query";
+import { useEthereumClient } from "hooks/useEthereumClient";
 import type { Address } from "viem";
 
 import { combineWithEpochId } from "./combineWithEpochId";
+import { epochOptions } from "./useEpoch";
 import { useEpochId } from "./useEpochId";
 
-const epochPeriodOptions = ({
-  epochId,
-  stakingVaultAddress,
-}: {
-  epochId: bigint | undefined;
-  stakingVaultAddress: Address;
-}) =>
-  queryOptions({
-    enabled: epochId !== undefined,
-    queryFn: fetchEpochPeriod,
-    queryKey: [
-      "target-yield-pool-epoch-period",
-      stakingVaultAddress,
-      epochId?.toString(),
-    ],
-  });
-
 export function useEpochPeriod(stakingVaultAddress: Address) {
+  const client = useEthereumClient();
   const epochId = useEpochId(stakingVaultAddress);
-  const query = useQuery(
-    epochPeriodOptions({ epochId: epochId.data, stakingVaultAddress }),
-  );
+  const query = useQuery({
+    ...epochOptions({ client, epochId: epochId.data, stakingVaultAddress }),
+    select: ({ end, start }) => ({ end, start }),
+  });
 
   return combineWithEpochId({ epochId, query });
 }

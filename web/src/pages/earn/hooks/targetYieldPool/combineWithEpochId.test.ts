@@ -82,6 +82,17 @@ describe("combineWithEpochId", function () {
     });
   });
 
+  it("returns null data when no epoch has started", function () {
+    expect(
+      combineWithEpochId({ epochId: settled(0n), query: gated<string>() }),
+    ).toEqual({
+      data: null,
+      isError: false,
+      isLoading: false,
+      isPending: false,
+    });
+  });
+
   it("reports a paused dependent query as pending but not loading", function () {
     expect(
       combineWithEpochId({ epochId: settled(1n), query: gated<string>() }),

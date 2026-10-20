@@ -12,17 +12,15 @@ import { TokenBalance } from "components/tokenInput/tokenBalance";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useConvertToAssets } from "hooks/useConvertToAssets";
 import { mainnet } from "networks/mainnet";
-import { getEpochState } from "pages/earn/components/fixedTermEarn/getEpochState";
 import { StakeSubmitButton } from "pages/earn/components/stakeForm/stakeSubmitButton";
 import { useEpochEndDate } from "pages/earn/hooks/targetYieldPool/useEpochEndDate";
-import { useEpochPeriod } from "pages/earn/hooks/targetYieldPool/useEpochPeriod";
+import { useIsOpenToExit } from "pages/earn/hooks/targetYieldPool/useIsOpenToExit";
 import { useMaxRequestRedeem } from "pages/earn/hooks/targetYieldPool/useMaxRequestRedeem";
 import { useRequestExitFees } from "pages/earn/hooks/targetYieldPool/useRequestExitFees";
 import type { FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import type { TokenWithGateway } from "types";
-import { unixNowTimestamp } from "utils/date";
 import { parseTokenUnits } from "utils/token";
 import type { Address } from "viem";
 
@@ -63,7 +61,7 @@ export function ExitForm({
     shares: debouncedShares,
     stakingVaultAddress,
   });
-  const epochPeriod = useEpochPeriod(stakingVaultAddress);
+  const isOpenToExit = useIsOpenToExit(stakingVaultAddress);
   const epochEndDate = useEpochEndDate(stakingVaultAddress);
   const { data: maxRequestRedeem, isError: isMaxRequestRedeemError } =
     useMaxRequestRedeem(stakingVaultAddress);
@@ -84,29 +82,22 @@ export function ExitForm({
     shareTokenBalance !== undefined &&
     maxRequestRedeem !== undefined;
 
-  const isExitWindowOpen =
-    epochPeriod.data !== undefined &&
-    getEpochState({
-      ...epochPeriod.data,
-      now: BigInt(unixNowTimestamp()),
-    }) === "open-to-exit";
-
   const isLoading =
     isFormLoading({
       balance: shareTokenBalance,
       isMaxRequestError: isMaxRequestRedeemError,
       maxRequest: maxRequestRedeem,
       nativeBalance,
-    }) || epochPeriod.isPending;
+    }) || isOpenToExit.isPending;
 
   function getBlockingText() {
     if (isMaxRequestRedeemError) {
       return t("pages.earn.fixed-term.max-exit-error");
     }
-    if (epochPeriod.isError) {
+    if (isOpenToExit.isError) {
       return t("pages.earn.fixed-term.exit-window-error");
     }
-    if (!isExitWindowOpen) {
+    if (!isOpenToExit.data) {
       return t("pages.earn.fixed-term.exit-window-closed");
     }
     return undefined;
@@ -114,7 +105,25 @@ export function ExitForm({
 
   const renderEpochEndDate = () =>
     epochEndDate.data ??
-    (epochEndDate.isError ? "-" : <Skeleton inline width={80} />);
+    (epochEndDate.isPending ? <Skeleton inline width={80} /> : "-");
+
+  function renderLockNote() {
+    if (epochEndDate.data) {
+      return (
+        <LockNote>
+          {t("pages.earn.fixed-term.exit-note", {
+            date: epochEndDate.data,
+            symbol: peggedToken.symbol,
+          })}
+        </LockNote>
+      );
+    }
+    return epochEndDate.isPending ? (
+      <LockNote>
+        <Skeleton width={200} />
+      </LockNote>
+    ) : null;
+  }
 
   function renderFiatValue() {
     if (shares === 0n) {
@@ -192,18 +201,7 @@ export function ExitForm({
           />
         </div>
       </CollapsibleSection>
-      {!epochEndDate.isError && (
-        <LockNote>
-          {epochEndDate.data ? (
-            t("pages.earn.fixed-term.exit-note", {
-              date: epochEndDate.data,
-              symbol: peggedToken.symbol,
-            })
-          ) : (
-            <Skeleton width={200} />
-          )}
-        </LockNote>
-      )}
+      {renderLockNote()}
       <Review title={t("pages.earn.fixed-term.exit-review")}>
         <ReviewRow
           info={t("pages.earn.fixed-term.you-will-receive-info")}

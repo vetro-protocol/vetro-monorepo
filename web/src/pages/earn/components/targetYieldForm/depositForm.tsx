@@ -102,7 +102,10 @@ export function DepositForm({
     maxRequestDeposit !== undefined;
 
   const estimatedYield =
-    targetRate.data !== undefined && accrualInterval.data !== undefined
+    targetRate.data !== undefined &&
+    targetRate.data !== null &&
+    accrualInterval.data !== undefined &&
+    accrualInterval.data !== null
       ? getEstimatedYield({
           accrualEnd: accrualInterval.data.end,
           accrualStart: accrualInterval.data.start,
@@ -114,31 +117,44 @@ export function DepositForm({
 
   const renderEpochEndDate = () =>
     epochEndDate.data ??
-    (epochEndDate.isError ? "-" : <Skeleton inline width={80} />);
+    (epochEndDate.isPending ? <Skeleton inline width={80} /> : "-");
 
   function renderLockNote() {
-    if (epochEndDate.data === undefined && !epochEndDate.isError) {
-      return <Skeleton count={2} width={200} />;
+    if (epochEndDate.data) {
+      return (
+        <LockNote>
+          {t("pages.earn.fixed-term.locked-note", {
+            date: epochEndDate.data,
+            symbol: peggedToken.symbol,
+          })}
+        </LockNote>
+      );
     }
-    return t("pages.earn.fixed-term.locked-note", {
-      date: epochEndDate.data ?? "-",
-      symbol: peggedToken.symbol,
-    });
+    return epochEndDate.isPending ? (
+      <LockNote>
+        <Skeleton count={2} width={200} />
+      </LockNote>
+    ) : null;
   }
 
   function renderTargetApr() {
-    if (targetApr.data !== undefined) {
+    if (targetApr.data !== undefined && targetApr.data !== null) {
       return formatPercentage(targetApr.data);
     }
-    return targetApr.isError ? "-" : <Skeleton inline width={50} />;
+    return targetApr.isPending ? <Skeleton inline width={50} /> : "-";
+  }
+
+  function getEstimatedYieldStatus() {
+    if (targetRate.isPending || accrualInterval.isPending) {
+      return "pending";
+    }
+    return estimatedYield === undefined ? "error" : "success";
   }
 
   const renderEstimatedYield = () => (
     <RenderFiatValue
       customFormatter={(value) => `~$${formatFiatNumber(value)}`}
-      queryStatus={
-        targetRate.isError || accrualInterval.isError ? "error" : "pending"
-      }
+      queryStatus={getEstimatedYieldStatus()}
       token={peggedToken}
       value={estimatedYield}
     />
@@ -212,7 +228,7 @@ export function DepositForm({
           />
         </div>
       </CollapsibleSection>
-      <LockNote>{renderLockNote()}</LockNote>
+      {renderLockNote()}
       <Review title={t("pages.earn.fixed-term.deposit-review")}>
         <ReviewRow
           info={t("pages.earn.fixed-term.you-will-receive-info")}

@@ -130,7 +130,7 @@ Additionally, the vault can reach the following states:
 
 - **Paused**: stops new deposit requests only.
 - **Shutdown**: stops all requests and all claims. Cancel still works.
-- **Terminated**: the vault closes after an epoch ends, or before the first epoch, and after all batches are fulfilled. The vault gets all assets back. No new epoch, no new deposits, no fulfillment. A withdrawal request is claimable immediately, at any time when the vault is not shut down. It uses the share price at termination. Claimable deposits stay claimable.
+- **Terminated**: the vault closes after an epoch ends, or before the first epoch, and after all batches are fulfilled. The vault gets all assets back. No new epoch, no new deposits, no fulfillment. A user can request a withdrawal at any time when the vault is not shut down, and the request is claimable immediately. It uses the share price at termination. Claimable deposits stay claimable.
 
 ### Borrow — CDP against crypto
 

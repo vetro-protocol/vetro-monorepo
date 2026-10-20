@@ -336,8 +336,6 @@
       "fixed-term": {
         "at-term-end": "Al final del plazo",
         "at-term-end-info": "Su posición permanece en el fondo en el próximo plazo, salvo que solicite una salida durante la ventana de salida.",
-        "auto-rolling": "Renovación automática",
-        "auto-rolling-description": "Se renueva en el próximo plazo salvo que indique una salida",
         "available-after": "Disponible después de",
         "available-after-info": "Puede reclamar sus {{symbol}} cuando el plazo termine y la solicitud se complete.",
         "cancel": "Cancelar",
@@ -382,7 +380,6 @@
         "request-deposit": "Solicitar depósito",
         "request-exit": "Solicitar salida",
         "request-exit-fees-label": "Solicitando la salida de {{amount}} {{token}}",
-        "rollover-status": "Estado de renovación",
         "rolls-into-next-term": "Se renueva en el próximo plazo",
         "target-fixed-apr": "TNA fija objetivo",
         "term-end-date": "Fecha de fin del plazo",

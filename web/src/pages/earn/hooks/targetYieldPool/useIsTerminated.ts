@@ -1,11 +1,16 @@
 import { queryOptions } from "@tanstack/react-query";
-import type { Address } from "viem";
+import { getIsTerminated } from "@vetro-protocol/target-yield-earn/actions";
+import type { Address, Client } from "viem";
 
-export const isTerminatedOptions = (stakingVaultAddress: Address) =>
+export const isTerminatedOptions = ({
+  client,
+  stakingVaultAddress,
+}: {
+  client: Client | undefined;
+  stakingVaultAddress: Address;
+}) =>
   queryOptions({
-    // TODO: read with `getIsTerminated` from `@vetro-protocol/target-yield-earn` once
-    // VUSDx is deployed.
-    // See https://github.com/vetro-protocol/vetro-monorepo/issues/646
-    queryFn: () => Promise.resolve(false),
+    enabled: !!client,
+    queryFn: () => getIsTerminated(client!, { address: stakingVaultAddress }),
     queryKey: ["target-yield-pool-is-terminated", stakingVaultAddress],
   });

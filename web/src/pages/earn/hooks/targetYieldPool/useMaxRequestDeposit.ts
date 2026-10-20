@@ -1,41 +1,38 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import { fetchMaxRequestDeposit } from "fetchers/earn/targetYieldPool/fetchMaxRequestDeposit";
-import type { Address } from "viem";
+import { getMaxRequestDeposit } from "@vetro-protocol/target-yield-earn/actions";
+import { useEthereumClient } from "hooks/useEthereumClient";
+import type { Address, Client } from "viem";
 import { useAccount } from "wagmi";
 
-import { combineWithEpochId } from "./combineWithEpochId";
-import { useEpochId } from "./useEpochId";
-
 const maxRequestDepositOptions = ({
-  controller,
-  epochId,
+  account,
+  client,
   stakingVaultAddress,
 }: {
-  controller: Address | undefined;
-  epochId: bigint | undefined;
+  account: Address | undefined;
+  client: Client | undefined;
   stakingVaultAddress: Address;
 }) =>
   queryOptions({
-    enabled: !!controller && epochId !== undefined,
-    queryFn: () => fetchMaxRequestDeposit(epochId!),
+    enabled: !!account && !!client,
+    queryFn: () =>
+      getMaxRequestDeposit(client!, {
+        address: stakingVaultAddress,
+        controller: account!,
+        owner: account!,
+      }),
     queryKey: [
       "target-yield-pool-max-request-deposit",
+      account,
       stakingVaultAddress,
-      controller,
-      epochId?.toString(),
     ],
   });
 
 export function useMaxRequestDeposit(stakingVaultAddress: Address) {
-  const { address: controller } = useAccount();
-  const epochId = useEpochId(stakingVaultAddress);
-  const query = useQuery(
-    maxRequestDepositOptions({
-      controller,
-      epochId: epochId.data,
-      stakingVaultAddress,
-    }),
-  );
+  const { address: account } = useAccount();
+  const client = useEthereumClient();
 
-  return combineWithEpochId({ epochId, query });
+  return useQuery(
+    maxRequestDepositOptions({ account, client, stakingVaultAddress }),
+  );
 }

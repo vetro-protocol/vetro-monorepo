@@ -333,8 +333,6 @@
       "fixed-term": {
         "at-term-end": "At term end",
         "at-term-end-info": "Your position stays in the pool for the next term unless you request an exit during the exit window.",
-        "auto-rolling": "Auto-rolling",
-        "auto-rolling-description": "Rolls into the next term unless you signal an exit",
         "available-after": "Available after",
         "available-after-info": "You can claim your {{symbol}} after the term ends and the request is fulfilled.",
         "cancel": "Cancel",
@@ -379,7 +377,6 @@
         "request-deposit": "Request deposit",
         "request-exit": "Request exit",
         "request-exit-fees-label": "Requesting exit of {{amount}} {{token}}",
-        "rollover-status": "Rollover status",
         "rolls-into-next-term": "Rolls into next term",
         "target-fixed-apr": "Target fixed APR",
         "term-end-date": "Term end date",
