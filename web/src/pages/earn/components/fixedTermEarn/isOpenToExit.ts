@@ -10,5 +10,4 @@ export const isOpenToExit = ({
   now: bigint;
 }) =>
   !isShutdown &&
-  (isTerminated ||
-    (exitWindow !== null && now >= exitWindow.start && now < exitWindow.end));
+  (isTerminated || (now >= exitWindow.start && now < exitWindow.end));
