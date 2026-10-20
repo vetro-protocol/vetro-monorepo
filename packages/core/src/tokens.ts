@@ -326,8 +326,8 @@ export const knownTokens: Token[] = [
     name: "Staked Vetro USD",
     symbol: "sVUSD",
   },
-  // TEMPORAL UNTIL REAL VUSDX TOKEN IS DEPLOYED
-  // SO WE CAN SHOW THE APPROPIATE VUSDX LOGO
+  // TEMPORARY UNTIL REAL VUSDX TOKEN IS DEPLOYED
+  // SO WE CAN SHOW THE APPROPRIATE VUSDX LOGO
   {
     address: "0x8F9d93BCCb8749C55E201F34C7F495263Ab14339",
     chainId: mainnet.id,
