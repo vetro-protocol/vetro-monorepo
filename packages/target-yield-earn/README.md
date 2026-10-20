@@ -91,10 +91,10 @@ const claimableShares = await getMaxMint(publicClient, {
   - `getEpochId(client, params)` — the current epoch id, `0n` when no epoch has started.
   - `getIsPaused(client, params)` — whether the keeper paused the vault. Pausing blocks new deposit requests only.
   - `getIsShutdown(client, params)` — whether the owner shut the vault down. Shutdown blocks every request and claim, but not cancellations. Reversible.
-  - `getIsTerminated(client, params)` — whether the vault was permanently wound down. Once terminated, no new epochs or deposits, and withdrawal requests are claimable right away.
+  - `getIsTerminated(client, params)` — whether the vault was permanently wound down. Once terminated, no new epochs or deposits. Redeem requests are accepted at any time, and they are claimable right away.
   - `getMaxMint(client, { address, controller })` — the shares a claim of the controller's fulfilled deposit request mints. `0n` while the vault is shut down, because claims revert then.
   - `getMaxRequestDeposit(client, { address, controller, owner })` — the assets the owner can still request for deposit, capped by the epoch's remaining deposit capacity. `0n` whenever a deposit request would revert — outside the entry window, while paused, shutdown or terminated, when the owner has no entry access, or when the controller has a pending request from an earlier epoch.
-  - `getMaxRequestRedeem(client, { address, controller, owner })` — the shares the owner can still request for redemption. `0n` whenever a redeem request would revert — outside the exit window, while shutdown, or when a redeem batch from an earlier epoch is still pending and the vault hasn't terminated.
+  - `getMaxRequestRedeem(client, { address, controller, owner })` — the shares the owner can still request for redemption. `0n` whenever a redeem request would revert — outside the exit window, while shutdown, or when a redeem batch from an earlier epoch is still pending and the vault hasn't terminated. A terminated vault accepts redeem requests at any time, also after the maturity.
   - `getPendingDepositRequest(client, { address, controller })` — assets in an unfulfilled deposit request.
   - `getRate(client, params)` — the fixed rate an epoch pays during its accrual interval, WAD-scaled per annum. It returns the same value at any time, so use it (or `getEpoch`) to show the rate.
 - Wallet actions (writes), exported from `/actions` only. All of them return `{ emitter, promise }`:
