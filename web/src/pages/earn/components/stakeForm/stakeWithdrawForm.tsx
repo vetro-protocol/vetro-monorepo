@@ -33,6 +33,19 @@ const StakeWithdrawProgressDrawer = lazy(() =>
   })),
 );
 
+const retryWithdrawSteps = {
+  failed: "withdrawing",
+  "request-failed": "requesting",
+} as const;
+
+const getRetryHandler = ({
+  onRetry,
+  step,
+}: {
+  onRetry: VoidFunction;
+  step: WithdrawStep;
+}) => (step === "failed" || step === "request-failed" ? onRetry : undefined);
+
 type Props = {
   inputValue: string;
   isDrawerOpen: boolean;
@@ -187,6 +200,13 @@ export function StakeWithdrawForm({
     ? instantWithdrawMutation
     : requestWithdrawMutation;
 
+  function handleRetry() {
+    onWithdrawStepChange(
+      retryWithdrawSteps[withdrawStep as keyof typeof retryWithdrawSteps],
+    );
+    withdrawMutation.mutate();
+  }
+
   const withdrawFeesQuery = useTotalWithdrawFees({
     amount: amountBigInt,
     stakingVaultAddress,
@@ -298,6 +318,10 @@ export function StakeWithdrawForm({
               canInstantWithdraw={canInstantWithdraw}
               cooldownDays={cooldownDays}
               networkFee={withdrawFeesQuery}
+              onRetry={getRetryHandler({
+                onRetry: handleRetry,
+                step: withdrawStep,
+              })}
               peggedToken={peggedToken}
               shareToken={shareToken}
               stakingVaultAddress={stakingVaultAddress}

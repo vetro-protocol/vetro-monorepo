@@ -6,6 +6,7 @@ import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpd
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deposit } from "@vetro-protocol/earn/actions";
 import { mainnet } from "networks/mainnet";
+import { useRef } from "react";
 import type { TokenWithGateway } from "types";
 import { type CostBases, bumpCostBasis } from "utils/costBasis";
 import type { Address, TransactionReceipt } from "viem";
@@ -26,9 +27,15 @@ type DepositStatus =
   | "deposit-failed"
   | "depositing";
 
+const getDepositFailureStatus = (
+  currentStep: "approve" | "deposit",
+): DepositStatus =>
+  currentStep === "approve" ? "approve-failed" : "deposit-failed";
+
 type Params = {
   approveAmount?: bigint;
   assets: bigint;
+  needsApproval: boolean;
   onStatusChange?: (status: DepositStatus) => void;
   onSuccess?: VoidFunction;
   onTransactionHash?: (hash: string) => void;
@@ -39,6 +46,7 @@ type Params = {
 export const useStakeDeposit = function ({
   approveAmount,
   assets,
+  needsApproval,
   onStatusChange,
   onSuccess,
   onTransactionHash,
@@ -49,6 +57,7 @@ export const useStakeDeposit = function ({
   const { data: walletClient } = useEthereumWalletClient();
   const ensureConnectedTo = useEnsureConnectedTo();
   const queryClient = useQueryClient();
+  const currentStep = useRef<"approve" | "deposit">("deposit");
   const { queryKey: nativeBalanceKey } = useNativeBalance(mainnet.id);
   const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
     mainnet.id,
@@ -84,6 +93,7 @@ export const useStakeDeposit = function ({
         throw new Error("No account connected");
       }
 
+      currentStep.current = needsApproval ? "approve" : "deposit";
       await ensureConnectedTo(mainnet.id);
 
       const { emitter, promise } = deposit(walletClient!, {
@@ -95,7 +105,12 @@ export const useStakeDeposit = function ({
       });
 
       emitter.on("user-signed-approval", function () {
+        currentStep.current = "approve";
         onStatusChange?.("approving");
+      });
+
+      emitter.on("pre-approve", function () {
+        currentStep.current = "approve";
       });
 
       emitter.on("approve-transaction-succeeded", function () {
@@ -103,8 +118,13 @@ export const useStakeDeposit = function ({
       });
 
       emitter.on("user-signed-deposit", function (hash) {
+        currentStep.current = "deposit";
         onTransactionHash?.(hash);
         onStatusChange?.("depositing");
+      });
+
+      emitter.on("pre-deposit", function () {
+        currentStep.current = "deposit";
       });
 
       emitter.on("user-signing-approval-error", function () {
@@ -128,6 +148,18 @@ export const useStakeDeposit = function ({
           });
         },
       );
+
+      emitter.on("deposit-failed", function () {
+        onStatusChange?.(getDepositFailureStatus(currentStep.current));
+      });
+
+      emitter.on("deposit-failed-validation", function () {
+        onStatusChange?.("deposit-failed");
+      });
+
+      emitter.on("unexpected-error", function () {
+        onStatusChange?.(getDepositFailureStatus(currentStep.current));
+      });
 
       emitter.on("user-signing-deposit-error", function () {
         onStatusChange?.("deposit-failed");
@@ -172,6 +204,9 @@ export const useStakeDeposit = function ({
       );
 
       return promise;
+    },
+    onError() {
+      onStatusChange?.(getDepositFailureStatus(currentStep.current));
     },
     async onSettled() {
       queryClient.invalidateQueries({
