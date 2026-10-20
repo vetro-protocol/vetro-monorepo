@@ -13,17 +13,16 @@ import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useConvertToAssets } from "hooks/useConvertToAssets";
 import { mainnet } from "networks/mainnet";
 import { StakeSubmitButton } from "pages/earn/components/earnForm/stakeSubmitButton";
-import { useEpochEndDate } from "pages/earn/hooks/targetYieldPool/useEpochEndDate";
 import { useIsOpenToExit } from "pages/earn/hooks/targetYieldPool/useIsOpenToExit";
 import { useMaxRequestRedeem } from "pages/earn/hooks/targetYieldPool/useMaxRequestRedeem";
 import { useRequestExitFees } from "pages/earn/hooks/targetYieldPool/useRequestExitFees";
 import type { FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import Skeleton from "react-loading-skeleton";
 import type { TokenWithGateway } from "types";
 import { parseTokenUnits } from "utils/token";
 import type { Address } from "viem";
 
+import { EpochEndDateValue } from "./epochEndDateValue";
 import { getInputError } from "./getInputError";
 import { isFormLoading } from "./isFormLoading";
 import { LockNote } from "./lockNote";
@@ -62,7 +61,6 @@ export function ExitForm({
     stakingVaultAddress,
   });
   const isOpenToExit = useIsOpenToExit(stakingVaultAddress);
-  const epochEndDate = useEpochEndDate(stakingVaultAddress);
   const { data: maxRequestRedeem, isError: isMaxRequestRedeemError } =
     useMaxRequestRedeem(stakingVaultAddress);
   const requestFeesQuery = useRequestExitFees({
@@ -101,28 +99,6 @@ export function ExitForm({
       return t("pages.earn.fixed-term.exit-window-closed");
     }
     return undefined;
-  }
-
-  const renderEpochEndDate = () =>
-    epochEndDate.data ??
-    (epochEndDate.isPending ? <Skeleton inline width={80} /> : "-");
-
-  function renderLockNote() {
-    if (epochEndDate.data) {
-      return (
-        <LockNote>
-          {t("pages.earn.fixed-term.exit-note", {
-            date: epochEndDate.data,
-            symbol: peggedToken.symbol,
-          })}
-        </LockNote>
-      );
-    }
-    return epochEndDate.isPending ? (
-      <LockNote>
-        <Skeleton width={200} />
-      </LockNote>
-    ) : null;
   }
 
   function renderFiatValue() {
@@ -201,7 +177,16 @@ export function ExitForm({
           />
         </div>
       </CollapsibleSection>
-      {renderLockNote()}
+      <LockNote
+        getNote={(date) =>
+          t("pages.earn.fixed-term.exit-note", {
+            date,
+            symbol: peggedToken.symbol,
+          })
+        }
+        lines={1}
+        stakingVaultAddress={stakingVaultAddress}
+      />
       <Review title={t("pages.earn.fixed-term.exit-review")}>
         <ReviewRow
           info={t("pages.earn.fixed-term.you-will-receive-info")}
@@ -213,7 +198,9 @@ export function ExitForm({
             symbol: peggedToken.symbol,
           })}
           label={t("pages.earn.fixed-term.available-after")}
-          value={renderEpochEndDate()}
+          value={
+            <EpochEndDateValue stakingVaultAddress={stakingVaultAddress} />
+          }
         />
       </Review>
     </form>

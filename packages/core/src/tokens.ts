@@ -326,6 +326,19 @@ export const knownTokens: Token[] = [
     name: "Staked Vetro USD",
     symbol: "sVUSD",
   },
+  // TEMPORAL UNTIL REAL VUSDX TOKEN IS DEPLOYED
+  // SO WE CAN SHOW THE APPROPIATE VUSDX LOGO
+  {
+    address: "0x8F9d93BCCb8749C55E201F34C7F495263Ab14339",
+    chainId: mainnet.id,
+    decimals: 18,
+    extensions: {
+      isVaultShare: true,
+    },
+    logoURI: "https://hemilabs.github.io/token-list/l1Logos/vusdx.svg",
+    name: "Test Vetro USD X",
+    symbol: "testVUSDx",
+  },
   {
     address: "0x50c580227764b621c0433bB6Ab756C781c495ce7",
     chainId: arbitrum.id,
