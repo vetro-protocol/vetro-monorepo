@@ -1,5 +1,6 @@
 import { type UseQueryResult, useQueries } from "@tanstack/react-query";
 import { useEthereumClient } from "hooks/useEthereumClient";
+import { useNowTickingPast } from "hooks/useNowTickingPast";
 import { isOpenToExit } from "pages/earn/components/fixedTermEarn/isOpenToExit";
 import { unixNowTimestamp } from "utils/date";
 import { combineQueryResults } from "utils/queries";
@@ -11,7 +12,7 @@ import { epochIdOptions, useEpochId } from "./useEpochId";
 import { isShutdownOptions } from "./useIsShutdown";
 import { isTerminatedOptions } from "./useIsTerminated";
 
-const combineIsOpenToExit = ([epochId, epoch, isShutdown, isTerminated]: [
+const combineExitState = ([epochId, epoch, isShutdown, isTerminated]: [
   UseQueryResult<bigint>,
   UseQueryResult<Epoch>,
   UseQueryResult<boolean>,
@@ -21,22 +22,19 @@ const combineIsOpenToExit = ([epochId, epoch, isShutdown, isTerminated]: [
     epochId,
     query: combineQueryResults({
       results: [epoch, isShutdown, isTerminated],
-      select: ([epochData, isShutdownData, isTerminatedData]) =>
-        isOpenToExit({
-          exitWindow: epochData.exitWindow,
-          isShutdown: isShutdownData,
-          isTerminated: isTerminatedData,
-          now: BigInt(unixNowTimestamp()),
-        }),
+      select: ([epochData, isShutdownData, isTerminatedData]) => ({
+        exitWindow: epochData.exitWindow,
+        isShutdown: isShutdownData,
+        isTerminated: isTerminatedData,
+      }),
     }),
   });
 
 export function useIsOpenToExit(stakingVaultAddress: Address) {
   const client = useEthereumClient();
   const epochId = useEpochId(stakingVaultAddress);
-
-  return useQueries({
-    combine: combineIsOpenToExit,
+  const exitState = useQueries({
+    combine: combineExitState,
     queries: [
       epochIdOptions({ client, stakingVaultAddress }),
       epochOptions({ client, epochId: epochId.data, stakingVaultAddress }),
@@ -44,4 +42,22 @@ export function useIsOpenToExit(stakingVaultAddress: Address) {
       isTerminatedOptions({ client, stakingVaultAddress }),
     ],
   });
+  const { data } = exitState;
+
+  useNowTickingPast(
+    data ? [data.exitWindow.start, data.exitWindow.end] : undefined,
+    (timestamp) => Number(timestamp),
+  );
+
+  function getIsOpenToExit() {
+    if (data === undefined) {
+      return undefined;
+    }
+    return (
+      data !== null &&
+      isOpenToExit({ ...data, now: BigInt(unixNowTimestamp()) })
+    );
+  }
+
+  return { ...exitState, data: getIsOpenToExit() };
 }
