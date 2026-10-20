@@ -12,7 +12,7 @@ import { TokenBalance } from "components/tokenInput/tokenBalance";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useConvertToAssets } from "hooks/useConvertToAssets";
 import { mainnet } from "networks/mainnet";
-import { StakeSubmitButton } from "pages/earn/components/stakeForm/stakeSubmitButton";
+import { StakeSubmitButton } from "pages/earn/components/earnForm/stakeSubmitButton";
 import { useEpochEndDate } from "pages/earn/hooks/targetYieldPool/useEpochEndDate";
 import { useIsOpenToExit } from "pages/earn/hooks/targetYieldPool/useIsOpenToExit";
 import { useMaxRequestRedeem } from "pages/earn/hooks/targetYieldPool/useMaxRequestRedeem";

@@ -11,13 +11,12 @@ import { VerticalStepper, stepStatus } from "components/base/verticalStepper";
 import { DrawerFeesContainer } from "components/feesContainer";
 import { NetworkFees } from "components/networkFees";
 import { useVaultPreviewWithdraw } from "hooks/useVaultPreviewWithdraw";
+import type { WithdrawStep } from "pages/earn/components/earnForm/stakeFormReducer";
 import type { ComponentProps } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import type { TokenWithGateway } from "types";
 import type { Address } from "viem";
-
-import type { WithdrawStep } from "./stakeFormReducer";
 
 type SummaryProps = {
   amount: string;
