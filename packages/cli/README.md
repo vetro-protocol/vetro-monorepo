@@ -222,5 +222,3 @@ vetro-cli variable-yield claim --token VUSD --request-id 7 --receiver 0xAgent   
 Only the ticket owner can claim. Sign the transaction with the account that opened the ticket. From a different account, the transaction reverts, even though `claim` printed it. `--receiver` can be any address.
 
 `claim` fails when the ticket does not exist or is still in cooldown. Each ticket is claimed on its own; the CLI does not encode a batch claim yet.
-
-To unstake the whole position with no dust, pass the `shares` of `position` instead of an amount. `position` prints them in the share token's decimals, and `--shares` takes human units, so convert them first. The share token has 18 decimals here:
