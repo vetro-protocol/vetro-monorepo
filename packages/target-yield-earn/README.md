@@ -22,7 +22,9 @@ npm add @vetro-protocol/target-yield-earn viem
 ```ts
 import {
   getCancelableDepositRequest,
+  getCanEntry,
   getClaimableDepositRequest,
+  getEntryGate,
   getEpoch,
   getEpochId,
   getMaxMint,
@@ -42,6 +44,16 @@ const epochId = await getEpochId(publicClient, { address: vaultAddress });
 
 // Full epoch: rate, deposit cap and windows as absolute timestamps.
 const epoch = await getEpoch(publicClient, { address: vaultAddress, epochId });
+
+// The vault's entry gate. The zero address when the vault has no entry gate.
+const entryGate = await getEntryGate(publicClient, { address: vaultAddress });
+
+// Whether the entry gate lets this owner request a deposit into the vault.
+const canEntry = await getCanEntry(publicClient, {
+  address: entryGate,
+  owner: "0x...",
+  vault: vaultAddress,
+});
 
 // Max amount of assets this owner can still request for deposit.
 const maxAssets = await getMaxRequestDeposit(publicClient, {
@@ -86,7 +98,9 @@ const claimableShares = await getMaxMint(publicClient, {
 
 - Public actions (reads):
   - `getCancelableDepositRequest(client, { address, controller })` — assets in the controller's deposit request that `cancelDepositRequest` can refund now. `0n` when there is no request or the request is fulfilled. A request from the current epoch is cancelable only during the entry window. A request from an earlier epoch is always cancelable until fulfillment.
+  - `getCanEntry(client, { address, owner, vault })` — whether the entry gate at `address` lets the owner request a deposit into the vault. It returns the gate's `canEntry(vault, owner)`. To get the address, call `getEntryGate` first and pass its result as `address`. It throws when `address` is the zero address, so do not call it for a vault without an entry gate. When the result is `false`, `getMaxRequestDeposit` returns `0n`.
   - `getClaimableDepositRequest(client, { address, controller })` — assets in a fulfilled deposit request that the controller can claim.
+  - `getEntryGate(client, { address })` — the address of the vault's entry gate. The zero address when the vault has no entry gate. Then no owner is blocked by an entry gate.
   - `getEpoch(client, params)` — an epoch's `start`, `end`, `rate`, `maxDeposits` (the deposit cap), `deposits` (the assets requested so far) and its `entryWindow`, `accrualInterval` and `exitWindow` as `{ end, start }` absolute timestamps.
   - `getEpochId(client, params)` — the current epoch id, `0n` when no epoch has started.
   - `getIsPaused(client, params)` — whether the keeper paused the vault. Pausing blocks new deposit requests only.
