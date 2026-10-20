@@ -727,6 +727,7 @@ export const sendTransactionRequest = async function ({
   return waitForTransactionReceipt(publicClient, { hash });
 };
 
+/** Opens an exit ticket of TEST_ADDRESS. It first moves the clock 60 seconds, so the gas estimate and the mined transaction both see the vault's yield drip. */
 export const requestWithdraw = async function ({
   assets,
   rpcUrl,
