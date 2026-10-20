@@ -4,6 +4,14 @@ import type { Address, Client } from "viem";
 
 export type Epoch = Awaited<ReturnType<typeof getEpoch>>;
 
+export const epochQueryKey = ({
+  epochId,
+  stakingVaultAddress,
+}: {
+  epochId: bigint | undefined;
+  stakingVaultAddress: Address;
+}) => ["target-yield-pool-epoch", stakingVaultAddress, epochId?.toString()];
+
 export const epochOptions = ({
   client,
   epochId,
@@ -17,9 +25,5 @@ export const epochOptions = ({
     enabled: !!client && !!epochId,
     queryFn: () =>
       getEpoch(client!, { address: stakingVaultAddress, epochId: epochId! }),
-    queryKey: [
-      "target-yield-pool-epoch",
-      stakingVaultAddress,
-      epochId?.toString(),
-    ],
+    queryKey: epochQueryKey({ epochId, stakingVaultAddress }),
   });

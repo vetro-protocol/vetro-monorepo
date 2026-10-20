@@ -4,6 +4,14 @@ import { useEthereumClient } from "hooks/useEthereumClient";
 import type { Address, Client } from "viem";
 import { useAccount } from "wagmi";
 
+export const maxRequestDepositQueryKey = ({
+  account,
+  stakingVaultAddress,
+}: {
+  account: Address | undefined;
+  stakingVaultAddress: Address;
+}) => ["target-yield-pool-max-request-deposit", account, stakingVaultAddress];
+
 const maxRequestDepositOptions = ({
   account,
   client,
@@ -21,11 +29,7 @@ const maxRequestDepositOptions = ({
         controller: account!,
         owner: account!,
       }),
-    queryKey: [
-      "target-yield-pool-max-request-deposit",
-      account,
-      stakingVaultAddress,
-    ],
+    queryKey: maxRequestDepositQueryKey({ account, stakingVaultAddress }),
   });
 
 export function useMaxRequestDeposit(stakingVaultAddress: Address) {

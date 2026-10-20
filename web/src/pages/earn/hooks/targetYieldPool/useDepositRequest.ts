@@ -6,6 +6,14 @@ import { useAccount } from "wagmi";
 
 import { getDepositRequestState } from "./getDepositRequestState";
 
+export const depositRequestQueryKey = ({
+  controller,
+  stakingVaultAddress,
+}: {
+  controller: Address | undefined;
+  stakingVaultAddress: Address;
+}) => ["target-yield-pool-deposit-request", stakingVaultAddress, controller];
+
 const depositRequestOptions = ({
   client,
   controller,
@@ -23,11 +31,7 @@ const depositRequestOptions = ({
         controller: controller!,
         stakingVaultAddress,
       }),
-    queryKey: [
-      "target-yield-pool-deposit-request",
-      stakingVaultAddress,
-      controller,
-    ],
+    queryKey: depositRequestQueryKey({ controller, stakingVaultAddress }),
     select: getDepositRequestState,
   });
 
