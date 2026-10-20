@@ -4,13 +4,12 @@ import { stakingVaultAbi } from "@vetro-protocol/earn";
 import {
   getActiveRequestIds,
   getClaimableRequests,
-  getCooldownDuration,
-  getCooldownEnabled,
   getRequestDetails,
   getTotalAssetsInCooldown,
 } from "@vetro-protocol/earn/actions";
 import {
   type Address,
+  type Hex,
   decodeFunctionData,
   isAddressEqual,
   numberToHex,
@@ -19,7 +18,7 @@ import {
   parseUnits,
 } from "viem";
 import { generatePrivateKey, privateKeyToAddress } from "viem/accounts";
-import { getBlock, getChainId } from "viem/actions";
+import { getBlock, getChainId, revert, snapshot } from "viem/actions";
 import { balanceOf, symbol } from "viem-erc20/actions";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 
@@ -48,12 +47,12 @@ const withdrawClaimedAbi = parseAbi([
 
 describe("variable-yield claim", function () {
   const rpcUrl = inject("anvilUrl");
-  const { publicClient } = createClients(rpcUrl);
+  const { publicClient, testClient } = createClients(rpcUrl);
   const cooldownDuration = 86_400n;
   const vaults = [sVusdAddress, sVetBtcAddress];
   const assets = parseUnits("10", vusd.decimals);
 
-  let before: { duration: bigint; enabled: boolean }[];
+  let snapshotId: Hex;
 
   const claimOnFork = (extra: string[] = []) => [
     "variable-yield",
@@ -101,12 +100,7 @@ describe("variable-yield claim", function () {
   };
 
   beforeAll(async function () {
-    before = await Promise.all(
-      vaults.map(async (vault) => ({
-        duration: await getCooldownDuration(publicClient, { address: vault }),
-        enabled: await getCooldownEnabled(publicClient, { address: vault }),
-      })),
-    );
+    snapshotId = await snapshot(testClient);
     for (const vault of vaults) {
       await setStakingCooldown({
         duration: cooldownDuration,
@@ -131,11 +125,7 @@ describe("variable-yield claim", function () {
     });
   });
 
-  afterAll(async function () {
-    for (const [index, vault] of vaults.entries()) {
-      await setStakingCooldown({ ...before[index], rpcUrl, vault });
-    }
-  });
+  afterAll(() => revert(testClient, { id: snapshotId }));
 
   it("targets the vault on the chain the RPC is on, with no native value", async function () {
     await withSnapshot({
