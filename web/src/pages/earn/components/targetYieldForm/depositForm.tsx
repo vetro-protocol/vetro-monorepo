@@ -29,6 +29,7 @@ import type { TokenWithGateway } from "types";
 import { combineQueryResults } from "utils/queries";
 import { parseTokenUnits } from "utils/token";
 import type { Address } from "viem";
+import { useAccount } from "wagmi";
 
 import { EpochEndDateValue } from "./epochEndDateValue";
 import { EstimatedYieldValue } from "./estimatedYieldValue";
@@ -96,6 +97,7 @@ export function DepositForm({
   shareToken,
   stakingVaultAddress,
 }: Props) {
+  const { address: account } = useAccount();
   const { t } = useTranslation();
   const [requestCloseDrawer, setRequestCloseDrawer] = useState(false);
   const [submitted, setSubmitted] = useState<{
@@ -296,7 +298,7 @@ export function DepositForm({
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!inputError) {
+    if (!inputError && account) {
       setSubmitted({ amount: inputValue, assets: amount });
       onResetSteps();
       onDrawerOpenChange(true);

@@ -25,6 +25,7 @@ import { type FormEvent, Suspense, lazy, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
 import { type Address, parseUnits } from "viem";
+import { useAccount } from "wagmi";
 
 const StakeWithdrawProgressDrawer = lazy(() =>
   import("./stakeWithdrawProgressDrawer").then((m) => ({
@@ -95,6 +96,7 @@ export function StakeWithdrawForm({
   stakingVaultAddress,
   withdrawStep,
 }: Props) {
+  const { address: account } = useAccount();
   const { data: canInstantWithdraw } = useCanInstantWithdraw({
     stakingVaultAddress,
   });
@@ -222,7 +224,7 @@ export function StakeWithdrawForm({
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!inputError) {
+    if (!inputError && account) {
       setSubmitted({ amount: inputValue, assets: amountBigInt });
       onResetSteps();
       onDrawerOpenChange(true);
