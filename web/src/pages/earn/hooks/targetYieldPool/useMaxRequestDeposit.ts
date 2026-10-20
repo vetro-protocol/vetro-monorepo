@@ -4,11 +4,18 @@ import type { Address, Client } from "viem";
 
 export const maxRequestDepositQueryKey = ({
   account,
+  isEntryWindowOpen,
   stakingVaultAddress,
 }: {
   account: Address | undefined;
+  isEntryWindowOpen: boolean | undefined;
   stakingVaultAddress: Address;
-}) => ["target-yield-pool-max-request-deposit", account, stakingVaultAddress];
+}) => [
+  "target-yield-pool-max-request-deposit",
+  account,
+  stakingVaultAddress,
+  isEntryWindowOpen,
+];
 
 export const maxRequestDepositOptions = ({
   account,
@@ -29,8 +36,9 @@ export const maxRequestDepositOptions = ({
         controller: account!,
         owner: account!,
       }),
-    queryKey: [
-      ...maxRequestDepositQueryKey({ account, stakingVaultAddress }),
+    queryKey: maxRequestDepositQueryKey({
+      account,
       isEntryWindowOpen,
-    ],
+      stakingVaultAddress,
+    }),
   });

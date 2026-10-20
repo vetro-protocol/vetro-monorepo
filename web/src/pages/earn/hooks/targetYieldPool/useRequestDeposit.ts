@@ -66,6 +66,7 @@ export const useRequestDeposit = function ({
 
   const maxRequestDepositKey = maxRequestDepositQueryKey({
     account,
+    isEntryWindowOpen: true,
     stakingVaultAddress,
   });
 
@@ -134,8 +135,8 @@ export const useRequestDeposit = function ({
             (old: DepositRequest | undefined) =>
               applyRequestDeposit({ assets, depositRequest: old }),
           );
-          queryClient.setQueriesData(
-            { queryKey: maxRequestDepositKey },
+          queryClient.setQueryData(
+            maxRequestDepositKey,
             (old: bigint | undefined) =>
               old !== undefined ? old - assets : old,
           );
