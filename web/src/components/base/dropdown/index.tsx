@@ -72,9 +72,7 @@ type NavigationProps<T> = BaseProps<T> & {
 };
 
 type DropdownProps<T> =
-  | MultiSelectProps<T>
-  | NavigationProps<T>
-  | SingleSelectProps<T>;
+  MultiSelectProps<T> | NavigationProps<T> | SingleSelectProps<T>;
 
 const isMultiSelect = <T,>(
   props: DropdownProps<T>,

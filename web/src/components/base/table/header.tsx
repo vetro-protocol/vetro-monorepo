@@ -8,8 +8,7 @@ const alignClasses = {
 type Props = {
   align?: "center" | "left";
 } & (
-  | { children: ReactNode; text?: never }
-  | { children?: never; text: string }
+  { children: ReactNode; text?: never } | { children?: never; text: string }
 );
 
 export const Header = ({ align = "left", children, text }: Props) => (

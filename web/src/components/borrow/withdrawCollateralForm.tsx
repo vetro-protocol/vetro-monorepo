@@ -41,11 +41,7 @@ import { formatUnits } from "viem";
 import { PositionReview } from "./positionReview";
 
 type WithdrawCollateralFlowStatus =
-  | "idle"
-  | "withdraw-error"
-  | "withdraw-ready"
-  | "withdrawing"
-  | "withdrawn";
+  "idle" | "withdraw-error" | "withdraw-ready" | "withdrawing" | "withdrawn";
 
 const getWithdrawStepStatus = function (
   status: Exclude<WithdrawCollateralFlowStatus, "idle">,

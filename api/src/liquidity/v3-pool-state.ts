@@ -144,12 +144,10 @@ export const fetchV3PoolState = async function ({
 
   return {
     currentTick,
-    initializedTicks: ticks.map(
-      (tick, index): TickLiquidity => ({
-        liquidityNet: tickData[index][1],
-        tick,
-      }),
-    ),
+    initializedTicks: ticks.map((tick, index): TickLiquidity => ({
+      liquidityNet: tickData[index][1],
+      tick,
+    })),
     liquidity,
     sqrtPriceX96,
   };

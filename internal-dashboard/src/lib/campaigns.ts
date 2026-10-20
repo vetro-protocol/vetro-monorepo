@@ -120,14 +120,12 @@ export const rewardAprRows = function ({
     .filter(
       (campaign): campaign is MerklPoolCampaign => campaign.source === "merkl",
     )
-    .map(
-      (campaign): RewardAprRow => ({
-        aprPercent: campaign.aprPercent,
-        id: campaign.id,
-        source: "merkl",
-        tokenSymbols: campaign.rewardTokenSymbol,
-      }),
-    )
+    .map((campaign): RewardAprRow => ({
+      aprPercent: campaign.aprPercent,
+      id: campaign.id,
+      source: "merkl",
+      tokenSymbols: campaign.rewardTokenSymbol,
+    }))
     .sort((a, b) => b.aprPercent - a.aprPercent);
   return [...rows, ...merklRows];
 };
