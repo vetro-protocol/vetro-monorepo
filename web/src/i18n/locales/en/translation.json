@@ -378,7 +378,6 @@
         "request-exit": "Request exit",
         "request-exit-fees-label": "Requesting exit of {{amount}} {{token}}",
         "rolls-into-next-term": "Rolls into next term",
-        "state": "State",
         "target-fixed-apr": "Target fixed APR",
         "term-end-date": "Term end date",
         "term-length": "Term length",

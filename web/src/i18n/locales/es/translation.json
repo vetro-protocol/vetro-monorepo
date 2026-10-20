@@ -381,7 +381,6 @@
         "request-exit": "Solicitar salida",
         "request-exit-fees-label": "Solicitando la salida de {{amount}} {{token}}",
         "rolls-into-next-term": "Se renueva en el próximo plazo",
-        "state": "Estado",
         "target-fixed-apr": "TNA fija objetivo",
         "term-end-date": "Fecha de fin del plazo",
         "term-length": "Duración del plazo",

@@ -56,7 +56,7 @@ const StateCard = function ({ stakingVaultAddress }: CardProps) {
       data={termState}
       icon={<RefreshIcon className="text-blue-500" />}
       isLoading={isLoading}
-      label={t("pages.earn.fixed-term.state")}
+      label={t("pages.earn.fixed-term.term-state")}
       render={(state) => state}
     />
   );
