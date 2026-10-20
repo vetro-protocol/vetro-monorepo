@@ -14,7 +14,7 @@ export const depositRequestQueryKey = ({
   stakingVaultAddress: Address;
 }) => ["target-yield-pool-deposit-request", stakingVaultAddress, controller];
 
-const depositRequestOptions = ({
+export const depositRequestOptions = ({
   client,
   controller,
   stakingVaultAddress,
