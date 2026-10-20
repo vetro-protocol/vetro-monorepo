@@ -49,3 +49,29 @@ export function createErc20AllowanceStateOverride({
     },
   ];
 }
+
+export const createErc20BalanceStateOverride = ({
+  balance,
+  owner,
+  token,
+}: {
+  balance: bigint;
+  owner: Address;
+  token: Token;
+}) => [
+  {
+    address: token.address,
+    stateDiff: [
+      {
+        slot: keccak256(
+          encodeAbiParameters(
+            [{ type: "address" }, { type: "uint256" }],
+            // 0 is the default balance slot for ERC20 tokens using OpenZeppelin's implementation
+            [owner, BigInt(token.extensions?.balanceSlot ?? 0)],
+          ),
+        ),
+        value: toHex(balance, { size: 32 }),
+      },
+    ],
+  },
+];
