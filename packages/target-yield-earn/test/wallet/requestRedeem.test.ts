@@ -1,23 +1,48 @@
 import {
   type Address,
+  decodeFunctionData,
   type TransactionReceipt,
   type WalletClient,
   zeroAddress,
   zeroHash,
 } from "viem";
-import { waitForTransactionReceipt } from "viem/actions";
+import { readContract, waitForTransactionReceipt } from "viem/actions";
 import { sepolia } from "viem/chains";
-import { requestRedeem as erc7540RequestRedeem } from "viem-erc7540/actions";
-import { describe, expect, it, vi } from "vitest";
+import { erc7540Abi } from "viem-erc7540";
+import {
+  allowance,
+  requestRedeem as erc7540RequestRedeem,
+} from "viem-erc7540/actions";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { requestRedeem } from "../../src/actions/wallet/requestRedeem.ts";
+import { getIsShutdown } from "../../src/actions/public/getIsShutdown.ts";
+import { getMaxMint } from "../../src/actions/public/getMaxMint.ts";
+import { getMaxRequestRedeem } from "../../src/actions/public/getMaxRequestRedeem.ts";
+import {
+  encodeRequestRedeem,
+  requestRedeem,
+} from "../../src/actions/wallet/requestRedeem.ts";
 
 vi.mock("viem/actions", () => ({
+  readContract: vi.fn(),
   waitForTransactionReceipt: vi.fn(),
 }));
 
 vi.mock("viem-erc7540/actions", () => ({
+  allowance: vi.fn(),
   requestRedeem: vi.fn(),
+}));
+
+vi.mock("../../src/actions/public/getIsShutdown.ts", () => ({
+  getIsShutdown: vi.fn(),
+}));
+
+vi.mock("../../src/actions/public/getMaxMint.ts", () => ({
+  getMaxMint: vi.fn(),
+}));
+
+vi.mock("../../src/actions/public/getMaxRequestRedeem.ts", () => ({
+  getMaxRequestRedeem: vi.fn(),
 }));
 
 const mockWalletClient = {
@@ -34,7 +59,31 @@ const validParameters = {
   shares: BigInt(1000),
 };
 
+const otherOwner = "0x3333333333333333333333333333333333333333" as Address;
+
+const rpcError = new Error("RPC error");
+
+const successReceipt = { status: "success" } as TransactionReceipt;
+
+function mockMaxRequestRedeem({
+  ownerMax,
+  vaultMax = 0n,
+}: {
+  ownerMax: bigint;
+  vaultMax?: bigint;
+}) {
+  vi.mocked(getMaxRequestRedeem).mockImplementation((_, { owner }) =>
+    Promise.resolve(owner === validParameters.address ? vaultMax : ownerMax),
+  );
+}
+
 describe("requestRedeem", function () {
+  beforeEach(function () {
+    vi.mocked(getIsShutdown).mockResolvedValue(false);
+    vi.mocked(getMaxMint).mockResolvedValue(0n);
+    mockMaxRequestRedeem({ ownerMax: validParameters.shares });
+  });
+
   it.each([
     {
       client: undefined,
@@ -119,6 +168,242 @@ describe("requestRedeem", function () {
       expect(onSettled).toHaveBeenCalledOnce();
     },
   );
+
+  it.each([
+    {
+      isShutdown: true,
+      name: "the vault is shut down",
+      ownerMax: validParameters.shares,
+      reason: "Vault is shut down",
+    },
+    {
+      isShutdown: false,
+      name: "shares exceed the max redeem request",
+      ownerMax: validParameters.shares - BigInt(1),
+      reason: "Shares exceed the max redeem request",
+    },
+  ])(
+    "should emit 'request-redeem-failed-validation' if $name",
+    async function ({ isShutdown, ownerMax, reason }) {
+      vi.mocked(getIsShutdown).mockResolvedValue(isShutdown);
+      mockMaxRequestRedeem({ ownerMax });
+
+      const { emitter, promise } = requestRedeem(
+        mockWalletClient,
+        validParameters,
+      );
+
+      const onFailedValidation = vi.fn();
+      const onSettled = vi.fn();
+
+      emitter.on("request-redeem-failed-validation", onFailedValidation);
+      emitter.on("request-redeem-settled", onSettled);
+
+      await promise;
+
+      expect(getIsShutdown).toHaveBeenCalledExactlyOnceWith(mockWalletClient, {
+        address: validParameters.address,
+      });
+      expect(getMaxRequestRedeem).toHaveBeenCalledExactlyOnceWith(
+        mockWalletClient,
+        {
+          address: validParameters.address,
+          controller: validParameters.controller,
+          owner: validParameters.owner,
+        },
+      );
+      expect(onFailedValidation).toHaveBeenCalledExactlyOnceWith(reason);
+      expect(erc7540RequestRedeem).not.toHaveBeenCalled();
+      expect(onSettled).toHaveBeenCalledOnce();
+    },
+  );
+
+  it("should accept the claimable deposit shares on top of the max redeem request", async function () {
+    mockMaxRequestRedeem({ ownerMax: BigInt(400) });
+    vi.mocked(getMaxMint).mockResolvedValue(BigInt(600));
+    vi.mocked(erc7540RequestRedeem).mockResolvedValue(zeroHash);
+    vi.mocked(waitForTransactionReceipt).mockResolvedValue(successReceipt);
+
+    const { promise } = requestRedeem(mockWalletClient, validParameters);
+
+    await promise;
+
+    expect(getMaxMint).toHaveBeenCalledExactlyOnceWith(mockWalletClient, {
+      address: validParameters.address,
+      controller: validParameters.controller,
+    });
+    expect(getMaxRequestRedeem).toHaveBeenCalledOnce();
+    expect(erc7540RequestRedeem).toHaveBeenCalledExactlyOnceWith(
+      mockWalletClient,
+      validParameters,
+    );
+  });
+
+  it("should accept the claimable deposit shares when the owner holds no shares and the request is not blocked", async function () {
+    mockMaxRequestRedeem({ ownerMax: BigInt(0), vaultMax: BigInt(1) });
+    vi.mocked(getMaxMint).mockResolvedValue(validParameters.shares);
+    vi.mocked(erc7540RequestRedeem).mockResolvedValue(zeroHash);
+    vi.mocked(waitForTransactionReceipt).mockResolvedValue(successReceipt);
+
+    const { promise } = requestRedeem(mockWalletClient, validParameters);
+
+    await promise;
+
+    expect(getMaxRequestRedeem).toHaveBeenLastCalledWith(mockWalletClient, {
+      address: validParameters.address,
+      controller: validParameters.controller,
+      owner: validParameters.address,
+    });
+    expect(erc7540RequestRedeem).toHaveBeenCalledOnce();
+  });
+
+  it("should emit 'request-redeem-failed-validation' when the request is blocked, also with a claimable deposit", async function () {
+    mockMaxRequestRedeem({ ownerMax: BigInt(0), vaultMax: BigInt(0) });
+    vi.mocked(getMaxMint).mockResolvedValue(validParameters.shares);
+
+    const { emitter, promise } = requestRedeem(
+      mockWalletClient,
+      validParameters,
+    );
+
+    const onFailedValidation = vi.fn();
+
+    emitter.on("request-redeem-failed-validation", onFailedValidation);
+
+    await promise;
+
+    expect(onFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "Shares exceed the max redeem request",
+    );
+    expect(erc7540RequestRedeem).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    {
+      mockRead: () => vi.mocked(getIsShutdown).mockRejectedValueOnce(rpcError),
+      name: "getIsShutdown",
+    },
+    {
+      mockRead: () => vi.mocked(readContract).mockRejectedValueOnce(rpcError),
+      name: "isOperator",
+    },
+    {
+      mockRead() {
+        vi.mocked(readContract).mockResolvedValueOnce(false);
+        vi.mocked(allowance).mockRejectedValueOnce(rpcError);
+      },
+      name: "allowance",
+    },
+    {
+      mockRead: () =>
+        vi.mocked(getMaxRequestRedeem).mockRejectedValueOnce(rpcError),
+      name: "getMaxRequestRedeem",
+    },
+  ])(
+    "should emit 'unexpected-error' when the $name read fails",
+    async function ({ mockRead }) {
+      mockRead();
+
+      const { emitter, promise } = requestRedeem(mockWalletClient, {
+        ...validParameters,
+        owner: otherOwner,
+      });
+
+      const onUnexpectedError = vi.fn();
+      const onSettled = vi.fn();
+
+      emitter.on("unexpected-error", onUnexpectedError);
+      emitter.on("request-redeem-settled", onSettled);
+
+      await promise;
+
+      expect(onUnexpectedError).toHaveBeenCalledExactlyOnceWith(rpcError);
+      expect(erc7540RequestRedeem).not.toHaveBeenCalled();
+      expect(onSettled).toHaveBeenCalledOnce();
+    },
+  );
+
+  it("should not read the operator status or the allowance when the account is the owner", async function () {
+    vi.mocked(erc7540RequestRedeem).mockResolvedValue(zeroHash);
+    vi.mocked(waitForTransactionReceipt).mockResolvedValue(successReceipt);
+
+    const { promise } = requestRedeem(mockWalletClient, validParameters);
+
+    await promise;
+
+    expect(readContract).not.toHaveBeenCalled();
+    expect(allowance).not.toHaveBeenCalled();
+  });
+
+  it("should request for an owner when the account is its operator", async function () {
+    vi.mocked(readContract).mockResolvedValueOnce(true);
+    vi.mocked(erc7540RequestRedeem).mockResolvedValue(zeroHash);
+    vi.mocked(waitForTransactionReceipt).mockResolvedValue(successReceipt);
+
+    const { promise } = requestRedeem(mockWalletClient, {
+      ...validParameters,
+      owner: otherOwner,
+    });
+
+    await promise;
+
+    expect(readContract).toHaveBeenCalledExactlyOnceWith(mockWalletClient, {
+      abi: expect.anything(),
+      address: validParameters.address,
+      args: [otherOwner, mockWalletClient.account!.address],
+      functionName: "isOperator",
+    });
+    expect(allowance).not.toHaveBeenCalled();
+    expect(getMaxMint).not.toHaveBeenCalled();
+    expect(erc7540RequestRedeem).toHaveBeenCalledExactlyOnceWith(
+      mockWalletClient,
+      { ...validParameters, owner: otherOwner },
+    );
+  });
+
+  it("should request for an owner when the account allowance covers the shares", async function () {
+    vi.mocked(readContract).mockResolvedValueOnce(false);
+    vi.mocked(allowance).mockResolvedValueOnce(validParameters.shares);
+    vi.mocked(erc7540RequestRedeem).mockResolvedValue(zeroHash);
+    vi.mocked(waitForTransactionReceipt).mockResolvedValue(successReceipt);
+
+    const { promise } = requestRedeem(mockWalletClient, {
+      ...validParameters,
+      owner: otherOwner,
+    });
+
+    await promise;
+
+    expect(allowance).toHaveBeenCalledExactlyOnceWith(mockWalletClient, {
+      address: validParameters.address,
+      owner: otherOwner,
+      spender: mockWalletClient.account!.address,
+    });
+    expect(erc7540RequestRedeem).toHaveBeenCalledOnce();
+  });
+
+  it("should emit 'request-redeem-failed-validation' if the account is not the owner or its operator, and its allowance is lower than shares", async function () {
+    vi.mocked(readContract).mockResolvedValueOnce(false);
+    vi.mocked(allowance).mockResolvedValueOnce(
+      validParameters.shares - BigInt(1),
+    );
+
+    const { emitter, promise } = requestRedeem(mockWalletClient, {
+      ...validParameters,
+      owner: otherOwner,
+    });
+
+    const onFailedValidation = vi.fn();
+
+    emitter.on("request-redeem-failed-validation", onFailedValidation);
+
+    await promise;
+
+    expect(onFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "Account is not the owner or its operator, and its allowance is lower than shares",
+    );
+    expect(erc7540RequestRedeem).not.toHaveBeenCalled();
+  });
 
   it("should emit success events when request redeem succeeds", async function () {
     const receipt = {
@@ -247,5 +532,19 @@ describe("requestRedeem", function () {
       expect.any(TypeError),
     );
     expect(onSettled).toHaveBeenCalledOnce();
+  });
+});
+
+describe("encodeRequestRedeem", function () {
+  it("should encode the requestRedeem call", function () {
+    const { controller, owner, shares } = validParameters;
+
+    const { args, functionName } = decodeFunctionData({
+      abi: erc7540Abi,
+      data: encodeRequestRedeem({ controller, owner, shares }),
+    });
+
+    expect(functionName).toBe("requestRedeem");
+    expect(args).toEqual([shares, controller, owner]);
   });
 });
