@@ -9,6 +9,8 @@ const buildPool = (overrides: Partial<DexPool> = {}) =>
     chainId: 1,
     coins: [],
     dex: "uniswap",
+    dexMetadata: { feeTier: 500 },
+    feesUsd24h: 0,
     rewards: [],
     tvlUsd: 1000,
     volumeUsd24h: 0,

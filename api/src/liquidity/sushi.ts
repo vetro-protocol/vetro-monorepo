@@ -43,14 +43,17 @@ const poolQuery = `
       liquidityUSD
       reserve0
       reserve1
+      swapFee
       token0 {
         address
         decimals
+        symbol
       }
       token0Price
       token1 {
         address
         decimals
+        symbol
       }
       token1Price
       volumeUSD1d
@@ -94,13 +97,15 @@ const windowSwapsQuery = `
   }
 `;
 
-type SushiToken = { address: Address; decimals: number };
+type SushiToken = { address: Address; decimals: number; symbol: string };
 
 type RawV3Pool = {
   feeUSD1d: number;
   liquidityUSD: number;
   reserve0: string;
   reserve1: string;
+  // A fraction of the swap amount (0.0005 is 0.05%)
+  swapFee: number;
   token0: SushiToken;
   // token0 per token1
   token0Price: number;
@@ -202,17 +207,45 @@ const splitOpeningSwap = function ({
   return { opening: { tick: currentTick, timestamp: sinceSeconds }, swaps };
 };
 
+/**
+ * Prices the coins of a Sushi pool from the portal price of its reference coin
+ * (the coin that is not a pegged token or share token) and the pool rate.
+ */
+export const sushiUsdPrices = function ({
+  prices,
+  token0Price,
+  token1Price,
+  tokens,
+}: {
+  prices: Record<string, string>;
+  token0Price: number;
+  token1Price: number;
+  tokens: Address[];
+}): (number | null)[] {
+  const token1IsReference = !isTrackedToken(tokens[1]);
+  const referencePrice = portalUsdPrice({
+    address: tokens[token1IsReference ? 1 : 0],
+    prices,
+  });
+  if (referencePrice === undefined) {
+    return [null, null];
+  }
+  return token1IsReference
+    ? [token1Price * referencePrice, referencePrice]
+    : [referencePrice, token0Price * referencePrice];
+};
+
 const getSushiPool = async function ({
   address,
   client,
   nowSeconds,
-  portalApiUrl,
+  prices,
   subgraphApiKey,
 }: {
   address: Address;
   client: Client;
   nowSeconds: number;
-  portalApiUrl: string;
+  prices: Record<string, string>;
   subgraphApiKey: string | undefined;
 }) {
   const ranges =
@@ -236,9 +269,21 @@ const getSushiPool = async function ({
   const tokens = [data.token0, data.token1].map((token) => ({
     address: checksumAddress(token.address),
     decimals: token.decimals,
+    symbol: token.symbol,
   }));
+  const usdPrices = sushiUsdPrices({
+    prices,
+    token0Price: data.token0Price,
+    token1Price: data.token1Price,
+    tokens: tokens.map((token) => token.address),
+  });
+  if (ranges.length > 0 && usdPrices.includes(null)) {
+    console.warn(
+      `No USD price for the coins of Sushi pool ${address}, so its range rows have no TVL`,
+    );
+  }
 
-  const buildPool = ({
+  const buildPool = function ({
     amounts,
     range,
     tvlUsd,
@@ -248,20 +293,28 @@ const getSushiPool = async function ({
     range?: DexPoolRange;
     tvlUsd: number | null;
     volumeShare: number;
-  }): DexPool => ({
-    address,
-    apr: feeApr({ feesUsd24h: data.feeUSD1d * volumeShare, tvlUsd }),
-    chainId: mainnet.id,
-    coins: tokens.map((token, index) => ({
-      address: token.address,
-      amount: amounts[index],
-    })),
-    dex: "sushi",
-    range,
-    rewards: [],
-    tvlUsd,
-    volumeUsd24h: data.volumeUSD1d * volumeShare,
-  });
+  }): DexPool {
+    const feesUsd24h = data.feeUSD1d * volumeShare;
+    return {
+      address,
+      apr: feeApr({ feesUsd24h, tvlUsd }),
+      chainId: mainnet.id,
+      coins: tokens.map((token, index) => ({
+        address: token.address,
+        amount: amounts[index],
+        symbol: token.symbol,
+        usdPrice: usdPrices[index],
+      })),
+      dex: "sushi",
+      // The fee tier is in hundredths of a basis point, as on Uniswap.
+      dexMetadata: { feeTier: Math.round(data.swapFee * 1_000_000) },
+      feesUsd24h,
+      range,
+      rewards: [],
+      tvlUsd,
+      volumeUsd24h: data.volumeUSD1d * volumeShare,
+    };
+  };
 
   const fullRange = buildPool({
     amounts: [data.reserve0, data.reserve1].map(
@@ -279,7 +332,7 @@ const getSushiPool = async function ({
     decimals1: tokens[1].decimals,
   };
 
-  const [poolState, poolSwaps, prices] = await Promise.all([
+  const [poolState, poolSwaps] = await Promise.all([
     fetchV3PoolState({
       client,
       lowerTick: priceToTick({
@@ -298,30 +351,12 @@ const getSushiPool = async function ({
       return undefined;
     }),
     poolSwapsPromise,
-    getUsdPrices(portalApiUrl).catch(function (error) {
-      console.warn(`Failed to get USD prices: ${error.message}`);
-      return {};
-    }),
   ]);
 
   if (!poolState || !poolSwaps) {
     return [fullRange];
   }
 
-  const token1IsReference = !isTrackedToken(tokens[1].address);
-  const referenceAddress = tokens[token1IsReference ? 1 : 0].address;
-  const referencePrice = portalUsdPrice({ address: referenceAddress, prices });
-  if (referencePrice === undefined) {
-    console.warn(
-      `No USD price for ${referenceAddress}, so its Sushi ranges have no TVL`,
-    );
-  }
-  const usdPrices =
-    referencePrice === undefined
-      ? [undefined, undefined]
-      : token1IsReference
-        ? [data.token1Price * referencePrice, referencePrice]
-        : [referencePrice, data.token0Price * referencePrice];
   const { opening, swaps } = splitOpeningSwap({
     currentTick: poolState.currentTick,
     poolSwaps,
@@ -368,7 +403,13 @@ export async function getSushiPools({
   portalApiUrl: string;
   subgraphApiKey: string | undefined;
 }) {
-  const discovered = await findV3Pools({ client, factoryAddress });
+  const [discovered, prices] = await Promise.all([
+    findV3Pools({ client, factoryAddress }),
+    getUsdPrices(portalApiUrl).catch(function (error) {
+      console.warn(`Failed to get USD prices: ${error.message}`);
+      return {};
+    }),
+  ]);
   const addresses = [
     ...discovered.map((pool) => pool.address),
     ...poolRanges
@@ -384,7 +425,7 @@ export async function getSushiPools({
         address,
         client,
         nowSeconds,
-        portalApiUrl,
+        prices,
         subgraphApiKey,
       }),
     ),

@@ -49,8 +49,8 @@ const poolsQuery = `
         feesUSD
         volumeUSD
       }
-      token0 { derivedMatic id }
-      token1 { derivedMatic id }
+      token0 { derivedMatic id symbol }
+      token1 { derivedMatic id symbol }
       totalValueLockedToken0
       totalValueLockedToken1
     }
@@ -61,6 +61,7 @@ type RawToken = {
   // The token price in the native token of the chain.
   derivedMatic: string;
   id: Address;
+  symbol: string;
 };
 
 type BrownfiPool = {
@@ -97,26 +98,26 @@ const buildPool = function ({
     return {
       address: checksumAddress(token.id),
       amount: Number(amount),
+      symbol: token.symbol,
       usdPrice:
         nativeUsdPrice !== undefined && derived > 0
           ? derived * nativeUsdPrice
-          : undefined,
+          : null,
     };
   });
   const tvlUsd = poolTvlUsd(coins);
+  const feesUsd24h = sum(pool.poolHourData.map((bucket) => bucket.feesUSD));
   return {
     address: checksumAddress(pool.id),
-    apr: feeApr({
-      feesUsd24h: sum(pool.poolHourData.map((bucket) => bucket.feesUSD)),
-      tvlUsd,
-    }),
+    apr: feeApr({ feesUsd24h, tvlUsd }),
     chainId: hemi.id,
-    coins: coins.map(({ address, amount }) => ({ address, amount })),
+    coins,
     dex: "brownfi",
     dexMetadata: {
       fee: Number(pool.fee),
       overrideFee: Number(pool.overrideFee),
     },
+    feesUsd24h,
     rewards: [],
     tvlUsd,
     volumeUsd24h: sum(pool.poolHourData.map((bucket) => bucket.volumeUSD)),

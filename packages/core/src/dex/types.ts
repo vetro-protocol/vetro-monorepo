@@ -1,6 +1,11 @@
 import type { Address, Hash } from "viem";
 
-type PoolCoin = { address: Address; amount: number };
+type PoolCoin = {
+  address: Address;
+  amount: number;
+  symbol: string;
+  usdPrice: number | null;
+};
 
 export type DexPoolRange = { lowerPrice: number; upperPrice: number };
 
@@ -26,16 +31,20 @@ type PoolDex =
       dexMetadata: {
         gaugeAddress?: Address;
         lpTokenAddress?: Address;
+        name: string;
         poolId: string;
+        registryId: string;
+        stakeDaoStrategyKey?: string;
       };
     }
-  | { dex: "sushi" | "uniswap" };
+  | { dex: "sushi" | "uniswap"; dexMetadata: { feeTier: number } };
 
 export type DexPool = {
   address: Address;
   apr: number | null;
   chainId: number;
   coins: PoolCoin[];
+  feesUsd24h: number | null;
   range?: DexPoolRange;
   rewards: DexPoolReward[];
   tvlUsd: number | null;

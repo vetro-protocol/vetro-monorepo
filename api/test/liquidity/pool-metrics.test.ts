@@ -16,7 +16,7 @@ describe("liquidity/poolTvlUsd", function () {
     expect(
       poolTvlUsd([
         { amount: 100, usdPrice: 2 },
-        { amount: 50, usdPrice: undefined },
+        { amount: 50, usdPrice: null },
       ]),
     ).toBeNull();
   });
