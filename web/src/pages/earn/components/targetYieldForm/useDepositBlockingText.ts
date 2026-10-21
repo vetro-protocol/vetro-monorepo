@@ -65,6 +65,7 @@ export function useDepositBlockingText(stakingVaultAddress: Address) {
       depositRequestOptions({
         client,
         controller: account,
+        isEntryWindowOpen: isWindowOpen,
         stakingVaultAddress,
       }),
       maxRequestDepositOptions({
