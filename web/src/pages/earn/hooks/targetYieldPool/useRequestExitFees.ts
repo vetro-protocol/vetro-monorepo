@@ -1,25 +1,59 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type { Token } from "@vetro-protocol/core";
 import { fetchRequestExitFees } from "fetchers/earn/targetYieldPool/fetchRequestExitFees";
+import { useEthereumClient } from "hooks/useEthereumClient";
+import type { Address, Client } from "viem";
+import { useAccount } from "wagmi";
 
 const requestExitFeesOptions = ({
-  amount,
-  token,
+  client,
+  enabled,
+  owner,
+  shares,
+  stakingVaultAddress,
 }: {
-  amount: bigint;
-  token: Token;
+  client: Client | undefined;
+  enabled: boolean;
+  owner: Address | undefined;
+  shares: bigint;
+  stakingVaultAddress: Address;
 }) =>
   queryOptions({
-    enabled: amount > 0n,
+    enabled: enabled && !!client && !!owner && shares > 0n,
     queryFn: ({ client: queryClient }) =>
-      fetchRequestExitFees({ queryClient, token }),
-    queryKey: ["target-yield-pool-request-exit-fees", token.address],
+      fetchRequestExitFees({
+        client: client!,
+        owner: owner!,
+        queryClient,
+        shares,
+        stakingVaultAddress,
+      }),
+    queryKey: [
+      "target-yield-pool-request-exit-fees",
+      stakingVaultAddress,
+      owner,
+      shares.toString(),
+    ],
   });
 
-export const useRequestExitFees = ({
-  amount,
-  token,
+export const useRequestExitFees = function ({
+  enabled,
+  shares,
+  stakingVaultAddress,
 }: {
-  amount: bigint;
-  token: Token;
-}) => useQuery(requestExitFeesOptions({ amount, token }));
+  enabled: boolean;
+  shares: bigint;
+  stakingVaultAddress: Address;
+}) {
+  const { address: owner } = useAccount();
+  const client = useEthereumClient();
+
+  return useQuery(
+    requestExitFeesOptions({
+      client,
+      enabled,
+      owner,
+      shares,
+      stakingVaultAddress,
+    }),
+  );
+};

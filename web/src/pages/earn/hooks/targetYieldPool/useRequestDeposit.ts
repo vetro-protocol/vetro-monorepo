@@ -18,6 +18,7 @@ import { depositRequestQueryKey } from "./useDepositRequest";
 import { depositsQueryKey } from "./useDeposits";
 import { type Epoch, epochQueryKey } from "./useEpoch";
 import { useEpochId } from "./useEpochId";
+import { useIsOpenToExit } from "./useIsOpenToExit";
 import { maxRequestDepositQueryKey } from "./useMaxRequestDeposit";
 import { maxRequestRedeemQueryKey } from "./useMaxRequestRedeem";
 import { redeemRequestQueryKey } from "./useRedeemRequest";
@@ -47,6 +48,7 @@ export const useRequestDeposit = function ({
   const queryClient = useQueryClient();
 
   const { data: epochId } = useEpochId(stakingVaultAddress);
+  const { data: isOpenToExit } = useIsOpenToExit(stakingVaultAddress);
   const { queryKey: nativeBalanceKey } = useNativeBalance(peggedToken.chainId);
   const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
     peggedToken.chainId,
@@ -168,6 +170,7 @@ export const useRequestDeposit = function ({
       queryClient.invalidateQueries({
         queryKey: redeemRequestQueryKey({
           controller: account,
+          isOpenToExit,
           stakingVaultAddress,
         }),
       });
@@ -182,7 +185,11 @@ export const useRequestDeposit = function ({
       }
 
       queryClient.invalidateQueries({
-        queryKey: maxRequestRedeemQueryKey({ account, stakingVaultAddress }),
+        queryKey: maxRequestRedeemQueryKey({
+          account,
+          isOpenToExit,
+          stakingVaultAddress,
+        }),
       });
 
       // Refetch (not just invalidate) shares: it feeds useStakedBalance.

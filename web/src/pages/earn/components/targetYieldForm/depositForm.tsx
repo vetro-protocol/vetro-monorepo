@@ -81,6 +81,14 @@ const getSubmitTexts = ({
       : t("pages.earn.fixed-term.requesting-deposit"),
 });
 
+const getFeeAmount = ({
+  debouncedAmount,
+  submitted,
+}: {
+  debouncedAmount: bigint;
+  submitted: { assets: bigint } | null;
+}) => (submitted ? submitted.assets : debouncedAmount);
+
 export function DepositForm({
   approvalCompleted,
   approve10x,
@@ -146,13 +154,15 @@ export function DepositForm({
     : formState.data?.blockingText;
 
   const maxRequestDeposit = formState.data?.maxRequestDeposit;
+  const feeAmount = getFeeAmount({ debouncedAmount, submitted });
+
   const requestFeesQuery = useRequestDepositFees({
-    amount: debouncedAmount,
-    approveAmount: approve10x ? debouncedAmount * 10n : undefined,
+    amount: feeAmount,
+    approveAmount: approve10x ? feeAmount * 10n : undefined,
     enabled:
       !blockingText &&
       maxRequestDeposit !== undefined &&
-      debouncedAmount <= maxRequestDeposit,
+      feeAmount <= maxRequestDeposit,
     stakingVaultAddress,
     token: peggedToken,
   });
@@ -260,6 +270,7 @@ export function DepositForm({
 
   function handleCloseDrawer() {
     setRequestCloseDrawer(false);
+    setSubmitted(null);
     onDrawerOpenChange(false);
   }
 
