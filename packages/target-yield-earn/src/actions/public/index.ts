@@ -1,6 +1,8 @@
 export * from "./getCancelableDepositRequest.ts";
+export * from "./getCancelableRedeemRequest.ts";
 export * from "./getCanEntry.ts";
 export * from "./getClaimableDepositRequest.ts";
+export * from "./getClaimableRedeemRequest.ts";
 export * from "./getEntryGate.ts";
 export * from "./getEpoch.ts";
 export * from "./getEpochId.ts";
@@ -11,4 +13,5 @@ export * from "./getMaxMint.ts";
 export * from "./getMaxRequestDeposit.ts";
 export * from "./getMaxRequestRedeem.ts";
 export * from "./getPendingDepositRequest.ts";
+export * from "./getPendingRedeemRequest.ts";
 export * from "./getRate.ts";
