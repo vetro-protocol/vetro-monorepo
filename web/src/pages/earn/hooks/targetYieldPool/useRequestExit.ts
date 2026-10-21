@@ -112,6 +112,7 @@ export const useRequestExit = function ({
       return {
         mayClaimShares:
           depositRequest === undefined || depositRequest.claimableAssets > 0n,
+        shares,
       };
     },
     async onSettled() {
@@ -145,7 +146,7 @@ export const useRequestExit = function ({
       }
 
       const subtractShares = (old: bigint | undefined) =>
-        old !== undefined ? old - shares : old;
+        old !== undefined ? old - context.shares : old;
 
       queryClient.setQueryData(sharesBalanceKey, subtractShares);
       queryClient.setQueryData(maxRequestRedeemKey, subtractShares);
