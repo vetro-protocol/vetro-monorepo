@@ -271,6 +271,7 @@
     "earn": {
       "activity": {
         "cancel-withdraw-text": "Exit ticket de {{amount}} {{symbol}} eliminado",
+        "claim-deposit-text": "{{amount}} {{symbol}} reclamado",
         "claim-withdraw-text": "{{amount}} {{symbol}} retirado",
         "deposit-text": "{{amount}} {{symbol}} depositado",
         "instant-withdraw-text": "{{amount}} {{symbol}} retirado",
@@ -343,6 +344,12 @@
         "cancel": "Cancelar",
         "cap-reached": "Capacidad del fondo alcanzada",
         "capacity-remaining": "<amount>{{amount}}</amount> restante",
+        "claim-deposit-in-progress": "Reclamo en progreso",
+        "claim-deposit-progress": "Progreso del reclamo",
+        "claim-deposit-step-confirm-description": "Revise los detalles y confirme el reclamo en su billetera.",
+        "claim-deposit-step-confirm-title": "Confirmar reclamo",
+        "claim-deposit-toast-description": "Sus {{symbol}} ya están en su billetera.",
+        "claim-deposit-toast-title": "Reclamo confirmado",
         "claim-shares": "Reclamar {{symbol}}",
         "claimable": "Reclamable",
         "deposit": "Depósito",
