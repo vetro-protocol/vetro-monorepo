@@ -5,6 +5,7 @@ import { isEntryWindowOpen } from "pages/earn/components/fixedTermEarn/isOpenToD
 import { canEntryOptions } from "pages/earn/hooks/targetYieldPool/useCanEntry";
 import { depositRequestOptions } from "pages/earn/hooks/targetYieldPool/useDepositRequest";
 import { useDepositState } from "pages/earn/hooks/targetYieldPool/useDepositState";
+import { useIsEntryWindowOpen } from "pages/earn/hooks/targetYieldPool/useIsEntryWindowOpen";
 import { maxRequestDepositOptions } from "pages/earn/hooks/targetYieldPool/useMaxRequestDeposit";
 import { useTranslation } from "react-i18next";
 import { combineQueryResults } from "utils/queries";
@@ -24,6 +25,7 @@ export function useDepositBlockingText(stakingVaultAddress: Address) {
   const client = useEthereumClient();
   const { t } = useTranslation();
   const depositState = useDepositState(stakingVaultAddress);
+  const isWithinEntryWindow = useIsEntryWindowOpen(stakingVaultAddress);
   const now = BigInt(
     useNowTickingPast(
       depositState.data
@@ -65,7 +67,7 @@ export function useDepositBlockingText(stakingVaultAddress: Address) {
       depositRequestOptions({
         client,
         controller: account,
-        isEntryWindowOpen: isWindowOpen,
+        isEntryWindowOpen: isWithinEntryWindow,
         stakingVaultAddress,
       }),
       maxRequestDepositOptions({
