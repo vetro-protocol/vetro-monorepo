@@ -83,8 +83,8 @@ describe("variable-yield cancel", function () {
     return { functionName, requestId };
   };
 
-  const openTicket = (amount = assets) =>
-    requestWithdraw({ assets: amount, rpcUrl, vault: sVusdAddress });
+  const openTicket = () =>
+    requestWithdraw({ assets, rpcUrl, vault: sVusdAddress });
 
   const readShares = () =>
     balanceOf(publicClient, { account: TEST_ADDRESS, address: sVusdAddress });
