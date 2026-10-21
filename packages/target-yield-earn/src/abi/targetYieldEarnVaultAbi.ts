@@ -178,4 +178,15 @@ export const targetYieldEarnVaultAbi = [
     stateMutability: "view",
     type: "function",
   },
+  {
+    inputs: [
+      { name: "shares_", type: "uint256" },
+      { name: "receiver_", type: "address" },
+      { name: "controller_", type: "address" },
+    ],
+    name: "redeem",
+    outputs: [{ type: "uint256" }],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
 ] as const;
