@@ -14,7 +14,7 @@ export function register(variableYield: Command) {
   variableYield
     .command("claim-all")
     .description(
-      "Print the calldata to claim every ready exit ticket of an account in one transaction: the vault pays their locked pegged token to the receiver",
+      "Print the calldata to claim every ready exit ticket of an account on the vault of the token in one transaction: the vault pays their locked pegged token to the receiver",
     )
     .requiredOption(
       "--token <token>",
