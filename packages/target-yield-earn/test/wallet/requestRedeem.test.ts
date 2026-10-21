@@ -1,6 +1,7 @@
 import {
   type Address,
   decodeFunctionData,
+  isAddressEqual,
   type TransactionReceipt,
   type WalletClient,
   zeroAddress,
@@ -73,7 +74,9 @@ function mockMaxRequestRedeem({
   vaultMax?: bigint;
 }) {
   vi.mocked(getMaxRequestRedeem).mockImplementation((_, { owner }) =>
-    Promise.resolve(owner === validParameters.address ? vaultMax : ownerMax),
+    Promise.resolve(
+      isAddressEqual(owner, validParameters.address) ? vaultMax : ownerMax,
+    ),
   );
 }
 
