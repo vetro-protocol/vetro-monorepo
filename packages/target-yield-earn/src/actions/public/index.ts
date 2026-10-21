@@ -6,6 +6,7 @@ export * from "./getClaimableRedeemRequest.ts";
 export * from "./getEntryGate.ts";
 export * from "./getEpoch.ts";
 export * from "./getEpochId.ts";
+export * from "./getIsOperator.ts";
 export * from "./getIsPaused.ts";
 export * from "./getIsShutdown.ts";
 export * from "./getIsTerminated.ts";

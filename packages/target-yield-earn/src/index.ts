@@ -9,6 +9,7 @@ import {
   getEntryGate,
   getEpoch,
   getEpochId,
+  getIsOperator,
   getIsPaused,
   getIsShutdown,
   getIsTerminated,
@@ -55,6 +56,8 @@ export const targetYieldEarnPublicActions = () => (client: Client) => ({
     getEpoch(client, params),
   getEpochId: (params: Parameters<typeof getEpochId>[1]) =>
     getEpochId(client, params),
+  getIsOperator: (params: Parameters<typeof getIsOperator>[1]) =>
+    getIsOperator(client, params),
   getIsPaused: (params: Parameters<typeof getIsPaused>[1]) =>
     getIsPaused(client, params),
   getIsShutdown: (params: Parameters<typeof getIsShutdown>[1]) =>

@@ -8,15 +8,15 @@ import {
   type TransactionReceipt,
   type WalletClient,
 } from "viem";
-import { readContract, waitForTransactionReceipt } from "viem/actions";
+import { waitForTransactionReceipt } from "viem/actions";
 import { erc7540Abi } from "viem-erc7540";
 import {
   allowance,
   requestRedeem as erc7540RequestRedeem,
 } from "viem-erc7540/actions";
 
-import { targetYieldEarnVaultAbi } from "../../abi/targetYieldEarnVaultAbi.ts";
 import type { RequestRedeemEvents } from "../../types.ts";
+import { getIsAccountOrOperator } from "../../utils/getIsAccountOrOperator.ts";
 import { getIsShutdown } from "../public/getIsShutdown.ts";
 import { getMaxMint } from "../public/getMaxMint.ts";
 import { getMaxRequestRedeem } from "../public/getMaxRequestRedeem.ts";
@@ -41,16 +41,13 @@ const getIsAuthorized = async function ({
   owner: Address;
   shares: bigint;
 }) {
-  if (isAddressEqual(account, owner)) {
-    return true;
-  }
-  const isOperator = await readContract(client, {
-    abi: targetYieldEarnVaultAbi,
+  const isOwnerOrOperator = await getIsAccountOrOperator({
+    account,
     address,
-    args: [owner, account],
-    functionName: "isOperator",
+    client,
+    owner,
   });
-  if (isOperator) {
+  if (isOwnerOrOperator) {
     return true;
   }
   const currentAllowance = await allowance(client, {
