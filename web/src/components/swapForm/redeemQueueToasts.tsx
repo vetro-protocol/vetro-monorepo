@@ -6,8 +6,7 @@ type Props = {
   onClose: VoidFunction;
   peggedToken: Token;
 } & (
-  | { toToken?: undefined; type: "cancel" }
-  | { toToken: Token; type: "redeem" }
+  { toToken?: undefined; type: "cancel" } | { toToken: Token; type: "redeem" }
 );
 
 export function RedeemQueueToasts({

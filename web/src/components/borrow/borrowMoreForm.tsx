@@ -43,11 +43,7 @@ import { formatUnits } from "viem";
 import { PositionReview } from "./positionReview";
 
 type BorrowMoreFlowStatus =
-  | "borrow-error"
-  | "borrow-ready"
-  | "borrowed"
-  | "borrowing"
-  | "idle";
+  "borrow-error" | "borrow-ready" | "borrowed" | "borrowing" | "idle";
 
 const getBorrowStepStatus = function (
   status: Exclude<BorrowMoreFlowStatus, "idle">,

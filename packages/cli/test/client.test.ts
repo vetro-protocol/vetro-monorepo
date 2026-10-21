@@ -9,8 +9,7 @@ const rpcUrl = "https://rpc.example";
 const stubEndpointOnChain = function (chainId: number) {
   const fetchMock = vi.fn(async function (_url: string, { body }: RequestInit) {
     const request = JSON.parse(String(body)) as
-      | { id: number }[]
-      | { id: number };
+      { id: number }[] | { id: number };
     const respond = ({ id }: { id: number }) => ({
       id,
       jsonrpc: "2.0",
