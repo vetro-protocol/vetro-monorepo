@@ -270,6 +270,7 @@
     },
     "earn": {
       "activity": {
+        "cancel-deposit-text": "Solicitud de depósito de {{amount}} {{symbol}} cancelada",
         "cancel-withdraw-text": "Exit ticket de {{amount}} {{symbol}} eliminado",
         "claim-deposit-text": "{{amount}} {{symbol}} reclamado",
         "claim-withdraw-text": "{{amount}} {{symbol}} retirado",
@@ -342,6 +343,13 @@
         "available-after": "Disponible después de",
         "available-after-info": "Puede reclamar sus {{symbol}} cuando el plazo termine y la solicitud se complete.",
         "cancel": "Cancelar",
+        "cancel-deposit-in-progress": "Cancelación en progreso",
+        "cancel-deposit-progress": "Progreso de la cancelación",
+        "cancel-deposit-request": "Cancelar solicitud de depósito",
+        "cancel-deposit-step-confirm-description": "Revise los detalles y confirme la cancelación en su billetera.",
+        "cancel-deposit-step-confirm-title": "Confirmar cancelación",
+        "cancel-deposit-toast-description": "Sus {{symbol}} están de nuevo en su billetera.",
+        "cancel-deposit-toast-title": "Solicitud de depósito cancelada",
         "cap-reached": "Capacidad del fondo alcanzada",
         "capacity-remaining": "<amount>{{amount}}</amount> restante",
         "claim-deposit-in-progress": "Reclamo en progreso",

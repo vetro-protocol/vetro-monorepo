@@ -8,17 +8,12 @@ import { emptyDepositRequest } from "fetchers/earn/targetYieldPool/fetchDepositR
 import { useEthereumWalletClient } from "hooks/useEthereumWalletClient";
 import { stakedBalanceQueryKey } from "hooks/useStakedBalance";
 import { stakedUsdQueryKey } from "hooks/useStakedUsd";
-import {
-  type Address,
-  erc4626Abi,
-  isAddressEqual,
-  maxUint256,
-  parseEventLogs,
-  type TransactionReceipt,
-} from "viem";
+import { getReceivedAmount } from "utils/receipt";
+import { type Address, maxUint256, type TransactionReceipt } from "viem";
 import { useAccount } from "wagmi";
 
 import { depositRequestQueryKey } from "./useDepositRequest";
+import { useIsEntryWindowOpen } from "./useIsEntryWindowOpen";
 import { maxRequestRedeemQueryKey } from "./useMaxRequestRedeem";
 
 export type ClaimDepositEmitter = ReturnType<typeof claimDeposit>["emitter"];
@@ -43,8 +38,11 @@ export const useClaimDeposit = function ({
   const updateNativeBalanceAfterReceipt =
     useUpdateNativeBalanceAfterReceipt(chainId);
 
+  const isEntryWindowOpen = useIsEntryWindowOpen(stakingVaultAddress);
+
   const depositRequestKey = depositRequestQueryKey({
     controller: account,
+    isEntryWindowOpen,
     stakingVaultAddress,
   });
 
@@ -82,13 +80,7 @@ export const useClaimDeposit = function ({
         function (receipt: TransactionReceipt) {
           updateNativeBalanceAfterReceipt(receipt);
 
-          const depositLog = parseEventLogs({
-            abi: erc4626Abi,
-            eventName: "Deposit",
-            logs: receipt.logs,
-          }).find((log) => isAddressEqual(log.address, stakingVaultAddress));
-          // It will always be found, otherwise tx wouldn't have succeeded
-          const shares = depositLog!.args.shares;
+          const shares = getReceivedAmount({ account, logs: receipt.logs });
 
           queryClient.setQueryData(depositRequestKey, emptyDepositRequest);
           queryClient.setQueryData(

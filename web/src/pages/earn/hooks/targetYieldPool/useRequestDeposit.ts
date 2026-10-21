@@ -60,6 +60,7 @@ export const useRequestDeposit = function ({
 
   const depositRequestKey = depositRequestQueryKey({
     controller: account,
+    isEntryWindowOpen: true,
     stakingVaultAddress,
   });
 

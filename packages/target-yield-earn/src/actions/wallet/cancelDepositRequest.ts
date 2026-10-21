@@ -6,18 +6,24 @@ import {
   type TransactionReceipt,
   type WalletClient,
   encodeFunctionData,
+  isAddressEqual,
 } from "viem";
-import { waitForTransactionReceipt, writeContract } from "viem/actions";
+import {
+  readContract,
+  waitForTransactionReceipt,
+  writeContract,
+} from "viem/actions";
 
 import { targetYieldEarnVaultAbi } from "../../abi/targetYieldEarnVaultAbi.ts";
 import type { CancelDepositRequestEvents } from "../../types.ts";
+import { getCancelableDepositRequest } from "../public/getCancelableDepositRequest.ts";
 
 export type CancelDepositRequestParams = {
   address: Address;
   controller: Address;
 };
 
-const canCancelDepositRequest = function ({
+const canCancelDepositRequest = async function ({
   address,
   client,
   controller,
@@ -25,10 +31,10 @@ const canCancelDepositRequest = function ({
   address: Address;
   client: WalletClient;
   controller: Address;
-}): {
+}): Promise<{
   canCancelDepositRequest: boolean;
   reason?: string;
-} {
+}> {
   if (!client) {
     return {
       canCancelDepositRequest: false,
@@ -60,6 +66,31 @@ const canCancelDepositRequest = function ({
     };
   }
 
+  const account = client.account.address;
+  const [isAuthorized, cancelableAssets] = await Promise.all([
+    isAddressEqual(account, controller) ||
+      readContract(client, {
+        abi: targetYieldEarnVaultAbi,
+        address,
+        args: [controller, account],
+        functionName: "isOperator",
+      }),
+    getCancelableDepositRequest(client, { address, controller }),
+  ]);
+
+  if (!isAuthorized) {
+    return {
+      canCancelDepositRequest: false,
+      reason: "Account is not the controller or its operator",
+    };
+  }
+  if (cancelableAssets === 0n) {
+    return {
+      canCancelDepositRequest: false,
+      reason: "No cancelable deposit request",
+    };
+  }
+
   return { canCancelDepositRequest: true };
 };
 
@@ -72,7 +103,7 @@ const runCancelDepositRequest = (
       const { address, controller } = params;
 
       const { canCancelDepositRequest: canCancelDepositRequestFlag, reason } =
-        canCancelDepositRequest({
+        await canCancelDepositRequest({
           address,
           client: walletClient,
           controller,

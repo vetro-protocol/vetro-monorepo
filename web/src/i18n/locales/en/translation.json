@@ -269,6 +269,7 @@
     },
     "earn": {
       "activity": {
+        "cancel-deposit-text": "{{amount}} {{symbol}} deposit request cancelled",
         "cancel-withdraw-text": "{{amount}} {{symbol}} exit ticket deleted",
         "claim-deposit-text": "{{amount}} {{symbol}} claimed",
         "claim-withdraw-text": "{{amount}} {{symbol}} withdrawn",
@@ -339,6 +340,13 @@
         "available-after": "Available after",
         "available-after-info": "You can claim your {{symbol}} after the term ends and the request is fulfilled.",
         "cancel": "Cancel",
+        "cancel-deposit-in-progress": "Cancellation in progress",
+        "cancel-deposit-progress": "Cancellation progress",
+        "cancel-deposit-request": "Cancel deposit request",
+        "cancel-deposit-step-confirm-description": "Review the details and confirm the cancellation in your wallet.",
+        "cancel-deposit-step-confirm-title": "Confirm cancellation",
+        "cancel-deposit-toast-description": "Your {{symbol}} is back in your wallet.",
+        "cancel-deposit-toast-title": "Deposit request cancelled",
         "cap-reached": "Pool capacity reached",
         "capacity-remaining": "<amount>{{amount}}</amount> remaining",
         "claim-deposit-in-progress": "Claim in progress",
