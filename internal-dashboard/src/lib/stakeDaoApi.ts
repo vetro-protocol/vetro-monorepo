@@ -19,20 +19,6 @@ export type StakeDaoCampaign = {
   totalRewardAmount: string;
 };
 
-export type StakeDaoStrategy = {
-  // Missing on some upstream entries.
-  apr?: { current: { total: number } }; // % incl. trading fees
-  gaugeAddress: Address;
-  key: string;
-  rewards: {
-    // Both 0 on the vault's own CRV entry.
-    apr: number; // %
-    end: number; // seconds
-    token: { symbol: string };
-  }[];
-  tradingApy: number; // %
-};
-
 const stakeDaoProxyApiUrl = "/api/stakedao";
 
 export const fetchCurveCampaigns = (

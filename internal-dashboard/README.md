@@ -4,15 +4,17 @@ Internal-facing dashboard for tracking various operational metrics. Each metric 
 lives on its own tab, mapped to a URL.
 
 - **DEX** (`/dex`) — liquidity of the tracked Vetro pools on Curve, Sushi and
-  Uniswap (Ethereum) and BrownFi (Hemi). Each pool also has a detail view at
-  `/dex/:poolId` and the page shows the total TVL in USD.
+  Uniswap (Ethereum) and BrownFi (Hemi), read from the VETRO API
+  (`GET /liquidity/pools`). Each pool also has a detail view at `/dex/:poolId`
+  and the page shows the total TVL in USD.
 - **Hemi Earn** (`/hemi-earn`) — status of the Hemi Earn agent: keepers,
   ownership, proxy implementation and its pending vault cooldowns.
 
 `/` and unknown paths redirect to the DEX tab.
 
 It's a Vite + React + TypeScript + Tailwind v4 SPA, deployed to Cloudflare via a Worker
-that serves the static assets and injects security headers (see `src/index.ts`).
+that serves the static assets, injects security headers, and proxies the Merkl and
+StakeDAO campaign APIs (see `src/index.ts`).
 
 ## Environment Variables
 
@@ -27,17 +29,6 @@ Set these in `internal-dashboard/.env` (or a `.env.local` override) before you r
 The Worker builds its `connect-src` CSP directive from the same variables (see `src/index.ts`), so an override is allowed by the CSP without more changes.
 
 For the deployed dashboard, set the production values as Cloudflare Workers Builds variables in the Cloudflare dashboard. Vite gives these priority over the committed `.env` at build time. Thus the paid RPC URL stays out of the repository.
-
-### Worker secrets
-
-`THEGRAPH_API_KEY` is a The Graph gateway key, used to read the BrownFi and Sushi subgraphs.
-For development, put it in `internal-dashboard/.dev.vars` (gitignored):
-
-```ini
-THEGRAPH_API_KEY = "your-key"
-```
-
-For the deployed dashboard, add it as a Cloudflare secret (Workers → Settings → Variables and Secrets).
 
 ## Development
 
