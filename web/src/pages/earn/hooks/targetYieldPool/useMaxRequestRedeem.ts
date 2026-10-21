@@ -4,6 +4,14 @@ import { useEthereumClient } from "hooks/useEthereumClient";
 import type { Address, Client } from "viem";
 import { useAccount } from "wagmi";
 
+export const maxRequestRedeemQueryKey = ({
+  account,
+  stakingVaultAddress,
+}: {
+  account: Address | undefined;
+  stakingVaultAddress: Address;
+}) => ["target-yield-pool-max-request-redeem", account, stakingVaultAddress];
+
 const maxRequestRedeemOptions = ({
   account,
   client,
@@ -21,11 +29,7 @@ const maxRequestRedeemOptions = ({
         controller: account!,
         owner: account!,
       }),
-    queryKey: [
-      "target-yield-pool-max-request-redeem",
-      account,
-      stakingVaultAddress,
-    ],
+    queryKey: maxRequestRedeemQueryKey({ account, stakingVaultAddress }),
   });
 
 export function useMaxRequestRedeem(stakingVaultAddress: Address) {

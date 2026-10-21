@@ -19,6 +19,7 @@ import { depositsQueryKey } from "./useDeposits";
 import { type Epoch, epochQueryKey } from "./useEpoch";
 import { useEpochId } from "./useEpochId";
 import { maxRequestDepositQueryKey } from "./useMaxRequestDeposit";
+import { maxRequestRedeemQueryKey } from "./useMaxRequestRedeem";
 import { redeemRequestQueryKey } from "./useRedeemRequest";
 
 export type RequestDepositEmitter = ReturnType<
@@ -178,6 +179,10 @@ export const useRequestDeposit = function ({
       if (!context?.mayClaimShares) {
         return;
       }
+
+      queryClient.invalidateQueries({
+        queryKey: maxRequestRedeemQueryKey({ account, stakingVaultAddress }),
+      });
 
       // Refetch (not just invalidate) shares: it feeds useStakedBalance.
       await queryClient.refetchQueries({ queryKey: sharesBalanceKey });
