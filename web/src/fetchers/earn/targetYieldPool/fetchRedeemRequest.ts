@@ -17,6 +17,15 @@ export type RedeemRequest = {
   pendingShares: bigint;
 };
 
+export const emptyRedeemRequest: RedeemRequest = {
+  cancelableShares: 0n,
+  claimableAssets: 0n,
+  claimableShares: 0n,
+  maxRedeemShares: 0n,
+  pendingAssets: 0n,
+  pendingShares: 0n,
+};
+
 export const fetchRedeemRequest = async function ({
   client,
   controller,
