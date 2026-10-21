@@ -6,6 +6,14 @@ import type { Address, Client } from "viem";
 import { combineWithEpochId } from "./combineWithEpochId";
 import { useEpochId } from "./useEpochId";
 
+export const depositsQueryKey = ({
+  epochId,
+  stakingVaultAddress,
+}: {
+  epochId: bigint | undefined;
+  stakingVaultAddress: Address;
+}) => ["target-yield-pool-deposits", stakingVaultAddress, epochId?.toString()];
+
 const depositsOptions = ({
   client,
   epochId,
@@ -24,11 +32,7 @@ const depositsOptions = ({
         queryClient,
         stakingVaultAddress,
       }),
-    queryKey: [
-      "target-yield-pool-deposits",
-      stakingVaultAddress,
-      epochId?.toString(),
-    ],
+    queryKey: depositsQueryKey({ epochId, stakingVaultAddress }),
   });
 
 export function useDeposits(stakingVaultAddress: Address) {

@@ -5,6 +5,14 @@ import { useAccount } from "wagmi";
 
 import { getRedeemRequestState } from "./getRedeemRequestState";
 
+export const redeemRequestQueryKey = ({
+  controller,
+  stakingVaultAddress,
+}: {
+  controller: Address | undefined;
+  stakingVaultAddress: Address;
+}) => ["target-yield-pool-redeem-request", stakingVaultAddress, controller];
+
 const redeemRequestOptions = ({
   controller,
   stakingVaultAddress,
@@ -16,11 +24,7 @@ const redeemRequestOptions = ({
     enabled: !!controller,
     queryFn: () =>
       fetchRedeemRequest({ controller: controller!, stakingVaultAddress }),
-    queryKey: [
-      "target-yield-pool-redeem-request",
-      stakingVaultAddress,
-      controller,
-    ],
+    queryKey: redeemRequestQueryKey({ controller, stakingVaultAddress }),
     select: getRedeemRequestState,
   });
 

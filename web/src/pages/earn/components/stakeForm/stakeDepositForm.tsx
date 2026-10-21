@@ -225,7 +225,7 @@ export function StakeDepositForm({
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!inputError) {
+    if (!inputError && account) {
       setSubmitted({ amount: inputValue, assets: amountBigInt });
       onResetSteps();
       onDrawerOpenChange(true);

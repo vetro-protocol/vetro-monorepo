@@ -1,38 +1,44 @@
-import { queryOptions, useQuery } from "@tanstack/react-query";
+import { queryOptions } from "@tanstack/react-query";
 import { getMaxRequestDeposit } from "@vetro-protocol/target-yield-earn/actions";
-import { useEthereumClient } from "hooks/useEthereumClient";
 import type { Address, Client } from "viem";
-import { useAccount } from "wagmi";
 
-const maxRequestDepositOptions = ({
+export const maxRequestDepositQueryKey = ({
+  account,
+  isEntryWindowOpen,
+  stakingVaultAddress,
+}: {
+  account: Address | undefined;
+  isEntryWindowOpen: boolean | undefined;
+  stakingVaultAddress: Address;
+}) => [
+  "target-yield-pool-max-request-deposit",
+  account,
+  stakingVaultAddress,
+  isEntryWindowOpen,
+];
+
+export const maxRequestDepositOptions = ({
   account,
   client,
+  isEntryWindowOpen,
   stakingVaultAddress,
 }: {
   account: Address | undefined;
   client: Client | undefined;
+  isEntryWindowOpen: boolean | undefined;
   stakingVaultAddress: Address;
 }) =>
   queryOptions({
-    enabled: !!account && !!client,
+    enabled: !!account && !!client && isEntryWindowOpen !== undefined,
     queryFn: () =>
       getMaxRequestDeposit(client!, {
         address: stakingVaultAddress,
         controller: account!,
         owner: account!,
       }),
-    queryKey: [
-      "target-yield-pool-max-request-deposit",
+    queryKey: maxRequestDepositQueryKey({
       account,
+      isEntryWindowOpen,
       stakingVaultAddress,
-    ],
+    }),
   });
-
-export function useMaxRequestDeposit(stakingVaultAddress: Address) {
-  const { address: account } = useAccount();
-  const client = useEthereumClient();
-
-  return useQuery(
-    maxRequestDepositOptions({ account, client, stakingVaultAddress }),
-  );
-}

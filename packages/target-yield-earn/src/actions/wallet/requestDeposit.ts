@@ -3,11 +3,13 @@ import { EventEmitter } from "events";
 import { toPromiseEvent } from "to-promise-event";
 import {
   type Address,
+  encodeFunctionData,
   isAddressEqual,
   type TransactionReceipt,
   type WalletClient,
 } from "viem";
 import { waitForTransactionReceipt } from "viem/actions";
+import { erc7540Abi } from "viem-erc7540";
 import {
   allowance,
   approve,
@@ -230,3 +232,18 @@ const runRequestDeposit = (
 
 export const requestDeposit = (...args: Parameters<typeof runRequestDeposit>) =>
   toPromiseEvent<RequestDepositEvents>(runRequestDeposit(...args));
+
+export const encodeRequestDeposit = ({
+  assets,
+  controller,
+  owner,
+}: {
+  assets: bigint;
+  controller: Address;
+  owner: Address;
+}) =>
+  encodeFunctionData({
+    abi: erc7540Abi,
+    args: [assets, controller, owner],
+    functionName: "requestDeposit",
+  });
