@@ -145,9 +145,14 @@ export function DepositForm({
     ? t("pages.earn.fixed-term.deposit-state-error")
     : formState.data?.blockingText;
 
+  const maxRequestDeposit = formState.data?.maxRequestDeposit;
   const requestFeesQuery = useRequestDepositFees({
     amount: debouncedAmount,
     approveAmount: approve10x ? debouncedAmount * 10n : undefined,
+    enabled:
+      !blockingText &&
+      maxRequestDeposit !== undefined &&
+      debouncedAmount <= maxRequestDeposit,
     stakingVaultAddress,
     token: peggedToken,
   });
@@ -155,7 +160,7 @@ export function DepositForm({
   const inputError = getInputError({
     amount,
     balance: formState.data?.peggedTokenBalance,
-    maxRequest: formState.data?.maxRequestDeposit,
+    maxRequest: maxRequestDeposit,
     nativeBalance: formState.data?.nativeBalance,
   });
 
