@@ -1,18 +1,18 @@
 import type { Token } from "@vetro-protocol/core";
 import { SegmentedControl } from "components/base/segmentedControl";
 import { Toast } from "components/base/toast";
+import {
+  type DepositStep,
+  type WithdrawStep,
+  initialStakeFormState,
+  stakeFormReducer,
+} from "pages/earn/components/earnForm/stakeFormReducer";
 import { useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
 import type { Address } from "viem";
 
 import { StakeDepositForm } from "./stakeDepositForm";
-import {
-  type DepositStep,
-  type WithdrawStep,
-  initialStakeFormState,
-  stakeFormReducer,
-} from "./stakeFormReducer";
 import { StakeWithdrawForm } from "./stakeWithdrawForm";
 import type { StakeMode } from "./types";
 

@@ -11,12 +11,11 @@ import { VerticalStepper, stepStatus } from "components/base/verticalStepper";
 import { DrawerFeesContainer } from "components/feesContainer";
 import { NetworkFees } from "components/networkFees";
 import { useVaultPreviewDeposit } from "hooks/useVaultPreviewDeposit";
+import type { DepositStep } from "pages/earn/components/earnForm/stakeFormReducer";
 import type { ComponentProps } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
 import type { Address } from "viem";
-
-import type { DepositStep } from "./stakeFormReducer";
 
 type Props = {
   amount: string;

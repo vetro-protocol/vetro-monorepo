@@ -13,7 +13,7 @@ import { TokenBalance } from "components/tokenInput/tokenBalance";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useConvertToShares } from "hooks/useConvertToShares";
 import { mainnet } from "networks/mainnet";
-import { StakeSubmitButton } from "pages/earn/components/stakeForm/stakeSubmitButton";
+import { StakeSubmitButton } from "pages/earn/components/earnForm/stakeSubmitButton";
 import { useAccrualInterval } from "pages/earn/hooks/targetYieldPool/useAccrualInterval";
 import { useEpochEndDate } from "pages/earn/hooks/targetYieldPool/useEpochEndDate";
 import { useMaxRequestDeposit } from "pages/earn/hooks/targetYieldPool/useMaxRequestDeposit";

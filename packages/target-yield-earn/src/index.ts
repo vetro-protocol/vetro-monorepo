@@ -2,7 +2,9 @@ import type { Client } from "viem";
 
 import {
   getCancelableDepositRequest,
+  getCanEntry,
   getClaimableDepositRequest,
+  getEntryGate,
   getEpoch,
   getEpochId,
   getIsPaused,
@@ -33,9 +35,13 @@ export const targetYieldEarnPublicActions = () => (client: Client) => ({
   getCancelableDepositRequest: (
     params: Parameters<typeof getCancelableDepositRequest>[1],
   ) => getCancelableDepositRequest(client, params),
+  getCanEntry: (params: Parameters<typeof getCanEntry>[1]) =>
+    getCanEntry(client, params),
   getClaimableDepositRequest: (
     params: Parameters<typeof getClaimableDepositRequest>[1],
   ) => getClaimableDepositRequest(client, params),
+  getEntryGate: (params: Parameters<typeof getEntryGate>[1]) =>
+    getEntryGate(client, params),
   getEpoch: (params: Parameters<typeof getEpoch>[1]) =>
     getEpoch(client, params),
   getEpochId: (params: Parameters<typeof getEpochId>[1]) =>

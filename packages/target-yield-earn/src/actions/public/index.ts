@@ -1,5 +1,7 @@
 export * from "./getCancelableDepositRequest.ts";
+export * from "./getCanEntry.ts";
 export * from "./getClaimableDepositRequest.ts";
+export * from "./getEntryGate.ts";
 export * from "./getEpoch.ts";
 export * from "./getEpochId.ts";
 export * from "./getIsPaused.ts";

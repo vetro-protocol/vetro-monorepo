@@ -43,6 +43,13 @@ export const targetYieldEarnVaultAbi = [
   },
   {
     inputs: [],
+    name: "entryGate",
+    outputs: [{ type: "address" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "epochId",
     outputs: [{ type: "uint256" }],
     stateMutability: "view",
