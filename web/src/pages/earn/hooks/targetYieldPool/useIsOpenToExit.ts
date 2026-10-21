@@ -1,8 +1,11 @@
-import { type UseQueryResult, useQueries } from "@tanstack/react-query";
+import {
+  type UseQueryResult,
+  useQueries,
+  useQuery,
+} from "@tanstack/react-query";
 import { useEthereumClient } from "hooks/useEthereumClient";
 import { useNowTickingPast } from "hooks/useNowTickingPast";
 import { isOpenToExit } from "pages/earn/components/fixedTermEarn/isOpenToExit";
-import { unixNowTimestamp } from "utils/date";
 import { combineQueryResults } from "utils/queries";
 import type { Address } from "viem";
 
@@ -12,29 +15,48 @@ import { epochIdOptions, useEpochId } from "./useEpochId";
 import { isShutdownOptions } from "./useIsShutdown";
 import { isTerminatedOptions } from "./useIsTerminated";
 
-const combineExitState = ([epochId, epoch, isShutdown, isTerminated]: [
-  UseQueryResult<bigint>,
-  UseQueryResult<Epoch>,
-  UseQueryResult<boolean>,
-  UseQueryResult<boolean>,
-]) =>
+const combineExitState = ({
+  now,
+  results: [epochId, epoch, isShutdown, isTerminated],
+}: {
+  now: bigint;
+  results: [
+    UseQueryResult<bigint>,
+    UseQueryResult<Epoch>,
+    UseQueryResult<boolean>,
+    UseQueryResult<boolean>,
+  ];
+}) =>
   combineWithEpochId({
     epochId,
     query: combineQueryResults({
       results: [epoch, isShutdown, isTerminated],
-      select: ([epochData, isShutdownData, isTerminatedData]) => ({
-        exitWindow: epochData.exitWindow,
-        isShutdown: isShutdownData,
-        isTerminated: isTerminatedData,
-      }),
+      select: ([epochData, isShutdownData, isTerminatedData]) =>
+        isOpenToExit({
+          exitWindow: epochData.exitWindow,
+          isShutdown: isShutdownData,
+          isTerminated: isTerminatedData,
+          now,
+        }),
     }),
   });
 
 export function useIsOpenToExit(stakingVaultAddress: Address) {
   const client = useEthereumClient();
   const epochId = useEpochId(stakingVaultAddress);
-  const exitState = useQueries({
-    combine: combineExitState,
+  const { data: epoch } = useQuery(
+    epochOptions({ client, epochId: epochId.data, stakingVaultAddress }),
+  );
+
+  const now = BigInt(
+    useNowTickingPast(
+      epoch ? [epoch.exitWindow.start, epoch.exitWindow.end] : undefined,
+      (timestamp) => Number(timestamp),
+    ),
+  );
+
+  return useQueries({
+    combine: (results) => combineExitState({ now, results }),
     queries: [
       epochIdOptions({ client, stakingVaultAddress }),
       epochOptions({ client, epochId: epochId.data, stakingVaultAddress }),
@@ -42,22 +64,4 @@ export function useIsOpenToExit(stakingVaultAddress: Address) {
       isTerminatedOptions({ client, stakingVaultAddress }),
     ],
   });
-  const { data } = exitState;
-
-  useNowTickingPast(
-    data ? [data.exitWindow.start, data.exitWindow.end] : undefined,
-    (timestamp) => Number(timestamp),
-  );
-
-  function getIsOpenToExit() {
-    if (data === undefined) {
-      return undefined;
-    }
-    return (
-      data !== null &&
-      isOpenToExit({ ...data, now: BigInt(unixNowTimestamp()) })
-    );
-  }
-
-  return { ...exitState, data: getIsOpenToExit() };
 }

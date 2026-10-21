@@ -106,7 +106,12 @@ export function TargetYieldForm({
           onSuccess={handleSuccess}
         />
       ) : (
-        <ExitForm {...sharedProps} />
+        <ExitForm
+          {...sharedProps}
+          isDrawerOpen={isDrawerOpen}
+          onDrawerOpenChange={setIsDrawerOpen}
+          onSuccess={handleSuccess}
+        />
       )}
       {toast && (
         <Toast

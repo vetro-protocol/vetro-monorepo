@@ -99,6 +99,7 @@ export const useClaimDeposit = function ({
       queryClient.invalidateQueries({
         queryKey: maxRequestRedeemQueryKey({
           account,
+          isOpenToExit: true,
           stakingVaultAddress,
         }),
       });
