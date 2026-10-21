@@ -15,6 +15,14 @@ export type DepositRequest = {
   pendingAssets: bigint;
 };
 
+export const emptyDepositRequest: DepositRequest = {
+  cancelableAssets: 0n,
+  claimableAssets: 0n,
+  claimableShares: 0n,
+  maxDepositAssets: 0n,
+  pendingAssets: 0n,
+};
+
 export const fetchDepositRequest = async function ({
   client,
   controller,
