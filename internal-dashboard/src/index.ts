@@ -63,10 +63,12 @@ const permissionsPolicy = [
   .map((feature) => `${feature}=()`)
   .join(", ");
 
-// Token USD prices come from the Portal API and on-chain reads use the mainnet
-// RPC; both origins are env-driven (see .env / .env.local) so overrides are also
-// allowed by the CSP. The RPC env may hold several URLs joined by "+".
+// The DEX pools come from the VETRO API, token USD prices from the Portal API,
+// and on-chain reads use the mainnet RPC; these origins are env-driven (see
+// .env / .env.local) so overrides are also allowed by the CSP. The RPC env may
+// hold several URLs joined by "+".
 const portalApiUrl = import.meta.env.VITE_PORTAL_API_URL;
+const vetroApiUrl = import.meta.env.VITE_VETRO_API_URL;
 const rpcConnectSrc = (import.meta.env.VITE_RPC_URL_MAINNET ?? "")
   .split("+")
   .join(" ");
@@ -80,7 +82,7 @@ const scriptSrc = [
 
 const csp = [
   "base-uri 'none'",
-  `connect-src 'self' https://api.curve.finance https://prices.curve.finance ${rpcConnectSrc} ${portalApiUrl}`,
+  `connect-src 'self' https://api.curve.finance https://prices.curve.finance ${rpcConnectSrc} ${portalApiUrl} ${vetroApiUrl}`,
   "default-src 'none'",
   "font-src 'self'",
   "form-action 'none'",

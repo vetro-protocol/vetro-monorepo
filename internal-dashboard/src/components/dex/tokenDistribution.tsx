@@ -1,5 +1,4 @@
 import { VictoryPie, VictoryTooltip } from "victory";
-import { formatUnits } from "viem";
 
 import { getTrackedChain } from "../../config/chains";
 import { type Dex, dexLabels } from "../../config/dexes";
@@ -10,14 +9,14 @@ import {
   type TokenDistribution as TokenDistributionData,
 } from "../../lib/distribution";
 import { formatPercent, formatTokenAmount, formatUsd } from "../../lib/format";
-import { type TrackedPool } from "../../lib/types";
+import { type DashboardPool } from "../../lib/types";
 
 import { ChainLogo } from "./chainLogo";
 import { TokenIcon } from "./tokenIcon";
 import { VenueBadge } from "./venueBadge";
 
 type Props = {
-  pools: TrackedPool[];
+  pools: DashboardPool[];
 };
 
 // Slice colors, reused by the pie and its legend.
@@ -43,11 +42,8 @@ const DistributionCard = function ({
   distribution: TokenDistributionData;
   price: number | undefined;
 }) {
-  const { slices, token } = distribution;
-  const totalBalance = Number(
-    formatUnits(distribution.totalBalance, token.decimals),
-  );
-  const totalUsd = price !== undefined ? totalBalance * price : undefined;
+  const { slices, token, totalAmount } = distribution;
+  const totalUsd = price !== undefined ? totalAmount * price : undefined;
 
   return (
     <div className="rounded-lg border border-neutral-200 bg-white p-4">
@@ -60,19 +56,14 @@ const DistributionCard = function ({
         <div className="mx-auto w-full max-w-55">
           <VictoryPie
             colorScale={COLORS}
-            data={slices.map(function (slice) {
-              const balance = Number(
-                formatUnits(slice.balance, token.decimals),
-              );
-              return {
-                balance,
-                chain: getTrackedChain(slice.pool.chainId)?.name,
-                dex: slice.pool.dex,
-                usd: price !== undefined ? balance * price : undefined,
-                x: slice.pool.name,
-                y: slice.share * 100,
-              };
-            })}
+            data={slices.map((slice) => ({
+              amount: slice.amount,
+              chain: getTrackedChain(slice.pool.chainId)?.name,
+              dex: slice.pool.dex,
+              usd: price !== undefined ? slice.amount * price : undefined,
+              x: slice.pool.name,
+              y: slice.share * 100,
+            }))}
             height={220}
             innerRadius={55}
             labelComponent={
@@ -88,7 +79,7 @@ const DistributionCard = function ({
                 [dexLabels[datum.dex as Dex], datum.chain]
                   .filter(Boolean)
                   .join(" · "),
-                `${formatTokenAmount(datum.balance)} ${token.symbol}`,
+                `${formatTokenAmount(datum.amount)} ${token.symbol}`,
                 datum.usd !== undefined ? formatUsd(datum.usd) : undefined,
               ]
                 .filter(Boolean)
@@ -129,7 +120,7 @@ const DistributionCard = function ({
       <p className="mt-3 border-t border-neutral-100 pt-2 text-xs text-neutral-500">
         Total tracked:{" "}
         <span className="font-medium text-neutral-700">
-          {formatTokenAmount(totalBalance)} {token.symbol}
+          {formatTokenAmount(totalAmount)} {token.symbol}
           {totalUsd !== undefined ? ` (${formatUsd(totalUsd)})` : ""}
         </span>
       </p>

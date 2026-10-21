@@ -2,7 +2,7 @@ import { type Address, isAddressEqual } from "viem";
 
 import { trackedChains } from "../config/chains";
 
-import { type TrackedPool, type TrackedToken } from "./types";
+import { type DashboardPool, type TrackedToken } from "./types";
 
 export type PoolFilterState = {
   campaignsOnly: boolean;
@@ -29,11 +29,16 @@ const holdsToken = ({
   pool,
 }: {
   address: Address;
-  pool: TrackedPool;
+  pool: DashboardPool;
 }) => pool.coins.some((coin) => isAddressEqual(coin.address, address));
 
-const holdsSymbol = ({ pool, symbol }: { pool: TrackedPool; symbol: string }) =>
-  pool.coins.some((coin) => coin.symbol === symbol);
+const holdsSymbol = ({
+  pool,
+  symbol,
+}: {
+  pool: DashboardPool;
+  symbol: string;
+}) => pool.coins.some((coin) => coin.symbol === symbol);
 
 // A pool matches a dropdown when any of its selections match, and it must match
 // every dropdown that has a selection. An empty dropdown filters nothing.
@@ -45,7 +50,7 @@ const matchesAny = <T>({
   selected: T[];
 }) => selected.length === 0 || selected.some(matches);
 
-export const chainFilterOptions = (pools: TrackedPool[]) =>
+export const chainFilterOptions = (pools: DashboardPool[]) =>
   trackedChains
     .filter((chain) => pools.some((pool) => pool.chainId === chain.id))
     .map((chain) => ({ label: chain.name, value: chain.id }));
@@ -54,7 +59,7 @@ export const tokenFilterOptions = ({
   pools,
   tokens,
 }: {
-  pools: TrackedPool[];
+  pools: DashboardPool[];
   tokens: TrackedToken[];
 }) =>
   tokens
@@ -72,7 +77,7 @@ export const trackedSymbolOptions = ({
   pools,
   tokens,
 }: {
-  pools: TrackedPool[];
+  pools: DashboardPool[];
   tokens: TrackedToken[];
 }) =>
   [...new Set(tokens.map((token) => token.symbol))]
@@ -87,7 +92,7 @@ export const filterPools = ({
 }: {
   campaignPoolIds: string[];
   filters: PoolFilterState;
-  pools: TrackedPool[];
+  pools: DashboardPool[];
 }) =>
   pools.filter(
     (pool) =>
