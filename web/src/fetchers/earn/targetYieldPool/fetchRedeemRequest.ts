@@ -46,14 +46,13 @@ export const fetchRedeemRequest = async function ({
 
   const pendingAssets =
     pendingShares > 0n
-      ? await queryClient.ensureQueryData({
-          ...convertToAssetsQueryOptions({
+      ? await queryClient.fetchQuery(
+          convertToAssetsQueryOptions({
             client,
             shares: pendingShares,
             stakingVaultAddress,
           }),
-          revalidateIfStale: true,
-        })
+        )
       : 0n;
 
   return {
