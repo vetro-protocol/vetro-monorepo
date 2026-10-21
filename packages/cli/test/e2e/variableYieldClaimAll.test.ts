@@ -254,6 +254,40 @@ describe("variable-yield claim-all", function () {
     });
   });
 
+  it("claims every ready ticket when the cooldown was disabled after they were opened", async function () {
+    await withSnapshot({
+      rpcUrl,
+      async run() {
+        const { ready } = await openTickets();
+        await setStakingCooldown({
+          enabled: false,
+          rpcUrl,
+          vault: sVusdAddress,
+        });
+        const balanceBefore = await balanceOf(publicClient, {
+          account: receiver,
+          address: vusd.address,
+        });
+
+        await fastForward({ rpcUrl, seconds: 60n });
+        const request = await runCli<TransactionRequest>(claimAllArgs());
+        expect(decodeRequest(request).requestIds).toEqual(
+          ready.map((ticket) => ticket.requestId),
+        );
+        const receipt = await sendTransactionRequest({ request, rpcUrl });
+
+        expect(receipt.status).toBe("success");
+        const balanceAfter = await balanceOf(publicClient, {
+          account: receiver,
+          address: vusd.address,
+        });
+        expect(balanceAfter - balanceBefore).toBe(
+          ready.reduce((total, ticket) => total + ticket.assets, 0n),
+        );
+      },
+    });
+  });
+
   it("rejects an account whose exit tickets are all in cooldown", async function () {
     await withSnapshot({
       rpcUrl,
