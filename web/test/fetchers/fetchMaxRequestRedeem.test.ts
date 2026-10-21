@@ -2,7 +2,7 @@ import {
   getMaxMint,
   getMaxRequestRedeem,
 } from "@vetro-protocol/target-yield-earn/actions";
-import type { Address, Client } from "viem";
+import { type Address, type Client, isAddressEqual } from "viem";
 import { describe, expect, it, vi } from "vitest";
 
 import { fetchMaxRequestRedeem } from "../../src/fetchers/earn/targetYieldPool/fetchMaxRequestRedeem";
@@ -28,7 +28,9 @@ function mockReads({
 }) {
   vi.mocked(getMaxMint).mockResolvedValue(claimableShares);
   vi.mocked(getMaxRequestRedeem).mockImplementation((_, { owner }) =>
-    Promise.resolve(owner === stakingVaultAddress ? vaultMax : accountMax),
+    Promise.resolve(
+      isAddressEqual(owner, stakingVaultAddress) ? vaultMax : accountMax,
+    ),
   );
 }
 
