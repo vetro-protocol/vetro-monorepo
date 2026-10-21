@@ -26,6 +26,9 @@ export const fetchMaxRequestRedeem = async function ({
     return maxShares + claimableShares;
   }
 
+  // A 0n max means the request is blocked or the owner holds no shares. The
+  // vault holds the claimable deposit shares itself, so its own max is above
+  // 0n only when the request is not blocked.
   const vaultMaxShares = await getMaxRequestRedeem(client, {
     ...params,
     owner: stakingVaultAddress,
