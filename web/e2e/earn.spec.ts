@@ -531,6 +531,11 @@ test("withdraw VUSD from the Earn pool (two-step cooldown exit)", async function
       address: sVusdAddress,
     }),
   ).toBe(svusdAfterRequest);
+
+  // Check the toast
+  await expect(page.getByText("Withdrawal complete")).toBeVisible({
+    timeout: 10_000,
+  });
 });
 
 // Queue an exit ticket for the test account without going through the UI: the
