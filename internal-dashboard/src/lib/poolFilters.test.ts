@@ -9,7 +9,7 @@ import {
   tokenFilterOptions,
   trackedSymbolOptions,
 } from "./poolFilters";
-import { type TrackedPool } from "./types";
+import { type DashboardPool } from "./types";
 
 const vusd = checksumAddress("0xaaaa1111111111111111111111111111111111aa");
 const svusd = checksumAddress("0xbbbb2222222222222222222222222222222222bb");
@@ -18,7 +18,7 @@ const usdc = checksumAddress("0xdddd4444444444444444444444444444444444dd");
 
 const coin = ({ address, symbol }: { address: Address; symbol: string }) => ({
   address,
-  balance: 0n,
+  amount: 0,
   decimals: 18,
   symbol,
   usdPrice: 1,
@@ -30,9 +30,9 @@ const pool = ({
   id,
 }: {
   chainId?: number;
-  coins: TrackedPool["coins"];
+  coins: DashboardPool["coins"];
   id: string;
-}) => ({ chainId, coins, id }) as TrackedPool;
+}) => ({ chainId, coins, id }) as DashboardPool;
 
 const vusdUsdt = pool({
   coins: [

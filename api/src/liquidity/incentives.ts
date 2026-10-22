@@ -84,26 +84,21 @@ export const getGaugedStrategies = () =>
   );
 
 const stakeDaoReward = function ({
-  chainId,
-  gauge,
   nowSeconds,
   sources,
+  strategy,
 }: {
-  chainId: number;
-  gauge: Address;
   nowSeconds: number;
   sources: IncentiveSources;
+  strategy: GaugedStrategy;
 }): DexPoolReward[] {
+  const { chainId, gaugeAddress } = strategy;
   const hasCampaign = sources.campaignGauges.some(
     (campaign) =>
-      campaign.chainId === chainId && isAddressEqual(campaign.gauge, gauge),
+      campaign.chainId === chainId &&
+      isAddressEqual(campaign.gauge, gaugeAddress),
   );
-  const strategy = sources.strategies.find(
-    (candidate) =>
-      candidate.chainId === chainId &&
-      isAddressEqual(candidate.gaugeAddress, gauge),
-  );
-  if (!hasCampaign || !strategy) {
+  if (!hasCampaign) {
     return [];
   }
   const apr = strategyRewardsApr(strategy);
@@ -159,7 +154,9 @@ const merklRewards = function ({
 
 /**
  * Adds the StakeDAO strategy and then the Merkl campaigns by APR, after the
- * rewards that the venue gives (the Curve gauge).
+ * rewards that the venue gives (the Curve gauge). A Curve pool whose gauge has
+ * a StakeDAO strategy also gets its `stakeDaoStrategyKey`, even when no
+ * campaign runs, because users can deposit in the strategy anyway.
  */
 export function addIncentives({
   nowSeconds,
@@ -170,20 +167,25 @@ export function addIncentives({
   pool: DexPool;
   sources: IncentiveSources;
 }): DexPool {
+  const poolMerklRewards = merklRewards({ pool, sources });
   const gaugeAddress = curveGaugeAddress(pool);
+  const strategy =
+    gaugeAddress &&
+    sources.strategies.find(
+      (candidate) =>
+        candidate.chainId === pool.chainId &&
+        isAddressEqual(candidate.gaugeAddress, gaugeAddress),
+    );
+  if (pool.dex !== "curve" || !strategy) {
+    return { ...pool, rewards: [...pool.rewards, ...poolMerklRewards] };
+  }
   return {
     ...pool,
+    dexMetadata: { ...pool.dexMetadata, stakeDaoStrategyKey: strategy.key },
     rewards: [
       ...pool.rewards,
-      ...(gaugeAddress
-        ? stakeDaoReward({
-            chainId: pool.chainId,
-            gauge: gaugeAddress,
-            nowSeconds,
-            sources,
-          })
-        : []),
-      ...merklRewards({ pool, sources }),
+      ...stakeDaoReward({ nowSeconds, sources, strategy }),
+      ...poolMerklRewards,
     ],
   };
 }

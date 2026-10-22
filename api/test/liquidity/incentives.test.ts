@@ -32,7 +32,14 @@ const curvePool: DexPool = {
   chainId: 1,
   coins: [],
   dex: "curve",
-  dexMetadata: { gaugeAddress, lpTokenAddress, poolId: "factory-stable-ng-1" },
+  dexMetadata: {
+    gaugeAddress,
+    lpTokenAddress,
+    name: "Curve.fi Factory Plain Pool: sVUSD/VUSD",
+    poolId: "factory-stable-ng-1",
+    registryId: "factory-stable-ng",
+  },
+  feesUsd24h: null,
   rewards: [curveGaugeReward],
   tvlUsd: 1000,
   volumeUsd24h: 10,
@@ -81,6 +88,80 @@ describe("liquidity/addIncentives", function () {
     });
 
     expect(pool).toEqual(curvePool);
+  });
+
+  it("sets the StakeDAO strategy key when the gauge has a strategy but no campaign", function () {
+    const pool = addIncentives({
+      nowSeconds,
+      pool: curvePool,
+      sources: { ...noSources, strategies: [strategy] },
+    });
+
+    expect(pool.dexMetadata).toEqual({
+      gaugeAddress,
+      lpTokenAddress,
+      name: "Curve.fi Factory Plain Pool: sVUSD/VUSD",
+      poolId: "factory-stable-ng-1",
+      registryId: "factory-stable-ng",
+      stakeDaoStrategyKey: "1-0xstrategy",
+    });
+    expect(pool.rewards).toEqual([curveGaugeReward]);
+  });
+
+  it("sets the StakeDAO strategy key next to the StakeDAO reward while a campaign runs", function () {
+    const pool = addIncentives({
+      nowSeconds,
+      pool: curvePool,
+      sources: {
+        ...noSources,
+        campaignGauges: [{ chainId: 1, gauge: gaugeAddress }],
+        strategies: [strategy],
+      },
+    });
+
+    expect(pool.dexMetadata).toEqual({
+      gaugeAddress,
+      lpTokenAddress,
+      name: "Curve.fi Factory Plain Pool: sVUSD/VUSD",
+      poolId: "factory-stable-ng-1",
+      registryId: "factory-stable-ng",
+      stakeDaoStrategyKey: "1-0xstrategy",
+    });
+    expect(pool.rewards.map((reward) => reward.source)).toEqual([
+      "curveGauge",
+      "stakeDao",
+    ]);
+  });
+
+  it("sets no StakeDAO strategy key when no strategy matches the gauge and chain", function () {
+    const otherGauge = addIncentives({
+      nowSeconds,
+      pool: curvePool,
+      sources: {
+        ...noSources,
+        campaignGauges: [{ chainId: 1, gauge: gaugeAddress }],
+        strategies: [
+          {
+            ...strategy,
+            gaugeAddress: "0x5555555555555555555555555555555555555555",
+          },
+        ],
+      },
+    });
+    const otherChain = addIncentives({
+      nowSeconds,
+      pool: curvePool,
+      sources: {
+        ...noSources,
+        campaignGauges: [{ chainId: 1, gauge: gaugeAddress }],
+        strategies: [{ ...strategy, chainId: 43111 }],
+      },
+    });
+
+    expect(otherGauge).toEqual(curvePool);
+    expect(otherChain).toEqual(curvePool);
+    expect(otherGauge.dexMetadata).not.toHaveProperty("stakeDaoStrategyKey");
+    expect(otherChain.dexMetadata).not.toHaveProperty("stakeDaoStrategyKey");
   });
 
   it("adds the StakeDAO strategy only while a Votemarket campaign runs on the gauge", function () {

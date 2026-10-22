@@ -168,9 +168,13 @@ Gets the amount of collateral assets in a given Morpho market.
 Returns the DEX pools that hold a VETRO token (a pegged token or its share token), on Curve, Uniswap and Sushi (Ethereum) and BrownFi (Hemi).
 
 - `apr` is the pool APR from trading fees, as a percentage number (e.g. `1.8` means 1.8%). It is `null` when `tvlUsd` is `null`.
-- `coins` lists each coin of the pool, with its `amount` in the pool in token units (not in raw units). On a range row, `amount` is the part of the pool's liquidity inside the range.
-- `tvlUsd` is `null` when a coin of the pool has no USD price.
-- `dexMetadata` is only on the Curve and BrownFi pools. On Curve, it has the `poolId`, the `gaugeAddress` (when the pool has a gauge) and the `lpTokenAddress`. Reward campaigns can target the pool, its gauge or its LP token. On BrownFi, it has `fee` and `overrideFee` as the subgraph gives them, in hundredths of a basis point (`3000` is 0.3%). An `overrideFee` of `0` means that the pool uses `fee`.
+- `coins` lists each coin of the pool, with its `amount` in the pool in token units (not in raw units), its `symbol` and its `usdPrice`. On a range row, `amount` is the part of the pool's liquidity inside the range. `usdPrice` is `null` when the venue (or, on Sushi, the portal) has no USD price for the coin.
+- `feesUsd24h` is the trading fees of the last 24 hours, in USD. On a range row, it is the part of the fees from the swaps inside the range. It is `null` on Curve, because the Curve API that lists the pools has no fees.
+- `tvlUsd` is `null` when a coin of the pool has no USD price. On a Sushi full-range row, it comes from Sushi, so it can have a value when the coins have no `usdPrice`.
+- `dexMetadata` depends on `dex`:
+  - Curve: the `name` and `registryId` of the pool (e.g. `factory-stable-ng`), its `poolId`, the `gaugeAddress` (when the pool has a gauge) and the `lpTokenAddress`. Reward campaigns can target the pool, its gauge or its LP token. When the gauge has a StakeDAO strategy, it also has its `stakeDaoStrategyKey`, even when the strategy has no running campaign (so no `stakeDao` reward).
+  - Sushi and Uniswap: the `feeTier` of the pool, in hundredths of a basis point (`500` is 0.05%).
+  - BrownFi: `fee` and `overrideFee` as the subgraph gives them, in hundredths of a basis point (`3000` is 0.3%). An `overrideFee` of `0` means that the pool uses `fee`.
 - `rewards` includes rewards from Curve gauges, StakeDAO strategies and Merkl campaigns.
 
 By default, the response leaves out each pool with no `rewards` and a `tvlUsd` below 500 or `null`. A pool with any reward (Curve gauge, StakeDAO or Merkl) is always returned. With `includeRanges=true`, the range rows of a pool are returned only if its full-range row is.
@@ -192,20 +196,28 @@ Query params:
     "chainId": 1,
     "coins": [
       {
-        "address": "0x476310E34D2810f7d79C43A74E4D79405bd7a925", // sVUSD
+        "address": "0x476310E34D2810f7d79C43A74E4D79405bd7a925",
         "amount": 36894.62,
+        "symbol": "sVUSD",
+        "usdPrice": 1.04,
       },
       {
-        "address": "0xCa83DDE9c22254f58e771bE5E157773212AcBAc3", // VUSD
+        "address": "0xCa83DDE9c22254f58e771bE5E157773212AcBAc3",
         "amount": 38189.11,
+        "symbol": "VUSD",
+        "usdPrice": 0.9995,
       },
     ],
     "dex": "curve",
     "dexMetadata": {
       "gaugeAddress": "0x737e7700e03A8c451C9B72103554a40760F1B57A",
       "lpTokenAddress": "0xC4C5e8edB69100108C428E88329039b715E3AAd1",
+      "name": "sVUSD/VUSD",
       "poolId": "factory-stable-ng-123",
+      "registryId": "factory-stable-ng",
+      "stakeDaoStrategyKey": "1-0x102a475c8d660fde678d108dcc6d4a2227661af2",
     },
+    "feesUsd24h": null,
     "rewards": [
       {
         "apr": 19.07,
@@ -244,15 +256,21 @@ Query params:
     "chainId": 1,
     "coins": [
       {
-        "address": "0xCa83DDE9c22254f58e771bE5E157773212AcBAc3", // VUSD
+        "address": "0xCa83DDE9c22254f58e771bE5E157773212AcBAc3",
         "amount": 62755.39,
+        "symbol": "VUSD",
+        "usdPrice": 0.9996,
       },
       {
-        "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7", // USDT
+        "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
         "amount": 40883.95,
+        "symbol": "USDT",
+        "usdPrice": 1,
       },
     ],
     "dex": "sushi",
+    "dexMetadata": { "feeTier": 500 },
+    "feesUsd24h": 0.21,
     "rewards": [
       {
         "apr": 25.61,
@@ -281,13 +299,19 @@ Query params:
       {
         "address": "0xCa83DDE9c22254f58e771bE5E157773212AcBAc3",
         "amount": 35104.2,
+        "symbol": "VUSD",
+        "usdPrice": 0.9996,
       },
       {
         "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
         "amount": 35106.2,
+        "symbol": "USDT",
+        "usdPrice": 1,
       },
     ],
     "dex": "sushi",
+    "dexMetadata": { "feeTier": 500 },
+    "feesUsd24h": 0.21,
     "range": { "lowerPrice": 0.96, "upperPrice": 1.04 },
     "rewards": [
       // The same rewards as the full-range row
@@ -507,22 +531,22 @@ fail-closed), and `500` if sending the support email fails.
 Environment variables are configured in `wrangler.jsonc`.
 Secrets are set separately using the Wrangler CLI.
 
-| Variable                    | Description                                                                                                                                                                                                                     | Default                   |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
-| CONTACT_FORM_RECIPIENT      | Destination address for contact form emails. Must be a verified Email Routing destination.                                                                                                                                      | `support@vetro.org`       |
-| CONTACT_FORM_SENDER         | `from` address for contact form emails. Its domain must be a verified Email Routing sending domain.                                                                                                                             | `noreply@forms.vetro.org` |
-| CUSTOM_RPC_URL_MAINNET      | Ethereum RPC node URL(s). Overrides `viem`'s default. Several URLs joined by `+` become a fallback transport.                                                                                                                   |                           |
-| MERKL_OPPORTUNITY_SVETBTC   | Merkl opportunity id for the sVetBTC staking vault. Optional; if unset, that vault yields no rewards.                                                                                                                           |                           |
-| MERKL_OPPORTUNITY_SVUSD     | Merkl opportunity id for the sVUSD staking vault. Optional; if unset, that vault yields no rewards.                                                                                                                             |                           |
-| ORIGINS                     | Comma-separated list of allowed origins. (1)                                                                                                                                                                                    | `http://localhost:5173`   |
-| PORTAL_API_URL              | Base URL of the portal API. `GET /analytics/tvl-history` reads the daily and current USD price of a non-USD peg unit (BTC) from it. `GET /liquidity/pools` reads USD prices from it to compute the TVL of the Sushi range rows. | `http://localhost:3006`   |
-| SENTRY_DSN                  | Sentry DSN. When unset, Sentry is disabled.                                                                                                                                                                                     |                           |
-| SUBGRAPH_API_KEY            | The Graph API key. Also used for the BrownFi and Sushi subgraphs of `GET /liquidity/pools`.                                                                                                                                     |                           |
-| SUBGRAPH_ID                 | The subgraph id.                                                                                                                                                                                                                |                           |
-| SUBGRAPH_URL                | The VETRO subgraph URL. Use it for a local subgraph. When unset, the API uses The Graph gateway with `SUBGRAPH_API_KEY` and `SUBGRAPH_ID`.                                                                                      | (localhost)               |
-| TURNSTILE_ALLOWED_HOSTNAMES | Optional comma-separated hostname allowlist. When set, a Turnstile token whose siteverify `hostname` is not listed is rejected (`403`). Unset (local/staging) skips this check.                                                 |                           |
-| TURNSTILE_SECRET_KEY        | Cloudflare Turnstile secret key for verifying `POST /contact` tokens. When unset, verification is skipped. (2)                                                                                                                  |                           |
-| WEBSITE_URL                 | Public URL of the web app, referenced in the contact form confirmation email.                                                                                                                                                   | `http://localhost:5173/`  |
+| Variable                    | Description                                                                                                                                                                                                                                                                            | Default                   |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| CONTACT_FORM_RECIPIENT      | Destination address for contact form emails. Must be a verified Email Routing destination.                                                                                                                                                                                             | `support@vetro.org`       |
+| CONTACT_FORM_SENDER         | `from` address for contact form emails. Its domain must be a verified Email Routing sending domain.                                                                                                                                                                                    | `noreply@forms.vetro.org` |
+| CUSTOM_RPC_URL_MAINNET      | Ethereum RPC node URL(s). Overrides `viem`'s default. Several URLs joined by `+` become a fallback transport.                                                                                                                                                                          |                           |
+| MERKL_OPPORTUNITY_SVETBTC   | Merkl opportunity id for the sVetBTC staking vault. Optional; if unset, that vault yields no rewards.                                                                                                                                                                                  |                           |
+| MERKL_OPPORTUNITY_SVUSD     | Merkl opportunity id for the sVUSD staking vault. Optional; if unset, that vault yields no rewards.                                                                                                                                                                                    |                           |
+| ORIGINS                     | Comma-separated list of allowed origins. (1)                                                                                                                                                                                                                                           | `http://localhost:5173`   |
+| PORTAL_API_URL              | Base URL of the portal API. `GET /analytics/tvl-history` reads the daily and current USD price of a non-USD peg unit (BTC) from it. `GET /liquidity/pools` reads USD prices from it to price the Sushi coins (`usdPrice`) of every row and to compute the TVL of the Sushi range rows. | `http://localhost:3006`   |
+| SENTRY_DSN                  | Sentry DSN. When unset, Sentry is disabled.                                                                                                                                                                                                                                            |                           |
+| SUBGRAPH_API_KEY            | The Graph API key. Also used for the BrownFi and Sushi subgraphs of `GET /liquidity/pools`.                                                                                                                                                                                            |                           |
+| SUBGRAPH_ID                 | The subgraph id.                                                                                                                                                                                                                                                                       |                           |
+| SUBGRAPH_URL                | The VETRO subgraph URL. Use it for a local subgraph. When unset, the API uses The Graph gateway with `SUBGRAPH_API_KEY` and `SUBGRAPH_ID`.                                                                                                                                             | (localhost)               |
+| TURNSTILE_ALLOWED_HOSTNAMES | Optional comma-separated hostname allowlist. When set, a Turnstile token whose siteverify `hostname` is not listed is rejected (`403`). Unset (local/staging) skips this check.                                                                                                        |                           |
+| TURNSTILE_SECRET_KEY        | Cloudflare Turnstile secret key for verifying `POST /contact` tokens. When unset, verification is skipped. (2)                                                                                                                                                                         |                           |
+| WEBSITE_URL                 | Public URL of the web app, referenced in the contact form confirmation email.                                                                                                                                                                                                          | `http://localhost:5173/`  |
 
 (1) Globs with stars (`*`) are supported. I.e. `https://*.hemi.xyz` will match any subdomain or subdomain chain.
 (2) Per environment: local (`.dev.vars`) and staging (`env.staging.vars`) use Cloudflare's always-passes [test secret](https://developers.cloudflare.com/turnstile/troubleshooting/testing/) `1x0000000000000000000000000000000AA`, since it is public and non-sensitive. Production sets the real key as a Wrangler secret — it is intentionally absent from `env.production.vars` in `wrangler.jsonc`:

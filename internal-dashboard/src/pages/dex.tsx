@@ -7,8 +7,8 @@ import { StateMessage } from "../components/dex/stateMessage";
 import { TokenDistribution } from "../components/dex/tokenDistribution";
 import { CircleWarningIcon } from "../components/icons/circleWarningIcon";
 import { Tooltip } from "../components/tooltip";
+import { useLiquidityPools } from "../hooks/useLiquidityPools";
 import { useCampaignPoolIds } from "../hooks/usePoolCampaigns";
-import { useTrackedPools } from "../hooks/useTrackedPools";
 import { useTrackedTokens } from "../hooks/useTrackedTokens";
 import { useWhitelistedTokens } from "../hooks/useWhitelistedTokens";
 import { formatUsd } from "../lib/format";
@@ -20,12 +20,12 @@ import {
   trackedSymbolOptions,
 } from "../lib/poolFilters";
 import { summarizeDexTvl } from "../lib/poolMetrics";
-import { type TrackedPool } from "../lib/types";
+import { type DashboardPool } from "../lib/types";
 
 const TotalTvlCard = function ({
   pools,
 }: {
-  pools: TrackedPool[] | undefined;
+  pools: DashboardPool[] | undefined;
 }) {
   if (!pools || pools.length === 0) {
     return null;
@@ -54,7 +54,7 @@ const TotalTvlCard = function ({
 };
 
 export const DexPage = function () {
-  const { data: pools, isError, isPending } = useTrackedPools();
+  const { data: pools, isError, isPending } = useLiquidityPools();
   const { data: trackedTokens, error: trackedTokensError } = useTrackedTokens();
   const { data: whitelistedTokens, error: whitelistedTokensError } =
     useWhitelistedTokens();

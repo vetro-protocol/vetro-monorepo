@@ -1,19 +1,6 @@
-import { formatUnits } from "viem";
+import { type DashboardPool } from "./types";
 
-import { type PoolCoin, type TrackedPool } from "./types";
-
-export const poolTvlUsd = function (coins: PoolCoin[]) {
-  let total = 0;
-  for (const coin of coins) {
-    if (coin.usdPrice === undefined) {
-      return undefined;
-    }
-    total += Number(formatUnits(coin.balance, coin.decimals)) * coin.usdPrice;
-  }
-  return total;
-};
-
-export const summarizeDexTvl = function (pools: TrackedPool[]) {
+export const summarizeDexTvl = function (pools: DashboardPool[]) {
   let poolCount = 0;
   let totalTvlUsd = 0;
   let unpricedPoolCount = 0;
@@ -22,15 +9,16 @@ export const summarizeDexTvl = function (pools: TrackedPool[]) {
       continue;
     }
     poolCount += 1;
-    // Venues like Curve publish a TVL that only counts their priced legs, so a
-    // defined tvlUsd can still leave out liquidity. Empty legs change nothing.
+    // A Curve pool with an unpriced coin gets the TVL of its priced coins (see
+    // lib/dashboardPools), so a defined tvlUsd can still leave out liquidity.
+    // Empty legs change nothing.
     const hasUnpricedLeg = pool.coins.some(
-      (coin) => coin.balance > 0n && coin.usdPrice === undefined,
+      (coin) => coin.amount > 0 && coin.usdPrice === null,
     );
-    if (pool.tvlUsd === undefined || hasUnpricedLeg) {
+    if (pool.tvlUsd === null || hasUnpricedLeg) {
       unpricedPoolCount += 1;
     }
-    if (pool.tvlUsd !== undefined) {
+    if (pool.tvlUsd !== null) {
       totalTvlUsd += pool.tvlUsd;
     }
   }

@@ -21,6 +21,7 @@ type CurveCoin = {
   address: Address;
   decimals: string;
   poolBalance: string;
+  symbol: string;
   usdPrice: number | null;
 };
 
@@ -31,6 +32,8 @@ type CurveApiPool = {
   gaugeCrvApy: (number | null)[] | null;
   id: string;
   lpTokenAddress?: Address;
+  name: string;
+  registryId: string;
   usdTotal: number;
 };
 
@@ -68,14 +71,20 @@ const buildPool = function ({
       amount: Number(
         formatUnits(BigInt(coin.poolBalance), Number(coin.decimals)),
       ),
+      symbol: coin.symbol,
+      usdPrice: coin.usdPrice,
     })),
     dex: "curve",
     dexMetadata: {
       gaugeAddress,
       lpTokenAddress:
         pool.lpTokenAddress && checksumAddress(pool.lpTokenAddress),
+      name: pool.name,
       poolId: pool.id,
+      registryId: pool.registryId,
     },
+    // The Curve listing API has no fees.
+    feesUsd24h: null,
     rewards: hasGaugeReward
       ? [
           {

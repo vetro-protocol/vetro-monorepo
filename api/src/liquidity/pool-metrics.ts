@@ -1,12 +1,12 @@
 type PricedCoin = {
   amount: number;
-  usdPrice: number | undefined;
+  usdPrice: number | null;
 };
 
 export const poolTvlUsd = function (coins: PricedCoin[]) {
   let total = 0;
   for (const coin of coins) {
-    if (coin.usdPrice === undefined) {
+    if (coin.usdPrice === null) {
       return null;
     }
     total += coin.amount * coin.usdPrice;

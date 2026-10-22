@@ -1,5 +1,5 @@
 import { Link, useParams } from "react-router";
-import { type Address, formatUnits, isAddressEqual } from "viem";
+import { type Address, isAddressEqual } from "viem";
 
 import { CampaignsList } from "../components/dex/campaignsList";
 import { ChainLogo } from "../components/dex/chainLogo";
@@ -14,8 +14,7 @@ import { VenueBadge } from "../components/dex/venueBadge";
 import { type Dex, dexLabels } from "../config/dexes";
 import { useCurvePoolStats } from "../hooks/useCurvePoolStats";
 import { useGaugeEmissions } from "../hooks/useGaugeEmissions";
-import { useStakeDaoStrategy } from "../hooks/useStakeDaoStrategy";
-import { useTrackedPools } from "../hooks/useTrackedPools";
+import { useLiquidityPools } from "../hooks/useLiquidityPools";
 import {
   formatAprRange,
   formatOptionalPercent,
@@ -27,13 +26,15 @@ import {
   formatUsd,
 } from "../lib/format";
 import { strategyUrl } from "../lib/stakeDaoApi";
-import { type PoolCoin, type TrackedPool } from "../lib/types";
+import { type DashboardPool, type PoolCoin } from "../lib/types";
+
+type CurvePool = Extract<DashboardPool, { dex: "curve" }>;
 
 // Within 10% of equal value: treat the pair as a peg and surface drift from 1.
 const PEG_THRESHOLD = 1.1;
 
 // Curve's fees aren't on the pool object; fetch them per pool on demand.
-const CurveFeesCard = function ({ pool }: { pool: TrackedPool }) {
+const CurveFeesCard = function ({ pool }: { pool: CurvePool }) {
   const { data: stats } = useCurvePoolStats({ poolAddress: pool.address });
 
   return (
@@ -53,16 +54,19 @@ const CurveFeesCard = function ({ pool }: { pool: TrackedPool }) {
   );
 };
 
-// Rolling-24h fees. Sushi's API gives them on the pool object directly; Curve
-// needs a separate per-pool analytics fetch.
-const FeesCard = function ({ pool }: { pool: TrackedPool }) {
-  if (pool.feesUsd24h !== null && pool.feesUsd24h !== undefined) {
+// Rolling-24h fees. The API gives them on the pool object, save for Curve,
+// which needs a separate per-pool analytics fetch.
+const FeesCard = function ({ pool }: { pool: DashboardPool }) {
+  if (pool.feesUsd24h !== null) {
     return <StatCard label="24h Fees" value={formatPrice(pool.feesUsd24h)} />;
   }
-  return <CurveFeesCard pool={pool} />;
+  if (pool.dex === "curve") {
+    return <CurveFeesCard pool={pool} />;
+  }
+  return <StatCard label="24h Fees" value="—" />;
 };
 
-const ExchangeRateCard = function ({ pool }: { pool: TrackedPool }) {
+const ExchangeRateCard = function ({ pool }: { pool: DashboardPool }) {
   if (pool.coins.length !== 2) {
     return null;
   }
@@ -104,15 +108,12 @@ const CoinBreakdown = function ({
 }: {
   coin: PoolCoin;
   dex: Dex;
-  tvlUsd: number | undefined;
+  tvlUsd: number | null;
 }) {
-  const balance = Number(formatUnits(coin.balance, coin.decimals));
   const balanceUsd =
-    coin.usdPrice === undefined ? undefined : balance * coin.usdPrice;
+    coin.usdPrice === null ? null : coin.amount * coin.usdPrice;
   const share =
-    balanceUsd !== undefined && tvlUsd
-      ? (balanceUsd / tvlUsd) * 100
-      : undefined;
+    balanceUsd !== null && tvlUsd ? (balanceUsd / tvlUsd) * 100 : null;
 
   return (
     <div className="rounded-lg border border-neutral-200 p-4">
@@ -127,7 +128,7 @@ const CoinBreakdown = function ({
         <div>
           <dt className="text-xs text-neutral-500">Balance</dt>
           <dd className="font-medium text-neutral-950">
-            {formatTokenAmount(balance)}
+            {formatTokenAmount(coin.amount)}
           </dd>
         </div>
         <div>
@@ -139,7 +140,7 @@ const CoinBreakdown = function ({
         <div>
           <dt className="text-xs text-neutral-500">Price</dt>
           <dd className="font-medium text-neutral-950">
-            {coin.usdPrice === undefined ? "—" : formatPrice(coin.usdPrice)}
+            {coin.usdPrice === null ? "—" : formatPrice(coin.usdPrice)}
           </dd>
         </div>
       </dl>
@@ -147,14 +148,18 @@ const CoinBreakdown = function ({
   );
 };
 
-const GaugeSection = function ({ pool }: { pool: TrackedPool }) {
+const GaugeSection = function ({ pool }: { pool: CurvePool }) {
   const { data: emission } = useGaugeEmissions({ poolAddress: pool.address });
 
-  if (!pool.gaugeAddress) {
+  if (!pool.dexMetadata.gaugeAddress) {
     return <p className="text-sm text-neutral-600">This pool has no gauge.</p>;
   }
 
   const hasEmissions = emission ? emission.estCrvPerDay > 0 : false;
+  const gaugeReward = pool.rewards.find(
+    (reward) => reward.source === "curveGauge",
+  );
+  const crvApr = gaugeReward?.apr ?? 0;
 
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -171,8 +176,8 @@ const GaugeSection = function ({ pool }: { pool: TrackedPool }) {
         hint="Unboosted → max boost"
         label="CRV APR"
         value={formatAprRange({
-          max: pool.emissionAprMax,
-          min: pool.emissionApr,
+          max: gaugeReward?.aprMax ?? crvApr,
+          min: crvApr,
         })}
       />
       {!hasEmissions && emission ? (
@@ -199,37 +204,32 @@ const AddressRow = ({
   </div>
 );
 
-const GaugeRow = function ({
+const GaugeRow = ({
   chainId,
   gauge,
-  poolId,
+  strategyKey,
 }: {
   chainId: number;
   gauge: Address;
-  poolId: string;
-}) {
-  const { data: strategy } = useStakeDaoStrategy(poolId);
-  const strategyKey = strategy?.key;
+  strategyKey: string | undefined;
+}) => (
+  <div className="flex items-center justify-between gap-x-4 py-2 text-sm">
+    <span className="text-neutral-600">Gauge</span>
+    <span className="flex items-center gap-x-3">
+      <ExplorerLink address={gauge} chainId={chainId} />
+      {strategyKey ? (
+        <ExternalLink
+          className="font-medium text-blue-600 hover:underline"
+          href={strategyUrl(strategyKey)}
+        >
+          Deposit LP on StakeDAO ↗
+        </ExternalLink>
+      ) : null}
+    </span>
+  </div>
+);
 
-  return (
-    <div className="flex items-center justify-between gap-x-4 py-2 text-sm">
-      <span className="text-neutral-600">Gauge</span>
-      <span className="flex items-center gap-x-3">
-        <ExplorerLink address={gauge} chainId={chainId} />
-        {strategyKey ? (
-          <ExternalLink
-            className="font-medium text-blue-600 hover:underline"
-            href={strategyUrl(strategyKey)}
-          >
-            Deposit LP on StakeDAO ↗
-          </ExternalLink>
-        ) : null}
-      </span>
-    </div>
-  );
-};
-
-const AddressesSection = ({ pool }: { pool: TrackedPool }) => (
+const AddressesSection = ({ pool }: { pool: DashboardPool }) => (
   <div>
     <h3 className="mb-1 text-lg font-semibold text-neutral-950">Addresses</h3>
     <div className="divide-y divide-neutral-100">
@@ -247,17 +247,18 @@ const AddressesSection = ({ pool }: { pool: TrackedPool }) => (
           ) : null}
         </span>
       </div>
-      {pool.gaugeAddress ? (
+      {pool.dex === "curve" && pool.dexMetadata.gaugeAddress ? (
         <GaugeRow
           chainId={pool.chainId}
-          gauge={pool.gaugeAddress}
-          poolId={pool.id}
+          gauge={pool.dexMetadata.gaugeAddress}
+          strategyKey={pool.dexMetadata.stakeDaoStrategyKey}
         />
       ) : null}
-      {pool.lpTokenAddress &&
-      !isAddressEqual(pool.lpTokenAddress, pool.address) ? (
+      {pool.dex === "curve" &&
+      pool.dexMetadata.lpTokenAddress &&
+      !isAddressEqual(pool.dexMetadata.lpTokenAddress, pool.address) ? (
         <AddressRow
-          address={pool.lpTokenAddress}
+          address={pool.dexMetadata.lpTokenAddress}
           chainId={pool.chainId}
           label="LP token"
         />
@@ -276,7 +277,7 @@ const AddressesSection = ({ pool }: { pool: TrackedPool }) => (
 
 export const DexPoolPage = function () {
   const { poolId } = useParams();
-  const { data: pools, isError, isPending } = useTrackedPools();
+  const { data: pools, isError, isPending } = useLiquidityPools();
 
   if (isPending) {
     return <StateMessage>Loading pool…</StateMessage>;
@@ -306,9 +307,6 @@ export const DexPoolPage = function () {
       </section>
     );
   }
-
-  // The gauge section stays Curve-only — Sushi has no gauge.
-  const isCurve = pool.dex === "curve";
 
   return (
     <section className="flex flex-col gap-y-8">
@@ -349,7 +347,7 @@ export const DexPoolPage = function () {
         <StatCard
           hint="Trading fees"
           label="Pool APY"
-          value={formatOptionalPercent(pool.baseApy)}
+          value={formatOptionalPercent(pool.apr)}
         />
         <StatCard
           hint="24h volume / TVL"
@@ -379,7 +377,8 @@ export const DexPoolPage = function () {
         </div>
       </div>
 
-      {isCurve ? (
+      {/* Only Curve pools have a gauge. */}
+      {pool.dex === "curve" ? (
         <div>
           <h3 className="mb-3 text-lg font-semibold text-neutral-950">Gauge</h3>
           <GaugeSection pool={pool} />
@@ -393,7 +392,14 @@ export const DexPoolPage = function () {
         <p className="mb-3 text-sm text-neutral-600">
           Third-party campaigns running on this pool.
         </p>
-        <CampaignsList poolId={pool.id} />
+        <CampaignsList
+          poolId={pool.id}
+          strategyKey={
+            pool.dex === "curve"
+              ? pool.dexMetadata.stakeDaoStrategyKey
+              : undefined
+          }
+        />
       </div>
 
       <AddressesSection pool={pool} />

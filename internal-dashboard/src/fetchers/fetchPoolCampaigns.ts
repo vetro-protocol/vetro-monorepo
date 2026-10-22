@@ -1,18 +1,22 @@
 import { type QueryClient } from "@tanstack/react-query";
 
-import { trackedPoolsOptions } from "../hooks/useTrackedPools";
+import { liquidityPoolsOptions } from "../hooks/useLiquidityPools";
 import { campaignKey } from "../lib/campaigns";
-import { type PoolCampaign, type TrackedPool } from "../lib/types";
+import { type DashboardPool, type PoolCampaign } from "../lib/types";
 
 import { fetchMerklCampaigns } from "./fetchMerklCampaigns";
 import { fetchStakeDaoCampaigns } from "./fetchStakeDaoCampaigns";
 
-const poolAddresses = (pool: TrackedPool) =>
-  [pool.address, pool.gaugeAddress, pool.lpTokenAddress].filter(
-    (address) => address !== undefined,
-  );
+// Campaigns can target a Curve pool, its gauge or its LP token.
+const poolAddresses = (pool: DashboardPool) =>
+  [
+    pool.address,
+    ...(pool.dex === "curve"
+      ? [pool.dexMetadata.gaugeAddress, pool.dexMetadata.lpTokenAddress]
+      : []),
+  ].filter((address) => address !== undefined);
 
-const poolKeys = (pool: TrackedPool) => [
+const poolKeys = (pool: DashboardPool) => [
   ...new Set(
     poolAddresses(pool).map((address) =>
       campaignKey({ address, chainId: pool.chainId }),
@@ -23,7 +27,7 @@ const poolKeys = (pool: TrackedPool) => [
 export const fetchPoolCampaigns = async function (
   queryClient: QueryClient,
 ): Promise<Record<string, PoolCampaign[]>> {
-  const pools = await queryClient.ensureQueryData(trackedPoolsOptions());
+  const pools = await queryClient.ensureQueryData(liquidityPoolsOptions());
   const addresses = [
     ...new Set(
       pools.flatMap(poolAddresses).map((address) => address.toLowerCase()),

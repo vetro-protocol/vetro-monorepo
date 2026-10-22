@@ -1,5 +1,5 @@
-import type { DexPool } from "@vetro-protocol/core";
-import type { Address, Client } from "viem";
+import { knownTokens, type DexPool } from "@vetro-protocol/core";
+import { type Address, type Client, isAddressEqual } from "viem";
 import { mainnet } from "viem/chains";
 
 import { runQuery } from "../graphql.ts";
@@ -26,6 +26,7 @@ const poolQuery = `
             value
           }
         }
+        symbol
       }
       token0Supply
       token1 {
@@ -34,6 +35,7 @@ const poolQuery = `
             value
           }
         }
+        symbol
       }
       token1Supply
       volume24h: cumulativeVolume(duration: DAY) {
@@ -43,7 +45,10 @@ const poolQuery = `
   }
 `;
 
-type RawToken = { market: { price: { value: number } | null } | null };
+type RawToken = {
+  market: { price: { value: number } | null } | null;
+  symbol: string | null;
+};
 
 type RawV3Pool = {
   feeTier: number;
@@ -101,6 +106,20 @@ const portalFallback = function ({
   return portalUsdPrice({ address, prices: portalPrices }) ?? 0;
 };
 
+const tokenSymbol = ({
+  address,
+  token,
+}: {
+  address: Address;
+  token: RawToken;
+}) =>
+  token.symbol ??
+  knownTokens.find(
+    (known) =>
+      known.chainId === mainnet.id && isAddressEqual(known.address, address),
+  )?.symbol ??
+  address;
+
 const fetchPoolData = async function (address: Address) {
   const { v3Pool } = await runQuery<{ v3Pool: RawV3Pool | null }>({
     headers: { origin: "https://app.uniswap.org" },
@@ -150,12 +169,16 @@ const buildPool = async function ({
       );
     }
   });
-  const tvlUsd = poolTvlUsd(
-    supplies.map((amount, index) => ({
-      amount,
-      usdPrice: usdPrices[index] > 0 ? usdPrices[index] : undefined,
-    })),
-  );
+  const coins = [
+    { address: pool.token0, token: data.token0 },
+    { address: pool.token1, token: data.token1 },
+  ].map(({ address, token }, index) => ({
+    address,
+    amount: supplies[index],
+    symbol: tokenSymbol({ address, token }),
+    usdPrice: usdPrices[index] > 0 ? usdPrices[index] : null,
+  }));
+  const tvlUsd = poolTvlUsd(coins);
   const volumeUsd24h = data.volume24h?.value ?? 0;
   // The fee tier is in hundredths of a basis point.
   const feesUsd24h = (volumeUsd24h * data.feeTier) / 1_000_000;
@@ -163,11 +186,10 @@ const buildPool = async function ({
     address: pool.address,
     apr: feeApr({ feesUsd24h, tvlUsd }),
     chainId: mainnet.id,
-    coins: [pool.token0, pool.token1].map((address, index) => ({
-      address,
-      amount: supplies[index],
-    })),
+    coins,
     dex: "uniswap",
+    dexMetadata: { feeTier: data.feeTier },
+    feesUsd24h,
     rewards: [],
     tvlUsd,
     volumeUsd24h,

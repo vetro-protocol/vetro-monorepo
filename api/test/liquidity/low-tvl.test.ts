@@ -55,6 +55,8 @@ const buildPool = ({
   chainId,
   coins: [],
   dex: "sushi",
+  dexMetadata: { feeTier: 500 },
+  feesUsd24h: 0,
   range,
   rewards,
   tvlUsd,

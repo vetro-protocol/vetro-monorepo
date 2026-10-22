@@ -11,11 +11,11 @@ export const formatUsd = (value: number) => usdFormatter.format(value);
 
 export const formatPercent = (value: number) => `${value.toFixed(2)}%`;
 
-export const formatOptionalUsd = (value: number | undefined) =>
-  value === undefined ? "—" : formatUsd(value);
+export const formatOptionalUsd = (value: number | null) =>
+  value === null ? "—" : formatUsd(value);
 
-export const formatOptionalPercent = (value: number | undefined) =>
-  value === undefined ? "—" : formatPercent(value);
+export const formatOptionalPercent = (value: number | null) =>
+  value === null ? "—" : formatPercent(value);
 
 // Curve quotes gauge APR as a range from unboosted to max veCRV boost (2.5x).
 // Collapses to a single value when there's no boost spread.

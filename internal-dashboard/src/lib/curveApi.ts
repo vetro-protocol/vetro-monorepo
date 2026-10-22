@@ -1,39 +1,11 @@
 import fetch from "fetch-plus-plus";
 
-// Thin wrappers over the public Curve API. These return the raw shapes; joining
-// and normalization happens in the fetchers layer.
+// Thin wrappers over the public Curve API, for what the VETRO API doesn't
+// return: the gauge emissions and the per-pool 24h fees.
 const CURVE_API_BASE = "https://api.curve.finance/api";
 // Curve's analytics API (same one curvemonitor uses); exposes per-pool 24h fees.
 const PRICES_API_BASE = "https://prices.curve.finance/v1";
 const NETWORK = "ethereum";
-
-type CurveCoin = {
-  address: string;
-  decimals: string;
-  poolBalance: string;
-  symbol: string;
-  usdPrice: number | null;
-};
-
-type CurvePool = {
-  address: string;
-  coins: CurveCoin[];
-  gaugeAddress?: string;
-  gaugeCrvApy: (number | null)[];
-  lpTokenAddress?: string;
-  name: string;
-  poolUrls?: { swap?: string[] };
-  registryId: string;
-  usdTotal: number;
-  virtualPrice: string;
-};
-
-type CurveVolume = {
-  address: string;
-  latestDailyApyPcent: number;
-  latestWeeklyApyPcent: number;
-  volumeUSD: number;
-};
 
 // Already converted out of the API's snake_case gauge fields.
 type CurveGaugeInfo = {
@@ -52,18 +24,6 @@ type RawGauge = {
   };
   swap: string;
 };
-
-// Every pool across all registries; the only reliable way to discover pools by
-// the tokens they contain.
-export const fetchAllPools = (): Promise<CurvePool[]> =>
-  fetch(`${CURVE_API_BASE}/getPools/all/${NETWORK}`).then(
-    (body) => body.data.poolData,
-  );
-
-export const fetchVolumes = (): Promise<CurveVolume[]> =>
-  fetch(`${CURVE_API_BASE}/getVolumes/${NETWORK}`).then(
-    (body) => body.data.pools,
-  );
 
 export const fetchGauges = (): Promise<CurveGaugeInfo[]> =>
   fetch(`${CURVE_API_BASE}/getAllGauges`).then((body) =>

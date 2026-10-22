@@ -5,7 +5,7 @@ import {
   formatOptionalUsd,
   formatUsd,
 } from "../../lib/format";
-import { type TrackedPool } from "../../lib/types";
+import { type DashboardPool } from "../../lib/types";
 
 import { CampaignsBadge } from "./campaignsBadge";
 import { ChainLogo } from "./chainLogo";
@@ -15,10 +15,10 @@ import { TokenPair } from "./tokenPair";
 import { VenueBadge } from "./venueBadge";
 
 type Props = {
-  pools: TrackedPool[];
+  pools: DashboardPool[];
 };
 
-const poolPath = (pool: TrackedPool) => `/dex/${pool.id}`;
+const poolPath = (pool: DashboardPool) => `/dex/${pool.id}`;
 
 export const PoolsTable = function ({ pools }: Props) {
   const navigate = useNavigate();
@@ -59,7 +59,7 @@ export const PoolsTable = function ({ pools }: Props) {
                 <div>
                   <dt className="text-xs text-neutral-500">Pool APY</dt>
                   <dd className="font-semibold text-neutral-950">
-                    {formatOptionalPercent(pool.baseApy)}
+                    {formatOptionalPercent(pool.apr)}
                   </dd>
                 </div>
                 <div>
@@ -119,7 +119,7 @@ export const PoolsTable = function ({ pools }: Props) {
                   {formatUsd(pool.volumeUsd24h)}
                 </td>
                 <td className="py-3 pr-4 text-right font-medium text-neutral-950">
-                  {formatOptionalPercent(pool.baseApy)}
+                  {formatOptionalPercent(pool.apr)}
                 </td>
                 <td className="py-3 pr-4 text-right font-medium text-neutral-950">
                   <RewardsApr align="end" pool={pool} />

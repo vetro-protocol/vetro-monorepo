@@ -4,8 +4,8 @@ import { describe, expect, it } from "vitest";
 
 import { computeDistributions } from "../src/lib/distribution.ts";
 import {
+  type DashboardPool,
   type PoolCoin,
-  type TrackedPool,
   type TrackedToken,
 } from "../src/lib/types.ts";
 
@@ -32,13 +32,13 @@ const symbolByAddress: Record<string, string> = {
 
 const makeCoin = ({
   address,
-  balance,
+  amount,
   symbol = symbolByAddress[address],
 }: {
   address: Address;
-  balance: bigint;
+  amount: number;
   symbol?: string;
-}): PoolCoin => ({ address, balance, decimals: 18, symbol, usdPrice: 1 });
+}): PoolCoin => ({ address, amount, symbol, usdPrice: 1 });
 
 const makePool = ({
   address,
@@ -48,22 +48,25 @@ const makePool = ({
   address: Address;
   chainId?: number;
   coins: PoolCoin[];
-}): TrackedPool => ({
+}): DashboardPool => ({
   address,
-  baseApy: 0,
+  apr: 0,
   chainId,
   coins,
   dex: "curve",
-  emissionApr: 0,
-  emissionAprMax: 0,
-  gaugeAddress: undefined,
+  dexMetadata: {
+    name: `pool-${address}`,
+    poolId: "factory-stable-ng-1",
+    registryId: "factory-stable-ng",
+  },
+  feesUsd24h: null,
   id: address,
-  lpTokenAddress: undefined,
+  isRangeView: false,
   name: `pool-${address}`,
-  poolType: "stableswap",
+  poolType: "factory-stable-ng",
+  rewards: [],
   tvlUsd: 0,
   url: "https://example.com",
-  virtualPrice: 1,
   volumeUsd24h: 0,
 });
 
@@ -88,7 +91,7 @@ describe("distribution/computeDistributions", function () {
     const pools = [
       makePool({
         address: poolOne,
-        coins: [makeCoin({ address: tokenB, balance: 100n })],
+        coins: [makeCoin({ address: tokenB, amount: 100 })],
       }),
     ];
     const [distribution] = computeDistributions({
@@ -97,14 +100,14 @@ describe("distribution/computeDistributions", function () {
     });
 
     expect(distribution.slices).toEqual([]);
-    expect(distribution.totalBalance).toBe(0n);
+    expect(distribution.totalAmount).toBe(0);
   });
 
   it("produces a single full-share slice when only one pool holds the token", function () {
     const pools = [
       makePool({
         address: poolOne,
-        coins: [makeCoin({ address: tokenA, balance: 500n })],
+        coins: [makeCoin({ address: tokenA, amount: 500 })],
       }),
     ];
     const [distribution] = computeDistributions({
@@ -112,9 +115,9 @@ describe("distribution/computeDistributions", function () {
       tokens: [makeToken({ address: tokenA, symbol: "A" })],
     });
 
-    expect(distribution.totalBalance).toBe(500n);
+    expect(distribution.totalAmount).toBe(500);
     expect(distribution.slices).toHaveLength(1);
-    expect(distribution.slices[0].balance).toBe(500n);
+    expect(distribution.slices[0].amount).toBe(500);
     expect(distribution.slices[0].share).toBe(1);
   });
 
@@ -122,11 +125,11 @@ describe("distribution/computeDistributions", function () {
     const pools = [
       makePool({
         address: poolOne,
-        coins: [makeCoin({ address: tokenA, balance: 30n })],
+        coins: [makeCoin({ address: tokenA, amount: 30 })],
       }),
       makePool({
         address: poolTwo,
-        coins: [makeCoin({ address: tokenA, balance: 70n })],
+        coins: [makeCoin({ address: tokenA, amount: 70 })],
       }),
     ];
     const [distribution] = computeDistributions({
@@ -134,7 +137,7 @@ describe("distribution/computeDistributions", function () {
       tokens: [makeToken({ address: tokenA, symbol: "A" })],
     });
 
-    expect(distribution.totalBalance).toBe(100n);
+    expect(distribution.totalAmount).toBe(100);
     expect(distribution.slices).toHaveLength(2);
     expect(distribution.slices.map((slice) => slice.share)).toEqual([0.7, 0.3]);
     const shareSum = distribution.slices.reduce(
@@ -144,19 +147,19 @@ describe("distribution/computeDistributions", function () {
     expect(shareSum).toBeCloseTo(1, 12);
   });
 
-  it("sorts slices by balance, largest first", function () {
+  it("sorts slices by amount, largest first", function () {
     const pools = [
       makePool({
         address: poolOne,
-        coins: [makeCoin({ address: tokenA, balance: 10n })],
+        coins: [makeCoin({ address: tokenA, amount: 10 })],
       }),
       makePool({
         address: poolTwo,
-        coins: [makeCoin({ address: tokenA, balance: 90n })],
+        coins: [makeCoin({ address: tokenA, amount: 90 })],
       }),
       makePool({
         address: poolThree,
-        coins: [makeCoin({ address: tokenA, balance: 50n })],
+        coins: [makeCoin({ address: tokenA, amount: 50 })],
       }),
     ];
     const [distribution] = computeDistributions({
@@ -164,10 +167,8 @@ describe("distribution/computeDistributions", function () {
       tokens: [makeToken({ address: tokenA, symbol: "A" })],
     });
 
-    expect(distribution.slices.map((slice) => slice.balance)).toEqual([
-      90n,
-      50n,
-      10n,
+    expect(distribution.slices.map((slice) => slice.amount)).toEqual([
+      90, 50, 10,
     ]);
     expect(distribution.slices.map((slice) => slice.pool.address)).toEqual([
       poolTwo,
@@ -180,14 +181,12 @@ describe("distribution/computeDistributions", function () {
     const pools = [
       makePool({
         address: poolOne,
-        coins: [
-          makeCoin({ address: vusdMainnet, balance: 40n, symbol: "VUSD" }),
-        ],
+        coins: [makeCoin({ address: vusdMainnet, amount: 40, symbol: "VUSD" })],
       }),
       makePool({
         address: poolTwo,
         chainId: hemi.id,
-        coins: [makeCoin({ address: vusdHemi, balance: 60n, symbol: "VUSD" })],
+        coins: [makeCoin({ address: vusdHemi, amount: 60, symbol: "VUSD" })],
       }),
     ];
     const [distribution] = computeDistributions({
@@ -195,7 +194,7 @@ describe("distribution/computeDistributions", function () {
       tokens: [makeToken({ address: vusdMainnet, symbol: "VUSD" })],
     });
 
-    expect(distribution.totalBalance).toBe(100n);
+    expect(distribution.totalAmount).toBe(100);
     expect(distribution.slices.map((slice) => slice.pool.chainId)).toEqual([
       hemi.id,
       mainnet.id,
@@ -206,14 +205,12 @@ describe("distribution/computeDistributions", function () {
     const pools = [
       makePool({
         address: poolOne,
-        coins: [
-          makeCoin({ address: vusdMainnet, balance: 40n, symbol: "VUSD" }),
-        ],
+        coins: [makeCoin({ address: vusdMainnet, amount: 40, symbol: "VUSD" })],
       }),
       makePool({
         address: poolTwo,
         chainId: hemi.id,
-        coins: [makeCoin({ address: tokenC, balance: 60n, symbol: "VUSD" })],
+        coins: [makeCoin({ address: tokenC, amount: 60, symbol: "VUSD" })],
       }),
     ];
     const [distribution] = computeDistributions({
@@ -221,20 +218,20 @@ describe("distribution/computeDistributions", function () {
       tokens: [makeToken({ address: vusdMainnet, symbol: "VUSD" })],
     });
 
-    expect(distribution.totalBalance).toBe(40n);
+    expect(distribution.totalAmount).toBe(40);
     expect(distribution.slices).toHaveLength(1);
     expect(distribution.slices[0].pool.address).toBe(poolOne);
   });
 
-  it("assigns a zero share to every slice when total balance is zero", function () {
+  it("assigns a zero share to every slice when the total amount is zero", function () {
     const pools = [
       makePool({
         address: poolOne,
-        coins: [makeCoin({ address: tokenA, balance: 0n })],
+        coins: [makeCoin({ address: tokenA, amount: 0 })],
       }),
       makePool({
         address: poolTwo,
-        coins: [makeCoin({ address: tokenA, balance: 0n })],
+        coins: [makeCoin({ address: tokenA, amount: 0 })],
       }),
     ];
     const [distribution] = computeDistributions({
@@ -242,7 +239,7 @@ describe("distribution/computeDistributions", function () {
       tokens: [makeToken({ address: tokenA, symbol: "A" })],
     });
 
-    expect(distribution.totalBalance).toBe(0n);
+    expect(distribution.totalAmount).toBe(0);
     expect(distribution.slices).toHaveLength(2);
     expect(distribution.slices.every((slice) => slice.share === 0)).toBe(true);
   });
@@ -252,13 +249,13 @@ describe("distribution/computeDistributions", function () {
       makePool({
         address: poolOne,
         coins: [
-          makeCoin({ address: tokenA, balance: 100n }),
-          makeCoin({ address: tokenB, balance: 200n }),
+          makeCoin({ address: tokenA, amount: 100 }),
+          makeCoin({ address: tokenB, amount: 200 }),
         ],
       }),
       makePool({
         address: poolTwo,
-        coins: [makeCoin({ address: tokenC, balance: 999n })],
+        coins: [makeCoin({ address: tokenC, amount: 999 })],
       }),
     ];
     const [distribution] = computeDistributions({
@@ -266,7 +263,7 @@ describe("distribution/computeDistributions", function () {
       tokens: [makeToken({ address: tokenA, symbol: "A" })],
     });
 
-    expect(distribution.totalBalance).toBe(100n);
+    expect(distribution.totalAmount).toBe(100);
     expect(distribution.slices).toHaveLength(1);
     expect(distribution.slices[0].pool.address).toBe(poolOne);
   });
