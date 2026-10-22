@@ -527,9 +527,13 @@
       "pools": "Pools",
       "rewards-apr": "Rewards APR",
       "rewards-apr-info": {
-        "curve-gauge": "Stake LP tokens directly in the Curve gauge to earn CRV rewards (boost depends on your veCRV).",
-        "merkl": "Off-chain rewards based on pool rules and price ranges. Review terms and claim at Merkl.",
-        "stake-dao": "Deposit LP tokens on Stake DAO to earn boosted CRV and SDT rewards without needing veCRV."
+        "curve-gauge": "Stake the LP token on Curve’s “Stake” tab. Earns CRV, boosted by your veCRV.",
+        "footer": "You can stake an LP token in only one place at a time. Reward rates change over time.",
+        "merkl": "Merkl campaigns do not need the LP token to be staked. Each campaign sets which positions earn rewards.",
+        "stake-dao": "Deposit the LP token in the pool’s Stake DAO vault. Earns boosted CRV plus SDT, with no veCRV needed.",
+        "step-add-liquidity": "Click “Add liquidity” to deposit into the pool on its DEX (for example, Curve). You get an LP token.",
+        "step-stake": "Stake your LP token in ONE of these. Click the reward rate in the row to open its page:",
+        "title": "Earning rewards takes 2 steps:"
       },
       "title": "Liquidity",
       "total-tvl": "Total DEX TVL",
