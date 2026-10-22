@@ -271,6 +271,7 @@
     "earn": {
       "activity": {
         "cancel-deposit-text": "Solicitud de depósito de {{amount}} {{symbol}} cancelada",
+        "cancel-exit-text": "Solicitud de salida de {{amount}} {{symbol}} cancelada",
         "cancel-withdraw-text": "Exit ticket de {{amount}} {{symbol}} eliminado",
         "claim-deposit-text": "{{amount}} {{symbol}} reclamado",
         "claim-withdraw-text": "{{amount}} {{symbol}} retirado",
@@ -351,6 +352,13 @@
         "cancel-deposit-step-confirm-title": "Confirmar cancelación",
         "cancel-deposit-toast-description": "Sus {{symbol}} están de nuevo en su billetera.",
         "cancel-deposit-toast-title": "Solicitud de depósito cancelada",
+        "cancel-exit-in-progress": "Cancelación en progreso",
+        "cancel-exit-progress": "Progreso de la cancelación",
+        "cancel-exit-request": "Cancelar solicitud de salida",
+        "cancel-exit-step-confirm-description": "Revise los detalles y confirme la cancelación en su billetera.",
+        "cancel-exit-step-confirm-title": "Confirmar cancelación",
+        "cancel-exit-toast-description": "Sus {{shareSymbol}} están de nuevo en su billetera y siguen generando rendimiento.",
+        "cancel-exit-toast-title": "Solicitud de salida cancelada",
         "cap-reached": "Capacidad del fondo alcanzada",
         "capacity-remaining": "<amount>{{amount}}</amount> restante",
         "claim-deposit-in-progress": "Reclamo en progreso",

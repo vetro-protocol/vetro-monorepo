@@ -3,6 +3,7 @@ import { Badge } from "components/base/badge";
 import { Button } from "components/base/button";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { InfoCard } from "components/base/infoCard";
+import { CancelExitRequest } from "components/earn/cancelExitRequest";
 import { TokenAmountCaption } from "components/earn/tokenAmountCaption";
 import { BoltIcon } from "components/icons/boltIcon";
 import { InfoIcon } from "components/icons/infoIcon";
@@ -70,12 +71,6 @@ export const ExitClaimCard = function ({
     // See https://github.com/vetro-protocol/vetro-monorepo/issues/646
   };
 
-  const handleCancel = function () {
-    // TODO: cancel with `cancelRedeemRequest` from
-    // `@vetro-protocol/target-yield-earn` once VUSDx is deployed.
-    // See https://github.com/vetro-protocol/vetro-monorepo/issues/646
-  };
-
   return (
     <InfoCard
       data={data}
@@ -126,14 +121,11 @@ export const ExitClaimCard = function ({
               symbol: peggedToken.symbol,
             })}
           </Button>
-          <Button
-            disabled={!data?.canCancel}
-            onClick={handleCancel}
-            type="button"
-            variant="secondary"
-          >
-            {t("pages.earn.fixed-term.cancel")}
-          </Button>
+          <CancelExitRequest
+            peggedToken={peggedToken}
+            shareToken={shareToken}
+            stakingVaultAddress={stakingVaultAddress}
+          />
         </div>
       }
     />
