@@ -28,6 +28,14 @@ export const TitleOnly: Story = {
   },
 };
 
+export const AutoClose: Story = {
+  args: {
+    autoClose: true,
+    description: "Your funds are now staked and earning yield.",
+    title: "Stake deposit confirmed",
+  },
+};
+
 export const Error: Story = {
   args: {
     description: "Your request wasn't sent. Try again.",

@@ -7,6 +7,8 @@ import { ErrorCircleIcon } from "./errorCircleIcon";
 
 type ToastVariant = "error" | "success";
 
+const autoCloseDelayMs = 5000;
+
 export type ToastData = {
   description?: string;
   id: number | string;
@@ -21,7 +23,7 @@ type ToasterProps = {
 };
 
 type ToastProps = {
-  autoCloseMs?: number;
+  autoClose?: boolean;
   description?: string;
   onClose: VoidFunction;
   title: string;
@@ -76,14 +78,14 @@ export const Toaster = ({ autoCloseMs, onClose, toasts }: ToasterProps) => (
 );
 
 export const Toast = ({
-  autoCloseMs,
+  autoClose,
   description,
   onClose,
   title,
   variant,
 }: ToastProps) => (
   <Toaster
-    autoCloseMs={autoCloseMs}
+    autoCloseMs={autoClose ? autoCloseDelayMs : undefined}
     onClose={onClose}
     toasts={[{ description, id: "toast", title, variant }]}
   />
