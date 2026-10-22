@@ -3,7 +3,6 @@ import { Button } from "components/base/button";
 import { RenderCryptoValue } from "components/base/cryptoValue";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { MaxButton } from "components/base/maxButton";
-import { Toast } from "components/base/toast";
 import {
   type Step,
   VerticalStepper,
@@ -192,15 +191,15 @@ function StepperOverlay({
 type Props = {
   market: MarketData;
   onClose: VoidFunction;
+  onSuccess: (toast: { description: string; title: string }) => void;
 };
 
-export function WithdrawCollateralForm({ market, onClose }: Props) {
+export function WithdrawCollateralForm({ market, onClose, onSuccess }: Props) {
   const { t } = useTranslation();
 
   const [collateralInput, onCollateralChange] = useAmount();
   const [flowStatus, setFlowStatus] =
     useState<WithdrawCollateralFlowStatus>("idle");
-  const [showToast, setShowToast] = useState(false);
 
   const isActive = flowStatus !== "idle";
   const isError = flowStatus === "withdraw-error";
@@ -255,7 +254,16 @@ export function WithdrawCollateralForm({ market, onClose }: Props) {
       emitter.on("withdraw-collateral-transaction-succeeded", function () {
         onCompleted();
         setFlowStatus("withdrawn");
-        setShowToast(true);
+        onSuccess({
+          description: t(
+            "pages.borrow.withdraw-collateral-progress.toast-description",
+            {
+              amount: formatNumber(collateralInput),
+              symbol: collateralToken.symbol,
+            },
+          ),
+          title: t("pages.borrow.withdraw-collateral-progress.toast-title"),
+        });
       });
       emitter.on("withdraw-collateral-transaction-reverted", function () {
         onFailed();
@@ -396,19 +404,6 @@ export function WithdrawCollateralForm({ market, onClose }: Props) {
         showStepper={showStepper}
         steps={steps}
       />
-      {showToast && (
-        <Toast
-          description={t(
-            "pages.borrow.withdraw-collateral-progress.toast-description",
-            {
-              amount: formatNumber(collateralInput),
-              symbol: collateralToken.symbol,
-            },
-          )}
-          onClose={() => setShowToast(false)}
-          title={t("pages.borrow.withdraw-collateral-progress.toast-title")}
-        />
-      )}
     </div>
   );
 }

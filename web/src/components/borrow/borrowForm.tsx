@@ -7,7 +7,6 @@ import { Button } from "components/base/button";
 import { RenderCryptoValue } from "components/base/cryptoValue";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { MaxButton } from "components/base/maxButton";
-import { Toast } from "components/base/toast";
 import { OracleLabel } from "components/borrow/oracleLabel";
 import { FormSection, FormSectionItem } from "components/feesContainer";
 import { ExclamationTriangleIcon } from "components/icons/exclamationTriangleIcon";
@@ -112,6 +111,7 @@ type Props = {
   onBorrowChange: (value: string) => void;
   onCollateralChange: (value: string) => void;
   onDrawerOpenChange: (value: SetStateAction<boolean>) => void;
+  onSuccess: (toast: { description: string; title: string }) => void;
 };
 
 export function BorrowForm({
@@ -122,10 +122,10 @@ export function BorrowForm({
   onBorrowChange,
   onCollateralChange,
   onDrawerOpenChange,
+  onSuccess,
 }: Props) {
   const { t } = useTranslation();
   const [flowStatus, setFlowStatus] = useState<BorrowFlowStatus>("idle");
-  const [showToast, setShowToast] = useState(false);
   const [startedWithApproval, setStartedWithApproval] = useState(false);
   const handleDrawerClose = useCallback(
     () => onDrawerOpenChange(false),
@@ -251,7 +251,13 @@ export function BorrowForm({
       emitter.on("borrow-assets-transaction-succeeded", function () {
         onCompleted();
         setFlowStatus("borrowed");
-        setShowToast(true);
+        onSuccess({
+          description: t("pages.borrow.toast.description", {
+            amount: formatNumber(borrowInput),
+            symbol: loanToken.symbol,
+          }),
+          title: t("pages.borrow.toast.title"),
+        });
         watchToken();
       });
       emitter.on("borrow-assets-transaction-reverted", () =>
@@ -406,16 +412,6 @@ export function BorrowForm({
           onClose={handleDrawerClose}
           onRetry={handleRetry}
           showApproveStep={startedWithApproval}
-        />
-      )}
-      {showToast && (
-        <Toast
-          description={t("pages.borrow.toast.description", {
-            amount: formatNumber(borrowInput),
-            symbol: loanToken.symbol,
-          })}
-          onClose={() => setShowToast(false)}
-          title={t("pages.borrow.toast.title")}
         />
       )}
     </>

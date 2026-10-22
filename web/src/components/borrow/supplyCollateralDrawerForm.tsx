@@ -14,16 +14,25 @@ const SupplyCollateralForm = lazy(() =>
 type Props = {
   market: MarketData;
   onClose: VoidFunction;
+  onSuccess: (toast: { description: string; title: string }) => void;
 };
 
-export function SupplyCollateralDrawerForm({ market, onClose }: Props) {
+export function SupplyCollateralDrawerForm({
+  market,
+  onClose,
+  onSuccess,
+}: Props) {
   const { t } = useTranslation();
   return (
     <Drawer onClose={onClose}>
       <div className="flex h-full flex-col">
         <DrawerTitle>{t("pages.borrow.supply-more-collateral")}</DrawerTitle>
         <Suspense fallback={<DrawerLoader />}>
-          <SupplyCollateralForm market={market} onClose={onClose} />
+          <SupplyCollateralForm
+            market={market}
+            onClose={onClose}
+            onSuccess={onSuccess}
+          />
         </Suspense>
       </div>
     </Drawer>

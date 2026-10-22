@@ -1,6 +1,7 @@
 import { Breadcrumb } from "components/base/breadcrumb";
 import { BreadcrumbSelector } from "components/base/breadcrumb/breadcrumbSelector";
 import { ButtonLink } from "components/base/button";
+import { Toast } from "components/base/toast";
 import { BorrowForm } from "components/borrow/borrowForm";
 import { ExistingPositionNotice } from "components/borrow/existingPositionNotice";
 import { MarketHeader } from "components/borrow/marketHeader";
@@ -48,6 +49,10 @@ const BorrowMarketDetailsLoaded = function ({
   const [borrowInput, onBorrowChange] = useAmount();
   const [collateralInput, onCollateralChange] = useAmount();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [toast, setToast] = useState<{
+    description: string;
+    title: string;
+  } | null>(null);
 
   const hasExistingPosition = hasActivePosition(position);
 
@@ -109,10 +114,18 @@ const BorrowMarketDetailsLoaded = function ({
               onBorrowChange={onBorrowChange}
               onCollateralChange={onCollateralChange}
               onDrawerOpenChange={setIsDrawerOpen}
+              onSuccess={setToast}
             />
           )}
         </div>
       </div>
+      {toast && (
+        <Toast
+          description={toast.description}
+          onClose={() => setToast(null)}
+          title={toast.title}
+        />
+      )}
     </div>
   );
 };

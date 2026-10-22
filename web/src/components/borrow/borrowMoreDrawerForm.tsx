@@ -14,16 +14,21 @@ const BorrowMoreForm = lazy(() =>
 type Props = {
   market: MarketData;
   onClose: VoidFunction;
+  onSuccess: (toast: { description: string; title: string }) => void;
 };
 
-export function BorrowMoreDrawerForm({ market, onClose }: Props) {
+export function BorrowMoreDrawerForm({ market, onClose, onSuccess }: Props) {
   const { t } = useTranslation();
   return (
     <Drawer onClose={onClose}>
       <div className="flex h-full flex-col">
         <DrawerTitle>{t("pages.borrow.borrow-more")}</DrawerTitle>
         <Suspense fallback={<DrawerLoader />}>
-          <BorrowMoreForm market={market} onClose={onClose} />
+          <BorrowMoreForm
+            market={market}
+            onClose={onClose}
+            onSuccess={onSuccess}
+          />
         </Suspense>
       </div>
     </Drawer>

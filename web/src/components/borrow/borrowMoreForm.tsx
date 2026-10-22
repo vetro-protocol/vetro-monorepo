@@ -3,7 +3,6 @@ import { Button } from "components/base/button";
 import { RenderCryptoValue } from "components/base/cryptoValue";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { MaxButton } from "components/base/maxButton";
-import { Toast } from "components/base/toast";
 import {
   type Step,
   VerticalStepper,
@@ -199,14 +198,14 @@ function StepperOverlay({
 type Props = {
   market: MarketData;
   onClose: VoidFunction;
+  onSuccess: (toast: { description: string; title: string }) => void;
 };
 
-export function BorrowMoreForm({ market, onClose }: Props) {
+export function BorrowMoreForm({ market, onClose, onSuccess }: Props) {
   const { t } = useTranslation();
 
   const [borrowInput, onBorrowChange] = useAmount();
   const [flowStatus, setFlowStatus] = useState<BorrowMoreFlowStatus>("idle");
-  const [showToast, setShowToast] = useState(false);
 
   const isActive = flowStatus !== "idle";
   const isError = flowStatus === "borrow-error";
@@ -279,7 +278,13 @@ export function BorrowMoreForm({ market, onClose }: Props) {
       emitter.on("borrow-assets-transaction-succeeded", function () {
         onCompleted();
         setFlowStatus("borrowed");
-        setShowToast(true);
+        onSuccess({
+          description: t("pages.borrow.toast.description", {
+            amount: formatNumber(borrowInput),
+            symbol: loanToken.symbol,
+          }),
+          title: t("pages.borrow.toast.title"),
+        });
       });
       emitter.on("borrow-assets-transaction-reverted", function () {
         onFailed();
@@ -414,16 +419,6 @@ export function BorrowMoreForm({ market, onClose }: Props) {
         showStepper={showStepper}
         steps={steps}
       />
-      {showToast && (
-        <Toast
-          description={t("pages.borrow.toast.description", {
-            amount: formatNumber(borrowInput),
-            symbol: loanToken.symbol,
-          })}
-          onClose={() => setShowToast(false)}
-          title={t("pages.borrow.toast.title")}
-        />
-      )}
     </div>
   );
 }

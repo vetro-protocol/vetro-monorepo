@@ -5,7 +5,6 @@ import { getChainAddresses } from "@morpho-org/blue-sdk";
 import { Button } from "components/base/button";
 import { RenderCryptoValue } from "components/base/cryptoValue";
 import { RenderFiatValue } from "components/base/fiatValue";
-import { Toast } from "components/base/toast";
 import {
   type Step,
   VerticalStepper,
@@ -216,15 +215,15 @@ function StepperOverlay({
 type Props = {
   market: MarketData;
   onClose: VoidFunction;
+  onSuccess: (toast: { description: string; title: string }) => void;
 };
 
-export function SupplyCollateralForm({ market, onClose }: Props) {
+export function SupplyCollateralForm({ market, onClose, onSuccess }: Props) {
   const { t } = useTranslation();
 
   const [collateralInput, onCollateralChange] = useAmount();
   const [flowStatus, setFlowStatus] =
     useState<SupplyCollateralFlowStatus>("idle");
-  const [showToast, setShowToast] = useState(false);
   const [startedWithApproval, setStartedWithApproval] = useState(false);
 
   const isActive = flowStatus !== "idle";
@@ -301,7 +300,16 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
       emitter.on("supply-collateral-transaction-succeeded", function () {
         onCompleted();
         setFlowStatus("supplied-collateral");
-        setShowToast(true);
+        onSuccess({
+          description: t(
+            "pages.borrow.supply-collateral-progress.toast-description",
+            {
+              amount: formatNumber(collateralInput),
+              symbol: collateralToken.symbol,
+            },
+          ),
+          title: t("pages.borrow.supply-collateral-progress.toast-title"),
+        });
       });
       emitter.on("supply-collateral-transaction-reverted", function () {
         onFailed();
@@ -450,19 +458,6 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
         showStepper={showStepper}
         steps={steps}
       />
-      {showToast && (
-        <Toast
-          description={t(
-            "pages.borrow.supply-collateral-progress.toast-description",
-            {
-              amount: formatNumber(collateralInput),
-              symbol: collateralToken.symbol,
-            },
-          )}
-          onClose={() => setShowToast(false)}
-          title={t("pages.borrow.supply-collateral-progress.toast-title")}
-        />
-      )}
     </div>
   );
 }
