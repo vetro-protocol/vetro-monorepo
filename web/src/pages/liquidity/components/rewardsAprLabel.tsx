@@ -17,7 +17,9 @@ export function RewardsAprLabel() {
   ];
 
   const steps = [
-    t("pages.liquidity.rewards-apr-info.step-add-liquidity"),
+    t("pages.liquidity.rewards-apr-info.step-add-liquidity", {
+      action: t("pages.liquidity.add-liquidity"),
+    }),
     t("pages.liquidity.rewards-apr-info.step-stake"),
   ];
 

@@ -537,7 +537,7 @@
         "footer": "Puede hacer stake de un token LP en un solo lugar a la vez. Las tasas de recompensa cambian con el tiempo.",
         "merkl": "Las campañas de Merkl no requieren hacer stake del token LP. Cada campaña define qué posiciones ganan recompensas.",
         "stake-dao": "Deposite el token LP en el vault de Stake DAO del pool. Gana CRV con boost más SDT, sin necesidad de veCRV.",
-        "step-add-liquidity": "Haga clic en “Agregar liquidez” para depositar en el pool desde el DEX (por ejemplo, Curve). Recibirá un token LP.",
+        "step-add-liquidity": "Haga clic en “{{action}}” para depositar en el pool desde el DEX (por ejemplo, Curve). Recibirá un token LP.",
         "step-stake": "Haga stake de su token LP en UNA de estas opciones. Haga clic en la tasa de recompensa de la fila para abrir su página:",
         "title": "Ganar recompensas requiere 2 pasos:"
       },

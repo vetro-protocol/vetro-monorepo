@@ -531,7 +531,7 @@
         "footer": "You can stake an LP token in only one place at a time. Reward rates change over time.",
         "merkl": "Merkl campaigns do not need the LP token to be staked. Each campaign sets which positions earn rewards.",
         "stake-dao": "Deposit the LP token in the pool’s Stake DAO vault. Earns boosted CRV plus SDT, with no veCRV needed.",
-        "step-add-liquidity": "Click “Add liquidity” to deposit into the pool on its DEX (for example, Curve). You get an LP token.",
+        "step-add-liquidity": "Click “{{action}}” to deposit into the pool on its DEX (for example, Curve). You get an LP token.",
         "step-stake": "Stake your LP token in ONE of these. Click the reward rate in the row to open its page:",
         "title": "Earning rewards takes 2 steps:"
       },
