@@ -294,7 +294,6 @@ export function ExitTickets() {
       )}
       {showDeleteToast && (
         <Toast
-          closable
           description={t("pages.earn.exit-tickets.delete-toast-description")}
           onClose={() => setShowDeleteToast(false)}
           title={t("pages.earn.exit-tickets.delete-toast-title")}
@@ -302,7 +301,6 @@ export function ExitTickets() {
       )}
       {showWithdrawAllToast && (
         <Toast
-          closable
           description={t(
             "pages.earn.exit-tickets.withdraw-all-toast-description",
           )}

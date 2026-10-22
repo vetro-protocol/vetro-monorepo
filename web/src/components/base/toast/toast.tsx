@@ -8,7 +8,6 @@ import { ErrorCircleIcon } from "./errorCircleIcon";
 type ToastVariant = "error" | "success";
 
 export type ToastData = {
-  closable?: boolean;
   description?: string;
   id: number | string;
   title: string;
@@ -23,7 +22,6 @@ type ToasterProps = {
 
 type ToastProps = {
   autoCloseMs?: number;
-  closable?: boolean;
   description?: string;
   onClose: VoidFunction;
   title: string;
@@ -31,13 +29,11 @@ type ToastProps = {
 };
 
 const ToastCard = ({
-  closable,
   description,
   onClose,
   title,
   variant = "success",
 }: {
-  closable?: boolean;
   description?: string;
   onClose: VoidFunction;
   title: string;
@@ -57,16 +53,14 @@ const ToastCard = ({
         <p className="text-sm leading-5 text-gray-400">{description}</p>
       )}
     </div>
-    {closable && (
-      <button
-        aria-label="Close notification"
-        className="flex h-5 shrink-0 cursor-pointer items-center text-gray-400 opacity-0 transition-all group-hover:opacity-100 hover:text-white"
-        onClick={onClose}
-        type="button"
-      >
-        <CloseIcon size="small" />
-      </button>
-    )}
+    <button
+      aria-label="Close notification"
+      className="flex h-5 shrink-0 cursor-pointer items-center text-gray-400 opacity-0 transition-all group-hover:opacity-100 hover:text-white"
+      onClick={onClose}
+      type="button"
+    >
+      <CloseIcon size="small" />
+    </button>
   </div>
 );
 
@@ -83,7 +77,6 @@ export const Toaster = ({ autoCloseMs, onClose, toasts }: ToasterProps) => (
 
 export const Toast = ({
   autoCloseMs,
-  closable,
   description,
   onClose,
   title,
@@ -92,6 +85,6 @@ export const Toast = ({
   <Toaster
     autoCloseMs={autoCloseMs}
     onClose={onClose}
-    toasts={[{ closable, description, id: "toast", title, variant }]}
+    toasts={[{ description, id: "toast", title, variant }]}
   />
 );

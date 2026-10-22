@@ -168,7 +168,6 @@ export function ActionsCell({
       )}
       {showWithdrawToast && (
         <Toast
-          closable
           description={t("pages.earn.exit-tickets.withdraw-toast-description")}
           onClose={() => setShowWithdrawToast(false)}
           title={t("pages.earn.exit-tickets.withdraw-toast-title")}

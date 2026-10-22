@@ -446,7 +446,6 @@ export function RepayLoanForm({ market, onClose }: Props) {
       />
       {showToast && (
         <Toast
-          closable
           description={t("pages.borrow.repay-loan-progress.toast-description", {
             amount: formatNumber(repayInput),
             symbol: loanToken.symbol,

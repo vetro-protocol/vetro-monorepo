@@ -398,7 +398,6 @@ export function WithdrawCollateralForm({ market, onClose }: Props) {
       />
       {showToast && (
         <Toast
-          closable
           description={t(
             "pages.borrow.withdraw-collateral-progress.toast-description",
             {

@@ -145,7 +145,6 @@ export const CancelDepositRequest = function ({
       {showToast ? (
         <Toast
           autoCloseMs={5000}
-          closable={true}
           description={t(
             "pages.earn.fixed-term.cancel-deposit-toast-description",
             {

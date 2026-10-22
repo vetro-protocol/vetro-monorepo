@@ -410,7 +410,6 @@ export function BorrowForm({
       )}
       {showToast && (
         <Toast
-          closable
           description={t("pages.borrow.toast.description", {
             amount: formatNumber(borrowInput),
             symbol: loanToken.symbol,

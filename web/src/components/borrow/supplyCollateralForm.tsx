@@ -452,7 +452,6 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
       />
       {showToast && (
         <Toast
-          closable
           description={t(
             "pages.borrow.supply-collateral-progress.toast-description",
             {
