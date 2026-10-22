@@ -141,7 +141,6 @@ test("start a borrow position on the hemiBTC / VUSD market", async function ({
   await expect(page.getByText("You have a position already open")).toBeVisible({
     timeout: 20_000,
   });
-  // The notice replaces the form, so the toast must outlive the form's unmount
   await expect(page.getByText("Borrow successful")).toBeVisible();
 
   await waitForBalance({ client: publicClient, token: vusd.address }).toBe(
@@ -213,7 +212,6 @@ test("borrow more on an open hemiBTC / VUSD position", async function ({
   await expect(page.getByText("Borrow successful")).toBeVisible({
     timeout: 60_000,
   });
-  // The drawer closes on success, and the toast must outlive it
   await expect(drawer).toBeHidden({ timeout: 10_000 });
   await expect(page.getByText("Borrow successful")).toBeVisible();
 
@@ -284,7 +282,6 @@ test("supply more collateral to an open hemiBTC / VUSD position", async function
   await expect(page.getByText("Collateral supplied")).toBeVisible({
     timeout: 60_000,
   });
-  // The drawer closes on success, and the toast must outlive it
   await expect(drawer).toBeHidden({ timeout: 10_000 });
   await expect(page.getByText("Collateral supplied")).toBeVisible();
 
@@ -351,7 +348,6 @@ test("repay part of the loan on an open hemiBTC / VUSD position", async function
   await expect(page.getByText("Loan repaid")).toBeVisible({
     timeout: 60_000,
   });
-  // The drawer closes on success, and the toast must outlive it
   await expect(drawer).toBeHidden({ timeout: 10_000 });
   await expect(page.getByText("Loan repaid")).toBeVisible();
 
@@ -420,7 +416,6 @@ test("withdraw collateral from an open hemiBTC / VUSD position", async function 
   await expect(page.getByText("Collateral withdrawn")).toBeVisible({
     timeout: 60_000,
   });
-  // The drawer closes on success, and the toast must outlive it
   await expect(drawer).toBeHidden({ timeout: 10_000 });
   await expect(page.getByText("Collateral withdrawn")).toBeVisible();
 
