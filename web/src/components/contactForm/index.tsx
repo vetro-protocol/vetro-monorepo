@@ -311,7 +311,6 @@ export function ContactForm() {
 
         {status === "success" && (
           <Toast
-            autoClose
             description={t("pages.contact.toast.success-description")}
             onClose={reset}
             title={t("pages.contact.toast.success-title")}
@@ -319,7 +318,6 @@ export function ContactForm() {
         )}
         {status === "error" && (
           <Toast
-            autoClose
             description={t("pages.contact.toast.error-description")}
             onClose={reset}
             title={t("pages.contact.toast.error-title")}

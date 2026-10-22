@@ -111,7 +111,6 @@ export function StakeForm({
       )}
       {toast && (
         <Toast
-          autoClose
           description={toast.description}
           onClose={handleToastClose}
           title={toast.title}

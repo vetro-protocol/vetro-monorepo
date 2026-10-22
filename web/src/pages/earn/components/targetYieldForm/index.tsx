@@ -115,7 +115,6 @@ export function TargetYieldForm({
       )}
       {toast && (
         <Toast
-          autoClose
           description={toast.description}
           onClose={handleToastClose}
           title={toast.title}

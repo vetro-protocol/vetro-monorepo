@@ -7,7 +7,7 @@ import { ErrorCircleIcon } from "./errorCircleIcon";
 
 type ToastVariant = "error" | "success";
 
-const autoCloseDelayMs = 5000;
+const autoCloseDelayMs = 7000;
 
 export type ToastData = {
   description?: string;
@@ -23,7 +23,6 @@ type ToasterProps = {
 };
 
 type ToastProps = {
-  autoClose?: boolean;
   description?: string;
   onClose: VoidFunction;
   title: string;
@@ -35,12 +34,7 @@ const ToastCard = ({
   onClose,
   title,
   variant = "success",
-}: {
-  description?: string;
-  onClose: VoidFunction;
-  title: string;
-  variant?: ToastVariant;
-}) => (
+}: ToastProps) => (
   <div className="group flex items-start gap-3 rounded-lg bg-gray-950 p-3 pr-4">
     <div className="flex h-5 shrink-0 items-center">
       {variant === "error" ? (
@@ -77,15 +71,9 @@ export const Toaster = ({ autoCloseMs, onClose, toasts }: ToasterProps) => (
   />
 );
 
-export const Toast = ({
-  autoClose,
-  description,
-  onClose,
-  title,
-  variant,
-}: ToastProps) => (
+export const Toast = ({ description, onClose, title, variant }: ToastProps) => (
   <Toaster
-    autoCloseMs={autoClose ? autoCloseDelayMs : undefined}
+    autoCloseMs={autoCloseDelayMs}
     onClose={onClose}
     toasts={[{ description, id: "toast", title, variant }]}
   />

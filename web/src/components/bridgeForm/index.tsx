@@ -367,7 +367,6 @@ function BridgeFormContent({ tokens }: ContentProps) {
       )}
       {showToast && (
         <Toast
-          autoClose
           description={t("pages.bridge.toast.bridge-description")}
           onClose={() => setShowToast(false)}
           title={t("pages.bridge.toast.bridge-title")}

@@ -181,7 +181,6 @@ export const CancelExitRequest = function ({
       ) : null}
       {showToast ? (
         <Toast
-          autoClose
           description={t(
             "pages.earn.fixed-term.cancel-exit-toast-description",
             {
