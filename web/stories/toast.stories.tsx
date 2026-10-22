@@ -1,10 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { useCallback, useRef, useState } from "react";
+import { fn } from "storybook/test";
 
 import { Button } from "../src/components/base/button";
 import { Toast, type ToastData, Toaster } from "../src/components/base/toast";
 
 const meta: Meta<typeof Toast> = {
+  args: {
+    onClose: fn(),
+  },
   component: Toast,
   parameters: {
     layout: "fullscreen",
