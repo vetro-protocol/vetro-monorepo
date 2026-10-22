@@ -533,9 +533,13 @@
       "pools": "Pools",
       "rewards-apr": "APR de recompensas",
       "rewards-apr-info": {
-        "curve-gauge": "Haga stake de sus tokens LP directamente en el gauge de Curve para ganar recompensas en CRV (el boost depende de su veCRV).",
-        "merkl": "Recompensas off-chain según las reglas del pool y los rangos de precio. Revise los términos y reclame en Merkl.",
-        "stake-dao": "Deposite sus tokens LP en Stake DAO para ganar recompensas en CRV con boost y en SDT, sin necesidad de veCRV."
+        "curve-gauge": "Haga stake del token LP en la pestaña “Stake” de Curve. Gana CRV, con boost según su veCRV.",
+        "footer": "Puede hacer stake de un token LP en un solo lugar a la vez. Las tasas de recompensa cambian con el tiempo.",
+        "merkl": "Las campañas de Merkl no requieren hacer stake del token LP. Cada campaña define qué posiciones ganan recompensas.",
+        "stake-dao": "Deposite el token LP en el vault de Stake DAO del pool. Gana CRV con boost más SDT, sin necesidad de veCRV.",
+        "step-add-liquidity": "Haga clic en “{{action}}” para depositar en el pool desde el DEX (por ejemplo, Curve). Recibirá un token LP.",
+        "step-stake": "Haga stake de su token LP en UNA de estas opciones. Haga clic en la tasa de recompensa de la fila para abrir su página:",
+        "title": "Ganar recompensas requiere 2 pasos:"
       },
       "title": "Liquidez",
       "total-tvl": "TVL total en DEX",
