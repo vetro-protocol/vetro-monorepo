@@ -26,6 +26,7 @@ import {
   pad,
   parseAbi,
   parseEther,
+  parseEventLogs,
   parseUnits,
   toHex,
 } from "viem";
@@ -102,6 +103,10 @@ export const redeemAbi = parseAbi([
 
 export const requestRedeemAbi = parseAbi([
   "function requestRedeem(uint256 peggedTokenAmount)",
+]);
+
+export const withdrawClaimedAbi = parseAbi([
+  "event WithdrawClaimed(address indexed owner, address indexed receiver, uint256 indexed requestId, uint256 assets)",
 ]);
 
 export const swapAmount = "100";
@@ -724,4 +729,36 @@ export const sendTransactionRequest = async function ({
     value: hexToBigInt(request.value),
   });
   return waitForTransactionReceipt(publicClient, { hash });
+};
+
+/** Opens an exit ticket of TEST_ADDRESS. It first moves the clock 60 seconds, so the gas estimate and the mined transaction both see the vault's yield drip. */
+export const requestWithdraw = async function ({
+  assets,
+  rpcUrl,
+  vault,
+}: {
+  assets: bigint;
+  rpcUrl: string;
+  vault: Address;
+}) {
+  const { publicClient, walletClient } = createClients(rpcUrl);
+  await fastForward({ rpcUrl, seconds: 60n });
+  const hash = await writeContract(walletClient, {
+    abi: stakingVaultAbi,
+    address: vault,
+    args: [assets, TEST_ADDRESS],
+    functionName: "requestWithdraw",
+  });
+  const { logs, status } = await waitForTransactionReceipt(publicClient, {
+    hash,
+  });
+  if (status !== "success") {
+    throw new Error("requestWithdraw reverted");
+  }
+  const [{ args }] = parseEventLogs({
+    abi: stakingVaultAbi,
+    eventName: "WithdrawRequested",
+    logs,
+  });
+  return args;
 };
