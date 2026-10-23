@@ -37,10 +37,11 @@ jobs:
       - uses: hemilabs/actions/setup-node-env@8f87619b7f0122c39e14a32514ab3e4e0d4c3966 # v2.3.0
         with:
           package-manager: pnpm
-      - run: pnpm --filter @vetro-protocol/web exec playwright install-deps chromium
-      - run: pnpm --filter @vetro-protocol/web exec playwright install chromium --only-shell
-        env:
-          DEBUG: pw:install
+      - parallel:
+          - run: pnpm --filter @vetro-protocol/web exec playwright install-deps chromium
+          - env:
+              DEBUG: pw:install
+            run: pnpm --filter @vetro-protocol/web exec playwright install chromium --only-shell
       - run: pnpm --filter @vetro-protocol/web exec playwright test
         env:
           DEBUG: pw:webserver
