@@ -32,7 +32,7 @@ export default defineConfig({
             instances: [{ browser: "chromium" }],
             provider: playwright(),
           },
-          include: ["**/*.test.tsx"],
+          include: ["test/**/*.test.tsx"],
           name: "integration",
           setupFiles: ["test/components/setup.ts"],
         },
