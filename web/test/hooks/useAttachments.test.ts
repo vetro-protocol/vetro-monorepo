@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getAttachmentError } from "./useAttachments";
+import { getAttachmentError } from "../../src/hooks/useAttachments";
 
 const image = (name: string, bytes = 1) =>
   new File([new Uint8Array(bytes)], name, { type: "image/png" });

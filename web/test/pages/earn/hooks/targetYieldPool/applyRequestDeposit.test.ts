@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { applyRequestDeposit } from "./applyRequestDeposit";
+import { applyRequestDeposit } from "../../../../../src/pages/earn/hooks/targetYieldPool/applyRequestDeposit";
 
 describe("applyRequestDeposit", function () {
   it("returns undefined when the deposit request is not loaded", function () {

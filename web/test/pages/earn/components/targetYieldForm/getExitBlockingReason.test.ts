@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getExitBlockingReason } from "./getExitBlockingReason";
+import { getExitBlockingReason } from "../../../../../src/pages/earn/components/targetYieldForm/getExitBlockingReason";
 
 const open = {
   claimableShares: 0n,

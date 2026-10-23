@@ -10,7 +10,7 @@ export const initializeI18n = function () {
   const lng = getLanguageFromPath(window.location.pathname) ?? fallbackLng;
   document.documentElement.lang = lng;
   return i18n.use(initReactI18next).init({
-    debug: import.meta.env.DEV,
+    debug: import.meta.env.MODE === "development",
     fallbackLng,
     lng,
     resources,

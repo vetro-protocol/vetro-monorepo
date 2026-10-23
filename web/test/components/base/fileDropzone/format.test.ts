@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatFileSize } from "./format";
+import { formatFileSize } from "../../../../src/components/base/fileDropzone/format";
 
 describe("formatFileSize", function () {
   it("formats sizes under 1 KB in bytes", function () {

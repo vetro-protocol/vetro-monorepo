@@ -1,7 +1,7 @@
 import type { UseQueryResult } from "@tanstack/react-query";
 import { describe, expect, it } from "vitest";
 
-import { combineWithEpochId } from "./combineWithEpochId";
+import { combineWithEpochId } from "../../../../../src/pages/earn/hooks/targetYieldPool/combineWithEpochId";
 
 const result = <T>(state: Partial<UseQueryResult<T>>) =>
   ({

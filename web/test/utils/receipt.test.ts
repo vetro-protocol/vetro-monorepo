@@ -8,7 +8,7 @@ import {
 } from "viem";
 import { describe, expect, it } from "vitest";
 
-import { getReceivedAmount } from "./receipt";
+import { getReceivedAmount } from "../../src/utils/receipt";
 
 const account: Address = "0x1111111111111111111111111111111111111111";
 const other: Address = "0x2222222222222222222222222222222222222222";

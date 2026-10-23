@@ -1,7 +1,7 @@
 import { stepStatus } from "components/base/verticalStepper";
 import { describe, expect, it } from "vitest";
 
-import { getDepositSteps } from "./getDepositSteps";
+import { getDepositSteps } from "../../../../../src/pages/earn/components/earnForm/getDepositSteps";
 
 const approveText = { description: "approve-description", title: "approve" };
 const confirmText = { description: "confirm-description", title: "confirm" };

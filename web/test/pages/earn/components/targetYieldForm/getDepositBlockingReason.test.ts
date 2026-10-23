@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getDepositBlockingReason } from "./getDepositBlockingReason";
+import { getDepositBlockingReason } from "../../../../../src/pages/earn/components/targetYieldForm/getDepositBlockingReason";
 
 const depositState = {
   deposits: 400n,

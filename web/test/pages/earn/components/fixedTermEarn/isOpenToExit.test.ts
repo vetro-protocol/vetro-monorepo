@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isOpenToExit } from "./isOpenToExit";
+import { isOpenToExit } from "../../../../../src/pages/earn/components/fixedTermEarn/isOpenToExit";
 
 const toUnixTimestamp = (date: string) => BigInt(Date.parse(date) / 1000);
 
