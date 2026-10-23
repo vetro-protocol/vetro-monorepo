@@ -145,8 +145,6 @@ export const ClaimExit = function ({
       ) : null}
       {showToast ? (
         <Toast
-          autoCloseMs={5000}
-          closable={true}
           description={t("pages.earn.fixed-term.claim-exit-toast-description", {
             symbol: peggedToken.symbol,
           })}

@@ -20,7 +20,6 @@ export function RedeemQueueToasts({
   if (type === "cancel") {
     return (
       <Toast
-        closable
         description={t(
           "pages.swap.redeem-queue.cancel-redeem-toast-description",
           { symbol: peggedToken.symbol },
@@ -33,7 +32,6 @@ export function RedeemQueueToasts({
 
   return (
     <Toast
-      closable
       description={t("pages.swap.redeem-queue.swap-confirmed-description", {
         symbol: toToken.symbol,
       })}

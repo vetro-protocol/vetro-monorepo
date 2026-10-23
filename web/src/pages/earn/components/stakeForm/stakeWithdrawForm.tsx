@@ -4,6 +4,7 @@ import { RenderCryptoValue } from "components/base/cryptoValue";
 import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
 import { RenderFiatValue } from "components/base/fiatValue";
+import type { ToastContent } from "components/base/toast";
 import { CollapsibleSection } from "components/collapsibleSection";
 import { NetworkFees } from "components/networkFees";
 import { SetMaxStakedBalance } from "components/setMaxStakedBalance";
@@ -39,7 +40,7 @@ type Props = {
   onDrawerOpenChange: (open: boolean) => void;
   onInputChange: (value: string) => void;
   onResetSteps: VoidFunction;
-  onSuccess: (toast: { description: string; title: string }) => void;
+  onSuccess: (toast: ToastContent) => void;
   onWithdrawStepChange: (step: WithdrawStep) => void;
   peggedToken: TokenWithGateway;
   shareToken: Token;

@@ -7,6 +7,7 @@ import { ApproveSection } from "components/approveSection";
 import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
 import { RenderFiatValue } from "components/base/fiatValue";
+import type { ToastContent } from "components/base/toast";
 import { CollapsibleSection } from "components/collapsibleSection";
 import { NetworkFees } from "components/networkFees";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
@@ -43,7 +44,7 @@ type Props = {
   onDrawerOpenChange: (open: boolean) => void;
   onInputChange: (value: string) => void;
   onResetSteps: VoidFunction;
-  onSuccess: (toast: { description: string; title: string }) => void;
+  onSuccess: (toast: ToastContent) => void;
   peggedToken: TokenWithGateway;
   shareToken: Token;
   stakingVaultAddress: Address;

@@ -5,7 +5,7 @@ import { getChainAddresses } from "@morpho-org/blue-sdk";
 import { Button } from "components/base/button";
 import { RenderCryptoValue } from "components/base/cryptoValue";
 import { RenderFiatValue } from "components/base/fiatValue";
-import { Toast } from "components/base/toast";
+import type { ToastContent } from "components/base/toast";
 import {
   type Step,
   VerticalStepper,
@@ -221,14 +221,14 @@ function StepperOverlay({
 type Props = {
   market: MarketData;
   onClose: VoidFunction;
+  onSuccess: (toast: ToastContent) => void;
 };
 
-export function RepayLoanForm({ market, onClose }: Props) {
+export function RepayLoanForm({ market, onClose, onSuccess }: Props) {
   const { t } = useTranslation();
 
   const [repayInput, onRepayChange] = useAmount();
   const [flowStatus, setFlowStatus] = useState<RepayFlowStatus>("idle");
-  const [showToast, setShowToast] = useState(false);
   const [startedWithApproval, setStartedWithApproval] = useState(false);
 
   const isActive = flowStatus !== "idle";
@@ -308,7 +308,13 @@ export function RepayLoanForm({ market, onClose }: Props) {
       emitter.on("repay-assets-transaction-succeeded", function () {
         onCompleted();
         setFlowStatus("repaid");
-        setShowToast(true);
+        onSuccess({
+          description: t("pages.borrow.repay-loan-progress.toast-description", {
+            amount: formatNumber(repayInput),
+            symbol: loanToken.symbol,
+          }),
+          title: t("pages.borrow.repay-loan-progress.toast-title"),
+        });
       });
       emitter.on("repay-assets-transaction-reverted", function () {
         onFailed();
@@ -444,17 +450,6 @@ export function RepayLoanForm({ market, onClose }: Props) {
         showStepper={showStepper}
         steps={steps}
       />
-      {showToast && (
-        <Toast
-          closable
-          description={t("pages.borrow.repay-loan-progress.toast-description", {
-            amount: formatNumber(repayInput),
-            symbol: loanToken.symbol,
-          })}
-          onClose={() => setShowToast(false)}
-          title={t("pages.borrow.repay-loan-progress.toast-title")}
-        />
-      )}
     </div>
   );
 }

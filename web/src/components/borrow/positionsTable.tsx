@@ -1,6 +1,7 @@
 import { SectionHeader } from "components/base/sectionHeader";
 import { Table, type TableColumnDef } from "components/base/table";
 import { Header } from "components/base/table/header";
+import { Toast, type ToastContent } from "components/base/toast";
 import { useBorrowAction } from "hooks/borrow/useBorrowAction";
 import { type MarketData, useMarketsData } from "hooks/borrow/useMarketsData";
 import {
@@ -9,7 +10,7 @@ import {
 } from "hooks/borrow/usePositionsData";
 import { usePrices } from "hooks/usePrices";
 import { useScrollToHash } from "hooks/useScrollToHash";
-import { lazy, Suspense, useMemo } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { isPositionAtRisk } from "utils/borrowPosition";
 import {
@@ -73,6 +74,7 @@ export function PositionsTable({ marketIds }: Props) {
   const { data: prices } = usePrices();
   const [{ borrowAction, marketId: actionMarketId }, setBorrowAction] =
     useBorrowAction();
+  const [toast, setToast] = useState<ToastContent | null>(null);
 
   const clearBorrowAction = () =>
     setBorrowAction({ borrowAction: null, marketId: null });
@@ -263,6 +265,7 @@ export function PositionsTable({ marketIds }: Props) {
               <BorrowMoreDrawerForm
                 market={activeMarket}
                 onClose={clearBorrowAction}
+                onSuccess={setToast}
               />
             </Suspense>
           )}
@@ -271,6 +274,7 @@ export function PositionsTable({ marketIds }: Props) {
               <SupplyCollateralDrawerForm
                 market={activeMarket}
                 onClose={clearBorrowAction}
+                onSuccess={setToast}
               />
             </Suspense>
           )}
@@ -279,6 +283,7 @@ export function PositionsTable({ marketIds }: Props) {
               <RepayLoanDrawerForm
                 market={activeMarket}
                 onClose={clearBorrowAction}
+                onSuccess={setToast}
               />
             </Suspense>
           )}
@@ -287,10 +292,18 @@ export function PositionsTable({ marketIds }: Props) {
               <WithdrawCollateralDrawerForm
                 market={activeMarket}
                 onClose={clearBorrowAction}
+                onSuccess={setToast}
               />
             </Suspense>
           )}
         </>
+      )}
+      {toast && (
+        <Toast
+          description={toast.description}
+          onClose={() => setToast(null)}
+          title={toast.title}
+        />
       )}
     </div>
   );

@@ -149,8 +149,6 @@ export const ClaimDeposit = function ({
       ) : null}
       {showToast ? (
         <Toast
-          autoCloseMs={5000}
-          closable={true}
           description={t(
             "pages.earn.fixed-term.claim-deposit-toast-description",
             {
