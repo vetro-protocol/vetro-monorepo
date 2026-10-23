@@ -1,4 +1,5 @@
 import { CloseIcon } from "components/icons/closeIcon";
+import { useTranslation } from "react-i18next";
 
 import { Stack } from "../stack";
 
@@ -29,36 +30,40 @@ type ToastProps = {
   variant?: ToastVariant;
 };
 
-const ToastCard = ({
+const ToastCard = function ({
   description,
   onClose,
   title,
   variant = "success",
-}: ToastProps) => (
-  <div className="group flex items-start gap-3 rounded-lg bg-gray-950 p-3 pr-4">
-    <div className="flex h-5 shrink-0 items-center">
-      {variant === "error" ? (
-        <ErrorCircleIcon className="size-4 text-rose-500" />
-      ) : (
-        <CheckCircleIcon className="size-4 text-blue-500" />
-      )}
+}: ToastProps) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="group flex items-start gap-3 rounded-lg bg-gray-950 p-3 pr-4">
+      <div className="flex h-5 shrink-0 items-center">
+        {variant === "error" ? (
+          <ErrorCircleIcon className="size-4 text-rose-500" />
+        ) : (
+          <CheckCircleIcon className="size-4 text-blue-500" />
+        )}
+      </div>
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <p className="text-sm leading-5 font-medium text-gray-50">{title}</p>
+        {description && (
+          <p className="text-sm leading-5 text-gray-400">{description}</p>
+        )}
+      </div>
+      <button
+        aria-label={t("common.close-notification")}
+        className="flex h-5 shrink-0 cursor-pointer items-center text-gray-400 opacity-0 transition-all group-hover:opacity-100 hover:text-white"
+        onClick={onClose}
+        type="button"
+      >
+        <CloseIcon size="small" />
+      </button>
     </div>
-    <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-      <p className="text-sm leading-5 font-medium text-gray-50">{title}</p>
-      {description && (
-        <p className="text-sm leading-5 text-gray-400">{description}</p>
-      )}
-    </div>
-    <button
-      aria-label="Close notification"
-      className="flex h-5 shrink-0 cursor-pointer items-center text-gray-400 opacity-0 transition-all group-hover:opacity-100 hover:text-white"
-      onClick={onClose}
-      type="button"
-    >
-      <CloseIcon size="small" />
-    </button>
-  </div>
-);
+  );
+};
 
 export const Toaster = ({ autoCloseMs, onClose, toasts }: ToasterProps) => (
   <Stack
