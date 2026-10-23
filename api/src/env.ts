@@ -1,4 +1,4 @@
-export function theGraphUrl({
+export function theGraphSubgraph({
   apiKey,
   subgraphId,
 }: {
@@ -8,17 +8,25 @@ export function theGraphUrl({
   if (!apiKey) {
     throw new Error("SUBGRAPH_API_KEY must be set");
   }
-  return `https://gateway.thegraph.com/api/${apiKey}/subgraphs/id/${subgraphId}`;
+  return {
+    headers: { Authorization: `Bearer ${apiKey}` },
+    url: `https://gateway.thegraph.com/api/subgraphs/id/${subgraphId}`,
+  };
 }
 
-export function getSubgraphUrl(env: Env): string {
+export type Subgraph = {
+  headers?: Record<string, string>;
+  url: string;
+};
+
+export function getSubgraph(env: Env) {
   if (env.SUBGRAPH_URL) {
-    return env.SUBGRAPH_URL;
+    return { url: env.SUBGRAPH_URL };
   }
   if (!env.SUBGRAPH_ID) {
     throw new Error("SUBGRAPH_ID must be set");
   }
-  return theGraphUrl({
+  return theGraphSubgraph({
     apiKey: env.SUBGRAPH_API_KEY,
     subgraphId: env.SUBGRAPH_ID,
   });

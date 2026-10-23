@@ -2,7 +2,7 @@ import { knownTokens, type DexPool } from "@vetro-protocol/core";
 import { type Address, checksumAddress, isAddressEqual } from "viem";
 import { hemi, mainnet } from "viem/chains";
 
-import { theGraphUrl } from "../env.ts";
+import { theGraphSubgraph } from "../env.ts";
 import { runQuery } from "../graphql.ts";
 
 import { feeApr, poolTvlUsd } from "./pool-metrics.ts";
@@ -134,8 +134,11 @@ export async function getBrownfiPools({
     bundles: { maticPriceUSD: string }[];
     pools: BrownfiPool[];
   }>({
+    ...theGraphSubgraph({
+      apiKey: subgraphApiKey,
+      subgraphId: brownfiSubgraphId,
+    }),
     query: poolsQuery,
-    url: theGraphUrl({ apiKey: subgraphApiKey, subgraphId: brownfiSubgraphId }),
     variables: {
       since: rollingDayStart(nowSeconds),
       tokens: hemiTrackedTokenAddresses.map((address) => address.toLowerCase()),

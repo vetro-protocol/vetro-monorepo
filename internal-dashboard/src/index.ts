@@ -118,23 +118,32 @@ const htmlHeaders = {
 const brownfiSubgraphId = "D1UwhrB45geUZTNQ2QwrXwGEhk69iBESApJJzz378ZeS";
 const sushiSubgraphId = "2tGWMrDha4164KkFAfkU3rDCtuxGb4q1emXmFdLLzJ8x";
 
+const theGraphHeaders = (env: Env) => ({
+  Authorization: `Bearer ${env.THEGRAPH_API_KEY}`,
+});
+
 const graphqlProxies: Record<
   string,
-  { headers?: Record<string, string>; upstream: (env: Env) => string }
+  {
+    headers?: (env: Env) => Record<string, string>;
+    upstream: (env: Env) => string;
+  }
 > = {
   "/api/brownfi": {
-    upstream: (env) =>
-      `https://gateway.thegraph.com/api/${env.THEGRAPH_API_KEY}/subgraphs/id/${brownfiSubgraphId}`,
+    headers: theGraphHeaders,
+    upstream: () =>
+      `https://gateway.thegraph.com/api/subgraphs/id/${brownfiSubgraphId}`,
   },
   "/api/sushi": {
     upstream: () => "https://production.data-gcp.sushi.com/graphql",
   },
   "/api/sushi-subgraph": {
-    upstream: (env) =>
-      `https://gateway.thegraph.com/api/${env.THEGRAPH_API_KEY}/subgraphs/id/${sushiSubgraphId}`,
+    headers: theGraphHeaders,
+    upstream: () =>
+      `https://gateway.thegraph.com/api/subgraphs/id/${sushiSubgraphId}`,
   },
   "/api/uniswap": {
-    headers: { origin: "https://app.uniswap.org" },
+    headers: () => ({ origin: "https://app.uniswap.org" }),
     upstream: () => "https://interface.gateway.uniswap.org/v1/graphql",
   },
 };
@@ -330,7 +339,7 @@ export default {
     const graphqlProxy = graphqlProxies[url.pathname];
     if (request.method === "POST" && graphqlProxy) {
       return proxyGraphql({
-        headers: graphqlProxy.headers,
+        headers: graphqlProxy.headers?.(env),
         request,
         upstream: graphqlProxy.upstream(env),
       });

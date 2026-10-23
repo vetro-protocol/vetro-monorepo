@@ -11,6 +11,7 @@ import { mainnet } from "viem/chains";
 import { convertToAssets, totalAssets } from "viem-erc4626/actions";
 
 import { aprWadToApy } from "./apr-wad-to-apy.ts";
+import { type Subgraph } from "./env.ts";
 import * as graphql from "./graphql.ts";
 import * as merkl from "./merkl.ts";
 import { findStakingVaultForPeggedToken } from "./staking-vault.ts";
@@ -27,10 +28,10 @@ const SECONDS_PER_YEAR = 31_536_000n; // 365 days
  */
 export async function getCostBasis({
   address,
-  url,
+  subgraph,
 }: {
   address: string;
-  url: string;
+  subgraph: Subgraph;
 }) {
   const query = `
     query ($owner: Bytes!, $vaults: [Bytes!]!) {
@@ -50,7 +51,7 @@ export async function getCostBasis({
       stakingVaultAddress: `0x${string}`;
       totalCostBasis: string;
     }[];
-  }>({ query, url, variables });
+  }>({ ...subgraph, query, variables });
   if (!Array.isArray(userStakingPositions)) {
     throw new Error(
       `Invalid subgraph response for staking positions of ${address}`,
@@ -243,10 +244,10 @@ type ExitTicket = {
  */
 export async function getUserExitTickets({
   address,
-  url,
+  subgraph,
 }: {
   address: string;
-  url: string;
+  subgraph: Subgraph;
 }): Promise<ExitTicket[]> {
   const query = `
     query ($owner: Bytes!) {
@@ -267,7 +268,7 @@ export async function getUserExitTickets({
   };
   const { exitTickets } = await graphql.runQuery<{
     exitTickets: ExitTicket[];
-  }>({ query, url, variables });
+  }>({ ...subgraph, query, variables });
   if (!Array.isArray(exitTickets)) {
     throw new Error(`Invalid subgraph response for exit tickets of ${address}`);
   }
@@ -293,11 +294,11 @@ export async function getUserExitTickets({
 export async function getExitTicketQueueSize({
   gatewayAddress,
   rpcUrl,
-  subgraphUrl,
+  subgraph,
 }: {
   gatewayAddress: Address;
   rpcUrl: string | undefined;
-  subgraphUrl: string;
+  subgraph: Subgraph;
 }) {
   const client = createMainnetClient(rpcUrl);
   const peggedTokenAddress = await getPeggedToken(client, {
@@ -323,7 +324,7 @@ export async function getExitTicketQueueSize({
   const variables = { stakingVault: stakingVaultAddress.toLowerCase() };
   const { exitTickets } = await graphql.runQuery<{
     exitTickets: { shares: string }[];
-  }>({ query, url: subgraphUrl, variables });
+  }>({ ...subgraph, query, variables });
   if (!Array.isArray(exitTickets)) {
     throw new Error(
       `Invalid subgraph response for exit tickets of vault ${stakingVaultAddress}`,
