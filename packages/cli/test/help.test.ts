@@ -20,6 +20,7 @@ describe("help", function () {
     ["variable-yield", "is-instant-withdraw"],
     ["variable-yield", "position"],
     ["variable-yield", "preview-stake"],
+    ["variable-yield", "stake"],
     ["variable-yield", "total-assets"],
     ["variable-yield", "unstake"],
   ])("lists --rpc-url in the help of %s", async function (command) {
