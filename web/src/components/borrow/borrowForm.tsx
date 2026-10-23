@@ -7,6 +7,7 @@ import { Button } from "components/base/button";
 import { RenderCryptoValue } from "components/base/cryptoValue";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { MaxButton } from "components/base/maxButton";
+import type { ToastContent } from "components/base/toast";
 import { OracleLabel } from "components/borrow/oracleLabel";
 import { FormSection, FormSectionItem } from "components/feesContainer";
 import { ExclamationTriangleIcon } from "components/icons/exclamationTriangleIcon";
@@ -111,7 +112,7 @@ type Props = {
   onBorrowChange: (value: string) => void;
   onCollateralChange: (value: string) => void;
   onDrawerOpenChange: (value: SetStateAction<boolean>) => void;
-  onSuccess: (toast: { description: string; title: string }) => void;
+  onSuccess: (toast: ToastContent) => void;
 };
 
 export function BorrowForm({

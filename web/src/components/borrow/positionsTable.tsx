@@ -1,7 +1,7 @@
 import { SectionHeader } from "components/base/sectionHeader";
 import { Table, type TableColumnDef } from "components/base/table";
 import { Header } from "components/base/table/header";
-import { Toast } from "components/base/toast";
+import { Toast, type ToastContent } from "components/base/toast";
 import { useBorrowAction } from "hooks/borrow/useBorrowAction";
 import { type MarketData, useMarketsData } from "hooks/borrow/useMarketsData";
 import {
@@ -74,10 +74,7 @@ export function PositionsTable({ marketIds }: Props) {
   const { data: prices } = usePrices();
   const [{ borrowAction, marketId: actionMarketId }, setBorrowAction] =
     useBorrowAction();
-  const [toast, setToast] = useState<{
-    description: string;
-    title: string;
-  } | null>(null);
+  const [toast, setToast] = useState<ToastContent | null>(null);
 
   const clearBorrowAction = () =>
     setBorrowAction({ borrowAction: null, marketId: null });

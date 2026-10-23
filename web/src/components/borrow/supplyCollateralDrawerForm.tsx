@@ -1,6 +1,7 @@
 import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
 import { DrawerTitle } from "components/base/drawer/drawerTitle";
+import type { ToastContent } from "components/base/toast";
 import type { MarketData } from "hooks/borrow/useMarketData";
 import { Suspense, lazy } from "react";
 import { useTranslation } from "react-i18next";
@@ -14,7 +15,7 @@ const SupplyCollateralForm = lazy(() =>
 type Props = {
   market: MarketData;
   onClose: VoidFunction;
-  onSuccess: (toast: { description: string; title: string }) => void;
+  onSuccess: (toast: ToastContent) => void;
 };
 
 export function SupplyCollateralDrawerForm({

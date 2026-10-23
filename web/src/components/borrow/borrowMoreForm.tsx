@@ -3,6 +3,7 @@ import { Button } from "components/base/button";
 import { RenderCryptoValue } from "components/base/cryptoValue";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { MaxButton } from "components/base/maxButton";
+import type { ToastContent } from "components/base/toast";
 import {
   type Step,
   VerticalStepper,
@@ -198,7 +199,7 @@ function StepperOverlay({
 type Props = {
   market: MarketData;
   onClose: VoidFunction;
-  onSuccess: (toast: { description: string; title: string }) => void;
+  onSuccess: (toast: ToastContent) => void;
 };
 
 export function BorrowMoreForm({ market, onClose, onSuccess }: Props) {

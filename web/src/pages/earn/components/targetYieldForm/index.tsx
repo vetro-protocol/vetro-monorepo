@@ -1,6 +1,6 @@
 import type { Token } from "@vetro-protocol/core";
 import { SegmentedControl } from "components/base/segmentedControl";
-import { Toast } from "components/base/toast";
+import { Toast, type ToastContent } from "components/base/toast";
 import {
   type DepositStep,
   initialStakeFormState,
@@ -14,11 +14,6 @@ import type { Address } from "viem";
 import { DepositForm } from "./depositForm";
 import { ExitForm } from "./exitForm";
 import type { TargetYieldMode } from "./types";
-
-type ToastData = {
-  description: string;
-  title: string;
-};
 
 type Props = {
   peggedToken: TokenWithGateway;
@@ -35,7 +30,7 @@ export function TargetYieldForm({
   const [state, dispatch] = useReducer(stakeFormReducer, initialStakeFormState);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [mode, setMode] = useState<TargetYieldMode>("deposit");
-  const [toast, setToast] = useState<ToastData | null>(null);
+  const [toast, setToast] = useState<ToastContent | null>(null);
 
   function handleInputChange(value: string) {
     dispatch({ payload: value, type: "SET_INPUT_VALUE" });
@@ -49,7 +44,7 @@ export function TargetYieldForm({
     setMode(newMode);
   }
 
-  function handleSuccess(toastData: ToastData) {
+  function handleSuccess(toastData: ToastContent) {
     handleInputChange("0");
     setToast(toastData);
   }

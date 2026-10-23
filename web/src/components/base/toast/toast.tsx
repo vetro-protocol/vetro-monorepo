@@ -10,6 +10,8 @@ type ToastVariant = "error" | "success";
 
 const autoCloseDelayMs = 7000;
 
+export type ToastContent = { description: string; title: string };
+
 export type ToastData = {
   description?: string;
   id: number | string;

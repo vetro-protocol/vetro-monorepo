@@ -5,6 +5,7 @@ import { getChainAddresses } from "@morpho-org/blue-sdk";
 import { Button } from "components/base/button";
 import { RenderCryptoValue } from "components/base/cryptoValue";
 import { RenderFiatValue } from "components/base/fiatValue";
+import type { ToastContent } from "components/base/toast";
 import {
   type Step,
   VerticalStepper,
@@ -220,7 +221,7 @@ function StepperOverlay({
 type Props = {
   market: MarketData;
   onClose: VoidFunction;
-  onSuccess: (toast: { description: string; title: string }) => void;
+  onSuccess: (toast: ToastContent) => void;
 };
 
 export function RepayLoanForm({ market, onClose, onSuccess }: Props) {
