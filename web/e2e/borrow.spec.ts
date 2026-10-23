@@ -137,6 +137,7 @@ test("start a borrow position on the hemiBTC / VUSD market", async function ({
   await expect(page.getByText("Borrow successful")).toBeVisible({
     timeout: 60_000,
   });
+  await page.getByText("Borrow successful").hover();
 
   await expect(page.getByText("You have a position already open")).toBeVisible({
     timeout: 20_000,
@@ -212,6 +213,7 @@ test("borrow more on an open hemiBTC / VUSD position", async function ({
   await expect(page.getByText("Borrow successful")).toBeVisible({
     timeout: 60_000,
   });
+  await page.getByText("Borrow successful").hover();
   await expect(drawer).toBeHidden({ timeout: 10_000 });
   await expect(page.getByText("Borrow successful")).toBeVisible();
 
@@ -282,6 +284,7 @@ test("supply more collateral to an open hemiBTC / VUSD position", async function
   await expect(page.getByText("Collateral supplied")).toBeVisible({
     timeout: 60_000,
   });
+  await page.getByText("Collateral supplied").hover();
   await expect(drawer).toBeHidden({ timeout: 10_000 });
   await expect(page.getByText("Collateral supplied")).toBeVisible();
 
@@ -348,6 +351,7 @@ test("repay part of the loan on an open hemiBTC / VUSD position", async function
   await expect(page.getByText("Loan repaid")).toBeVisible({
     timeout: 60_000,
   });
+  await page.getByText("Loan repaid").hover();
   await expect(drawer).toBeHidden({ timeout: 10_000 });
   await expect(page.getByText("Loan repaid")).toBeVisible();
 
@@ -416,6 +420,7 @@ test("withdraw collateral from an open hemiBTC / VUSD position", async function 
   await expect(page.getByText("Collateral withdrawn")).toBeVisible({
     timeout: 60_000,
   });
+  await page.getByText("Collateral withdrawn").hover();
   await expect(drawer).toBeHidden({ timeout: 10_000 });
   await expect(page.getByText("Collateral withdrawn")).toBeVisible();
 
