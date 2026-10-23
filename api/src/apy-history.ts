@@ -3,6 +3,7 @@ import { type Address } from "viem";
 
 import { appendLivePoint } from "./append-live-point.ts";
 import { aprWadToApy } from "./apr-wad-to-apy.ts";
+import { type Subgraph } from "./env.ts";
 import { paginateSubgraphQuery } from "./paginate-subgraph-query.ts";
 import { getPeriodStart } from "./vault-history-period.ts";
 import { readWarmedTask } from "./warm-cache.ts";
@@ -58,12 +59,12 @@ export async function getApyHistory({
   c,
   period,
   stakingVaultAddress,
-  url,
+  subgraph,
 }: {
   c: Context<{ Bindings: Env }>;
   period: string;
   stakingVaultAddress: Address;
-  url: string;
+  subgraph: Subgraph;
 }): Promise<{ apy: number; timestamp: number }[]> {
   const stakingVault = stakingVaultAddress.toLowerCase();
   const start = getPeriodStart(period);
@@ -88,13 +89,13 @@ export async function getApyHistory({
   // them concurrently rather than in sequence.
   const [all, livePoint] = await Promise.all([
     paginateSubgraphQuery<Row>({
+      ...subgraph,
       cursor: {
         getValue: (row) => row.timestamp,
         variable: "start",
       },
       field: "vaultAprHistories",
       query,
-      url,
       variables: { stakingVault, start },
     }),
     getLiveApyPoint({ c, stakingVaultAddress }),

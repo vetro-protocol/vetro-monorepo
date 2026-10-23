@@ -37,7 +37,7 @@ const fetchHistory = (period = "1w", address = gatewayAddress) =>
     gatewayAddress: address,
     period,
     portalApiUrl: "https://portal.example",
-    url,
+    subgraph: { url },
   });
 
 const lastCallVariables = <T>() =>

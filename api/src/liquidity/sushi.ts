@@ -8,7 +8,7 @@ import {
 } from "viem";
 import { mainnet } from "viem/chains";
 
-import { theGraphUrl } from "../env.ts";
+import { theGraphSubgraph } from "../env.ts";
 import { runQuery } from "../graphql.ts";
 import { paginateSubgraphQuery } from "../paginate-subgraph-query.ts";
 import { getUsdPrices } from "../portal-prices.ts";
@@ -139,7 +139,7 @@ const fetchPoolSwaps = async function ({
   sinceSeconds: number;
   subgraphApiKey: string | undefined;
 }) {
-  const url = theGraphUrl({
+  const { headers, url } = theGraphSubgraph({
     apiKey: subgraphApiKey,
     subgraphId: sushiSubgraphId,
   });
@@ -147,6 +147,7 @@ const fetchPoolSwaps = async function ({
   const since = Math.floor(sinceSeconds);
   const [lastSwap, windowSwaps] = await Promise.all([
     runQuery<{ swaps: { tick: string | null }[] }>({
+      headers,
       query: lastSwapQuery,
       url,
       variables: { pool, since: String(since) },
@@ -158,6 +159,7 @@ const fetchPoolSwaps = async function ({
         variable: "start",
       },
       field: "swaps",
+      headers,
       pageSize: 1000,
       query: windowSwapsQuery,
       url,
