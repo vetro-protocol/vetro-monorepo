@@ -5,7 +5,7 @@ import { render } from "vitest-browser-react";
 
 import { SearchInput } from "../../src/components/base/searchInput";
 
-type Props = Partial<ComponentProps<typeof SearchInput>>;
+type Props = Partial<Omit<ComponentProps<typeof SearchInput>, "value">>;
 
 const ControlledSearchInput = function ({ onChange, ...props }: Props) {
   const [value, setValue] = useState("");
