@@ -10,6 +10,7 @@ import { register as exitTickets } from "./commands/exitTickets.ts";
 import { register as isInstantWithdraw } from "./commands/isInstantWithdraw.ts";
 import { register as position } from "./commands/position.ts";
 import { register as previewStake } from "./commands/previewStake.ts";
+import { register as stake } from "./commands/stake.ts";
 import { register as totalAssets } from "./commands/totalAssets.ts";
 import { register as unstake } from "./commands/unstake.ts";
 
@@ -24,6 +25,7 @@ const variableYieldCommands = [
   isInstantWithdraw,
   position,
   previewStake,
+  stake,
   totalAssets,
   unstake,
 ];
