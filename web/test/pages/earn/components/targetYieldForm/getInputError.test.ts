@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getInputError } from "./getInputError";
+import { getInputError } from "../../../../../src/pages/earn/components/targetYieldForm/getInputError";
 
 const valid = {
   amount: 500n,

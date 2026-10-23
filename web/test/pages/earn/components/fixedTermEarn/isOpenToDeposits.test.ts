@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isOpenToDeposits } from "./isOpenToDeposits";
+import { isOpenToDeposits } from "../../../../../src/pages/earn/components/fixedTermEarn/isOpenToDeposits";
 
 const toUnixTimestamp = (date: string) => BigInt(Date.parse(date) / 1000);
 

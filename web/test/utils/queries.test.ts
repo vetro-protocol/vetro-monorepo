@@ -1,7 +1,7 @@
 import type { UseQueryResult } from "@tanstack/react-query";
 import { describe, expect, it, vi } from "vitest";
 
-import { combineQueryResults, sumUsdResults } from "./queries";
+import { combineQueryResults, sumUsdResults } from "../../src/utils/queries";
 
 const result = <T = number>(state: Partial<UseQueryResult<T>>) =>
   ({

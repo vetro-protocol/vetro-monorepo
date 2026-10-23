@@ -13,7 +13,7 @@ export default defineConfig({
       {
         extends: true,
         test: {
-          include: ["**/*.test.ts"],
+          include: ["test/**/*.test.ts"],
           name: "unit",
         },
       },

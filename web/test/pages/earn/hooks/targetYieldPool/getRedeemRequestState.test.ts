@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getRedeemRequestState } from "./getRedeemRequestState";
+import { getRedeemRequestState } from "../../../../../src/pages/earn/hooks/targetYieldPool/getRedeemRequestState";
 
 const emptyRequest = {
   cancelableShares: 0n,

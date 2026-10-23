@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getDepositRequestState } from "./getDepositRequestState";
+import { getDepositRequestState } from "../../../../../src/pages/earn/hooks/targetYieldPool/getDepositRequestState";
 
 const emptyRequest = {
   cancelableAssets: 0n,

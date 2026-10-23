@@ -1,7 +1,7 @@
 import { parseUnits } from "viem";
 import { describe, expect, it } from "vitest";
 
-import { getEstimatedYield } from "./targetYield";
+import { getEstimatedYield } from "../../src/utils/targetYield";
 
 const day = 86_400n;
 const accrualStart = 1_800_000_000n;
