@@ -32,7 +32,7 @@ The goal: a reader of the PR description knows which changes go to production. A
 - One PR refers to another PR in the list.
 - They work toward the same result, for example the branches `tvl-historic-chart-pt1`, `-pt2` and `-pt3`.
 
-These signs are not rules. A PR can mention a new issue for follow-up work, or a PR that gave an idea, and these do not make it part of the same change. If you do not know what a `refs` issue is about, read its title with `gh issue view <url> --json title -q .title`.
+These signs are not rules. A PR can mention a new issue for follow-up work, or a PR that gave an idea, and these do not make it part of the same change. If you do not know what a `refs` issue is about, read its title with `gh issue view '<url>' --json title -q .title`.
 
 Write each change as one short line in imperative mood, then the PRs that deliver it as `#<number>`. Include every PR exactly once. Put each change in one of these sections, in this order, and omit empty sections:
 
