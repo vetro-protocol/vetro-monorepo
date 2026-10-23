@@ -37,6 +37,9 @@ The `web/` app exposes the Swap, Earn, Borrow, Bridge, Liquidity, and Analytics 
 
 ### Tests
 
+- **Unit tests**: Prefer to unit test logic that is not UI, in `.ts` files (e.g. reducers, utils). A test that needs several levels of mocks often has little value; you can skip it.
+- **No tests on configuration**: Do not add a test that only checks that a value matches its configuration (e.g. a constant, a hardcoded list, a config option). It repeats the configuration and cannot find a defect.
+- **Component integration tests**: A component in `web/src/components/base` with interaction logic gets integration tests in `web/test/components/`. Many existing base components do not have tests yet. Important components outside `base` can also get them when their interaction logic is worth testing. A `.tsx` test under `web/test` runs in a real browser; a `.ts` test runs in Node. Test behavior (values, roles, focus, callbacks), not class names or styles. Tailwind is not loaded.
 - **Assert exact values**: Compare against an independently computed value (e.g. read the contract directly), not shape-only checks like `toMatch(/^\d+$/)`, which also pass on `0` or a decimals mixup.
 
 ### Packages (`packages/`)
