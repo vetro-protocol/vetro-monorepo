@@ -29,6 +29,16 @@ describe("liquidity/v3PoolUsdValues", function () {
     expect(usdPrices).toEqual([0.99, 1]);
   });
 
+  it("prices a tracked token from the pool ratio instead of its portal peg price", function () {
+    const { usdPrices } = v3PoolUsdValues({
+      portalPrices: { USDT: "1" },
+      subgraphPool: buildSubgraphPool({}),
+      token1PerToken0: 0.98,
+      tokens: [vusd, usdt],
+    });
+    expect(usdPrices).toEqual([0.98, 1]);
+  });
+
   it("prices token0 from token1 and the pool ratio when token0 has no price", function () {
     const { usdPrices } = v3PoolUsdValues({
       portalPrices: { USDT: "1" },
