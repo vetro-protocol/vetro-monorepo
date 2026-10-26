@@ -9,13 +9,13 @@ const usdt: Address = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
 const vusd: Address = "0xCa83DDE9c22254f58e771bE5E157773212AcBAc3";
 
 const buildSubgraphPool = ({
-  poolHourData = [],
   subgraphPrices = [undefined, undefined],
+  volumeToken0 = 0,
 }: Partial<V3SubgraphPool>): V3SubgraphPool => ({
-  feeTier: "500",
+  feeTier: 500,
   id: "0x0000000000000000000000000000000000000001",
-  poolHourData,
   subgraphPrices,
+  volumeToken0,
 });
 
 describe("liquidity/v3PoolUsdValues", function () {
@@ -64,8 +64,8 @@ describe("liquidity/v3PoolUsdValues", function () {
       v3PoolUsdValues({
         portalPrices: {},
         subgraphPool: buildSubgraphPool({
-          poolHourData: [{ volumeToken0: "100" }, { volumeToken0: "300" }],
           subgraphPrices: [2, undefined],
+          volumeToken0: 400,
         }),
         token1PerToken0: 1,
         tokens: [vusd, svusd],
@@ -78,7 +78,7 @@ describe("liquidity/v3PoolUsdValues", function () {
       v3PoolUsdValues({
         portalPrices: {},
         subgraphPool: buildSubgraphPool({
-          poolHourData: [{ volumeToken0: "100" }],
+          volumeToken0: 100,
         }),
         token1PerToken0: 1,
         tokens: [svusd, vusd],

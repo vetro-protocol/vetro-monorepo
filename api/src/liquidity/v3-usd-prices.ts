@@ -58,22 +58,19 @@ const coinUsdPrices = function ({
 // which leaves out tokens like cbBTC and hemiBTC.
 const volumeUsd = function ({
   feeTier,
-  poolHourData,
   token0UsdPrice,
+  volumeToken0,
 }: {
-  feeTier: string;
-  poolHourData: { volumeToken0: string }[];
+  feeTier: number;
   token0UsdPrice: number | undefined;
+  volumeToken0: number;
 }) {
   if (token0UsdPrice === undefined) {
     return { feesUsd24h: null, volumeUsd24h: null };
   }
-  const volumeUsd24h =
-    poolHourData.reduce((total, hour) => total + Number(hour.volumeToken0), 0) *
-    token0UsdPrice;
-  // The fee tier is in hundredths of a basis point.
+  const volumeUsd24h = volumeToken0 * token0UsdPrice;
   return {
-    feesUsd24h: (volumeUsd24h * Number(feeTier)) / 1_000_000,
+    feesUsd24h: (volumeUsd24h * feeTier) / 1_000_000,
     volumeUsd24h,
   };
 };
@@ -98,8 +95,8 @@ export const v3PoolUsdValues = function ({
   return {
     ...volumeUsd({
       feeTier: subgraphPool.feeTier,
-      poolHourData: subgraphPool.poolHourData,
       token0UsdPrice: usdPrices[0],
+      volumeToken0: subgraphPool.volumeToken0,
     }),
     usdPrices,
   };

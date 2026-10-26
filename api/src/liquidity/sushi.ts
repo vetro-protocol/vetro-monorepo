@@ -16,10 +16,11 @@ import { fulfilledValues } from "../utils/promises.ts";
 
 import { bandActivity } from "./band-activity.ts";
 import { feeApr, lastFullDay, poolTvlUsd } from "./pool-metrics.ts";
+import { fetchSushiSubgraphPools } from "./sushi-subgraph.ts";
 import { findV3Pools } from "./v3-factory.ts";
 import { fetchV3PoolState } from "./v3-pool-state.ts";
 import { computeBandAmounts, priceToTick } from "./v3-position-math.ts";
-import { fetchV3SubgraphPools, type V3SubgraphPool } from "./v3-subgraph.ts";
+import type { V3SubgraphPool } from "./v3-subgraph.ts";
 import { v3PoolUsdValues } from "./v3-usd-prices.ts";
 
 const factoryAddress = "0xbACEB8eC6b9355Dfc0269C18bac9d6E2Bdc29C4F";
@@ -384,7 +385,7 @@ export async function getSushiPools({
       ),
   ];
   const [subgraphPools, portalPrices] = await Promise.all([
-    fetchV3SubgraphPools({
+    fetchSushiSubgraphPools({
       addresses,
       nowSeconds,
       subgraphApiKey,

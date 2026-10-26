@@ -34,13 +34,17 @@ const poolsQuery = `
 type RawToken = { derivedETH: string };
 
 export type V3SubgraphPool = {
+  // In hundredths of a basis point.
+  feeTier: number;
+  id: Address;
+  subgraphPrices: (number | undefined)[];
+  volumeToken0: number;
+};
+
+type RawPool = {
   feeTier: string;
   id: Address;
   poolHourData: { volumeToken0: string }[];
-  subgraphPrices: (number | undefined)[];
-};
-
-type RawPool = Omit<V3SubgraphPool, "subgraphPrices"> & {
   token0: RawToken;
   token1: RawToken;
 };
@@ -79,10 +83,15 @@ export async function fetchV3SubgraphPools({
     },
   });
   const ethPriceUsd = Number(bundle?.ethPriceUSD ?? 0);
-  return pools.map(({ token0, token1, ...pool }): V3SubgraphPool => ({
-    ...pool,
-    subgraphPrices: [token0, token1].map((token) =>
+  return pools.map((pool): V3SubgraphPool => ({
+    feeTier: Number(pool.feeTier),
+    id: pool.id,
+    subgraphPrices: [pool.token0, pool.token1].map((token) =>
       usdPrice({ ethPriceUsd, token }),
+    ),
+    volumeToken0: pool.poolHourData.reduce(
+      (total, hour) => total + Number(hour.volumeToken0),
+      0,
     ),
   }));
 }
