@@ -63,7 +63,9 @@ const buildPool = async function ({
   subgraphPool: V3SubgraphPool | undefined;
 }): Promise<DexPool> {
   if (!subgraphPool) {
-    throw new Error(`Uniswap pool ${pool.address} not found`);
+    console.warn(
+      `Uniswap pool ${pool.address} not found in the subgraph, so it has no volume`,
+    );
   }
   const { amounts, token1PerToken0 } = await fetchPoolState({ client, pool });
   const { feesUsd24h, usdPrices, volumeUsd24h } = v3PoolUsdValues({
@@ -118,6 +120,9 @@ export async function getUniswapPools({
     nowSeconds,
     subgraphApiKey,
     subgraphId: uniswapSubgraphId,
+  }).catch(function (error) {
+    console.warn(`Failed to get the Uniswap subgraph pools: ${error.message}`);
+    return [];
   });
   const results = await Promise.allSettled(
     pools.map((pool) =>

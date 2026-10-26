@@ -221,7 +221,9 @@ const getSushiPool = async function ({
   subgraphPool: V3SubgraphPool | undefined;
 }) {
   if (!subgraphPool) {
-    throw new Error(`Sushi pool ${address} not found in the subgraph`);
+    console.warn(
+      `Sushi pool ${address} not found in the subgraph, so it has no volume`,
+    );
   }
   const ranges =
     poolRanges.find((pool) => isAddressEqual(pool.address, address))?.ranges ??
@@ -390,6 +392,9 @@ export async function getSushiPools({
       nowSeconds,
       subgraphApiKey,
       subgraphId: sushiSubgraphId,
+    }).catch(function (error) {
+      console.warn(`Failed to get the Sushi subgraph pools: ${error.message}`);
+      return [];
     }),
     getUsdPrices(portalApiUrl).catch(function (error) {
       console.warn(`Failed to get USD prices: ${error.message}`);

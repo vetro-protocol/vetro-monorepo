@@ -11,6 +11,9 @@ const withPoolRatio = function ({
   prices: (number | undefined)[];
   token1PerToken0: number;
 }): [number | undefined, number | undefined] {
+  if (!(token1PerToken0 > 0)) {
+    return [price0, price1];
+  }
   if (price0 !== undefined && price1 === undefined) {
     return [price0, price0 / token1PerToken0];
   }
@@ -82,22 +85,24 @@ export const v3PoolUsdValues = function ({
   tokens,
 }: {
   portalPrices: Record<string, string>;
-  subgraphPool: V3SubgraphPool;
+  subgraphPool: V3SubgraphPool | undefined;
   token1PerToken0: number;
   tokens: Address[];
 }) {
   const usdPrices = coinUsdPrices({
     portalPrices,
-    subgraphPrices: subgraphPool.subgraphPrices,
+    subgraphPrices: subgraphPool?.subgraphPrices ?? [],
     token1PerToken0,
     tokens,
   });
   return {
-    ...volumeUsd({
-      feeTier: subgraphPool.feeTier,
-      token0UsdPrice: usdPrices[0],
-      volumeToken0: subgraphPool.volumeToken0,
-    }),
+    ...(subgraphPool
+      ? volumeUsd({
+          feeTier: subgraphPool.feeTier,
+          token0UsdPrice: usdPrices[0],
+          volumeToken0: subgraphPool.volumeToken0,
+        })
+      : { feesUsd24h: null, volumeUsd24h: null }),
     usdPrices,
   };
 };

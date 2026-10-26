@@ -82,10 +82,12 @@ const usdPrice = function (token: RawToken) {
 };
 
 // The subgraph keeps the fee as a percentage of the trade.
-const feeTier = (fees: RawPool["fees"]) =>
-  Number(
-    fees.find((fee) => fee.feeType === "FIXED_TRADING_FEE")!.feePercentage,
-  ) * 10_000;
+const feeTier = function (fees: RawPool["fees"]) {
+  const percentage = Number(
+    fees.find((fee) => fee.feeType === "FIXED_TRADING_FEE")?.feePercentage,
+  );
+  return percentage > 0 ? percentage * 10_000 : undefined;
+};
 
 const volumeToken0 = function ({
   pool,
@@ -148,10 +150,19 @@ export async function fetchSushiSubgraphPools({
       variables: { pools: ids, start: String(since), until: String(until) },
     }),
   ]);
-  return liquidityPools.map((pool): V3SubgraphPool => ({
-    feeTier: feeTier(pool.fees),
-    id: pool.id,
-    subgraphPrices: pool.inputTokens.map(usdPrice),
-    volumeToken0: volumeToken0({ pool, swaps }),
-  }));
+  return liquidityPools.flatMap(function (pool): V3SubgraphPool[] {
+    const poolFeeTier = feeTier(pool.fees);
+    if (poolFeeTier === undefined) {
+      console.warn(`No trading fee for Sushi pool ${pool.id} in the subgraph`);
+      return [];
+    }
+    return [
+      {
+        feeTier: poolFeeTier,
+        id: pool.id,
+        subgraphPrices: pool.inputTokens.map(usdPrice),
+        volumeToken0: volumeToken0({ pool, swaps }),
+      },
+    ];
+  });
 }

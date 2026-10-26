@@ -89,4 +89,25 @@ describe("liquidity/v3PoolUsdValues", function () {
       volumeUsd24h: null,
     });
   });
+
+  it("does not derive a price from a pool with no ratio", function () {
+    const { usdPrices } = v3PoolUsdValues({
+      portalPrices: { USDT: "1" },
+      subgraphPool: buildSubgraphPool({}),
+      token1PerToken0: 0,
+      tokens: [vusd, usdt],
+    });
+    expect(usdPrices).toEqual([1, 1]);
+  });
+
+  it("takes the portal prices and a null volume when the subgraph has no pool", function () {
+    expect(
+      v3PoolUsdValues({
+        portalPrices: { USDT: "1" },
+        subgraphPool: undefined,
+        token1PerToken0: 0.98,
+        tokens: [vusd, usdt],
+      }),
+    ).toEqual({ feesUsd24h: null, usdPrices: [0.98, 1], volumeUsd24h: null });
+  });
 });

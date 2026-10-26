@@ -93,4 +93,32 @@ describe("liquidity/fetchSushiSubgraphPools", function () {
       },
     ]);
   });
+
+  it("leaves out a pool with no trading fee", async function () {
+    vi.mocked(graphql.runQuery).mockImplementation(async ({ query }) =>
+      query.includes("liquidityPools")
+        ? {
+            liquidityPools: [
+              {
+                fees: [{ feePercentage: "0.04", feeType: "FIXED_LP_FEE" }],
+                id: pool,
+                inputTokens: [
+                  { decimals: 6, id: usdt, lastPriceUSD: "1" },
+                  { decimals: 18, id: vusd, lastPriceUSD: null },
+                ],
+              },
+            ],
+          }
+        : { swaps: [] },
+    );
+
+    expect(
+      await fetchSushiSubgraphPools({
+        addresses: [pool],
+        nowSeconds: 1792998000,
+        subgraphApiKey: "key",
+        subgraphId: "subgraph",
+      }),
+    ).toEqual([]);
+  });
 });
