@@ -40,7 +40,6 @@ const sushiSubgraphId = "2tGWMrDha4164KkFAfkU3rDCtuxGb4q1emXmFdLLzJ8x";
 const poolQuery = `
   query V3Pool($address: Bytes!, $chainId: SushiSwapV3ChainId!) {
     v3Pool(address: $address, chainId: $chainId) {
-      liquidityUSD
       reserve0
       reserve1
       token0 {
@@ -96,7 +95,6 @@ const windowSwapsQuery = `
 type SushiToken = { address: Address; decimals: number };
 
 type RawV3Pool = {
-  liquidityUSD: number;
   reserve0: string;
   reserve1: string;
   token0: SushiToken;
@@ -257,7 +255,7 @@ const getSushiPool = async function ({
   });
   if (usdPrices[0] === undefined) {
     console.warn(
-      `No USD price for the coins of Sushi pool ${address}, so it has no volume and its ranges have no TVL`,
+      `No USD price for the coins of Sushi pool ${address}, so it has no TVL and no volume`,
     );
   }
 
@@ -289,11 +287,17 @@ const getSushiPool = async function ({
     volumeUsd24h: volumeUsd24h === null ? null : volumeUsd24h * volumeShare,
   });
 
+  const fullRangeAmounts = [data.reserve0, data.reserve1].map(
+    (reserve, index) => Number(reserve) / 10 ** tokens[index].decimals,
+  );
   const fullRange = buildPool({
-    amounts: [data.reserve0, data.reserve1].map(
-      (reserve, index) => Number(reserve) / 10 ** tokens[index].decimals,
+    amounts: fullRangeAmounts,
+    tvlUsd: poolTvlUsd(
+      fullRangeAmounts.map((amount, index) => ({
+        amount,
+        usdPrice: usdPrices[index],
+      })),
     ),
-    tvlUsd: data.liquidityUSD,
     volumeShare: 1,
   });
   if (!poolSwapsPromise) {
