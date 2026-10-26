@@ -46,8 +46,8 @@ describe("liquidity/fetchSushiSubgraphPools", function () {
                 ],
                 id: pool,
                 inputTokens: [
-                  { decimals: 6, id: usdt, lastPriceUSD: "1" },
                   { decimals: 18, id: vusd, lastPriceUSD: null },
+                  { decimals: 6, id: usdt, lastPriceUSD: "1" },
                 ],
               },
             ],
@@ -88,7 +88,7 @@ describe("liquidity/fetchSushiSubgraphPools", function () {
       {
         feeTier: 500,
         id: pool,
-        subgraphPrices: [1, undefined],
+        subgraphPrices: [undefined, 1],
         volumeToken0: 5,
       },
     ]);
@@ -103,8 +103,8 @@ describe("liquidity/fetchSushiSubgraphPools", function () {
                 fees: [{ feePercentage: "0.04", feeType: "FIXED_LP_FEE" }],
                 id: pool,
                 inputTokens: [
-                  { decimals: 6, id: usdt, lastPriceUSD: "1" },
                   { decimals: 18, id: vusd, lastPriceUSD: null },
+                  { decimals: 6, id: usdt, lastPriceUSD: "1" },
                 ],
               },
             ],
