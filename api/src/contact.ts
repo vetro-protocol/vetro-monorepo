@@ -150,12 +150,21 @@ export async function verifyTurnstile(
   return c.json({ error: "Captcha verification failed" }, 403);
 }
 
-export async function validateContactForm(c: Context, next: Next) {
-  // Reject oversized bodies before formData() reads them into memory. The
-  // captcha token lives inside the body, so it can't gate this earlier; this
-  // bounds the pre-verification read for any client that reports its size.
-  if (Number(c.req.header("Content-Length")) > maxRequestBytes) {
+function checkRequestSize(c: Context) {
+  const contentLength = Number(c.req.header("Content-Length"));
+  if (Number.isNaN(contentLength)) {
+    return c.json({ error: "Length required" }, 411);
+  }
+  if (contentLength > maxRequestBytes) {
     return c.json({ error: "Request too large" }, 413);
+  }
+  return undefined;
+}
+
+export async function validateContactForm(c: Context, next: Next) {
+  const sizeError = checkRequestSize(c);
+  if (sizeError) {
+    return sizeError;
   }
 
   let form: FormData;

@@ -37,7 +37,7 @@ function toFormData(body: Record<string, unknown>) {
 function buildContext({
   body = validForm,
   env = {},
-  headers = {},
+  headers = { "Content-Length": "1000" },
   vars = {},
 } = {}) {
   const json = vi.fn((data, status) => ({ data, status }));
@@ -85,6 +85,28 @@ describe("validateContactForm", function () {
 
     expect(context.req.formData).not.toHaveBeenCalled();
     expect(json).toHaveBeenCalledWith({ error: "Request too large" }, 413);
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it("returns 411 before parsing when Content-Length is missing", async function () {
+    const { context, json, next } = buildContext({ headers: {} });
+
+    await validateContactForm(context, next);
+
+    expect(context.req.formData).not.toHaveBeenCalled();
+    expect(json).toHaveBeenCalledWith({ error: "Length required" }, 411);
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it("returns 411 before parsing when Content-Length is not a number", async function () {
+    const { context, json, next } = buildContext({
+      headers: { "Content-Length": "abc" },
+    });
+
+    await validateContactForm(context, next);
+
+    expect(context.req.formData).not.toHaveBeenCalled();
+    expect(json).toHaveBeenCalledWith({ error: "Length required" }, 411);
     expect(next).not.toHaveBeenCalled();
   });
 

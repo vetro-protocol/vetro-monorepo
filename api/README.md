@@ -498,8 +498,9 @@ reported to Sentry and the response is still `204`.
 Returns `400` for an invalid body / email /
 category / message, unsupported or oversized attachments (`Unsupported
 attachment type`, `Too many attachments`, `Attachments too large`), or a missing
-captcha token, `413` (`Request too large`) when the request body exceeds the
-size limit, `403` when captcha verification fails (or cannot be completed —
+captcha token, `411` (`Length required`) when the `Content-Length` header is
+missing or is not a number, `413` (`Request too large`) when the request body
+exceeds the size limit, `403` when captcha verification fails (or cannot be completed —
 fail-closed), and `500` if sending the support email fails.
 
 ## Configuration
