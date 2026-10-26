@@ -1,5 +1,5 @@
 import type { DexPool } from "@vetro-protocol/core";
-import { type Address, type Client, formatUnits } from "viem";
+import { type Address, type Client, formatUnits, isAddressEqual } from "viem";
 import { mainnet } from "viem/chains";
 import { balanceOf, decimals } from "viem-erc20/actions";
 
@@ -16,10 +16,11 @@ import { findV3Pools, type V3Pool } from "./v3-factory.ts";
 const factoryAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
 const uniswapSubgraphId = "5zvR82QoaXYFyDEKLZ9t6v9adgnptxYpKpSbxtgVENFV";
 
-const poolQuery = `
-  query V3Pool($id: ID!, $since: Int!, $until: Int!) {
-    pool(id: $id) {
+const poolsQuery = `
+  query V3Pools($ids: [ID!]!, $since: Int!, $until: Int!) {
+    pools(first: 1000, where: { id_in: $ids }) {
       feeTier
+      id
       poolHourData(
         first: 24
         orderBy: periodStartUnix
@@ -36,6 +37,7 @@ const poolQuery = `
 
 type RawV3Pool = {
   feeTier: string;
+  id: Address;
   poolHourData: { volumeToken0: string }[];
   token0Price: string;
   token1Price: string;
@@ -65,51 +67,45 @@ const fetchPoolAmounts = async function ({
   );
 };
 
-const fetchPoolData = async function ({
-  address,
+const fetchPoolsData = async function ({
+  addresses,
   nowSeconds,
   subgraphApiKey,
 }: {
-  address: Address;
+  addresses: Address[];
   nowSeconds: number;
   subgraphApiKey: string | undefined;
 }) {
-  const { headers, url } = theGraphSubgraph({
-    apiKey: subgraphApiKey,
-    subgraphId: uniswapSubgraphId,
-  });
-  const { pool } = await runQuery<{ pool: RawV3Pool | null }>({
-    headers,
-    query: poolQuery,
-    url,
+  const { pools } = await runQuery<{ pools: RawV3Pool[] }>({
+    ...theGraphSubgraph({
+      apiKey: subgraphApiKey,
+      subgraphId: uniswapSubgraphId,
+    }),
+    query: poolsQuery,
     variables: {
-      id: address.toLowerCase(),
+      ids: addresses.map((address) => address.toLowerCase()),
       ...lastFullDay(nowSeconds),
     },
   });
-  if (!pool) {
-    throw new Error(`Uniswap pool ${address} not found`);
-  }
-  return pool;
+  return pools;
 };
 
 const buildPool = async function ({
   client,
-  nowSeconds,
   pool,
+  poolsData,
   portalPrices,
-  subgraphApiKey,
 }: {
   client: Client;
-  nowSeconds: number;
   pool: V3Pool;
+  poolsData: RawV3Pool[];
   portalPrices: Record<string, string>;
-  subgraphApiKey: string | undefined;
 }): Promise<DexPool> {
-  const [data, amounts] = await Promise.all([
-    fetchPoolData({ address: pool.address, nowSeconds, subgraphApiKey }),
-    fetchPoolAmounts({ client, pool }),
-  ]);
+  const data = poolsData.find((item) => isAddressEqual(item.id, pool.address));
+  if (!data) {
+    throw new Error(`Uniswap pool ${pool.address} not found`);
+  }
+  const amounts = await fetchPoolAmounts({ client, pool });
   const token1IsReference = !isTrackedToken(pool.token1);
   const referenceAddress = token1IsReference ? pool.token1 : pool.token0;
   const referencePrice = portalUsdPrice({
@@ -172,10 +168,13 @@ export async function getUniswapPools({
       return {};
     }),
   ]);
+  const poolsData = await fetchPoolsData({
+    addresses: pools.map((pool) => pool.address),
+    nowSeconds,
+    subgraphApiKey,
+  });
   const results = await Promise.allSettled(
-    pools.map((pool) =>
-      buildPool({ client, nowSeconds, pool, portalPrices, subgraphApiKey }),
-    ),
+    pools.map((pool) => buildPool({ client, pool, poolsData, portalPrices })),
   );
   results.forEach(function (result, index) {
     if (result.status === "rejected") {
