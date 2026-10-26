@@ -4,7 +4,7 @@ import { render } from "vitest-browser-react";
 
 import { Modal } from "../../src/components/base/modal";
 
-import { endTransition, waitForOpen } from "./transitions";
+import { endTransition, waitForClosed, waitForOpen } from "./transitions";
 
 async function renderNestedModals() {
   const onCloseInner = vi.fn();
@@ -155,10 +155,9 @@ describe("Modal", function () {
       .element()
       .dispatchEvent(new TouchEvent("touchstart", { bubbles: true }));
 
-    await vi.waitFor(function () {
-      endTransition(screen.getByRole("dialog").element());
-      expect(onClose).toHaveBeenCalledOnce();
-    });
+    await waitForClosed(screen.getByRole("dialog"));
+    endTransition(screen.getByRole("dialog").element());
+    expect(onClose).toHaveBeenCalledOnce();
   });
 
   it("does not dismiss the outer modal on a click inside the inner modal", async function () {

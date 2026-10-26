@@ -1,6 +1,9 @@
 import { expect } from "vitest";
 import type { Locator } from "vitest/browser";
 
+export const waitForClosed = (dialog: Locator) =>
+  expect.element(dialog).toHaveAttribute("data-state", "closed");
+
 export const waitForOpen = (dialog: Locator) =>
   expect.element(dialog).toHaveAttribute("data-state", "open");
 
