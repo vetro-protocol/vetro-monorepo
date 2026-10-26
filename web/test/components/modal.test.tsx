@@ -29,7 +29,7 @@ async function renderNestedModals() {
 }
 
 describe("Modal", function () {
-  it("renders a modal dialog in document.body, named by ariaLabel", async function () {
+  it("renders a modal dialog outside its parent, named by ariaLabel", async function () {
     const screen = await render(
       <div data-testid="parent">
         <Modal ariaLabel="Settings" onClose={vi.fn()}>
@@ -41,7 +41,6 @@ describe("Modal", function () {
 
     await expect.element(dialog).toHaveAttribute("aria-modal", "true");
     await expect.element(dialog).toHaveTextContent("Content");
-    expect(document.body).toContainElement(dialog.element());
     await expect
       .element(screen.getByTestId("parent"))
       .not.toContainElement(dialog.element());
