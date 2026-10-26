@@ -1,3 +1,5 @@
+const hour = 60 * 60;
+
 type PricedCoin = {
   amount: number;
   usdPrice: number | undefined;
@@ -26,3 +28,8 @@ export function feeApr({
   }
   return tvlUsd > 0 ? ((feesUsd24h * 365) / tvlUsd) * 100 : 0;
 }
+
+export const lastFullDay = function (nowSeconds: number) {
+  const until = Math.floor(nowSeconds / hour) * hour;
+  return { since: until - 24 * hour, until };
+};
