@@ -151,7 +151,7 @@ export async function verifyTurnstile(
 }
 
 function checkRequestSize(c: Context) {
-  const contentLength = Number(c.req.header("Content-Length") ?? NaN);
+  const contentLength = Number(c.req.header("Content-Length"));
   if (Number.isNaN(contentLength)) {
     return c.json({ error: "Length required" }, 411);
   }
