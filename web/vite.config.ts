@@ -74,13 +74,14 @@ function getBuildInfo(env: Record<string, string>) {
   };
 }
 
+const isProduction = process.env.VITE_DEPLOY_ENV === "production";
+
 const config = {
   build: {
     // "hidden" generates source maps for Sentry but strips sourceMappingURL
     // from the output so browsers can't discover them. "true" also serves them
     // publicly.
-    sourcemap:
-      process.env.VITE_DEPLOY_ENV === "production" ? ("hidden" as const) : true,
+    sourcemap: isProduction ? ("hidden" as const) : true,
   },
   plugins: [
     react(),
@@ -96,7 +97,7 @@ const config = {
   },
 } satisfies UserConfig;
 
-if (process.env.VITE_DEPLOY_ENV) {
+if (isProduction) {
   // Sentry plugin shall be last to ensure source maps are generated correctly
   // and tree-shaking doesn't remove Sentry's instrumentation.
   config.plugins.push(
@@ -106,7 +107,7 @@ if (process.env.VITE_DEPLOY_ENV) {
       project: "vetro-app",
       release: {
         deploy: {
-          env: process.env.VITE_DEPLOY_ENV,
+          env: "production",
         },
       },
       telemetry: false,
