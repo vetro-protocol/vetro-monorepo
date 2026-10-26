@@ -1,140 +1,85 @@
 import type { DexPool } from "@vetro-protocol/core";
-import { type Address, type Client, formatUnits, isAddressEqual } from "viem";
+import { type Client, formatUnits, isAddressEqual } from "viem";
+import { readContract } from "viem/actions";
 import { mainnet } from "viem/chains";
 import { balanceOf, decimals } from "viem-erc20/actions";
 
-import { theGraphSubgraph } from "../env.ts";
-import { runQuery } from "../graphql.ts";
 import { getUsdPrices } from "../portal-prices.ts";
 import { fulfilledValues } from "../utils/promises.ts";
 
-import { feeApr, lastFullDay, poolTvlUsd } from "./pool-metrics.ts";
-import { portalUsdPrice } from "./portal-usd-price.ts";
-import { isTrackedToken } from "./tracked-tokens.ts";
+import { feeApr, poolTvlUsd } from "./pool-metrics.ts";
 import { findV3Pools, type V3Pool } from "./v3-factory.ts";
+import { poolAbi } from "./v3-pool-state.ts";
+import { sqrtRatioX96ToPrice } from "./v3-position-math.ts";
+import { fetchV3SubgraphPools, type V3SubgraphPool } from "./v3-subgraph.ts";
+import { v3PoolUsdValues } from "./v3-usd-prices.ts";
 
 const factoryAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
 const uniswapSubgraphId = "5zvR82QoaXYFyDEKLZ9t6v9adgnptxYpKpSbxtgVENFV";
 
-const poolsQuery = `
-  query V3Pools($ids: [ID!]!, $since: Int!, $until: Int!) {
-    pools(first: 1000, where: { id_in: $ids }) {
-      feeTier
-      id
-      poolHourData(
-        first: 24
-        orderBy: periodStartUnix
-        orderDirection: desc
-        where: { periodStartUnix_gte: $since, periodStartUnix_lt: $until }
-      ) {
-        volumeToken0
-      }
-      token0Price
-      token1Price
-    }
-  }
-`;
-
-type RawV3Pool = {
-  feeTier: string;
-  id: Address;
-  poolHourData: { volumeToken0: string }[];
-  token0Price: string;
-  token1Price: string;
-};
-
-const fetchPoolAmounts = async function ({
+const fetchPoolState = async function ({
   client,
   pool,
 }: {
   client: Client;
   pool: V3Pool;
 }) {
-  const [balances, tokenDecimals] = await Promise.all([
+  const tokens = [pool.token0, pool.token1];
+  const [balances, [decimals0, decimals1], [sqrtPriceX96]] = await Promise.all([
     Promise.all(
-      [pool.token0, pool.token1].map((address) =>
+      tokens.map((address) =>
         balanceOf(client, { account: pool.address, address }),
       ),
     ),
-    Promise.all(
-      [pool.token0, pool.token1].map((address) =>
-        decimals(client, { address }),
-      ),
-    ),
-  ]);
-  return balances.map((balance, index) =>
-    Number(formatUnits(balance, tokenDecimals[index])),
-  );
-};
-
-const fetchPoolsData = async function ({
-  addresses,
-  nowSeconds,
-  subgraphApiKey,
-}: {
-  addresses: Address[];
-  nowSeconds: number;
-  subgraphApiKey: string | undefined;
-}) {
-  const { pools } = await runQuery<{ pools: RawV3Pool[] }>({
-    ...theGraphSubgraph({
-      apiKey: subgraphApiKey,
-      subgraphId: uniswapSubgraphId,
+    Promise.all(tokens.map((address) => decimals(client, { address }))),
+    readContract(client, {
+      abi: poolAbi,
+      address: pool.address,
+      functionName: "slot0",
     }),
-    query: poolsQuery,
-    variables: {
-      ids: addresses.map((address) => address.toLowerCase()),
-      ...lastFullDay(nowSeconds),
-    },
-  });
-  return pools;
+  ]);
+  return {
+    amounts: [
+      Number(formatUnits(balances[0], decimals0)),
+      Number(formatUnits(balances[1], decimals1)),
+    ],
+    token1PerToken0: sqrtRatioX96ToPrice({
+      decimals0,
+      decimals1,
+      sqrtPriceX96,
+    }),
+  };
 };
 
 const buildPool = async function ({
   client,
   pool,
-  poolsData,
   portalPrices,
+  subgraphPool,
 }: {
   client: Client;
   pool: V3Pool;
-  poolsData: RawV3Pool[];
   portalPrices: Record<string, string>;
+  subgraphPool: V3SubgraphPool | undefined;
 }): Promise<DexPool> {
-  const data = poolsData.find((item) => isAddressEqual(item.id, pool.address));
-  if (!data) {
+  if (!subgraphPool) {
     throw new Error(`Uniswap pool ${pool.address} not found`);
   }
-  const amounts = await fetchPoolAmounts({ client, pool });
-  const token1IsReference = !isTrackedToken(pool.token1);
-  const referenceAddress = token1IsReference ? pool.token1 : pool.token0;
-  const referencePrice = portalUsdPrice({
-    address: referenceAddress,
-    prices: portalPrices,
+  const { amounts, token1PerToken0 } = await fetchPoolState({ client, pool });
+  const { feesUsd24h, usdPrices, volumeUsd24h } = v3PoolUsdValues({
+    portalPrices,
+    subgraphPool,
+    token1PerToken0,
+    tokens: [pool.token0, pool.token1],
   });
-  if (referencePrice === undefined) {
+  if (usdPrices[0] === undefined) {
     console.warn(
-      `No USD price for ${referenceAddress}, so Uniswap pool ${pool.address} has no TVL`,
+      `No USD price for the coins of Uniswap pool ${pool.address}, so it has no TVL and no volume`,
     );
   }
-  const usdPrices =
-    referencePrice === undefined
-      ? [undefined, undefined]
-      : token1IsReference
-        ? [Number(data.token1Price) * referencePrice, referencePrice]
-        : [referencePrice, Number(data.token0Price) * referencePrice];
   const tvlUsd = poolTvlUsd(
     amounts.map((amount, index) => ({ amount, usdPrice: usdPrices[index] })),
   );
-  // The subgraph's volumeUSD counts only swaps with a token on its whitelist,
-  // which leaves out tokens like cbBTC and hemiBTC.
-  const volumeUsd24h =
-    data.poolHourData.reduce(
-      (total, hour) => total + Number(hour.volumeToken0),
-      0,
-    ) * (usdPrices[0] ?? 0);
-  // The fee tier is in hundredths of a basis point.
-  const feesUsd24h = (volumeUsd24h * Number(data.feeTier)) / 1_000_000;
   return {
     address: pool.address,
     apr: feeApr({ feesUsd24h, tvlUsd }),
@@ -168,13 +113,23 @@ export async function getUniswapPools({
       return {};
     }),
   ]);
-  const poolsData = await fetchPoolsData({
+  const subgraphPools = await fetchV3SubgraphPools({
     addresses: pools.map((pool) => pool.address),
     nowSeconds,
     subgraphApiKey,
+    subgraphId: uniswapSubgraphId,
   });
   const results = await Promise.allSettled(
-    pools.map((pool) => buildPool({ client, pool, poolsData, portalPrices })),
+    pools.map((pool) =>
+      buildPool({
+        client,
+        pool,
+        portalPrices,
+        subgraphPool: subgraphPools.find((subgraphPool) =>
+          isAddressEqual(subgraphPool.id, pool.address),
+        ),
+      }),
+    ),
   );
   results.forEach(function (result, index) {
     if (result.status === "rejected") {

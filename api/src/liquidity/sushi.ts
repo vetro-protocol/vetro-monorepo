@@ -16,11 +16,11 @@ import { fulfilledValues } from "../utils/promises.ts";
 
 import { bandActivity } from "./band-activity.ts";
 import { feeApr, lastFullDay, poolTvlUsd } from "./pool-metrics.ts";
-import { portalUsdPrice } from "./portal-usd-price.ts";
-import { isTrackedToken } from "./tracked-tokens.ts";
 import { findV3Pools } from "./v3-factory.ts";
 import { fetchV3PoolState } from "./v3-pool-state.ts";
 import { computeBandAmounts, priceToTick } from "./v3-position-math.ts";
+import { fetchV3SubgraphPools, type V3SubgraphPool } from "./v3-subgraph.ts";
+import { v3PoolUsdValues } from "./v3-usd-prices.ts";
 
 const factoryAddress = "0xbACEB8eC6b9355Dfc0269C18bac9d6E2Bdc29C4F";
 
@@ -46,29 +46,11 @@ const poolQuery = `
         address
         decimals
       }
-      token0Price
       token1 {
         address
         decimals
       }
       token1Price
-    }
-  }
-`;
-
-const poolsVolumeQuery = `
-  query V3PoolsVolume($ids: [ID!]!, $since: Int!, $until: Int!) {
-    pools(first: 1000, where: { id_in: $ids }) {
-      feeTier
-      id
-      poolHourData(
-        first: 24
-        orderBy: periodStartUnix
-        orderDirection: desc
-        where: { periodStartUnix_gte: $since, periodStartUnix_lt: $until }
-      ) {
-        volumeToken0
-      }
     }
   }
 `;
@@ -117,17 +99,9 @@ type RawV3Pool = {
   reserve0: string;
   reserve1: string;
   token0: SushiToken;
-  // token0 per token1
-  token0Price: number;
   token1: SushiToken;
   // token1 per token0
   token1Price: number;
-};
-
-type RawPoolVolume = {
-  feeTier: string;
-  id: Address;
-  poolHourData: { volumeToken0: string }[];
 };
 
 type RawSwap = {
@@ -148,29 +122,6 @@ const fetchPoolData = async function (address: Address) {
     throw new Error(`Sushi pool ${address} not found`);
   }
   return v3Pool;
-};
-
-const fetchPoolsVolume = async function ({
-  addresses,
-  nowSeconds,
-  subgraphApiKey,
-}: {
-  addresses: Address[];
-  nowSeconds: number;
-  subgraphApiKey: string | undefined;
-}) {
-  const { pools } = await runQuery<{ pools: RawPoolVolume[] }>({
-    ...theGraphSubgraph({
-      apiKey: subgraphApiKey,
-      subgraphId: sushiSubgraphId,
-    }),
-    query: poolsVolumeQuery,
-    variables: {
-      ids: addresses.map((address) => address.toLowerCase()),
-      ...lastFullDay(nowSeconds),
-    },
-  });
-  return pools;
 };
 
 const fetchPoolSwaps = async function ({
@@ -253,61 +204,22 @@ const splitOpeningSwap = function ({
   return { opening: { tick: currentTick, timestamp: sinceSeconds }, swaps };
 };
 
-const poolUsdValues = function ({
-  address,
-  data,
-  prices,
-  tokens,
-  volume,
-}: {
-  address: Address;
-  data: RawV3Pool;
-  prices: Record<string, string>;
-  tokens: SushiToken[];
-  volume: RawPoolVolume;
-}) {
-  const token1IsReference = !isTrackedToken(tokens[1].address);
-  const referenceAddress = tokens[token1IsReference ? 1 : 0].address;
-  const referencePrice = portalUsdPrice({ address: referenceAddress, prices });
-  if (referencePrice === undefined) {
-    console.warn(
-      `No USD price for ${referenceAddress}, so Sushi pool ${address} has no volume and its ranges have no TVL`,
-    );
-  }
-  const usdPrices =
-    referencePrice === undefined
-      ? [undefined, undefined]
-      : token1IsReference
-        ? [data.token1Price * referencePrice, referencePrice]
-        : [referencePrice, data.token0Price * referencePrice];
-  // The subgraph's volumeUSD counts only swaps with a token on its whitelist.
-  const volumeUsd24h =
-    volume.poolHourData.reduce(
-      (total, hour) => total + Number(hour.volumeToken0),
-      0,
-    ) * (usdPrices[0] ?? 0);
-  // The fee tier is in hundredths of a basis point.
-  const feesUsd24h = (volumeUsd24h * Number(volume.feeTier)) / 1_000_000;
-  return { feesUsd24h, usdPrices, volumeUsd24h };
-};
-
 const getSushiPool = async function ({
   address,
   client,
   nowSeconds,
-  poolsVolume,
-  prices,
+  portalPrices,
   subgraphApiKey,
+  subgraphPool,
 }: {
   address: Address;
   client: Client;
   nowSeconds: number;
-  poolsVolume: RawPoolVolume[];
-  prices: Record<string, string>;
+  portalPrices: Record<string, string>;
   subgraphApiKey: string | undefined;
+  subgraphPool: V3SubgraphPool | undefined;
 }) {
-  const volume = poolsVolume.find((pool) => isAddressEqual(pool.id, address));
-  if (!volume) {
+  if (!subgraphPool) {
     throw new Error(`Sushi pool ${address} not found in the subgraph`);
   }
   const ranges =
@@ -334,13 +246,17 @@ const getSushiPool = async function ({
     decimals: token.decimals,
   }));
 
-  const { feesUsd24h, usdPrices, volumeUsd24h } = poolUsdValues({
-    address,
-    data,
-    prices,
-    tokens,
-    volume,
+  const { feesUsd24h, usdPrices, volumeUsd24h } = v3PoolUsdValues({
+    portalPrices,
+    subgraphPool,
+    token1PerToken0: data.token1Price,
+    tokens: tokens.map((token) => token.address),
   });
+  if (usdPrices[0] === undefined) {
+    console.warn(
+      `No USD price for the coins of Sushi pool ${address}, so it has no volume and its ranges have no TVL`,
+    );
+  }
 
   const buildPool = ({
     amounts,
@@ -354,7 +270,10 @@ const getSushiPool = async function ({
     volumeShare: number;
   }): DexPool => ({
     address,
-    apr: feeApr({ feesUsd24h: feesUsd24h * volumeShare, tvlUsd }),
+    apr: feeApr({
+      feesUsd24h: feesUsd24h === null ? null : feesUsd24h * volumeShare,
+      tvlUsd,
+    }),
     chainId: mainnet.id,
     coins: tokens.map((token, index) => ({
       address: token.address,
@@ -364,7 +283,7 @@ const getSushiPool = async function ({
     range,
     rewards: [],
     tvlUsd,
-    volumeUsd24h: volumeUsd24h * volumeShare,
+    volumeUsd24h: volumeUsd24h === null ? null : volumeUsd24h * volumeShare,
   });
 
   const fullRange = buildPool({
@@ -464,8 +383,13 @@ export async function getSushiPools({
           !discovered.some((pool) => isAddressEqual(pool.address, address)),
       ),
   ];
-  const [poolsVolume, prices] = await Promise.all([
-    fetchPoolsVolume({ addresses, nowSeconds, subgraphApiKey }),
+  const [subgraphPools, portalPrices] = await Promise.all([
+    fetchV3SubgraphPools({
+      addresses,
+      nowSeconds,
+      subgraphApiKey,
+      subgraphId: sushiSubgraphId,
+    }),
     getUsdPrices(portalApiUrl).catch(function (error) {
       console.warn(`Failed to get USD prices: ${error.message}`);
       return {};
@@ -477,9 +401,11 @@ export async function getSushiPools({
         address,
         client,
         nowSeconds,
-        poolsVolume,
-        prices,
+        portalPrices,
         subgraphApiKey,
+        subgraphPool: subgraphPools.find((subgraphPool) =>
+          isAddressEqual(subgraphPool.id, address),
+        ),
       }),
     ),
   );

@@ -20,10 +20,10 @@ export function feeApr({
   feesUsd24h,
   tvlUsd,
 }: {
-  feesUsd24h: number;
+  feesUsd24h: number | null;
   tvlUsd: number | null;
 }) {
-  if (tvlUsd === null) {
+  if (feesUsd24h === null || tvlUsd === null) {
     return null;
   }
   return tvlUsd > 0 ? ((feesUsd24h * 365) / tvlUsd) * 100 : 0;

@@ -35,6 +35,10 @@ describe("liquidity/feeApr", function () {
     expect(feeApr({ feesUsd24h: 10, tvlUsd: 0 })).toBe(0);
     expect(feeApr({ feesUsd24h: 10, tvlUsd: null })).toBeNull();
   });
+
+  it("returns null for unknown fees", function () {
+    expect(feeApr({ feesUsd24h: null, tvlUsd: 36_500 })).toBeNull();
+  });
 });
 
 describe("liquidity/lastFullDay", function () {
