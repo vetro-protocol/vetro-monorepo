@@ -63,6 +63,19 @@ const priceToSqrtRatioX96 = function ({
 const tickToSqrtRatioX96 = (tick: number) =>
   BigInt(Math.floor(Math.sqrt(TICK_BASE ** tick) * 2 ** 96));
 
+export const sqrtRatioX96ToPrice = function ({
+  decimals0,
+  decimals1,
+  sqrtPriceX96,
+}: {
+  decimals0: number;
+  decimals1: number;
+  sqrtPriceX96: bigint;
+}) {
+  const sqrtPrice = Number(sqrtPriceX96) / 2 ** 96;
+  return sqrtPrice ** 2 * 10 ** (decimals0 - decimals1);
+};
+
 export const priceToTick = function ({
   decimals0,
   decimals1,

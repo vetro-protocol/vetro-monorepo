@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   computeBandAmounts,
   priceToTick,
+  sqrtRatioX96ToPrice,
   type TickLiquidity,
 } from "../../src/liquidity/v3-position-math.ts";
 
@@ -209,5 +210,17 @@ describe("computeBandAmounts", function () {
     expect(above.amount0).toBe(0n);
     expect(Number(above.amount1) / 1e6).toBeGreaterThan(2000);
     expect(Number(above.amount1) / 1e6).toBeLessThan(3000);
+  });
+});
+
+describe("liquidity/sqrtRatioX96ToPrice", function () {
+  it("squares the ratio and scales it by the decimals", function () {
+    expect(
+      sqrtRatioX96ToPrice({
+        decimals0: 18,
+        decimals1: 6,
+        sqrtPriceX96: 2n ** 96n * 3n,
+      }),
+    ).toBeCloseTo(9 * 10 ** 12);
   });
 });

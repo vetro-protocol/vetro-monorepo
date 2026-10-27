@@ -39,5 +39,5 @@ export type DexPool = {
   range?: DexPoolRange;
   rewards: DexPoolReward[];
   tvlUsd: number | null;
-  volumeUsd24h: number;
+  volumeUsd24h: number | null;
 } & PoolDex;

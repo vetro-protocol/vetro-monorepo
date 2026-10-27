@@ -1,171 +1,94 @@
 import type { DexPool } from "@vetro-protocol/core";
-import type { Address, Client } from "viem";
+import { type Client, formatUnits, isAddressEqual } from "viem";
+import { readContract } from "viem/actions";
 import { mainnet } from "viem/chains";
+import { balanceOf, decimals } from "viem-erc20/actions";
 
-import { runQuery } from "../graphql.ts";
 import { getUsdPrices } from "../portal-prices.ts";
 import { fulfilledValues } from "../utils/promises.ts";
 
 import { feeApr, poolTvlUsd } from "./pool-metrics.ts";
-import { portalUsdPrice } from "./portal-usd-price.ts";
 import { findV3Pools, type V3Pool } from "./v3-factory.ts";
+import { poolAbi } from "./v3-pool-state.ts";
+import { sqrtRatioX96ToPrice } from "./v3-position-math.ts";
+import { fetchV3SubgraphPools, type V3SubgraphPool } from "./v3-subgraph.ts";
+import { v3PoolUsdValues } from "./v3-usd-prices.ts";
 
 const factoryAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
-const uniswapApiUrl = "https://interface.gateway.uniswap.org/v1/graphql";
+const uniswapSubgraphId = "5zvR82QoaXYFyDEKLZ9t6v9adgnptxYpKpSbxtgVENFV";
 
-const poolQuery = `
-  query V3Pool($address: String!, $chain: Chain!) {
-    v3Pool(address: $address, chain: $chain) {
-      feeTier
-      priceHistory(duration: WEEK) {
-        token1Price
-      }
-      token0 {
-        market(currency: USD) {
-          price {
-            value
-          }
-        }
-      }
-      token0Supply
-      token1 {
-        market(currency: USD) {
-          price {
-            value
-          }
-        }
-      }
-      token1Supply
-      volume24h: cumulativeVolume(duration: DAY) {
-        value
-      }
-    }
-  }
-`;
-
-type RawToken = { market: { price: { value: number } | null } | null };
-
-type RawV3Pool = {
-  feeTier: number;
-  priceHistory: { token1Price: number | null }[] | null;
-  token0: RawToken;
-  token0Supply: number | null;
-  token1: RawToken;
-  token1Supply: number | null;
-  volume24h: { value: number } | null;
-};
-
-const lastPoolRate = function (history: RawV3Pool["priceHistory"]) {
-  const rates = (history ?? [])
-    .map((point) => point.token1Price ?? 0)
-    .filter((rate) => rate > 0);
-  return rates[rates.length - 1] ?? 0;
-};
-
-// Uniswap does not price every token. When one coin has no price, take it
-// from the other coin and the pool rate.
-const resolvePrices = function ({
-  prices,
-  rate,
+const fetchPoolState = async function ({
+  client,
+  pool,
 }: {
-  prices: [number, number];
-  rate: number;
-}): [number, number] {
-  const [price0, price1] = prices;
-  if (rate <= 0) {
-    return prices;
-  }
-  if (price0 > 0 && price1 <= 0) {
-    return [price0, price0 / rate];
-  }
-  if (price1 > 0 && price0 <= 0) {
-    return [price1 * rate, price1];
-  }
-  return prices;
-};
-
-const uniswapPrice = (token: RawToken) => token.market?.price?.value ?? 0;
-
-const portalFallback = function ({
-  address,
-  portalPrices,
-  price,
-}: {
-  address: Address;
-  portalPrices: Record<string, string>;
-  price: number;
+  client: Client;
+  pool: V3Pool;
 }) {
-  if (price > 0) {
-    return price;
-  }
-  return portalUsdPrice({ address, prices: portalPrices }) ?? 0;
-};
-
-const fetchPoolData = async function (address: Address) {
-  const { v3Pool } = await runQuery<{ v3Pool: RawV3Pool | null }>({
-    headers: { origin: "https://app.uniswap.org" },
-    query: poolQuery,
-    url: uniswapApiUrl,
-    variables: { address, chain: "ETHEREUM" },
-  });
-  if (!v3Pool) {
-    throw new Error(`Uniswap pool ${address} not found`);
-  }
-  return v3Pool;
+  const tokens = [pool.token0, pool.token1];
+  const [balances, [decimals0, decimals1], [sqrtPriceX96]] = await Promise.all([
+    Promise.all(
+      tokens.map((address) =>
+        balanceOf(client, { account: pool.address, address }),
+      ),
+    ),
+    Promise.all(tokens.map((address) => decimals(client, { address }))),
+    readContract(client, {
+      abi: poolAbi,
+      address: pool.address,
+      functionName: "slot0",
+    }),
+  ]);
+  return {
+    amounts: [
+      Number(formatUnits(balances[0], decimals0)),
+      Number(formatUnits(balances[1], decimals1)),
+    ],
+    token1PerToken0: sqrtRatioX96ToPrice({
+      decimals0,
+      decimals1,
+      sqrtPriceX96,
+    }),
+  };
 };
 
 const buildPool = async function ({
+  client,
   pool,
   portalPrices,
+  subgraphPool,
 }: {
+  client: Client;
   pool: V3Pool;
   portalPrices: Record<string, string>;
+  subgraphPool: V3SubgraphPool | undefined;
 }): Promise<DexPool> {
-  const data = await fetchPoolData(pool.address);
-  const supplies = [data.token0Supply ?? 0, data.token1Supply ?? 0];
-  const rate = lastPoolRate(data.priceHistory);
-  const [uniswapPrice0, uniswapPrice1] = resolvePrices({
-    prices: [uniswapPrice(data.token0), uniswapPrice(data.token1)],
-    rate,
+  if (!subgraphPool) {
+    console.warn(
+      `Uniswap pool ${pool.address} not found in the subgraph, so it has no volume`,
+    );
+  }
+  const { amounts, token1PerToken0 } = await fetchPoolState({ client, pool });
+  const { feesUsd24h, usdPrices, volumeUsd24h } = v3PoolUsdValues({
+    portalPrices,
+    subgraphPool,
+    token1PerToken0,
+    tokens: [pool.token0, pool.token1],
   });
-  const usdPrices = resolvePrices({
-    prices: [
-      portalFallback({
-        address: pool.token0,
-        portalPrices,
-        price: uniswapPrice0,
-      }),
-      portalFallback({
-        address: pool.token1,
-        portalPrices,
-        price: uniswapPrice1,
-      }),
-    ],
-    rate,
-  });
-  [pool.token0, pool.token1].forEach(function (address, index) {
-    if (usdPrices[index] <= 0) {
-      console.warn(
-        `No USD price for ${address}, so Uniswap pool ${pool.address} has no TVL`,
-      );
-    }
-  });
+  if (usdPrices[0] === undefined) {
+    console.warn(
+      `No USD price for the coins of Uniswap pool ${pool.address}, so it has no TVL and no volume`,
+    );
+  }
   const tvlUsd = poolTvlUsd(
-    supplies.map((amount, index) => ({
-      amount,
-      usdPrice: usdPrices[index] > 0 ? usdPrices[index] : undefined,
-    })),
+    amounts.map((amount, index) => ({ amount, usdPrice: usdPrices[index] })),
   );
-  const volumeUsd24h = data.volume24h?.value ?? 0;
-  // The fee tier is in hundredths of a basis point.
-  const feesUsd24h = (volumeUsd24h * data.feeTier) / 1_000_000;
   return {
     address: pool.address,
     apr: feeApr({ feesUsd24h, tvlUsd }),
     chainId: mainnet.id,
     coins: [pool.token0, pool.token1].map((address, index) => ({
       address,
-      amount: supplies[index],
+      amount: amounts[index],
     })),
     dex: "uniswap",
     rewards: [],
@@ -176,10 +99,14 @@ const buildPool = async function ({
 
 export async function getUniswapPools({
   client,
+  nowSeconds,
   portalApiUrl,
+  subgraphApiKey,
 }: {
   client: Client;
+  nowSeconds: number;
   portalApiUrl: string;
+  subgraphApiKey: string | undefined;
 }) {
   const [pools, portalPrices] = await Promise.all([
     findV3Pools({ client, factoryAddress }),
@@ -188,8 +115,26 @@ export async function getUniswapPools({
       return {};
     }),
   ]);
+  const subgraphPools = await fetchV3SubgraphPools({
+    addresses: pools.map((pool) => pool.address),
+    nowSeconds,
+    subgraphApiKey,
+    subgraphId: uniswapSubgraphId,
+  }).catch(function (error) {
+    console.warn(`Failed to get the Uniswap subgraph pools: ${error.message}`);
+    return [];
+  });
   const results = await Promise.allSettled(
-    pools.map((pool) => buildPool({ pool, portalPrices })),
+    pools.map((pool) =>
+      buildPool({
+        client,
+        pool,
+        portalPrices,
+        subgraphPool: subgraphPools.find((subgraphPool) =>
+          isAddressEqual(subgraphPool.id, pool.address),
+        ),
+      }),
+    ),
   );
   results.forEach(function (result, index) {
     if (result.status === "rejected") {

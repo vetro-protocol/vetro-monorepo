@@ -45,7 +45,7 @@ export const getPoolsTotals = (pools: DexPool[]) =>
   pools.reduce(
     (totals, pool) => ({
       tvlUsd: totals.tvlUsd + (pool.tvlUsd ?? 0),
-      volumeUsd24h: totals.volumeUsd24h + pool.volumeUsd24h,
+      volumeUsd24h: totals.volumeUsd24h + (pool.volumeUsd24h ?? 0),
     }),
     { tvlUsd: 0, volumeUsd24h: 0 },
   );
