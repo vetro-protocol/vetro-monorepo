@@ -1,9 +1,10 @@
-import { type Address, type PublicClient } from "viem";
+import { type Address, type Client } from "viem";
+import { readContract } from "viem/actions";
 
 // ERC4626Vault
 // See https://github.com/vesperfi/vesper-strategies/blob/main/contracts/strategies/ERC4626Vault.sol
 
-const erc4626VaultAbi = [
+const vesperErc4626VaultAbi = [
   {
     inputs: [],
     name: "NAME",
@@ -17,11 +18,37 @@ const erc4626VaultAbi = [
     stateMutability: "view",
     type: "function",
   },
+  {
+    inputs: [],
+    name: "receiptToken",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
 ];
 
-export const getVaultName = (client: PublicClient, address: Address) =>
-  client.readContract({
-    abi: erc4626VaultAbi,
+export const getReceiptToken = (
+  client: Client,
+  { address }: { address: Address },
+) =>
+  readContract(client, {
+    abi: vesperErc4626VaultAbi,
+    address,
+    functionName: "receiptToken",
+  }) as Promise<Address>;
+
+export const getVaultName = (
+  client: Client,
+  { address }: { address: Address },
+) =>
+  readContract(client, {
+    abi: vesperErc4626VaultAbi,
     address,
     functionName: "NAME",
   }) as Promise<string>;
@@ -104,22 +131,24 @@ const whitelistedYieldVaultAbi = [
   },
 ];
 
-export const getStrategies = (client: PublicClient, address: Address) =>
-  client.readContract({
+export const getStrategies = (
+  client: Client,
+  { address }: { address: Address },
+) =>
+  readContract(client, {
     abi: whitelistedYieldVaultAbi,
     address,
     functionName: "getStrategies",
   }) as Promise<Address[]>;
 
 export const getStrategyConfig = (
-  client: PublicClient,
-  address: Address,
-  strategyAddress: Address,
+  client: Client,
+  { address, strategy }: { address: Address; strategy: Address },
 ) =>
-  client.readContract({
+  readContract(client, {
     abi: whitelistedYieldVaultAbi,
     address,
-    args: [strategyAddress],
+    args: [strategy],
     functionName: "getStrategyConfig",
   }) as Promise<{
     active: boolean;
@@ -129,8 +158,11 @@ export const getStrategyConfig = (
     debtRatio: bigint;
   }>;
 
-export const getTotalDebt = (client: PublicClient, address: Address) =>
-  client.readContract({
+export const getTotalDebt = (
+  client: Client,
+  { address }: { address: Address },
+) =>
+  readContract(client, {
     abi: whitelistedYieldVaultAbi,
     address,
     functionName: "totalDebt",

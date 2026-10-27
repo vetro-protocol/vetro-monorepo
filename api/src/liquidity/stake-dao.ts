@@ -18,6 +18,7 @@ export type StakeDaoStrategy = {
   chainId: number;
   gaugeAddress: Address | null;
   key: string;
+  lpToken: { address: Address };
   rewards: {
     apr: number;
     end: number;

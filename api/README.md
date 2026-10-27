@@ -53,7 +53,7 @@ Get the staked total for a given gateway's pegged token: the amount deposited in
 
 ### `GET /analytics/treasury/:gatewayAddress`
 
-Get the composition of the treasury by whitelisted token for a given gateway.
+Get the composition of the treasury by whitelisted token for a given gateway. Each item of `activeStrategies` has the strategy `address`, its `name`, its `totalDebt`, and its `apy` (a percentage). The `apy` is omitted when it cannot be calculated.
 `:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway.
 
 #### Sample Response
@@ -63,6 +63,8 @@ Get the composition of the treasury by whitelisted token for a given gateway.
   {
     "activeStrategies": [
       {
+        "address": "0xe53c583767923E3e209ce6FD91f6C5D12AE9A308",
+        "apy": 3.295370132979708,
         "name": "Morpho SkyMoney USDT Savings",
         "totalDebt": "4021526891"
       }
@@ -76,6 +78,8 @@ Get the composition of the treasury by whitelisted token for a given gateway.
   {
     "activeStrategies": [
       {
+        "address": "0x861a314511cCa4eDC279523De2aC1e1Ae9F6f799",
+        "apy": 6.128757792812171,
         "name": "Morpho AlphaPing USDC Core",
         "totalDebt": "234771834"
       }

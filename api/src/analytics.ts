@@ -17,6 +17,7 @@ import { balanceOf, previewRedeem, totalAssets } from "viem-erc4626/actions";
 
 import { getPrice } from "./chainlink.ts";
 import { findStakingVaultForPeggedToken } from "./staking-vault.ts";
+import { getStrategyApy, type StrategyApy } from "./strategy-apy.ts";
 import {
   getStrategies,
   getStrategyConfig,
@@ -37,9 +38,11 @@ import {
  */
 export async function getTreasuryComposition({
   gatewayAddress,
+  kv,
   url,
 }: {
   gatewayAddress: Address;
+  kv: KVNamespace;
   url: string | undefined;
 }) {
   const client = createMainnetClient(url);
@@ -49,7 +52,7 @@ export async function getTreasuryComposition({
   const whitelistedTokens = await getWhitelistedTokens(client, {
     address: treasuryAddress,
   });
-  return Promise.all(
+  const treasuryTokens = await Promise.all(
     whitelistedTokens.map(async function (tokenAddress) {
       const [[vaultAddress, oracleAddress], withdrawable] = await Promise.all([
         getTokenConfig(client, {
@@ -63,21 +66,26 @@ export async function getTreasuryComposition({
       ]);
       const [strategies, [latestPrice, priceDecimals], totalDebt] =
         await Promise.all([
-          getStrategies(client, vaultAddress),
+          getStrategies(client, { address: vaultAddress }),
           getPrice(client, oracleAddress),
-          getTotalDebt(client, vaultAddress),
+          getTotalDebt(client, { address: vaultAddress }),
         ]);
       const strategyData = await Promise.all(
         strategies.map((strategyAddress) =>
           Promise.all([
-            getStrategyConfig(client, vaultAddress, strategyAddress),
-            getVaultName(client, strategyAddress),
+            getStrategyConfig(client, {
+              address: vaultAddress,
+              strategy: strategyAddress,
+            }),
+            getVaultName(client, { address: strategyAddress }),
+            strategyAddress,
           ]),
         ),
       );
       const activeStrategies = strategyData
         .filter(([strategyConfig]) => strategyConfig.active)
-        .map(([strategyConfig, strategyName]) => ({
+        .map(([strategyConfig, strategyName, address]) => ({
+          address,
           name: strategyName.replaceAll("_", " "),
           totalDebt: strategyConfig.totalDebt,
         }));
@@ -91,6 +99,24 @@ export async function getTreasuryComposition({
       };
     }),
   );
+
+  const strategyApy = await getStrategyApy({
+    client,
+    kv,
+    strategies: treasuryTokens.flatMap(({ activeStrategies }) =>
+      activeStrategies.map(({ address }) => address),
+    ),
+  }).catch(function (error) {
+    console.warn(`Failed to get the strategy APY: ${error.message}`);
+    return {} as StrategyApy;
+  });
+  return treasuryTokens.map((treasuryToken) => ({
+    ...treasuryToken,
+    activeStrategies: treasuryToken.activeStrategies.map((strategy) => ({
+      ...strategy,
+      apy: strategyApy[strategy.address],
+    })),
+  }));
 }
 
 async function getStrategicReserves({
