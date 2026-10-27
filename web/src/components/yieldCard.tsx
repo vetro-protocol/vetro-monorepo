@@ -48,9 +48,13 @@ export const YieldDetails = function ({
   return (
     <>
       <span className="text-b-medium hidden w-24 text-right text-gray-900 @md:block">
+        <span className="sr-only">{t("common.charts.apy-column")} </span>
         {formattedApy}
       </span>
       <span className="text-b-medium hidden w-32 text-right text-gray-900 @md:block">
+        <span className="sr-only">
+          {t("common.charts.projected-yield-column")}{" "}
+        </span>
         {projectedYield}
       </span>
       <div className="text-caption flex basis-full justify-between gap-3 pl-4.5 text-gray-500 @md:hidden">
