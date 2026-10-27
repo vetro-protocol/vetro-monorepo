@@ -15,9 +15,9 @@ import { type Subgraph } from "./env.ts";
 import * as graphql from "./graphql.ts";
 import * as merkl from "./merkl.ts";
 import { findStakingVaultForPeggedToken } from "./staking-vault.ts";
+import { SECONDS_PER_YEAR } from "./utils/time.ts";
 
 const WAD = 10n ** 18n;
-const SECONDS_PER_YEAR = 31_536_000n; // 365 days
 
 /**
  * Query the subgraph for the user's staking positions across all known vaults
