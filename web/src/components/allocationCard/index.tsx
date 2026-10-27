@@ -7,6 +7,7 @@ import { AllocationLegend } from "./allocationLegend";
 import type { AllocationItem } from "./types";
 
 type Props = {
+  amountLabel?: string;
   footnote?: string;
   formatAmount?: (value: number) => string;
   header?: ReactNode;
@@ -19,6 +20,7 @@ type Props = {
 };
 
 export const AllocationCard = function ({
+  amountLabel,
   footnote,
   formatAmount = formatUsd,
   header,
@@ -59,6 +61,7 @@ export const AllocationCard = function ({
             onHover={setHoveredLabel}
           />
           <AllocationLegend
+            amountLabel={amountLabel}
             formatAmount={formatAmount}
             header={header}
             hoveredLabel={hoveredLabel}

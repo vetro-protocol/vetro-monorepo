@@ -133,6 +133,7 @@ export const YieldCard = function ({
 
   return (
     <AllocationCard
+      amountLabel={t("common.charts.balance-column")}
       footnote={t("common.charts.projection-footnote")}
       header={<YieldHeader />}
       icon={<PieChartIcon className="text-blue-500" />}

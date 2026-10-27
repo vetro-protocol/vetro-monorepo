@@ -6,6 +6,7 @@ import type { AllocationItem } from "./types";
 const skeletonRows = 4;
 
 type Props = {
+  amountLabel?: string;
   formatAmount: (value: number) => string;
   header?: ReactNode;
   hoveredLabel: string | null;
@@ -16,6 +17,7 @@ type Props = {
 };
 
 export const AllocationLegend = ({
+  amountLabel,
   formatAmount,
   header,
   hoveredLabel,
@@ -42,6 +44,7 @@ export const AllocationLegend = ({
           <span
             className={`text-b-medium text-right text-gray-900 ${details ? "@md:w-24" : ""}`}
           >
+            {amountLabel && <span className="sr-only">{amountLabel} </span>}
             {formatAmount(amount)}
           </span>
           {details}
