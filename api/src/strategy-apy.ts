@@ -156,53 +156,55 @@ export async function getStrategyApy({
   if (!stakeDaoStrategies) {
     throw new Error("The StakeDAO strategies are not cached");
   }
-  const opportunitiesPromise = withTimeout(
-    getLiveOpportunities({
-      chainIds: [mainnet.id],
-      identifiers: fulfilledValues(receiptTokenResults),
-    }),
-  ).catch(function (error) {
-    console.warn(`Failed to get the Merkl opportunities: ${error.message}`);
-    return [] as LiveOpportunity[];
-  });
   const nowSeconds = Number(latestBlock.timestamp);
 
-  const entries = await Promise.all(
-    strategies.map(async function (strategy, index) {
-      try {
-        const receiptToken = await receiptTokenPromises[index];
-        const readPrice = await getPricePerShareReader({
-          client,
-          receiptToken,
-          stakeDaoStrategies,
-        });
-        const [price, pastPrice, opportunities] = await Promise.all([
-          readPrice(latestBlock.number),
-          readPrice(pastBlock.number),
-          opportunitiesPromise,
-        ]);
-        const apy =
-          annualizeGrowth({
+  const [opportunities, nativeApys] = await Promise.all([
+    withTimeout(
+      getLiveOpportunities({
+        chainIds: [mainnet.id],
+        identifiers: fulfilledValues(receiptTokenResults),
+      }),
+    ),
+    Promise.all(
+      strategies.map(async function (strategy, index) {
+        try {
+          const receiptToken = await receiptTokenPromises[index];
+          const readPrice = await getPricePerShareReader({
+            client,
+            receiptToken,
+            stakeDaoStrategies,
+          });
+          const [price, pastPrice] = await Promise.all([
+            readPrice(latestBlock.number),
+            readPrice(pastBlock.number),
+          ]);
+          const nativeApy = annualizeGrowth({
             elapsedSeconds: nowSeconds - Number(pastBlock.timestamp),
             pastPrice,
             price,
-          }) +
-          merklApr({ nowSeconds, opportunities, receiptToken }) +
-          stakeDaoApr({ receiptToken, strategies: stakeDaoStrategies });
-        if (!Number.isFinite(apy)) {
-          throw new Error(`The APY is not finite: ${apy}`);
+          });
+          if (!Number.isFinite(nativeApy)) {
+            throw new Error(`The native APY is not finite: ${nativeApy}`);
+          }
+          return { nativeApy, receiptToken, strategy };
+        } catch (error) {
+          console.warn(
+            `Failed to get the APY of strategy ${strategy}: ${error.message}`,
+          );
+          return null;
         }
-        return [strategy, apy] as const;
-      } catch (error) {
-        console.warn(
-          `Failed to get the APY of strategy ${strategy}: ${error.message}`,
-        );
-        return null;
-      }
-    }),
-  );
+      }),
+    ),
+  ]);
 
   return Object.fromEntries(
-    entries.filter((entry) => entry !== null),
+    nativeApys
+      .filter((entry) => entry !== null)
+      .map(({ nativeApy, receiptToken, strategy }) => [
+        strategy,
+        nativeApy +
+          merklApr({ nowSeconds, opportunities, receiptToken }) +
+          stakeDaoApr({ receiptToken, strategies: stakeDaoStrategies }),
+      ]),
   ) as StrategyApy;
 }
