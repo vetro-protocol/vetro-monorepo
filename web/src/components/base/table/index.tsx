@@ -255,7 +255,8 @@ export function Table<TData extends RowData>({
           />
         )}
       </div>
-      {showPlaceholder && placeholder}
+      {/* Sticky so the placeholder stays in the visible area while the header scrolls sideways */}
+      {showPlaceholder && <div className="sticky left-0">{placeholder}</div>}
     </div>
   );
 }
