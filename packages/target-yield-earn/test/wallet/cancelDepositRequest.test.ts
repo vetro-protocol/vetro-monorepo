@@ -7,13 +7,18 @@ import {
 } from "viem";
 import { waitForTransactionReceipt, writeContract } from "viem/actions";
 import { sepolia } from "viem/chains";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { getCancelableDepositRequest } from "../../src/actions/public/getCancelableDepositRequest.ts";
 import { cancelDepositRequest } from "../../src/actions/wallet/cancelDepositRequest.ts";
 
 vi.mock("viem/actions", () => ({
   waitForTransactionReceipt: vi.fn(),
   writeContract: vi.fn(),
+}));
+
+vi.mock("../../src/actions/public/getCancelableDepositRequest.ts", () => ({
+  getCancelableDepositRequest: vi.fn(),
 }));
 
 const mockWalletClient = {
@@ -29,6 +34,10 @@ const validParameters = {
 };
 
 describe("cancelDepositRequest", function () {
+  beforeEach(function () {
+    vi.mocked(getCancelableDepositRequest).mockResolvedValue(BigInt(1000));
+  });
+
   it("should emit 'cancel-deposit-request-failed-validation' if client is not defined", async function () {
     const { emitter, promise } = cancelDepositRequest(
       // @ts-expect-error - Testing invalid input

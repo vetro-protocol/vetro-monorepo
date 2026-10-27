@@ -1,11 +1,25 @@
 import { isAddressValid } from "@vetro-protocol/core";
 import { EventEmitter } from "events";
 import { toPromiseEvent } from "to-promise-event";
-import { type Address, type TransactionReceipt, type WalletClient } from "viem";
+import {
+  type Address,
+  encodeFunctionData,
+  isAddressEqual,
+  type TransactionReceipt,
+  type WalletClient,
+} from "viem";
 import { waitForTransactionReceipt } from "viem/actions";
-import { requestRedeem as erc7540RequestRedeem } from "viem-erc7540/actions";
+import { erc7540Abi } from "viem-erc7540";
+import {
+  allowance,
+  requestRedeem as erc7540RequestRedeem,
+} from "viem-erc7540/actions";
 
 import type { RequestRedeemEvents } from "../../types.ts";
+import { getIsAccountOrOperator } from "../../utils/getIsAccountOrOperator.ts";
+import { getIsShutdown } from "../public/getIsShutdown.ts";
+import { getMaxMint } from "../public/getMaxMint.ts";
+import { getMaxRequestRedeem } from "../public/getMaxRequestRedeem.ts";
 
 export type RequestRedeemParams = {
   address: Address;
@@ -14,7 +28,70 @@ export type RequestRedeemParams = {
   shares: bigint;
 };
 
-const canRequestRedeem = function ({
+const getIsAuthorized = async function ({
+  account,
+  address,
+  client,
+  owner,
+  shares,
+}: {
+  account: Address;
+  address: Address;
+  client: WalletClient;
+  owner: Address;
+  shares: bigint;
+}) {
+  const isOwnerOrOperator = await getIsAccountOrOperator({
+    account,
+    address,
+    client,
+    owner,
+  });
+  if (isOwnerOrOperator) {
+    return true;
+  }
+  const currentAllowance = await allowance(client, {
+    address,
+    owner,
+    spender: account,
+  });
+  return currentAllowance >= shares;
+};
+
+const getMaxRequestRedeemAfterClaim = async function ({
+  address,
+  client,
+  controller,
+  owner,
+}: {
+  address: Address;
+  client: WalletClient;
+  controller: Address;
+  owner: Address;
+}) {
+  const [maxShares, claimableShares] = await Promise.all([
+    getMaxRequestRedeem(client, { address, controller, owner }),
+    isAddressEqual(controller, owner)
+      ? getMaxMint(client, { address, controller })
+      : 0n,
+  ]);
+
+  if (claimableShares === 0n || maxShares > 0n) {
+    return maxShares + claimableShares;
+  }
+
+  // A 0n max means the request is blocked or the owner holds no shares. The
+  // vault holds the claimable deposit shares itself, so its own max is above
+  // 0n only when the request is not blocked.
+  const vaultMaxShares = await getMaxRequestRedeem(client, {
+    address,
+    controller,
+    owner: address,
+  });
+  return vaultMaxShares > 0n ? claimableShares : 0n;
+};
+
+const canRequestRedeem = async function ({
   address,
   client,
   controller,
@@ -26,10 +103,10 @@ const canRequestRedeem = function ({
   controller: Address;
   owner: Address;
   shares: bigint;
-}): {
+}): Promise<{
   canRequestRedeem: boolean;
   reason?: string;
-} {
+}> {
   if (!client) {
     return {
       canRequestRedeem: false,
@@ -79,6 +156,38 @@ const canRequestRedeem = function ({
     };
   }
 
+  const [isShutdown, isAuthorized, maxShares] = await Promise.all([
+    getIsShutdown(client, { address }),
+    getIsAuthorized({
+      account: client.account.address,
+      address,
+      client,
+      owner,
+      shares,
+    }),
+    getMaxRequestRedeemAfterClaim({ address, client, controller, owner }),
+  ]);
+
+  if (isShutdown) {
+    return {
+      canRequestRedeem: false,
+      reason: "Vault is shut down",
+    };
+  }
+  if (!isAuthorized) {
+    return {
+      canRequestRedeem: false,
+      reason:
+        "Account is not the owner or its operator, and its allowance is lower than shares",
+    };
+  }
+  if (shares > maxShares) {
+    return {
+      canRequestRedeem: false,
+      reason: "Shares exceed the max redeem request",
+    };
+  }
+
   return { canRequestRedeem: true };
 };
 
@@ -91,7 +200,7 @@ const runRequestRedeem = (
       const { address, controller, owner, shares } = params;
 
       const { canRequestRedeem: canRequestRedeemFlag, reason } =
-        canRequestRedeem({
+        await canRequestRedeem({
           address,
           client: walletClient,
           controller,
@@ -155,3 +264,18 @@ const runRequestRedeem = (
 
 export const requestRedeem = (...args: Parameters<typeof runRequestRedeem>) =>
   toPromiseEvent<RequestRedeemEvents>(runRequestRedeem(...args));
+
+export const encodeRequestRedeem = ({
+  controller,
+  owner,
+  shares,
+}: {
+  controller: Address;
+  owner: Address;
+  shares: bigint;
+}) =>
+  encodeFunctionData({
+    abi: erc7540Abi,
+    args: [shares, controller, owner],
+    functionName: "requestRedeem",
+  });

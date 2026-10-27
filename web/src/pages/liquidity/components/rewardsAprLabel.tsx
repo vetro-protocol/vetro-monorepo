@@ -14,10 +14,13 @@ export function RewardsAprLabel() {
       description: t("pages.liquidity.rewards-apr-info.stake-dao"),
       name: "Stake DAO",
     },
-    {
-      description: t("pages.liquidity.rewards-apr-info.merkl"),
-      name: "Merkl",
-    },
+  ];
+
+  const steps = [
+    t("pages.liquidity.rewards-apr-info.step-add-liquidity", {
+      action: t("pages.liquidity.add-liquidity"),
+    }),
+    t("pages.liquidity.rewards-apr-info.step-stake"),
   ];
 
   return (
@@ -26,11 +29,22 @@ export function RewardsAprLabel() {
       <Tooltip
         content={
           <div className="flex flex-col gap-1.5 py-0.5">
+            <p>{t("pages.liquidity.rewards-apr-info.title")}</p>
+            {steps.map((step, index) => (
+              <p key={index}>
+                <span className="font-semibold">{index + 1}.</span> {step}
+              </p>
+            ))}
             {sources.map(({ description, name }) => (
               <p key={name}>
                 <span className="font-semibold">{name}:</span> {description}
               </p>
             ))}
+            <p>{t("pages.liquidity.rewards-apr-info.footer")}</p>
+            <p>
+              <span className="font-semibold">Merkl:</span>{" "}
+              {t("pages.liquidity.rewards-apr-info.merkl")}
+            </p>
           </div>
         }
       >

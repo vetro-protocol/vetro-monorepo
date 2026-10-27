@@ -8,19 +8,20 @@ import {
 } from "viem";
 import { mainnet } from "viem/chains";
 
-import { theGraphUrl } from "../env.ts";
+import { theGraphSubgraph } from "../env.ts";
 import { runQuery } from "../graphql.ts";
 import { paginateSubgraphQuery } from "../paginate-subgraph-query.ts";
 import { getUsdPrices } from "../portal-prices.ts";
 import { fulfilledValues } from "../utils/promises.ts";
 
 import { bandActivity } from "./band-activity.ts";
-import { feeApr, poolTvlUsd } from "./pool-metrics.ts";
-import { portalUsdPrice } from "./portal-usd-price.ts";
-import { isTrackedToken } from "./tracked-tokens.ts";
+import { feeApr, lastFullDay, poolTvlUsd } from "./pool-metrics.ts";
+import { fetchSushiSubgraphPools } from "./sushi-subgraph.ts";
 import { findV3Pools } from "./v3-factory.ts";
 import { fetchV3PoolState } from "./v3-pool-state.ts";
 import { computeBandAmounts, priceToTick } from "./v3-position-math.ts";
+import type { V3SubgraphPool } from "./v3-subgraph.ts";
+import { v3PoolUsdValues } from "./v3-usd-prices.ts";
 
 const factoryAddress = "0xbACEB8eC6b9355Dfc0269C18bac9d6E2Bdc29C4F";
 
@@ -39,21 +40,17 @@ const sushiSubgraphId = "2tGWMrDha4164KkFAfkU3rDCtuxGb4q1emXmFdLLzJ8x";
 const poolQuery = `
   query V3Pool($address: Bytes!, $chainId: SushiSwapV3ChainId!) {
     v3Pool(address: $address, chainId: $chainId) {
-      feeUSD1d
-      liquidityUSD
       reserve0
       reserve1
       token0 {
         address
         decimals
       }
-      token0Price
       token1 {
         address
         decimals
       }
       token1Price
-      volumeUSD1d
     }
   }
 `;
@@ -77,13 +74,14 @@ const windowSwapsQuery = `
     $pool: String!
     $skip: Int!
     $start: BigInt!
+    $until: BigInt!
   ) {
     swaps(
       first: $first
       orderBy: timestamp
       orderDirection: asc
       skip: $skip
-      where: { pool: $pool, timestamp_gte: $start }
+      where: { pool: $pool, timestamp_gte: $start, timestamp_lt: $until }
     ) {
       amountInUSD
       blockNumber
@@ -97,17 +95,12 @@ const windowSwapsQuery = `
 type SushiToken = { address: Address; decimals: number };
 
 type RawV3Pool = {
-  feeUSD1d: number;
-  liquidityUSD: number;
   reserve0: string;
   reserve1: string;
   token0: SushiToken;
-  // token0 per token1
-  token0Price: number;
   token1: SushiToken;
   // token1 per token0
   token1Price: number;
-  volumeUSD1d: number;
 };
 
 type RawSwap = {
@@ -134,12 +127,14 @@ const fetchPoolSwaps = async function ({
   poolAddress,
   sinceSeconds,
   subgraphApiKey,
+  untilSeconds,
 }: {
   poolAddress: Address;
   sinceSeconds: number;
   subgraphApiKey: string | undefined;
+  untilSeconds: number;
 }) {
-  const url = theGraphUrl({
+  const { headers, url } = theGraphSubgraph({
     apiKey: subgraphApiKey,
     subgraphId: sushiSubgraphId,
   });
@@ -147,6 +142,7 @@ const fetchPoolSwaps = async function ({
   const since = Math.floor(sinceSeconds);
   const [lastSwap, windowSwaps] = await Promise.all([
     runQuery<{ swaps: { tick: string | null }[] }>({
+      headers,
       query: lastSwapQuery,
       url,
       variables: { pool, since: String(since) },
@@ -158,10 +154,15 @@ const fetchPoolSwaps = async function ({
         variable: "start",
       },
       field: "swaps",
+      headers,
       pageSize: 1000,
       query: windowSwapsQuery,
       url,
-      variables: { pool, start: String(since + 1) },
+      variables: {
+        pool,
+        start: String(since + 1),
+        until: String(untilSeconds),
+      },
     }),
   ]);
   const startTick = lastSwap.swaps[0]?.tick;
@@ -206,25 +207,33 @@ const getSushiPool = async function ({
   address,
   client,
   nowSeconds,
-  portalApiUrl,
+  portalPrices,
   subgraphApiKey,
+  subgraphPool,
 }: {
   address: Address;
   client: Client;
   nowSeconds: number;
-  portalApiUrl: string;
+  portalPrices: Record<string, string>;
   subgraphApiKey: string | undefined;
+  subgraphPool: V3SubgraphPool | undefined;
 }) {
+  if (!subgraphPool) {
+    console.warn(
+      `Sushi pool ${address} not found in the subgraph, so it has no volume`,
+    );
+  }
   const ranges =
     poolRanges.find((pool) => isAddressEqual(pool.address, address))?.ranges ??
     [];
-  const sinceSeconds = nowSeconds - 24 * 60 * 60;
+  const { since: sinceSeconds, until: untilSeconds } = lastFullDay(nowSeconds);
   const poolSwapsPromise =
     ranges.length > 0
       ? fetchPoolSwaps({
           poolAddress: address,
           sinceSeconds,
           subgraphApiKey,
+          untilSeconds,
         }).catch(function (error) {
           console.warn(
             `Failed to get the 24h swaps of Sushi pool ${address}, so it has no range rows: ${error.message}`,
@@ -238,6 +247,18 @@ const getSushiPool = async function ({
     decimals: token.decimals,
   }));
 
+  const { feesUsd24h, usdPrices, volumeUsd24h } = v3PoolUsdValues({
+    portalPrices,
+    subgraphPool,
+    token1PerToken0: data.token1Price,
+    tokens: tokens.map((token) => token.address),
+  });
+  if (usdPrices[0] === undefined) {
+    console.warn(
+      `No USD price for the coins of Sushi pool ${address}, so it has no TVL and no volume`,
+    );
+  }
+
   const buildPool = ({
     amounts,
     range,
@@ -250,7 +271,10 @@ const getSushiPool = async function ({
     volumeShare: number;
   }): DexPool => ({
     address,
-    apr: feeApr({ feesUsd24h: data.feeUSD1d * volumeShare, tvlUsd }),
+    apr: feeApr({
+      feesUsd24h: feesUsd24h === null ? null : feesUsd24h * volumeShare,
+      tvlUsd,
+    }),
     chainId: mainnet.id,
     coins: tokens.map((token, index) => ({
       address: token.address,
@@ -260,14 +284,20 @@ const getSushiPool = async function ({
     range,
     rewards: [],
     tvlUsd,
-    volumeUsd24h: data.volumeUSD1d * volumeShare,
+    volumeUsd24h: volumeUsd24h === null ? null : volumeUsd24h * volumeShare,
   });
 
+  const fullRangeAmounts = [data.reserve0, data.reserve1].map(
+    (reserve, index) => Number(reserve) / 10 ** tokens[index].decimals,
+  );
   const fullRange = buildPool({
-    amounts: [data.reserve0, data.reserve1].map(
-      (reserve, index) => Number(reserve) / 10 ** tokens[index].decimals,
+    amounts: fullRangeAmounts,
+    tvlUsd: poolTvlUsd(
+      fullRangeAmounts.map((amount, index) => ({
+        amount,
+        usdPrice: usdPrices[index],
+      })),
     ),
-    tvlUsd: data.liquidityUSD,
     volumeShare: 1,
   });
   if (!poolSwapsPromise) {
@@ -279,7 +309,7 @@ const getSushiPool = async function ({
     decimals1: tokens[1].decimals,
   };
 
-  const [poolState, poolSwaps, prices] = await Promise.all([
+  const [poolState, poolSwaps] = await Promise.all([
     fetchV3PoolState({
       client,
       lowerTick: priceToTick({
@@ -298,30 +328,12 @@ const getSushiPool = async function ({
       return undefined;
     }),
     poolSwapsPromise,
-    getUsdPrices(portalApiUrl).catch(function (error) {
-      console.warn(`Failed to get USD prices: ${error.message}`);
-      return {};
-    }),
   ]);
 
   if (!poolState || !poolSwaps) {
     return [fullRange];
   }
 
-  const token1IsReference = !isTrackedToken(tokens[1].address);
-  const referenceAddress = tokens[token1IsReference ? 1 : 0].address;
-  const referencePrice = portalUsdPrice({ address: referenceAddress, prices });
-  if (referencePrice === undefined) {
-    console.warn(
-      `No USD price for ${referenceAddress}, so its Sushi ranges have no TVL`,
-    );
-  }
-  const usdPrices =
-    referencePrice === undefined
-      ? [undefined, undefined]
-      : token1IsReference
-        ? [data.token1Price * referencePrice, referencePrice]
-        : [referencePrice, data.token0Price * referencePrice];
   const { opening, swaps } = splitOpeningSwap({
     currentTick: poolState.currentTick,
     poolSwaps,
@@ -337,7 +349,7 @@ const getSushiPool = async function ({
     });
     const { volumeShare } = bandActivity({
       lowerTick: priceToTick({ ...decimals, price: range.lowerPrice }),
-      nowSeconds,
+      nowSeconds: untilSeconds,
       opening,
       swaps,
       upperTick: priceToTick({ ...decimals, price: range.upperPrice }),
@@ -378,14 +390,32 @@ export async function getSushiPools({
           !discovered.some((pool) => isAddressEqual(pool.address, address)),
       ),
   ];
+  const [subgraphPools, portalPrices] = await Promise.all([
+    fetchSushiSubgraphPools({
+      addresses,
+      nowSeconds,
+      subgraphApiKey,
+      subgraphId: sushiSubgraphId,
+    }).catch(function (error) {
+      console.warn(`Failed to get the Sushi subgraph pools: ${error.message}`);
+      return [];
+    }),
+    getUsdPrices(portalApiUrl).catch(function (error) {
+      console.warn(`Failed to get USD prices: ${error.message}`);
+      return {};
+    }),
+  ]);
   const results = await Promise.allSettled(
     addresses.map((address) =>
       getSushiPool({
         address,
         client,
         nowSeconds,
-        portalApiUrl,
+        portalPrices,
         subgraphApiKey,
+        subgraphPool: subgraphPools.find((subgraphPool) =>
+          isAddressEqual(subgraphPool.id, address),
+        ),
       }),
     ),
   );

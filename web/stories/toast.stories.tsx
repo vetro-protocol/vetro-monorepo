@@ -1,10 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { useCallback, useRef, useState } from "react";
+import { fn } from "storybook/test";
 
 import { Button } from "../src/components/base/button";
 import { Toast, type ToastData, Toaster } from "../src/components/base/toast";
 
 const meta: Meta<typeof Toast> = {
+  args: {
+    onClose: fn(),
+  },
   component: Toast,
   parameters: {
     layout: "fullscreen",
@@ -28,21 +32,6 @@ export const TitleOnly: Story = {
   },
 };
 
-export const Closable: Story = {
-  args: {
-    closable: true,
-    title: "Stake deposit confirmed",
-  },
-};
-
-export const ClosableWithDescription: Story = {
-  args: {
-    closable: true,
-    description: "Your 7-day cooldown has started.",
-    title: "Withdrawal request confirmed",
-  },
-};
-
 export const Error: Story = {
   args: {
     description: "Your request wasn't sent. Try again.",
@@ -63,14 +52,12 @@ function MultipleToastsDemo() {
       ...prev,
       isError
         ? {
-            closable: true,
             description: "Your request wasn't sent. Try again.",
             id: counterRef.current,
             title: "Something went wrong",
             variant: "error",
           }
         : {
-            closable: true,
             description: "Your funds are now staked and earning yield.",
             id: counterRef.current,
             title: "Stake deposit confirmed",

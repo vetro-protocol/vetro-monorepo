@@ -2,10 +2,10 @@ import { knownTokens, type DexPool } from "@vetro-protocol/core";
 import { type Address, checksumAddress, isAddressEqual } from "viem";
 import { hemi, mainnet } from "viem/chains";
 
-import { theGraphUrl } from "../env.ts";
+import { theGraphSubgraph } from "../env.ts";
 import { runQuery } from "../graphql.ts";
 
-import { feeApr, poolTvlUsd } from "./pool-metrics.ts";
+import { feeApr, lastFullDay, poolTvlUsd } from "./pool-metrics.ts";
 import { trackedTokenAddresses } from "./tracked-tokens.ts";
 
 const trackedSymbols = knownTokens
@@ -28,7 +28,7 @@ const hemiTrackedTokenAddresses = knownTokens
 const brownfiSubgraphId = "D1UwhrB45geUZTNQ2QwrXwGEhk69iBESApJJzz378ZeS";
 
 const poolsQuery = `
-  query VetroPools($since: Int!, $tokens: [String!]!) {
+  query VetroPools($since: Int!, $tokens: [String!]!, $until: Int!) {
     bundles(first: 1) {
       maticPriceUSD
     }
@@ -44,7 +44,7 @@ const poolsQuery = `
         first: 24
         orderBy: periodStartUnix
         orderDirection: desc
-        where: { periodStartUnix_gte: $since }
+        where: { periodStartUnix_gte: $since, periodStartUnix_lt: $until }
       ) {
         feesUSD
         volumeUSD
@@ -73,11 +73,6 @@ type BrownfiPool = {
   totalValueLockedToken0: string;
   totalValueLockedToken1: string;
 };
-
-const hour = 60 * 60;
-
-const rollingDayStart = (nowSeconds: number) =>
-  (Math.floor(nowSeconds / hour) - 23) * hour;
 
 const sum = (values: string[]) =>
   values.reduce((total, value) => total + Number(value), 0);
@@ -134,10 +129,13 @@ export async function getBrownfiPools({
     bundles: { maticPriceUSD: string }[];
     pools: BrownfiPool[];
   }>({
+    ...theGraphSubgraph({
+      apiKey: subgraphApiKey,
+      subgraphId: brownfiSubgraphId,
+    }),
     query: poolsQuery,
-    url: theGraphUrl({ apiKey: subgraphApiKey, subgraphId: brownfiSubgraphId }),
     variables: {
-      since: rollingDayStart(nowSeconds),
+      ...lastFullDay(nowSeconds),
       tokens: hemiTrackedTokenAddresses.map((address) => address.toLowerCase()),
     },
   });

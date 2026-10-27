@@ -1,4 +1,5 @@
 import { CloseIcon } from "components/icons/closeIcon";
+import { useTranslation } from "react-i18next";
 
 import { Stack } from "../stack";
 
@@ -7,8 +8,11 @@ import { ErrorCircleIcon } from "./errorCircleIcon";
 
 type ToastVariant = "error" | "success";
 
+const autoCloseDelayMs = 7000;
+
+export type ToastContent = { description: string; title: string };
+
 export type ToastData = {
-  closable?: boolean;
   description?: string;
   id: number | string;
   title: string;
@@ -22,53 +26,46 @@ type ToasterProps = {
 };
 
 type ToastProps = {
-  autoCloseMs?: number;
-  closable?: boolean;
   description?: string;
   onClose: VoidFunction;
   title: string;
   variant?: ToastVariant;
 };
 
-const ToastCard = ({
-  closable,
+const ToastCard = function ({
   description,
   onClose,
   title,
   variant = "success",
-}: {
-  closable?: boolean;
-  description?: string;
-  onClose: VoidFunction;
-  title: string;
-  variant?: ToastVariant;
-}) => (
-  <div className="group flex items-start gap-3 rounded-lg bg-gray-950 p-3 pr-4">
-    <div className="flex h-5 shrink-0 items-center">
-      {variant === "error" ? (
-        <ErrorCircleIcon className="size-4 text-rose-500" />
-      ) : (
-        <CheckCircleIcon className="size-4 text-blue-500" />
-      )}
-    </div>
-    <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-      <p className="text-sm leading-5 font-medium text-gray-50">{title}</p>
-      {description && (
-        <p className="text-sm leading-5 text-gray-400">{description}</p>
-      )}
-    </div>
-    {closable && (
+}: ToastProps) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="group flex items-start gap-3 rounded-lg bg-gray-950 p-3 pr-4">
+      <div className="flex h-5 shrink-0 items-center">
+        {variant === "error" ? (
+          <ErrorCircleIcon className="size-4 text-rose-500" />
+        ) : (
+          <CheckCircleIcon className="size-4 text-blue-500" />
+        )}
+      </div>
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <p className="text-sm leading-5 font-medium text-gray-50">{title}</p>
+        {description && (
+          <p className="text-sm leading-5 text-gray-400">{description}</p>
+        )}
+      </div>
       <button
-        aria-label="Close notification"
+        aria-label={t("common.close-notification")}
         className="flex h-5 shrink-0 cursor-pointer items-center text-gray-400 opacity-0 transition-all group-hover:opacity-100 hover:text-white"
         onClick={onClose}
         type="button"
       >
         <CloseIcon size="small" />
       </button>
-    )}
-  </div>
-);
+    </div>
+  );
+};
 
 export const Toaster = ({ autoCloseMs, onClose, toasts }: ToasterProps) => (
   <Stack
@@ -81,17 +78,10 @@ export const Toaster = ({ autoCloseMs, onClose, toasts }: ToasterProps) => (
   />
 );
 
-export const Toast = ({
-  autoCloseMs,
-  closable,
-  description,
-  onClose,
-  title,
-  variant,
-}: ToastProps) => (
+export const Toast = ({ description, onClose, title, variant }: ToastProps) => (
   <Toaster
-    autoCloseMs={autoCloseMs}
+    autoCloseMs={autoCloseDelayMs}
     onClose={onClose}
-    toasts={[{ closable, description, id: "toast", title, variant }]}
+    toasts={[{ description, id: "toast", title, variant }]}
   />
 );

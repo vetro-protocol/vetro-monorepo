@@ -7,6 +7,7 @@ import { ApproveSection } from "components/approveSection";
 import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
 import { RenderFiatValue } from "components/base/fiatValue";
+import type { ToastContent } from "components/base/toast";
 import { CollapsibleSection } from "components/collapsibleSection";
 import { NetworkFees } from "components/networkFees";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
@@ -17,15 +18,14 @@ import { useActivityTracking } from "hooks/useActivityTracking";
 import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
 import { useStakeDeposit } from "hooks/useStakeDeposit";
 import { mainnet } from "networks/mainnet";
+import type { DepositStep } from "pages/earn/components/earnForm/stakeFormReducer";
+import { StakeSubmitButton } from "pages/earn/components/earnForm/stakeSubmitButton";
 import { useTotalDepositFees } from "pages/earn/hooks/useTotalDepositFees";
 import { type FormEvent, Suspense, lazy, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
 import { type Address, parseUnits } from "viem";
 import { useAccount } from "wagmi";
-
-import type { DepositStep } from "./stakeFormReducer";
-import { StakeSubmitButton } from "./stakeSubmitButton";
 
 const StakeDepositProgressDrawer = lazy(() =>
   import("./stakeDepositProgressDrawer").then((m) => ({
@@ -44,7 +44,7 @@ type Props = {
   onDrawerOpenChange: (open: boolean) => void;
   onInputChange: (value: string) => void;
   onResetSteps: VoidFunction;
-  onSuccess: (toast: { description: string; title: string }) => void;
+  onSuccess: (toast: ToastContent) => void;
   peggedToken: TokenWithGateway;
   shareToken: Token;
   stakingVaultAddress: Address;
@@ -226,7 +226,7 @@ export function StakeDepositForm({
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!inputError) {
+    if (!inputError && account) {
       setSubmitted({ amount: inputValue, assets: amountBigInt });
       onResetSteps();
       onDrawerOpenChange(true);

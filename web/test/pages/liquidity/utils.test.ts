@@ -56,6 +56,18 @@ describe("getPoolsTotals", function () {
     });
   });
 
+  it("adds nothing to the volume for a pool with an unknown volume", function () {
+    const pools = [
+      buildPool({ tvlUsd: 1000, volumeUsd24h: 250 }),
+      buildPool({ tvlUsd: 500, volumeUsd24h: null }),
+    ];
+
+    expect(getPoolsTotals(pools)).toEqual({
+      tvlUsd: 1500,
+      volumeUsd24h: 250,
+    });
+  });
+
   it("returns zero totals for an empty list", function () {
     expect(getPoolsTotals([])).toEqual({ tvlUsd: 0, volumeUsd24h: 0 });
   });

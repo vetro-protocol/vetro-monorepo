@@ -14,18 +14,16 @@ const fetchUniswapPool = async function (
 ): Promise<TrackedPool> {
   const data = await fetchUniswapPoolData(pool.address);
 
-  const coins = [pool.token0, pool.token1].map(
-    (token, index): PoolCoin => ({
-      address: token.address,
-      balance: parseUnits(
-        data.supplies[index].toFixed(token.decimals),
-        token.decimals,
-      ),
-      decimals: token.decimals,
-      symbol: token.symbol,
-      usdPrice: data.usdPrices[index],
-    }),
-  );
+  const coins = [pool.token0, pool.token1].map((token, index): PoolCoin => ({
+    address: token.address,
+    balance: parseUnits(
+      data.supplies[index].toFixed(token.decimals),
+      token.decimals,
+    ),
+    decimals: token.decimals,
+    symbol: token.symbol,
+    usdPrice: data.usdPrices[index],
+  }));
 
   // Uniswap's own TVL counts only the legs it can price, so it's the one figure
   // that can't be taken as published; both legs are valued here instead.

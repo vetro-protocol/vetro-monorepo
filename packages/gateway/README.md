@@ -11,7 +11,7 @@ pnpm add @vetro-protocol/gateway viem viem-erc20
 ## Overview
 
 - Two gateways ship by default — the VUSD gateway and the vetBTC gateway — exported as `gateways` (with `address` + `pegBaseSymbol`) and `gatewayAddresses` (just the addresses).
-- `deposit` mints the pegged token: checks `previewDeposit` for the expected output, runs an allowance + approval if needed, then calls `deposit(tokenIn, amountIn, minPeggedTokenOut, receiver)`.
+- `deposit` mints the pegged token: runs an allowance + approval if needed, then calls `deposit(tokenIn, amountIn, minPeggedTokenOut, receiver)`.
 - Redemptions follow the gateway's two-step flow: `requestRedeem` opens a request, `redeem` finalises it once the optional withdrawal delay has elapsed (or immediately if the caller is on the instant-redeem whitelist), and `cancelRedeemRequest` aborts an open request.
 - Read actions cover everything a UI needs to drive these flows: previews, fee getters, request lookup, treasury / pegged-token addresses, and withdrawal-delay configuration.
 

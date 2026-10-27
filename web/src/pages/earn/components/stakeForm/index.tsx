@@ -1,25 +1,20 @@
 import type { Token } from "@vetro-protocol/core";
 import { SegmentedControl } from "components/base/segmentedControl";
-import { Toast } from "components/base/toast";
+import { Toast, type ToastContent } from "components/base/toast";
+import {
+  type DepositStep,
+  type WithdrawStep,
+  initialStakeFormState,
+  stakeFormReducer,
+} from "pages/earn/components/earnForm/stakeFormReducer";
 import { useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
 import type { Address } from "viem";
 
 import { StakeDepositForm } from "./stakeDepositForm";
-import {
-  type DepositStep,
-  type WithdrawStep,
-  initialStakeFormState,
-  stakeFormReducer,
-} from "./stakeFormReducer";
 import { StakeWithdrawForm } from "./stakeWithdrawForm";
 import type { StakeMode } from "./types";
-
-type ToastData = {
-  description: string;
-  title: string;
-};
 
 type Props = {
   peggedToken: TokenWithGateway;
@@ -36,13 +31,13 @@ export function StakeForm({
   const [state, dispatch] = useReducer(stakeFormReducer, initialStakeFormState);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [mode, setMode] = useState<StakeMode>("deposit");
-  const [toast, setToast] = useState<ToastData | null>(null);
+  const [toast, setToast] = useState<ToastContent | null>(null);
 
   function handleInputChange(value: string) {
     dispatch({ payload: value, type: "SET_INPUT_VALUE" });
   }
 
-  function handleSuccess(toastData: ToastData) {
+  function handleSuccess(toastData: ToastContent) {
     handleInputChange("0");
     setToast(toastData);
   }
@@ -111,8 +106,6 @@ export function StakeForm({
       )}
       {toast && (
         <Toast
-          autoCloseMs={5000}
-          closable={true}
           description={toast.description}
           onClose={handleToastClose}
           title={toast.title}

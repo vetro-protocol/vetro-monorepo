@@ -42,9 +42,8 @@
       "files": ["*.d.ts"]
     },
     {
-      "excludedFiles": ["api/tests/*.ts"],
       "extends": ["bloq/typescript", "bloq/vitest"],
-      "files": ["*.{spec,test}.{js,ts}"]
+      "files": ["*.{spec,test}.{js,ts,tsx}"]
     },
     {
       "files": ["web/stories/**/*.{js,ts,tsx}"],

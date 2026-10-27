@@ -61,19 +61,17 @@ export const getMerklRewards = async function ({
           Number(campaign.startTimestamp) <= nowSeconds &&
           Number(campaign.endTimestamp) > nowSeconds,
       )
-      .map(
-        (campaign): MerklReward => ({
-          apr: campaign.apr,
-          campaignId: campaign.campaignId,
-          chainId: opportunity.chainId,
-          identifier: checksumAddress(opportunity.identifier),
-          opportunityId: opportunity.id,
-          token: {
-            address: checksumAddress(campaign.rewardToken.address),
-            chainId: campaign.rewardToken.chainId,
-          },
-        }),
-      ),
+      .map((campaign): MerklReward => ({
+        apr: campaign.apr,
+        campaignId: campaign.campaignId,
+        chainId: opportunity.chainId,
+        identifier: checksumAddress(opportunity.identifier),
+        opportunityId: opportunity.id,
+        token: {
+          address: checksumAddress(campaign.rewardToken.address),
+          chainId: campaign.rewardToken.chainId,
+        },
+      })),
   );
 };
 

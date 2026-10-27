@@ -26,8 +26,7 @@ export type KeyedWarmTask<Item, Data = unknown> = {
  * from `produce`).
  */
 type WarmTask<Item = never, Data = unknown> =
-  | GlobalWarmTask<Data>
-  | KeyedWarmTask<Item, Data>;
+  GlobalWarmTask<Data> | KeyedWarmTask<Item, Data>;
 
 /**
  * Identity helpers that define a task while inferring its produced `Data` (and a

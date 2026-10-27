@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  run-e2e-tests:
+  run-cli-e2e-tests:
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -24,10 +24,24 @@ jobs:
       - uses: hemilabs/actions/setup-node-env@8f87619b7f0122c39e14a32514ab3e4e0d4c3966 # v2.3.0
         with:
           package-manager: pnpm
-      - run: pnpm --filter @vetro-protocol/web exec playwright install-deps chromium
-      - run: pnpm --filter @vetro-protocol/web exec playwright install chromium --only-shell
+      - run: pnpm --filter @vetro-protocol/cli run test:e2e
         env:
-          DEBUG: pw:install
+          FORK_URL: ${{ secrets.INFURA_API }}
+    timeout-minutes: 5
+  run-web-e2e-tests:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: hemilabs/actions/setup-node-env@8f87619b7f0122c39e14a32514ab3e4e0d4c3966 # v2.3.0
+        with:
+          package-manager: pnpm
+      - parallel:
+          - run: pnpm --filter @vetro-protocol/web exec playwright install-deps chromium
+          - env:
+              DEBUG: pw:install
+            run: pnpm --filter @vetro-protocol/web exec playwright install chromium --only-shell
       - run: pnpm --filter @vetro-protocol/web exec playwright test
         env:
           DEBUG: pw:webserver

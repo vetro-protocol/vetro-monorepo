@@ -22,13 +22,18 @@ npm add @vetro-protocol/target-yield-earn viem
 ```ts
 import {
   getCancelableDepositRequest,
+  getCancelableRedeemRequest,
+  getCanEntry,
   getClaimableDepositRequest,
+  getClaimableRedeemRequest,
+  getEntryGate,
   getEpoch,
   getEpochId,
   getMaxMint,
   getMaxRequestDeposit,
   getMaxRequestRedeem,
   getPendingDepositRequest,
+  getPendingRedeemRequest,
 } from "@vetro-protocol/target-yield-earn/actions";
 import { createPublicClient, http } from "viem";
 import { hemi } from "viem/chains";
@@ -42,6 +47,16 @@ const epochId = await getEpochId(publicClient, { address: vaultAddress });
 
 // Full epoch: rate, deposit cap and windows as absolute timestamps.
 const epoch = await getEpoch(publicClient, { address: vaultAddress, epochId });
+
+// The vault's entry gate. The zero address when the vault has no entry gate.
+const entryGate = await getEntryGate(publicClient, { address: vaultAddress });
+
+// Whether the entry gate lets this owner request a deposit into the vault.
+const canEntry = await getCanEntry(publicClient, {
+  address: entryGate,
+  owner: "0x...",
+  vault: vaultAddress,
+});
 
 // Max amount of assets this owner can still request for deposit.
 const maxAssets = await getMaxRequestDeposit(publicClient, {
@@ -80,31 +95,56 @@ const claimableShares = await getMaxMint(publicClient, {
   address: vaultAddress,
   controller: "0x...",
 });
+
+// Shares requested for redemption that the keeper hasn't fulfilled yet.
+const pendingShares = await getPendingRedeemRequest(publicClient, {
+  address: vaultAddress,
+  controller: "0x...",
+});
+
+// Shares of a pending redeem request that the controller can cancel now.
+const cancelableShares = await getCancelableRedeemRequest(publicClient, {
+  address: vaultAddress,
+  controller: "0x...",
+});
+
+// Shares of a fulfilled redeem request, ready to claim.
+const claimableRedeemShares = await getClaimableRedeemRequest(publicClient, {
+  address: vaultAddress,
+  controller: "0x...",
+});
 ```
 
 ## API
 
 - Public actions (reads):
   - `getCancelableDepositRequest(client, { address, controller })` — assets in the controller's deposit request that `cancelDepositRequest` can refund now. `0n` when there is no request or the request is fulfilled. A request from the current epoch is cancelable only during the entry window. A request from an earlier epoch is always cancelable until fulfillment.
+  - `getCancelableRedeemRequest(client, { address, controller })` — shares in the controller's redeem request that `cancelRedeemRequest` can return now. `0n` when there is no request, when the request is fulfilled, outside the exit window, or when the request is from an earlier epoch.
+  - `getCanEntry(client, { address, owner, vault })` — whether the entry gate at `address` lets the owner request a deposit into the vault. It returns the gate's `canEntry(vault, owner)`. To get the address, call `getEntryGate` first and pass its result as `address`. It throws when `address` is the zero address, so do not call it for a vault without an entry gate. When the result is `false`, `getMaxRequestDeposit` returns `0n`.
   - `getClaimableDepositRequest(client, { address, controller })` — assets in a fulfilled deposit request that the controller can claim.
+  - `getClaimableRedeemRequest(client, { address, controller })` — shares in a fulfilled redeem request that the controller can claim.
+  - `getEntryGate(client, { address })` — the address of the vault's entry gate. The zero address when the vault has no entry gate. Then no owner is blocked by an entry gate.
   - `getEpoch(client, params)` — an epoch's `start`, `end`, `rate`, `maxDeposits` (the deposit cap), `deposits` (the assets requested so far) and its `entryWindow`, `accrualInterval` and `exitWindow` as `{ end, start }` absolute timestamps.
   - `getEpochId(client, params)` — the current epoch id, `0n` when no epoch has started.
+  - `getIsOperator(client, { address, controller, operator })` — whether the controller approved `operator` to manage its requests. An operator can request, cancel and claim on behalf of the controller.
   - `getIsPaused(client, params)` — whether the keeper paused the vault. Pausing blocks new deposit requests only.
   - `getIsShutdown(client, params)` — whether the owner shut the vault down. Shutdown blocks every request and claim, but not cancellations. Reversible.
-  - `getIsTerminated(client, params)` — whether the vault was permanently wound down. Once terminated, no new epochs or deposits, and withdrawal requests are claimable right away.
+  - `getIsTerminated(client, params)` — whether the vault was permanently wound down. Once terminated, no new epochs or deposits. Redeem requests are accepted at any time, and they are claimable right away.
   - `getMaxMint(client, { address, controller })` — the shares a claim of the controller's fulfilled deposit request mints. `0n` while the vault is shut down, because claims revert then.
   - `getMaxRequestDeposit(client, { address, controller, owner })` — the assets the owner can still request for deposit, capped by the epoch's remaining deposit capacity. `0n` whenever a deposit request would revert — outside the entry window, while paused, shutdown or terminated, when the owner has no entry access, or when the controller has a pending request from an earlier epoch.
-  - `getMaxRequestRedeem(client, { address, controller, owner })` — the shares the owner can still request for redemption. `0n` whenever a redeem request would revert — outside the exit window, while shutdown, or when a redeem batch from an earlier epoch is still pending and the vault hasn't terminated.
+  - `getMaxRequestRedeem(client, { address, controller, owner })` — the shares the owner can still request for redemption. `0n` whenever a redeem request would revert — outside the exit window, while shutdown, or when a redeem batch from an earlier epoch is still pending and the vault hasn't terminated. A terminated vault accepts redeem requests at any time, also after the maturity.
   - `getPendingDepositRequest(client, { address, controller })` — assets in an unfulfilled deposit request.
+  - `getPendingRedeemRequest(client, { address, controller })` — shares in an unfulfilled redeem request.
   - `getRate(client, params)` — the fixed rate an epoch pays during its accrual interval, WAD-scaled per annum. It returns the same value at any time, so use it (or `getEpoch`) to show the rate.
 - Wallet actions (writes), exported from `/actions` only. All of them return `{ emitter, promise }`:
-  - `cancelDepositRequest(walletClient, { address, controller })` — cancels the controller's unfulfilled deposit request. The vault sends the assets back to the controller. A request from the current epoch can be cancelled only during the entry window. Allowed only while `getCancelableDepositRequest` is above `0n`. A request from an earlier epoch can be cancelled at any time before fulfillment.
-  - `cancelRedeemRequest(walletClient, { address, controller })` — cancels the controller's unfulfilled redeem request. The vault sends the escrowed shares back to the controller. Allowed only during the exit window of the epoch of the request.
+  - `cancelDepositRequest(walletClient, { address, controller })` — cancels the controller's unfulfilled deposit request. The vault sends the assets back to the controller. A request from the current epoch can be cancelled only during the entry window. Allowed only while `getCancelableDepositRequest` is above `0n`. A request from an earlier epoch can be cancelled at any time before fulfillment. The account must be the controller or its operator.
+  - `cancelRedeemRequest(walletClient, { address, controller })` — cancels the controller's unfulfilled redeem request. The vault sends the escrowed shares back to the controller. Allowed only while `getCancelableRedeemRequest` is above `0n`, that is, during the exit window of the epoch of the request. The account must be the controller or its operator.
   - Both cancel actions are specific to VUSDx. ERC-8416 does not define them.
-  - `claimDeposit(walletClient, { address, assets, controller, receiver? })` — claims the controller's fulfilled deposit request with the ERC-7540 `deposit(assets, receiver, controller)`, which mints the shares to `receiver`. `receiver` defaults to `controller`. Pass `maxUint256` as `assets` to claim the full claimable amount. The claim goes by assets, not shares, because a claim by shares (`mint`) can leave dust in the request. Before it writes, it reads the vault and emits `claim-deposit-failed-validation` when the vault is shut down, when the account is not the controller or its operator, when there is no claimable deposit, or when `assets` is more than `maxDeposit(controller)`.
-  - `encodeCancelDepositRequest(params)`, `encodeCancelRedeemRequest(params)` and `encodeClaimDeposit(params)` — return the calldata for the call without sending anything.
+  - `claimDeposit(walletClient, { address, assets, controller, receiver? })` — claims the controller's fulfilled deposit request with the ERC-7540 `deposit(assets, receiver, controller)`, which mints the shares to `receiver`. `receiver` defaults to `controller`. Pass `maxUint256` as `assets` to claim the full claimable amount. The claim goes by assets, not shares, because a claim by shares (`mint`) can leave dust in the request.
+  - `claimRedeem(walletClient, { address, controller, receiver?, shares })` — claims the controller's fulfilled redeem request with the ERC-7540 `redeem(shares, receiver, controller)`, which sends the assets to `receiver`. `receiver` defaults to `controller`. Pass `maxUint256` as `shares` to claim the full claimable amount. The claim goes by shares, not assets, because a claim by assets (`withdraw`) can leave dust in the request. The claim reverts while the vault is shut down. It works the same in a terminated vault.
+  - `encodeCancelDepositRequest(params)`, `encodeCancelRedeemRequest(params)`, `encodeClaimDeposit(params)`, `encodeClaimRedeem(params)`, `encodeRequestDeposit({ assets, controller, owner })` and `encodeRequestRedeem({ controller, owner, shares })` — return the calldata for the call without sending anything.
   - `requestDeposit(walletClient, { address, approveAmount?, assets, controller, owner })` — requests a deposit. It reads the pegged token from the vault's `asset()` and approves it first if the owner's allowance is lower than `assets`. `approveAmount` defaults to `assets`.
-  - `requestRedeem(walletClient, { address, controller, owner, shares })` — requests a redemption.
+  - `requestRedeem(walletClient, { address, controller, owner, shares })` — requests a redemption. The vault takes the owner's shares into escrow until the keeper fulfills the request. In a terminated vault, the vault burns the shares at once and the assets are claimable right away. When `controller` is the `owner`, `shares` can include the controller's claimable deposit shares, because the vault claims them first.
 - `targetYieldEarnPublicActions()` — viem extension factory that wires the public actions onto a client via `.extend()`.
 - `targetYieldEarnVaultAbi` — the minimal ABI subset used by the package.
 - Constants: `maxExitWindowSeconds`, `minEpochDurationSeconds`, `minExitWindowSeconds`, `targetYieldVaultAddresses`, `vusdxAddress`.

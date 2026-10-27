@@ -4,6 +4,7 @@ import { RenderCryptoValue } from "components/base/cryptoValue";
 import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
 import { RenderFiatValue } from "components/base/fiatValue";
+import type { ToastContent } from "components/base/toast";
 import { CollapsibleSection } from "components/collapsibleSection";
 import { NetworkFees } from "components/networkFees";
 import { SetMaxStakedBalance } from "components/setMaxStakedBalance";
@@ -16,6 +17,8 @@ import { useInstantWithdraw } from "hooks/useInstantWithdraw";
 import { useStakedBalance } from "hooks/useStakedBalance";
 import { useStakeWithdraw } from "hooks/useStakeWithdraw";
 import { mainnet } from "networks/mainnet";
+import type { WithdrawStep } from "pages/earn/components/earnForm/stakeFormReducer";
+import { StakeSubmitButton } from "pages/earn/components/earnForm/stakeSubmitButton";
 import { useCanInstantWithdraw } from "pages/earn/hooks/useCanInstantWithdraw";
 import { useCooldownDuration } from "pages/earn/hooks/useCooldownDuration";
 import { useTotalWithdrawFees } from "pages/earn/hooks/useTotalWithdrawFees";
@@ -23,9 +26,7 @@ import { type FormEvent, Suspense, lazy, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
 import { type Address, parseUnits } from "viem";
-
-import type { WithdrawStep } from "./stakeFormReducer";
-import { StakeSubmitButton } from "./stakeSubmitButton";
+import { useAccount } from "wagmi";
 
 const StakeWithdrawProgressDrawer = lazy(() =>
   import("./stakeWithdrawProgressDrawer").then((m) => ({
@@ -39,7 +40,7 @@ type Props = {
   onDrawerOpenChange: (open: boolean) => void;
   onInputChange: (value: string) => void;
   onResetSteps: VoidFunction;
-  onSuccess: (toast: { description: string; title: string }) => void;
+  onSuccess: (toast: ToastContent) => void;
   onWithdrawStepChange: (step: WithdrawStep) => void;
   peggedToken: TokenWithGateway;
   shareToken: Token;
@@ -96,6 +97,7 @@ export function StakeWithdrawForm({
   stakingVaultAddress,
   withdrawStep,
 }: Props) {
+  const { address: account } = useAccount();
   const { data: canInstantWithdraw } = useCanInstantWithdraw({
     stakingVaultAddress,
   });
@@ -223,7 +225,7 @@ export function StakeWithdrawForm({
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!inputError) {
+    if (!inputError && account) {
       setSubmitted({ amount: inputValue, assets: amountBigInt });
       onResetSteps();
       onDrawerOpenChange(true);

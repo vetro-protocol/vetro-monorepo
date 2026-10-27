@@ -4,6 +4,7 @@ import { decimals } from "viem-erc20/actions";
 import { asset, convertToAssets } from "viem-erc4626/actions";
 
 import { appendLivePoint } from "./append-live-point.ts";
+import { type Subgraph } from "./env.ts";
 import { paginateSubgraphQuery } from "./paginate-subgraph-query.ts";
 import { getPeriodStart } from "./vault-history-period.ts";
 
@@ -73,12 +74,12 @@ export async function getShareValueHistory({
   period,
   rpcUrl,
   stakingVaultAddress,
-  url,
+  subgraph,
 }: {
   period: string;
   rpcUrl: string | undefined;
   stakingVaultAddress: Address;
-  url: string;
+  subgraph: Subgraph;
 }): Promise<{ shareValue: number; timestamp: number }[]> {
   const stakingVault = stakingVaultAddress.toLowerCase();
   const start = getPeriodStart(period);
@@ -105,13 +106,13 @@ export async function getShareValueHistory({
   // read are independent, so run them concurrently rather than in sequence.
   const [all, assetDecimals, liveShareValue] = await Promise.all([
     paginateSubgraphQuery<Row>({
+      ...subgraph,
       cursor: {
         getValue: (row) => row.timestamp,
         variable: "start",
       },
       field: "vaultHistories",
       query,
-      url,
       variables: { stakingVault, start },
     }),
     getAssetDecimals({ client, stakingVaultAddress }),

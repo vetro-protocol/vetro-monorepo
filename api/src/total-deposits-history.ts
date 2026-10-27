@@ -3,6 +3,7 @@ import { type Address } from "viem";
 import { totalAssets } from "viem-erc4626/actions";
 
 import { appendLivePoint } from "./append-live-point.ts";
+import { type Subgraph } from "./env.ts";
 import { paginateSubgraphQuery } from "./paginate-subgraph-query.ts";
 import { getPeriodStart } from "./vault-history-period.ts";
 
@@ -50,12 +51,12 @@ export async function getTotalDepositsHistory({
   period,
   rpcUrl,
   stakingVaultAddress,
-  url,
+  subgraph,
 }: {
   period: string;
   rpcUrl: string | undefined;
   stakingVaultAddress: Address;
-  url: string;
+  subgraph: Subgraph;
 }) {
   const stakingVault = stakingVaultAddress.toLowerCase();
   const start = getPeriodStart(period);
@@ -80,13 +81,13 @@ export async function getTotalDepositsHistory({
   // concurrently rather than awaiting the history first.
   const [all, livePoint] = await Promise.all([
     paginateSubgraphQuery<Row>({
+      ...subgraph,
       cursor: {
         getValue: (row) => row.timestamp,
         variable: "start",
       },
       field: "vaultHistories",
       query,
-      url,
       variables: { stakingVault, start },
     }),
     getLiveTotalDepositsPoint({ rpcUrl, stakingVaultAddress }),

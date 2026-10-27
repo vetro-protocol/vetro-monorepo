@@ -15,7 +15,7 @@ import {
   verifyTurnstile,
 } from "./contact.ts";
 import { convertBigIntsToString } from "./convert-bigints-to-string.ts";
-import { getSubgraphUrl } from "./env.ts";
+import { getSubgraph } from "./env.ts";
 import { addIncentives } from "./liquidity/incentives.ts";
 import { venues } from "./liquidity/index.ts";
 import { excludeLowTvlPools } from "./liquidity/low-tvl.ts";
@@ -164,13 +164,12 @@ app.get(
     try {
       const gatewayAddress = c.get("gatewayAddress");
       const period = c.req.param("period");
-      const url = getSubgraphUrl(c.env);
       const data = await getTvlHistory({
         c,
         gatewayAddress,
         period,
         portalApiUrl: c.env.PORTAL_API_URL,
-        url,
+        subgraph: getSubgraph(c.env),
       });
       return c.json(data);
     } catch (error) {
@@ -315,10 +314,9 @@ app.get(
   async function (c) {
     try {
       const address = c.req.param("address") as `0x${string}`;
-      const url = getSubgraphUrl(c.env);
       const data = await variableStake.getCostBasis({
         address,
-        url,
+        subgraph: getSubgraph(c.env),
       });
       return c.json(convertBigIntsToString(data));
     } catch (error) {
@@ -379,11 +377,10 @@ app.get(
     try {
       const gatewayAddress = c.get("gatewayAddress");
       const rpcUrl = c.env.CUSTOM_RPC_URL_MAINNET;
-      const subgraphUrl = getSubgraphUrl(c.env);
       const data = await variableStake.getExitTicketQueueSize({
         gatewayAddress,
         rpcUrl,
-        subgraphUrl,
+        subgraph: getSubgraph(c.env),
       });
       return c.json(convertBigIntsToString(data));
     } catch (error) {
@@ -404,13 +401,12 @@ app.get(
   async function (c) {
     try {
       const stakingVaultAddress = c.get("stakingVaultAddress");
-      const url = getSubgraphUrl(c.env);
       const period = c.req.param("period");
       const data = await getShareValueHistory({
         period,
         rpcUrl: c.env.CUSTOM_RPC_URL_MAINNET,
         stakingVaultAddress,
-        url,
+        subgraph: getSubgraph(c.env),
       });
       return c.json(data);
     } catch (error) {
@@ -430,13 +426,12 @@ app.get(
   async function (c) {
     try {
       const stakingVaultAddress = c.get("stakingVaultAddress");
-      const url = getSubgraphUrl(c.env);
       const period = c.req.param("period");
       const data = await getApyHistory({
         c,
         period,
         stakingVaultAddress,
-        url,
+        subgraph: getSubgraph(c.env),
       });
       return c.json(data);
     } catch (error) {
@@ -456,13 +451,12 @@ app.get(
   async function (c) {
     try {
       const stakingVaultAddress = c.get("stakingVaultAddress");
-      const url = getSubgraphUrl(c.env);
       const period = c.req.param("period");
       const data = await getTotalDepositsHistory({
         period,
         rpcUrl: c.env.CUSTOM_RPC_URL_MAINNET,
         stakingVaultAddress,
-        url,
+        subgraph: getSubgraph(c.env),
       });
       return c.json(data);
     } catch (error) {
@@ -481,8 +475,10 @@ app.get(
   async function (c) {
     try {
       const address = c.req.param("address") as `0x${string}`;
-      const url = getSubgraphUrl(c.env);
-      const data = await variableStake.getUserExitTickets({ address, url });
+      const data = await variableStake.getUserExitTickets({
+        address,
+        subgraph: getSubgraph(c.env),
+      });
       return c.json(data);
     } catch (error) {
       throw new Error(`Failed to get exit tickets: ${error.message}`);

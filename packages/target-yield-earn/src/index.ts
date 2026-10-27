@@ -2,9 +2,14 @@ import type { Client } from "viem";
 
 import {
   getCancelableDepositRequest,
+  getCancelableRedeemRequest,
+  getCanEntry,
   getClaimableDepositRequest,
+  getClaimableRedeemRequest,
+  getEntryGate,
   getEpoch,
   getEpochId,
+  getIsOperator,
   getIsPaused,
   getIsShutdown,
   getIsTerminated,
@@ -12,6 +17,7 @@ import {
   getMaxRequestDeposit,
   getMaxRequestRedeem,
   getPendingDepositRequest,
+  getPendingRedeemRequest,
   getRate,
 } from "./actions/public/index.ts";
 
@@ -33,13 +39,25 @@ export const targetYieldEarnPublicActions = () => (client: Client) => ({
   getCancelableDepositRequest: (
     params: Parameters<typeof getCancelableDepositRequest>[1],
   ) => getCancelableDepositRequest(client, params),
+  getCancelableRedeemRequest: (
+    params: Parameters<typeof getCancelableRedeemRequest>[1],
+  ) => getCancelableRedeemRequest(client, params),
+  getCanEntry: (params: Parameters<typeof getCanEntry>[1]) =>
+    getCanEntry(client, params),
   getClaimableDepositRequest: (
     params: Parameters<typeof getClaimableDepositRequest>[1],
   ) => getClaimableDepositRequest(client, params),
+  getClaimableRedeemRequest: (
+    params: Parameters<typeof getClaimableRedeemRequest>[1],
+  ) => getClaimableRedeemRequest(client, params),
+  getEntryGate: (params: Parameters<typeof getEntryGate>[1]) =>
+    getEntryGate(client, params),
   getEpoch: (params: Parameters<typeof getEpoch>[1]) =>
     getEpoch(client, params),
   getEpochId: (params: Parameters<typeof getEpochId>[1]) =>
     getEpochId(client, params),
+  getIsOperator: (params: Parameters<typeof getIsOperator>[1]) =>
+    getIsOperator(client, params),
   getIsPaused: (params: Parameters<typeof getIsPaused>[1]) =>
     getIsPaused(client, params),
   getIsShutdown: (params: Parameters<typeof getIsShutdown>[1]) =>
@@ -55,5 +73,8 @@ export const targetYieldEarnPublicActions = () => (client: Client) => ({
   getPendingDepositRequest: (
     params: Parameters<typeof getPendingDepositRequest>[1],
   ) => getPendingDepositRequest(client, params),
+  getPendingRedeemRequest: (
+    params: Parameters<typeof getPendingRedeemRequest>[1],
+  ) => getPendingRedeemRequest(client, params),
   getRate: (params: Parameters<typeof getRate>[1]) => getRate(client, params),
 });

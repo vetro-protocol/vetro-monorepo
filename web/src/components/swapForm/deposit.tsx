@@ -387,7 +387,6 @@ export function Deposit({
       )}
       {showToast && (
         <Toast
-          closable
           description={t(
             "pages.swap.toast.swap-success-description",
             toastData,

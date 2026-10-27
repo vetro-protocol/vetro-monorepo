@@ -3,7 +3,7 @@ import { mocked } from "storybook/test";
 import { zeroAddress } from "viem";
 import { useAccount } from "wagmi";
 
-import { StakeSubmitButton } from "../src/pages/earn/components/stakeForm/stakeSubmitButton";
+import { StakeSubmitButton } from "../src/pages/earn/components/earnForm/stakeSubmitButton";
 
 const mockAccount = (account: Partial<ReturnType<typeof useAccount>>) =>
   mocked(useAccount).mockReturnValue(account as ReturnType<typeof useAccount>);

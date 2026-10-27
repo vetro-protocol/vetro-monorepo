@@ -1,8 +1,9 @@
 import type { Token } from "@vetro-protocol/core";
 import { Badge } from "components/base/badge";
-import { Button } from "components/base/button";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { InfoCard } from "components/base/infoCard";
+import { CancelDepositRequest } from "components/earn/cancelDepositRequest";
+import { ClaimDeposit } from "components/earn/claimDeposit";
 import { TokenAmountCaption } from "components/earn/tokenAmountCaption";
 import { BoltIcon } from "components/icons/boltIcon";
 import { InfoIcon } from "components/icons/infoIcon";
@@ -64,18 +65,6 @@ export const DepositClaimCard = function ({
 
   const { badge, info } = stateConfig[getStateConfigKey()];
 
-  const handleClaim = function () {
-    // TODO: claim with `claimDeposit` from `@vetro-protocol/target-yield-earn`
-    // once VUSDx is deployed.
-    // See https://github.com/vetro-protocol/vetro-monorepo/issues/646
-  };
-
-  const handleCancel = function () {
-    // TODO: cancel with `cancelDepositRequest` from
-    // `@vetro-protocol/target-yield-earn` once VUSDx is deployed.
-    // See https://github.com/vetro-protocol/vetro-monorepo/issues/646
-  };
-
   return (
     <InfoCard
       data={data}
@@ -117,23 +106,15 @@ export const DepositClaimCard = function ({
       )}
       subtitle={
         <div className="flex w-full gap-x-2 *:flex-1">
-          <Button
-            disabled={!data?.canClaim}
-            onClick={handleClaim}
-            type="button"
-          >
-            {t("pages.earn.fixed-term.claim-shares", {
-              symbol: shareToken.symbol,
-            })}
-          </Button>
-          <Button
-            disabled={!data?.canCancel}
-            onClick={handleCancel}
-            type="button"
-            variant="secondary"
-          >
-            {t("pages.earn.fixed-term.cancel")}
-          </Button>
+          <ClaimDeposit
+            peggedToken={peggedToken}
+            shareToken={shareToken}
+            stakingVaultAddress={stakingVaultAddress}
+          />
+          <CancelDepositRequest
+            peggedToken={peggedToken}
+            stakingVaultAddress={stakingVaultAddress}
+          />
         </div>
       }
     />

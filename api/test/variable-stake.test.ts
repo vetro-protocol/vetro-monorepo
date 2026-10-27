@@ -411,7 +411,7 @@ describe("variable-stake/getCostBasis", function () {
 
     const result = await getCostBasis({
       address: userAddress,
-      url: subgraphUrl,
+      subgraph: { url: subgraphUrl },
     });
 
     expect(result).toEqual(
@@ -431,7 +431,7 @@ describe("variable-stake/getCostBasis", function () {
 
     const result = await getCostBasis({
       address: userAddress,
-      url: subgraphUrl,
+      subgraph: { url: subgraphUrl },
     });
 
     expect(result[sVusdAddress]).toBe(0n);
@@ -453,7 +453,7 @@ describe("variable-stake/getCostBasis", function () {
 
     const result = await getCostBasis({
       address: userAddress,
-      url: subgraphUrl,
+      subgraph: { url: subgraphUrl },
     });
 
     expect(result[sVusdAddress]).toBe(3n * 10n ** 18n);
@@ -476,7 +476,7 @@ describe("variable-stake/getCostBasis", function () {
 
     const result = await getCostBasis({
       address: userAddress,
-      url: subgraphUrl,
+      subgraph: { url: subgraphUrl },
     });
 
     // 1e36 / 1e18 = 1e18
@@ -507,7 +507,7 @@ describe("variable-stake/getUserExitTickets", function () {
 
     const [ticket] = await getUserExitTickets({
       address: owner,
-      url: subgraphUrl,
+      subgraph: { url: subgraphUrl },
     });
 
     expect(ticket).toEqual({

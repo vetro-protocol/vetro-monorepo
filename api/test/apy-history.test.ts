@@ -33,7 +33,12 @@ const now = 1_708_000_000_000;
 const liveApy = 9.95;
 
 const fetchHistory = (period = "1w") =>
-  getApyHistory({ c, period, stakingVaultAddress: sVusdAddress, url });
+  getApyHistory({
+    c,
+    period,
+    stakingVaultAddress: sVusdAddress,
+    subgraph: { url },
+  });
 
 const lastCallVariables = <T>() =>
   vi.mocked(graphql.runQuery).mock.calls.at(-1)?.[0].variables as T | undefined;

@@ -335,7 +335,6 @@ export function TwoStepRedeem({
       )}
       {showToast && (
         <Toast
-          closable
           description={t("pages.swap.toast.redeem-queued-description")}
           onClose={() => setShowToast(false)}
           title={t("pages.swap.toast.redeem-queued-title", toastData)}

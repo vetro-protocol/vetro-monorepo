@@ -8,11 +8,9 @@ export const dexNames: Record<DexPool["dex"], string> = {
 };
 
 export const getDepositUrl = function (pool: DexPool) {
-  if (pool.dex === "curve") {
-    return `https://www.curve.finance/dex/ethereum/pools/${pool.dexMetadata.poolId}/deposit`;
-  }
   const urls = {
     brownfi: `https://app.brownfi.io/clamm/analytics/pools/${pool.address.toLowerCase()}`,
+    curve: `https://www.curve.finance/dex/ethereum/pools/${pool.address}`,
     sushi: `https://www.sushi.com/ethereum/pool/v3/${pool.address}`,
     uniswap: `https://app.uniswap.org/explore/pools/ethereum/${pool.address}`,
   };
@@ -47,7 +45,7 @@ export const getPoolsTotals = (pools: DexPool[]) =>
   pools.reduce(
     (totals, pool) => ({
       tvlUsd: totals.tvlUsd + (pool.tvlUsd ?? 0),
-      volumeUsd24h: totals.volumeUsd24h + pool.volumeUsd24h,
+      volumeUsd24h: totals.volumeUsd24h + (pool.volumeUsd24h ?? 0),
     }),
     { tvlUsd: 0, volumeUsd24h: 0 },
   );
