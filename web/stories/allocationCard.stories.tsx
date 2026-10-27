@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 
 import { AllocationCard } from "../src/components/allocationCard";
 import { PieChartIcon } from "../src/components/icons/pieChartIcon";
+import { YieldDetails, YieldHeader } from "../src/components/yieldCard";
 import { DatabaseIcon } from "../src/pages/analytics/icons/databaseIcon";
 
 const meta = {
@@ -53,14 +54,37 @@ export const TVLError: Story = {
 
 export const YieldAllocation: Story = {
   args: {
+    footnote:
+      "Projection based on current balances and APYs. Actual yield will vary as rates and allocations change.",
+    header: <YieldHeader />,
     icon: <PieChartIcon />,
     isError: false,
     isLoading: false,
     items: [
-      { amount: 147, color: "bg-emerald-400", label: "Morpho" },
-      { amount: 80, color: "bg-blue-400", label: "Aave" },
-      { amount: 100, color: "bg-rose-400", label: "Summer.fi" },
-      { amount: 64, color: "bg-amber-400", label: "Compound" },
+      {
+        amount: 147,
+        color: "bg-emerald-400",
+        details: <YieldDetails amount={147} apy={6.13} />,
+        label: "Morpho",
+      },
+      {
+        amount: 100,
+        color: "bg-rose-400",
+        details: <YieldDetails amount={100} apy={3.62} />,
+        label: "Summer.fi",
+      },
+      {
+        amount: 80,
+        color: "bg-blue-400",
+        details: <YieldDetails amount={80} apy={4.24} />,
+        label: "Aave",
+      },
+      {
+        amount: 64,
+        color: "bg-amber-400",
+        details: <YieldDetails amount={64} apy={undefined} />,
+        label: "Compound",
+      },
     ],
     label: "Yield allocation",
     value: "8 protocols",

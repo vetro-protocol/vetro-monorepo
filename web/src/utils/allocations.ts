@@ -124,18 +124,20 @@ export const toYieldItems = ({
       if (!token) {
         return [];
       }
-      return activeStrategies.map(({ name, totalDebt }) => ({
+      return activeStrategies.map(({ apy, name, totalDebt }) => ({
         amount: tokenAmountToUsd({
           amount: BigInt(totalDebt),
           prices,
           token,
         }),
+        apy,
         label: name,
       }));
     })
     .sort((a, b) => b.amount - a.amount)
-    .map(({ amount, label }, index) => ({
+    .map(({ amount, apy, label }, index) => ({
       amount,
+      apy,
       color: assignColor(index),
       label,
     }));

@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Skeleton from "react-loading-skeleton";
 
 import type { AllocationItem } from "./types";
@@ -6,6 +7,7 @@ const skeletonRows = 4;
 
 type Props = {
   formatAmount: (value: number) => string;
+  header?: ReactNode;
   hoveredLabel: string | null;
   isError: boolean;
   isLoading: boolean;
@@ -15,29 +17,34 @@ type Props = {
 
 export const AllocationLegend = ({
   formatAmount,
+  header,
   hoveredLabel,
   isError,
   isLoading,
   items,
   onHover,
 }: Props) => (
-  <div className="flex flex-1 flex-col px-7 md:px-15">
+  <div className="@container flex flex-1 flex-col px-7 md:px-15">
+    {!isLoading && !isError && header}
     {!isLoading &&
       !isError &&
-      items.map(({ amount, color, label }) => (
+      items.map(({ amount, color, details, label }) => (
         <div
-          className={`flex cursor-pointer items-center justify-between border-b border-gray-200 py-3 transition-opacity last:border-b-0 ${hoveredLabel && hoveredLabel !== label ? "opacity-20" : ""}`}
+          className={`flex cursor-pointer flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-gray-200 py-3 transition-opacity last:border-b-0 ${hoveredLabel && hoveredLabel !== label ? "opacity-20" : ""}`}
           key={label}
           onMouseEnter={() => onHover(label)}
           onMouseLeave={() => onHover(null)}
         >
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
             <div className={`rounded-px size-1.5 shrink-0 ${color}`} />
             <span className="text-b-medium text-gray-900">{label}</span>
           </div>
-          <span className="text-b-medium text-right text-gray-900">
+          <span
+            className={`text-b-medium text-right text-gray-900 ${details ? "@md:w-24" : ""}`}
+          >
             {formatAmount(amount)}
           </span>
+          {details}
         </div>
       ))}
     {isError &&

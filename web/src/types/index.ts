@@ -12,7 +12,12 @@ export type BridgeableToken = Token & {
 
 // Raw response shape from GET /analytics/treasury.
 export type TreasuryToken = {
-  activeStrategies: { name: string; totalDebt: string }[];
+  activeStrategies: {
+    address: Address;
+    apy?: number;
+    name: string;
+    totalDebt: string;
+  }[];
   latestPrice: string;
   priceDecimals: number;
   tokenAddress: Address;

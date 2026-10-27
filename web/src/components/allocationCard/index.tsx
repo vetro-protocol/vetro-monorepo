@@ -7,7 +7,9 @@ import { AllocationLegend } from "./allocationLegend";
 import type { AllocationItem } from "./types";
 
 type Props = {
+  footnote?: string;
   formatAmount?: (value: number) => string;
+  header?: ReactNode;
   icon: ReactNode;
   isError: boolean;
   isLoading: boolean;
@@ -17,7 +19,9 @@ type Props = {
 };
 
 export const AllocationCard = function ({
+  footnote,
   formatAmount = formatUsd,
+  header,
   icon,
   isError,
   isLoading,
@@ -56,12 +60,18 @@ export const AllocationCard = function ({
           />
           <AllocationLegend
             formatAmount={formatAmount}
+            header={header}
             hoveredLabel={hoveredLabel}
             isError={isError}
             isLoading={isLoading}
             items={items}
             onHover={setHoveredLabel}
           />
+          {footnote && !isLoading && !isError && (
+            <p className="text-caption px-7 pb-6 text-gray-500 md:px-15">
+              {footnote}
+            </p>
+          )}
         </>
       )}
     </div>

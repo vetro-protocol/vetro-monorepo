@@ -145,13 +145,11 @@ export const Analytics = function () {
           />
         </div>
       </AllocationRow>
-      <AllocationRow className="md:justify-center" isLast>
-        <div className="border-x border-gray-200 md:w-1/2">
-          <YieldCard
-            peggedToken={selectedToken}
-            peggedTokenError={isPeggedTokensError}
-          />
-        </div>
+      <AllocationRow isLast>
+        <YieldCard
+          peggedToken={selectedToken}
+          peggedTokenError={isPeggedTokensError}
+        />
       </AllocationRow>
     </div>
   );
