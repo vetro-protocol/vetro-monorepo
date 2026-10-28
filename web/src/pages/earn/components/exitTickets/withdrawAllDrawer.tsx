@@ -132,8 +132,8 @@ export function WithdrawAllDrawer({ onClose, onSuccess, withdrawals }: Props) {
 
   return (
     <Drawer
-      title={t("pages.earn.exit-tickets.withdraw-all-progress.title")}
       onClose={onClose}
+      title={t("pages.earn.exit-tickets.withdraw-all-progress.title")}
     >
       <Suspense fallback={<DrawerLoader />}>
         <WithdrawAllProgressDrawer

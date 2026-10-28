@@ -253,9 +253,9 @@ export function ExitForm({
     }
     return (
       <Drawer
-        title={t("pages.earn.fixed-term.request-exit-in-progress")}
         onClose={handleCloseDrawer}
         requestClose={requestCloseDrawer}
+        title={t("pages.earn.fixed-term.request-exit-in-progress")}
       >
         <Suspense fallback={<DrawerLoader />}>
           <RequestExitProgressDrawer

@@ -109,7 +109,7 @@ export function BorrowDrawer({
   }
 
   return (
-    <Drawer title={t("pages.borrow.progress.title")} onClose={onClose}>
+    <Drawer onClose={onClose} title={t("pages.borrow.progress.title")}>
       <Suspense fallback={<DrawerLoader />}>
         <BorrowProgressDrawer
           {...props}

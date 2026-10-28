@@ -164,9 +164,9 @@ export const CancelExitRequest = function ({
       </Button>
       {submitted ? (
         <Drawer
-          title={t("pages.earn.fixed-term.cancel-exit-in-progress")}
           onClose={handleCloseDrawer}
           requestClose={requestCloseDrawer}
+          title={t("pages.earn.fixed-term.cancel-exit-in-progress")}
         >
           <Suspense fallback={<DrawerLoader />}>
             <CancelExitProgressDrawer

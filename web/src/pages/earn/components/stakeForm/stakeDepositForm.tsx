@@ -288,9 +288,9 @@ export function StakeDepositForm({
       </form>
       {isDrawerOpen && submitted && (
         <Drawer
-          title={t("pages.earn.stake.deposit-in-progress")}
           onClose={handleCloseDrawer}
           requestClose={requestCloseDrawer}
+          title={t("pages.earn.stake.deposit-in-progress")}
         >
           <Suspense fallback={<DrawerLoader />}>
             <StakeDepositProgressDrawer

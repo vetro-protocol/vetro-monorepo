@@ -293,9 +293,9 @@ export function StakeWithdrawForm({
       </form>
       {isDrawerOpen && submitted && canInstantWithdraw !== undefined && (
         <Drawer
-          title={t("pages.earn.stake.withdraw-in-progress")}
           onClose={handleCloseDrawer}
           requestClose={requestCloseDrawer}
+          title={t("pages.earn.stake.withdraw-in-progress")}
         >
           <Suspense fallback={<DrawerLoader />}>
             <StakeWithdrawProgressDrawer

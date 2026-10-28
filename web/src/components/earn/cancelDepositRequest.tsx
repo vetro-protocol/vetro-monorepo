@@ -129,9 +129,9 @@ export const CancelDepositRequest = function ({
       </Button>
       {submitted ? (
         <Drawer
-          title={t("pages.earn.fixed-term.cancel-deposit-in-progress")}
           onClose={handleCloseDrawer}
           requestClose={requestCloseDrawer}
+          title={t("pages.earn.fixed-term.cancel-deposit-in-progress")}
         >
           <Suspense fallback={<DrawerLoader />}>
             <CancelDepositProgressDrawer

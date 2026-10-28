@@ -295,9 +295,9 @@ export function DepositForm({
     }
     return (
       <Drawer
-        title={t("pages.earn.fixed-term.request-deposit-in-progress")}
         onClose={handleCloseDrawer}
         requestClose={requestCloseDrawer}
+        title={t("pages.earn.fixed-term.request-deposit-in-progress")}
       >
         <Suspense fallback={<DrawerLoader />}>
           <RequestDepositProgressDrawer
