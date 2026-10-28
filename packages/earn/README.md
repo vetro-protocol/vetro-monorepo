@@ -79,4 +79,7 @@ The same actions are also available via `.extend()` factories (`earnPublicAction
 - `earnPublicActions()` / `earnWalletActions()` — viem extension factories that wire the same actions onto a client via `.extend()`.
 - `stakingVaultAbi` — the minimal ABI subset used by the package.
 - Constants: `sVusdAddress`, `sVetBtcAddress`, `stakingVaultAddresses`.
+- Hemi Earn metadata, exported from `@vetro-protocol/earn/hemiEarn`: off-chain information that Hemi Earn frontends show for Vetro vaults.
+  - `hemiEarnVaults` — ordered `HemiEarnVault[]`; frontends show only these vaults, in this order. Each entry has `address` (Ethereum staking vault), `apyIncludesFees` (whether the Vetro API APY is net of fees), `curators?` (brand names of the curators running the vault's live strategies; only if different from the operator), `operator` (full legal name) and `typicalTransferTime` (seconds; how long a cross-chain transfer usually takes, in either direction).
+  - `hemiEarnLinks` — URLs of pages hosted by Vetro: `privacyPolicyUrl`, `supportUrl` and `termsOfUseUrl`.
 - Types: `CancelWithdrawEvents`, `ClaimWithdrawBatchEvents`, `ClaimWithdrawEvents`, `CooldownRequest`, `DepositEvents`, `RequestRedeemEvents`, `RequestWithdrawEvents`.
