@@ -16,6 +16,11 @@ export type Gateway = {
   whitelistedTokens: Address[];
 };
 
+export type StrategySource =
+  | { protocol: "lagoon"; vaultAddress: Address }
+  | { protocol: "morpho"; vaultAddress: Address }
+  | { protocol: "stakeDao"; strategyKey: string };
+
 export type Token = {
   address: Address;
   chainId: Chain["id"];

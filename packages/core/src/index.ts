@@ -18,6 +18,6 @@ export {
   vusdxAddress,
 } from "./targetYieldVaultAddresses.ts";
 export { knownTokens } from "./tokens.ts";
-export type { Gateway, Token } from "./types.ts";
+export type { Gateway, StrategySource, Token } from "./types.ts";
 export { isAddressValid } from "./utils/isAddressValid.ts";
 export { updateRpcUrls } from "./utils/updateRpcUrls.ts";
