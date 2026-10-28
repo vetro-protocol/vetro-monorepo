@@ -34,14 +34,14 @@ const curvePoolAbi = [
   },
 ] as const;
 
-const isCurveLpToken = ({
+const findStakeDaoStrategy = ({
   receiptToken,
-  stakeDaoStrategies,
+  strategies,
 }: {
   receiptToken: Address;
-  stakeDaoStrategies: StakeDaoStrategy[];
+  strategies: StakeDaoStrategy[];
 }) =>
-  stakeDaoStrategies.some((strategy) =>
+  strategies.find((strategy) =>
     isAddressEqual(strategy.lpToken.address, receiptToken),
   );
 
@@ -56,7 +56,7 @@ async function getPricePerShareReader({
   receiptToken: Address;
   stakeDaoStrategies: StakeDaoStrategy[];
 }) {
-  if (isCurveLpToken({ receiptToken, stakeDaoStrategies })) {
+  if (findStakeDaoStrategy({ receiptToken, strategies: stakeDaoStrategies })) {
     return (blockNumber: bigint) =>
       readContract(client, {
         abi: curvePoolAbi,
@@ -118,9 +118,7 @@ export const stakeDaoApr = function ({
   receiptToken: Address;
   strategies: StakeDaoStrategy[];
 }) {
-  const strategy = strategies.find((candidate) =>
-    isAddressEqual(candidate.lpToken.address, receiptToken),
-  );
+  const strategy = findStakeDaoStrategy({ receiptToken, strategies });
   return strategy ? strategyRewardsApr(strategy) : 0;
 };
 
