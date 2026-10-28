@@ -21,7 +21,7 @@ import { globalWarmTask, keyedWarmTask } from "./warm-cache.ts";
 
 // Warms `GET /analytics/treasury/:gatewayAddress`
 export const treasuryTask = keyedWarmTask({
-  cron: "* * * * *",
+  cron: "*/5 * * * *",
   items: gatewayAddresses,
   key: (gatewayAddress) => `analytics:treasury:${gatewayAddress}`,
   produce: (env, gatewayAddress) =>

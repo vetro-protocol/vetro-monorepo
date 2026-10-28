@@ -53,7 +53,7 @@ Get the staked total for a given gateway's pegged token: the amount deposited in
 
 ### `GET /analytics/treasury/:gatewayAddress`
 
-Get the composition of the treasury by whitelisted token for a given gateway. Each item of `activeStrategies` has the strategy `address`, its `name`, its `totalDebt`, and its `apy` (a percentage). The `apy` is omitted when it cannot be calculated.
+Get the composition of the treasury by whitelisted token for a given gateway. Each item of `activeStrategies` has the strategy `address`, its `name`, its `totalDebt`, and its `apy` (a percentage). The `apy` is omitted when it cannot be calculated. Cached for 5 minutes.
 `:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway.
 
 #### Sample Response
