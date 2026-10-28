@@ -531,6 +531,9 @@ export default Sentry.withSentry(
     dsn: env.SENTRY_DSN,
     enableLogs: true,
     environment: "production",
+    integrations: [
+      Sentry.consoleLoggingIntegration({ levels: ["error", "info", "warn"] }),
+    ],
   }),
   handler,
 );

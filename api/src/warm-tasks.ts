@@ -9,6 +9,7 @@ import {
 } from "./analytics.ts";
 import { convertBigIntsToString } from "./convert-bigints-to-string.ts";
 import {
+  gaugedStrategiesKey,
   getGaugedStrategies,
   getMerklRewards,
 } from "./liquidity/incentives.ts";
@@ -20,12 +21,13 @@ import { globalWarmTask, keyedWarmTask } from "./warm-cache.ts";
 
 // Warms `GET /analytics/treasury/:gatewayAddress`
 export const treasuryTask = keyedWarmTask({
-  cron: "* * * * *",
+  cron: "*/5 * * * *",
   items: gatewayAddresses,
   key: (gatewayAddress) => `analytics:treasury:${gatewayAddress}`,
   produce: (env, gatewayAddress) =>
     getTreasuryComposition({
       gatewayAddress,
+      kv: env.CACHE_KV,
       url: env.CUSTOM_RPC_URL_MAINNET,
     }).then(convertBigIntsToString),
 });
@@ -123,7 +125,7 @@ export const liquidityMerklRewardsTask = globalWarmTask({
 
 export const liquidityStrategiesTask = globalWarmTask({
   cron: "*/5 * * * *",
-  key: () => "liquidity:strategies",
+  key: () => gaugedStrategiesKey,
   produce: () => withTimeout(getGaugedStrategies()),
 });
 

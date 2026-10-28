@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
 import { AllocationLegend } from "../src/components/allocationCard/allocationLegend";
+import { YieldDetails, YieldHeader } from "../src/components/yieldCard";
 import { formatUsd } from "../src/utils/currency";
 
 const meta = {
@@ -52,14 +53,37 @@ export const Error: Story = {
 
 export const YieldAllocation: Story = {
   args: {
+    header: <YieldHeader />,
     hoveredLabel: null,
     isError: false,
     isLoading: false,
     items: [
-      { amount: 147, color: "bg-emerald-400", label: "Morpho" },
-      { amount: 80, color: "bg-blue-400", label: "Aave" },
-      { amount: 100, color: "bg-rose-400", label: "Summer.fi" },
-      { amount: 64, color: "bg-amber-400", label: "Compound" },
+      {
+        amount: 147,
+        color: "bg-emerald-400",
+        details: <YieldDetails amount={147} apy={6.13} />,
+        href: "https://app.morpho.org/ethereum/vault/0x23f5E9c35820f4baB695Ac1F19c203cC3f8e1e11",
+        label: "Morpho",
+      },
+      {
+        amount: 100,
+        color: "bg-rose-400",
+        details: <YieldDetails amount={100} apy={3.62} />,
+        href: "https://app.lagoon.finance/vault/1/0x08D97f1B434d9e164218ee1DD9611290dA238b79",
+        label: "Summer.fi",
+      },
+      {
+        amount: 80,
+        color: "bg-blue-400",
+        details: <YieldDetails amount={80} apy={4.24} />,
+        label: "Aave",
+      },
+      {
+        amount: 64,
+        color: "bg-amber-400",
+        details: <YieldDetails amount={64} apy={undefined} />,
+        label: "Compound",
+      },
     ],
     onHover: () => undefined,
   },

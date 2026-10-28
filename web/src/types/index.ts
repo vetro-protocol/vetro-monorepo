@@ -1,4 +1,4 @@
-import type { Token } from "@vetro-protocol/core";
+import type { StrategySource, Token } from "@vetro-protocol/core";
 import type { Address } from "viem";
 
 export type NativeToken = Omit<Token, "address">;
@@ -12,7 +12,13 @@ export type BridgeableToken = Token & {
 
 // Raw response shape from GET /analytics/treasury.
 export type TreasuryToken = {
-  activeStrategies: { name: string; totalDebt: string }[];
+  activeStrategies: {
+    address: Address;
+    apy?: number;
+    name: string;
+    source?: StrategySource;
+    totalDebt: string;
+  }[];
   latestPrice: string;
   priceDecimals: number;
   tokenAddress: Address;

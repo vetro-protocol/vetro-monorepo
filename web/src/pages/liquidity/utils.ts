@@ -1,4 +1,5 @@
 import type { DexPool, DexPoolReward } from "@vetro-protocol/core";
+import { getStakeDaoStrategyUrl } from "utils/url";
 
 export const dexNames: Record<DexPool["dex"], string> = {
   brownfi: "BrownFi",
@@ -28,7 +29,7 @@ export const getRewardUrl = function ({
     return `https://app.merkl.xyz/opportunities/${reward.sourceMetadata.opportunityId}/campaigns/${reward.sourceMetadata.campaignId}`;
   }
   if (reward.source === "stakeDao") {
-    return `https://app.stakedao.org/strategy?protocol=curve&vault=${encodeURIComponent(reward.sourceMetadata.strategyKey)}`;
+    return getStakeDaoStrategyUrl(reward.sourceMetadata.strategyKey);
   }
   if (reward.source === "curveGauge") {
     return getDepositUrl(pool);
