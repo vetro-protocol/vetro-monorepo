@@ -311,6 +311,18 @@ Query params:
 ]
 ```
 
+### `GET /restricted-countries`
+
+Returns the geo-restricted countries as ISO 3166-1 alpha-2 codes, sorted alphabetically. The Vetro web app blocks access from these countries. The response is the same for every caller and is cached for 1 hour.
+
+#### Sample Response
+
+```jsonc
+{
+  "countries": ["AT", "BE", "BG", /* … */ "SK", "US"],
+}
+```
+
 ### `GET /variable-stake/cost-basis/:address`
 
 Returns the user's cost basis (in the vault asset's native smallest unit; decimal precision depends on the underlying vault asset) for each known Vetro staking vault. Vaults where the user has no position return `"0"`.

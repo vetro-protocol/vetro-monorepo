@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/cloudflare";
+import { restrictedCountries } from "@vetro-protocol/core";
 import { sVetBtcAddress, sVusdAddress } from "@vetro-protocol/earn";
 import { type Context, Hono, type Next } from "hono";
 import { cache } from "hono/cache";
@@ -302,6 +303,15 @@ app.get(
       throw new Error(`Failed to get DEX pools: ${error.message}`);
     }
   },
+);
+
+app.get(
+  "/restricted-countries",
+  cache({
+    cacheControl: "max-age=3600",
+    cacheName: "vetro-api",
+  }),
+  (c) => c.json({ countries: restrictedCountries }),
 );
 
 app.get(
