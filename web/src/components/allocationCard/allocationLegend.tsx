@@ -1,3 +1,5 @@
+import { ExternalLink } from "components/base/externalLink";
+import { ExternalLinkIcon } from "components/icons/externalLinkIcon";
 import type { ReactNode } from "react";
 import Skeleton from "react-loading-skeleton";
 
@@ -30,7 +32,7 @@ export const AllocationLegend = ({
     {!isLoading && !isError && (
       <>
         {header}
-        {items.map(({ amount, color, details, label }) => (
+        {items.map(({ amount, color, details, href, label }) => (
           <div
             className={`flex cursor-pointer flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-gray-200 py-3 transition-opacity last:border-b-0 ${hoveredLabel && hoveredLabel !== label ? "opacity-20" : ""}`}
             key={label}
@@ -39,7 +41,17 @@ export const AllocationLegend = ({
           >
             <div className="flex min-w-0 flex-1 items-center gap-3">
               <div className={`rounded-px size-1.5 shrink-0 ${color}`} />
-              <span className="text-b-medium text-gray-900">{label}</span>
+              {href ? (
+                <ExternalLink
+                  className="text-b-medium group flex items-center gap-1 text-gray-900 transition-colors hover:text-blue-500 hover:underline focus-visible:text-blue-500 focus-visible:underline"
+                  href={href}
+                >
+                  {label}
+                  <ExternalLinkIcon className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100" />
+                </ExternalLink>
+              ) : (
+                <span className="text-b-medium text-gray-900">{label}</span>
+              )}
             </div>
             <span
               className={`text-b-medium text-right text-gray-900 ${details ? "@md:w-24" : ""}`}

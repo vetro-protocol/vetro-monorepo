@@ -65,12 +65,14 @@ export const YieldAllocation: Story = {
         amount: 147,
         color: "bg-emerald-400",
         details: <YieldDetails amount={147} apy={6.13} />,
+        href: "https://app.morpho.org/ethereum/vault/0x23f5E9c35820f4baB695Ac1F19c203cC3f8e1e11",
         label: "Morpho",
       },
       {
         amount: 100,
         color: "bg-rose-400",
         details: <YieldDetails amount={100} apy={3.62} />,
+        href: "https://app.lagoon.finance/vault/1/0x08D97f1B434d9e164218ee1DD9611290dA238b79",
         label: "Summer.fi",
       },
       {

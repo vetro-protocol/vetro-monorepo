@@ -1,4 +1,4 @@
-import { knownTokens } from "@vetro-protocol/core";
+import { knownTokens, type StrategySource } from "@vetro-protocol/core";
 import { type Address, zeroAddress } from "viem";
 import { describe, expect, it } from "vitest";
 
@@ -35,15 +35,18 @@ const baseTreasuryToken: TreasuryToken = {
 const strategy = ({
   apy,
   name,
+  source,
   totalDebt,
 }: {
   apy?: number;
   name: string;
+  source?: StrategySource;
   totalDebt: string;
 }) => ({
   address: zeroAddress,
   apy,
   name,
+  source,
   totalDebt,
 });
 
@@ -434,7 +437,12 @@ describe("pages/analytics/utils", function () {
             ...baseTreasuryToken,
             activeStrategies: [
               strategy({ apy: 1, name: "USDT 100", totalDebt: "100000000" }),
-              strategy({ apy: 3, name: "USDT 300", totalDebt: "300000000" }),
+              strategy({
+                apy: 3,
+                name: "USDT 300",
+                source: { protocol: "morpho", vaultAddress: usdtToken.address },
+                totalDebt: "300000000",
+              }),
             ],
             totalDebt: "400000000",
             withdrawable: "400000000",
@@ -442,7 +450,13 @@ describe("pages/analytics/utils", function () {
           {
             ...baseTreasuryToken,
             activeStrategies: [
-              strategy({ apy: 2, name: "USDC 200", totalDebt: "200000000" }),
+              strategy({
+                apy: 2,
+                name: "USDC 200",
+                // @ts-expect-error a protocol that only a newer API knows
+                source: { protocol: "aave", vaultAddress: usdcToken.address },
+                totalDebt: "200000000",
+              }),
             ],
             tokenAddress: usdcToken.address,
             totalDebt: "200000000",
@@ -458,6 +472,11 @@ describe("pages/analytics/utils", function () {
         "USDT 100",
       ]);
       expect(items.map((item) => item.apy)).toEqual([3, 2, 1]);
+      expect(items.map((item) => item.href)).toEqual([
+        `https://app.morpho.org/ethereum/vault/${usdtToken.address}`,
+        undefined,
+        undefined,
+      ]);
       expect(items.map((item) => item.color)).toEqual([
         "bg-emerald-400",
         "bg-blue-400",

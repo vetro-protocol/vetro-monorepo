@@ -107,12 +107,15 @@ export const YieldCard = function ({
       })
     : 0;
 
-  const strategyItems = yieldItems?.map(({ amount, apy, color, label }) => ({
-    amount,
-    color,
-    details: <YieldDetails amount={amount} apy={apy} />,
-    label,
-  }));
+  const strategyItems = yieldItems?.map(
+    ({ amount, apy, color, href, label }) => ({
+      amount,
+      color,
+      details: <YieldDetails amount={amount} apy={apy} />,
+      href,
+      label,
+    }),
+  );
   const items =
     strategyItems && bufferAmount > 0
       ? [

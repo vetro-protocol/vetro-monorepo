@@ -1,4 +1,4 @@
-import type { Token } from "@vetro-protocol/core";
+import type { StrategySource, Token } from "@vetro-protocol/core";
 import type { Address } from "viem";
 
 export type NativeToken = Omit<Token, "address">;
@@ -16,6 +16,7 @@ export type TreasuryToken = {
     address: Address;
     apy?: number;
     name: string;
+    source?: StrategySource;
     totalDebt: string;
   }[];
   latestPrice: string;
