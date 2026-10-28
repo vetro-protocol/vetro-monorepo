@@ -3,7 +3,7 @@ import type { Hash } from "viem";
 import { describe, expect, it } from "vitest";
 
 import type { StakeDaoStrategy } from "../src/liquidity/stake-dao.ts";
-import { annualizeGrowth, merklApr, stakeDaoApr } from "../src/strategy-apy.ts";
+import { combineStrategyApy, merklApr } from "../src/strategy-apy.ts";
 
 const findToken = (symbol: string) =>
   knownTokens.find((token) => token.symbol === symbol)!;
@@ -38,25 +38,6 @@ const stakeDaoStrategy: StakeDaoStrategy = {
   tradingApy: 0.1,
 };
 
-describe("strategy-apy/annualizeGrowth", function () {
-  it("returns 0 when the price does not change", function () {
-    expect(
-      annualizeGrowth({ elapsedSeconds: 604_800, pastPrice: 10n, price: 10n }),
-    ).toBe(0);
-  });
-
-  it("compounds the growth over a year", function () {
-    // 1% growth in half a year is (1.01^2 - 1) * 100 in a year.
-    expect(
-      annualizeGrowth({
-        elapsedSeconds: 15_768_000,
-        pastPrice: 100_000_000n,
-        price: 101_000_000n,
-      }),
-    ).toBeCloseTo(2.01, 10);
-  });
-});
-
 describe("strategy-apy/merklApr", function () {
   it("adds the APR of the live campaigns of the receipt token", function () {
     const opportunities = [
@@ -86,16 +67,52 @@ describe("strategy-apy/merklApr", function () {
   });
 });
 
-describe("strategy-apy/stakeDaoApr", function () {
-  it("returns the rewards APR of the strategy for the LP token", function () {
+describe("strategy-apy/combineStrategyApy", function () {
+  const morphoToken = findToken("USDC").address;
+  const lagoonToken = findToken("USDT").address;
+  const receiptTokens = [morphoToken, lagoonToken, receiptToken].map(
+    (token) => ({ receiptToken: token, strategy: token }),
+  );
+  const opportunities = [
+    {
+      campaigns: [campaign({ apr: 0.5 })],
+      chainId: 1,
+      id: "1",
+      identifier: morphoToken,
+    },
+  ];
+
+  it("adds the incentives to the native APY of each source", function () {
     expect(
-      stakeDaoApr({ receiptToken, strategies: [stakeDaoStrategy] }),
-    ).toBeCloseTo(3.5, 10);
+      combineStrategyApy({
+        nowSeconds,
+        opportunities,
+        receiptTokens,
+        stakeDaoStrategies: [stakeDaoStrategy],
+        vaultApys: [
+          { address: lagoonToken, apy: 0 },
+          { address: morphoToken, apy: 4 },
+        ],
+      }),
+    ).toEqual({
+      [lagoonToken]: 0,
+      [morphoToken]: 4.5,
+      [receiptToken]: 3.6,
+    });
   });
 
-  it("returns 0 when no strategy uses the receipt token", function () {
+  it("omits only the strategies whose source has no APY", function () {
     expect(
-      stakeDaoApr({ receiptToken: otherToken, strategies: [stakeDaoStrategy] }),
-    ).toBe(0);
+      combineStrategyApy({
+        nowSeconds,
+        opportunities,
+        receiptTokens,
+        stakeDaoStrategies: [stakeDaoStrategy],
+        vaultApys: [{ address: lagoonToken, apy: 2 }],
+      }),
+    ).toEqual({
+      [lagoonToken]: 2,
+      [receiptToken]: 3.6,
+    });
   });
 });

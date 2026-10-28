@@ -184,7 +184,7 @@ The active strategies, with the balance that each one has (its debt in the treas
 
 Each strategy also shows its APY and its projected yield per year (balance × APY). The APY is the sum of two parts:
 
-- **Native APY**: a projection. It is the change in the price per share of the position that the strategy holds over the last 30 days, compounded to one year.
+- **Native APY**: the current net APY that the protocol of the strategy reports. For a Morpho vault, it is the current rate after fees. For a Lagoon vault, it is the realized rate between settlements over the last month, after fees and without rewards, compounded to one year. For a young Lagoon vault, it is the rate since inception. For a Curve pool, it is the base APY of the pool.
 - **Incentive APR**: only the incentives paid on the position that the strategy holds, for example Merkl campaigns or StakeDAO rewards.
 
 The reserve buffer has a 0% APY. When the API cannot calculate the APY of a strategy, the page shows "-".
