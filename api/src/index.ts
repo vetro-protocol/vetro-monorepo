@@ -4,7 +4,7 @@ import { sVetBtcAddress, sVusdAddress } from "@vetro-protocol/earn";
 import { type Context, Hono, type Next } from "hono";
 import { cache } from "hono/cache";
 import { cors } from "hono/cors";
-import type { Address } from "viem";
+import { type Address, checksumAddress } from "viem";
 
 import { getApyHistory } from "./apy-history.ts";
 import * as borrow from "./borrow.ts";
@@ -17,6 +17,13 @@ import {
 } from "./contact.ts";
 import { convertBigIntsToString } from "./convert-bigints-to-string.ts";
 import { getSubgraph } from "./env.ts";
+import {
+  getCurrentTerms,
+  isIssuedAtInWindow,
+  minSecondsBetweenAcceptances,
+  parseAcceptanceRequest,
+  verifyAcceptanceSignature,
+} from "./hemi-earn-terms.ts";
 import { addIncentives } from "./liquidity/incentives.ts";
 import { venues } from "./liquidity/index.ts";
 import { excludeLowTvlPools } from "./liquidity/low-tvl.ts";
@@ -29,6 +36,7 @@ import {
 } from "./param-validators.ts";
 import { securityHeaders } from "./security-headers.ts";
 import { getShareValueHistory } from "./share-value-history.ts";
+import { getAcceptance, saveAcceptance } from "./terms-acceptance-store.ts";
 import { getTotalDepositsHistory } from "./total-deposits-history.ts";
 import { getTvlHistory } from "./tvl-history.ts";
 import {
@@ -490,6 +498,78 @@ app.get(
     }
   },
 );
+
+app.get(
+  "/hemi-earn/terms",
+  cache({
+    cacheControl: "max-age=60",
+    cacheName: "vetro-api",
+  }),
+  (c) => c.json(getCurrentTerms(c.env)),
+);
+
+app.get(
+  "/hemi-earn/terms/acceptance/:address",
+  validateAddress,
+  async function (c) {
+    const account = checksumAddress(c.req.param("address") as Address);
+    const acceptance = await getAcceptance({ account, db: c.env.DB });
+    c.header("Cache-Control", "no-store");
+    if (!acceptance) {
+      return c.json({ error: "Not Found" }, 404);
+    }
+    return c.json({ acceptedVersion: acceptance.termsVersion });
+  },
+);
+
+const maxAcceptanceBodyLength = 2048; // The body is four short fields so...
+
+app.post("/hemi-earn/terms/acceptance", async function (c) {
+  c.header("Cache-Control", "no-store");
+
+  let body: unknown;
+  try {
+    const text = await c.req.text();
+    if (text.length > maxAcceptanceBodyLength) {
+      return c.json({ error: "Request too large" }, 413);
+    }
+    body = JSON.parse(text);
+  } catch {
+    return c.json({ error: "Invalid request body" }, 400);
+  }
+  const request = parseAcceptanceRequest(body);
+  if (!request) {
+    return c.json({ error: "Invalid request body" }, 400);
+  }
+
+  const terms = getCurrentTerms(c.env);
+  if (request.termsVersion !== terms.termsVersion) {
+    return c.json({ error: "Outdated terms version" }, 409);
+  }
+  const now = Math.floor(Date.now() / 1000);
+  if (!isIssuedAtInWindow({ issuedAt: request.issuedAt, now })) {
+    return c.json({ error: "issuedAt is out of range" }, 422);
+  }
+  if (!(await verifyAcceptanceSignature({ request, terms }))) {
+    return c.json({ error: "Invalid signature" }, 401);
+  }
+
+  const acceptance = await getAcceptance({
+    account: request.account,
+    db: c.env.DB,
+  });
+  if (acceptance?.termsVersion !== terms.termsVersion) {
+    const retryAfter = acceptance
+      ? acceptance.updatedAt + minSecondsBetweenAcceptances - now
+      : 0;
+    if (retryAfter > 0) {
+      c.header("Retry-After", String(retryAfter));
+      return c.json({ error: "Too many requests" }, 429);
+    }
+    await saveAcceptance({ db: c.env.DB, now, request, terms });
+  }
+  return c.json({ acceptedVersion: terms.termsVersion });
+});
 
 app.post("/contact", validateContactForm, verifyTurnstile, async function (c) {
   const { category, email, files, message } = c.get("contactForm");

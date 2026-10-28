@@ -175,6 +175,101 @@ Gets the amount of collateral assets in a given Morpho market.
 }
 ```
 
+### `GET /hemi-earn/terms`
+
+Returns the current Hemi Earn Terms, which a wallet must accept (by signing an EIP-712 message) before its first deposit, and again whenever the version changes.
+The values are configured through the `HEMI_EARN_TERMS_*` variables, so publishing a new version needs no frontend change.
+
+#### Sample Response
+
+```jsonc
+{
+  "termsHash": "0x1111111111111111111111111111111111111111111111111111111111111111", // keccak256 of the Terms document
+  "termsUrl": "https://vetro.org/terms-of-use",
+  "termsVersion": "1",
+}
+```
+
+### `GET /hemi-earn/terms/acceptance/:address`
+
+Returns the version of the Terms that the account last accepted.
+Compare it with `termsVersion` from `GET /hemi-earn/terms`: if they differ, the account must accept again.
+Only the latest accepted version is kept. The response is never cached.
+
+Returns `404` if the account has never accepted any version (or the address is malformed).
+
+#### Sample Response
+
+```jsonc
+{
+  "acceptedVersion": "1",
+}
+```
+
+### `POST /hemi-earn/terms/acceptance`
+
+Records that an account accepted the current Terms.
+The API rebuilds the signed message from the request and the current Terms, verifies that `account` signed it, and stores the acceptance.
+Only regular wallets (EOAs) are supported for now.
+
+#### Request body
+
+`application/json`:
+
+```jsonc
+{
+  "account": "0x0000000000000000000000000000000000000001",
+  "issuedAt": 1798000000, // Unix time in seconds
+  "signature": "0x…",
+  "termsVersion": "1",
+}
+```
+
+The signed EIP-712 message is:
+
+```ts
+// Domain
+{ chainId: 43111, name: "Vetro Terms Acceptance", version: "1" }
+
+// Types, in this field order
+TermsAcceptance: [
+  { name: "statement", type: "string" },
+  { name: "termsUrl", type: "string" },
+  { name: "termsHash", type: "bytes32" },
+  { name: "termsVersion", type: "string" },
+  { name: "account", type: "address" },
+  { name: "issuedAt", type: "uint256" },
+]
+```
+
+`termsUrl`, `termsHash` and `termsVersion` are the ones returned by `GET /hemi-earn/terms`, and `statement` is exactly:
+
+> I agree to the Vetro Terms of Use, including the Hemi Earn Terms. Hemi Earn is operated by Vetro Service & Support Corp. My agreement is solely with Vetro. Hemispheres Service & Support (BVI) Ltd., Hemi Labs, Inc. and their affiliates are not parties to it. I am not a U.S. person or otherwise a Restricted Person.
+
+`chainId` is always `43111` (Hemi mainnet), the chain where Hemi Earn deposits are made.
+
+#### Response
+
+Returns `200` with the accepted version, as `GET /hemi-earn/terms/acceptance/:address` does.
+Repeating the request for a version the account already accepted is idempotent: it keeps the original record and returns `200` as long as the request is still valid.
+
+```jsonc
+{
+  "acceptedVersion": "1",
+}
+```
+
+Errors:
+
+- `400`: the body is not valid JSON or has missing or malformed fields.
+- `401`: `signature` is not a valid signature of the message by `account`.
+- `409`: `termsVersion` is not the current version.
+- `413`: the body is too large.
+- `422`: `issuedAt` is more than 10 minutes in the past or more than 1 minute in the future.
+- `429`: the account already accepted a different version less than a minute ago. The `Retry-After` header has the seconds to wait.
+
+Requests per IP are not limited by the API: configure a Cloudflare rate limiting rule for `POST /hemi-earn/terms/acceptance`.
+
 ### `GET /liquidity/pools`
 
 Returns the DEX pools that hold a VETRO token (a pegged token or its share token), on Curve, Uniswap and Sushi (Ethereum) and BrownFi (Hemi).
@@ -538,6 +633,9 @@ Secrets are set separately using the Wrangler CLI.
 | CONTACT_FORM_RECIPIENT      | Destination address for contact form emails. Must be a verified Email Routing destination.                                                                                                                                                                            | `support@vetro.org`       |
 | CONTACT_FORM_SENDER         | `from` address for contact form emails. Its domain must be a verified Email Routing sending domain.                                                                                                                                                                   | `noreply@forms.vetro.org` |
 | CUSTOM_RPC_URL_MAINNET      | Ethereum RPC node URL(s). Overrides `viem`'s default. Several URLs joined by `+` become a fallback transport.                                                                                                                                                         |                           |
+| HEMI_EARN_TERMS_HASH        | keccak256 hash (32-byte hex) of the current Hemi Earn Terms document. Required by the `/hemi-earn/terms` endpoints, which respond with `500` if it is unset or malformed.                                                                                             |                           |
+| HEMI_EARN_TERMS_URL         | URL of the current Hemi Earn Terms document. Required by the `/hemi-earn/terms` endpoints.                                                                                                                                                                            |                           |
+| HEMI_EARN_TERMS_VERSION     | Version of the current Hemi Earn Terms. Changing it, along with the hash and URL, makes every wallet accept again. Required by the `/hemi-earn/terms` endpoints.                                                                                                      |                           |
 | MERKL_OPPORTUNITY_SVETBTC   | Merkl opportunity id for the sVetBTC staking vault. Optional; if unset, that vault yields no rewards.                                                                                                                                                                 |                           |
 | MERKL_OPPORTUNITY_SVUSD     | Merkl opportunity id for the sVUSD staking vault. Optional; if unset, that vault yields no rewards.                                                                                                                                                                   |                           |
 | ORIGINS                     | Comma-separated list of allowed origins. (1)                                                                                                                                                                                                                          | `http://localhost:5173`   |
@@ -561,9 +659,16 @@ The web app pairs this with the matching **site** key `VITE_TURNSTILE_SITE_KEY` 
 
 The `POST /contact` endpoint also requires a `send_email` binding named `SEND_EMAIL`, configured in `wrangler.jsonc`. Sending only works once the domain is verified and the recipient is added as a destination in Cloudflare Email Routing.
 
+The `/hemi-earn/terms` endpoints store acceptances in a [D1](https://developers.cloudflare.com/d1/) database bound as `DB` in `wrangler.jsonc` (one database per environment). Create the databases, set their ids in `wrangler.jsonc`, and apply the migrations in `migrations/` whenever they change:
+
+```sh
+pnpm wrangler d1 migrations apply DB --env production
+```
+
 ## Local development
 
 Set secrets in a `.dev.vars` environment variables file.
+Apply the migrations to the local database once, with `pnpm wrangler d1 migrations apply DB --local`.
 Then start the local Cloudflare Workers dev server:
 
 ```sh
