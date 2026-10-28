@@ -1,6 +1,7 @@
 import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
 import { Suspense, lazy, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { WalletDrawerContext } from "./walletDrawerContext";
 
@@ -16,6 +17,7 @@ type Props = {
 
 export function WalletDrawer({ onClose }: Props) {
   const [requestClose, setRequestClose] = useState(false);
+  const { t } = useTranslation();
 
   function close() {
     setRequestClose(true);
@@ -23,7 +25,11 @@ export function WalletDrawer({ onClose }: Props) {
 
   return (
     <WalletDrawerContext.Provider value={{ close }}>
-      <Drawer onClose={onClose} requestClose={requestClose}>
+      <Drawer
+        ariaLabel={t("pages.wallet.title")}
+        onClose={onClose}
+        requestClose={requestClose}
+      >
         <Suspense fallback={<DrawerLoader />}>
           <WalletDrawerContent />
         </Suspense>

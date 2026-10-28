@@ -1,7 +1,6 @@
 import type { Token } from "@vetro-protocol/core";
 import { RenderCryptoValue } from "components/base/cryptoValue";
 import { DollarSign } from "components/base/dollarSign";
-import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { RenderFiatValue } from "components/base/fiatValue";
 import {
   TokenInteraction,
@@ -191,8 +190,6 @@ export function StakeWithdrawProgressDrawer({
 
   return (
     <div className="flex h-full flex-col">
-      <DrawerTitle>{t("pages.earn.stake.withdraw-in-progress")}</DrawerTitle>
-
       <TokenInteractionList>
         {canInstantWithdraw ? (
           <InstantWithdrawSummary

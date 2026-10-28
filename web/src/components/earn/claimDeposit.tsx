@@ -133,7 +133,11 @@ export const ClaimDeposit = function ({
         })}
       </Button>
       {submitted ? (
-        <Drawer onClose={handleCloseDrawer} requestClose={requestCloseDrawer}>
+        <Drawer
+          title={t("pages.earn.fixed-term.claim-deposit-in-progress")}
+          onClose={handleCloseDrawer}
+          requestClose={requestCloseDrawer}
+        >
           <Suspense fallback={<DrawerLoader />}>
             <ClaimDepositProgressDrawer
               assets={submitted.assets}

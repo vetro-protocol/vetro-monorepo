@@ -1,7 +1,6 @@
 import type { Token } from "@vetro-protocol/core";
 import { Button } from "components/base/button";
 import { DollarSign } from "components/base/dollarSign";
-import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { RenderFiatValue } from "components/base/fiatValue";
 import {
   TokenInteraction,
@@ -55,8 +54,6 @@ export function BorrowProgressDrawer({
 
   return (
     <div className="flex h-full flex-col">
-      <DrawerTitle>{t("pages.borrow.progress.title")}</DrawerTitle>
-
       <TokenInteractionList>
         <TokenInteraction
           amount={collateralAmount}

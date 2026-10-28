@@ -41,7 +41,12 @@ export function ClaimRedeemDrawer({ onClose, ...props }: Props) {
   ];
 
   return (
-    <Drawer onClose={onClose}>
+    <Drawer
+      title={t("pages.swap.redeem-queue.drawer-title", {
+        symbol: props.fromToken.symbol,
+      })}
+      onClose={onClose}
+    >
       <Suspense fallback={<DrawerLoader />}>
         <ClaimRedeemProgressDrawer
           {...props}

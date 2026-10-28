@@ -100,7 +100,7 @@ export function SwapRedeemDrawer({
   }
 
   return (
-    <Drawer onClose={onClose}>
+    <Drawer title={t("pages.swap.progress.title")} onClose={onClose}>
       <Suspense fallback={<DrawerLoader />}>
         <SwapProgressDrawer
           {...props}

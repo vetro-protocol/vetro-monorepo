@@ -40,7 +40,6 @@ export function StakeDepositProgressDrawer({
       progressLabel={t("pages.earn.stake.deposit-progress")}
       shares={sharesReceived}
       sharesStatus={sharesReceivedStatus}
-      title={t("pages.earn.stake.deposit-in-progress")}
     />
   );
 }

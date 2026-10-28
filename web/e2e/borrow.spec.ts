@@ -99,7 +99,7 @@ async function openManageAction({
 }) {
   await page.locator(`#manage-${hemiBtcVusdMarketId}`).click();
   await page.getByRole("menuitem", { name: action }).click();
-  return page.getByRole("heading", { name: action }).locator("..");
+  return page.getByRole("dialog", { name: action });
 }
 
 test("start a borrow position on the hemiBTC / VUSD market", async function ({

@@ -1,5 +1,4 @@
 import { Button } from "components/base/button";
-import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { MaxButton } from "components/base/maxButton";
 import { Spinner } from "components/base/spinner";
@@ -152,11 +151,6 @@ export function ClaimRedeemProgressDrawer({
 
   return (
     <div className="flex h-full flex-col">
-      <DrawerTitle>
-        {t("pages.swap.redeem-queue.drawer-title", {
-          symbol: fromToken.symbol,
-        })}
-      </DrawerTitle>
       <div className="flex flex-col gap-1 border-t border-gray-200 p-6">
         <TokenInput
           balance={

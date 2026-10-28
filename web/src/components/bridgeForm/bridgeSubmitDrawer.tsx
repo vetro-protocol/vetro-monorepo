@@ -1,6 +1,5 @@
 import { Button } from "components/base/button";
 import { Drawer } from "components/base/drawer";
-import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import {
   TokenInteraction,
   TokenInteractionList,
@@ -118,10 +117,8 @@ export function BridgeSubmitDrawer({
   }
 
   return (
-    <Drawer onClose={onClose}>
+    <Drawer onClose={onClose} title={t("pages.bridge.progress.title")}>
       <div className="flex h-full flex-col">
-        <DrawerTitle>{t("pages.bridge.progress.title")}</DrawerTitle>
-
         <TokenInteractionList>
           <TokenInteraction
             amount={fromAmount}

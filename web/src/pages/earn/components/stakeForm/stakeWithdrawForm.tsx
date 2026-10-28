@@ -292,7 +292,11 @@ export function StakeWithdrawForm({
         </CollapsibleSection>
       </form>
       {isDrawerOpen && submitted && canInstantWithdraw !== undefined && (
-        <Drawer onClose={handleCloseDrawer} requestClose={requestCloseDrawer}>
+        <Drawer
+          title={t("pages.earn.stake.withdraw-in-progress")}
+          onClose={handleCloseDrawer}
+          requestClose={requestCloseDrawer}
+        >
           <Suspense fallback={<DrawerLoader />}>
             <StakeWithdrawProgressDrawer
               amount={submitted.amount}
