@@ -131,7 +131,10 @@ export function WithdrawAllDrawer({ onClose, onSuccess, withdrawals }: Props) {
   }
 
   return (
-    <Drawer onClose={onClose}>
+    <Drawer
+      onClose={onClose}
+      title={t("pages.earn.exit-tickets.withdraw-all-progress.title")}
+    >
       <Suspense fallback={<DrawerLoader />}>
         <WithdrawAllProgressDrawer
           onRetry={hasFailure ? handleRetry : undefined}

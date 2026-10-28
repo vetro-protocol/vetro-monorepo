@@ -41,7 +41,6 @@ export function CancelExitProgressDrawer({
         "pages.earn.fixed-term.cancel-exit-step-confirm-description",
       )}
       stepTitle={t("pages.earn.fixed-term.cancel-exit-step-confirm-title")}
-      title={t("pages.earn.fixed-term.cancel-exit-in-progress")}
       transactionStep={transactionStep}
     >
       <TokenInteraction

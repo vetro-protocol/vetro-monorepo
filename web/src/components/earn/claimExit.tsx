@@ -131,7 +131,11 @@ export const ClaimExit = function ({
         })}
       </Button>
       {submitted ? (
-        <Drawer onClose={handleCloseDrawer} requestClose={requestCloseDrawer}>
+        <Drawer
+          onClose={handleCloseDrawer}
+          requestClose={requestCloseDrawer}
+          title={t("pages.earn.fixed-term.claim-exit-in-progress")}
+        >
           <Suspense fallback={<DrawerLoader />}>
             <ClaimExitProgressDrawer
               assets={submitted.assets}

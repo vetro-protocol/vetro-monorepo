@@ -1,5 +1,4 @@
 import { Button } from "components/base/button";
-import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { TokenInteractionList } from "components/base/tokenInteraction";
 import {
   type Step,
@@ -28,7 +27,6 @@ type Props = {
   progressLabel: string;
   stepDescription: string;
   stepTitle: string;
-  title: string;
   transactionStep: TransactionStep;
 };
 
@@ -39,7 +37,6 @@ export function TransactionProgressDrawer({
   progressLabel,
   stepDescription,
   stepTitle,
-  title,
   transactionStep,
 }: Props) {
   const { t } = useTranslation();
@@ -48,8 +45,6 @@ export function TransactionProgressDrawer({
 
   return (
     <div className="flex h-full flex-col">
-      <DrawerTitle>{title}</DrawerTitle>
-
       <TokenInteractionList>{children}</TokenInteractionList>
 
       <DrawerFeesContainer>

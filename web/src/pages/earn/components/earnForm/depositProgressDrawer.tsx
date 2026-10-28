@@ -2,7 +2,6 @@ import type { Token } from "@vetro-protocol/core";
 import { Button } from "components/base/button";
 import { RenderCryptoValue } from "components/base/cryptoValue";
 import { DollarSign } from "components/base/dollarSign";
-import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { RenderFiatValue } from "components/base/fiatValue";
 import {
   TokenInteraction,
@@ -33,7 +32,6 @@ type Props = {
   shares: bigint | undefined;
   sharesStatus: ComponentProps<typeof RenderCryptoValue>["status"];
   shareToken: Token;
-  title: string;
 };
 
 export function DepositProgressDrawer({
@@ -50,7 +48,6 @@ export function DepositProgressDrawer({
   shares,
   sharesStatus,
   shareToken,
-  title,
 }: Props) {
   const { t } = useTranslation();
   const { render: renderRetry, show: showRetry } =
@@ -76,8 +73,6 @@ export function DepositProgressDrawer({
 
   return (
     <div className="flex h-full flex-col">
-      <DrawerTitle>{title}</DrawerTitle>
-
       <TokenInteractionList>
         <TokenInteraction
           amount={amount}

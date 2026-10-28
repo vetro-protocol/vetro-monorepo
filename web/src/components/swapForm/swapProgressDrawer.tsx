@@ -1,6 +1,5 @@
 import { Button } from "components/base/button";
 import { DollarSign } from "components/base/dollarSign";
-import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { RenderFiatValue } from "components/base/fiatValue";
 import {
   TokenInteraction,
@@ -58,8 +57,6 @@ export function SwapProgressDrawer({
   return (
     <>
       <div className="flex h-full flex-col">
-        <DrawerTitle>{t("pages.swap.progress.title")}</DrawerTitle>
-
         <TokenInteractionList>
           <TokenInteraction
             amount={fromAmount}

@@ -1,7 +1,6 @@
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { Button } from "components/base/button";
 import { DollarSign } from "components/base/dollarSign";
-import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { Spinner } from "components/base/spinner";
 import { CheckCircleIcon } from "components/base/toast/checkCircleIcon";
@@ -194,10 +193,6 @@ export function WithdrawAllProgressDrawer({
 
   return (
     <div className="flex h-full flex-col">
-      <DrawerTitle>
-        {t("pages.earn.exit-tickets.withdraw-all-progress.title")}
-      </DrawerTitle>
-
       <div className="divide-y divide-gray-200 border-y border-gray-200">
         {vaults.map((vault) => (
           <VaultRow
