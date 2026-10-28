@@ -22,7 +22,7 @@ import { getReceiptToken } from "./vesper.ts";
 type LiveOpportunity = Awaited<ReturnType<typeof getLiveOpportunities>>[number];
 export type StrategyApy = Partial<Record<Address, number>>;
 
-const blocksPerWeek = 50_400n;
+const blocksPerMonth = 216_000n;
 
 const curvePoolAbi = [
   {
@@ -147,7 +147,7 @@ export async function getStrategyApy({
     await Promise.all([
       kv.get<StakeDaoStrategy[]>(gaugedStrategiesKey, "json"),
       getBlock(client).then((block) =>
-        getBlock(client, { blockNumber: block.number - blocksPerWeek }).then(
+        getBlock(client, { blockNumber: block.number - blocksPerMonth }).then(
           (past) => [block, past] as const,
         ),
       ),
