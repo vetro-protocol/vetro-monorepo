@@ -1,8 +1,7 @@
-import { type Address, isAddressEqual, type PublicClient } from "viem";
+import { type Address, isAddressEqual } from "viem";
 import { mainnet } from "viem/chains";
 
 import { getVaultNetApys as getLagoonApys } from "./lagoon.ts";
-import { gaugedStrategiesKey } from "./liquidity/incentives.ts";
 import {
   type StakeDaoStrategy,
   strategyRewardsApr,
@@ -10,7 +9,6 @@ import {
 import { getLiveOpportunities } from "./merkl.ts";
 import { getVaultNetApys as getMorphoApys } from "./morpho.ts";
 import { withTimeout } from "./utils/promises.ts";
-import { getReceiptToken } from "./vesper.ts";
 
 type LiveOpportunity = Awaited<ReturnType<typeof getLiveOpportunities>>[number];
 type VaultApy = { address: Address; apy: number };
@@ -119,37 +117,18 @@ const getVaultApys = ({
  * that the protocol of the strategy reports, plus the APR of the incentives.
  */
 export async function getStrategyApy({
-  client,
-  kv,
+  stakeDaoStrategies,
   strategies,
 }: {
-  client: PublicClient;
-  kv: KVNamespace;
-  strategies: Address[];
+  stakeDaoStrategies: StakeDaoStrategy[];
+  strategies: { address: Address; receiptToken: Address | undefined }[];
 }) {
   if (strategies.length === 0) {
     return {} as StrategyApy;
   }
-  const [stakeDaoStrategies, receiptTokenResults] = await Promise.all([
-    kv
-      .get<StakeDaoStrategy[]>(gaugedStrategiesKey, "json")
-      .then((cached) => cached ?? []),
-    Promise.allSettled(
-      strategies.map((strategy) =>
-        getReceiptToken(client, { address: strategy }),
-      ),
-    ),
-  ]);
-  const receiptTokens = strategies.flatMap(function (strategy, index) {
-    const result = receiptTokenResults[index];
-    if (result.status === "rejected") {
-      console.warn(
-        `Failed to get the APY of strategy ${strategy}: ${result.reason.message}`,
-      );
-      return [];
-    }
-    return [{ receiptToken: result.value, strategy }];
-  });
+  const receiptTokens = strategies.flatMap(({ address, receiptToken }) =>
+    receiptToken ? [{ receiptToken, strategy: address }] : [],
+  );
   const vaultAddresses = receiptTokens
     .map(({ receiptToken }) => receiptToken)
     .filter(

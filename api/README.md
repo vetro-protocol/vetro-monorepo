@@ -53,7 +53,7 @@ Get the staked total for a given gateway's pegged token: the amount deposited in
 
 ### `GET /analytics/treasury/:gatewayAddress`
 
-Get the composition of the treasury by whitelisted token for a given gateway. Each item of `activeStrategies` has the strategy `address`, its `name`, its `totalDebt`, and its `apy` (a percentage). The `apy` is the current native APY that the protocol of the strategy reports, plus the live APR of its incentives (Merkl campaigns and StakeDAO rewards). The `apy` is omitted when one of its sources fails. Cached for 5 minutes.
+Get the composition of the treasury by whitelisted token for a given gateway. Each item of `activeStrategies` has the strategy `address`, its `name`, its `totalDebt`, its `apy` (a percentage), and its `source` (the protocol position that it holds). The `apy` is the current native APY that the protocol of the strategy reports, plus the live APR of its incentives (Merkl campaigns and StakeDAO rewards). The `apy` is omitted when one of its sources fails, and the `source` is omitted when it is not known. Cached for 5 minutes.
 `:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway.
 
 #### Sample Response
@@ -66,6 +66,10 @@ Get the composition of the treasury by whitelisted token for a given gateway. Ea
         "address": "0xe53c583767923E3e209ce6FD91f6C5D12AE9A308",
         "apy": 3.269585328484523,
         "name": "Morpho SkyMoney USDT Savings",
+        "source": {
+          "protocol": "morpho",
+          "vaultAddress": "0x23f5E9c35820f4baB695Ac1F19c203cC3f8e1e11"
+        },
         "totalDebt": "4021526891"
       }
     ],
@@ -81,6 +85,10 @@ Get the composition of the treasury by whitelisted token for a given gateway. Ea
         "address": "0x861a314511cCa4eDC279523De2aC1e1Ae9F6f799",
         "apy": 6.6709554609169555,
         "name": "Morpho AlphaPing USDC Core",
+        "source": {
+          "protocol": "morpho",
+          "vaultAddress": "0x55C1B6e461a6334B567bAF0FEb5D728715446f05"
+        },
         "totalDebt": "234771834"
       }
     ],
