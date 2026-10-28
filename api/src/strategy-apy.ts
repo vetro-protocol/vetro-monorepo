@@ -3,6 +3,7 @@ import { mainnet } from "viem/chains";
 
 import { getVaultNetApys as getLagoonApys } from "./lagoon.ts";
 import {
+  findStrategyByLpToken,
   type StakeDaoStrategy,
   strategyRewardsApr,
 } from "./liquidity/stake-dao.ts";
@@ -14,17 +15,6 @@ type LiveOpportunity = Awaited<ReturnType<typeof getLiveOpportunities>>[number];
 type VaultApy = { address: Address; apy: number };
 type GetVaultApys = (addresses: Address[]) => Promise<VaultApy[]>;
 export type StrategyApy = Partial<Record<Address, number>>;
-
-const findStakeDaoStrategy = ({
-  receiptToken,
-  strategies,
-}: {
-  receiptToken: Address;
-  strategies: StakeDaoStrategy[];
-}) =>
-  strategies.find((strategy) =>
-    isAddressEqual(strategy.lpToken.address, receiptToken),
-  );
 
 const findVaultApy = ({
   receiptToken,
@@ -72,8 +62,8 @@ export const combineStrategyApy = ({
 }) =>
   Object.fromEntries(
     receiptTokens.flatMap(function ({ receiptToken, strategy }) {
-      const stakeDaoStrategy = findStakeDaoStrategy({
-        receiptToken,
+      const stakeDaoStrategy = findStrategyByLpToken({
+        lpToken: receiptToken,
         strategies: stakeDaoStrategies,
       });
       const apy = stakeDaoStrategy
@@ -133,7 +123,10 @@ export async function getStrategyApy({
     .map(({ receiptToken }) => receiptToken)
     .filter(
       (receiptToken) =>
-        !findStakeDaoStrategy({ receiptToken, strategies: stakeDaoStrategies }),
+        !findStrategyByLpToken({
+          lpToken: receiptToken,
+          strategies: stakeDaoStrategies,
+        }),
     );
 
   const [opportunities, morphoApys, lagoonApys] = await Promise.all([

@@ -1,5 +1,5 @@
 import fetchJson from "tiny-fetch-json";
-import { type Address, checksumAddress } from "viem";
+import { type Address, checksumAddress, isAddressEqual } from "viem";
 
 const campaignsUrl = "https://api-v3.stakedao.org/votemarket/curve";
 const strategiesUrl = (chainId: number) =>
@@ -58,6 +58,17 @@ export async function getCampaignGauges(nowSeconds: number) {
 
 export const getStrategies = (chainId: number) =>
   fetchJson(strategiesUrl(chainId)) as Promise<StakeDaoStrategy[]>;
+
+export const findStrategyByLpToken = ({
+  lpToken,
+  strategies,
+}: {
+  lpToken: Address;
+  strategies: StakeDaoStrategy[];
+}) =>
+  strategies.find((strategy) =>
+    isAddressEqual(strategy.lpToken.address, lpToken),
+  );
 
 export const strategyRewardsApr = (strategy: StakeDaoStrategy) =>
   strategy.apr ? strategy.apr.current.total - strategy.tradingApy : 0;

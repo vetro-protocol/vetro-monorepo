@@ -1,7 +1,10 @@
 import type { StrategySource } from "@vetro-protocol/core";
-import { type Address, isAddressEqual } from "viem";
+import type { Address } from "viem";
 
-import type { StakeDaoStrategy } from "./liquidity/stake-dao.ts";
+import {
+  findStrategyByLpToken,
+  type StakeDaoStrategy,
+} from "./liquidity/stake-dao.ts";
 
 export const getStrategySource = function ({
   name,
@@ -15,9 +18,12 @@ export const getStrategySource = function ({
   if (!receiptToken) {
     return undefined;
   }
-  const stakeDaoStrategy = stakeDaoStrategies?.find((strategy) =>
-    isAddressEqual(strategy.lpToken.address, receiptToken),
-  );
+  const stakeDaoStrategy = stakeDaoStrategies
+    ? findStrategyByLpToken({
+        lpToken: receiptToken,
+        strategies: stakeDaoStrategies,
+      })
+    : undefined;
   if (stakeDaoStrategy) {
     return { protocol: "stakeDao", strategyKey: stakeDaoStrategy.key };
   }
