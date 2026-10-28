@@ -27,29 +27,31 @@ export const AllocationLegend = ({
   onHover,
 }: Props) => (
   <div className="@container flex flex-1 flex-col px-7 md:px-15">
-    {!isLoading && !isError && header}
-    {!isLoading &&
-      !isError &&
-      items.map(({ amount, color, details, label }) => (
-        <div
-          className={`flex cursor-pointer flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-gray-200 py-3 transition-opacity last:border-b-0 ${hoveredLabel && hoveredLabel !== label ? "opacity-20" : ""}`}
-          key={label}
-          onMouseEnter={() => onHover(label)}
-          onMouseLeave={() => onHover(null)}
-        >
-          <div className="flex min-w-0 flex-1 items-center gap-3">
-            <div className={`rounded-px size-1.5 shrink-0 ${color}`} />
-            <span className="text-b-medium text-gray-900">{label}</span>
-          </div>
-          <span
-            className={`text-b-medium text-right text-gray-900 ${details ? "@md:w-24" : ""}`}
+    {!isLoading && !isError && (
+      <>
+        {header}
+        {items.map(({ amount, color, details, label }) => (
+          <div
+            className={`flex cursor-pointer flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-gray-200 py-3 transition-opacity last:border-b-0 ${hoveredLabel && hoveredLabel !== label ? "opacity-20" : ""}`}
+            key={label}
+            onMouseEnter={() => onHover(label)}
+            onMouseLeave={() => onHover(null)}
           >
-            {amountLabel && <span className="sr-only">{amountLabel} </span>}
-            {formatAmount(amount)}
-          </span>
-          {details}
-        </div>
-      ))}
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <div className={`rounded-px size-1.5 shrink-0 ${color}`} />
+              <span className="text-b-medium text-gray-900">{label}</span>
+            </div>
+            <span
+              className={`text-b-medium text-right text-gray-900 ${details ? "@md:w-24" : ""}`}
+            >
+              {amountLabel && <span className="sr-only">{amountLabel} </span>}
+              {formatAmount(amount)}
+            </span>
+            {details}
+          </div>
+        ))}
+      </>
+    )}
     {isError &&
       Array.from({ length: skeletonRows }).map((_, i) => (
         <div
