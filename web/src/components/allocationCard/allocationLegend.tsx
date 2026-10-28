@@ -47,7 +47,7 @@ export const AllocationLegend = ({
                   href={href}
                 >
                   {label}
-                  <ExternalLinkIcon className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100" />
+                  <ExternalLinkIcon className="shrink-0 text-gray-400 transition-colors group-hover:text-blue-500 group-focus-visible:text-blue-500" />
                 </ExternalLink>
               ) : (
                 <span className="text-b-medium text-gray-900">{label}</span>
