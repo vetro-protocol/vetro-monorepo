@@ -19,6 +19,7 @@ jobs:
       || startsWith(github.event.release.tag_name, 'gateway@')
       || startsWith(github.event.release.tag_name, 'treasury@')
     runs-on: ubuntu-latest
+    environment: release
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: hemilabs/actions/setup-node-env@8f87619b7f0122c39e14a32514ab3e4e0d4c3966 # v2.3.0
