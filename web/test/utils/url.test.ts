@@ -9,10 +9,16 @@ describe("getCanonicalUrl", function () {
     );
   });
 
-  it("should remove the query string and the hash", function () {
+  it("should keep the query string", function () {
+    expect(getCanonicalUrl("https://app.vetro.org/en/swap?mode=redeem")).toBe(
+      "https://app.vetro.org/en/swap?mode=redeem",
+    );
+  });
+
+  it("should remove the hash", function () {
     expect(
-      getCanonicalUrl("https://app.vetro.org/en/swap?utm_source=x&ref=1#top"),
-    ).toBe("https://app.vetro.org/en/swap");
+      getCanonicalUrl("https://app.vetro.org/en/swap?mode=redeem#top"),
+    ).toBe("https://app.vetro.org/en/swap?mode=redeem");
   });
 
   it("should keep the trailing slash of the root path", function () {
