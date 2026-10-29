@@ -2,6 +2,7 @@
 
 /// <reference types="@cloudflare/workers-types" />
 
+import { restrictedCountries } from "@vetro-protocol/core";
 import { allChains } from "networks";
 import { getCanonicalUrl, getUrlOrigin } from "utils/url";
 
@@ -196,49 +197,14 @@ const htmlHeaders = {
   "X-Frame-Options": "DENY",
 };
 
-// Countries subject to geo-restriction: EU 27 member states, EEA (Norway,
-// Iceland, Liechtenstein), US and Panama.
-const restrictedCountries = new Set([
-  "AT",
-  "BE",
-  "BG",
-  "CY",
-  "CZ",
-  "DE",
-  "DK",
-  "EE",
-  "ES",
-  "FI",
-  "FR",
-  "GR",
-  "HR",
-  "HU",
-  "IE",
-  "IS",
-  "IT",
-  "LI",
-  "LT",
-  "LU",
-  "LV",
-  "MT",
-  "NL",
-  "NO",
-  "PA",
-  "PL",
-  "PT",
-  "RO",
-  "SE",
-  "SI",
-  "SK",
-  "US",
-]);
+const restrictedCountrySet = new Set(restrictedCountries);
 
 function isGeoRestricted(request: Request): boolean {
   const cf = request.cf;
   if (!cf) {
     return false;
   }
-  return restrictedCountries.has(String(cf.country ?? ""));
+  return restrictedCountrySet.has(String(cf.country ?? ""));
 }
 
 export default {

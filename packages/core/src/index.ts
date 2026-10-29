@@ -8,6 +8,7 @@ export type {
   DexRewardToken,
 } from "./dex/types.ts";
 export { gatewayAddresses, gateways } from "./protocolGraph.ts";
+export { restrictedCountries } from "./restrictedCountries.ts";
 export {
   sVetBtcAddress,
   sVusdAddress,
