@@ -3,8 +3,10 @@ import {
   checksumAddress,
   type Hex,
   isAddress,
+  isHash,
   isHex,
-  size,
+  keccak256,
+  toBytes,
   verifyTypedData,
 } from "viem";
 
@@ -34,7 +36,7 @@ const types = {
 const maxIssuedAtAgeSeconds = 10 * 60;
 const maxIssuedAtFutureSeconds = 60; // Tolerates clock skew
 
-export const minSecondsBetweenAcceptances = 60;
+export const statementHash = keccak256(toBytes(statement));
 
 export type TermsAcceptanceRequest = {
   account: Address;
@@ -58,7 +60,7 @@ export function getCurrentTerms(env: Env): Terms {
   const termsHash = env.HEMI_EARN_TERMS_HASH;
   const termsUrl = env.HEMI_EARN_TERMS_URL;
   const termsVersion = env.HEMI_EARN_TERMS_VERSION;
-  if (!termsHash || !isHex(termsHash) || size(termsHash) !== 32) {
+  if (!termsHash || !isHash(termsHash)) {
     throw new Error("HEMI_EARN_TERMS_HASH must be a 32-byte hex string");
   }
   if (!termsUrl) {
@@ -70,6 +72,19 @@ export function getCurrentTerms(env: Env): Terms {
   return { termsHash, termsUrl, termsVersion };
 }
 
+/**
+ * Returns the current Terms with everything else needed to sign their
+ * acceptance, so frontends don't need a release when any of it changes. The
+ * signed message is these fields plus `account` and `issuedAt`.
+ */
+export const getTermsSigningData = (terms: Terms) => ({
+  domain,
+  primaryType: "TermsAcceptance" as const,
+  statement,
+  ...terms,
+  types,
+});
+
 const isPositiveInteger = (value: unknown): value is number =>
   typeof value === "number" && Number.isSafeInteger(value) && value > 0;
 
@@ -78,7 +93,7 @@ const isNonEmptyString = (value: unknown): value is string =>
 
 /**
  * Validates the body of a terms acceptance request. Only the four fields the
- * frontends send are accepted.
+ * frontends send are read; any other field is ignored.
  */
 export function parseAcceptanceRequest(
   body: unknown,
@@ -94,7 +109,6 @@ export function parseAcceptanceRequest(
     !isNonEmptyString(account) ||
     !isAddress(account, { strict: false }) ||
     !isPositiveInteger(issuedAt) ||
-    !isNonEmptyString(signature) ||
     !isHex(signature) ||
     !isNonEmptyString(termsVersion)
   ) {

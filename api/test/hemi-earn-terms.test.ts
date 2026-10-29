@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   getCurrentTerms,
+  getTermsSigningData,
   isIssuedAtInWindow,
   parseAcceptanceRequest,
   type Terms,
@@ -56,6 +57,33 @@ describe("verifyAcceptanceSignature", function () {
 
   it("should accept a signature of the current terms by the account", async function () {
     const signature = await signTerms({ account, issuedAt });
+
+    const valid = await verifyAcceptanceSignature({
+      request: {
+        account: account.address,
+        issuedAt,
+        signature,
+        termsVersion: terms.termsVersion,
+      },
+      terms,
+    });
+
+    expect(valid).toBe(true);
+  });
+
+  it("should accept a signature built only from the signing data frontends get", async function () {
+    const { domain, primaryType, types, ...message } =
+      getTermsSigningData(terms);
+    const signature = await account.signTypedData({
+      domain,
+      message: {
+        ...message,
+        account: account.address,
+        issuedAt: BigInt(issuedAt),
+      },
+      primaryType,
+      types,
+    });
 
     const valid = await verifyAcceptanceSignature({
       request: {

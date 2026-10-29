@@ -1,6 +1,10 @@
 import type { Address } from "viem";
 
-import type { Terms, TermsAcceptanceRequest } from "./hemi-earn-terms.ts";
+import {
+  statementHash,
+  type Terms,
+  type TermsAcceptanceRequest,
+} from "./hemi-earn-terms.ts";
 
 export async function getAcceptance({
   account,
@@ -11,13 +15,11 @@ export async function getAcceptance({
 }) {
   const row = await db
     .prepare(
-      "SELECT terms_version, updated_at FROM hemi_earn_terms_acceptance WHERE account = ?",
+      "SELECT terms_version FROM hemi_earn_terms_acceptance WHERE account = ?",
     )
     .bind(account)
-    .first<{ terms_version: string; updated_at: number }>();
-  return row
-    ? { termsVersion: row.terms_version, updatedAt: row.updated_at }
-    : undefined;
+    .first<{ terms_version: string }>();
+  return row ? { termsVersion: row.terms_version } : undefined;
 }
 
 // Replaces the account's record only when the version differs, so repeating an
@@ -36,17 +38,27 @@ export async function saveAcceptance({
   await db
     .prepare(
       `INSERT INTO hemi_earn_terms_acceptance
-        (account, issued_at, signature, terms_hash, terms_url, terms_version, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+        (account, issued_at, signature, statement_hash, terms_hash, terms_url, terms_version, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT (account) DO UPDATE SET
         issued_at = excluded.issued_at,
         signature = excluded.signature,
+        statement_hash = excluded.statement_hash,
         terms_hash = excluded.terms_hash,
         terms_url = excluded.terms_url,
         terms_version = excluded.terms_version,
         updated_at = excluded.updated_at
       WHERE terms_version <> excluded.terms_version`,
     )
-    .bind(account, issuedAt, signature, termsHash, termsUrl, termsVersion, now)
+    .bind(
+      account,
+      issuedAt,
+      signature,
+      statementHash,
+      termsHash,
+      termsUrl,
+      termsVersion,
+      now,
+    )
     .run();
 }

@@ -20,8 +20,8 @@ import { convertBigIntsToString } from "./convert-bigints-to-string.ts";
 import { getSubgraph } from "./env.ts";
 import {
   getCurrentTerms,
+  getTermsSigningData,
   isIssuedAtInWindow,
-  minSecondsBetweenAcceptances,
   parseAcceptanceRequest,
   verifyAcceptanceSignature,
 } from "./hemi-earn-terms.ts";
@@ -67,8 +67,7 @@ const app = new Hono<{ Bindings: Env }>();
 app.use("*", async function (c, next) {
   const origins = parseOrigins(c.env.ORIGINS!);
   const originFn = createOriginFn(origins);
-  // Retry-After is not CORS-safelisted; browsers need it exposed to read it.
-  return cors({ exposeHeaders: ["Retry-After"], origin: originFn })(c, next);
+  return cors({ origin: originFn })(c, next);
 });
 
 app.use("*", securityHeaders);
@@ -501,14 +500,11 @@ app.get(
   },
 );
 
-app.get(
-  "/hemi-earn/terms",
-  cache({
-    cacheControl: "max-age=60",
-    cacheName: "vetro-api",
-  }),
-  (c) => c.json(getCurrentTerms(c.env)),
-);
+app.get("/hemi-earn/terms", function (c) {
+  // Do not cache to force accepting the latest terms version.
+  c.header("Cache-Control", "no-store");
+  return c.json(getTermsSigningData(getCurrentTerms(c.env)));
+});
 
 app.get(
   "/hemi-earn/terms/acceptance/:address",
@@ -559,20 +555,7 @@ app.post(
       return c.json({ error: "Invalid signature" }, 401);
     }
 
-    const acceptance = await getAcceptance({
-      account: request.account,
-      db: c.env.DB,
-    });
-    if (acceptance?.termsVersion !== terms.termsVersion) {
-      const retryAfter = acceptance
-        ? acceptance.updatedAt + minSecondsBetweenAcceptances - now
-        : 0;
-      if (retryAfter > 0) {
-        c.header("Retry-After", String(retryAfter));
-        return c.json({ error: "Too many requests" }, 429);
-      }
-      await saveAcceptance({ db: c.env.DB, now, request, terms });
-    }
+    await saveAcceptance({ db: c.env.DB, now, request, terms });
     return c.json({ acceptedVersion: terms.termsVersion });
   },
 );

@@ -1,5 +1,7 @@
 import { readFileSync } from "node:fs";
+import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
+import { keccak256, toBytes } from "viem";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import {
@@ -13,9 +15,9 @@ function createDb() {
   const sqlite = new DatabaseSync(":memory:");
   sqlite.exec(
     readFileSync(
-      new URL(
+      path.join(
+        import.meta.dirname,
         "../migrations/0001_create_hemi_earn_terms_acceptance.sql",
-        import.meta.url,
       ),
       "utf8",
     ),
@@ -31,7 +33,7 @@ function createDb() {
   };
 }
 
-const account = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
+const account = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8" as const;
 
 const acceptanceOf = ({
   issuedAt,
@@ -66,7 +68,7 @@ describe("terms acceptance store", function () {
     expect(await getAcceptance({ account, db: asD1() })).toBeUndefined();
   });
 
-  it("should return the stored version and time", async function () {
+  it("should return the stored version", async function () {
     await saveAcceptance({
       db: asD1(),
       now: 1000,
@@ -75,8 +77,31 @@ describe("terms acceptance store", function () {
 
     expect(await getAcceptance({ account, db: asD1() })).toEqual({
       termsVersion: "1",
-      updatedAt: 1000,
     });
+  });
+
+  it("should store the hash of the signed statement", async function () {
+    await saveAcceptance({
+      db: asD1(),
+      now: 1000,
+      ...acceptanceOf({ issuedAt: 990, termsVersion: "1" }),
+    });
+
+    expect(
+      db.sqlite
+        .prepare(
+          "SELECT statement_hash AS statementHash FROM hemi_earn_terms_acceptance",
+        )
+        .all(),
+    ).toEqual([
+      {
+        statementHash: keccak256(
+          toBytes(
+            "I agree to the Vetro Terms of Use, including the Hemi Earn Terms. Hemi Earn is operated by Vetro Service & Support Corp. My agreement is solely with Vetro. Hemispheres Service & Support (BVI) Ltd., Hemi Labs, Inc. and their affiliates are not parties to it. I am not a U.S. person or otherwise a Restricted Person.",
+          ),
+        ),
+      },
+    ]);
   });
 
   it("should keep the original record when the same version is saved again", async function () {
