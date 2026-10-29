@@ -280,7 +280,7 @@ Repeating the request for a version the account already accepted is idempotent: 
 
 Errors:
 
-- `400`: the body is not valid JSON or has missing or malformed fields.
+- `400`: the body is not valid JSON or has missing or malformed fields (e.g. a `signature` that is not 65 bytes long).
 - `401`: `signature` is not a valid signature of the message by `account`.
 - `409`: `termsVersion` is not the current version.
 - `413`: the body is too large.

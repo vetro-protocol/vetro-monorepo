@@ -6,6 +6,7 @@ import {
   isHash,
   isHex,
   keccak256,
+  size,
   toBytes,
   verifyTypedData,
 } from "viem";
@@ -91,6 +92,11 @@ const isPositiveInteger = (value: unknown): value is number =>
 const isNonEmptyString = (value: unknown): value is string =>
   typeof value === "string" && value.length > 0;
 
+// EOA signatures are always 65 bytes (r, s, v). EIP-1271 signatures of
+// smart-contract wallets can have any length, so relax this when adding them.
+const isEoaSignature = (value: unknown): value is Hex =>
+  isHex(value) && size(value) === 65;
+
 /**
  * Validates the body of a terms acceptance request. Only the four fields the
  * frontends send are read; any other field is ignored.
@@ -109,7 +115,7 @@ export function parseAcceptanceRequest(
     !isNonEmptyString(account) ||
     !isAddress(account, { strict: false }) ||
     !isPositiveInteger(issuedAt) ||
-    !isHex(signature) ||
+    !isEoaSignature(signature) ||
     !isNonEmptyString(termsVersion)
   ) {
     return undefined;

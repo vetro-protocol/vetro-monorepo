@@ -184,7 +184,7 @@ describe("parseAcceptanceRequest", function () {
   const valid = {
     account: "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
     issuedAt: 1798000000,
-    signature: "0x1234",
+    signature: `0x${"11".repeat(65)}`,
     termsVersion: "1",
   };
 
@@ -203,6 +203,9 @@ describe("parseAcceptanceRequest", function () {
     ["a fractional issuedAt", { ...valid, issuedAt: 1798000000.5 }],
     ["a non-positive issuedAt", { ...valid, issuedAt: 0 }],
     ["a non-hex signature", { ...valid, signature: "signature" }],
+    ["a short signature", { ...valid, signature: "0x1234" }],
+    ["a 64-byte signature", { ...valid, signature: `0x${"11".repeat(64)}` }],
+    ["a 66-byte signature", { ...valid, signature: `0x${"11".repeat(66)}` }],
     ["a numeric termsVersion", { ...valid, termsVersion: 1 }],
     ["an empty termsVersion", { ...valid, termsVersion: "" }],
   ])("should reject %s", function (_, body) {
