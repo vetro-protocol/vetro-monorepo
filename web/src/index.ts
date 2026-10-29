@@ -3,7 +3,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import { allChains } from "networks";
-import { getUrlOrigin } from "utils/url";
+import { getCanonicalUrl, getUrlOrigin } from "utils/url";
 
 type Env = {
   ASSETS: Fetcher;
@@ -272,6 +272,14 @@ export default {
       buildCsp(generateNonce()),
     );
 
-    return newResponse;
+    // All routes serve the same index.html, so og:url must come from the
+    // request. Otherwise Facebook and LinkedIn link every share to one page.
+    return new HTMLRewriter()
+      .on('meta[property="og:url"]', {
+        element(element) {
+          element.setAttribute("content", getCanonicalUrl(request.url));
+        },
+      })
+      .transform(newResponse);
   },
 } satisfies ExportedHandler<Env>;
