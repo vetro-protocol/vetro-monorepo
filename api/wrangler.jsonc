@@ -22,6 +22,14 @@
       "id": "00000000000000000000000000000000",
     },
   ],
+  // Runs locally, no real binding
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_name": "vetro-api-local",
+    },
+  ],
   // Inherited by all environments
   "triggers": {
     "crons": [
@@ -33,6 +41,9 @@
     "CONTACT_FORM_RECIPIENT": "support@vetro.org",
     "CONTACT_FORM_SENDER": "noreply@forms.vetro.org",
     "CUSTOM_RPC_URL_MAINNET": "https://eth.drpc.org",
+    "HEMI_EARN_TERMS_HASH": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "HEMI_EARN_TERMS_URL": "https://vetro.org/terms-of-use",
+    "HEMI_EARN_TERMS_VERSION": "1",
     "MERKL_OPPORTUNITY_SVETBTC": "",
     "MERKL_OPPORTUNITY_SVUSD": "",
     "ORIGINS": "http://localhost:3000,http://localhost:5173",
@@ -50,10 +61,22 @@
           "id": "6178978b72a04fff9d90d9f994787ba3",
         },
       ],
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_id": "00670e8c-87ea-4d7a-943b-f3866acb3b4a",
+          "database_name": "vetro-api-staging",
+        },
+      ],
       "vars": {
         "CONTACT_FORM_RECIPIENT": "gonzalo@hemi.xyz",
         "CONTACT_FORM_SENDER": "noreply@forms.vetro.org",
         "CUSTOM_RPC_URL_MAINNET": "https://eth.drpc.org+https://ethereum-rpc.publicnode.com+https://1rpc.io/eth",
+        // Terms hash is the keccak256 of the text "Vetro Hemi Earn Terms - mock
+        // for staging".
+        "HEMI_EARN_TERMS_HASH": "0x0e1cfd435e0ecf5efcf7060aac708caa4e2d3b656f319b049476e55dbdd253cb",
+        "HEMI_EARN_TERMS_URL": "https://vetro.org/terms-of-use",
+        "HEMI_EARN_TERMS_VERSION": "mock-1",
         "ORIGINS": "https://*.letshamsterdance.xyz,https://*-vetro-web-staging.hemilabs.workers.dev,https://*-vetro-internal-dashboard.hemilabs.workers.dev",
         "PORTAL_API_URL": "https://portal-api.hemi.xyz",
         "SUBGRAPH_ID": "7vnTMFYNE6Nv7RTeoaog4QgqQ3bwZTFoPUGv2gcmTxJ6",
@@ -71,6 +94,13 @@
           "id": "b3c5b487520e40df8785dc40e797aadb",
         },
       ],
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_id": "58eec2d3-6c49-441a-9fbc-9395dec58fb9",
+          "database_name": "vetro-api-prod",
+        },
+      ],
       "observability": {
         "enabled": true,
         "head_sampling_rate": 0.1,
@@ -82,6 +112,11 @@
       "vars": {
         "CONTACT_FORM_RECIPIENT": "support@vetro.org",
         "CONTACT_FORM_SENDER": "noreply@forms.vetro.org",
+        // TODO: set the production Terms hash.
+        "HEMI_EARN_TERMS_HASH": "",
+        "HEMI_EARN_TERMS_URL": "https://vetro.org/terms-of-use",
+        // TODO: set the production Terms version.
+        "HEMI_EARN_TERMS_VERSION": "",
         "ORIGINS": "https://app.vetro.org,https://beta.vetro.org,https://app.letshamsterdance.xyz,https://*.hemi.xyz,https://*-hemi-portal-staging.hemilabs.workers.dev,https://vetro-dashboard.hemi-internal.com",
         "PORTAL_API_URL": "https://portal-api.hemi.xyz",
         "SENTRY_DSN": "https://fc941b61bc1aaaa28545687b7ca97fc6@o4508162066350080.ingest.de.sentry.io/4511626274209873",

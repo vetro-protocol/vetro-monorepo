@@ -175,6 +175,119 @@ Gets the amount of collateral assets in a given Morpho market.
 }
 ```
 
+### `GET /hemi-earn/terms`
+
+Returns the current Hemi Earn Terms, which a wallet must accept (by signing an EIP-712 message) before its first deposit, and again whenever the version changes.
+The Terms are configured through the `HEMI_EARN_TERMS_*` variables, so publishing a new version needs no frontend change.
+The response also has everything else needed to sign the acceptance (see `POST /hemi-earn/terms/acceptance`), so frontends don't need to hardcode it.
+The response is never cached, so a version change applies immediately.
+
+#### Sample Response
+
+```jsonc
+{
+  "domain": {
+    "chainId": 43111,
+    "name": "Vetro Terms Acceptance",
+    "version": "1",
+  },
+  "primaryType": "TermsAcceptance",
+  "statement": "I agree to the Vetro Terms of Use, …",
+  "termsHash": "0x1111111111111111111111111111111111111111111111111111111111111111", // keccak256 of the Terms document
+  "termsUrl": "https://vetro.org/terms-of-use",
+  "termsVersion": "1",
+  "types": {
+    "TermsAcceptance": [
+      { "name": "statement", "type": "string" },
+      { "name": "termsUrl", "type": "string" },
+      { "name": "termsHash", "type": "bytes32" },
+      { "name": "termsVersion", "type": "string" },
+      { "name": "account", "type": "address" },
+      { "name": "issuedAt", "type": "uint256" },
+    ],
+  },
+}
+```
+
+### `GET /hemi-earn/terms/acceptance/:address`
+
+Returns the version of the Terms that the account last accepted.
+Compare it with `termsVersion` from `GET /hemi-earn/terms`: if they differ, the account must accept again.
+Only the latest accepted version is kept. The response is never cached.
+
+Returns `404` if the account has never accepted any version (or the address is malformed).
+
+#### Sample Response
+
+```jsonc
+{
+  "acceptedVersion": "1",
+}
+```
+
+### `POST /hemi-earn/terms/acceptance`
+
+Records that an account accepted the current Terms.
+The API rebuilds the signed message from the request and the current Terms, verifies that `account` signed it, and stores the acceptance, along with a hash of the signed statement.
+Only regular wallets (EOAs) are supported for now.
+
+#### Request body
+
+`application/json`:
+
+```jsonc
+{
+  "account": "0x0000000000000000000000000000000000000001",
+  "issuedAt": 1798000000, // Unix time in seconds
+  "signature": "0x…",
+  "termsVersion": "1",
+}
+```
+
+The signed EIP-712 message has the `domain`, `primaryType` and `types` returned by `GET /hemi-earn/terms`, currently:
+
+```ts
+// Domain
+{ chainId: 43111, name: "Vetro Terms Acceptance", version: "1" }
+
+// Types, in this field order
+TermsAcceptance: [
+  { name: "statement", type: "string" },
+  { name: "termsUrl", type: "string" },
+  { name: "termsHash", type: "bytes32" },
+  { name: "termsVersion", type: "string" },
+  { name: "account", type: "address" },
+  { name: "issuedAt", type: "uint256" },
+]
+```
+
+`statement`, `termsUrl`, `termsHash` and `termsVersion` are the ones returned by `GET /hemi-earn/terms`. The `statement` is currently:
+
+> I agree to the Vetro Terms of Use, including the Hemi Earn Terms. Hemi Earn is operated by Vetro Service & Support Corp. My agreement is solely with Vetro. Hemispheres Service & Support (BVI) Ltd., Hemi Labs, Inc. and their affiliates are not parties to it. I am not a U.S. person or otherwise a Restricted Person.
+
+`chainId` is always `43111` (Hemi mainnet), the chain where Hemi Earn deposits are made.
+
+#### Response
+
+Returns `200` with the accepted version, as `GET /hemi-earn/terms/acceptance/:address` does.
+Repeating the request for a version the account already accepted is idempotent: it keeps the original record and returns `200` as long as the request is still valid.
+
+```jsonc
+{
+  "acceptedVersion": "1",
+}
+```
+
+Errors:
+
+- `400`: the body is not valid JSON or has missing or malformed fields (e.g. a `signature` that is not 65 bytes long).
+- `401`: `signature` is not a valid signature of the message by `account`.
+- `409`: `termsVersion` is not the current version.
+- `413`: the body is too large.
+- `422`: `issuedAt` is more than 10 minutes in the past or more than 1 minute in the future.
+
+The API does not rate limit requests: configure a Cloudflare rate limiting rule per IP for `POST /hemi-earn/terms/acceptance` before deploying to production.
+
 ### `GET /liquidity/pools`
 
 Returns the DEX pools that hold a VETRO token (a pegged token or its share token), on Curve, Uniswap and Sushi (Ethereum) and BrownFi (Hemi).
@@ -533,22 +646,25 @@ fail-closed), and `500` if sending the support email fails.
 Environment variables are configured in `wrangler.jsonc`.
 Secrets are set separately using the Wrangler CLI.
 
-| Variable                    | Description                                                                                                                                                                                                                                                           | Default                   |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
-| CONTACT_FORM_RECIPIENT      | Destination address for contact form emails. Must be a verified Email Routing destination.                                                                                                                                                                            | `support@vetro.org`       |
-| CONTACT_FORM_SENDER         | `from` address for contact form emails. Its domain must be a verified Email Routing sending domain.                                                                                                                                                                   | `noreply@forms.vetro.org` |
-| CUSTOM_RPC_URL_MAINNET      | Ethereum RPC node URL(s). Overrides `viem`'s default. Several URLs joined by `+` become a fallback transport.                                                                                                                                                         |                           |
-| MERKL_OPPORTUNITY_SVETBTC   | Merkl opportunity id for the sVetBTC staking vault. Optional; if unset, that vault yields no rewards.                                                                                                                                                                 |                           |
-| MERKL_OPPORTUNITY_SVUSD     | Merkl opportunity id for the sVUSD staking vault. Optional; if unset, that vault yields no rewards.                                                                                                                                                                   |                           |
-| ORIGINS                     | Comma-separated list of allowed origins. (1)                                                                                                                                                                                                                          | `http://localhost:5173`   |
-| PORTAL_API_URL              | Base URL of the portal API. `GET /analytics/tvl-history` reads the daily and current USD price of a non-USD peg unit (BTC) from it. `GET /liquidity/pools` uses its USD price for a coin of a Uniswap or Sushi pool when the DEX subgraph has no price for that coin. | `http://localhost:3006`   |
-| SENTRY_DSN                  | Sentry DSN. When unset, Sentry is disabled.                                                                                                                                                                                                                           |                           |
-| SUBGRAPH_API_KEY            | The Graph API key. Also used for the BrownFi, Sushi and Uniswap subgraphs of `GET /liquidity/pools`.                                                                                                                                                                  |                           |
-| SUBGRAPH_ID                 | The subgraph id.                                                                                                                                                                                                                                                      |                           |
-| SUBGRAPH_URL                | The VETRO subgraph URL. Use it for a local subgraph. When unset, the API uses The Graph gateway with `SUBGRAPH_API_KEY` and `SUBGRAPH_ID`.                                                                                                                            | (localhost)               |
-| TURNSTILE_ALLOWED_HOSTNAMES | Optional comma-separated hostname allowlist. When set, a Turnstile token whose siteverify `hostname` is not listed is rejected (`403`). Unset (local/staging) skips this check.                                                                                       |                           |
-| TURNSTILE_SECRET_KEY        | Cloudflare Turnstile secret key for verifying `POST /contact` tokens. When unset, verification is skipped. (2)                                                                                                                                                        |                           |
-| WEBSITE_URL                 | Public URL of the web app, referenced in the contact form confirmation email.                                                                                                                                                                                         | `http://localhost:5173/`  |
+| Variable                    | Description                                                                                                                                                                                                                                                                          | Default                   |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------- |
+| CONTACT_FORM_RECIPIENT      | Destination address for contact form emails. Must be a verified Email Routing destination.                                                                                                                                                                                           | `support@vetro.org`       |
+| CONTACT_FORM_SENDER         | `from` address for contact form emails. Its domain must be a verified Email Routing sending domain.                                                                                                                                                                                  | `noreply@forms.vetro.org` |
+| CUSTOM_RPC_URL_MAINNET      | Ethereum RPC node URL(s). Overrides `viem`'s default. Several URLs joined by `+` become a fallback transport.                                                                                                                                                                        |                           |
+| HEMI_EARN_TERMS_HASH        | keccak256 hash (32-byte hex) of the current Hemi Earn Terms document. Required by the `/hemi-earn/terms` endpoints, which respond with `500` if it is unset or malformed.                                                                                                            |                           |
+| HEMI_EARN_TERMS_URL         | URL of the current Hemi Earn Terms document. Required by the `/hemi-earn/terms` endpoints.                                                                                                                                                                                           |                           |
+| HEMI_EARN_TERMS_VERSION     | Version of the current Hemi Earn Terms. Changing it makes every wallet accept again. Bump it whenever the Terms document (and so its hash) changes, or when a new acceptance is needed for any other reason (e.g. a statement change). Required by the `/hemi-earn/terms` endpoints. |                           |
+| MERKL_OPPORTUNITY_SVETBTC   | Merkl opportunity id for the sVetBTC staking vault. Optional; if unset, that vault yields no rewards.                                                                                                                                                                                |                           |
+| MERKL_OPPORTUNITY_SVUSD     | Merkl opportunity id for the sVUSD staking vault. Optional; if unset, that vault yields no rewards.                                                                                                                                                                                  |                           |
+| ORIGINS                     | Comma-separated list of allowed origins. (1)                                                                                                                                                                                                                                         | `http://localhost:5173`   |
+| PORTAL_API_URL              | Base URL of the portal API. `GET /analytics/tvl-history` reads the daily and current USD price of a non-USD peg unit (BTC) from it. `GET /liquidity/pools` uses its USD price for a coin of a Uniswap or Sushi pool when the DEX subgraph has no price for that coin.                | `http://localhost:3006`   |
+| SENTRY_DSN                  | Sentry DSN. When unset, Sentry is disabled.                                                                                                                                                                                                                                          |                           |
+| SUBGRAPH_API_KEY            | The Graph API key. Also used for the BrownFi, Sushi and Uniswap subgraphs of `GET /liquidity/pools`.                                                                                                                                                                                 |                           |
+| SUBGRAPH_ID                 | The subgraph id.                                                                                                                                                                                                                                                                     |                           |
+| SUBGRAPH_URL                | The VETRO subgraph URL. Use it for a local subgraph. When unset, the API uses The Graph gateway with `SUBGRAPH_API_KEY` and `SUBGRAPH_ID`.                                                                                                                                           | (localhost)               |
+| TURNSTILE_ALLOWED_HOSTNAMES | Optional comma-separated hostname allowlist. When set, a Turnstile token whose siteverify `hostname` is not listed is rejected (`403`). Unset (local/staging) skips this check.                                                                                                      |                           |
+| TURNSTILE_SECRET_KEY        | Cloudflare Turnstile secret key for verifying `POST /contact` tokens. When unset, verification is skipped. (2)                                                                                                                                                                       |                           |
+| WEBSITE_URL                 | Public URL of the web app, referenced in the contact form confirmation email.                                                                                                                                                                                                        | `http://localhost:5173/`  |
 
 (1) Globs with stars (`*`) are supported. I.e. `https://*.hemi.xyz` will match any subdomain or subdomain chain.
 (2) Per environment: local (`.dev.vars`) and staging (`env.staging.vars`) use Cloudflare's always-passes [test secret](https://developers.cloudflare.com/turnstile/troubleshooting/testing/) `1x0000000000000000000000000000000AA`, since it is public and non-sensitive. Production sets the real key as a Wrangler secret — it is intentionally absent from `env.production.vars` in `wrangler.jsonc`:
@@ -561,9 +677,19 @@ The web app pairs this with the matching **site** key `VITE_TURNSTILE_SITE_KEY` 
 
 The `POST /contact` endpoint also requires a `send_email` binding named `SEND_EMAIL`, configured in `wrangler.jsonc`. Sending only works once the domain is verified and the recipient is added as a destination in Cloudflare Email Routing.
 
+The `/hemi-earn/terms` endpoints store acceptances in a [D1](https://developers.cloudflare.com/d1/) database bound as `DB` in `wrangler.jsonc` (one database per environment). Create the databases, set their ids in `wrangler.jsonc`, and apply the migrations in `migrations/` whenever they change:
+
+```sh
+pnpm wrangler d1 migrations apply DB --env staging --remote
+pnpm wrangler d1 migrations apply DB --env production --remote
+```
+
+Without `--remote`, Wrangler applies them to the local database.
+
 ## Local development
 
 Set secrets in a `.dev.vars` environment variables file.
+Apply the migrations to the local database once, with `pnpm wrangler d1 migrations apply DB --local`.
 Then start the local Cloudflare Workers dev server:
 
 ```sh
