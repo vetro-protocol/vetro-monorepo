@@ -89,8 +89,8 @@ Deposit a pegged token into its staking vault → receive the corresponding shar
 
 Withdrawing has two paths:
 
-- **Instant withdraw:** addresses on the vault's instant-withdraw whitelist only (`getInstantWithdrawWhitelist`).
-- **Request withdrawal → cooldown → exit ticket:** the standard path. Requesting moves funds into a **cooldown** (multi-day, read on-chain via `getCooldownDuration`), during which they are locked and **earn no yield**. Each request becomes an **exit ticket** (cooldown → ready → withdrawn, or cancelled if deleted). A ticket can be **deleted** to cancel and put funds back to staked-and-earning. "Withdraw all" claims every ready ticket.
+- **Instant withdraw:** every address when the vault's cooldown is disabled, or an address on the vault's instant-withdraw whitelist (`getCooldownEnabled`, `getInstantWithdrawWhitelist`).
+- **Request withdrawal → cooldown → exit ticket:** the standard path while the vault's cooldown is enabled. Requesting moves funds into a **cooldown** (multi-day, read on-chain via `getCooldownDuration`), during which they are locked and **earn no yield**. Each request becomes an **exit ticket** (cooldown → ready → withdrawn, or cancelled if deleted). A ticket can be **deleted** to cancel and put funds back to staked-and-earning. "Withdraw all" claims every ready ticket.
 
 Why the cooldown: it prevents reward sniping and gives the treasury a predictable liquidity horizon. Exit tickets render in their own table, gated by `useShowExitTickets`.
 
