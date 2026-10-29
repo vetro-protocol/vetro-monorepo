@@ -1,6 +1,6 @@
 {
   "name": "@vetro-protocol/earn",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Vetro Protocol staking-vault actions for viem.",
   "license": "MIT",
   "files": [
@@ -62,6 +62,10 @@
         "default": "./_esm/stakingVaultAddresses.js",
         "types": "./_types/stakingVaultAddresses.d.ts"
       },
+      "./hemiEarn": {
+        "default": "./_esm/hemiEarn.js",
+        "types": "./_types/hemiEarn.d.ts"
+      },
       "./package.json": "./package.json"
     },
     "main": "./_esm/index.js",
@@ -81,6 +85,10 @@
     "./addresses": {
       "types": "./src/stakingVaultAddresses.ts",
       "default": "./src/stakingVaultAddresses.ts"
+    },
+    "./hemiEarn": {
+      "types": "./src/hemiEarn.ts",
+      "default": "./src/hemiEarn.ts"
     },
     "./package.json": "./package.json"
   },
