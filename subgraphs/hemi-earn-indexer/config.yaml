@@ -1,0 +1,58 @@
+# Hemi Earn cross-chain request flow.
+chains:
+  - contracts:
+      # ---- Hemi: the Router lives here ----
+      # TODO: update the address and start_block when the Router is redeployed on Vetro.
+      - address:
+          - "0x8a23DF259c6798F9eacC51Ae816461218c3acddc"
+        events:
+          - event: "DepositRequested(uint256 indexed requestId, address indexed asset, uint256 assets, uint256 amountOutMin, address indexed receiver, bool automatic)"
+          - event: "RedeemRequested(uint256 indexed requestId, address indexed asset, uint256 shares, uint256 amountOutMin, address indexed receiver, bool automatic)"
+          - event: "RequestFulfilled(uint256 indexed requestId, uint256 amount)"
+          - event: "RequestCancelled(uint256 indexed requestId, uint256 amount)"
+          - event: "RequestClaimed(uint256 indexed requestId)"
+          - event: "RequestRecovered(uint256 indexed requestId)"
+          - event: "CancellationRequested(uint256 indexed requestId)"
+        name: Router
+      # Share OFTs on Hemi
+      - address:
+          - "0xfe875CC86cC6BC2E93ab330D6b2c408C3Cd79710" # sVUSD share OFT on Hemi.
+          - "0xD8D63De3b64bd06d99F8F5AD8B78Ed2fE7525eC0" # svetBTC share OFT on Hemi.
+        events:
+          - event: "Transfer(address indexed from, address indexed to, uint256 value)"
+        name: ShareToken
+    id: 43111
+    rpc:
+      for: sync
+      url: ${ENVIO_RPC_URL_HEMI:-https://rpc.hemi.network/rpc}
+    start_block: 4539427 # Router deployment
+
+  - contracts:
+      # ---- Ethereum: the Agent lives here ----
+      # TODO: update the address and start_block when the Agent is redeployed on Vetro.
+      - address:
+          - "0xfd07a07505f73c63a6f8ff03b7474a90c0b3c5ce" # Agent proxy on Ethereum.
+        events:
+          - event: "DepositRequestReceived(uint256 indexed requestId, address asset, uint256 assets)"
+          - event: "DepositRequestProcessed(uint256 indexed requestId, uint256 assets, uint256 staked, uint256 shares)"
+          - event: "RedeemRequestReceived(uint256 indexed requestId, address share, address asset, uint256 shares)"
+          - event: "RedeemRequestProcessed(uint256 indexed requestId, uint256 shares, uint256 unstaked, uint256 assets)"
+          - event: "UnstakeRequested(uint256 indexed requestId, uint256 claimableAt)"
+          - event: "RequestCancellationTriggered(uint256 indexed requestId)"
+          - event: "RequestFailed(uint256 indexed requestId, bytes reason)"
+          - event: "RequestRetried(uint256 indexed requestId)"
+        name: Agent
+    id: 1
+    rpc:
+      for: fallback
+      url: ${ENVIO_RPC_URL_ETH:-https://ethereum.reth.rs/rpc}
+    start_block: 25224437 # Agent deployment
+
+field_selection:
+  transaction_fields:
+    - from
+    - hash
+
+handlers: src/mappings
+
+name: hemi-earn-indexer

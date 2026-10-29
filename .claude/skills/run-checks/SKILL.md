@@ -1,6 +1,6 @@
 ---
 name: run-checks
-description: Verify a change in this monorepo — typecheck, lint, and test, scoped to what you touched (with whole-repo and E2E fallbacks). Use after any non-trivial edit to web/, api/, packages/, or subgraph/, and whenever the user asks to "verify", "run the checks", "make sure it passes", or before opening a PR.
+description: Verify a change in this monorepo — typecheck, lint, and test, scoped to what you touched (with whole-repo and E2E fallbacks). Use after any non-trivial edit to web/, api/, packages/, subgraph/, or subgraphs/, and whenever the user asks to "verify", "run the checks", "make sure it passes", or before opening a PR.
 ---
 
 # Verify (VETRO monorepo)
@@ -46,6 +46,13 @@ dependencies — the wrong direction here.)
 
   ```bash
   pnpm --filter vetro-app-subgraph run test    # matchstick: downloads a binary + runs codegen first (heavier)
+  ```
+
+- Changed **`subgraphs/<name>/`**:
+
+  ```bash
+  pnpm --filter ./subgraphs/<name> run build
+  pnpm --filter ./subgraphs/<name> run test
   ```
 
 - **Lint** is fast (`eslint --cache`) — just run `pnpm run lint`. **Formatting**
