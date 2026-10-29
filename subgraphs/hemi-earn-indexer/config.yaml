@@ -53,8 +53,6 @@ field_selection:
     - from
     - hash
 
-full_batch_size: 100
-
 handlers: src/mappings
 
 name: hemi-earn-indexer
