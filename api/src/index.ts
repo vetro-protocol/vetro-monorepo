@@ -305,13 +305,8 @@ app.get(
   },
 );
 
-app.get(
-  "/restricted-countries",
-  cache({
-    cacheControl: "max-age=3600",
-    cacheName: "vetro-api",
-  }),
-  (c) => c.json({ countries: restrictedCountries }),
+app.get("/restricted-countries", (c) =>
+  c.json({ countries: restrictedCountries }),
 );
 
 app.get(
