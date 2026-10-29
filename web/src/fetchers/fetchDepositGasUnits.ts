@@ -1,9 +1,9 @@
 import { tokenBalanceQueryOptions } from "@hemilabs/react-hooks/useTokenBalance";
 import type { QueryClient } from "@tanstack/react-query";
 import type { Token } from "@vetro-protocol/core";
-import { stakingVaultAbi } from "@vetro-protocol/earn";
+import { encodeDeposit } from "@vetro-protocol/earn/actions";
 import { createErc20AllowanceStateOverride } from "utils/erc20StateOverride";
-import { type Address, type Client, encodeFunctionData } from "viem";
+import { type Address, type Client } from "viem";
 import { estimateGas } from "viem/actions";
 
 import { estimateApprovalGasUnits } from "./estimateApprovalGasUnits";
@@ -54,11 +54,7 @@ export const fetchDepositGasUnits = async function ({
     }),
     estimateGas(client, {
       account: owner,
-      data: encodeFunctionData({
-        abi: stakingVaultAbi,
-        args: [amount, owner],
-        functionName: "deposit",
-      }),
+      data: encodeDeposit({ assets: amount, receiver: owner }),
       stateOverride: createErc20AllowanceStateOverride({
         owner,
         spender: stakingVaultAddress,
