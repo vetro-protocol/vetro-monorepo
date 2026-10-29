@@ -20,8 +20,7 @@ const SENDER = mockAddresses[2];
 const SHARE = mockAddresses[3];
 const SHARE_OFT = indexer.chains[HEMI].ShareToken.addresses[0] as `0x${string}`;
 const zeroAddress = "0x0000000000000000000000000000000000000000";
-// TODO: update when the Router is redeployed.
-const ROUTER = "0x8a23df259c6798f9eacc51ae816461218c3acddc";
+const ROUTER = indexer.chains[HEMI].Router.addresses[0] as `0x${string}`;
 
 let ti: ReturnType<typeof createTestIndexer>;
 beforeEach(function () {
