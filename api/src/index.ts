@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/cloudflare";
 import { restrictedCountries } from "@vetro-protocol/core";
 import { sVetBtcAddress, sVusdAddress } from "@vetro-protocol/earn";
 import { type Context, Hono, type Next } from "hono";
+import { bodyLimit } from "hono/body-limit";
 import { cache } from "hono/cache";
 import { cors } from "hono/cors";
 import { type Address, checksumAddress } from "viem";
@@ -66,7 +67,8 @@ const app = new Hono<{ Bindings: Env }>();
 app.use("*", async function (c, next) {
   const origins = parseOrigins(c.env.ORIGINS!);
   const originFn = createOriginFn(origins);
-  return cors({ origin: originFn })(c, next);
+  // Retry-After is not CORS-safelisted; browsers need it exposed to read it.
+  return cors({ exposeHeaders: ["Retry-After"], origin: originFn })(c, next);
 });
 
 app.use("*", securityHeaders);
@@ -522,54 +524,58 @@ app.get(
   },
 );
 
-const maxAcceptanceBodyLength = 2048; // The body is four short fields so...
+// The body is four short fields; anything larger is not a valid request.
+const maxAcceptanceBodyBytes = 2048;
 
-app.post("/hemi-earn/terms/acceptance", async function (c) {
-  c.header("Cache-Control", "no-store");
+app.post(
+  "/hemi-earn/terms/acceptance",
+  bodyLimit({
+    maxSize: maxAcceptanceBodyBytes,
+    onError: (c) => c.json({ error: "Request too large" }, 413),
+  }),
+  async function (c) {
+    c.header("Cache-Control", "no-store");
 
-  let body: unknown;
-  try {
-    const text = await c.req.text();
-    if (text.length > maxAcceptanceBodyLength) {
-      return c.json({ error: "Request too large" }, 413);
+    let body: unknown;
+    try {
+      body = await c.req.json();
+    } catch {
+      return c.json({ error: "Invalid request body" }, 400);
     }
-    body = JSON.parse(text);
-  } catch {
-    return c.json({ error: "Invalid request body" }, 400);
-  }
-  const request = parseAcceptanceRequest(body);
-  if (!request) {
-    return c.json({ error: "Invalid request body" }, 400);
-  }
-
-  const terms = getCurrentTerms(c.env);
-  if (request.termsVersion !== terms.termsVersion) {
-    return c.json({ error: "Outdated terms version" }, 409);
-  }
-  const now = Math.floor(Date.now() / 1000);
-  if (!isIssuedAtInWindow({ issuedAt: request.issuedAt, now })) {
-    return c.json({ error: "issuedAt is out of range" }, 422);
-  }
-  if (!(await verifyAcceptanceSignature({ request, terms }))) {
-    return c.json({ error: "Invalid signature" }, 401);
-  }
-
-  const acceptance = await getAcceptance({
-    account: request.account,
-    db: c.env.DB,
-  });
-  if (acceptance?.termsVersion !== terms.termsVersion) {
-    const retryAfter = acceptance
-      ? acceptance.updatedAt + minSecondsBetweenAcceptances - now
-      : 0;
-    if (retryAfter > 0) {
-      c.header("Retry-After", String(retryAfter));
-      return c.json({ error: "Too many requests" }, 429);
+    const request = parseAcceptanceRequest(body);
+    if (!request) {
+      return c.json({ error: "Invalid request body" }, 400);
     }
-    await saveAcceptance({ db: c.env.DB, now, request, terms });
-  }
-  return c.json({ acceptedVersion: terms.termsVersion });
-});
+
+    const terms = getCurrentTerms(c.env);
+    if (request.termsVersion !== terms.termsVersion) {
+      return c.json({ error: "Outdated terms version" }, 409);
+    }
+    const now = Math.floor(Date.now() / 1000);
+    if (!isIssuedAtInWindow({ issuedAt: request.issuedAt, now })) {
+      return c.json({ error: "issuedAt is out of range" }, 422);
+    }
+    if (!(await verifyAcceptanceSignature({ request, terms }))) {
+      return c.json({ error: "Invalid signature" }, 401);
+    }
+
+    const acceptance = await getAcceptance({
+      account: request.account,
+      db: c.env.DB,
+    });
+    if (acceptance?.termsVersion !== terms.termsVersion) {
+      const retryAfter = acceptance
+        ? acceptance.updatedAt + minSecondsBetweenAcceptances - now
+        : 0;
+      if (retryAfter > 0) {
+        c.header("Retry-After", String(retryAfter));
+        return c.json({ error: "Too many requests" }, 429);
+      }
+      await saveAcceptance({ db: c.env.DB, now, request, terms });
+    }
+    return c.json({ acceptedVersion: terms.termsVersion });
+  },
+);
 
 app.post("/contact", validateContactForm, verifyTurnstile, async function (c) {
   const { category, email, files, message } = c.get("contactForm");

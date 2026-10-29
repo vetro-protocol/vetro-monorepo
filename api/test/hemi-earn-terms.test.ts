@@ -5,6 +5,7 @@ import {
   getCurrentTerms,
   isIssuedAtInWindow,
   parseAcceptanceRequest,
+  type Terms,
   verifyAcceptanceSignature,
 } from "../src/hemi-earn-terms.ts";
 
@@ -24,7 +25,7 @@ const signTerms = ({
 }: {
   account: ReturnType<typeof privateKeyToAccount>;
   issuedAt: number;
-  overrides?: Partial<typeof terms>;
+  overrides?: Partial<Terms>;
 }) =>
   account.signTypedData({
     domain: { chainId: 43111, name: "Vetro Terms Acceptance", version: "1" },

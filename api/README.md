@@ -662,8 +662,11 @@ The `POST /contact` endpoint also requires a `send_email` binding named `SEND_EM
 The `/hemi-earn/terms` endpoints store acceptances in a [D1](https://developers.cloudflare.com/d1/) database bound as `DB` in `wrangler.jsonc` (one database per environment). Create the databases, set their ids in `wrangler.jsonc`, and apply the migrations in `migrations/` whenever they change:
 
 ```sh
-pnpm wrangler d1 migrations apply DB --env production
+pnpm wrangler d1 migrations apply DB --env staging --remote
+pnpm wrangler d1 migrations apply DB --env production --remote
 ```
+
+Without `--remote`, Wrangler applies them to the local database.
 
 ## Local development
 
