@@ -200,7 +200,8 @@ function requestToEvent({
   if (!share) {
     return null;
   }
-  const timestamp = BigInt(row.requestedAt ?? row.processedAt);
+  // A deposit gets its shares when the vault mints them, but a redeem gives
+  // its shares to the Router when the request is sent.
   if (row.kind === "DEPOSIT") {
     if (row.amountOut === null) {
       return null;
@@ -212,13 +213,16 @@ function requestToEvent({
         shares: row.amountOut,
         staked: row.stakedAmount,
       },
-      timestamp,
+      timestamp: BigInt(row.processedAt),
     };
   }
   if (row.amountIn === null) {
     return null;
   }
-  return { event: { kind: "REDEEM", share, shares: row.amountIn }, timestamp };
+  return {
+    event: { kind: "REDEEM", share, shares: row.amountIn },
+    timestamp: BigInt(row.requestedAt ?? row.processedAt),
+  };
 }
 
 async function transferToEvent({

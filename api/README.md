@@ -183,7 +183,7 @@ Returns `502` if the Hemi Earn indexer fails or is not configured.
 
 The API replays the processed deposits and redeems of the address, and its share token transfers, in time order:
 
-- A deposit adds its staked pegged amount.
+- A deposit adds its staked pegged amount when it is processed.
 - A transfer in adds its value at the share-to-asset rate nearest in time to the transfer.
 - A redeem or a transfer out reduces the cost basis in proportion to the shares that leave.
 

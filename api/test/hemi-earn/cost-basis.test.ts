@@ -32,11 +32,13 @@ type RateRow = {
 
 const deposit = ({
   asset,
+  requestedAt,
   shares,
   staked,
   timestamp,
 }: {
   asset: string;
+  requestedAt?: string;
   shares: string;
   staked: string;
   timestamp: string;
@@ -46,7 +48,7 @@ const deposit = ({
   asset,
   kind: "DEPOSIT",
   processedAt: timestamp,
-  requestedAt: timestamp,
+  requestedAt: requestedAt ?? timestamp,
   stakedAmount: staked,
 });
 
@@ -226,6 +228,40 @@ describe("hemi-earn/cost-basis/getCostBasis", function () {
     const result = await getCostBasis({ address: account, indexer, rpcUrl });
 
     expect(result).toEqual({ [checksumAddress(shareA as Address)]: "60" });
+  });
+
+  it("applies a deposit when it is processed, not when it is requested", async function () {
+    configure({
+      requests: [
+        deposit({
+          asset: assetA,
+          shares: "100",
+          staked: "100",
+          timestamp: "1000",
+        }),
+        deposit({
+          asset: assetA,
+          requestedAt: "1100",
+          shares: "100",
+          staked: "200",
+          timestamp: "1300",
+        }),
+      ],
+      shareByAsset: { [assetA]: shareA },
+      transfers: [
+        transfer({
+          from: account,
+          share: shareA,
+          timestamp: "1200",
+          to: other,
+          value: "50",
+        }),
+      ],
+    });
+
+    const result = await getCostBasis({ address: account, indexer, rpcUrl });
+
+    expect(result).toEqual({ [checksumAddress(shareA as Address)]: "250" });
   });
 
   it("prices a transfer with the last asset when two assets share a share token", async function () {
