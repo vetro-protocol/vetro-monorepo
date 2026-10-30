@@ -1,3 +1,5 @@
+import { UpstreamGraphQLError } from "./graphql.ts";
+
 export function theGraphSubgraph({
   apiKey,
   subgraphId,
@@ -30,4 +32,18 @@ export function getSubgraph(env: Env) {
     apiKey: env.SUBGRAPH_API_KEY,
     subgraphId: env.SUBGRAPH_ID,
   });
+}
+
+export function getHemiEarnIndexer(env: Env) {
+  if (!env.HEMI_EARN_INDEXER_URL) {
+    throw new UpstreamGraphQLError("HEMI_EARN_INDEXER_URL must be set");
+  }
+  return {
+    ...(env.HEMI_EARN_INDEXER_API_KEY
+      ? {
+          headers: { Authorization: `Bearer ${env.HEMI_EARN_INDEXER_API_KEY}` },
+        }
+      : {}),
+    url: env.HEMI_EARN_INDEXER_URL,
+  };
 }

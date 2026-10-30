@@ -292,8 +292,10 @@ indexer.onEvent(
     if (from === zeroAddress || to === zeroAddress) return;
     if (routerAddresses.has(from) || routerAddresses.has(to)) return;
     context.ShareTransfer.set({
+      blockNumber: BigInt(event.block.number),
       from,
       id: `${event.transaction.hash}-${event.logIndex}`,
+      logIndex: event.logIndex,
       share: lc(event.srcAddress),
       timestamp: BigInt(event.block.timestamp),
       to,

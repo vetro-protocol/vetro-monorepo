@@ -48,8 +48,10 @@ type Request {
 # Genuine wallet-to-wallet share transfers for FMV pricing: mints, burns, and the
 # Router's in-transit deposit/redeem legs are all excluded by the handler.
 type ShareTransfer {
+  blockNumber: BigInt!
   from: String! @index
   id: ID!
+  logIndex: Int!
   share: String!
   timestamp: BigInt!
   to: String! @index

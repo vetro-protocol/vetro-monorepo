@@ -17,7 +17,10 @@ import {
   verifyTurnstile,
 } from "./contact.ts";
 import { convertBigIntsToString } from "./convert-bigints-to-string.ts";
-import { getSubgraph } from "./env.ts";
+import { getHemiEarnIndexer, getSubgraph } from "./env.ts";
+import { UpstreamGraphQLError } from "./graphql.ts";
+import { getCostBasis as getHemiEarnCostBasis } from "./hemi-earn/cost-basis.ts";
+import { getRequests as getHemiEarnRequests } from "./hemi-earn/requests.ts";
 import {
   getCurrentTerms,
   getTermsSigningData,
@@ -253,6 +256,53 @@ app.get(
       return c.json(collateralAssets);
     } catch (error) {
       throw new Error(`Failed to get collateral assets: ${error.message}`);
+    }
+  },
+);
+
+app.get(
+  "/hemi-earn/cost-basis/:address",
+  validateAddress,
+  cache({
+    cacheControl: "max-age=30",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const costBasis = await getHemiEarnCostBasis({
+        address: c.req.param("address"),
+        indexer: getHemiEarnIndexer(c.env),
+        rpcUrl: c.env.CUSTOM_RPC_URL_HEMI,
+      });
+      return c.json({ costBasis });
+    } catch (error) {
+      if (error instanceof UpstreamGraphQLError) {
+        throw error;
+      }
+      throw new Error(`Failed to get Hemi Earn cost basis: ${error.message}`);
+    }
+  },
+);
+
+app.get(
+  "/hemi-earn/requests/:address",
+  validateAddress,
+  cache({
+    cacheControl: "max-age=10",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const requests = await getHemiEarnRequests({
+        address: c.req.param("address"),
+        indexer: getHemiEarnIndexer(c.env),
+      });
+      return c.json({ requests });
+    } catch (error) {
+      if (error instanceof UpstreamGraphQLError) {
+        throw error;
+      }
+      throw new Error(`Failed to get Hemi Earn requests: ${error.message}`);
     }
   },
 );
@@ -585,6 +635,10 @@ app.notFound((c) => c.json({ error: "Not Found" }, 404));
 
 app.onError(function (error, c) {
   Sentry.captureException(error);
+  if (error instanceof UpstreamGraphQLError) {
+    console.warn("Upstream GraphQL error:", error.message);
+    return c.json({ error: "Bad Gateway" }, 502);
+  }
   console.error("Internal Server Error:", error.message);
   return c.json({ error: "Internal Server Error" }, 500);
 });
