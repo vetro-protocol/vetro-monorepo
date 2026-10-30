@@ -7,7 +7,7 @@ import { Header } from "components/base/table/header";
 import { ChainLogo } from "components/chainLogo";
 import { ExternalLinkIcon } from "components/icons/externalLinkIcon";
 import { getChainById } from "networks";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import { screenBreakpoints } from "styles/breakpoints";
@@ -15,14 +15,25 @@ import { formatUsd } from "utils/currency";
 import { formatPercentage } from "utils/format";
 
 import { useLiquidityPools } from "../hooks/useLiquidityPools";
-import { getDepositUrl, sortByTvl } from "../utils";
+import {
+  filterPools,
+  getDepositUrl,
+  type PoolFilters,
+  sortByTvl,
+} from "../utils";
 
 import { PoolName } from "./poolName";
+import { PoolsFilterMenu } from "./poolsFilterMenu";
 import { RewardsAprLabel } from "./rewardsAprLabel";
 import { RewardsList } from "./rewardsList";
-import { EmptyState, ErrorState } from "./tableStates";
+import { EmptyState, ErrorState, NoMatchState } from "./tableStates";
 
 const emptyPools: DexPool[] = [];
+
+const noFilters: PoolFilters = {
+  onlyWithCampaigns: false,
+  unselectedValues: [],
+};
 
 const getPoolId = (pool: DexPool) => `${pool.chainId}-${pool.address}`;
 
@@ -112,14 +123,18 @@ export function PoolsTable() {
   const { t } = useTranslation();
   const {
     data = emptyPools,
-    isError,
     isFetching,
     isLoading,
+    isLoadingError,
     refetch,
   } = useLiquidityPools();
   const { width } = useWindowSize();
+  const [filters, setFilters] = useState(noFilters);
 
-  const pools = useMemo(() => sortByTvl(data), [data]);
+  const pools = useMemo(
+    () => sortByTvl(filterPools({ ...filters, pools: data })),
+    [data, filters],
+  );
 
   const columns = useMemo(
     (): TableColumnDef<DexPool>[] => [
@@ -167,14 +182,28 @@ export function PoolsTable() {
     [t],
   );
 
-  const placeholder = isError ? (
-    <ErrorState isRetrying={isFetching} onRetry={() => refetch()} />
-  ) : (
-    <EmptyState />
-  );
+  function getPlaceholder() {
+    if (isLoadingError) {
+      return <ErrorState isRetrying={isFetching} onRetry={() => refetch()} />;
+    }
+    if (data.length > 0) {
+      return <NoMatchState onShowAll={() => setFilters(noFilters)} />;
+    }
+    return <EmptyState />;
+  }
+
+  const placeholder = getPlaceholder();
   return (
     <div className="border-t border-gray-200">
-      <SectionHeader title={t("pages.liquidity.pools")} />
+      <SectionHeader title={t("pages.liquidity.pools")}>
+        {!isLoadingError && data.length > 0 && (
+          <PoolsFilterMenu
+            filters={filters}
+            onChange={setFilters}
+            pools={data}
+          />
+        )}
+      </SectionHeader>
       {width >= screenBreakpoints.md ? (
         <Table
           columns={columns}

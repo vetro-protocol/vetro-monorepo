@@ -528,9 +528,14 @@
       "empty-title": "No pools yet",
       "error-description": "Pool data is not available now. Try again later.",
       "error-title": "Cannot load pools",
+      "filters": "Filters",
+      "no-match-description": "No pool matches the filters. Change the filters to see more pools.",
+      "no-match-title": "No pools match",
+      "only-with-campaigns": "Only with campaigns",
       "pool": "Pool",
       "pool-apr": "Pool APR",
       "pools": "Pools",
+      "rewards": "Rewards",
       "rewards-apr": "Rewards APR",
       "rewards-apr-info": {
         "curve-gauge": "Stake the LP token on Curve’s “Stake” tab. Earns CRV, boosted by your veCRV.",
@@ -541,10 +546,13 @@
         "step-stake": "Stake your LP token in ONE of these. Click the reward rate in the row to open its page:",
         "title": "Earning rewards takes 2 steps:"
       },
+      "show-all-pools": "Show all pools",
       "title": "Liquidity",
+      "token": "Token",
       "total-tvl": "Total DEX TVL",
       "try-again": "Try again",
       "tvl": "TVL",
+      "venue": "Venue",
       "volume-24h": "24h volume"
     },
     "not-found": {
