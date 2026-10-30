@@ -82,7 +82,7 @@ const getShareTransferRows = ({
       query GetShareTransfers($account: String!, $limit: Int!, $offset: Int!) {
         ShareTransfer(
           where: { _or: [{ from: { _eq: $account } }, { to: { _eq: $account } }] }
-          order_by: [{ timestamp: asc }, { id: asc }]
+          order_by: [{ blockNumber: asc }, { logIndex: asc }]
           limit: $limit
           offset: $offset
         ) {
