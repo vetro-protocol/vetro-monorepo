@@ -58,7 +58,7 @@ export async function getRequests({
       query GetEarnRequests($initiator: String!, $limit: Int!, $offset: Int!) {
         Request(
           where: { initiator: { _eq: $initiator } }
-          order_by: { requestedAt: desc }
+          order_by: [{ requestedAt: desc }, { requestId: desc }]
           limit: $limit
           offset: $offset
         ) {
