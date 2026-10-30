@@ -182,7 +182,7 @@ Returns the cost basis of each Hemi Earn share token that the address holds. Cac
 Returns `502` if the Hemi Earn indexer fails or is not configured.
 Returns `500` if a read of the Router on Hemi fails.
 
-The API replays the processed deposits and redeems of the address, and its share token transfers, in time order:
+The API replays the processed deposits of the address, its processed and pending redeems, and its share token transfers, in time order:
 
 - A deposit adds its staked pegged amount when it is processed.
 - A transfer in adds its value at the share-to-asset rate nearest in time to the transfer.

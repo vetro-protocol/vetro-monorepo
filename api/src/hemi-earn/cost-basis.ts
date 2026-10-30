@@ -17,7 +17,7 @@ type RequestRow = {
   amountOut: string | null;
   asset: string;
   kind: "DEPOSIT" | "REDEEM";
-  processedAt: string;
+  processedAt: string | null;
   requestedAt: string | null;
   stakedAmount: string | null;
 };
@@ -51,7 +51,13 @@ const getRequestRows = ({
     query: `
       query GetEarnCostBasis($limit: Int!, $offset: Int!, $receiver: String!) {
         Request(
-          where: { receiver: { _eq: $receiver }, processedAt: { _is_null: false } }
+          where: {
+            receiver: { _eq: $receiver }
+            _or: [
+              { processedAt: { _is_null: false } }
+              { kind: { _eq: "REDEEM" }, status: { _eq: "PENDING" } }
+            ]
+          }
           order_by: [{ processedAt: asc }, { requestId: asc }]
           limit: $limit
           offset: $offset
@@ -203,7 +209,7 @@ function requestToEvent({
   // A deposit gets its shares when the vault mints them, but a redeem gives
   // its shares to the Router when the request is sent.
   if (row.kind === "DEPOSIT") {
-    if (row.amountOut === null) {
+    if (row.amountOut === null || row.processedAt === null) {
       return null;
     }
     return {
@@ -216,12 +222,13 @@ function requestToEvent({
       timestamp: BigInt(row.processedAt),
     };
   }
-  if (row.amountIn === null) {
+  const requestedAt = row.requestedAt ?? row.processedAt;
+  if (row.amountIn === null || requestedAt === null) {
     return null;
   }
   return {
     event: { kind: "REDEEM", share, shares: row.amountIn },
-    timestamp: BigInt(row.requestedAt ?? row.processedAt),
+    timestamp: BigInt(requestedAt),
   };
 }
 

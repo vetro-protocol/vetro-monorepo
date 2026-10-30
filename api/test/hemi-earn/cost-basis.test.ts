@@ -54,10 +54,12 @@ const deposit = ({
 
 const redeem = ({
   asset,
+  processedAt,
   shares,
   timestamp,
 }: {
   asset: string;
+  processedAt?: string | null;
   shares: string;
   timestamp: string;
 }) => ({
@@ -65,7 +67,7 @@ const redeem = ({
   amountOut: null,
   asset,
   kind: "REDEEM",
-  processedAt: timestamp,
+  processedAt: processedAt === undefined ? timestamp : processedAt,
   requestedAt: timestamp,
   stakedAmount: null,
 });
@@ -197,6 +199,39 @@ describe("hemi-earn/cost-basis/getCostBasis", function () {
     const result = await getCostBasis({ address: account, indexer, rpcUrl });
 
     expect(result).toEqual({ [checksumAddress(shareB as Address)]: "50" });
+  });
+
+  it("reduces the cost basis by a redeem that is not processed yet", async function () {
+    configure({
+      requests: [
+        deposit({
+          asset: assetA,
+          shares: "100",
+          staked: "100",
+          timestamp: "1000",
+        }),
+        redeem({
+          asset: assetA,
+          processedAt: null,
+          shares: "40",
+          timestamp: "1100",
+        }),
+      ],
+      shareByAsset: { [assetA]: shareA },
+      transfers: [
+        transfer({
+          from: account,
+          share: shareA,
+          timestamp: "1200",
+          to: other,
+          value: "60",
+        }),
+      ],
+    });
+
+    const result = await getCostBasis({ address: account, indexer, rpcUrl });
+
+    expect(result).toEqual({});
   });
 
   it("applies a request before a transfer with the same timestamp", async function () {
