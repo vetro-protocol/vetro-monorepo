@@ -42,6 +42,7 @@
     "no-results-found": "No se encontraron tokens",
     "oracle": "Oráculo",
     "restriction-description": "Debido a regulaciones, no podemos ofrecerle acceso en este momento.",
+    "retry": "Reintentar",
     "search": "Buscar",
     "search-token-placeholder": "Buscar por nombre o símbolo",
     "select-token": "Seleccionar un token",
@@ -100,7 +101,6 @@
         "borrow-description": "Confirme el préstamo en su billetera.",
         "borrow-progress": "Progreso del préstamo",
         "borrow-title": "Pedir prestado activos",
-        "retry": "Reintentar",
         "submit": "Pedir prestado",
         "you-will-borrow": "Pedirá prestado"
       },
@@ -147,7 +147,6 @@
         "borrow-progress": "Progreso del préstamo",
         "confirm-description": "Revise los detalles y confirme el préstamo en su billetera.",
         "confirm-title": "Confirmar préstamo",
-        "retry": "Reintentar",
         "supply-collateral-description": "Confirme el depósito de garantía para asegurar su posición de préstamo.",
         "supply-collateral-title": "Depositar garantía",
         "title": "Préstamo en progreso"
@@ -159,7 +158,6 @@
         "repay-description": "Confirme el pago en su billetera.",
         "repay-progress": "Progreso del pago",
         "repay-title": "Pagar préstamo",
-        "retry": "Reintentar",
         "submit": "Pagar",
         "title": "Pagar préstamo",
         "toast-description": "{{amount}} {{symbol}} pagados.",
@@ -170,7 +168,6 @@
       "supply-collateral-progress": {
         "approve-description": "Apruebe el gasto del token de garantía",
         "approve-title": "Aprobar en la billetera",
-        "retry": "Reintentar",
         "submit": "Depositar garantía",
         "supply-description": "Confirme el depósito de garantía a su posición de préstamo.",
         "supply-progress": "Progreso del depósito",
@@ -189,7 +186,6 @@
       "view-positions": "Ver posiciones",
       "withdraw-collateral": "Retirar garantía",
       "withdraw-collateral-progress": {
-        "retry": "Reintentar",
         "submit": "Retirar",
         "toast-description": "{{amount}} {{symbol}} retirados de la garantía.",
         "toast-title": "Garantía retirada",
@@ -222,7 +218,6 @@
         "approve-description": "Esto permite al contrato del puente gastar este token.",
         "approve-title": "Aprobar en la billetera",
         "bridge-progress": "Progreso del puente",
-        "retry": "Reintentar",
         "send-description": "Revise los detalles y confirme la transferencia en su billetera.",
         "send-title": "Confirmar en la billetera",
         "title": "Transferencia en curso",
@@ -485,7 +480,6 @@
         "ready-to-withdraw-in_other": "Listo para retirar en {{count}} días",
         "request-withdrawal": "Solicitar retiro",
         "requesting": "Solicitando...",
-        "retry": "Reintentar",
         "withdraw": "Retirar",
         "withdraw-in-progress": "Retiro en progreso",
         "withdraw-progress": "Progreso del retiro",
@@ -594,7 +588,6 @@
         "approve-title": "Aprobar en billetera",
         "confirm-description": "Revise los detalles y confirme el intercambio en su billetera.",
         "confirm-title": "Confirmar intercambio",
-        "retry": "Reintentar",
         "swap-progress": "Progreso del intercambio",
         "title": "Intercambio en progreso"
       },
