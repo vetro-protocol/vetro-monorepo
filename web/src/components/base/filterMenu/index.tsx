@@ -1,5 +1,6 @@
 import { type ReactNode } from "react";
 
+import { Checkbox } from "../checkbox";
 import { ChevronIcon } from "../chevronIcon";
 import { Dropdown } from "../dropdown";
 
@@ -20,35 +21,6 @@ type Props = {
   sections: FilterSection[];
   selectedValues: string[];
 };
-
-const CheckIcon = () => (
-  <svg fill="none" height="16" width="16" xmlns="http://www.w3.org/2000/svg">
-    <g clipPath="url(#a65445a)">
-      <rect fill="#416BFF" height={16} rx={4} width={16} />
-      <path
-        clipRule="evenodd"
-        d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.739a.75.75 0 0 1 1.04-.208Z"
-        fill="#EAF4FF"
-        fillRule="evenodd"
-      />
-    </g>
-    <defs>
-      <clipPath id="a65445a">
-        <rect fill="#fff" height={16} rx={4} width={16} />
-      </clipPath>
-    </defs>
-  </svg>
-);
-
-const Checkbox = ({ checked }: { checked: boolean }) => (
-  <span
-    className={`flex size-4 shrink-0 items-center justify-center rounded ${
-      checked ? "bg-blue-500" : "bg-white shadow-sm"
-    }`}
-  >
-    {checked && <CheckIcon />}
-  </span>
-);
 
 export function FilterMenu({
   icon,
@@ -76,7 +48,13 @@ export function FilterMenu({
       onChange={handleChange}
       renderItem={(option, isSelected) => (
         <div className="flex items-center gap-2">
-          <Checkbox checked={isSelected} />
+          <Checkbox
+            aria-hidden="true"
+            checked={isSelected}
+            // The dropdown item handles the toggle; readOnly only silences React's controlled-input warning
+            readOnly
+            tabIndex={-1}
+          />
           {option.label}
         </div>
       )}
