@@ -116,13 +116,13 @@ async function getEarnAssets(indexer: Subgraph) {
 }
 
 async function fetchRateBound({
-  asset,
+  assets,
   comparator,
   indexer,
   order,
   timestamp,
 }: {
-  asset: string;
+  assets: string[];
   comparator: "_gte" | "_lte";
   indexer: Subgraph;
   order: "asc" | "desc";
@@ -133,9 +133,9 @@ async function fetchRateBound({
   }>({
     ...indexer,
     query: `
-      query GetRateBound($asset: String!, $timestamp: numeric!) {
+      query GetRateBound($assets: [String!]!, $timestamp: numeric!) {
         RateSnapshot(
-          where: { asset: { _eq: $asset }, timestamp: { ${comparator}: $timestamp } }
+          where: { asset: { _in: $assets }, timestamp: { ${comparator}: $timestamp } }
           order_by: { timestamp: ${order} }
           limit: 1
         ) {
@@ -144,7 +144,7 @@ async function fetchRateBound({
           timestamp
         }
       }`,
-    variables: { asset, timestamp },
+    variables: { assets, timestamp },
   });
   return RateSnapshot[0] ?? null;
 }
@@ -157,24 +157,24 @@ const toRatePoint = (row: RateSnapshotRow): RatePoint => ({
 // The rate snapshot nearest in time to the transfer, before or after it,
 // approximates the vault's convertToAssets at that moment.
 async function getNearestRate({
-  asset,
+  assets,
   indexer,
   timestamp,
 }: {
-  asset: string;
+  assets: string[];
   indexer: Subgraph;
   timestamp: string;
 }) {
   const [below, above] = await Promise.all([
     fetchRateBound({
-      asset,
+      assets,
       comparator: "_lte",
       indexer,
       order: "desc",
       timestamp,
     }),
     fetchRateBound({
-      asset,
+      assets,
       comparator: "_gte",
       indexer,
       order: "asc",
@@ -234,12 +234,12 @@ function requestToEvent({
 
 async function transferToEvent({
   account,
-  assetByShare,
+  assetsByShare,
   indexer,
   row,
 }: {
   account: string;
-  assetByShare: Record<string, string>;
+  assetsByShare: Record<string, string[]>;
   indexer: Subgraph;
   row: ShareTransferRow;
 }): Promise<TimedEvent | null> {
@@ -248,9 +248,9 @@ async function transferToEvent({
   const to = row.to.toLowerCase();
   const timestamp = BigInt(row.timestamp);
   if (to === account && from !== account) {
-    const asset = assetByShare[share];
-    const rate = asset
-      ? await getNearestRate({ asset, indexer, timestamp: row.timestamp })
+    const assets = assetsByShare[share];
+    const rate = assets
+      ? await getNearestRate({ assets, indexer, timestamp: row.timestamp })
       : null;
     return {
       event: { kind: "TRANSFER_IN", rate, share, value: row.value },
@@ -322,15 +322,16 @@ export async function getCostBasis({
     ],
     rpcUrl,
   });
-  const assetByShare = Object.fromEntries(
-    Object.entries(shareByAsset).map(([asset, share]) => [share, asset]),
-  );
+  const assetsByShare: Record<string, string[]> = {};
+  for (const [asset, share] of Object.entries(shareByAsset)) {
+    (assetsByShare[share] ??= []).push(asset);
+  }
 
   const timedEvents = (
     await Promise.all([
       ...requestRows.map((row) => requestToEvent({ row, shareByAsset })),
       ...transferRows.map((row) =>
-        transferToEvent({ account, assetByShare, indexer, row }),
+        transferToEvent({ account, assetsByShare, indexer, row }),
       ),
     ])
   ).filter((entry) => entry !== null);

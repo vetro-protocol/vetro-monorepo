@@ -25,6 +25,7 @@ const shareA = "0x00000000000000000000000000000000000000d1";
 const shareB = "0x00000000000000000000000000000000000000d2";
 
 type RateRow = {
+  asset: string;
   rateDenominator: string;
   rateNumerator: string;
   timestamp: string;
@@ -88,13 +89,13 @@ const transfer = ({
 
 function configure({
   assets = [],
-  rates = {},
+  rates = [],
   requests = [],
   shareByAsset = {},
   transfers = [],
 }: {
   assets?: string[];
-  rates?: Record<string, RateRow>;
+  rates?: RateRow[];
   requests?: unknown[];
   shareByAsset?: Record<string, string>;
   transfers?: unknown[];
@@ -116,7 +117,19 @@ function configure({
       return { RateSnapshot: assets.map((asset) => ({ asset })) };
     }
     if (query.includes("GetRateBound")) {
-      const rate = rates[String(variables?.asset)];
+      const rateAssets = variables?.assets as string[];
+      const below = query.includes("_lte");
+      const timestamp = BigInt(String(variables?.timestamp));
+      const matches = rates
+        .filter(
+          (rate) =>
+            rateAssets.includes(rate.asset) &&
+            (below
+              ? BigInt(rate.timestamp) <= timestamp
+              : BigInt(rate.timestamp) >= timestamp),
+        )
+        .sort((a, b) => Number(BigInt(a.timestamp) - BigInt(b.timestamp)));
+      const rate = below ? matches.at(-1) : matches[0];
       return { RateSnapshot: rate ? [rate] : [] };
     }
     throw new Error(`Unexpected query: ${query}`);
@@ -151,13 +164,14 @@ describe("hemi-earn/cost-basis/getCostBasis", function () {
   it("prices a transfer in at the nearest rate", async function () {
     configure({
       assets: [assetA],
-      rates: {
-        [assetA]: {
+      rates: [
+        {
+          asset: assetA,
           rateDenominator: "100",
           rateNumerator: "105",
           timestamp: "1000",
         },
-      },
+      ],
       shareByAsset: { [assetA]: shareA },
       transfers: [
         transfer({
@@ -295,47 +309,38 @@ describe("hemi-earn/cost-basis/getCostBasis", function () {
     expect(result).toEqual({ [checksumAddress(shareA as Address)]: "250" });
   });
 
-  it("prices a transfer with the last asset when two assets share a share token", async function () {
-    const rate = {
-      rateDenominator: "1",
-      rateNumerator: "1",
-      timestamp: "1000",
-    };
+  it("prices a transfer at the nearest rate of all the assets of its share", async function () {
     configure({
-      rates: { [assetA]: rate, [assetB]: rate },
-      requests: [
-        deposit({
+      assets: [assetB, assetA],
+      rates: [
+        {
           asset: assetA,
-          shares: "10",
-          staked: "10",
+          rateDenominator: "100",
+          rateNumerator: "105",
           timestamp: "1000",
-        }),
-        deposit({
+        },
+        {
           asset: assetB,
-          shares: "10",
-          staked: "10",
-          timestamp: "1000",
-        }),
+          rateDenominator: "100",
+          rateNumerator: "110",
+          timestamp: "2000",
+        },
       ],
       shareByAsset: { [assetA]: shareA, [assetB]: shareA },
       transfers: [
         transfer({
           from: other,
           share: shareA,
-          timestamp: "1000",
+          timestamp: "1900",
           to: account,
           value: "10",
         }),
       ],
     });
 
-    await getCostBasis({ address: account, indexer, rpcUrl });
+    const result = await getCostBasis({ address: account, indexer, rpcUrl });
 
-    const rateBoundAssets = vi
-      .mocked(graphql.runQuery)
-      .mock.calls.filter(([{ query }]) => query.includes("GetRateBound"))
-      .map(([{ variables }]) => variables?.asset);
-    expect(new Set(rateBoundAssets)).toEqual(new Set([assetB]));
+    expect(result).toEqual({ [checksumAddress(shareA as Address)]: "11" });
   });
 
   it("drops an asset that the Router does not know", async function () {
