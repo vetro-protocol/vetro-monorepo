@@ -175,6 +175,75 @@ Gets the amount of collateral assets in a given Morpho market.
 }
 ```
 
+### `GET /hemi-earn/cost-basis/:address`
+
+Returns the cost basis of each Hemi Earn share token that the address holds. Cached for 30 seconds.
+`:address` must be a well-formed Ethereum address. Returns `404` if malformed.
+Returns `502` if the Hemi Earn indexer fails or is not configured.
+
+The API replays the processed deposits and redeems of the address, and its share token transfers, in time order:
+
+- A deposit adds its staked pegged amount.
+- A transfer in adds its value at the share-to-asset rate nearest in time to the transfer.
+- A redeem or a transfer out reduces the cost basis in proportion to the shares that leave.
+
+The keys are the checksummed share token addresses on Hemi. The values are decimal strings in the pegged token's base units. A value can have a fractional part after a proportional reduction. The response has only the share tokens with a balance above zero, so `costBasis` is `{}` when the address has no position.
+
+#### Sample Response
+
+```json
+{
+  "costBasis": {
+    "0x0000000000000000000000000000000000000002": "1010000000000000000"
+  }
+}
+```
+
+### `GET /hemi-earn/requests/:address`
+
+Returns the Hemi Earn requests (deposits and redeems) that the address initiated, newest first. Cached for 10 seconds.
+`:address` must be a well-formed Ethereum address. Returns `404` if malformed.
+Returns `502` if the Hemi Earn indexer fails or is not configured.
+
+- `asset` and `receiver` are in the checksummed format.
+- `automatic` is `true` when the indexer has no value for it yet.
+- `status` is `FAILED` when `failed` is `true` and the request is `PENDING`. Otherwise, `status` is the Router status: `PENDING`, `FULFILLED`, `CANCELLED`, `FINALIZED` or `RECOVERED`.
+- `failed` is the raw flag of the Agent. It can be `true` on a `CANCELLED` or `RECOVERED` request.
+- The amounts and the timestamps are strings. The timestamps are in seconds.
+
+`requests` is `[]` when the address has no request.
+
+#### Sample Response
+
+```json
+{
+  "requests": [
+    {
+      "amountIn": "1000000000000000000",
+      "amountOut": "1000000000000000000",
+      "asset": "0x0000000000000000000000000000000000000003",
+      "automatic": true,
+      "cancellationRequested": false,
+      "claimableAt": "1759162900",
+      "claimTxHash": "0x0000000000000000000000000000000000000000000000000000000000000002",
+      "failed": false,
+      "failureReason": null,
+      "kind": "DEPOSIT",
+      "processedAt": "1759162850",
+      "processTxHash": "0x0000000000000000000000000000000000000000000000000000000000000003",
+      "receivedAt": "1759162830",
+      "receiver": "0x0000000000000000000000000000000000000001",
+      "recoverTxHash": null,
+      "requestedAt": "1759162804",
+      "requestId": "6",
+      "requestTxHash": "0x0000000000000000000000000000000000000000000000000000000000000001",
+      "retryCount": 0,
+      "status": "FINALIZED"
+    }
+  ]
+}
+```
+
 ### `GET /hemi-earn/terms`
 
 Returns the current Hemi Earn Terms, which a wallet must accept (by signing an EIP-712 message) before its first deposit, and again whenever the version changes.
@@ -650,7 +719,10 @@ Secrets are set separately using the Wrangler CLI.
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------- |
 | CONTACT_FORM_RECIPIENT      | Destination address for contact form emails. Must be a verified Email Routing destination.                                                                                                                                                                                           | `support@vetro.org`       |
 | CONTACT_FORM_SENDER         | `from` address for contact form emails. Its domain must be a verified Email Routing sending domain.                                                                                                                                                                                  | `noreply@forms.vetro.org` |
+| CUSTOM_RPC_URL_HEMI         | Hemi RPC node URL(s). Overrides `viem`'s default. Several URLs joined by `+` become a fallback transport. `GET /hemi-earn/cost-basis` reads the Router on Hemi with it.                                                                                                              |                           |
 | CUSTOM_RPC_URL_MAINNET      | Ethereum RPC node URL(s). Overrides `viem`'s default. Several URLs joined by `+` become a fallback transport.                                                                                                                                                                        |                           |
+| HEMI_EARN_INDEXER_API_KEY   | API key of the Hemi Earn indexer. The API sends it as a Bearer token, only when it is set. Set it as a secret. (3)                                                                                                                                                                   |                           |
+| HEMI_EARN_INDEXER_URL       | GraphQL URL of the [Hemi Earn indexer](../subgraphs/hemi-earn-indexer/README.md). `GET /hemi-earn/cost-basis/:address` and `GET /hemi-earn/requests/:address` return `502` when it is not set.                                                                                       | (localhost)               |
 | HEMI_EARN_TERMS_HASH        | keccak256 hash (32-byte hex) of the current Hemi Earn Terms document. Required by the `/hemi-earn/terms` endpoints, which respond with `500` if it is unset or malformed.                                                                                                            |                           |
 | HEMI_EARN_TERMS_URL         | URL of the current Hemi Earn Terms document. Required by the `/hemi-earn/terms` endpoints.                                                                                                                                                                                           |                           |
 | HEMI_EARN_TERMS_VERSION     | Version of the current Hemi Earn Terms. Changing it makes every wallet accept again. Bump it whenever the Terms document (and so its hash) changes, or when a new acceptance is needed for any other reason (e.g. a statement change). Required by the `/hemi-earn/terms` endpoints. |                           |
@@ -685,6 +757,12 @@ pnpm wrangler d1 migrations apply DB --env production --remote
 ```
 
 Without `--remote`, Wrangler applies them to the local database.
+
+(3) Set the Hemi Earn indexer API key as a Wrangler secret:
+
+```sh
+pnpm wrangler secret put HEMI_EARN_INDEXER_API_KEY --env production
+```
 
 ## Local development
 
