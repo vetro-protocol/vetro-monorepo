@@ -11,7 +11,6 @@ import { TokenBalance } from "components/tokenInput/tokenBalance";
 import { TokenSelectorModal } from "components/tokenSelectorModal";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useBridge } from "hooks/useBridge";
-import { useBridgeableTokens } from "hooks/useBridgeableTokens";
 import { useBridgeLayerZeroFee } from "hooks/useBridgeLayerZeroFee";
 import { useBridgeNetworkFee } from "hooks/useBridgeNetworkFee";
 import { useTotalBridgeSendFees } from "hooks/useTotalBridgeSendFees";
@@ -20,6 +19,7 @@ import { type FormEvent, useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { BridgeableToken } from "types";
 import { pickCounterpartToken } from "utils/bridge";
+import { knownBridgeableTokens } from "utils/bridgeableTokens";
 import { getInputError } from "utils/inputError";
 import { getNativeToken } from "utils/nativeToken";
 import { parseTokenUnits, removeOftDust } from "utils/token";
@@ -376,7 +376,6 @@ function BridgeFormContent({ tokens }: ContentProps) {
   );
 }
 
-export function BridgeForm() {
-  const tokens = useBridgeableTokens();
-  return <BridgeFormContent tokens={tokens} />;
-}
+export const BridgeForm = () => (
+  <BridgeFormContent tokens={knownBridgeableTokens} />
+);
