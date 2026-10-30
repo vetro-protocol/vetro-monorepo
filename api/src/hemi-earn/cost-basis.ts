@@ -267,16 +267,18 @@ async function resolveShares({
   rpcUrl: string | undefined;
 }) {
   const client = createHemiClient(rpcUrl);
-  // An asset that does not resolve (e.g. it was removed from the Router) is
-  // dropped, so it cannot fail the cost basis of the other assets.
   const resolved = await Promise.all(
     [...new Set(assets)].map((asset) =>
-      resolveShareByAsset({ asset, client })
-        .then((share) => [asset, share] as const)
-        .catch(() => null),
+      resolveShareByAsset({ asset, client }).then(
+        (share) => [asset, share] as const,
+      ),
     ),
   );
-  return Object.fromEntries(resolved.filter((entry) => entry !== null));
+  return Object.fromEntries(
+    resolved.filter(
+      (entry): entry is readonly [string, string] => entry[1] !== null,
+    ),
+  );
 }
 
 /**

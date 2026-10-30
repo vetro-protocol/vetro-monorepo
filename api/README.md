@@ -180,6 +180,7 @@ Gets the amount of collateral assets in a given Morpho market.
 Returns the cost basis of each Hemi Earn share token that the address holds. Cached for 30 seconds.
 `:address` must be a well-formed Ethereum address. Returns `404` if malformed.
 Returns `502` if the Hemi Earn indexer fails or is not configured.
+Returns `500` if a read of the Router on Hemi fails.
 
 The API replays the processed deposits and redeems of the address, and its share token transfers, in time order:
 

@@ -33,15 +33,13 @@ describe("hemi-earn/router/resolveShareByAsset", function () {
     expect(readContract).toHaveBeenCalledTimes(1);
   });
 
-  it("throws when the Router has no share for the asset, and reads it again later", async function () {
+  it("returns null when the Router does not know the asset, and reads it again later", async function () {
     const asset = "0x00000000000000000000000000000000000000c2";
     vi.mocked(readContract)
       .mockResolvedValueOnce(assetData(zeroAddress))
       .mockResolvedValueOnce(assetData(share));
 
-    await expect(resolveShareByAsset({ asset, client })).rejects.toThrow(
-      `The Router has no share for asset ${asset}`,
-    );
+    expect(await resolveShareByAsset({ asset, client })).toBeNull();
     expect(await resolveShareByAsset({ asset, client })).toBe(
       share.toLowerCase(),
     );

@@ -32,12 +32,13 @@ const routerAbi = [
 export const createHemiClient = (rpcUrl: string | undefined) =>
   createChainClient(updateRpcUrls(hemi, rpcUrl));
 
-const shareByAssetCache = new Map<string, Promise<string>>();
+const shareByAssetCache = new Map<string, Promise<string | null>>();
 
 /**
  * Resolve the Hemi share token of an asset through the Router registry. The
- * result is lowercase, as the indexer stores it. The mapping does not change,
- * so it is memoized; a failed read is evicted so a later call can retry it.
+ * result is lowercase, as the indexer stores it, or null when the Router does
+ * not know the asset. A known mapping does not change, so it is memoized; an
+ * unknown asset or a failed read is evicted so a later call can read it again.
  */
 export function resolveShareByAsset({
   asset,
@@ -59,7 +60,8 @@ export function resolveShareByAsset({
   })
     .then(function ({ share }) {
       if (isAddressEqual(share, zeroAddress)) {
-        throw new Error(`The Router has no share for asset ${asset}`);
+        shareByAssetCache.delete(key);
+        return null;
       }
       return share.toLowerCase();
     })

@@ -97,13 +97,9 @@ function configure({
   shareByAsset?: Record<string, string>;
   transfers?: unknown[];
 }) {
-  vi.mocked(resolveShareByAsset).mockImplementation(async function ({ asset }) {
-    const share = shareByAsset[asset];
-    if (!share) {
-      throw new Error(`No share for ${asset}`);
-    }
-    return share;
-  });
+  vi.mocked(resolveShareByAsset).mockImplementation(
+    async ({ asset }) => shareByAsset[asset] ?? null,
+  );
   vi.mocked(graphql.runQuery).mockImplementation(async function ({
     query,
     variables,
@@ -307,7 +303,7 @@ describe("hemi-earn/cost-basis/getCostBasis", function () {
     expect(new Set(rateBoundAssets)).toEqual(new Set([assetB]));
   });
 
-  it("drops an asset that does not resolve to a share", async function () {
+  it("drops an asset that the Router does not know", async function () {
     configure({
       requests: [
         deposit({
@@ -329,5 +325,23 @@ describe("hemi-earn/cost-basis/getCostBasis", function () {
     const result = await getCostBasis({ address: account, indexer, rpcUrl });
 
     expect(result).toEqual({ [checksumAddress(shareA as Address)]: "100" });
+  });
+
+  it("fails when a Router read fails", async function () {
+    configure({
+      requests: [
+        deposit({
+          asset: assetA,
+          shares: "100",
+          staked: "100",
+          timestamp: "1000",
+        }),
+      ],
+    });
+    vi.mocked(resolveShareByAsset).mockRejectedValue(new Error("rate limited"));
+
+    await expect(
+      getCostBasis({ address: account, indexer, rpcUrl }),
+    ).rejects.toThrow("rate limited");
   });
 });
