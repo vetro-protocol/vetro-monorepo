@@ -25,6 +25,10 @@ The `web/` app exposes the Swap, Earn, Borrow, Bridge, Liquidity, and Analytics 
 - **Fix sibling code**: When fixing a bug or extracting a shared helper/component, apply the same change to sibling code with the same pattern. If that's out of scope, list the remaining gaps in the PR description.
 - **Export on demand**: Don't export types or helpers until a consumer needs them.
 
+### Web app (`web/`)
+
+- **Geo-blocking**: Every action that sends a transaction must be disabled when `isGeoRestricted()` (`web/src/utils/geoRestriction.ts`) returns true. This includes actions that only return funds to the user (claim, withdraw, cancel, repay). For a plain button, use `GeoRestrictedButton` (`web/src/components/geoRestrictedButton.tsx`). It disables the button and shows the `common.geo-restriction-title` tooltip. For other controls (form submit buttons, icon buttons), check `isGeoRestricted()` in the component that renders the control.
+
 ### TypeScript
 
 - **Array syntax**: Prefer `T[]` over `Array<T>`
