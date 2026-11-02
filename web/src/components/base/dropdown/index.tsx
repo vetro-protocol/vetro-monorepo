@@ -251,7 +251,7 @@ export function Dropdown<T>(props: DropdownProps<T>) {
     if (!isOpen) {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
-        setIsOpen(true);
+        handleTriggerClick();
       }
       return;
     }
