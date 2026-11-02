@@ -220,6 +220,21 @@ describe("Dropdown", function () {
       .toBeInTheDocument();
   });
 
+  it("opens from the keyboard with Space", async function () {
+    const screen = await render(<SingleSelect onChange={vi.fn()} />);
+    const trigger = screen.getByRole("button", { name: "Fruits" });
+
+    trigger.element().focus();
+    await userEvent.keyboard("[Space>]");
+    await expect.element(trigger).toHaveAttribute("aria-expanded", "true");
+    await userEvent.keyboard("[/Space]");
+
+    await expect.element(trigger).toHaveAttribute("aria-expanded", "true");
+    await expect
+      .element(screen.getByRole("listbox", { name: "Fruits" }))
+      .toBeInTheDocument();
+  });
+
   it("toggles items in multi-select mode and stays open", async function () {
     const onChange = vi.fn();
     const { screen, trigger } = await openDropdown(
