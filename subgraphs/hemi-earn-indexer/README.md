@@ -47,7 +47,7 @@ The indexer stores all addresses in lowercase.
 The indexer reads Ethereum from HyperSync, and Hemi from an RPC. These optional env variables set the RPC URLs:
 
 - `ENVIO_RPC_URL_ETH`: the Ethereum fallback RPC. Envio uses it only when HyperSync stops in real-time indexing. The default is `https://ethereum.reth.rs/rpc`.
-- `ENVIO_RPC_URL_HEMI`: the Hemi RPC. The default is `https://rpc.hemi.network/rpc`. The public Hemi RPC has a rate limit, so the historical sync is slow with it. Set a private RPC for production.
+- `ENVIO_RPC_URL_HEMI`: the Hemi sync RPC. If omitted, it defaults to `https://rpc.hemi.network/rpc`, which is also the fallback RPC. Envio uses the fallback RPC when the sync RPC stalls.
 
 To set an RPC, set the URL in `.env`.
 
