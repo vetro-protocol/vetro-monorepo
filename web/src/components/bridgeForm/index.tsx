@@ -67,16 +67,12 @@ function getBridgeInputError({
   });
 }
 
-type ContentProps = {
-  tokens: BridgeableToken[];
-};
-
-function BridgeFormContent({ tokens }: ContentProps) {
+export function BridgeForm() {
   const { t } = useTranslation();
   const { address: account } = useAccount();
   const [state, dispatch] = useReducer(
     bridgeFormReducer,
-    tokens,
+    knownBridgeableTokens,
     getInitialState,
   );
   const { approve10x, fromInputValue, fromToken, toToken } = state;
@@ -229,22 +225,28 @@ function BridgeFormContent({ tokens }: ContentProps) {
     sourceTokenAddress: fromToken.address,
   });
 
-  const fromTokens = tokens.filter(
+  const fromTokens = knownBridgeableTokens.filter(
     (token) =>
       token.chainId !== fromToken.chainId || token.symbol !== fromToken.symbol,
   );
 
-  const toTokens = tokens.filter(
+  const toTokens = knownBridgeableTokens.filter(
     (token) =>
       token.symbol === fromToken.symbol && token.chainId !== toToken.chainId,
   );
 
   function handleFromTokenChange(token: BridgeableToken) {
-    dispatch({ payload: { token, tokens }, type: "SET_FROM_TOKEN" });
+    dispatch({
+      payload: { token, tokens: knownBridgeableTokens },
+      type: "SET_FROM_TOKEN",
+    });
   }
 
   function handleToTokenChange(token: BridgeableToken) {
-    dispatch({ payload: { token, tokens }, type: "SET_TO_TOKEN" });
+    dispatch({
+      payload: { token, tokens: knownBridgeableTokens },
+      type: "SET_TO_TOKEN",
+    });
   }
 
   function handleInputChange(value: string) {
@@ -375,7 +377,3 @@ function BridgeFormContent({ tokens }: ContentProps) {
     </>
   );
 }
-
-export const BridgeForm = () => (
-  <BridgeFormContent tokens={knownBridgeableTokens} />
-);
