@@ -14,6 +14,7 @@ import { hemiEarnRouterAbi } from "../../abi/hemiEarnRouterAbi.ts";
 import { hemiEarnRouterAddress } from "../../constants.ts";
 import type { RequestRedeemEvents } from "../../types.ts";
 import { resolveApprovalAmount } from "../../utils.ts";
+import { getAssetData } from "../public/getAssetData.ts";
 import { quoteRedeem } from "../public/quoteRedeem.ts";
 
 type RequestRedeemParams = {
@@ -30,7 +31,6 @@ type RequestRedeemParams = {
   operator: Address;
   receiver: Address;
   shares: bigint;
-  shareToken: Address;
 };
 
 const canRequestRedeem = function ({
@@ -76,7 +76,6 @@ const runRequestRedeem = (
     operator,
     receiver,
     shares,
-    shareToken,
   }: RequestRedeemParams,
 ) =>
   // eslint-disable-next-line complexity -- linear redeem workflow with branching event emissions
@@ -86,15 +85,25 @@ const runRequestRedeem = (
         throw new Error("Chain is not defined on wallet");
       }
 
-      const userShares = await balanceOf(walletClient, {
-        account,
-        address: shareToken,
-      }).catch(() => undefined);
+      const validationData = await getAssetData(walletClient, {
+        address,
+        asset,
+      })
+        .then(async ({ share }) => ({
+          share,
+          userShares: await balanceOf(walletClient, {
+            account,
+            address: share,
+          }),
+        }))
+        .catch(() => undefined);
 
-      if (userShares === undefined) {
+      if (!validationData) {
         emitter.emit("withdraw-failed-validation", "failed to validate inputs");
         return;
       }
+
+      const { share, userShares } = validationData;
 
       const { canRedeem, reason } = canRequestRedeem({
         operator,
@@ -119,7 +128,7 @@ const runRequestRedeem = (
           shares,
         }).catch((error: Error) => error),
         allowance(walletClient, {
-          address: shareToken,
+          address: share,
           owner: account,
           spender: address,
         }),
@@ -135,7 +144,7 @@ const runRequestRedeem = (
         emitter.emit("pre-approve");
 
         const approvalHash = await approve(walletClient, {
-          address: shareToken,
+          address: share,
           amount: resolveApprovalAmount({
             approvalAmount,
             required: shares,
@@ -236,10 +245,7 @@ export const encodeRequestRedeem = ({
   operator,
   receiver,
   shares,
-}: Omit<
-  RequestRedeemParams,
-  "account" | "address" | "approvalAmount" | "shareToken"
-> & {
+}: Omit<RequestRedeemParams, "account" | "address" | "approvalAmount"> & {
   automatic?: boolean;
 }) =>
   encodeFunctionData({

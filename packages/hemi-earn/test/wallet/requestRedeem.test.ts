@@ -12,6 +12,7 @@ import { allowance, approve, balanceOf } from "viem-erc20/actions";
 import { describe, expect, it, vi } from "vitest";
 
 import { hemiEarnRouterAbi } from "../../src/abi/hemiEarnRouterAbi.ts";
+import { getAssetData } from "../../src/actions/public/getAssetData.ts";
 import { quoteRedeem } from "../../src/actions/public/quoteRedeem.ts";
 import {
   encodeRequestRedeem,
@@ -27,6 +28,17 @@ vi.mock("viem-erc20/actions", () => ({
   allowance: vi.fn(),
   approve: vi.fn(),
   balanceOf: vi.fn(),
+}));
+
+const share = "0x4444444444444444444444444444444444444444" as Address;
+
+vi.mock("../../src/actions/public/getAssetData.ts", () => ({
+  getAssetData: vi.fn().mockResolvedValue({
+    enabled: true,
+    remoteAsset: "0x5555555555555555555555555555555555555555",
+    remoteShare: "0x6666666666666666666666666666666666666666",
+    share: "0x4444444444444444444444444444444444444444",
+  }),
 }));
 
 vi.mock("../../src/actions/public/quoteRedeem.ts", () => ({
@@ -49,7 +61,6 @@ const validParameters = {
   operator: "0x2222222222222222222222222222222222222222" as Address,
   receiver: "0x3333333333333333333333333333333333333333" as Address,
   shares: BigInt(100),
-  shareToken: "0x4444444444444444444444444444444444444444" as Address,
 };
 
 const buildExpectedArgs = (shares: bigint) => [
@@ -166,6 +177,43 @@ describe("requestRedeem", function () {
     );
   });
 
+  it("emits 'withdraw-failed-validation' and sends no transaction when the asset data read fails", async function () {
+    vi.mocked(getAssetData).mockRejectedValueOnce(new Error("rpc error"));
+
+    const { emitter, promise } = requestRedeem(
+      mockWalletClient,
+      validParameters,
+    );
+
+    const onFailedValidation = vi.fn();
+    emitter.on("withdraw-failed-validation", onFailedValidation);
+
+    await promise;
+
+    expect(onFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "failed to validate inputs",
+    );
+    expect(balanceOf).not.toHaveBeenCalled();
+    expect(writeContract).not.toHaveBeenCalled();
+  });
+
+  it("reads the balance of the share token from the Router asset data", async function () {
+    vi.mocked(balanceOf).mockResolvedValue(BigInt(10));
+
+    const { promise } = requestRedeem(mockWalletClient, validParameters);
+
+    await promise;
+
+    expect(getAssetData).toHaveBeenCalledExactlyOnceWith(mockWalletClient, {
+      address: validParameters.address,
+      asset: validParameters.asset,
+    });
+    expect(balanceOf).toHaveBeenCalledExactlyOnceWith(mockWalletClient, {
+      account,
+      address: share,
+    });
+  });
+
   it("emits 'withdraw-failed-validation' when balance read fails", async function () {
     vi.mocked(balanceOf).mockRejectedValue(new Error("rpc error"));
 
@@ -242,7 +290,7 @@ describe("requestRedeem", function () {
     expect(onSucceeded).toHaveBeenCalledExactlyOnceWith(receipt);
     expect(balanceOf).toHaveBeenCalledExactlyOnceWith(mockWalletClient, {
       account,
-      address: validParameters.shareToken,
+      address: share,
     });
     expect(quoteRedeem).toHaveBeenCalledExactlyOnceWith(mockWalletClient, {
       address: validParameters.address,
@@ -252,7 +300,7 @@ describe("requestRedeem", function () {
       shares: validParameters.shares,
     });
     expect(allowance).toHaveBeenCalledExactlyOnceWith(mockWalletClient, {
-      address: validParameters.shareToken,
+      address: share,
       owner: account,
       spender: validParameters.address,
     });
