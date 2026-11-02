@@ -98,7 +98,7 @@ function SubmitLabel({
     return <Spinner />;
   }
   if (renderRetry) {
-    return t("pages.swap.progress.retry");
+    return t("common.retry");
   }
   return t("pages.swap.redeem-queue.redeem");
 }
