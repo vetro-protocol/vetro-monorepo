@@ -47,7 +47,7 @@ The indexer stores all addresses in lowercase.
 The indexer reads Ethereum from HyperSync, and Hemi from an RPC. These optional env variables set the RPC URLs:
 
 - `ENVIO_RPC_URL_ETH`: the Ethereum fallback RPC. Envio uses it only when HyperSync stops in real-time indexing. The default is `https://ethereum.reth.rs/rpc`.
-- `ENVIO_RPC_URL_HEMI`: the Hemi RPC. The default is `https://rpc.hemi.network/rpc`. The public Hemi RPC has a rate limit, so the historical sync is slow with it. Set a private RPC for production.
+- `ENVIO_RPC_URL_HEMI`: the Hemi sync RPC. If omitted, it defaults to `https://rpc.hemi.network/rpc`, which is also the fallback RPC. Envio uses the fallback RPC when the sync RPC stalls.
 
 To set an RPC, set the URL in `.env`.
 
@@ -71,3 +71,17 @@ When the indexer runs, use the GraphQL console to see the data:
 ## Tests
 
 `pnpm test` runs the handlers in memory with the Envio test indexer. It does not need Docker, a token, or network access.
+
+## Deployment
+
+Envio deploys the indexer on each merge to `master`, also when the indexer did not change. Envio keeps up to 3 live instances of the indexer, and each instance costs more indexing time. For this reason, deployments on merge to `master` are disabled by default. The goal is to keep only one live instance, the production instance, between deployments.
+
+To deploy a change to the indexer:
+
+1. In the [Envio project settings](https://envio.dev/app/vetro-protocol/vetro-monorepo/~/settings), enable deployments on push to `master`.
+2. Merge the change to `master`.
+3. When Envio starts the new instance, disable deployments on push to `master` again.
+4. Wait for the new instance to index again.
+5. Promote the new instance to production.
+6. Make sure that the new instance works correctly.
+7. Remove the old instance.

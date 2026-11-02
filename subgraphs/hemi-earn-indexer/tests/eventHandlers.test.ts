@@ -609,6 +609,8 @@ describe("ShareToken transfers", function () {
     expect(transfer.value).toBe(1000n);
     expect(transfer.share).toBe(SHARE_OFT.toLowerCase());
     expect(transfer.timestamp).toBe(1_700_000_000n);
+    expect(transfer.blockNumber).toBe(BigInt(HEMI_START));
+    expect(transfer.logIndex).toBe(5);
   });
 
   it("skips mints and burns", async function () {

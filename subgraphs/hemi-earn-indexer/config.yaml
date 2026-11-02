@@ -23,8 +23,10 @@ chains:
         name: ShareToken
     id: 43111
     rpc:
-      for: sync
-      url: ${ENVIO_RPC_URL_HEMI:-https://rpc.hemi.network/rpc}
+      - for: sync
+        url: ${ENVIO_RPC_URL_HEMI:-https://rpc.hemi.network/rpc}
+      - for: fallback
+        url: https://rpc.hemi.network/rpc
     start_block: 4539427 # Router deployment
 
   - contracts:
