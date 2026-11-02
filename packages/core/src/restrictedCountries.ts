@@ -1,5 +1,5 @@
-// ISO 3166-1 alpha-2 codes of the soft geo-restricted countries: EU 27 member
-// states, EEA (Norway, Iceland, Liechtenstein), US, Canada, UK and Panama.
+// ISO 3166-1 alpha-2 codes of the geo-restricted countries: EU 27 member
+// states, EEA (Norway, Iceland, Liechtenstein), US, Canada and UK.
 export const restrictedCountries: string[] = [
   "AT",
   "BE",
