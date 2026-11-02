@@ -27,7 +27,6 @@ export const restrictedCountries: string[] = [
   "MT",
   "NL",
   "NO",
-  "PA",
   "PL",
   "PT",
   "RO",
