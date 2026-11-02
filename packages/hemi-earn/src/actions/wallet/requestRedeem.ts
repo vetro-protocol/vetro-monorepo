@@ -138,9 +138,7 @@ const runRequestRedeem = (
           callbackFee,
           isInstant,
           shares: adjustedShares,
-        }).catch(function (error: Error) {
-          emitter.emit("quote-failed", error);
-        }),
+        }).catch((error: Error) => error),
         allowance(walletClient, {
           address: shareToken,
           owner: account,
@@ -148,7 +146,8 @@ const runRequestRedeem = (
         }),
       ]);
 
-      if (nativeFee === undefined) {
+      if (nativeFee instanceof Error) {
+        emitter.emit("quote-failed", nativeFee);
         return;
       }
       emitter.emit("quote-succeeded", nativeFee);

@@ -183,6 +183,34 @@ describe("requestDeposit", function () {
     expect(onSettled).toHaveBeenCalledOnce();
   });
 
+  it("emits nothing after 'deposit-settled' when allowance fails before the quote", async function () {
+    let rejectQuote: (error: Error) => void = () => undefined;
+    vi.mocked(balanceOf).mockResolvedValue(validParameters.amount);
+    vi.mocked(quoteDeposit).mockReturnValue(
+      new Promise(function (_resolve, reject) {
+        rejectQuote = reject;
+      }),
+    );
+    vi.mocked(allowance).mockRejectedValue(new Error("allowance error"));
+
+    const { emitter, promise } = requestDeposit(
+      mockWalletClient,
+      validParameters,
+    );
+
+    const onQuoteFailed = vi.fn();
+    const onSettled = vi.fn();
+    emitter.on("quote-failed", onQuoteFailed);
+    emitter.on("deposit-settled", onSettled);
+
+    await promise;
+    rejectQuote(new Error("quote error"));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(onSettled).toHaveBeenCalledOnce();
+    expect(onQuoteFailed).not.toHaveBeenCalled();
+  });
+
   it("skips approval and submits request when allowance is sufficient", async function () {
     const receipt = { status: "success" } as TransactionReceipt;
 

@@ -115,9 +115,7 @@ const runRequestDeposit = (
           asset,
           assets: amount,
           callbackFee,
-        }).catch(function (error: Error) {
-          emitter.emit("quote-failed", error);
-        }),
+        }).catch((error: Error) => error),
         allowance(walletClient, {
           address: asset,
           owner: account,
@@ -125,7 +123,8 @@ const runRequestDeposit = (
         }),
       ]);
 
-      if (nativeFee === undefined) {
+      if (nativeFee instanceof Error) {
+        emitter.emit("quote-failed", nativeFee);
         return;
       }
       emitter.emit("quote-succeeded", nativeFee);

@@ -167,6 +167,34 @@ describe("requestRedeem", function () {
     );
   });
 
+  it("emits nothing after 'withdraw-settled' when allowance fails before the quote", async function () {
+    let rejectQuote: (error: Error) => void = () => undefined;
+    vi.mocked(balanceOf).mockResolvedValue(validParameters.shares);
+    vi.mocked(quoteRedeem).mockReturnValue(
+      new Promise(function (_resolve, reject) {
+        rejectQuote = reject;
+      }),
+    );
+    vi.mocked(allowance).mockRejectedValue(new Error("allowance error"));
+
+    const { emitter, promise } = requestRedeem(
+      mockWalletClient,
+      validParameters,
+    );
+
+    const onQuoteFailed = vi.fn();
+    const onSettled = vi.fn();
+    emitter.on("quote-failed", onQuoteFailed);
+    emitter.on("withdraw-settled", onSettled);
+
+    await promise;
+    rejectQuote(new Error("quote error"));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(onSettled).toHaveBeenCalledOnce();
+    expect(onQuoteFailed).not.toHaveBeenCalled();
+  });
+
   it("sweeps dust when shares >= 99.9% of balance", async function () {
     const userBalance = BigInt(1000);
     const receipt = { status: "success" } as TransactionReceipt;
