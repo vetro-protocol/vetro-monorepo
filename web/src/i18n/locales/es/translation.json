@@ -534,9 +534,14 @@
       "empty-title": "Todavía no hay pools",
       "error-description": "Los datos de los pools no están disponibles ahora. Inténtelo de nuevo más tarde.",
       "error-title": "No se pueden cargar los pools",
+      "filters": "Filtros",
+      "no-match-description": "Ningún pool coincide con los filtros. Cambie los filtros para ver más pools.",
+      "no-match-title": "Ningún pool coincide",
+      "only-with-campaigns": "Solo con campañas",
       "pool": "Pool",
       "pool-apr": "APR del pool",
       "pools": "Pools",
+      "rewards": "Recompensas",
       "rewards-apr": "APR de recompensas",
       "rewards-apr-info": {
         "curve-gauge": "Haga stake del token LP en la pestaña “Stake” de Curve. Gana CRV, con boost según su veCRV.",
@@ -547,10 +552,13 @@
         "step-stake": "Haga stake de su token LP en UNA de estas opciones. Haga clic en la tasa de recompensa de la fila para abrir su página:",
         "title": "Ganar recompensas requiere 2 pasos:"
       },
+      "show-all-pools": "Mostrar todos los pools",
       "title": "Liquidez",
+      "token": "Token",
       "total-tvl": "TVL total en DEX",
       "try-again": "Intentar de nuevo",
       "tvl": "TVL",
+      "venue": "Plataforma",
       "volume-24h": "Volumen 24h"
     },
     "not-found": {

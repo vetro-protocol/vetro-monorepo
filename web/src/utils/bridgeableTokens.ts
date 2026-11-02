@@ -1,5 +1,7 @@
+import { knownTokens } from "@vetro-protocol/core";
 import { sVetBtcAddress, sVusdAddress } from "@vetro-protocol/earn";
-import type { Address, Chain } from "viem";
+import type { BridgeableToken } from "types";
+import { type Address, type Chain, isAddressEqual } from "viem";
 import { arbitrum, base, bsc, hemi, mainnet, optimism } from "viem/chains";
 
 type BridgeTokenChainEntry = {
@@ -9,7 +11,7 @@ type BridgeTokenChainEntry = {
   sharedDecimals: number;
 };
 
-export const bridgeableTokens: BridgeTokenChainEntry[] = [
+const bridgeableTokens: BridgeTokenChainEntry[] = [
   // VUSD
   {
     address: "0xCa83DDE9c22254f58e771bE5E157773212AcBAc3",
@@ -139,3 +141,16 @@ export const bridgeableTokens: BridgeTokenChainEntry[] = [
     sharedDecimals: 6,
   },
 ];
+
+export const knownBridgeableTokens: BridgeableToken[] =
+  bridgeableTokens.flatMap(function ({
+    address,
+    chainId,
+    oftAdapterAddress,
+    sharedDecimals,
+  }) {
+    const token = knownTokens.find(
+      (t) => isAddressEqual(t.address, address) && t.chainId === chainId,
+    );
+    return token ? [{ ...token, oftAdapterAddress, sharedDecimals }] : [];
+  });
