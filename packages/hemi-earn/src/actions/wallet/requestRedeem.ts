@@ -63,27 +63,6 @@ const canRequestRedeem = function ({
   return { canRedeem: true };
 };
 
-const calculateAdjustedShares = function ({
-  approvalAmount,
-  requestedShares,
-  userShares,
-}: {
-  approvalAmount: bigint | undefined;
-  requestedShares: bigint;
-  userShares: bigint;
-}) {
-  if (approvalAmount !== undefined && approvalAmount < userShares) {
-    return requestedShares;
-  }
-  // Snap to the full balance when within 0.1% to avoid leaving dust
-  // (upstream canRequestRedeem already guarantees requestedShares <= userShares).
-  const threshold = (userShares * BigInt(999)) / BigInt(1000);
-  if (requestedShares >= threshold) {
-    return userShares;
-  }
-  return requestedShares;
-};
-
 const runRequestRedeem = (
   walletClient: WalletClient,
   {
@@ -129,12 +108,6 @@ const runRequestRedeem = (
         return;
       }
 
-      const adjustedShares = calculateAdjustedShares({
-        approvalAmount,
-        requestedShares: shares,
-        userShares,
-      });
-
       emitter.emit("pre-quote");
       emitter.emit("check-allowance");
       const [nativeFee, currentAllowance] = await Promise.all([
@@ -143,7 +116,7 @@ const runRequestRedeem = (
           asset,
           callbackFee,
           isInstant,
-          shares: adjustedShares,
+          shares,
         }).catch((error: Error) => error),
         allowance(walletClient, {
           address: shareToken,
@@ -158,14 +131,14 @@ const runRequestRedeem = (
       }
       emitter.emit("quote-succeeded", nativeFee);
 
-      if (currentAllowance < adjustedShares) {
+      if (currentAllowance < shares) {
         emitter.emit("pre-approve");
 
         const approvalHash = await approve(walletClient, {
           address: shareToken,
           amount: resolveApprovalAmount({
             approvalAmount,
-            required: adjustedShares,
+            required: shares,
           }),
           spender: address,
         }).catch(function (error: Error) {
@@ -204,7 +177,7 @@ const runRequestRedeem = (
         address,
         args: [
           asset,
-          adjustedShares,
+          shares,
           assetsOutMin,
           receiver,
           operator,

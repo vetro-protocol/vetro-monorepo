@@ -63,9 +63,6 @@ const buildExpectedArgs = (shares: bigint) => [
   false,
 ];
 
-const dustSnapBalance = BigInt(10005);
-const dustSnapShares = BigInt(10000);
-
 describe("requestRedeem", function () {
   it("emits 'unexpected-error' when wallet client chain is not defined", async function () {
     const walletClientWithoutChain = {
@@ -215,29 +212,6 @@ describe("requestRedeem", function () {
     expect(onQuoteFailed).not.toHaveBeenCalled();
   });
 
-  it("sweeps dust when shares >= 99.9% of balance", async function () {
-    const userBalance = BigInt(1000);
-    const receipt = { status: "success" } as TransactionReceipt;
-
-    vi.mocked(balanceOf).mockResolvedValue(userBalance);
-    vi.mocked(quoteRedeem).mockResolvedValue(BigInt(0));
-    vi.mocked(allowance).mockResolvedValue(userBalance);
-    vi.mocked(writeContract).mockResolvedValue(zeroHash);
-    vi.mocked(waitForTransactionReceipt).mockResolvedValue(receipt);
-
-    const { promise } = requestRedeem(mockWalletClient, {
-      ...validParameters,
-      shares: BigInt(999),
-    });
-
-    await promise;
-
-    expect(writeContract).toHaveBeenCalledWith(
-      mockWalletClient,
-      expect.objectContaining({ args: buildExpectedArgs(userBalance) }),
-    );
-  });
-
   it("happy path: quote, skip approve, submit, succeed", async function () {
     const receipt = { status: "success" } as TransactionReceipt;
 
@@ -294,64 +268,6 @@ describe("requestRedeem", function () {
       }),
     );
     expect(onSettled).toHaveBeenCalledOnce();
-  });
-
-  it("approves the adjusted shares, not the requested ones, when the dust snap applies", async function () {
-    const approvalReceipt = { status: "success" } as TransactionReceipt;
-    const withdrawReceipt = { status: "success" } as TransactionReceipt;
-
-    vi.mocked(balanceOf).mockResolvedValue(dustSnapBalance);
-    vi.mocked(quoteRedeem).mockResolvedValue(BigInt(7));
-    vi.mocked(allowance).mockResolvedValue(BigInt(0));
-    vi.mocked(approve).mockResolvedValue(zeroHash);
-    vi.mocked(writeContract).mockResolvedValue(zeroHash);
-    vi.mocked(waitForTransactionReceipt)
-      .mockResolvedValueOnce(approvalReceipt)
-      .mockResolvedValueOnce(withdrawReceipt);
-
-    const { promise } = requestRedeem(mockWalletClient, {
-      ...validParameters,
-      shares: dustSnapShares,
-    });
-
-    await promise;
-
-    expect(approve).toHaveBeenCalledExactlyOnceWith(mockWalletClient, {
-      address: validParameters.shareToken,
-      amount: dustSnapBalance,
-      spender: validParameters.address,
-    });
-  });
-
-  it("skips the dust snap when approvalAmount is below the balance", async function () {
-    const approvalReceipt = { status: "success" } as TransactionReceipt;
-    const withdrawReceipt = { status: "success" } as TransactionReceipt;
-
-    vi.mocked(balanceOf).mockResolvedValue(dustSnapBalance);
-    vi.mocked(quoteRedeem).mockResolvedValue(BigInt(7));
-    vi.mocked(allowance).mockResolvedValue(BigInt(0));
-    vi.mocked(approve).mockResolvedValue(zeroHash);
-    vi.mocked(writeContract).mockResolvedValue(zeroHash);
-    vi.mocked(waitForTransactionReceipt)
-      .mockResolvedValueOnce(approvalReceipt)
-      .mockResolvedValueOnce(withdrawReceipt);
-
-    const { promise } = requestRedeem(mockWalletClient, {
-      ...validParameters,
-      approvalAmount: dustSnapShares,
-      shares: dustSnapShares,
-    });
-
-    await promise;
-
-    expect(approve).toHaveBeenCalledExactlyOnceWith(
-      mockWalletClient,
-      expect.objectContaining({ amount: dustSnapShares }),
-    );
-    expect(writeContract).toHaveBeenCalledWith(
-      mockWalletClient,
-      expect.objectContaining({ args: buildExpectedArgs(dustSnapShares) }),
-    );
   });
 
   it("fails loudly when approvalAmount is below the requested shares", async function () {
