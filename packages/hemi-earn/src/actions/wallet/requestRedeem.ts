@@ -44,7 +44,7 @@ const canRequestRedeem = function ({
   shares: bigint;
   userShares: bigint;
 }): { canRedeem: boolean; reason?: string } {
-  if (!shares || shares <= BigInt(0)) {
+  if (typeof shares !== "bigint" || shares <= BigInt(0)) {
     return { canRedeem: false, reason: "invalid shares amount" };
   }
 

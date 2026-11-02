@@ -108,6 +108,26 @@ describe("requestRedeem", function () {
     );
   });
 
+  it("emits 'withdraw-failed-validation' when shares is not a bigint", async function () {
+    vi.mocked(balanceOf).mockResolvedValue(BigInt(1000));
+
+    const { emitter, promise } = requestRedeem(mockWalletClient, {
+      ...validParameters,
+      // @ts-expect-error testing a runtime guard for untyped callers
+      shares: "100",
+    });
+
+    const onFailedValidation = vi.fn();
+    emitter.on("withdraw-failed-validation", onFailedValidation);
+
+    await promise;
+
+    expect(onFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "invalid shares amount",
+    );
+    expect(writeContract).not.toHaveBeenCalled();
+  });
+
   it.each(["operator", "receiver"] as const)(
     "emits 'withdraw-failed-validation' and sends no transaction when %s is the zero address",
     async function (field) {

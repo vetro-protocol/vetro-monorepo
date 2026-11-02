@@ -45,7 +45,7 @@ const canRequestDeposit = async function ({
   receiver: Address;
   walletClient: WalletClient;
 }): Promise<{ canDeposit: boolean; reason?: string }> {
-  if (!amount || amount <= BigInt(0)) {
+  if (typeof amount !== "bigint" || amount <= BigInt(0)) {
     return { canDeposit: false, reason: "invalid amount" };
   }
 

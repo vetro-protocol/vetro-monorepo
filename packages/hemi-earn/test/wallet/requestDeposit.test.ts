@@ -100,6 +100,24 @@ describe("requestDeposit", function () {
     );
   });
 
+  it("emits 'deposit-failed-validation' when amount is not a bigint", async function () {
+    const { emitter, promise } = requestDeposit(mockWalletClient, {
+      ...validParameters,
+      // @ts-expect-error testing a runtime guard for untyped callers
+      amount: "100",
+    });
+
+    const onFailedValidation = vi.fn();
+    emitter.on("deposit-failed-validation", onFailedValidation);
+
+    await promise;
+
+    expect(onFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "invalid amount",
+    );
+    expect(writeContract).not.toHaveBeenCalled();
+  });
+
   it.each(["operator", "receiver"] as const)(
     "emits 'deposit-failed-validation' and sends no transaction when %s is the zero address",
     async function (field) {
