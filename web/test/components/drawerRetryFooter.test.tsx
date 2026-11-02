@@ -21,7 +21,10 @@ describe("DrawerRetryFooter", function () {
 
   it("removes the button when onRetry is removed", async function () {
     const screen = await render(<DrawerRetryFooter onRetry={vi.fn()} />);
-    const retryButton = screen.getByRole("button", { name: "Retry" });
+    const retryButton = screen.getByRole("button", {
+      includeHidden: true,
+      name: "Retry",
+    });
 
     await expect.element(retryButton).toBeInTheDocument();
 
