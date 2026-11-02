@@ -1,18 +1,16 @@
 import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { Badge } from "components/base/badge";
-import { Button } from "components/base/button";
 import { FilterMenu } from "components/base/filterMenu";
 import { SectionHeader } from "components/base/sectionHeader";
 import { StatusBadge } from "components/base/statusBadge";
 import { Table, type TableColumnDef } from "components/base/table";
 import { Header } from "components/base/table/header";
 import { Toast } from "components/base/toast";
+import { GeoRestrictedButton } from "components/geoRestrictedButton";
 import { RequireWalletConnected } from "components/requireWalletConnected";
-import { Tooltip } from "components/tooltip";
 import { TableCellsIcon } from "pages/earn/icons/tableCellsIcon";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { isGeoRestricted } from "utils/geoRestriction";
 import type { Address } from "viem";
 
 import { useExitTickets } from "../../hooks/useExitTickets";
@@ -119,31 +117,22 @@ function WithdrawAllButton({
   onWithdrawAll,
 }: WithdrawAllButtonProps) {
   const { t } = useTranslation();
-  const geoRestricted = isGeoRestricted();
-
-  const button = (
-    <Button
-      disabled={disabled || geoRestricted}
-      onClick={onWithdrawAll}
-      size="xSmall"
-      variant="primary"
-    >
-      <span className="flex items-center gap-x-1">
-        {isWithdrawing
-          ? t("pages.earn.exit-tickets.withdrawing")
-          : t("pages.earn.exit-tickets.withdraw-all")}
-        {!isWithdrawing && count > 0 && <Badge variant="blue">{count}</Badge>}
-      </span>
-    </Button>
-  );
 
   return (
     <RequireWalletConnected size="xSmall">
-      {geoRestricted ? (
-        <Tooltip content={t("common.geo-restriction-title")}>{button}</Tooltip>
-      ) : (
-        button
-      )}
+      <GeoRestrictedButton
+        disabled={disabled}
+        onClick={onWithdrawAll}
+        size="xSmall"
+        variant="primary"
+      >
+        <span className="flex items-center gap-x-1">
+          {isWithdrawing
+            ? t("pages.earn.exit-tickets.withdrawing")
+            : t("pages.earn.exit-tickets.withdraw-all")}
+          {!isWithdrawing && count > 0 && <Badge variant="blue">{count}</Badge>}
+        </span>
+      </GeoRestrictedButton>
     </RequireWalletConnected>
   );
 }
