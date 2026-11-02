@@ -27,6 +27,7 @@ overrides:
 
 packages:
   - "api"
+  - "geo-block"
   - "internal-dashboard"
   - "packages/*"
   - "subgraph"

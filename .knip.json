@@ -5,6 +5,9 @@
     "api": {
       "ignoreDependencies": ["@sentry/cli"]
     },
+    "geo-block": {
+      "ignoreDependencies": ["tailwindcss"]
+    },
     "subgraph": {
       "entry": ["src/earn.ts", "tests/*.test.ts"],
       "ignoreBinaries": ["scripts/tag-subgraph.sh"],
