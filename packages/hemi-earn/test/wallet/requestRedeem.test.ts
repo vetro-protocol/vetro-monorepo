@@ -303,15 +303,45 @@ describe("requestRedeem", function () {
     });
   });
 
-  it("fails loudly when approvalAmount is below the adjusted shares", async function () {
+  it("skips the dust snap when approvalAmount is below the balance", async function () {
+    const approvalReceipt = { status: "success" } as TransactionReceipt;
+    const withdrawReceipt = { status: "success" } as TransactionReceipt;
+
     vi.mocked(balanceOf).mockResolvedValue(dustSnapBalance);
+    vi.mocked(quoteRedeem).mockResolvedValue(BigInt(7));
+    vi.mocked(allowance).mockResolvedValue(BigInt(0));
+    vi.mocked(approve).mockResolvedValue(zeroHash);
+    vi.mocked(writeContract).mockResolvedValue(zeroHash);
+    vi.mocked(waitForTransactionReceipt)
+      .mockResolvedValueOnce(approvalReceipt)
+      .mockResolvedValueOnce(withdrawReceipt);
+
+    const { promise } = requestRedeem(mockWalletClient, {
+      ...validParameters,
+      approvalAmount: dustSnapShares,
+      shares: dustSnapShares,
+    });
+
+    await promise;
+
+    expect(approve).toHaveBeenCalledExactlyOnceWith(
+      mockWalletClient,
+      expect.objectContaining({ amount: dustSnapShares }),
+    );
+    expect(writeContract).toHaveBeenCalledWith(
+      mockWalletClient,
+      expect.objectContaining({ args: buildExpectedArgs(dustSnapShares) }),
+    );
+  });
+
+  it("fails loudly when approvalAmount is below the requested shares", async function () {
+    vi.mocked(balanceOf).mockResolvedValue(validParameters.shares);
     vi.mocked(quoteRedeem).mockResolvedValue(BigInt(7));
     vi.mocked(allowance).mockResolvedValue(BigInt(0));
 
     const { emitter, promise } = requestRedeem(mockWalletClient, {
       ...validParameters,
-      approvalAmount: dustSnapShares,
-      shares: dustSnapShares,
+      approvalAmount: validParameters.shares - BigInt(1),
     });
 
     const onUnexpectedError = vi.fn();
@@ -320,7 +350,7 @@ describe("requestRedeem", function () {
     await promise;
 
     expect(onUnexpectedError).toHaveBeenCalledExactlyOnceWith(
-      new Error("approval amount 10000 is below the required 10005"),
+      new Error("approval amount 99 is below the required 100"),
     );
     expect(approve).not.toHaveBeenCalled();
     expect(writeContract).not.toHaveBeenCalled();

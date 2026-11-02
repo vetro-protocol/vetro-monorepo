@@ -64,12 +64,17 @@ const canRequestRedeem = function ({
 };
 
 const calculateAdjustedShares = function ({
+  approvalAmount,
   requestedShares,
   userShares,
 }: {
+  approvalAmount: bigint | undefined;
   requestedShares: bigint;
   userShares: bigint;
 }) {
+  if (approvalAmount !== undefined && approvalAmount < userShares) {
+    return requestedShares;
+  }
   // Snap to the full balance when within 0.1% to avoid leaving dust
   // (upstream canRequestRedeem already guarantees requestedShares <= userShares).
   const threshold = (userShares * BigInt(999)) / BigInt(1000);
@@ -125,6 +130,7 @@ const runRequestRedeem = (
       }
 
       const adjustedShares = calculateAdjustedShares({
+        approvalAmount,
         requestedShares: shares,
         userShares,
       });
