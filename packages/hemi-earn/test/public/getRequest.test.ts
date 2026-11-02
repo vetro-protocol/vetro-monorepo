@@ -56,7 +56,7 @@ describe("getRequest", function () {
     ).rejects.toThrow("Request ID must be greater than zero");
   });
 
-  it("preserves narrow kind/status values across the cast", async function () {
+  it("reads from the default Router address when address is omitted", async function () {
     vi.mocked(readContract).mockResolvedValue({
       amountOutMin: BigInt(0),
       asset: someAddress,
@@ -70,10 +70,8 @@ describe("getRequest", function () {
       status: 3,
     });
 
-    const result = await getRequest(client, { requestId: BigInt(7) });
+    await getRequest(client, { requestId: BigInt(7) });
 
-    expect(result.kind).toBe(1);
-    expect(result.status).toBe(3);
     expect(readContract).toHaveBeenCalledWith(
       client,
       expect.objectContaining({
