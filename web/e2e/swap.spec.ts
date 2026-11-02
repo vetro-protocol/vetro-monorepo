@@ -439,12 +439,9 @@ test("redeem VUSD via the gateway (two-step queue redeem)", async function ({
   await expect(queueRedeemButton).toBeEnabled();
   await queueRedeemButton.click();
 
-  // The claim drawer slides in ("Redeem your VUSD"). Scope to it by its title
-  // heading's container rather than brittle layout classes — the heading's
-  // parent holds the whole drawer body (amount input, token selector, buttons).
-  const drawerTitle = page.getByRole("heading", { name: /redeem your/i });
-  await expect(drawerTitle).toBeVisible();
-  const drawer = drawerTitle.locator("..");
+  // The claim drawer slides in ("Redeem your VUSD").
+  const drawer = page.getByRole("dialog", { name: /redeem your/i });
+  await expect(drawer).toBeVisible();
 
   // Redeem to the drawer's default output token. Switching it via the token
   // modal would dismiss the drawer — the modal renders in its own portal, so the
@@ -547,9 +544,8 @@ test("claim drawer CTA reads 'Redeems are paused for this token' when the output
   await expect(queueRedeemButton).toBeEnabled({ timeout: 30_000 });
   await queueRedeemButton.click();
 
-  const drawerTitle = page.getByRole("heading", { name: /redeem your/i });
-  await expect(drawerTitle).toBeVisible();
-  const drawer = drawerTitle.locator("..");
+  const drawer = page.getByRole("dialog", { name: /redeem your/i });
+  await expect(drawer).toBeVisible();
 
   await expect(
     drawer.getByRole("button", { name: "Select token to swap" }),

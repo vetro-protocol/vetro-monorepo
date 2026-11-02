@@ -19,7 +19,8 @@ vi.mock("viem/actions", () => ({
   estimateGas: vi.fn(),
 }));
 
-vi.mock("viem-erc4626/actions", () => ({
+vi.mock("viem-erc4626/actions", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("viem-erc4626/actions")>()),
   convertToAssets: vi.fn(),
 }));
 

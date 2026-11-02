@@ -257,7 +257,7 @@ This was sent to ${email}. If you did not submit this,
 you can ignore this email.
 
 --
-Vetro Service & Support Ltd.
+Vetro Service & Support Corp.
 You received this because you used the contact form at ${env.WEBSITE_URL}.
 Privacy policy: https://vetro.org/privacy-policy
 Contact: ${env.CONTACT_FORM_RECIPIENT!}`,

@@ -1,5 +1,6 @@
 import { Button } from "components/base/button";
 import { StatusMessage } from "components/base/statusMessage";
+import { FunnelCircleIcon } from "components/icons/funnelCircleIcon";
 import { InboxCircleIcon } from "components/icons/inboxCircleIcon";
 import { WarningCircleIcon } from "components/icons/warningCircleIcon";
 import type { ReactNode } from "react";
@@ -19,6 +20,33 @@ export function EmptyState() {
         description={t("pages.liquidity.empty-description")}
         icon={<InboxCircleIcon />}
         title={t("pages.liquidity.empty-title")}
+      />
+    </TableState>
+  );
+}
+
+type NoMatchStateProps = {
+  onShowAll: VoidFunction;
+};
+
+export function NoMatchState({ onShowAll }: NoMatchStateProps) {
+  const { t } = useTranslation();
+  return (
+    <TableState>
+      <StatusMessage
+        action={
+          <Button
+            onClick={onShowAll}
+            size="xSmall"
+            type="button"
+            variant="secondary"
+          >
+            {t("pages.liquidity.show-all-pools")}
+          </Button>
+        }
+        description={t("pages.liquidity.no-match-description")}
+        icon={<FunnelCircleIcon />}
+        title={t("pages.liquidity.no-match-title")}
       />
     </TableState>
   );

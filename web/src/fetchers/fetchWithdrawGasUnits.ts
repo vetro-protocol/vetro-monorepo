@@ -1,13 +1,11 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { stakingVaultAbi } from "@vetro-protocol/earn";
+import {
+  encodeRequestWithdraw,
+  encodeWithdraw,
+} from "@vetro-protocol/earn/actions";
 import { stakedBalanceQueryOptions } from "hooks/useStakedBalance";
 import { canInstantWithdrawOptions } from "pages/earn/hooks/useCanInstantWithdraw";
-import {
-  type Address,
-  type Client,
-  erc4626Abi,
-  encodeFunctionData,
-} from "viem";
+import { type Address, type Client } from "viem";
 import { estimateGas } from "viem/actions";
 
 /**
@@ -55,16 +53,8 @@ export const fetchWithdrawGasUnits = async function ({
   }
 
   const data = canInstantWithdraw
-    ? encodeFunctionData({
-        abi: erc4626Abi,
-        args: [amount, account, account],
-        functionName: "withdraw",
-      })
-    : encodeFunctionData({
-        abi: stakingVaultAbi,
-        args: [amount, account],
-        functionName: "requestWithdraw",
-      });
+    ? encodeWithdraw({ assets: amount, owner: account, receiver: account })
+    : encodeRequestWithdraw({ assets: amount, owner: account });
 
   return estimateGas(client, {
     account,

@@ -37,7 +37,6 @@ export function ClaimExitProgressDrawer({
         "pages.earn.fixed-term.claim-exit-step-confirm-description",
       )}
       stepTitle={t("pages.earn.fixed-term.claim-exit-step-confirm-title")}
-      title={t("pages.earn.fixed-term.claim-exit-in-progress")}
       transactionStep={transactionStep}
     >
       <TokenInteraction

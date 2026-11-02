@@ -37,7 +37,6 @@ export function CancelDepositProgressDrawer({
         "pages.earn.fixed-term.cancel-deposit-step-confirm-description",
       )}
       stepTitle={t("pages.earn.fixed-term.cancel-deposit-step-confirm-title")}
-      title={t("pages.earn.fixed-term.cancel-deposit-in-progress")}
       transactionStep={transactionStep}
     >
       <TokenInteraction

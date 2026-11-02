@@ -69,7 +69,6 @@ export function RequestExitProgressDrawer({
         "pages.earn.fixed-term.request-exit-step-confirm-description",
       )}
       stepTitle={t("pages.earn.fixed-term.request-exit-step-confirm-title")}
-      title={t("pages.earn.fixed-term.request-exit-in-progress")}
       transactionStep={transactionStep}
     >
       {claimableShares > 0n ? (

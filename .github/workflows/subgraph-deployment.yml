@@ -15,6 +15,7 @@ jobs:
       contents: read
     if: startsWith(github.event.release.tag_name, 'vetro-app-subgraph@')
     runs-on: ubuntu-latest
+    environment: release
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       - uses: hemilabs/actions/setup-node-env@8f87619b7f0122c39e14a32514ab3e4e0d4c3966 # v2.3.0

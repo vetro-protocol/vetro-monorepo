@@ -20,11 +20,11 @@
     "fetch-plus-plus": "1.0.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "react-router": "8.3.0",
+    "react-router": "8.5.0",
     "victory": "37.3.6",
     "viem": "2.44.4",
     "viem-erc20": "2.2.1",
-    "viem-erc4626": "1.1.0"
+    "viem-erc4626": "1.2.0"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.23.1",

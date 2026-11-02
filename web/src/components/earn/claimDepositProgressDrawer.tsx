@@ -41,7 +41,6 @@ export function ClaimDepositProgressDrawer({
         "pages.earn.fixed-term.claim-deposit-step-confirm-description",
       )}
       stepTitle={t("pages.earn.fixed-term.claim-deposit-step-confirm-title")}
-      title={t("pages.earn.fixed-term.claim-deposit-in-progress")}
       transactionStep={transactionStep}
     >
       <TokenInteraction

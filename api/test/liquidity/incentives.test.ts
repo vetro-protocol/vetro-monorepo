@@ -43,6 +43,7 @@ const strategy: IncentiveSources["strategies"][number] = {
   chainId: 1,
   gaugeAddress,
   key: "1-0xstrategy",
+  lpToken: { address: lpTokenAddress },
   rewards: [
     { apr: 0, end: 0, token: { address: crv } },
     { apr: 3, end: nowSeconds + 100, token: { address: sdt } },

@@ -16,8 +16,13 @@ import { decimals, totalSupply } from "viem-erc20/actions";
 import { balanceOf, previewRedeem, totalAssets } from "viem-erc4626/actions";
 
 import { getPrice } from "./chainlink.ts";
+import { gaugedStrategiesKey } from "./liquidity/incentives.ts";
+import type { StakeDaoStrategy } from "./liquidity/stake-dao.ts";
 import { findStakingVaultForPeggedToken } from "./staking-vault.ts";
+import { getStrategyApy, type StrategyApy } from "./strategy-apy.ts";
+import { getStrategySource } from "./strategy-source.ts";
 import {
+  getReceiptToken,
   getStrategies,
   getStrategyConfig,
   getTotalDebt,
@@ -37,19 +42,29 @@ import {
  */
 export async function getTreasuryComposition({
   gatewayAddress,
+  kv,
   url,
 }: {
   gatewayAddress: Address;
+  kv: KVNamespace;
   url: string | undefined;
 }) {
   const client = createMainnetClient(url);
-  const treasuryAddress = await getTreasury(client, {
-    address: gatewayAddress,
-  });
+  const [stakeDaoStrategies, treasuryAddress] = await Promise.all([
+    kv
+      .get<StakeDaoStrategy[]>(gaugedStrategiesKey, "json")
+      .catch(function (error) {
+        console.warn(
+          `Failed to read the StakeDAO strategies: ${error.message}`,
+        );
+        return null;
+      }),
+    getTreasury(client, { address: gatewayAddress }),
+  ]);
   const whitelistedTokens = await getWhitelistedTokens(client, {
     address: treasuryAddress,
   });
-  return Promise.all(
+  const treasuryTokens = await Promise.all(
     whitelistedTokens.map(async function (tokenAddress) {
       const [[vaultAddress, oracleAddress], withdrawable] = await Promise.all([
         getTokenConfig(client, {
@@ -63,24 +78,39 @@ export async function getTreasuryComposition({
       ]);
       const [strategies, [latestPrice, priceDecimals], totalDebt] =
         await Promise.all([
-          getStrategies(client, vaultAddress),
+          getStrategies(client, { address: vaultAddress }),
           getPrice(client, oracleAddress),
-          getTotalDebt(client, vaultAddress),
+          getTotalDebt(client, { address: vaultAddress }),
         ]);
       const strategyData = await Promise.all(
         strategies.map((strategyAddress) =>
           Promise.all([
-            getStrategyConfig(client, vaultAddress, strategyAddress),
-            getVaultName(client, strategyAddress),
+            getStrategyConfig(client, {
+              address: vaultAddress,
+              strategy: strategyAddress,
+            }),
+            getVaultName(client, { address: strategyAddress }),
+            strategyAddress,
           ]),
         ),
       );
-      const activeStrategies = strategyData
-        .filter(([strategyConfig]) => strategyConfig.active)
-        .map(([strategyConfig, strategyName]) => ({
-          name: strategyName.replaceAll("_", " "),
-          totalDebt: strategyConfig.totalDebt,
-        }));
+      const activeStrategies = await Promise.all(
+        strategyData
+          .filter(([strategyConfig]) => strategyConfig.active)
+          .map(async ([strategyConfig, strategyName, address]) => ({
+            address,
+            name: strategyName.replaceAll("_", " "),
+            receiptToken: await getReceiptToken(client, { address }).catch(
+              function (error) {
+                console.warn(
+                  `Failed to read the receipt token of strategy ${address}: ${error.message}`,
+                );
+                return undefined;
+              },
+            ),
+            totalDebt: strategyConfig.totalDebt,
+          })),
+      );
       return {
         activeStrategies,
         latestPrice,
@@ -91,6 +121,30 @@ export async function getTreasuryComposition({
       };
     }),
   );
+
+  const strategyApy = await getStrategyApy({
+    stakeDaoStrategies: stakeDaoStrategies ?? [],
+    strategies: treasuryTokens.flatMap(
+      ({ activeStrategies }) => activeStrategies,
+    ),
+  }).catch(function (error) {
+    console.warn(`Failed to get the strategy APY: ${error.message}`);
+    return {} as StrategyApy;
+  });
+  return treasuryTokens.map((treasuryToken) => ({
+    ...treasuryToken,
+    activeStrategies: treasuryToken.activeStrategies.map(
+      ({ receiptToken, ...strategy }) => ({
+        ...strategy,
+        apy: strategyApy[strategy.address],
+        source: getStrategySource({
+          name: strategy.name,
+          receiptToken,
+          stakeDaoStrategies,
+        }),
+      }),
+    ),
+  }));
 }
 
 async function getStrategicReserves({

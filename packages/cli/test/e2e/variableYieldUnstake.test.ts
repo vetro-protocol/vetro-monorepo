@@ -289,7 +289,7 @@ describe("variable-yield unstake", function () {
         );
         expect(exitCode).toBe(1);
         expect(JSON.parse(stderr).error).toBe(
-          `The cooldown is disabled: the vault takes a one-step withdraw for "${vusd.symbol}", which the CLI does not encode yet`,
+          `The cooldown is disabled: the vault takes a one-step withdraw for "${vusd.symbol}"; use instant-withdraw instead`,
         );
       },
     });

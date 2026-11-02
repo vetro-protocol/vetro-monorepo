@@ -5,7 +5,14 @@ interface Env {
   CACHE_KV: KVNamespace;
   CONTACT_FORM_RECIPIENT?: string;
   CONTACT_FORM_SENDER?: string;
+  CUSTOM_RPC_URL_HEMI?: string;
   CUSTOM_RPC_URL_MAINNET?: string;
+  DB: D1Database;
+  HEMI_EARN_INDEXER_API_KEY?: string;
+  HEMI_EARN_INDEXER_URL?: string;
+  HEMI_EARN_TERMS_HASH?: string;
+  HEMI_EARN_TERMS_URL?: string;
+  HEMI_EARN_TERMS_VERSION?: string;
   MERKL_OPPORTUNITY_SVETBTC?: string;
   MERKL_OPPORTUNITY_SVUSD?: string;
   ORIGINS: string;

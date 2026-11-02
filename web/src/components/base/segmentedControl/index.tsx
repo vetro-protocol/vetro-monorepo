@@ -35,6 +35,7 @@ export const SegmentedControl = <T extends string>({
   <div className="flex gap-2">
     {options.map((option) => (
       <button
+        aria-pressed={value === option.value}
         className={`${sizeClasses[size]} ${variantClasses[variant]} rounded-full font-semibold transition-all not-disabled:cursor-pointer disabled:cursor-not-allowed disabled:opacity-65 ${
           value === option.value
             ? "bg-white text-gray-900 shadow-sm"

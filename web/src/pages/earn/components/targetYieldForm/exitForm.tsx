@@ -252,7 +252,11 @@ export function ExitForm({
       return null;
     }
     return (
-      <Drawer onClose={handleCloseDrawer} requestClose={requestCloseDrawer}>
+      <Drawer
+        onClose={handleCloseDrawer}
+        requestClose={requestCloseDrawer}
+        title={t("pages.earn.fixed-term.request-exit-in-progress")}
+      >
         <Suspense fallback={<DrawerLoader />}>
           <RequestExitProgressDrawer
             claimableShares={submitted.claimableShares}

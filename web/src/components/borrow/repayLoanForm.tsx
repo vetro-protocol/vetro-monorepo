@@ -4,6 +4,7 @@ import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
 import { getChainAddresses } from "@morpho-org/blue-sdk";
 import { Button } from "components/base/button";
 import { RenderCryptoValue } from "components/base/cryptoValue";
+import { DrawerRetryFooter } from "components/base/drawer/drawerRetryFooter";
 import { RenderFiatValue } from "components/base/fiatValue";
 import type { ToastContent } from "components/base/toast";
 import {
@@ -173,8 +174,6 @@ function StepperOverlay({
   steps,
 }: StepperOverlayProps) {
   const { t } = useTranslation();
-  const { render: renderRetry, show: showRetry } =
-    useAnimatedVisibility(isError);
 
   return (
     <>
@@ -198,21 +197,7 @@ function StepperOverlay({
             <VerticalStepper steps={steps} />
           </div>
         </div>
-        {renderRetry && (
-          <div
-            className={`grid transition-[grid-template-rows] duration-300 ease-out ${
-              showRetry ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-            }`}
-          >
-            <div className="overflow-hidden">
-              <div className="border-t border-gray-200 bg-gray-50 px-6 py-3 *:w-full">
-                <Button onClick={onRetry} size="small" variant="primary">
-                  {t("pages.borrow.repay-loan-progress.retry")}
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
+        <DrawerRetryFooter onRetry={isError ? onRetry : undefined} />
       </div>
     </>
   );

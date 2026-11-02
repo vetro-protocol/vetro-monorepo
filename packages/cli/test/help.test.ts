@@ -17,6 +17,7 @@ describe("help", function () {
     ["variable-yield", "claim-all"],
     ["variable-yield", "cooldown"],
     ["variable-yield", "exit-tickets"],
+    ["variable-yield", "instant-withdraw"],
     ["variable-yield", "is-instant-withdraw"],
     ["variable-yield", "position"],
     ["variable-yield", "preview-stake"],

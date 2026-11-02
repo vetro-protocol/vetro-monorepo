@@ -287,7 +287,11 @@ export function StakeDepositForm({
         </CollapsibleSection>
       </form>
       {isDrawerOpen && submitted && (
-        <Drawer onClose={handleCloseDrawer} requestClose={requestCloseDrawer}>
+        <Drawer
+          onClose={handleCloseDrawer}
+          requestClose={requestCloseDrawer}
+          title={t("pages.earn.stake.deposit-in-progress")}
+        >
           <Suspense fallback={<DrawerLoader />}>
             <StakeDepositProgressDrawer
               amount={submitted.amount}

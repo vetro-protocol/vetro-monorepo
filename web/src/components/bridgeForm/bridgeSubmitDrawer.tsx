@@ -1,6 +1,5 @@
-import { Button } from "components/base/button";
 import { Drawer } from "components/base/drawer";
-import { DrawerTitle } from "components/base/drawer/drawerTitle";
+import { DrawerRetryFooter } from "components/base/drawer/drawerRetryFooter";
 import {
   TokenInteraction,
   TokenInteractionList,
@@ -118,10 +117,8 @@ export function BridgeSubmitDrawer({
   }
 
   return (
-    <Drawer onClose={onClose}>
+    <Drawer onClose={onClose} title={t("pages.bridge.progress.title")}>
       <div className="flex h-full flex-col">
-        <DrawerTitle>{t("pages.bridge.progress.title")}</DrawerTitle>
-
         <TokenInteractionList>
           <TokenInteraction
             amount={fromAmount}
@@ -162,13 +159,7 @@ export function BridgeSubmitDrawer({
           </div>
         </div>
 
-        {isError && (
-          <div className="border-t border-gray-200 bg-gray-50 px-6 py-3 *:w-full">
-            <Button onClick={onRetry} size="small" variant="primary">
-              {t("pages.bridge.progress.retry")}
-            </Button>
-          </div>
-        )}
+        <DrawerRetryFooter onRetry={isError ? onRetry : undefined} />
       </div>
     </Drawer>
   );

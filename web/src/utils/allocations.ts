@@ -1,7 +1,8 @@
-import type { Token } from "@vetro-protocol/core";
+import type { StrategySource, Token } from "@vetro-protocol/core";
 import type { TreasuryToken, TvlHistoryEntry } from "types";
 import { tokenAmountToUsd } from "utils/currency";
 import { formatNumber } from "utils/format";
+import { getStakeDaoStrategyUrl } from "utils/url";
 import { formatUnits, isAddressEqual, type Address } from "viem";
 
 type Prices = Record<string, string>;
@@ -107,6 +108,22 @@ export const toTvlHistorySeries = ({
     symbol: token.symbol,
   }));
 
+const getStrategyUrl = function (source: StrategySource) {
+  if (source.protocol === "lagoon") {
+    return `https://app.lagoon.finance/vault/1/${source.vaultAddress}`;
+  }
+  if (source.protocol === "morpho") {
+    return `https://app.morpho.org/ethereum/vault/${source.vaultAddress}`;
+  }
+  if (source.protocol === "stakeDao") {
+    return getStakeDaoStrategyUrl(source.strategyKey);
+  }
+  // make compilation fail if a new protocol was added, and keep a protocol
+  // that only a newer API knows without a link
+  source satisfies never;
+  return undefined;
+};
+
 // Transforms /analytics/treasury response into yield allocation items,
 // one item per active strategy across all tokens, sorted by USD amount (largest first).
 export const toYieldItems = ({
@@ -124,19 +141,23 @@ export const toYieldItems = ({
       if (!token) {
         return [];
       }
-      return activeStrategies.map(({ name, totalDebt }) => ({
+      return activeStrategies.map(({ apy, name, source, totalDebt }) => ({
         amount: tokenAmountToUsd({
           amount: BigInt(totalDebt),
           prices,
           token,
         }),
+        apy,
+        href: source ? getStrategyUrl(source) : undefined,
         label: name,
       }));
     })
     .sort((a, b) => b.amount - a.amount)
-    .map(({ amount, label }, index) => ({
+    .map(({ amount, apy, href, label }, index) => ({
       amount,
+      apy,
       color: assignColor(index),
+      href,
       label,
     }));
 

@@ -1,6 +1,5 @@
 import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
-import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import type { ToastContent } from "components/base/toast";
 import type { MarketData } from "hooks/borrow/useMarketData";
 import { Suspense, lazy } from "react";
@@ -21,9 +20,11 @@ type Props = {
 export function RepayLoanDrawerForm({ market, onClose, onSuccess }: Props) {
   const { t } = useTranslation();
   return (
-    <Drawer onClose={onClose}>
+    <Drawer
+      onClose={onClose}
+      title={t("pages.borrow.repay-loan-progress.title")}
+    >
       <div className="flex h-full flex-col">
-        <DrawerTitle>{t("pages.borrow.repay-loan-progress.title")}</DrawerTitle>
         <Suspense fallback={<DrawerLoader />}>
           <RepayLoanForm
             market={market}

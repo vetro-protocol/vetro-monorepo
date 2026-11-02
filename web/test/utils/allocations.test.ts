@@ -1,5 +1,5 @@
-import { knownTokens } from "@vetro-protocol/core";
-import type { Address } from "viem";
+import { knownTokens, type StrategySource } from "@vetro-protocol/core";
+import { type Address, zeroAddress } from "viem";
 import { describe, expect, it } from "vitest";
 
 import type { TreasuryToken, TvlHistoryEntry } from "../../src/types";
@@ -31,6 +31,24 @@ const baseTreasuryToken: TreasuryToken = {
   totalDebt: "0",
   withdrawable: "0",
 };
+
+const strategy = ({
+  apy,
+  name,
+  source,
+  totalDebt,
+}: {
+  apy?: number;
+  name: string;
+  source?: StrategySource;
+  totalDebt: string;
+}) => ({
+  address: zeroAddress,
+  apy,
+  name,
+  source,
+  totalDebt,
+});
 
 // USD prices keyed by uppercase symbol (shape returned by `usePrices`).
 const prices = { USDC: "1", USDT: "1" };
@@ -383,8 +401,12 @@ describe("pages/analytics/utils", function () {
           {
             ...baseTreasuryToken,
             activeStrategies: [
-              { name: "Zero Strategy", totalDebt: "0" },
-              { name: "Active Strategy", totalDebt: "500000000" },
+              strategy({ name: "Zero Strategy", totalDebt: "0" }),
+              strategy({
+                apy: 3.3,
+                name: "Active Strategy",
+                totalDebt: "500000000",
+              }),
             ],
             totalDebt: "500000000",
             withdrawable: "500000000",
@@ -398,6 +420,8 @@ describe("pages/analytics/utils", function () {
       expect(items[0]?.label).toBe("Active Strategy");
       expect(items[0]?.amount).toBeCloseTo(500);
       expect(items[0]?.color).toBe("bg-emerald-400");
+      expect(items[0]?.apy).toBe(3.3);
+      expect(items[1]?.apy).toBeUndefined();
       expect(items[1]).toEqual({
         amount: 0,
         color: "bg-blue-400",
@@ -412,15 +436,28 @@ describe("pages/analytics/utils", function () {
           {
             ...baseTreasuryToken,
             activeStrategies: [
-              { name: "USDT 100", totalDebt: "100000000" },
-              { name: "USDT 300", totalDebt: "300000000" },
+              strategy({ apy: 1, name: "USDT 100", totalDebt: "100000000" }),
+              strategy({
+                apy: 3,
+                name: "USDT 300",
+                source: { protocol: "morpho", vaultAddress: usdtToken.address },
+                totalDebt: "300000000",
+              }),
             ],
             totalDebt: "400000000",
             withdrawable: "400000000",
           },
           {
             ...baseTreasuryToken,
-            activeStrategies: [{ name: "USDC 200", totalDebt: "200000000" }],
+            activeStrategies: [
+              strategy({
+                apy: 2,
+                name: "USDC 200",
+                // @ts-expect-error a protocol that only a newer API knows
+                source: { protocol: "aave", vaultAddress: usdcToken.address },
+                totalDebt: "200000000",
+              }),
+            ],
             tokenAddress: usdcToken.address,
             totalDebt: "200000000",
             withdrawable: "200000000",
@@ -433,6 +470,12 @@ describe("pages/analytics/utils", function () {
         "USDT 300",
         "USDC 200",
         "USDT 100",
+      ]);
+      expect(items.map((item) => item.apy)).toEqual([3, 2, 1]);
+      expect(items.map((item) => item.href)).toEqual([
+        `https://app.morpho.org/ethereum/vault/${usdtToken.address}`,
+        undefined,
+        undefined,
       ]);
       expect(items.map((item) => item.color)).toEqual([
         "bg-emerald-400",
@@ -451,8 +494,8 @@ describe("pages/analytics/utils", function () {
           {
             ...baseTreasuryToken,
             activeStrategies: [
-              { name: "First Zero", totalDebt: "0" },
-              { name: "Second Zero", totalDebt: "0" },
+              strategy({ name: "First Zero", totalDebt: "0" }),
+              strategy({ name: "Second Zero", totalDebt: "0" }),
             ],
           },
         ],
@@ -472,7 +515,9 @@ describe("pages/analytics/utils", function () {
         treasuryTokens: [
           {
             ...baseTreasuryToken,
-            activeStrategies: [{ name: "Strategy", totalDebt: "500000000" }],
+            activeStrategies: [
+              strategy({ name: "Strategy", totalDebt: "500000000" }),
+            ],
             totalDebt: "500000000",
             withdrawable: "500000000",
           },
@@ -491,7 +536,7 @@ describe("pages/analytics/utils", function () {
           {
             ...baseTreasuryToken,
             activeStrategies: [
-              { name: "USDT Strategy", totalDebt: "500000000" },
+              strategy({ name: "USDT Strategy", totalDebt: "500000000" }),
             ],
             totalDebt: "500000000",
             withdrawable: "500000000",
@@ -499,7 +544,7 @@ describe("pages/analytics/utils", function () {
           {
             ...baseTreasuryToken,
             activeStrategies: [
-              { name: "USDC Strategy", totalDebt: "200000000" },
+              strategy({ name: "USDC Strategy", totalDebt: "200000000" }),
             ],
             tokenAddress: usdcToken.address,
             totalDebt: "200000000",

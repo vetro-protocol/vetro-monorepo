@@ -45,7 +45,6 @@ export function RequestDepositProgressDrawer({
       progressLabel={t("pages.earn.fixed-term.request-deposit-progress")}
       shares={shares}
       sharesStatus={sharesStatus}
-      title={t("pages.earn.fixed-term.request-deposit-in-progress")}
     />
   );
 }

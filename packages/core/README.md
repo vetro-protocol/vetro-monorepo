@@ -59,6 +59,12 @@ A hardcoded list of known ERC-20 metadata (symbol, decimals, logo) used to rende
 
 Entries span every chain the app touches, so filter by `chainId` before using it against a single-chain client.
 
+### `restrictedCountries`
+
+`string[]`.
+
+ISO 3166-1 alpha-2 codes of the geo-restricted countries. The web worker blocks access from these countries, and the API serves the list at `GET /restricted-countries`.
+
 ### `stakingVaultAddresses`
 
 `sVusdAddress`, `sVetBtcAddress` and the `stakingVaultAddresses` array.

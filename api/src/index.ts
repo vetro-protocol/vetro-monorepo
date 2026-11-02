@@ -1,9 +1,11 @@
 import * as Sentry from "@sentry/cloudflare";
+import { restrictedCountries } from "@vetro-protocol/core";
 import { sVetBtcAddress, sVusdAddress } from "@vetro-protocol/earn";
 import { type Context, Hono, type Next } from "hono";
+import { bodyLimit } from "hono/body-limit";
 import { cache } from "hono/cache";
 import { cors } from "hono/cors";
-import type { Address } from "viem";
+import { type Address, checksumAddress } from "viem";
 
 import { getApyHistory } from "./apy-history.ts";
 import * as borrow from "./borrow.ts";
@@ -15,7 +17,17 @@ import {
   verifyTurnstile,
 } from "./contact.ts";
 import { convertBigIntsToString } from "./convert-bigints-to-string.ts";
-import { getSubgraph } from "./env.ts";
+import { getHemiEarnIndexer, getSubgraph } from "./env.ts";
+import { UpstreamGraphQLError } from "./graphql.ts";
+import { getCostBasis as getHemiEarnCostBasis } from "./hemi-earn/cost-basis.ts";
+import { getRequests as getHemiEarnRequests } from "./hemi-earn/requests.ts";
+import {
+  getCurrentTerms,
+  getTermsSigningData,
+  isIssuedAtInWindow,
+  parseAcceptanceRequest,
+  verifyAcceptanceSignature,
+} from "./hemi-earn-terms.ts";
 import { addIncentives } from "./liquidity/incentives.ts";
 import { venues } from "./liquidity/index.ts";
 import { excludeLowTvlPools } from "./liquidity/low-tvl.ts";
@@ -28,6 +40,7 @@ import {
 } from "./param-validators.ts";
 import { securityHeaders } from "./security-headers.ts";
 import { getShareValueHistory } from "./share-value-history.ts";
+import { getAcceptance, saveAcceptance } from "./terms-acceptance-store.ts";
 import { getTotalDepositsHistory } from "./total-deposits-history.ts";
 import { getTvlHistory } from "./tvl-history.ts";
 import {
@@ -247,6 +260,53 @@ app.get(
   },
 );
 
+app.get(
+  "/hemi-earn/cost-basis/:address",
+  validateAddress,
+  cache({
+    cacheControl: "max-age=30",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const costBasis = await getHemiEarnCostBasis({
+        address: c.req.param("address"),
+        indexer: getHemiEarnIndexer(c.env),
+        rpcUrl: c.env.CUSTOM_RPC_URL_HEMI,
+      });
+      return c.json({ costBasis });
+    } catch (error) {
+      if (error instanceof UpstreamGraphQLError) {
+        throw error;
+      }
+      throw new Error(`Failed to get Hemi Earn cost basis: ${error.message}`);
+    }
+  },
+);
+
+app.get(
+  "/hemi-earn/requests/:address",
+  validateAddress,
+  cache({
+    cacheControl: "max-age=10",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const requests = await getHemiEarnRequests({
+        address: c.req.param("address"),
+        indexer: getHemiEarnIndexer(c.env),
+      });
+      return c.json({ requests });
+    } catch (error) {
+      if (error instanceof UpstreamGraphQLError) {
+        throw error;
+      }
+      throw new Error(`Failed to get Hemi Earn requests: ${error.message}`);
+    }
+  },
+);
+
 const includesLowTvl = (c: Context) => c.req.query("includeLowTvl") === "true";
 
 const includesRanges = (c: Context) => c.req.query("includeRanges") === "true";
@@ -302,6 +362,10 @@ app.get(
       throw new Error(`Failed to get DEX pools: ${error.message}`);
     }
   },
+);
+
+app.get("/restricted-countries", (c) =>
+  c.json({ countries: restrictedCountries }),
 );
 
 app.get(
@@ -486,6 +550,66 @@ app.get(
   },
 );
 
+app.get("/hemi-earn/terms", function (c) {
+  // Do not cache to force accepting the latest terms version.
+  c.header("Cache-Control", "no-store");
+  return c.json(getTermsSigningData(getCurrentTerms(c.env)));
+});
+
+app.get(
+  "/hemi-earn/terms/acceptance/:address",
+  validateAddress,
+  async function (c) {
+    const account = checksumAddress(c.req.param("address") as Address);
+    const acceptance = await getAcceptance({ account, db: c.env.DB });
+    c.header("Cache-Control", "no-store");
+    if (!acceptance) {
+      return c.json({ error: "Not Found" }, 404);
+    }
+    return c.json({ acceptedVersion: acceptance.termsVersion });
+  },
+);
+
+// The body is four short fields; anything larger is not a valid request.
+const maxAcceptanceBodyBytes = 2048;
+
+app.post(
+  "/hemi-earn/terms/acceptance",
+  bodyLimit({
+    maxSize: maxAcceptanceBodyBytes,
+    onError: (c) => c.json({ error: "Request too large" }, 413),
+  }),
+  async function (c) {
+    c.header("Cache-Control", "no-store");
+
+    let body: unknown;
+    try {
+      body = await c.req.json();
+    } catch {
+      return c.json({ error: "Invalid request body" }, 400);
+    }
+    const request = parseAcceptanceRequest(body);
+    if (!request) {
+      return c.json({ error: "Invalid request body" }, 400);
+    }
+
+    const terms = getCurrentTerms(c.env);
+    if (request.termsVersion !== terms.termsVersion) {
+      return c.json({ error: "Outdated terms version" }, 409);
+    }
+    const now = Math.floor(Date.now() / 1000);
+    if (!isIssuedAtInWindow({ issuedAt: request.issuedAt, now })) {
+      return c.json({ error: "issuedAt is out of range" }, 422);
+    }
+    if (!(await verifyAcceptanceSignature({ request, terms }))) {
+      return c.json({ error: "Invalid signature" }, 401);
+    }
+
+    await saveAcceptance({ db: c.env.DB, now, request, terms });
+    return c.json({ acceptedVersion: terms.termsVersion });
+  },
+);
+
 app.post("/contact", validateContactForm, verifyTurnstile, async function (c) {
   const { category, email, files, message } = c.get("contactForm");
   // Read files only now that the captcha has passed (verifyTurnstile ran).
@@ -511,6 +635,10 @@ app.notFound((c) => c.json({ error: "Not Found" }, 404));
 
 app.onError(function (error, c) {
   Sentry.captureException(error);
+  if (error instanceof UpstreamGraphQLError) {
+    console.warn("Upstream GraphQL error:", error.message);
+    return c.json({ error: "Bad Gateway" }, 502);
+  }
   console.error("Internal Server Error:", error.message);
   return c.json({ error: "Internal Server Error" }, 500);
 });
@@ -531,6 +659,9 @@ export default Sentry.withSentry(
     dsn: env.SENTRY_DSN,
     enableLogs: true,
     environment: "production",
+    integrations: [
+      Sentry.consoleLoggingIntegration({ levels: ["error", "info", "warn"] }),
+    ],
   }),
   handler,
 );

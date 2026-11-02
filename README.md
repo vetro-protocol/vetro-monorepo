@@ -53,6 +53,7 @@ The monorepo contains the following workspaces:
 - `internal-dashboard` - Internal-facing dashboard for operational metrics
 - `packages/*` - Shared packages
 - `subgraph` - Subgraph indexing Ethereum mainnet events for the API
+- `subgraphs/hemi-earn-indexer` - Envio indexer for the Hemi Earn cross-chain requests
 - `web` - Web application
 
 In addition, it hosts these additional directories:

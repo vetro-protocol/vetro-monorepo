@@ -7,6 +7,7 @@ import { register as claim } from "./commands/claim.ts";
 import { register as claimAll } from "./commands/claimAll.ts";
 import { register as cooldown } from "./commands/cooldown.ts";
 import { register as exitTickets } from "./commands/exitTickets.ts";
+import { register as instantWithdraw } from "./commands/instantWithdraw.ts";
 import { register as isInstantWithdraw } from "./commands/isInstantWithdraw.ts";
 import { register as position } from "./commands/position.ts";
 import { register as previewStake } from "./commands/previewStake.ts";
@@ -22,6 +23,7 @@ const variableYieldCommands = [
   claimAll,
   cooldown,
   exitTickets,
+  instantWithdraw,
   isInstantWithdraw,
   position,
   previewStake,

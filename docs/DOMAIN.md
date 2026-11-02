@@ -89,8 +89,8 @@ Deposit a pegged token into its staking vault → receive the corresponding shar
 
 Withdrawing has two paths:
 
-- **Instant withdraw:** addresses on the vault's instant-withdraw whitelist only (`getInstantWithdrawWhitelist`).
-- **Request withdrawal → cooldown → exit ticket:** the standard path. Requesting moves funds into a **cooldown** (multi-day, read on-chain via `getCooldownDuration`), during which they are locked and **earn no yield**. Each request becomes an **exit ticket** (cooldown → ready → withdrawn, or cancelled if deleted). A ticket can be **deleted** to cancel and put funds back to staked-and-earning. "Withdraw all" claims every ready ticket.
+- **Instant withdraw:** every address when the vault's cooldown is disabled, or an address on the vault's instant-withdraw whitelist (`getCooldownEnabled`, `getInstantWithdrawWhitelist`).
+- **Request withdrawal → cooldown → exit ticket:** the standard path while the vault's cooldown is enabled. Requesting moves funds into a **cooldown** (multi-day, read on-chain via `getCooldownDuration`), during which they are locked and **earn no yield**. Each request becomes an **exit ticket** (cooldown → ready → withdrawn, or cancelled if deleted). A ticket can be **deleted** to cancel and put funds back to staked-and-earning. "Withdraw all" claims every ready ticket.
 
 Why the cooldown: it prevents reward sniping and gives the treasury a predictable liquidity horizon. Exit tickets render in their own table, gated by `useShowExitTickets`.
 
@@ -144,7 +144,50 @@ Key terms: **health factor** (above 1.0 safe; at/below 1.0 liquidatable), **LTV*
 
 ### Analytics
 
-"Monitor protocol analytics." A read-only dashboard of protocol health, per pegged token: **TVL**, **collateralization ratio** (backing vs circulating, broken down into strategic reserves / liquid reserves / surplus), **peg stability**, total **staked**, **exit queue** (total on cooldown), and **yield allocation** (number of active strategies, plus the idle reserve buffer not yet deployed to a strategy).
+"Monitor protocol analytics." A read-only dashboard of protocol health, per pegged token. The data comes from `api/`, and the page shows amounts in USD. The cards:
+
+#### TVL
+
+The circulating supply of the pegged token. The breakdown shows the whitelisted tokens that back it: the treasury `withdrawable` of each token (idle funds plus funds in strategies), in USD.
+
+#### Collateralization ratio
+
+The backing divided by the circulating supply. The backing is the sum of three parts:
+
+- **Strategic reserves**: VUSD-meta vault shares that the treasury, the UMM role and the Vetro multisig hold, valued at their redeem value. Only the VUSD gateway has them.
+- **Liquid reserves**: the treasury `withdrawable` of each whitelisted token, converted to the pegged token at the gateway redeem rate.
+- **Surplus**: the pegged token that the treasury, the UMM role and the yield distributor hold.
+
+#### Historic TVL
+
+The TVL breakdown over time, with one point per UTC day.
+
+#### Staked
+
+The pegged token in the staking vault (its `totalAssets`).
+
+#### Exit cooldown
+
+The value of the open exit tickets, in the pegged token.
+
+#### Share ratio
+
+The value of one share token in the pegged token, over time.
+
+#### APY history
+
+The APY of the staking vault, over time.
+
+#### Yield allocation
+
+The active strategies, with the balance that each one has (its debt in the treasury vault). The **reserve buffer** is the part not in a strategy: the treasury `withdrawable` minus the total debt of the vault.
+
+Each strategy also shows its APY and its projected yield per year (balance × APY). The APY is the sum of two parts:
+
+- **Native APY**: the current net APY that the protocol of the strategy reports. For a Morpho vault, it is the current rate after fees. For a Lagoon vault, it is the realized rate between settlements over the last month, after fees and without rewards, compounded to one year. For a young Lagoon vault, it is the rate since inception. For a Curve pool, it is the base APY of the pool.
+- **Incentive APR**: only the incentives paid on the position that the strategy holds, for example Merkl campaigns or StakeDAO rewards.
+
+The reserve buffer has a 0% APY. When the API cannot calculate the APY of a strategy, the page shows "-".
 
 ### Liquidity
 

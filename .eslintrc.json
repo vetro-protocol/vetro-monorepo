@@ -6,6 +6,8 @@
     "api/.wrangler/**/*",
     "internal-dashboard/dist/**/*",
     "subgraph/**/*",
+    "subgraphs/*/.envio/**/*",
+    "subgraphs/*/envio-env.d.ts",
     "web/dist/**/*",
     "web/playwright-report/**/*",
     "web/storybook-static/**/*",
@@ -20,6 +22,7 @@
         "api/**/*.ts",
         "internal-dashboard/**/*.{js,ts,tsx}",
         "packages/**/*.{js,ts,tsx}",
+        "subgraphs/**/*.ts",
         "web/**/*.{js,ts,tsx}"
       ]
     },

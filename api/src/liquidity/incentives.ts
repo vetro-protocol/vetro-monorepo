@@ -75,6 +75,8 @@ export const getMerklRewards = async function ({
   );
 };
 
+export const gaugedStrategiesKey = "liquidity:strategies";
+
 // Curve pools are only on Ethereum today.
 export const getGaugedStrategies = () =>
   getStrategies(mainnet.id).then((strategies) =>

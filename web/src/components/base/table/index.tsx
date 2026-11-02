@@ -255,7 +255,7 @@ export function Table<TData extends RowData>({
           />
         )}
       </div>
-      {showPlaceholder && placeholder}
+      {showPlaceholder && <div className="sticky left-0">{placeholder}</div>}
     </div>
   );
 }

@@ -18,3 +18,9 @@ export * from "./wallet/claimWithdrawBatch.ts";
 export * from "./wallet/deposit.ts";
 export * from "./wallet/requestRedeem.ts";
 export * from "./wallet/requestWithdraw.ts";
+
+export {
+  encodeDepositData as encodeDeposit,
+  encodeRedeemData as encodeRedeem,
+  encodeWithdrawData as encodeWithdraw,
+} from "viem-erc4626/actions";

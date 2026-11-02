@@ -30,6 +30,7 @@ packages:
   - "internal-dashboard"
   - "packages/*"
   - "subgraph"
+  - "subgraphs/*"
   - "web"
 
 patchedDependencies:
