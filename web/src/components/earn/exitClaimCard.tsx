@@ -105,7 +105,7 @@ export const ExitClaimCard = function ({
         </span>
       )}
       subtitle={
-        <div className="flex w-full gap-x-2 *:flex-1">
+        <div className="flex w-full gap-x-2 *:flex-1 [&_button]:w-full">
           <ClaimExit
             peggedToken={peggedToken}
             stakingVaultAddress={stakingVaultAddress}
