@@ -1,10 +1,11 @@
 import { Badge } from "components/base/badge";
-import { Button, ButtonIcon } from "components/base/button";
+import { ButtonIcon } from "components/base/button";
 import { DisplayAmount } from "components/base/displayAmount";
 import { Spinner } from "components/base/spinner";
 import { StatusBadge } from "components/base/statusBadge";
 import { Table, type TableColumnDef } from "components/base/table";
 import { Header } from "components/base/table/header";
+import { GeoRestrictedButton } from "components/geoRestrictedButton";
 import { TokenLogo } from "components/tokenLogo";
 import { Tooltip } from "components/tooltip";
 import { useCountdown } from "hooks/useCountdown";
@@ -60,7 +61,7 @@ function ActionsCell({
   const isPaused = redeemableTokens?.length === 0;
 
   const redeemButton = (
-    <Button
+    <GeoRestrictedButton
       disabled={!isReady || isPaused}
       onClick={() => onRedeem(row)}
       size="xSmall"
@@ -82,12 +83,12 @@ function ActionsCell({
           </span>
         )
       )}
-    </Button>
+    </GeoRestrictedButton>
   );
 
   return (
     <div className="flex items-center gap-3">
-      {isPaused ? (
+      {isPaused && !geoRestricted ? (
         <Tooltip content={t("pages.swap.redeem-queue.redeems-paused")}>
           {redeemButton}
         </Tooltip>
