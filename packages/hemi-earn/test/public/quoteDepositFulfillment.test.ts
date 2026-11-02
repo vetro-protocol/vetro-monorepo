@@ -1,0 +1,53 @@
+import { type Address, type Client, zeroAddress } from "viem";
+import { readContract } from "viem/actions";
+import { describe, expect, it, vi } from "vitest";
+
+import { quoteDepositFulfillment } from "../../src/actions/public/quoteDepositFulfillment.ts";
+
+vi.mock("viem/actions", () => ({
+  readContract: vi.fn(),
+}));
+
+// @ts-expect-error - We only create an empty client for testing purposes
+const client: Client = {};
+const address = "0x000000000000000000000000000000000000bEEF" as Address;
+const share = "0x000000000000000000000000000000000000dEaD" as Address;
+
+describe("quoteDepositFulfillment", function () {
+  it("forwards the share address and returns the native fee", async function () {
+    vi.mocked(readContract).mockResolvedValue(BigInt(42));
+
+    const result = await quoteDepositFulfillment(client, { address, share });
+
+    expect(result).toBe(BigInt(42));
+    expect(readContract).toHaveBeenCalledWith(
+      client,
+      expect.objectContaining({
+        address,
+        args: [share],
+        functionName: "quoteDepositFulfillment",
+      }),
+    );
+  });
+
+  it("rejects the zero address as share", async function () {
+    await expect(
+      quoteDepositFulfillment(client, { address, share: zeroAddress }),
+    ).rejects.toThrow("Share address is invalid");
+  });
+
+  it("rejects the zero address as agent address", async function () {
+    await expect(
+      quoteDepositFulfillment(client, { address: zeroAddress, share }),
+    ).rejects.toThrow("Agent address is invalid");
+  });
+
+  it("rejects an invalid agent address", async function () {
+    await expect(
+      quoteDepositFulfillment(client, {
+        address: "0xnotanaddress" as Address,
+        share,
+      }),
+    ).rejects.toThrow("Agent address is invalid");
+  });
+});

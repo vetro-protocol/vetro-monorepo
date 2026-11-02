@@ -1,6 +1,5 @@
+import { sVetBtcAddress, sVusdAddress } from "@vetro-protocol/earn/addresses";
 import type { Address } from "viem";
-
-import { sVetBtcAddress, sVusdAddress } from "./stakingVaultAddresses.ts";
 
 export type HemiEarnVault = {
   /** Ethereum staking vault. */
