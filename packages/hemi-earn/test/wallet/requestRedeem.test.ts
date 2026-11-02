@@ -409,6 +409,57 @@ describe("requestRedeem", function () {
     );
   });
 
+  it("emits 'user-signing-approval-error' when the approval signing fails", async function () {
+    const error = new Error("user rejected");
+
+    vi.mocked(balanceOf).mockResolvedValue(validParameters.shares);
+    vi.mocked(quoteRedeem).mockResolvedValue(BigInt(0));
+    vi.mocked(allowance).mockResolvedValue(BigInt(0));
+    vi.mocked(approve).mockRejectedValue(error);
+
+    const { emitter, promise } = requestRedeem(
+      mockWalletClient,
+      validParameters,
+    );
+
+    const onSigningError = vi.fn();
+    const onSettled = vi.fn();
+    emitter.on("user-signing-approval-error", onSigningError);
+    emitter.on("withdraw-settled", onSettled);
+
+    await promise;
+
+    expect(onSigningError).toHaveBeenCalledExactlyOnceWith(error);
+    expect(writeContract).not.toHaveBeenCalled();
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("emits 'withdraw-failed' when the approval receipt fails", async function () {
+    const error = new Error("receipt error");
+
+    vi.mocked(balanceOf).mockResolvedValue(validParameters.shares);
+    vi.mocked(quoteRedeem).mockResolvedValue(BigInt(0));
+    vi.mocked(allowance).mockResolvedValue(BigInt(0));
+    vi.mocked(approve).mockResolvedValue(zeroHash);
+    vi.mocked(waitForTransactionReceipt).mockRejectedValueOnce(error);
+
+    const { emitter, promise } = requestRedeem(
+      mockWalletClient,
+      validParameters,
+    );
+
+    const onFailed = vi.fn();
+    const onSettled = vi.fn();
+    emitter.on("withdraw-failed", onFailed);
+    emitter.on("withdraw-settled", onSettled);
+
+    await promise;
+
+    expect(onFailed).toHaveBeenCalledExactlyOnceWith(error);
+    expect(writeContract).not.toHaveBeenCalled();
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
   it("emits 'withdraw-transaction-reverted' when request tx reverts", async function () {
     const receipt = { status: "reverted" } as TransactionReceipt;
 
