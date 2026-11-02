@@ -196,7 +196,7 @@ export function PoolsTable() {
   return (
     <div className="border-t border-gray-200">
       <SectionHeader title={t("pages.liquidity.pools")}>
-        {!isLoadingError && data.length > 0 && (
+        {data.length > 0 && (
           <div className="flex">
             <PoolsFilterMenu
               filters={filters}
