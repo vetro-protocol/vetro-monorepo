@@ -110,9 +110,9 @@ const runRequestRedeem = (
       const userShares = await balanceOf(walletClient, {
         account,
         address: shareToken,
-      }).catch(() => BigInt(-1));
+      }).catch(() => undefined);
 
-      if (userShares < BigInt(0)) {
+      if (userShares === undefined) {
         emitter.emit("withdraw-failed-validation", "failed to validate inputs");
         return;
       }
