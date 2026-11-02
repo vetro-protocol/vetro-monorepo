@@ -1,9 +1,9 @@
 import type { Token } from "@vetro-protocol/core";
-import { Button } from "components/base/button";
 import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
 import { Toast } from "components/base/toast";
 import type { TransactionStep } from "components/earn/transactionProgressDrawer";
+import { GeoRestrictedButton } from "components/geoRestrictedButton";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
 import {
@@ -119,14 +119,14 @@ export const CancelDepositRequest = function ({
 
   return (
     <>
-      <Button
+      <GeoRestrictedButton
         disabled={!canCancel || cancelDepositRequestMutation.isPending}
         onClick={handleCancel}
         type="button"
         variant="secondary"
       >
         {t("pages.earn.fixed-term.cancel")}
-      </Button>
+      </GeoRestrictedButton>
       {submitted ? (
         <Drawer
           onClose={handleCloseDrawer}

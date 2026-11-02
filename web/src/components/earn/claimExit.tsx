@@ -1,9 +1,9 @@
 import type { Token } from "@vetro-protocol/core";
-import { Button } from "components/base/button";
 import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
 import { Toast } from "components/base/toast";
 import type { TransactionStep } from "components/earn/transactionProgressDrawer";
+import { GeoRestrictedButton } from "components/geoRestrictedButton";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
 import {
@@ -121,7 +121,7 @@ export const ClaimExit = function ({
 
   return (
     <>
-      <Button
+      <GeoRestrictedButton
         disabled={!canClaim || claimExitMutation.isPending}
         onClick={handleClaim}
         type="button"
@@ -129,7 +129,7 @@ export const ClaimExit = function ({
         {t("pages.earn.fixed-term.claim-shares", {
           symbol: peggedToken.symbol,
         })}
-      </Button>
+      </GeoRestrictedButton>
       {submitted ? (
         <Drawer
           onClose={handleCloseDrawer}
