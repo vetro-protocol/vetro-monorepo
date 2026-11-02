@@ -197,11 +197,13 @@ export function PoolsTable() {
     <div className="border-t border-gray-200">
       <SectionHeader title={t("pages.liquidity.pools")}>
         {!isLoadingError && data.length > 0 && (
-          <PoolsFilterMenu
-            filters={filters}
-            onChange={setFilters}
-            pools={data}
-          />
+          <div className="flex">
+            <PoolsFilterMenu
+              filters={filters}
+              onChange={setFilters}
+              pools={data}
+            />
+          </div>
         )}
       </SectionHeader>
       {width >= screenBreakpoints.md ? (
