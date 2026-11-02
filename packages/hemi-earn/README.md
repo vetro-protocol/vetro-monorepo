@@ -12,7 +12,7 @@ pnpm add @vetro-protocol/hemi-earn viem
 
 - The Router is on Hemi, at `hemiEarnRouterAddress`. Router actions use this address by default. Each one accepts an optional `address` to use a different Router.
 - The Agent is on Ethereum. Read its address from the Router with `getAgentAddress`, then pass it as `address` to the Agent actions.
-- A deposit or a redeem is a request. `requestDeposit` and `requestRedeem` quote the LayerZero fee, approve the token if necessary, and send the request with the fee as `msg.value`. When the Agent fulfills the request, the user claims it with `claimDeposit` or `claimRedeem`. If the request is cancelled, the user gets the tokens back with `recoverDeposit` or `recoverRedeem`.
+- A deposit or a redeem is a request. `requestDeposit` and `requestRedeem` quote the LayerZero fee, approve the token if necessary, and send the request with the fee as `msg.value`. `requestDeposit` and `requestRedeem` set `automatic` to `true`. Thus when the Agent fulfills or cancels the request, the Router sends the tokens to the receiver. If that transfer fails, the Router emits `AutoFinalizationFailed`. Then the user calls `claimDeposit` or `claimRedeem` for a fulfilled request, or `recoverDeposit` or `recoverRedeem` for a cancelled one. A request encoded with `automatic: false` always needs these calls.
 - `hemiEarnVaults` and `hemiEarnLinks` hold the off-chain data that Hemi Earn frontends show for Vetro vaults.
 
 ## Usage

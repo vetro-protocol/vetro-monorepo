@@ -14,7 +14,8 @@ type CancelRedeemParams = {
 };
 
 // Caller must be the request operator. Router.cancel only emits CancellationRequested;
-// a keeper's Agent.cancel returns the shares (→ CANCELLED), then the user calls recoverRedeem.
+// a keeper's Agent.cancel returns the shares (→ CANCELLED) and the Router auto-sends them;
+// recoverRedeem is only needed if that fails or automatic is false.
 const runCancelRedeem = (
   walletClient: WalletClient,
   { account, address = hemiEarnRouterAddress, requestId }: CancelRedeemParams,
