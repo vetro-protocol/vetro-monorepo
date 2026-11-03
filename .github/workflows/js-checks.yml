@@ -13,4 +13,6 @@ concurrency:
 
 jobs:
   run-checks-and-tests:
-    uses: hemilabs/.github/.github/workflows/js-checks-pnpm.yml@e9f85a5eb81dda87d4c046eda82e45822bc1ee32
+    uses: hemilabs/.github/.github/workflows/js-checks-pnpm.yml@f81a238ced1197d3e7ce682b277fe2df4f5c8c7a
+    with:
+      runs-on: ubuntu-24.04
