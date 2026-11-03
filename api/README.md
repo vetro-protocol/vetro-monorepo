@@ -496,7 +496,7 @@ Query params:
 
 ### `GET /restricted-countries`
 
-Returns the geo-restricted countries as ISO 3166-1 alpha-2 codes, sorted alphabetically. The Vetro web app blocks access from these countries. The response is not cached, so it always matches the deployed list.
+Returns the geo-restricted countries as ISO 3166-1 alpha-2 codes, sorted alphabetically. The Vetro web app disables wallet actions for users in these countries. The response is not cached, so it always matches the deployed list.
 
 #### Sample Response
 
