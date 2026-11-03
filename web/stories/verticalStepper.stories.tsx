@@ -318,3 +318,38 @@ export const WithLoadingSkeleton: Story = {
     ],
   },
 };
+
+export const StepWithoutDescription: Story = {
+  args: {
+    steps: [
+      {
+        status: stepStatus.ready,
+        title: "Sign the terms",
+      },
+      {
+        description: "One transaction on Hemi.",
+        status: stepStatus.notReady,
+        title: "Claim $V",
+      },
+    ],
+  },
+};
+
+export const NoDescriptions: Story = {
+  args: {
+    steps: [
+      {
+        status: stepStatus.completed,
+        title: "Approve in wallet",
+      },
+      {
+        status: stepStatus.progress,
+        title: "Confirm swap",
+      },
+      {
+        status: stepStatus.notReady,
+        title: "Receive tokens",
+      },
+    ],
+  },
+};
