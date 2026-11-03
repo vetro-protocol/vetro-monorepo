@@ -1,13 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { mocked } from "storybook/test";
 
 import { GeoRestrictedButton } from "../src/components/geoRestrictedButton";
-import { isGeoRestricted } from "../src/utils/geoRestriction";
 
-function mockGeoRestricted() {
-  mocked(isGeoRestricted).mockReturnValue(true);
-  return () => mocked(isGeoRestricted).mockReset();
-}
+import { mockGeoRestricted } from "./mockGeoRestricted";
 
 const meta: Meta<typeof GeoRestrictedButton> = {
   args: {

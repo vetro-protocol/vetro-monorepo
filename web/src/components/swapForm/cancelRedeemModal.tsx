@@ -1,5 +1,6 @@
 import { Button } from "components/base/button";
 import { Modal } from "components/base/modal";
+import { GeoRestrictedButton } from "components/geoRestrictedButton";
 import { RequireWalletConnected } from "components/requireWalletConnected";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useCancelRedeemRequest } from "hooks/useCancelRedeemRequest";
@@ -88,7 +89,7 @@ export function CancelRedeemModal({
               })}
             </p>
           </div>
-          <div className="flex gap-3 *:flex-1">
+          <div className="flex gap-3 *:flex-1 [&_button]:w-full">
             <Button
               disabled={isCancelling}
               onClick={close}
@@ -98,7 +99,7 @@ export function CancelRedeemModal({
               {t("pages.swap.redeem-queue.keep-redeem")}
             </Button>
             <RequireWalletConnected size="xSmall">
-              <Button
+              <GeoRestrictedButton
                 disabled={isCancelling}
                 onClick={() => mutate()}
                 size="xSmall"
@@ -107,7 +108,7 @@ export function CancelRedeemModal({
                 {isCancelling
                   ? t("pages.swap.redeem-queue.cancel-redeem-btn-cancelling")
                   : t("pages.swap.redeem-queue.cancel-redeem-btn-cancel")}
-              </Button>
+              </GeoRestrictedButton>
             </RequireWalletConnected>
           </div>
         </div>

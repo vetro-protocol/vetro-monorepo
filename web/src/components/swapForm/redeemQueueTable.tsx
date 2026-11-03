@@ -60,41 +60,34 @@ function ActionsCell({
   const isReady = remainingSeconds === 0 && !isLoadingRedeemableTokens;
   const isPaused = redeemableTokens?.length === 0;
 
-  const redeemButton = (
-    <GeoRestrictedButton
-      disabled={!isReady || isPaused}
-      onClick={() => onRedeem(row)}
-      size="xSmall"
-      variant="primary"
-    >
-      {t("pages.swap.redeem-queue.redeem")}
-      {remainingSeconds > 0 ? (
-        <span className="w-22.5 *:w-full">
-          <Badge variant="blue">
-            {t("pages.swap.redeem-queue.ready-on", {
-              time: formatCountdown(remainingSeconds),
-            })}
-          </Badge>
-        </span>
-      ) : (
-        isLoadingRedeemableTokens && (
-          <span aria-hidden className="flex">
-            <Spinner size="small" />
-          </span>
-        )
-      )}
-    </GeoRestrictedButton>
-  );
-
   return (
     <div className="flex items-center gap-3">
-      {isPaused && !geoRestricted ? (
-        <Tooltip content={t("pages.swap.redeem-queue.redeems-paused")}>
-          {redeemButton}
-        </Tooltip>
-      ) : (
-        redeemButton
-      )}
+      <GeoRestrictedButton
+        disabled={!isReady || isPaused}
+        onClick={() => onRedeem(row)}
+        size="xSmall"
+        tooltip={
+          isPaused ? t("pages.swap.redeem-queue.redeems-paused") : undefined
+        }
+        variant="primary"
+      >
+        {t("pages.swap.redeem-queue.redeem")}
+        {remainingSeconds > 0 ? (
+          <span className="w-22.5 *:w-full">
+            <Badge variant="blue">
+              {t("pages.swap.redeem-queue.ready-on", {
+                time: formatCountdown(remainingSeconds),
+              })}
+            </Badge>
+          </span>
+        ) : (
+          isLoadingRedeemableTokens && (
+            <span aria-hidden className="flex">
+              <Spinner size="small" />
+            </span>
+          )
+        )}
+      </GeoRestrictedButton>
       <Tooltip
         content={
           geoRestricted

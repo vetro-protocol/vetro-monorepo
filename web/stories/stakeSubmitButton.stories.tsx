@@ -4,7 +4,8 @@ import { zeroAddress } from "viem";
 import { useAccount } from "wagmi";
 
 import { StakeSubmitButton } from "../src/pages/earn/components/earnForm/stakeSubmitButton";
-import { isGeoRestricted } from "../src/utils/geoRestriction";
+
+import { mockGeoRestricted } from "./mockGeoRestricted";
 
 const mockAccount = (account: Partial<ReturnType<typeof useAccount>>) =>
   mocked(useAccount).mockReturnValue(account as ReturnType<typeof useAccount>);
@@ -120,10 +121,7 @@ export const GeoRestricted: Story = {
     isPending: false,
     pendingText: "Depositing...",
   },
-  beforeEach() {
-    mocked(isGeoRestricted).mockReturnValue(true);
-    return () => mocked(isGeoRestricted).mockReset();
-  },
+  beforeEach: mockGeoRestricted,
 };
 
 export const WithdrawAction: Story = {
