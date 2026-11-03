@@ -18,7 +18,7 @@ export function handleBlock(block: ethereum.Block): void {
   // up when charted together.
   const previousDayTimestamp = dayTimestamp.minus(daySeconds);
   const id = `${gatewayAddress.toHexString()}-${previousDayTimestamp.toString()}`;
-  if (TvlHistory.load(id) != null) {
+  if (TvlHistory.load(id) !== null) {
     return;
   }
 

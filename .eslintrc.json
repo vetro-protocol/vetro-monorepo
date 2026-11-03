@@ -5,7 +5,6 @@
     "**/_types/**/*",
     "api/.wrangler/**/*",
     "internal-dashboard/dist/**/*",
-    "subgraph/**/*",
     "subgraphs/*/.envio/**/*",
     "subgraphs/*/envio-env.d.ts",
     "subgraphs/*/generated/**/*",
@@ -62,7 +61,7 @@
       }
     },
     {
-      "files": ["subgraphs/ve-vetro-subgraph/tests/**/*.ts"],
+      "files": ["subgraphs/*/tests/**/*.ts"],
       "rules": {
         "@vitest/require-hook": "off"
       }

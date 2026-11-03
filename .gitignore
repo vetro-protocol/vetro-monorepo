@@ -62,14 +62,11 @@ test-results/
 .claude/settings.local.json
 
 # Subgraphs
-subgraph/.env
-subgraph/data/
-subgraph/generated/
-subgraph/tests/.bin/
-subgraph/tests/.latest.json
 subgraphs/*/.env
 subgraphs/*/.envio/
 subgraphs/*/envio-env.d.ts
 subgraphs/*/generated/
 subgraphs/*/tests/.bin/
 subgraphs/*/tests/.latest.json
+subgraphs/.env
+subgraphs/data/

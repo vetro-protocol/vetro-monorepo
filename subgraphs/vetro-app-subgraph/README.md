@@ -1,21 +1,20 @@
 # Vetro App Subgraph
 
-This subgraph indexes the events in the Ethereum mainnet chain that will allow the [API](../api/README.md) provide information to the [web app](../web).
+This subgraph indexes the events in the Ethereum mainnet chain that will allow the [API](../../api/README.md) provide information to the [web app](../../web).
 
 ## Local dev & test
 
-Set the `RPC_URL` in a `.env` and start the backend services:
+Run the unit tests:
 
 ```sh
-docker compose up --detach
+pnpm run test
 ```
 
-To locally deploy the subgraph, run:
+To deploy the subgraph locally, start the [local graph-node](../README.md#local-graph-node) with an Ethereum mainnet RPC in `ETHEREUM_RPC_URL`, and run:
 
 ```sh
-pnpm run build && pnpm run test
-pnpm run create-local && pnpm run deploy-local
-docker compose logs --follow | tee out.log
+pnpm run create-local
+pnpm run deploy-local
 ```
 
 Use the GraphQL explorer at `http://localhost:8000/subgraphs/name/vetro-app-subgraph`.
@@ -63,6 +62,5 @@ Sample response:
 
 The first deployment was done manually by [@jcvernaleo](https://github.com/jcvernaleo).
 
-For subsequent deployments, apply a `vetro-app-subgraph@[version]` tag to the proper commit in the `master` branch by running `pnpm run tag` and push it.
-Then create and publish a new release.
+For subsequent deployments, publish a `vetro-app-subgraph@<version>` release as described in the [subgraphs README](../README.md#release).
 Once the subgraph is deployed, ask [@jcvernaleo](https://github.com/jcvernaleo) to publish it.

@@ -29,7 +29,6 @@ packages:
   - "api"
   - "internal-dashboard"
   - "packages/*"
-  - "subgraph"
   - "subgraphs/*"
   - "web"
 

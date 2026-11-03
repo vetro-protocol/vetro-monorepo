@@ -87,7 +87,7 @@ function handleDailyApr(
   const dayTimestamp = block.timestamp.div(daySeconds).times(daySeconds);
   const id = buildId(vaultAddress, dayTimestamp.toString());
   let entity = VaultAprHistory.load(id);
-  if (entity == null) {
+  if (entity === null) {
     entity = new VaultAprHistory(id);
     entity.timestamp = dayTimestamp;
     entity.stakingVaultAddress = vaultAddress;
@@ -105,7 +105,7 @@ function loadOrCreateUserStakingPosition(
 ): UserStakingPosition {
   const id = buildId(vaultAddress, owner.toHexString());
   let position = UserStakingPosition.load(id);
-  if (position == null) {
+  if (position === null) {
     position = new UserStakingPosition(id);
     position.owner = owner;
     position.shares = BigInt.fromI32(0);
@@ -120,7 +120,7 @@ function loadOrCreateQueueSummary(
 ): ExitTicketQueueSummary {
   const id = vaultAddress.toHexString();
   let summary = ExitTicketQueueSummary.load(id);
-  if (summary == null) {
+  if (summary === null) {
     summary = new ExitTicketQueueSummary(id);
     summary.shares = BigInt.fromI32(0);
     summary.openTickets = 0;
@@ -148,7 +148,7 @@ export function handleBlock(block: ethereum.Block): void {
   // the entity at the end of each day, compute the previous day's timestamp.
   const previousDayTimestamp = dayTimestamp.minus(daySeconds);
   const id = buildId(vaultAddress, previousDayTimestamp.toString());
-  if (VaultHistory.load(id) != null) {
+  if (VaultHistory.load(id) !== null) {
     return;
   }
 
@@ -159,7 +159,7 @@ export function handleBlock(block: ethereum.Block): void {
   // but changing the decimals is highly unlikely as it would break many other
   // things downstream.
   let vaultConfig = VaultConfig.load(vaultAddress);
-  if (vaultConfig == null) {
+  if (vaultConfig === null) {
     vaultConfig = new VaultConfig(vaultAddress);
     vaultConfig.decimals = vault.decimals();
     vaultConfig.save();
@@ -301,7 +301,7 @@ export function handleWithdrawCancelled(event: WithdrawCancelled): void {
 
   const id = buildId(vaultAddress, event.params.requestId.toString());
   const entity = ExitTicket.load(id);
-  if (entity == null) {
+  if (entity === null) {
     return;
   }
 
@@ -321,7 +321,7 @@ export function handleWithdrawClaimed(event: WithdrawClaimed): void {
   const vaultAddress = dataSource.address();
   const id = buildId(vaultAddress, event.params.requestId.toString());
   const entity = ExitTicket.load(id);
-  if (entity == null) {
+  if (entity === null) {
     return;
   }
 
