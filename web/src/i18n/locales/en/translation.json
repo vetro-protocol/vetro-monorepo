@@ -665,6 +665,9 @@
       "breadcrumb": "veVETRO",
       "claim": {
         "breadcrumb": "Claim",
+        "claim-end": "Claim window ends",
+        "claim-end-time-zone": "UTC · Hemi chain time",
+        "claimable-amount": "Your claimable ${{symbol}}",
         "description": "Your veHEMI positions at the snapshot give you ${{symbol}}. You receive it as a veVETRO position, locked until the unlock date.",
         "title": "Claim your ${{symbol}}"
       }
