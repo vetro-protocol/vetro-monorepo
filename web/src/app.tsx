@@ -127,7 +127,7 @@ function LanguageRoutes() {
             <Route element={<Faq />} path="faq" />
             <Route element={<Contact />} path="contact" />
             {featureFlags.veVetro && (
-              <Route element={<VeVetro />} path="vevetro/claim" />
+              <Route element={<VeVetro />} path="vevetro" />
             )}
           </Route>
           <Route

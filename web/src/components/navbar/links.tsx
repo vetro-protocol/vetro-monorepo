@@ -18,7 +18,7 @@ export const navLinks = [
   ...(featureFlags.veVetro
     ? ([
         {
-          href: "/vevetro/claim",
+          href: "/vevetro",
           Icon: VeVetroIcon,
           translationKey: "nav.ve-vetro",
         },
