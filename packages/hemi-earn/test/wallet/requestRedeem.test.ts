@@ -63,9 +63,9 @@ const validParameters = {
   shares: BigInt(100),
 };
 
-const buildExpectedArgs = (shares: bigint) => [
+const expectedArgs = [
   validParameters.asset,
-  shares,
+  validParameters.shares,
   validParameters.assetsOutMin,
   validParameters.receiver,
   validParameters.operator,
@@ -383,7 +383,7 @@ describe("requestRedeem", function () {
       expect.objectContaining({
         account: mockWalletClient.account,
         address: validParameters.address,
-        args: buildExpectedArgs(validParameters.shares),
+        args: expectedArgs,
         functionName: "requestRedeem",
         value: BigInt(42),
       }),
@@ -413,7 +413,7 @@ describe("requestRedeem", function () {
     expect(writeContract).not.toHaveBeenCalled();
   });
 
-  it("approves approvalAmount instead of the adjusted shares when given", async function () {
+  it("approves approvalAmount instead of shares when given", async function () {
     const approvalReceipt = { status: "success" } as TransactionReceipt;
     const withdrawReceipt = { status: "success" } as TransactionReceipt;
     const approvalAmount = validParameters.shares * BigInt(10);
@@ -441,7 +441,7 @@ describe("requestRedeem", function () {
     expect(writeContract).toHaveBeenCalledWith(
       mockWalletClient,
       expect.objectContaining({
-        args: buildExpectedArgs(validParameters.shares),
+        args: expectedArgs,
       }),
     );
   });
@@ -585,7 +585,7 @@ describe("encodeRequestRedeem", function () {
     const data = encodeRequestRedeem(encodeParameters);
 
     expect(decodeFunctionData({ abi: hemiEarnRouterAbi, data })).toEqual({
-      args: buildExpectedArgs(validParameters.shares),
+      args: expectedArgs,
       functionName: "requestRedeem",
     });
   });
