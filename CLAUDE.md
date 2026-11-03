@@ -27,7 +27,10 @@ The `web/` app exposes the Swap, Earn, Borrow, Bridge, Liquidity, and Analytics 
 
 ### Web app (`web/`)
 
-- **Geo-blocking**: Every action that sends a transaction must be disabled when `isGeoRestricted()` (`web/src/utils/geoRestriction.ts`) returns true. This includes actions that only return funds to the user (claim, withdraw, cancel, repay). For a plain button, use `GeoRestrictedButton` (`web/src/components/geoRestrictedButton.tsx`). It disables the button and shows the `common.geo-restriction-title` tooltip. For other controls (form submit buttons, icon buttons), check `isGeoRestricted()` in the component that renders the control.
+- **Geo-blocking**: Every action that sends a transaction must be disabled when `isGeoRestricted()` (`web/src/utils/geoRestriction.ts`) returns true. This includes actions that only return funds to the user (claim, withdraw, cancel, repay). It also includes buttons inside drawers and modals (confirm, submit, Retry), even when they open only from a blocked button.
+  - For a plain button, use `GeoRestrictedButton` (`web/src/components/geoRestrictedButton.tsx`). It disables the button, shows the `common.geo-restriction-title` tooltip, and checks again on click. If the button needs its own tooltip, pass it in the `tooltip` prop. Do not wrap it in another `Tooltip`.
+  - The tooltip wraps the button in a `w-fit` element. If a parent sizes its children (`*:flex-1`, `*:w-full`), also add `[&_button]:w-full`.
+  - For other controls (form submit buttons, icon buttons), check `isGeoRestricted()` in the component that renders the control.
 
 ### TypeScript
 
