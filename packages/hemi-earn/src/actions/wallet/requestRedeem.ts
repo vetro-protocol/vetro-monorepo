@@ -69,7 +69,15 @@ const canRequestRedeem = async function ({
     return { canRedeem: false, reason: "invalid receiver" };
   }
 
-  const { share } = await getAssetData(walletClient, { address, asset });
+  const { enabled, share } = await getAssetData(walletClient, {
+    address,
+    asset,
+  });
+
+  if (!enabled) {
+    return { canRedeem: false, reason: "asset is disabled" };
+  }
+
   const userShares = await balanceOf(walletClient, {
     account: walletClient.account.address,
     address: share,

@@ -14,6 +14,7 @@ import { hemiEarnRouterAbi } from "../../abi/hemiEarnRouterAbi.ts";
 import { hemiEarnRouterAddress } from "../../constants.ts";
 import type { RequestDepositEvents } from "../../types.ts";
 import { resolveApprovalAmount } from "../../utils.ts";
+import { getAssetData } from "../public/getAssetData.ts";
 import { quoteDeposit } from "../public/quoteDeposit.ts";
 
 type RequestDepositParams = {
@@ -30,12 +31,14 @@ type RequestDepositParams = {
 };
 
 const canRequestDeposit = async function ({
+  address,
   amount,
   asset,
   operator,
   receiver,
   walletClient,
 }: {
+  address: Address;
   amount: bigint;
   asset: Address;
   operator: Address;
@@ -62,10 +65,17 @@ const canRequestDeposit = async function ({
     return { canDeposit: false, reason: "invalid receiver" };
   }
 
-  const tokenBalance = await balanceOf(walletClient, {
-    account: walletClient.account.address,
-    address: asset,
-  });
+  const [{ enabled }, tokenBalance] = await Promise.all([
+    getAssetData(walletClient, { address, asset }),
+    balanceOf(walletClient, {
+      account: walletClient.account.address,
+      address: asset,
+    }),
+  ]);
+
+  if (!enabled) {
+    return { canDeposit: false, reason: "asset is disabled" };
+  }
 
   if (tokenBalance < amount) {
     return { canDeposit: false, reason: "insufficient balance" };
@@ -91,6 +101,7 @@ const runRequestDeposit = (
   async function (emitter: EventEmitter<RequestDepositEvents>) {
     try {
       const { canDeposit, reason } = await canRequestDeposit({
+        address,
         amount,
         asset,
         operator,

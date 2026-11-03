@@ -12,6 +12,7 @@ import { allowance, approve, balanceOf } from "viem-erc20/actions";
 import { describe, expect, it, vi } from "vitest";
 
 import { hemiEarnRouterAbi } from "../../src/abi/hemiEarnRouterAbi.ts";
+import { getAssetData } from "../../src/actions/public/getAssetData.ts";
 import { quoteDeposit } from "../../src/actions/public/quoteDeposit.ts";
 import {
   encodeRequestDeposit,
@@ -27,6 +28,15 @@ vi.mock("viem-erc20/actions", () => ({
   allowance: vi.fn(),
   approve: vi.fn(),
   balanceOf: vi.fn(),
+}));
+
+vi.mock("../../src/actions/public/getAssetData.ts", () => ({
+  getAssetData: vi.fn().mockResolvedValue({
+    enabled: true,
+    remoteAsset: "0x5555555555555555555555555555555555555555",
+    remoteShare: "0x6666666666666666666666666666666666666666",
+    share: "0x4444444444444444444444444444444444444444",
+  }),
 }));
 
 vi.mock("../../src/actions/public/quoteDeposit.ts", () => ({
@@ -176,6 +186,34 @@ describe("requestDeposit", function () {
     expect(onFailedValidation).toHaveBeenCalledExactlyOnceWith(
       "insufficient balance",
     );
+  });
+
+  it("emits 'deposit-failed-validation' when the asset is disabled", async function () {
+    vi.mocked(getAssetData).mockResolvedValueOnce({
+      enabled: false,
+      remoteAsset: "0x5555555555555555555555555555555555555555",
+      remoteShare: "0x6666666666666666666666666666666666666666",
+      share: "0x4444444444444444444444444444444444444444",
+    });
+    vi.mocked(balanceOf).mockResolvedValue(validParameters.amount);
+
+    const { emitter, promise } = requestDeposit(
+      mockWalletClient,
+      validParameters,
+    );
+
+    const onFailedValidation = vi.fn();
+    emitter.on("deposit-failed-validation", onFailedValidation);
+
+    await promise;
+
+    expect(onFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "asset is disabled",
+    );
+    expect(getAssetData).toHaveBeenCalledWith(mockWalletClient, {
+      address: validParameters.address,
+      asset: validParameters.asset,
+    });
   });
 
   it("emits 'deposit-failed-validation' when balance read throws", async function () {

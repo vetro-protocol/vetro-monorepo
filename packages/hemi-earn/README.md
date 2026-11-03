@@ -58,8 +58,8 @@ await promise;
   - `quoteRedeemFulfillment(client, { address, remoteAsset })` — the native fee that the Agent needs to send a redeem fulfillment back to Hemi. Pass `remoteAsset` from `getAssetData`. Use the result as `callbackFee`.
   - `resolveIsInstant(client, { address, caller })` — whether a redeem from the staking vault at `address` skips the cooldown. It is `true` when the cooldown is disabled or `caller` is on the instant-withdraw whitelist. Read it on Ethereum and pass it as `isInstant`.
 - Wallet actions (writes), exported from `/actions`. Each returns `{ emitter, promise }`. Each one sends the transaction from the account of the wallet client. If the wallet client has no account, the action fails validation:
-  - `requestDeposit(walletClient, { address?, amount, approvalAmount?, asset, callbackFee, operator, receiver, sharesOutMin? })` — Router `requestDeposit`.
-  - `requestRedeem(walletClient, { address?, approvalAmount?, asset, assetsOutMin?, callbackFee, isInstant, operator, receiver, shares })` — Router `requestRedeem`. It reads the share token from the Router with `getAssetData`.
+  - `requestDeposit(walletClient, { address?, amount, approvalAmount?, asset, callbackFee, operator, receiver, sharesOutMin? })` — Router `requestDeposit`. It fails validation when `getAssetData` returns `enabled: false`.
+  - `requestRedeem(walletClient, { address?, approvalAmount?, asset, assetsOutMin?, callbackFee, isInstant, operator, receiver, shares })` — Router `requestRedeem`. It reads the share token from the Router with `getAssetData`, and fails validation when `enabled` is `false`.
   - `claimDeposit`, `claimRedeem`, `recoverDeposit`, `recoverRedeem`, `cancelRedeem` — `(walletClient, { address?, requestId })`. Router writes. `cancelRedeem` calls Router `cancel`. Only the request operator can call it.
   - `cancelRequest`, `retryRequest`, `claimUnstake` — `(walletClient, { address, nativeFee?, requestId })`. Agent writes on Ethereum: `cancel`, `retry` and `claimUnstake`.
 - Calldata encoders, exported from `/actions`. Each returns the calldata of one write and sends nothing:

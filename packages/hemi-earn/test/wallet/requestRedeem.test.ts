@@ -196,6 +196,34 @@ describe("requestRedeem", function () {
     );
   });
 
+  it("emits 'withdraw-failed-validation' when the asset is disabled", async function () {
+    vi.mocked(getAssetData).mockResolvedValueOnce({
+      enabled: false,
+      remoteAsset: "0x5555555555555555555555555555555555555555",
+      remoteShare: "0x6666666666666666666666666666666666666666",
+      share: "0x4444444444444444444444444444444444444444",
+    });
+    vi.mocked(balanceOf).mockResolvedValue(validParameters.shares);
+
+    const { emitter, promise } = requestRedeem(
+      mockWalletClient,
+      validParameters,
+    );
+
+    const onFailedValidation = vi.fn();
+    emitter.on("withdraw-failed-validation", onFailedValidation);
+
+    await promise;
+
+    expect(onFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "asset is disabled",
+    );
+    expect(getAssetData).toHaveBeenCalledWith(mockWalletClient, {
+      address: validParameters.address,
+      asset: validParameters.asset,
+    });
+  });
+
   it("emits 'withdraw-failed-validation' and sends no transaction when the asset data read fails", async function () {
     vi.mocked(getAssetData).mockRejectedValueOnce(new Error("rpc error"));
 
