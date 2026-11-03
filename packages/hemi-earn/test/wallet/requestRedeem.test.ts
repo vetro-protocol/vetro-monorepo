@@ -279,6 +279,31 @@ describe("requestRedeem", function () {
     expect(onQuoteFailed).not.toHaveBeenCalled();
   });
 
+  it("emits 'quote-failed' when quoteRedeem throws", async function () {
+    const error = new Error("quote error");
+    vi.mocked(balanceOf).mockResolvedValue(validParameters.shares);
+    vi.mocked(allowance).mockResolvedValue(validParameters.shares);
+    vi.mocked(quoteRedeem).mockRejectedValue(error);
+
+    const { emitter, promise } = requestRedeem(
+      mockWalletClient,
+      validParameters,
+    );
+
+    const onPreQuote = vi.fn();
+    const onQuoteFailed = vi.fn();
+    const onSettled = vi.fn();
+    emitter.on("pre-quote", onPreQuote);
+    emitter.on("quote-failed", onQuoteFailed);
+    emitter.on("withdraw-settled", onSettled);
+
+    await promise;
+
+    expect(onPreQuote).toHaveBeenCalledOnce();
+    expect(onQuoteFailed).toHaveBeenCalledExactlyOnceWith(error);
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
   it("happy path: quote, skip approve, submit, succeed", async function () {
     const receipt = { status: "success" } as TransactionReceipt;
 
@@ -440,6 +465,29 @@ describe("requestRedeem", function () {
 
     expect(onFailed).toHaveBeenCalledExactlyOnceWith(error);
     expect(writeContract).not.toHaveBeenCalled();
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("emits 'user-signing-withdraw-error' when request signing fails", async function () {
+    const error = new Error("user rejected");
+    vi.mocked(balanceOf).mockResolvedValue(validParameters.shares);
+    vi.mocked(quoteRedeem).mockResolvedValue(BigInt(0));
+    vi.mocked(allowance).mockResolvedValue(validParameters.shares);
+    vi.mocked(writeContract).mockRejectedValue(error);
+
+    const { emitter, promise } = requestRedeem(
+      mockWalletClient,
+      validParameters,
+    );
+
+    const onSigningError = vi.fn();
+    const onSettled = vi.fn();
+    emitter.on("user-signing-withdraw-error", onSigningError);
+    emitter.on("withdraw-settled", onSettled);
+
+    await promise;
+
+    expect(onSigningError).toHaveBeenCalledExactlyOnceWith(error);
     expect(onSettled).toHaveBeenCalledOnce();
   });
 
