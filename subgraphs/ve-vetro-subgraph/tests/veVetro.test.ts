@@ -4,8 +4,8 @@ import {
   beforeEach,
   clearStore,
   describe,
-  test,
   newMockEvent,
+  test,
 } from "matchstick-as/assembly/index";
 
 import { VeVetroPosition } from "../generated/schema";

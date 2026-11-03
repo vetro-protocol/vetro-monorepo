@@ -23,7 +23,10 @@ export function handleDeposit(event: Deposit): void {
 }
 
 export function handleLock(event: Lock): void {
-  const unlockTime = getUnlockTime(event.params.start, event.params.lockTime);
+  const unlockTime = getUnlockTime({
+    lockTime: event.params.lockTime,
+    start: event.params.start,
+  });
 
   const position = new VeVetroPosition(event.params.tokenId.toString());
   position.amount = event.params.amount;
