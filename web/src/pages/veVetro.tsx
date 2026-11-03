@@ -2,6 +2,7 @@ import { Breadcrumb } from "components/base/breadcrumb";
 import { PageTitle } from "components/base/pageTitle";
 import { StripedDivider } from "components/stripedDivider";
 import { ClaimInfoCards } from "components/veVetro/claimInfoCards";
+import { SnapshotPositionsTable } from "components/veVetro/snapshotPositionsTable";
 import { useTranslation } from "react-i18next";
 import { vToken } from "utils/veVetro";
 
@@ -24,6 +25,7 @@ export const VeVetro = function () {
       <div className="bg-gray-100">
         <ClaimInfoCards />
         <StripedDivider variant="small" />
+        <SnapshotPositionsTable />
       </div>
     </div>
   );
