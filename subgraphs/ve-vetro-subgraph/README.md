@@ -4,7 +4,7 @@ This subgraph indexes the veVETRO positions, their transfers, and the claims of 
 
 ## Entities
 
-- `VeVetroPosition` (id: veVETRO tokenId): the position, its current `owner` and `status` (`active` or `withdrawn`), and the `claim` that minted it, if any. `unlockTime` is the raw lock end. A position is transferable when `transferableAfter <= now`.
+- `VeVetroPosition` (id: veVETRO tokenId): the position, its current `owner` and `status` (`active` or `withdrawn`), and the `claim` that minted it, if any. `unlockTime` is the lock end as the contract stores it, rounded down to `SIX_DAYS` (not the effective end under auto-relock). A position is transferable when `transferableAfter <= now`.
 - `PositionTransfer`: a transfer of a position between two accounts. Mints, burns and self-transfers are not recorded.
 - `Claim` (id: transaction hash and log index): a claim of the distributor, with the veVETRO position it minted and the veHEMI positions it paid.
 - `ClaimedVeHemiPosition` (id: veHEMI tokenId): a veHEMI position paid by a claim, with its weight and share.

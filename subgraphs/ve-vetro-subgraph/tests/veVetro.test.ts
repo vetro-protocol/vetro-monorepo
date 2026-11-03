@@ -100,9 +100,12 @@ describe("veVETRO", function () {
       assert.entityCount("VeVetroPosition", 0);
     });
 
-    test("adds the amount and stores the raw lock end", function () {
+    test("adds the amount and stores the emitted lock end", function () {
       lock(false);
-      const newEnd = BigInt.fromI32(1900000000);
+      // Deposit emits a lock end already rounded to SIX_DAYS
+      const newEnd = BigInt.fromString(roundedUnlockTime).plus(
+        BigInt.fromI32(525960),
+      );
 
       handleDeposit(createDepositEvent({ amount, lockTime: newEnd, tokenId }));
 

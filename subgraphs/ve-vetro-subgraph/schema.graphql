@@ -16,7 +16,7 @@ type VeVetroPosition @entity(immutable: false) {
   "0 for transferable positions; the position is transferable when transferableAfter <= now"
   transferableAfter: BigInt!
   transfers: [PositionTransfer!]! @derivedFrom(field: "position")
-  "Raw lock end, as emitted by Lock and Deposit"
+  "Lock end as the contract stores it, rounded down to SIX_DAYS. Not the effective end under auto-relock"
   unlockTime: BigInt!
 }
 
