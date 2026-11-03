@@ -427,6 +427,18 @@ export const knownTokens: Token[] = [
     symbol: "msUSD",
   },
   {
+    address: "0xffB0Ea94191d7adcb6606f1b1d0ed1fBff298650",
+    chainId: mainnet.id,
+    decimals: 18,
+    extensions: {
+      allowanceSlot: 1n,
+    },
+    // TODO update url once logos are added - see https://github.com/hemilabs/token-list/issues/129
+    logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetrousd.svg",
+    name: "Vetro",
+    symbol: "V",
+  },
+  {
     address: "0xAA40c0c7644e0b2B224509571e10ad20d9C4ef28",
     chainId: hemi.id,
     decimals: 8,

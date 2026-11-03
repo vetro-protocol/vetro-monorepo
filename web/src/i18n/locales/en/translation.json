@@ -69,7 +69,8 @@
     },
     "liquidity": "Liquidity",
     "open-menu": "Open navigation menu",
-    "swap": "Swap"
+    "swap": "Swap",
+    "ve-vetro": "veVETRO"
   },
   "pages": {
     "analytics": {
@@ -658,6 +659,14 @@
         "step-2-paragraph-2_one": "Click Redeem, and choose the amount you want to receive.",
         "step-2-paragraph-2_other": "Click Redeem, choose the amount, and select the stablecoin ({{allButLast}}, or {{lastSymbol}}) you want to receive.",
         "title": "How to redeem VUSD to stables"
+      }
+    },
+    "ve-vetro": {
+      "breadcrumb": "veVETRO",
+      "claim": {
+        "breadcrumb": "Claim",
+        "description": "Your veHEMI positions at the snapshot give you ${{symbol}}. You receive it as a veVETRO position, locked until the unlock date.",
+        "title": "Claim your ${{symbol}}"
       }
     },
     "wallet": {
