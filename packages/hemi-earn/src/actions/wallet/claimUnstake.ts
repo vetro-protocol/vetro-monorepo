@@ -1,0 +1,109 @@
+import { isAddressValid } from "@vetro-protocol/core";
+import { EventEmitter } from "events";
+import { toPromiseEvent } from "to-promise-event";
+import type { Address, TransactionReceipt, WalletClient } from "viem";
+import {
+  getBalance,
+  waitForTransactionReceipt,
+  writeContract,
+} from "viem/actions";
+
+import { hemiEarnAgentAbi } from "../../abi/hemiEarnAgentAbi.ts";
+import type { ClaimUnstakeEvents } from "../../types.ts";
+
+const runClaimUnstake = (
+  walletClient: WalletClient,
+  {
+    address,
+    nativeFee = 0n,
+    requestId,
+  }: {
+    address: Address;
+    nativeFee?: bigint;
+    requestId: bigint;
+  },
+) =>
+  async function (emitter: EventEmitter<ClaimUnstakeEvents>) {
+    try {
+      const { account, chain } = walletClient;
+      if (!chain) {
+        emitter.emit("tx-failed-validation", "chain is not defined on wallet");
+        return;
+      }
+
+      if (!account) {
+        emitter.emit(
+          "tx-failed-validation",
+          "account is not defined on wallet",
+        );
+        return;
+      }
+
+      if (!isAddressValid(address)) {
+        emitter.emit("tx-failed-validation", "invalid agent address");
+        return;
+      }
+
+      if (requestId <= 0n) {
+        emitter.emit("tx-failed-validation", "invalid requestId");
+        return;
+      }
+
+      if (nativeFee > 0n) {
+        const balance = await getBalance(walletClient, {
+          address: account.address,
+        });
+        if (balance < nativeFee) {
+          emitter.emit("tx-failed-validation", "insufficient balance for fee");
+          return;
+        }
+      }
+
+      emitter.emit("pre-tx");
+
+      const txHash = await writeContract(walletClient, {
+        abi: hemiEarnAgentAbi,
+        account,
+        address,
+        args: [requestId],
+        chain,
+        functionName: "claimUnstake",
+        value: nativeFee,
+      }).catch(function (error: Error) {
+        emitter.emit("user-signing-tx-error", error);
+      });
+
+      if (!txHash) {
+        return;
+      }
+
+      emitter.emit("user-signed-tx", txHash);
+
+      const receipt = await waitForTransactionReceipt(walletClient, {
+        hash: txHash,
+      }).catch(function (error: Error) {
+        emitter.emit("tx-failed", error);
+      });
+
+      if (!receipt) {
+        return;
+      }
+
+      const eventMap: Record<
+        TransactionReceipt["status"],
+        keyof ClaimUnstakeEvents
+      > = {
+        reverted: "tx-transaction-reverted",
+        success: "tx-transaction-succeeded",
+      };
+
+      emitter.emit(eventMap[receipt.status], receipt);
+    } catch (error) {
+      emitter.emit("unexpected-error", error as Error);
+    } finally {
+      emitter.emit("tx-settled");
+    }
+  };
+
+export const claimUnstake = (...args: Parameters<typeof runClaimUnstake>) =>
+  toPromiseEvent<ClaimUnstakeEvents>(runClaimUnstake(...args));
