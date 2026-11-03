@@ -10,10 +10,10 @@ export const quoteDepositFulfillment = async function (
   client: Client,
   {
     address,
-    share,
+    remoteShare,
   }: {
     address: Address;
-    share: Address;
+    remoteShare: Address;
   },
 ): Promise<bigint> {
   if (!client) {
@@ -22,14 +22,14 @@ export const quoteDepositFulfillment = async function (
   if (!isAddressValid(address)) {
     throw new Error("Agent address is invalid");
   }
-  if (!isAddressValid(share)) {
-    throw new Error("Share address is invalid");
+  if (!isAddressValid(remoteShare)) {
+    throw new Error("Remote share address is invalid");
   }
 
   return readContract(client, {
     abi: hemiEarnAgentAbi,
     address,
-    args: [share],
+    args: [remoteShare],
     functionName: "quoteDepositFulfillment",
   });
 };

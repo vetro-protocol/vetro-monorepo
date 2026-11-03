@@ -11,34 +11,37 @@ vi.mock("viem/actions", () => ({
 // @ts-expect-error - We only create an empty client for testing purposes
 const client: Client = {};
 const address = "0x000000000000000000000000000000000000bEEF" as Address;
-const share = "0x000000000000000000000000000000000000dEaD" as Address;
+const remoteShare = "0x000000000000000000000000000000000000dEaD" as Address;
 
 describe("quoteDepositFulfillment", function () {
-  it("forwards the share address and returns the native fee", async function () {
+  it("forwards the remoteShare address and returns the native fee", async function () {
     vi.mocked(readContract).mockResolvedValue(BigInt(42));
 
-    const result = await quoteDepositFulfillment(client, { address, share });
+    const result = await quoteDepositFulfillment(client, {
+      address,
+      remoteShare,
+    });
 
     expect(result).toBe(BigInt(42));
     expect(readContract).toHaveBeenCalledWith(
       client,
       expect.objectContaining({
         address,
-        args: [share],
+        args: [remoteShare],
         functionName: "quoteDepositFulfillment",
       }),
     );
   });
 
-  it("rejects the zero address as share", async function () {
+  it("rejects the zero address as remoteShare", async function () {
     await expect(
-      quoteDepositFulfillment(client, { address, share: zeroAddress }),
-    ).rejects.toThrow("Share address is invalid");
+      quoteDepositFulfillment(client, { address, remoteShare: zeroAddress }),
+    ).rejects.toThrow("Remote share address is invalid");
   });
 
   it("rejects the zero address as agent address", async function () {
     await expect(
-      quoteDepositFulfillment(client, { address: zeroAddress, share }),
+      quoteDepositFulfillment(client, { address: zeroAddress, remoteShare }),
     ).rejects.toThrow("Agent address is invalid");
   });
 
@@ -46,7 +49,7 @@ describe("quoteDepositFulfillment", function () {
     await expect(
       quoteDepositFulfillment(client, {
         address: "0xnotanaddress" as Address,
-        share,
+        remoteShare,
       }),
     ).rejects.toThrow("Agent address is invalid");
   });

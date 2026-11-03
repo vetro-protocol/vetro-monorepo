@@ -53,9 +53,9 @@ await promise;
   - `getRequest(client, { address?, requestId })` — a Router request: `amountOutMin`, `asset`, `assets`, `automatic`, `kind`, `operator`, `receiver`, `share`, `shares` and `status`.
   - `getUnstakeRequest(client, { address, requestId })` — an Agent unstake request in cooldown: `amountOutMin`, `asset`, `claimableAt`, `nativeFee`, `operator`, `share`, `shares` and `unstakingRequestId`.
   - `quoteDeposit(client, { address?, asset, assets, callbackFee })` — the native fee for `requestDeposit`.
-  - `quoteDepositFulfillment(client, { address, share })` — the native fee that the Agent needs to send a deposit fulfillment back to Hemi. Use it as `callbackFee`.
+  - `quoteDepositFulfillment(client, { address, remoteShare })` — the native fee that the Agent needs to send a deposit fulfillment back to Hemi. Pass `remoteShare` from `getAssetData`. Use the result as `callbackFee`.
   - `quoteRedeem(client, { address?, asset, callbackFee, isInstant, shares })` — the native fee for `requestRedeem`.
-  - `quoteRedeemFulfillment(client, { address, asset })` — the native fee that the Agent needs to send a redeem fulfillment back to Hemi. Use it as `callbackFee`.
+  - `quoteRedeemFulfillment(client, { address, remoteAsset })` — the native fee that the Agent needs to send a redeem fulfillment back to Hemi. Pass `remoteAsset` from `getAssetData`. Use the result as `callbackFee`.
   - `resolveIsInstant(client, { address, caller })` — whether a redeem from the staking vault at `address` skips the cooldown. It is `true` when the cooldown is disabled or `caller` is on the instant-withdraw whitelist. Read it on Ethereum and pass it as `isInstant`.
 - Wallet actions (writes), exported from `/actions`. Each returns `{ emitter, promise }`. Each one sends the transaction from the account of the wallet client. If the wallet client has no account, the action fails validation:
   - `requestDeposit(walletClient, { address?, amount, approvalAmount?, asset, callbackFee, operator, receiver, sharesOutMin? })` — Router `requestDeposit`.

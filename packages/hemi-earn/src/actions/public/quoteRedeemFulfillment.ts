@@ -10,10 +10,10 @@ export const quoteRedeemFulfillment = async function (
   client: Client,
   {
     address,
-    asset,
+    remoteAsset,
   }: {
     address: Address;
-    asset: Address;
+    remoteAsset: Address;
   },
 ): Promise<bigint> {
   if (!client) {
@@ -22,14 +22,14 @@ export const quoteRedeemFulfillment = async function (
   if (!isAddressValid(address)) {
     throw new Error("Agent address is invalid");
   }
-  if (!isAddressValid(asset)) {
-    throw new Error("Asset address is invalid");
+  if (!isAddressValid(remoteAsset)) {
+    throw new Error("Remote asset address is invalid");
   }
 
   return readContract(client, {
     abi: hemiEarnAgentAbi,
     address,
-    args: [asset],
+    args: [remoteAsset],
     functionName: "quoteRedeemFulfillment",
   });
 };

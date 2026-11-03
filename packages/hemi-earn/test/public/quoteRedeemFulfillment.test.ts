@@ -11,34 +11,37 @@ vi.mock("viem/actions", () => ({
 // @ts-expect-error - We only create an empty client for testing purposes
 const client: Client = {};
 const address = "0x000000000000000000000000000000000000bEEF" as Address;
-const asset = "0x000000000000000000000000000000000000dEaD" as Address;
+const remoteAsset = "0x000000000000000000000000000000000000dEaD" as Address;
 
 describe("quoteRedeemFulfillment", function () {
   it("forwards args and returns the native fee", async function () {
     vi.mocked(readContract).mockResolvedValue(BigInt(99));
 
-    const result = await quoteRedeemFulfillment(client, { address, asset });
+    const result = await quoteRedeemFulfillment(client, {
+      address,
+      remoteAsset,
+    });
 
     expect(result).toBe(BigInt(99));
     expect(readContract).toHaveBeenCalledWith(
       client,
       expect.objectContaining({
         address,
-        args: [asset],
+        args: [remoteAsset],
         functionName: "quoteRedeemFulfillment",
       }),
     );
   });
 
-  it("rejects the zero address as asset", async function () {
+  it("rejects the zero address as remoteAsset", async function () {
     await expect(
-      quoteRedeemFulfillment(client, { address, asset: zeroAddress }),
-    ).rejects.toThrow("Asset address is invalid");
+      quoteRedeemFulfillment(client, { address, remoteAsset: zeroAddress }),
+    ).rejects.toThrow("Remote asset address is invalid");
   });
 
   it("rejects the zero address as agent address", async function () {
     await expect(
-      quoteRedeemFulfillment(client, { address: zeroAddress, asset }),
+      quoteRedeemFulfillment(client, { address: zeroAddress, remoteAsset }),
     ).rejects.toThrow("Agent address is invalid");
   });
 
@@ -46,7 +49,7 @@ describe("quoteRedeemFulfillment", function () {
     await expect(
       quoteRedeemFulfillment(client, {
         address: "0xnotanaddress" as Address,
-        asset,
+        remoteAsset,
       }),
     ).rejects.toThrow("Agent address is invalid");
   });
