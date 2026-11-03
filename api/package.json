@@ -10,7 +10,7 @@
     "types:check": "wrangler types --include-env=false --check"
   },
   "dependencies": {
-    "@sentry/cloudflare": "10.58.0",
+    "@sentry/cloudflare": "11.9.0",
     "@vetro-protocol/core": "workspace:*",
     "@vetro-protocol/earn": "workspace:*",
     "@vetro-protocol/gateway": "workspace:*",

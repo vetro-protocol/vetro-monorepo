@@ -656,8 +656,21 @@ const handler = Object.assign(app, {
 
 export default Sentry.withSentry(
   (env: Env) => ({
+    dataCollection: {
+      cookies: false,
+      databaseQueryData: false,
+      genAI: { inputs: false, outputs: false },
+      graphQL: { document: false, variables: false },
+      httpBodies: [],
+      httpHeaders: {
+        request: { allow: ["referer", "user-agent"] },
+        response: false,
+      },
+      queues: false,
+      urlQueryParams: { deny: ["forwarded", "-ip", "remote-", "via", "-user"] },
+      userInfo: false,
+    },
     dsn: env.SENTRY_DSN,
-    enableLogs: true,
     environment: "production",
     integrations: [
       Sentry.consoleLoggingIntegration({ levels: ["error", "info", "warn"] }),
