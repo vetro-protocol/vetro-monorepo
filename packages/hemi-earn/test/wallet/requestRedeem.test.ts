@@ -6,7 +6,11 @@ import {
   zeroAddress,
   zeroHash,
 } from "viem";
-import { waitForTransactionReceipt, writeContract } from "viem/actions";
+import {
+  getBalance,
+  waitForTransactionReceipt,
+  writeContract,
+} from "viem/actions";
 import { hemi } from "viem/chains";
 import { allowance, approve, balanceOf } from "viem-erc20/actions";
 import { describe, expect, it, vi } from "vitest";
@@ -20,6 +24,7 @@ import {
 } from "../../src/actions/wallet/requestRedeem.ts";
 
 vi.mock("viem/actions", () => ({
+  getBalance: vi.fn().mockResolvedValue(BigInt(1000)),
   waitForTransactionReceipt: vi.fn(),
   writeContract: vi.fn(),
 }));
@@ -443,6 +448,55 @@ describe("requestRedeem", function () {
       expect.objectContaining({
         args: expectedArgs,
       }),
+    );
+  });
+
+  it("emits 'withdraw-failed-validation' before the approval when the native balance is below the fee", async function () {
+    vi.mocked(balanceOf).mockResolvedValue(validParameters.shares);
+    vi.mocked(quoteRedeem).mockResolvedValue(BigInt(7));
+    vi.mocked(allowance).mockResolvedValue(BigInt(0));
+    vi.mocked(getBalance).mockResolvedValueOnce(BigInt(6));
+
+    const { emitter, promise } = requestRedeem(
+      mockWalletClient,
+      validParameters,
+    );
+
+    const onFailedValidation = vi.fn();
+    const onSettled = vi.fn();
+    emitter.on("withdraw-failed-validation", onFailedValidation);
+    emitter.on("withdraw-settled", onSettled);
+
+    await promise;
+
+    expect(getBalance).toHaveBeenCalledExactlyOnceWith(mockWalletClient, {
+      address: account,
+    });
+    expect(onFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "insufficient balance for fee",
+    );
+    expect(approve).not.toHaveBeenCalled();
+    expect(writeContract).not.toHaveBeenCalled();
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("submits the request when the native balance equals the fee", async function () {
+    const receipt = { status: "success" } as TransactionReceipt;
+
+    vi.mocked(balanceOf).mockResolvedValue(validParameters.shares);
+    vi.mocked(quoteRedeem).mockResolvedValue(BigInt(7));
+    vi.mocked(allowance).mockResolvedValue(validParameters.shares);
+    vi.mocked(getBalance).mockResolvedValueOnce(BigInt(7));
+    vi.mocked(writeContract).mockResolvedValue(zeroHash);
+    vi.mocked(waitForTransactionReceipt).mockResolvedValue(receipt);
+
+    const { promise } = requestRedeem(mockWalletClient, validParameters);
+
+    await promise;
+
+    expect(writeContract).toHaveBeenCalledExactlyOnceWith(
+      mockWalletClient,
+      expect.objectContaining({ value: BigInt(7) }),
     );
   });
 

@@ -7,7 +7,11 @@ import {
   type WalletClient,
   encodeFunctionData,
 } from "viem";
-import { waitForTransactionReceipt, writeContract } from "viem/actions";
+import {
+  getBalance,
+  waitForTransactionReceipt,
+  writeContract,
+} from "viem/actions";
 import { allowance, approve, balanceOf } from "viem-erc20/actions";
 
 import { hemiEarnRouterAbi } from "../../abi/hemiEarnRouterAbi.ts";
@@ -130,13 +134,14 @@ const runRequestDeposit = (
 
       emitter.emit("pre-quote");
       emitter.emit("check-allowance");
-      const [initialFee, currentAllowance] = await Promise.all([
+      const [initialFee, currentAllowance, nativeBalance] = await Promise.all([
         quote(),
         allowance(walletClient, {
           address: asset,
           owner: account.address,
           spender: address,
         }),
+        getBalance(walletClient, { address: account.address }),
       ]);
 
       if (initialFee instanceof Error) {
@@ -144,6 +149,14 @@ const runRequestDeposit = (
         return;
       }
       emitter.emit("quote-succeeded", initialFee);
+
+      if (nativeBalance < initialFee) {
+        emitter.emit(
+          "deposit-failed-validation",
+          "insufficient balance for fee",
+        );
+        return;
+      }
 
       let nativeFee = initialFee;
 
