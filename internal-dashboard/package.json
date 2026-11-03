@@ -21,7 +21,7 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-router": "8.5.0",
-    "victory": "37.3.6",
+    "victory": "37.4.1",
     "viem": "2.44.4",
     "viem-erc20": "2.2.1",
     "viem-erc4626": "1.2.0"
