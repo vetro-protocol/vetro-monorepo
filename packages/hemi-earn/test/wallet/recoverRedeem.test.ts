@@ -29,7 +29,7 @@ const mockWalletClient = {
 
 const validParameters = {
   address: "0x000000000000000000000000000000000000bEEF" as Address,
-  requestId: BigInt(1),
+  requestId: 1n,
 };
 
 describe("recoverRedeem", function () {
@@ -83,7 +83,7 @@ describe("recoverRedeem", function () {
   it("emits 'tx-failed-validation' when requestId is zero", async function () {
     const { emitter, promise } = recoverRedeem(mockWalletClient, {
       ...validParameters,
-      requestId: BigInt(0),
+      requestId: 0n,
     });
 
     const onFailedValidation = vi.fn();
@@ -199,10 +199,10 @@ describe("recoverRedeem", function () {
 
 describe("encodeRecoverRedeem", function () {
   it("encodes the recoverRedeem call with the requestId", function () {
-    const data = encodeRecoverRedeem({ requestId: BigInt(42) });
+    const data = encodeRecoverRedeem({ requestId: 42n });
 
     expect(decodeFunctionData({ abi: hemiEarnRouterAbi, data })).toEqual({
-      args: [BigInt(42)],
+      args: [42n],
       functionName: "recoverRedeem",
     });
   });

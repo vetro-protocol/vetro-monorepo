@@ -37,7 +37,7 @@ export const getRequest = async function (
     throw new Error("Router address is invalid");
   }
   // Router IDs start at 1; reject 0n so we don't read a zero-initialized struct.
-  if (requestId <= BigInt(0)) {
+  if (requestId <= 0n) {
     throw new Error("Request ID must be greater than zero");
   }
 

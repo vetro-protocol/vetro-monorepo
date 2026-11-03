@@ -24,7 +24,7 @@ import {
 } from "../../src/actions/wallet/requestRedeem.ts";
 
 vi.mock("viem/actions", () => ({
-  getBalance: vi.fn().mockResolvedValue(BigInt(1000)),
+  getBalance: vi.fn().mockResolvedValue(1000n),
   waitForTransactionReceipt: vi.fn(),
   writeContract: vi.fn(),
 }));
@@ -60,12 +60,12 @@ const mockWalletClient = {
 const validParameters = {
   address: "0x000000000000000000000000000000000000bEEF" as Address,
   asset: "0x000000000000000000000000000000000000dEaD" as Address,
-  assetsOutMin: BigInt(95),
-  callbackFee: BigInt(3),
+  assetsOutMin: 95n,
+  callbackFee: 3n,
   isInstant: true,
   operator: "0x2222222222222222222222222222222222222222" as Address,
   receiver: "0x3333333333333333333333333333333333333333" as Address,
-  shares: BigInt(100),
+  shares: 100n,
 };
 
 const expectedArgs = [
@@ -124,11 +124,11 @@ describe("requestRedeem", function () {
   });
 
   it("emits 'withdraw-failed-validation' when shares is zero", async function () {
-    vi.mocked(balanceOf).mockResolvedValue(BigInt(1000));
+    vi.mocked(balanceOf).mockResolvedValue(1000n);
 
     const { emitter, promise } = requestRedeem(mockWalletClient, {
       ...validParameters,
-      shares: BigInt(0),
+      shares: 0n,
     });
 
     const onFailedValidation = vi.fn();
@@ -142,7 +142,7 @@ describe("requestRedeem", function () {
   });
 
   it("emits 'withdraw-failed-validation' when shares is not a bigint", async function () {
-    vi.mocked(balanceOf).mockResolvedValue(BigInt(1000));
+    vi.mocked(balanceOf).mockResolvedValue(1000n);
 
     const { emitter, promise } = requestRedeem(mockWalletClient, {
       ...validParameters,
@@ -164,7 +164,7 @@ describe("requestRedeem", function () {
   it.each(["operator", "receiver"] as const)(
     "emits 'withdraw-failed-validation' and sends no transaction when %s is the zero address",
     async function (field) {
-      vi.mocked(balanceOf).mockResolvedValue(BigInt(1000));
+      vi.mocked(balanceOf).mockResolvedValue(1000n);
 
       const { emitter, promise } = requestRedeem(mockWalletClient, {
         ...validParameters,
@@ -185,7 +185,7 @@ describe("requestRedeem", function () {
   );
 
   it("emits 'withdraw-failed-validation' when shares exceed balance", async function () {
-    vi.mocked(balanceOf).mockResolvedValue(BigInt(10));
+    vi.mocked(balanceOf).mockResolvedValue(10n);
 
     const { emitter, promise } = requestRedeem(
       mockWalletClient,
@@ -251,7 +251,7 @@ describe("requestRedeem", function () {
   });
 
   it("reads the balance of the share token from the Router asset data", async function () {
-    vi.mocked(balanceOf).mockResolvedValue(BigInt(10));
+    vi.mocked(balanceOf).mockResolvedValue(10n);
 
     const { promise } = requestRedeem(mockWalletClient, validParameters);
 
@@ -342,7 +342,7 @@ describe("requestRedeem", function () {
     const receipt = { status: "success" } as TransactionReceipt;
 
     vi.mocked(balanceOf).mockResolvedValue(validParameters.shares);
-    vi.mocked(quoteRedeem).mockResolvedValue(BigInt(42));
+    vi.mocked(quoteRedeem).mockResolvedValue(42n);
     vi.mocked(allowance).mockResolvedValue(validParameters.shares);
     vi.mocked(writeContract).mockResolvedValue(zeroHash);
     vi.mocked(waitForTransactionReceipt).mockResolvedValue(receipt);
@@ -363,7 +363,7 @@ describe("requestRedeem", function () {
 
     await promise;
 
-    expect(onQuoteSucceeded).toHaveBeenCalledExactlyOnceWith(BigInt(42));
+    expect(onQuoteSucceeded).toHaveBeenCalledExactlyOnceWith(42n);
     expect(onPreWithdraw).toHaveBeenCalledOnce();
     expect(onSucceeded).toHaveBeenCalledExactlyOnceWith(receipt);
     expect(balanceOf).toHaveBeenCalledExactlyOnceWith(mockWalletClient, {
@@ -390,7 +390,7 @@ describe("requestRedeem", function () {
         address: validParameters.address,
         args: expectedArgs,
         functionName: "requestRedeem",
-        value: BigInt(42),
+        value: 42n,
       }),
     );
     expect(onSettled).toHaveBeenCalledOnce();
@@ -398,12 +398,12 @@ describe("requestRedeem", function () {
 
   it("fails loudly when approvalAmount is below the requested shares", async function () {
     vi.mocked(balanceOf).mockResolvedValue(validParameters.shares);
-    vi.mocked(quoteRedeem).mockResolvedValue(BigInt(7));
-    vi.mocked(allowance).mockResolvedValue(BigInt(0));
+    vi.mocked(quoteRedeem).mockResolvedValue(7n);
+    vi.mocked(allowance).mockResolvedValue(0n);
 
     const { emitter, promise } = requestRedeem(mockWalletClient, {
       ...validParameters,
-      approvalAmount: validParameters.shares - BigInt(1),
+      approvalAmount: validParameters.shares - 1n,
     });
 
     const onUnexpectedError = vi.fn();
@@ -421,11 +421,11 @@ describe("requestRedeem", function () {
   it("approves approvalAmount instead of shares when given", async function () {
     const approvalReceipt = { status: "success" } as TransactionReceipt;
     const withdrawReceipt = { status: "success" } as TransactionReceipt;
-    const approvalAmount = validParameters.shares * BigInt(10);
+    const approvalAmount = validParameters.shares * 10n;
 
     vi.mocked(balanceOf).mockResolvedValue(validParameters.shares);
-    vi.mocked(quoteRedeem).mockResolvedValue(BigInt(7));
-    vi.mocked(allowance).mockResolvedValue(BigInt(0));
+    vi.mocked(quoteRedeem).mockResolvedValue(7n);
+    vi.mocked(allowance).mockResolvedValue(0n);
     vi.mocked(approve).mockResolvedValue(zeroHash);
     vi.mocked(writeContract).mockResolvedValue(zeroHash);
     vi.mocked(waitForTransactionReceipt)
@@ -453,9 +453,9 @@ describe("requestRedeem", function () {
 
   it("emits 'withdraw-failed-validation' before the approval when the native balance is below the fee", async function () {
     vi.mocked(balanceOf).mockResolvedValue(validParameters.shares);
-    vi.mocked(quoteRedeem).mockResolvedValue(BigInt(7));
-    vi.mocked(allowance).mockResolvedValue(BigInt(0));
-    vi.mocked(getBalance).mockResolvedValueOnce(BigInt(6));
+    vi.mocked(quoteRedeem).mockResolvedValue(7n);
+    vi.mocked(allowance).mockResolvedValue(0n);
+    vi.mocked(getBalance).mockResolvedValueOnce(6n);
 
     const { emitter, promise } = requestRedeem(
       mockWalletClient,
@@ -484,9 +484,9 @@ describe("requestRedeem", function () {
     const receipt = { status: "success" } as TransactionReceipt;
 
     vi.mocked(balanceOf).mockResolvedValue(validParameters.shares);
-    vi.mocked(quoteRedeem).mockResolvedValue(BigInt(7));
+    vi.mocked(quoteRedeem).mockResolvedValue(7n);
     vi.mocked(allowance).mockResolvedValue(validParameters.shares);
-    vi.mocked(getBalance).mockResolvedValueOnce(BigInt(7));
+    vi.mocked(getBalance).mockResolvedValueOnce(7n);
     vi.mocked(writeContract).mockResolvedValue(zeroHash);
     vi.mocked(waitForTransactionReceipt).mockResolvedValue(receipt);
 
@@ -496,7 +496,7 @@ describe("requestRedeem", function () {
 
     expect(writeContract).toHaveBeenCalledExactlyOnceWith(
       mockWalletClient,
-      expect.objectContaining({ value: BigInt(7) }),
+      expect.objectContaining({ value: 7n }),
     );
   });
 
@@ -505,10 +505,8 @@ describe("requestRedeem", function () {
     const withdrawReceipt = { status: "success" } as TransactionReceipt;
 
     vi.mocked(balanceOf).mockResolvedValue(validParameters.shares);
-    vi.mocked(quoteRedeem)
-      .mockResolvedValueOnce(BigInt(7))
-      .mockResolvedValueOnce(BigInt(9));
-    vi.mocked(allowance).mockResolvedValue(BigInt(0));
+    vi.mocked(quoteRedeem).mockResolvedValueOnce(7n).mockResolvedValueOnce(9n);
+    vi.mocked(allowance).mockResolvedValue(0n);
     vi.mocked(approve).mockResolvedValue(zeroHash);
     vi.mocked(writeContract).mockResolvedValue(zeroHash);
     vi.mocked(waitForTransactionReceipt)
@@ -526,11 +524,11 @@ describe("requestRedeem", function () {
     await promise;
 
     expect(quoteRedeem).toHaveBeenCalledTimes(2);
-    expect(onQuoteSucceeded).toHaveBeenNthCalledWith(1, BigInt(7));
-    expect(onQuoteSucceeded).toHaveBeenNthCalledWith(2, BigInt(9));
+    expect(onQuoteSucceeded).toHaveBeenNthCalledWith(1, 7n);
+    expect(onQuoteSucceeded).toHaveBeenNthCalledWith(2, 9n);
     expect(writeContract).toHaveBeenCalledExactlyOnceWith(
       mockWalletClient,
-      expect.objectContaining({ value: BigInt(9) }),
+      expect.objectContaining({ value: 9n }),
     );
   });
 
@@ -540,9 +538,9 @@ describe("requestRedeem", function () {
 
     vi.mocked(balanceOf).mockResolvedValue(validParameters.shares);
     vi.mocked(quoteRedeem)
-      .mockResolvedValueOnce(BigInt(7))
+      .mockResolvedValueOnce(7n)
       .mockRejectedValueOnce(error);
-    vi.mocked(allowance).mockResolvedValue(BigInt(0));
+    vi.mocked(allowance).mockResolvedValue(0n);
     vi.mocked(approve).mockResolvedValue(zeroHash);
     vi.mocked(waitForTransactionReceipt).mockResolvedValueOnce(approvalReceipt);
 
@@ -567,8 +565,8 @@ describe("requestRedeem", function () {
     const error = new Error("user rejected");
 
     vi.mocked(balanceOf).mockResolvedValue(validParameters.shares);
-    vi.mocked(quoteRedeem).mockResolvedValue(BigInt(0));
-    vi.mocked(allowance).mockResolvedValue(BigInt(0));
+    vi.mocked(quoteRedeem).mockResolvedValue(0n);
+    vi.mocked(allowance).mockResolvedValue(0n);
     vi.mocked(approve).mockRejectedValue(error);
 
     const { emitter, promise } = requestRedeem(
@@ -592,8 +590,8 @@ describe("requestRedeem", function () {
     const error = new Error("receipt error");
 
     vi.mocked(balanceOf).mockResolvedValue(validParameters.shares);
-    vi.mocked(quoteRedeem).mockResolvedValue(BigInt(0));
-    vi.mocked(allowance).mockResolvedValue(BigInt(0));
+    vi.mocked(quoteRedeem).mockResolvedValue(0n);
+    vi.mocked(allowance).mockResolvedValue(0n);
     vi.mocked(approve).mockResolvedValue(zeroHash);
     vi.mocked(waitForTransactionReceipt).mockRejectedValueOnce(error);
 
@@ -617,7 +615,7 @@ describe("requestRedeem", function () {
   it("emits 'user-signing-withdraw-error' when request signing fails", async function () {
     const error = new Error("user rejected");
     vi.mocked(balanceOf).mockResolvedValue(validParameters.shares);
-    vi.mocked(quoteRedeem).mockResolvedValue(BigInt(0));
+    vi.mocked(quoteRedeem).mockResolvedValue(0n);
     vi.mocked(allowance).mockResolvedValue(validParameters.shares);
     vi.mocked(writeContract).mockRejectedValue(error);
 
@@ -640,7 +638,7 @@ describe("requestRedeem", function () {
   it("emits 'withdraw-failed' when the request receipt wait fails", async function () {
     const error = new Error("receipt timeout");
     vi.mocked(balanceOf).mockResolvedValue(validParameters.shares);
-    vi.mocked(quoteRedeem).mockResolvedValue(BigInt(0));
+    vi.mocked(quoteRedeem).mockResolvedValue(0n);
     vi.mocked(allowance).mockResolvedValue(validParameters.shares);
     vi.mocked(writeContract).mockResolvedValue(zeroHash);
     vi.mocked(waitForTransactionReceipt).mockRejectedValue(error);
@@ -668,7 +666,7 @@ describe("requestRedeem", function () {
     const receipt = { status: "reverted" } as TransactionReceipt;
 
     vi.mocked(balanceOf).mockResolvedValue(validParameters.shares);
-    vi.mocked(quoteRedeem).mockResolvedValue(BigInt(0));
+    vi.mocked(quoteRedeem).mockResolvedValue(0n);
     vi.mocked(allowance).mockResolvedValue(validParameters.shares);
     vi.mocked(writeContract).mockResolvedValue(zeroHash);
     vi.mocked(waitForTransactionReceipt).mockResolvedValue(receipt);
@@ -710,7 +708,7 @@ describe("encodeRequestRedeem", function () {
   it("encodes the cooldown path and the given automatic and assetsOutMin values", function () {
     const data = encodeRequestRedeem({
       ...encodeParameters,
-      assetsOutMin: BigInt(90),
+      assetsOutMin: 90n,
       automatic: false,
       isInstant: false,
     });
@@ -719,7 +717,7 @@ describe("encodeRequestRedeem", function () {
       args: [
         validParameters.asset,
         validParameters.shares,
-        BigInt(90),
+        90n,
         validParameters.receiver,
         validParameters.operator,
         false,

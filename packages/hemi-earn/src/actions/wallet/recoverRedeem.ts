@@ -37,7 +37,7 @@ const runRecoverRedeem = (
       }
 
       // Router IDs start at 1; reject 0n instead of an opaque contract revert.
-      if (requestId <= BigInt(0)) {
+      if (requestId <= 0n) {
         emitter.emit("tx-failed-validation", "invalid requestId");
         return;
       }

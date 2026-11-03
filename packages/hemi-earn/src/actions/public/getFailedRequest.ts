@@ -27,7 +27,7 @@ export const getFailedRequest = async function (
   if (!isAddressValid(address)) {
     throw new Error("Agent address is invalid");
   }
-  if (requestId <= BigInt(0)) {
+  if (requestId <= 0n) {
     throw new Error("Request ID must be greater than zero");
   }
 

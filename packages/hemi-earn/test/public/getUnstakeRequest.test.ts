@@ -14,14 +14,14 @@ const address = "0x000000000000000000000000000000000000dEaD" as Address;
 const someAddress = "0x000000000000000000000000000000000000bEEF" as Address;
 
 const unstakeRequest = {
-  amountOutMin: BigInt(10),
+  amountOutMin: 10n,
   asset: someAddress,
-  claimableAt: BigInt(1_700_000_000),
-  nativeFee: BigInt(5),
+  claimableAt: 1_700_000_000n,
+  nativeFee: 5n,
   operator: someAddress,
   share: someAddress,
-  shares: BigInt(50),
-  unstakingRequestId: BigInt(3),
+  shares: 50n,
+  unstakingRequestId: 3n,
 };
 
 describe("getUnstakeRequest", function () {
@@ -30,7 +30,7 @@ describe("getUnstakeRequest", function () {
 
     const result = await getUnstakeRequest(client, {
       address,
-      requestId: BigInt(1),
+      requestId: 1n,
     });
 
     expect(result).toEqual(unstakeRequest);
@@ -38,7 +38,7 @@ describe("getUnstakeRequest", function () {
       client,
       expect.objectContaining({
         address,
-        args: [BigInt(1)],
+        args: [1n],
         functionName: "unstakeRequests",
       }),
     );
@@ -46,7 +46,7 @@ describe("getUnstakeRequest", function () {
 
   it("rejects a non-positive requestId", async function () {
     await expect(
-      getUnstakeRequest(client, { address, requestId: BigInt(0) }),
+      getUnstakeRequest(client, { address, requestId: 0n }),
     ).rejects.toThrow("Request ID must be greater than zero");
   });
 
@@ -54,7 +54,7 @@ describe("getUnstakeRequest", function () {
     await expect(
       getUnstakeRequest(client, {
         address: zeroAddress,
-        requestId: BigInt(1),
+        requestId: 1n,
       }),
     ).rejects.toThrow("Agent address is invalid");
   });

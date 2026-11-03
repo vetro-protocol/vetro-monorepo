@@ -31,10 +31,10 @@ export const quoteRedeem = async function (
   if (!isAddressValid(asset)) {
     throw new Error("Asset address is invalid");
   }
-  if (shares <= BigInt(0)) {
+  if (shares <= 0n) {
     throw new Error("Shares must be greater than zero");
   }
-  if (callbackFee < BigInt(0)) {
+  if (callbackFee < 0n) {
     throw new Error("Callback fee cannot be negative");
   }
 

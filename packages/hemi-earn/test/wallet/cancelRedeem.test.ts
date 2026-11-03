@@ -24,7 +24,7 @@ const mockWalletClient = {
 
 const validParameters = {
   address: "0x000000000000000000000000000000000000bEEF" as Address,
-  requestId: BigInt(1),
+  requestId: 1n,
 };
 
 describe("cancelRedeem", function () {
@@ -78,7 +78,7 @@ describe("cancelRedeem", function () {
   it("emits 'tx-failed-validation' when requestId is zero", async function () {
     const { emitter, promise } = cancelRedeem(mockWalletClient, {
       ...validParameters,
-      requestId: BigInt(0),
+      requestId: 0n,
     });
 
     const onFailedValidation = vi.fn();

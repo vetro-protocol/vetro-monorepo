@@ -15,14 +15,14 @@ const remoteAsset = "0x000000000000000000000000000000000000dEaD" as Address;
 
 describe("quoteRedeemFulfillment", function () {
   it("forwards args and returns the native fee", async function () {
-    vi.mocked(readContract).mockResolvedValue(BigInt(99));
+    vi.mocked(readContract).mockResolvedValue(99n);
 
     const result = await quoteRedeemFulfillment(client, {
       address,
       remoteAsset,
     });
 
-    expect(result).toBe(BigInt(99));
+    expect(result).toBe(99n);
     expect(readContract).toHaveBeenCalledWith(
       client,
       expect.objectContaining({

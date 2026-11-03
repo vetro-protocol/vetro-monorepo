@@ -15,7 +15,7 @@ const runRetryRequest = (
   walletClient: WalletClient,
   {
     address,
-    nativeFee = BigInt(0),
+    nativeFee = 0n,
     requestId,
   }: {
     address: Address;
@@ -44,12 +44,12 @@ const runRetryRequest = (
         return;
       }
 
-      if (requestId <= BigInt(0)) {
+      if (requestId <= 0n) {
         emitter.emit("tx-failed-validation", "invalid requestId");
         return;
       }
 
-      if (nativeFee > BigInt(0)) {
+      if (nativeFee > 0n) {
         const balance = await getBalance(walletClient, {
           address: account.address,
         });

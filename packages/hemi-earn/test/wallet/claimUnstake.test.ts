@@ -30,8 +30,8 @@ const mockWalletClient = {
 
 const validParameters = {
   address: "0x000000000000000000000000000000000000dEaD" as Address,
-  nativeFee: BigInt(7),
-  requestId: BigInt(1),
+  nativeFee: 7n,
+  requestId: 1n,
 };
 
 describe("claimUnstake", function () {
@@ -85,7 +85,7 @@ describe("claimUnstake", function () {
   it("emits 'tx-failed-validation' when requestId is zero", async function () {
     const { emitter, promise } = claimUnstake(mockWalletClient, {
       ...validParameters,
-      requestId: BigInt(0),
+      requestId: 0n,
     });
 
     const onFailedValidation = vi.fn();
@@ -135,7 +135,7 @@ describe("claimUnstake", function () {
   it("happy path: signs with the native-fee top-up and emits succeeded", async function () {
     const receipt = { status: "success" } as TransactionReceipt;
 
-    vi.mocked(getBalance).mockResolvedValue(BigInt(1000));
+    vi.mocked(getBalance).mockResolvedValue(1000n);
     vi.mocked(writeContract).mockResolvedValue(zeroHash);
     vi.mocked(waitForTransactionReceipt).mockResolvedValue(receipt);
 
@@ -170,7 +170,7 @@ describe("claimUnstake", function () {
 
   it("emits 'tx-failed' when the receipt wait fails", async function () {
     const error = new Error("receipt timeout");
-    vi.mocked(getBalance).mockResolvedValue(BigInt(1000));
+    vi.mocked(getBalance).mockResolvedValue(1000n);
     vi.mocked(writeContract).mockResolvedValue(zeroHash);
     vi.mocked(waitForTransactionReceipt).mockRejectedValue(error);
 
@@ -199,7 +199,7 @@ describe("claimUnstake", function () {
   it("emits 'tx-transaction-reverted' when receipt is reverted", async function () {
     const receipt = { status: "reverted" } as TransactionReceipt;
 
-    vi.mocked(getBalance).mockResolvedValue(BigInt(1000));
+    vi.mocked(getBalance).mockResolvedValue(1000n);
     vi.mocked(writeContract).mockResolvedValue(zeroHash);
     vi.mocked(waitForTransactionReceipt).mockResolvedValue(receipt);
 
@@ -218,7 +218,7 @@ describe("claimUnstake", function () {
 
   it("emits 'user-signing-tx-error' when signing fails", async function () {
     const error = new Error("user rejected");
-    vi.mocked(getBalance).mockResolvedValue(BigInt(1000));
+    vi.mocked(getBalance).mockResolvedValue(1000n);
     vi.mocked(writeContract).mockRejectedValue(error);
 
     const { emitter, promise } = claimUnstake(
@@ -235,7 +235,7 @@ describe("claimUnstake", function () {
   });
 
   it("emits 'tx-failed-validation' when the balance is below the fee", async function () {
-    vi.mocked(getBalance).mockResolvedValue(BigInt(1));
+    vi.mocked(getBalance).mockResolvedValue(1n);
 
     const { emitter, promise } = claimUnstake(
       mockWalletClient,

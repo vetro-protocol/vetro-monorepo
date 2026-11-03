@@ -57,7 +57,7 @@ const canRequestDeposit = async function ({
     return { canDeposit: false, reason: "account is not defined on wallet" };
   }
 
-  if (typeof amount !== "bigint" || amount <= BigInt(0)) {
+  if (typeof amount !== "bigint" || amount <= 0n) {
     return { canDeposit: false, reason: "invalid amount" };
   }
 

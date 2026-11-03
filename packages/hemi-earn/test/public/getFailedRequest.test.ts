@@ -14,9 +14,9 @@ const address = "0x000000000000000000000000000000000000dEaD" as Address;
 const someAddress = "0x000000000000000000000000000000000000bEEF" as Address;
 
 const failedRequest = {
-  amountIn: BigInt(100),
+  amountIn: 100n,
   msg: "0xabcdef" as Hex,
-  nativeFee: BigInt(5),
+  nativeFee: 5n,
   tokenIn: someAddress,
 };
 
@@ -26,7 +26,7 @@ describe("getFailedRequest", function () {
 
     const result = await getFailedRequest(client, {
       address,
-      requestId: BigInt(1),
+      requestId: 1n,
     });
 
     expect(result).toEqual(failedRequest);
@@ -34,7 +34,7 @@ describe("getFailedRequest", function () {
       client,
       expect.objectContaining({
         address,
-        args: [BigInt(1)],
+        args: [1n],
         functionName: "failedRequests",
       }),
     );
@@ -42,7 +42,7 @@ describe("getFailedRequest", function () {
 
   it("rejects a non-positive requestId", async function () {
     await expect(
-      getFailedRequest(client, { address, requestId: BigInt(0) }),
+      getFailedRequest(client, { address, requestId: 0n }),
     ).rejects.toThrow("Request ID must be greater than zero");
   });
 
@@ -50,7 +50,7 @@ describe("getFailedRequest", function () {
     await expect(
       getFailedRequest(client, {
         address: zeroAddress,
-        requestId: BigInt(1),
+        requestId: 1n,
       }),
     ).rejects.toThrow("Agent address is invalid");
   });

@@ -14,22 +14,22 @@ const client: Client = {};
 const validParameters = {
   address: "0x000000000000000000000000000000000000bEEF" as Address,
   asset: "0x000000000000000000000000000000000000dEaD" as Address,
-  assets: BigInt(100),
-  callbackFee: BigInt(7),
+  assets: 100n,
+  callbackFee: 7n,
 };
 
 describe("quoteDeposit", function () {
   it("forwards args and returns the native fee", async function () {
-    vi.mocked(readContract).mockResolvedValue(BigInt(42));
+    vi.mocked(readContract).mockResolvedValue(42n);
 
     const result = await quoteDeposit(client, validParameters);
 
-    expect(result).toBe(BigInt(42));
+    expect(result).toBe(42n);
     expect(readContract).toHaveBeenCalledWith(
       client,
       expect.objectContaining({
         address: validParameters.address,
-        args: [validParameters.asset, BigInt(100), BigInt(7)],
+        args: [validParameters.asset, 100n, 7n],
         functionName: "quoteDeposit",
       }),
     );
@@ -43,13 +43,13 @@ describe("quoteDeposit", function () {
 
   it("rejects non-positive assets", async function () {
     await expect(
-      quoteDeposit(client, { ...validParameters, assets: BigInt(0) }),
+      quoteDeposit(client, { ...validParameters, assets: 0n }),
     ).rejects.toThrow("Assets must be greater than zero");
   });
 
   it("rejects negative callbackFee", async function () {
     await expect(
-      quoteDeposit(client, { ...validParameters, callbackFee: BigInt(-1) }),
+      quoteDeposit(client, { ...validParameters, callbackFee: -1n }),
     ).rejects.toThrow("Callback fee cannot be negative");
   });
 });

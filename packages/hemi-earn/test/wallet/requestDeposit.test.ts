@@ -24,7 +24,7 @@ import {
 } from "../../src/actions/wallet/requestDeposit.ts";
 
 vi.mock("viem/actions", () => ({
-  getBalance: vi.fn().mockResolvedValue(BigInt(1000)),
+  getBalance: vi.fn().mockResolvedValue(1000n),
   waitForTransactionReceipt: vi.fn(),
   writeContract: vi.fn(),
 }));
@@ -57,12 +57,12 @@ const mockWalletClient = {
 
 const validParameters = {
   address: "0x000000000000000000000000000000000000bEEF" as Address,
-  amount: BigInt(100),
+  amount: 100n,
   asset: "0x000000000000000000000000000000000000dEaD" as Address,
-  callbackFee: BigInt(3),
+  callbackFee: 3n,
   operator: "0x2222222222222222222222222222222222222222" as Address,
   receiver: "0x3333333333333333333333333333333333333333" as Address,
-  sharesOutMin: BigInt(95),
+  sharesOutMin: 95n,
 };
 
 const expectedArgs = [
@@ -122,7 +122,7 @@ describe("requestDeposit", function () {
   it("emits 'deposit-failed-validation' when amount is zero", async function () {
     const { emitter, promise } = requestDeposit(mockWalletClient, {
       ...validParameters,
-      amount: BigInt(0),
+      amount: 0n,
     });
 
     const onFailedValidation = vi.fn();
@@ -156,7 +156,7 @@ describe("requestDeposit", function () {
   it.each(["operator", "receiver"] as const)(
     "emits 'deposit-failed-validation' and sends no transaction when %s is the zero address",
     async function (field) {
-      vi.mocked(balanceOf).mockResolvedValue(BigInt(1000));
+      vi.mocked(balanceOf).mockResolvedValue(1000n);
 
       const { emitter, promise } = requestDeposit(mockWalletClient, {
         ...validParameters,
@@ -177,7 +177,7 @@ describe("requestDeposit", function () {
   );
 
   it("emits 'deposit-failed-validation' when balance is insufficient", async function () {
-    vi.mocked(balanceOf).mockResolvedValue(validParameters.amount - BigInt(1));
+    vi.mocked(balanceOf).mockResolvedValue(validParameters.amount - 1n);
 
     const { emitter, promise } = requestDeposit(
       mockWalletClient,
@@ -296,7 +296,7 @@ describe("requestDeposit", function () {
     const receipt = { status: "success" } as TransactionReceipt;
 
     vi.mocked(balanceOf).mockResolvedValue(validParameters.amount);
-    vi.mocked(quoteDeposit).mockResolvedValue(BigInt(42));
+    vi.mocked(quoteDeposit).mockResolvedValue(42n);
     vi.mocked(allowance).mockResolvedValue(validParameters.amount);
     vi.mocked(writeContract).mockResolvedValue(zeroHash);
     vi.mocked(waitForTransactionReceipt).mockResolvedValue(receipt);
@@ -323,7 +323,7 @@ describe("requestDeposit", function () {
 
     await promise;
 
-    expect(onQuoteSucceeded).toHaveBeenCalledExactlyOnceWith(BigInt(42));
+    expect(onQuoteSucceeded).toHaveBeenCalledExactlyOnceWith(42n);
     expect(onCheckAllowance).toHaveBeenCalledOnce();
     expect(onPreApprove).not.toHaveBeenCalled();
     expect(onPreDeposit).toHaveBeenCalledOnce();
@@ -352,7 +352,7 @@ describe("requestDeposit", function () {
         address: validParameters.address,
         args: expectedArgs,
         functionName: "requestDeposit",
-        value: BigInt(42),
+        value: 42n,
       }),
     );
     expect(onSettled).toHaveBeenCalledOnce();
@@ -363,8 +363,8 @@ describe("requestDeposit", function () {
     const depositReceipt = { status: "success" } as TransactionReceipt;
 
     vi.mocked(balanceOf).mockResolvedValue(validParameters.amount);
-    vi.mocked(quoteDeposit).mockResolvedValue(BigInt(7));
-    vi.mocked(allowance).mockResolvedValue(BigInt(0));
+    vi.mocked(quoteDeposit).mockResolvedValue(7n);
+    vi.mocked(allowance).mockResolvedValue(0n);
     vi.mocked(approve).mockResolvedValue(zeroHash);
     vi.mocked(writeContract).mockResolvedValue(zeroHash);
     vi.mocked(waitForTransactionReceipt)
@@ -405,11 +405,11 @@ describe("requestDeposit", function () {
   it("approves approvalAmount instead of amount when given", async function () {
     const approvalReceipt = { status: "success" } as TransactionReceipt;
     const depositReceipt = { status: "success" } as TransactionReceipt;
-    const approvalAmount = validParameters.amount * BigInt(10);
+    const approvalAmount = validParameters.amount * 10n;
 
     vi.mocked(balanceOf).mockResolvedValue(validParameters.amount);
-    vi.mocked(quoteDeposit).mockResolvedValue(BigInt(7));
-    vi.mocked(allowance).mockResolvedValue(BigInt(0));
+    vi.mocked(quoteDeposit).mockResolvedValue(7n);
+    vi.mocked(allowance).mockResolvedValue(0n);
     vi.mocked(approve).mockResolvedValue(zeroHash);
     vi.mocked(writeContract).mockResolvedValue(zeroHash);
     vi.mocked(waitForTransactionReceipt)
@@ -435,9 +435,9 @@ describe("requestDeposit", function () {
 
   it("emits 'deposit-failed-validation' before the approval when the native balance is below the fee", async function () {
     vi.mocked(balanceOf).mockResolvedValue(validParameters.amount);
-    vi.mocked(quoteDeposit).mockResolvedValue(BigInt(7));
-    vi.mocked(allowance).mockResolvedValue(BigInt(0));
-    vi.mocked(getBalance).mockResolvedValueOnce(BigInt(6));
+    vi.mocked(quoteDeposit).mockResolvedValue(7n);
+    vi.mocked(allowance).mockResolvedValue(0n);
+    vi.mocked(getBalance).mockResolvedValueOnce(6n);
 
     const { emitter, promise } = requestDeposit(
       mockWalletClient,
@@ -466,9 +466,9 @@ describe("requestDeposit", function () {
     const receipt = { status: "success" } as TransactionReceipt;
 
     vi.mocked(balanceOf).mockResolvedValue(validParameters.amount);
-    vi.mocked(quoteDeposit).mockResolvedValue(BigInt(7));
+    vi.mocked(quoteDeposit).mockResolvedValue(7n);
     vi.mocked(allowance).mockResolvedValue(validParameters.amount);
-    vi.mocked(getBalance).mockResolvedValueOnce(BigInt(7));
+    vi.mocked(getBalance).mockResolvedValueOnce(7n);
     vi.mocked(writeContract).mockResolvedValue(zeroHash);
     vi.mocked(waitForTransactionReceipt).mockResolvedValue(receipt);
 
@@ -478,7 +478,7 @@ describe("requestDeposit", function () {
 
     expect(writeContract).toHaveBeenCalledExactlyOnceWith(
       mockWalletClient,
-      expect.objectContaining({ value: BigInt(7) }),
+      expect.objectContaining({ value: 7n }),
     );
   });
 
@@ -487,10 +487,8 @@ describe("requestDeposit", function () {
     const depositReceipt = { status: "success" } as TransactionReceipt;
 
     vi.mocked(balanceOf).mockResolvedValue(validParameters.amount);
-    vi.mocked(quoteDeposit)
-      .mockResolvedValueOnce(BigInt(7))
-      .mockResolvedValueOnce(BigInt(9));
-    vi.mocked(allowance).mockResolvedValue(BigInt(0));
+    vi.mocked(quoteDeposit).mockResolvedValueOnce(7n).mockResolvedValueOnce(9n);
+    vi.mocked(allowance).mockResolvedValue(0n);
     vi.mocked(approve).mockResolvedValue(zeroHash);
     vi.mocked(writeContract).mockResolvedValue(zeroHash);
     vi.mocked(waitForTransactionReceipt)
@@ -508,11 +506,11 @@ describe("requestDeposit", function () {
     await promise;
 
     expect(quoteDeposit).toHaveBeenCalledTimes(2);
-    expect(onQuoteSucceeded).toHaveBeenNthCalledWith(1, BigInt(7));
-    expect(onQuoteSucceeded).toHaveBeenNthCalledWith(2, BigInt(9));
+    expect(onQuoteSucceeded).toHaveBeenNthCalledWith(1, 7n);
+    expect(onQuoteSucceeded).toHaveBeenNthCalledWith(2, 9n);
     expect(writeContract).toHaveBeenCalledExactlyOnceWith(
       mockWalletClient,
-      expect.objectContaining({ value: BigInt(9) }),
+      expect.objectContaining({ value: 9n }),
     );
   });
 
@@ -522,9 +520,9 @@ describe("requestDeposit", function () {
 
     vi.mocked(balanceOf).mockResolvedValue(validParameters.amount);
     vi.mocked(quoteDeposit)
-      .mockResolvedValueOnce(BigInt(7))
+      .mockResolvedValueOnce(7n)
       .mockRejectedValueOnce(error);
-    vi.mocked(allowance).mockResolvedValue(BigInt(0));
+    vi.mocked(allowance).mockResolvedValue(0n);
     vi.mocked(approve).mockResolvedValue(zeroHash);
     vi.mocked(waitForTransactionReceipt).mockResolvedValueOnce(approvalReceipt);
 
@@ -549,8 +547,8 @@ describe("requestDeposit", function () {
     const error = new Error("user rejected");
 
     vi.mocked(balanceOf).mockResolvedValue(validParameters.amount);
-    vi.mocked(quoteDeposit).mockResolvedValue(BigInt(0));
-    vi.mocked(allowance).mockResolvedValue(BigInt(0));
+    vi.mocked(quoteDeposit).mockResolvedValue(0n);
+    vi.mocked(allowance).mockResolvedValue(0n);
     vi.mocked(approve).mockRejectedValue(error);
 
     const { emitter, promise } = requestDeposit(
@@ -574,8 +572,8 @@ describe("requestDeposit", function () {
     const error = new Error("receipt error");
 
     vi.mocked(balanceOf).mockResolvedValue(validParameters.amount);
-    vi.mocked(quoteDeposit).mockResolvedValue(BigInt(0));
-    vi.mocked(allowance).mockResolvedValue(BigInt(0));
+    vi.mocked(quoteDeposit).mockResolvedValue(0n);
+    vi.mocked(allowance).mockResolvedValue(0n);
     vi.mocked(approve).mockResolvedValue(zeroHash);
     vi.mocked(waitForTransactionReceipt).mockRejectedValueOnce(error);
 
@@ -600,8 +598,8 @@ describe("requestDeposit", function () {
     const approvalReceipt = { status: "reverted" } as TransactionReceipt;
 
     vi.mocked(balanceOf).mockResolvedValue(validParameters.amount);
-    vi.mocked(quoteDeposit).mockResolvedValue(BigInt(0));
-    vi.mocked(allowance).mockResolvedValue(BigInt(0));
+    vi.mocked(quoteDeposit).mockResolvedValue(0n);
+    vi.mocked(allowance).mockResolvedValue(0n);
     vi.mocked(approve).mockResolvedValue(zeroHash);
     vi.mocked(waitForTransactionReceipt).mockResolvedValue(approvalReceipt);
 
@@ -627,7 +625,7 @@ describe("requestDeposit", function () {
   it("emits 'user-signing-deposit-error' when request signing fails", async function () {
     const error = new Error("user rejected");
     vi.mocked(balanceOf).mockResolvedValue(validParameters.amount);
-    vi.mocked(quoteDeposit).mockResolvedValue(BigInt(0));
+    vi.mocked(quoteDeposit).mockResolvedValue(0n);
     vi.mocked(allowance).mockResolvedValue(validParameters.amount);
     vi.mocked(writeContract).mockRejectedValue(error);
 
@@ -650,7 +648,7 @@ describe("requestDeposit", function () {
   it("emits 'deposit-failed' when the request receipt wait fails", async function () {
     const error = new Error("receipt timeout");
     vi.mocked(balanceOf).mockResolvedValue(validParameters.amount);
-    vi.mocked(quoteDeposit).mockResolvedValue(BigInt(0));
+    vi.mocked(quoteDeposit).mockResolvedValue(0n);
     vi.mocked(allowance).mockResolvedValue(validParameters.amount);
     vi.mocked(writeContract).mockResolvedValue(zeroHash);
     vi.mocked(waitForTransactionReceipt).mockRejectedValue(error);
@@ -678,7 +676,7 @@ describe("requestDeposit", function () {
     const receipt = { status: "reverted" } as TransactionReceipt;
 
     vi.mocked(balanceOf).mockResolvedValue(validParameters.amount);
-    vi.mocked(quoteDeposit).mockResolvedValue(BigInt(0));
+    vi.mocked(quoteDeposit).mockResolvedValue(0n);
     vi.mocked(allowance).mockResolvedValue(validParameters.amount);
     vi.mocked(writeContract).mockResolvedValue(zeroHash);
     vi.mocked(waitForTransactionReceipt).mockResolvedValue(receipt);
@@ -723,14 +721,14 @@ describe("encodeRequestDeposit", function () {
     const data = encodeRequestDeposit({
       ...encodeParameters,
       automatic: false,
-      sharesOutMin: BigInt(90),
+      sharesOutMin: 90n,
     });
 
     expect(decodeFunctionData({ abi: hemiEarnRouterAbi, data })).toEqual({
       args: [
         validParameters.asset,
         validParameters.amount,
-        BigInt(90),
+        90n,
         validParameters.receiver,
         validParameters.operator,
         false,

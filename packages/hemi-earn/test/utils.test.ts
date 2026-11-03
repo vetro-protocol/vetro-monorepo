@@ -7,25 +7,25 @@ describe("resolveApprovalAmount", function () {
     expect(
       resolveApprovalAmount({
         approvalAmount: undefined,
-        required: BigInt(100),
+        required: 100n,
       }),
-    ).toBe(BigInt(100));
+    ).toBe(100n);
   });
 
   it("honours a larger approval amount", function () {
     expect(
       resolveApprovalAmount({
-        approvalAmount: BigInt(1000),
-        required: BigInt(100),
+        approvalAmount: 1000n,
+        required: 100n,
       }),
-    ).toBe(BigInt(1000));
+    ).toBe(1000n);
   });
 
   it("rejects an approval amount below what the transaction pulls", function () {
     expect(() =>
       resolveApprovalAmount({
-        approvalAmount: BigInt(99),
-        required: BigInt(100),
+        approvalAmount: 99n,
+        required: 100n,
       }),
     ).toThrow("approval amount 99 is below the required 100");
   });
@@ -33,17 +33,17 @@ describe("resolveApprovalAmount", function () {
   it("accepts an approval amount equal to the required one", function () {
     expect(
       resolveApprovalAmount({
-        approvalAmount: BigInt(100),
-        required: BigInt(100),
+        approvalAmount: 100n,
+        required: 100n,
       }),
-    ).toBe(BigInt(100));
+    ).toBe(100n);
   });
 
   it("rejects a zero approval amount when something is required", function () {
     expect(() =>
       resolveApprovalAmount({
-        approvalAmount: BigInt(0),
-        required: BigInt(100),
+        approvalAmount: 0n,
+        required: 100n,
       }),
     ).toThrow("approval amount 0 is below the required 100");
   });

@@ -28,10 +28,10 @@ export const quoteDeposit = async function (
   if (!isAddressValid(asset)) {
     throw new Error("Asset address is invalid");
   }
-  if (assets <= BigInt(0)) {
+  if (assets <= 0n) {
     throw new Error("Assets must be greater than zero");
   }
-  if (callbackFee < BigInt(0)) {
+  if (callbackFee < 0n) {
     throw new Error("Callback fee cannot be negative");
   }
 

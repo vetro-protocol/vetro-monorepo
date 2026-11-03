@@ -17,22 +17,22 @@ const someAddress = "0x000000000000000000000000000000000000dEaD" as Address;
 describe("getRequest", function () {
   it("maps the on-chain struct into a typed Request", async function () {
     const request = {
-      amountOutMin: BigInt(40),
+      amountOutMin: 40n,
       asset: someAddress,
-      assets: BigInt(100),
+      assets: 100n,
       automatic: true,
       kind: 0,
       operator: someAddress,
       receiver: someAddress,
       share: someAddress,
-      shares: BigInt(50),
+      shares: 50n,
       status: 1,
     };
     vi.mocked(readContract).mockResolvedValue(request);
 
     const result = await getRequest(client, {
       address,
-      requestId: BigInt(1),
+      requestId: 1n,
     });
 
     expect(result).toEqual(request);
@@ -40,7 +40,7 @@ describe("getRequest", function () {
       client,
       expect.objectContaining({
         address,
-        args: [BigInt(1)],
+        args: [1n],
         functionName: "requests",
       }),
     );
@@ -48,35 +48,35 @@ describe("getRequest", function () {
 
   it("rejects a non-positive requestId", async function () {
     await expect(
-      getRequest(client, { address, requestId: BigInt(0) }),
+      getRequest(client, { address, requestId: 0n }),
     ).rejects.toThrow("Request ID must be greater than zero");
 
     await expect(
-      getRequest(client, { address, requestId: BigInt(-1) }),
+      getRequest(client, { address, requestId: -1n }),
     ).rejects.toThrow("Request ID must be greater than zero");
   });
 
   it("reads from the default Router address when address is omitted", async function () {
     vi.mocked(readContract).mockResolvedValue({
-      amountOutMin: BigInt(0),
+      amountOutMin: 0n,
       asset: someAddress,
-      assets: BigInt(0),
+      assets: 0n,
       automatic: false,
       kind: 1,
       operator: someAddress,
       receiver: someAddress,
       share: someAddress,
-      shares: BigInt(99),
+      shares: 99n,
       status: 3,
     });
 
-    await getRequest(client, { requestId: BigInt(7) });
+    await getRequest(client, { requestId: 7n });
 
     expect(readContract).toHaveBeenCalledWith(
       client,
       expect.objectContaining({
         address: hemiEarnRouterAddress,
-        args: [BigInt(7)],
+        args: [7n],
       }),
     );
   });

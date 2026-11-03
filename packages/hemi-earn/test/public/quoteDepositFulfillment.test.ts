@@ -15,14 +15,14 @@ const remoteShare = "0x000000000000000000000000000000000000dEaD" as Address;
 
 describe("quoteDepositFulfillment", function () {
   it("forwards the remoteShare address and returns the native fee", async function () {
-    vi.mocked(readContract).mockResolvedValue(BigInt(42));
+    vi.mocked(readContract).mockResolvedValue(42n);
 
     const result = await quoteDepositFulfillment(client, {
       address,
       remoteShare,
     });
 
-    expect(result).toBe(BigInt(42));
+    expect(result).toBe(42n);
     expect(readContract).toHaveBeenCalledWith(
       client,
       expect.objectContaining({

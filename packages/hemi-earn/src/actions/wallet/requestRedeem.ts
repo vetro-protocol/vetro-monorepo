@@ -61,7 +61,7 @@ const canRequestRedeem = async function ({
     return { canRedeem: false, reason: "account is not defined on wallet" };
   }
 
-  if (typeof shares !== "bigint" || shares <= BigInt(0)) {
+  if (typeof shares !== "bigint" || shares <= 0n) {
     return { canRedeem: false, reason: "invalid shares amount" };
   }
 
