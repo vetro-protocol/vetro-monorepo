@@ -428,6 +428,69 @@ describe("requestDeposit", function () {
     );
   });
 
+  it("quotes again after the approval and sends the refreshed fee", async function () {
+    const approvalReceipt = { status: "success" } as TransactionReceipt;
+    const depositReceipt = { status: "success" } as TransactionReceipt;
+
+    vi.mocked(balanceOf).mockResolvedValue(validParameters.amount);
+    vi.mocked(quoteDeposit)
+      .mockResolvedValueOnce(BigInt(7))
+      .mockResolvedValueOnce(BigInt(9));
+    vi.mocked(allowance).mockResolvedValue(BigInt(0));
+    vi.mocked(approve).mockResolvedValue(zeroHash);
+    vi.mocked(writeContract).mockResolvedValue(zeroHash);
+    vi.mocked(waitForTransactionReceipt)
+      .mockResolvedValueOnce(approvalReceipt)
+      .mockResolvedValueOnce(depositReceipt);
+
+    const { emitter, promise } = requestDeposit(
+      mockWalletClient,
+      validParameters,
+    );
+
+    const onQuoteSucceeded = vi.fn();
+    emitter.on("quote-succeeded", onQuoteSucceeded);
+
+    await promise;
+
+    expect(quoteDeposit).toHaveBeenCalledTimes(2);
+    expect(onQuoteSucceeded).toHaveBeenNthCalledWith(1, BigInt(7));
+    expect(onQuoteSucceeded).toHaveBeenNthCalledWith(2, BigInt(9));
+    expect(writeContract).toHaveBeenCalledExactlyOnceWith(
+      mockWalletClient,
+      expect.objectContaining({ value: BigInt(9) }),
+    );
+  });
+
+  it("emits 'quote-failed' when the quote after the approval throws", async function () {
+    const approvalReceipt = { status: "success" } as TransactionReceipt;
+    const error = new Error("quote error");
+
+    vi.mocked(balanceOf).mockResolvedValue(validParameters.amount);
+    vi.mocked(quoteDeposit)
+      .mockResolvedValueOnce(BigInt(7))
+      .mockRejectedValueOnce(error);
+    vi.mocked(allowance).mockResolvedValue(BigInt(0));
+    vi.mocked(approve).mockResolvedValue(zeroHash);
+    vi.mocked(waitForTransactionReceipt).mockResolvedValueOnce(approvalReceipt);
+
+    const { emitter, promise } = requestDeposit(
+      mockWalletClient,
+      validParameters,
+    );
+
+    const onQuoteFailed = vi.fn();
+    const onSettled = vi.fn();
+    emitter.on("quote-failed", onQuoteFailed);
+    emitter.on("deposit-settled", onSettled);
+
+    await promise;
+
+    expect(onQuoteFailed).toHaveBeenCalledExactlyOnceWith(error);
+    expect(writeContract).not.toHaveBeenCalled();
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
   it("emits 'user-signing-approval-error' when the approval signing fails", async function () {
     const error = new Error("user rejected");
 

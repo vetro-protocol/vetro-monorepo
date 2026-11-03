@@ -120,15 +120,18 @@ const runRequestDeposit = (
       const account = walletClient.account!;
       const chain = walletClient.chain!;
 
-      emitter.emit("pre-quote");
-      emitter.emit("check-allowance");
-      const [nativeFee, currentAllowance] = await Promise.all([
+      const quote = () =>
         quoteDeposit(walletClient, {
           address,
           asset,
           assets: amount,
           callbackFee,
-        }).catch((error: Error) => error),
+        }).catch((error: Error) => error);
+
+      emitter.emit("pre-quote");
+      emitter.emit("check-allowance");
+      const [initialFee, currentAllowance] = await Promise.all([
+        quote(),
         allowance(walletClient, {
           address: asset,
           owner: account.address,
@@ -136,11 +139,13 @@ const runRequestDeposit = (
         }),
       ]);
 
-      if (nativeFee instanceof Error) {
-        emitter.emit("quote-failed", nativeFee);
+      if (initialFee instanceof Error) {
+        emitter.emit("quote-failed", initialFee);
         return;
       }
-      emitter.emit("quote-succeeded", nativeFee);
+      emitter.emit("quote-succeeded", initialFee);
+
+      let nativeFee = initialFee;
 
       if (currentAllowance < amount) {
         emitter.emit("pre-approve");
@@ -175,6 +180,16 @@ const runRequestDeposit = (
         }
 
         emitter.emit("approve-transaction-succeeded", approvalReceipt);
+
+        // The approval wait has no upper bound, so the LayerZero fee may have moved.
+        emitter.emit("pre-quote");
+        const refreshedFee = await quote();
+        if (refreshedFee instanceof Error) {
+          emitter.emit("quote-failed", refreshedFee);
+          return;
+        }
+        emitter.emit("quote-succeeded", refreshedFee);
+        nativeFee = refreshedFee;
       }
 
       emitter.emit("pre-deposit");
