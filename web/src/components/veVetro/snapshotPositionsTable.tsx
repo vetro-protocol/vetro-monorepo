@@ -7,13 +7,14 @@ import { Header } from "components/base/table/header";
 import { ExternalLinkIcon } from "components/icons/externalLinkIcon";
 import { TokenLogo } from "components/tokenLogo";
 import type { fetchVeVetroSnapshotPositions } from "fetchers/fetchVeVetroSnapshotPositions";
+import { useNowTickingPast } from "hooks/useNowTickingPast";
 import { useVeVetroClaimEnd } from "hooks/useVeVetroClaimEnd";
 import { useVeVetroSnapshotPositions } from "hooks/useVeVetroSnapshotPositions";
 import { useVeVetroSnapshotTimestamp } from "hooks/useVeVetroSnapshotTimestamp";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
-import { formatMediumDate, unixNowTimestamp } from "utils/date";
+import { formatMediumDate } from "utils/date";
 import {
   hemiToken,
   veHemiAddress,
@@ -39,6 +40,12 @@ const explorerUrl = hemi.blockExplorers.default.url;
 function StatusCell({ claimed, weight }: Position) {
   const { t } = useTranslation();
   const { data: claimEnd } = useVeVetroClaimEnd();
+  const now = BigInt(
+    useNowTickingPast(
+      claimEnd === undefined ? undefined : [claimEnd + 1n],
+      (timestamp) => Number(timestamp),
+    ),
+  );
 
   if (weight === 0n) {
     return (
@@ -57,7 +64,7 @@ function StatusCell({ claimed, weight }: Position) {
   if (claimEnd === undefined) {
     return <Skeleton width={80} />;
   }
-  if (BigInt(unixNowTimestamp()) > claimEnd) {
+  if (now > claimEnd) {
     return (
       <span className="text-xsm text-gray-500">
         {t("pages.ve-vetro.claim.positions.status-claim-ended")}
