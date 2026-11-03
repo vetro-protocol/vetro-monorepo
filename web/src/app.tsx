@@ -1,4 +1,4 @@
-import * as Sentry from "@sentry/react";
+import { wrapReactRouterRouting } from "@sentry/react/react-router";
 import { AnalyticsTracker } from "components/analyticsTracker";
 import { AppLayout, MainContent } from "components/base/appLayout";
 import { AppViewport } from "components/base/appViewport";
@@ -31,7 +31,7 @@ import {
 import { featureFlags } from "utils/featureFlags";
 import { isGeoRestricted } from "utils/geoRestriction";
 
-const SentryRoutes = Sentry.withSentryReactRouterV7Routing(Routes);
+const SentryRoutes = wrapReactRouterRouting(Routes);
 
 const analyticsEnabled =
   !!import.meta.env.VITE_ANALYTICS_URL &&
