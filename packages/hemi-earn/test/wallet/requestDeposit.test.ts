@@ -530,6 +530,33 @@ describe("requestDeposit", function () {
     expect(onSettled).toHaveBeenCalledOnce();
   });
 
+  it("emits 'deposit-failed' when the request receipt wait fails", async function () {
+    const error = new Error("receipt timeout");
+    vi.mocked(balanceOf).mockResolvedValue(validParameters.amount);
+    vi.mocked(quoteDeposit).mockResolvedValue(BigInt(0));
+    vi.mocked(allowance).mockResolvedValue(validParameters.amount);
+    vi.mocked(writeContract).mockResolvedValue(zeroHash);
+    vi.mocked(waitForTransactionReceipt).mockRejectedValue(error);
+
+    const { emitter, promise } = requestDeposit(
+      mockWalletClient,
+      validParameters,
+    );
+
+    const onUserSigned = vi.fn();
+    const onFailed = vi.fn();
+    const onSettled = vi.fn();
+    emitter.on("user-signed-deposit", onUserSigned);
+    emitter.on("deposit-failed", onFailed);
+    emitter.on("deposit-settled", onSettled);
+
+    await promise;
+
+    expect(onUserSigned).toHaveBeenCalledExactlyOnceWith(zeroHash);
+    expect(onFailed).toHaveBeenCalledExactlyOnceWith(error);
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
   it("emits 'deposit-transaction-reverted' when request tx reverts", async function () {
     const receipt = { status: "reverted" } as TransactionReceipt;
 

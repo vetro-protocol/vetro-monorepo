@@ -164,6 +164,34 @@ describe("claimUnstake", function () {
     );
   });
 
+  it("emits 'tx-failed' when the receipt wait fails", async function () {
+    const error = new Error("receipt timeout");
+    vi.mocked(getBalance).mockResolvedValue(BigInt(1000));
+    vi.mocked(writeContract).mockResolvedValue(zeroHash);
+    vi.mocked(waitForTransactionReceipt).mockRejectedValue(error);
+
+    const { emitter, promise } = claimUnstake(
+      mockWalletClient,
+      validParameters,
+    );
+
+    const onFailed = vi.fn();
+    const onSucceeded = vi.fn();
+    const onReverted = vi.fn();
+    const onSettled = vi.fn();
+    emitter.on("tx-failed", onFailed);
+    emitter.on("tx-transaction-succeeded", onSucceeded);
+    emitter.on("tx-transaction-reverted", onReverted);
+    emitter.on("tx-settled", onSettled);
+
+    await promise;
+
+    expect(onFailed).toHaveBeenCalledExactlyOnceWith(error);
+    expect(onSucceeded).not.toHaveBeenCalled();
+    expect(onReverted).not.toHaveBeenCalled();
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
   it("emits 'tx-transaction-reverted' when receipt is reverted", async function () {
     const receipt = { status: "reverted" } as TransactionReceipt;
 

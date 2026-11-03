@@ -520,6 +520,33 @@ describe("requestRedeem", function () {
     expect(onSettled).toHaveBeenCalledOnce();
   });
 
+  it("emits 'withdraw-failed' when the request receipt wait fails", async function () {
+    const error = new Error("receipt timeout");
+    vi.mocked(balanceOf).mockResolvedValue(validParameters.shares);
+    vi.mocked(quoteRedeem).mockResolvedValue(BigInt(0));
+    vi.mocked(allowance).mockResolvedValue(validParameters.shares);
+    vi.mocked(writeContract).mockResolvedValue(zeroHash);
+    vi.mocked(waitForTransactionReceipt).mockRejectedValue(error);
+
+    const { emitter, promise } = requestRedeem(
+      mockWalletClient,
+      validParameters,
+    );
+
+    const onUserSigned = vi.fn();
+    const onFailed = vi.fn();
+    const onSettled = vi.fn();
+    emitter.on("user-signed-withdraw", onUserSigned);
+    emitter.on("withdraw-failed", onFailed);
+    emitter.on("withdraw-settled", onSettled);
+
+    await promise;
+
+    expect(onUserSigned).toHaveBeenCalledExactlyOnceWith(zeroHash);
+    expect(onFailed).toHaveBeenCalledExactlyOnceWith(error);
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
   it("emits 'withdraw-transaction-reverted' when request tx reverts", async function () {
     const receipt = { status: "reverted" } as TransactionReceipt;
 
