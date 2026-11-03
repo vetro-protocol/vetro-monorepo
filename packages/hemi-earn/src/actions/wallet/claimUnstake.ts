@@ -25,11 +25,12 @@ const runClaimUnstake = (
 ) =>
   async function (emitter: EventEmitter<ClaimUnstakeEvents>) {
     try {
-      if (!walletClient.chain) {
-        throw new Error("Chain is not defined on wallet");
+      const { account, chain } = walletClient;
+      if (!chain) {
+        emitter.emit("tx-failed-validation", "chain is not defined on wallet");
+        return;
       }
 
-      const { account } = walletClient;
       if (!account) {
         emitter.emit(
           "tx-failed-validation",
@@ -65,7 +66,7 @@ const runClaimUnstake = (
         account,
         address,
         args: [requestId],
-        chain: walletClient.chain,
+        chain,
         functionName: "claimUnstake",
         value: nativeFee,
       }).catch(function (error: Error) {

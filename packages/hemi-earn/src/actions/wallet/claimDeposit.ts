@@ -22,11 +22,12 @@ const runClaimDeposit = (
 ) =>
   async function (emitter: EventEmitter<ClaimDepositEvents>) {
     try {
-      if (!walletClient.chain) {
-        throw new Error("Chain is not defined on wallet");
+      const { account, chain } = walletClient;
+      if (!chain) {
+        emitter.emit("tx-failed-validation", "chain is not defined on wallet");
+        return;
       }
 
-      const { account } = walletClient;
       if (!account) {
         emitter.emit(
           "tx-failed-validation",
@@ -48,7 +49,7 @@ const runClaimDeposit = (
         account,
         address,
         args: [requestId],
-        chain: walletClient.chain,
+        chain,
         functionName: "claimDeposit",
       }).catch(function (error: Error) {
         emitter.emit("user-signing-tx-error", error);

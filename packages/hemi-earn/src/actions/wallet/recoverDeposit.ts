@@ -22,11 +22,12 @@ const runRecoverDeposit = (
 ) =>
   async function (emitter: EventEmitter<RecoverDepositEvents>) {
     try {
-      if (!walletClient.chain) {
-        throw new Error("Chain is not defined on wallet");
+      const { account, chain } = walletClient;
+      if (!chain) {
+        emitter.emit("tx-failed-validation", "chain is not defined on wallet");
+        return;
       }
 
-      const { account } = walletClient;
       if (!account) {
         emitter.emit(
           "tx-failed-validation",
@@ -48,7 +49,7 @@ const runRecoverDeposit = (
         account,
         address,
         args: [requestId],
-        chain: walletClient.chain,
+        chain,
         functionName: "recoverDeposit",
       }).catch(function (error: Error) {
         emitter.emit("user-signing-tx-error", error);

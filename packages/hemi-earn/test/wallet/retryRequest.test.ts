@@ -35,7 +35,7 @@ const validParameters = {
 };
 
 describe("retryRequest", function () {
-  it("emits 'unexpected-error' when wallet client chain is not defined", async function () {
+  it("emits 'tx-failed-validation' when wallet client chain is not defined", async function () {
     const walletClientWithoutChain = {
       account: mockWalletClient.account,
     } as WalletClient;
@@ -45,16 +45,20 @@ describe("retryRequest", function () {
       validParameters,
     );
 
+    const onFailedValidation = vi.fn();
     const onUnexpectedError = vi.fn();
     const onSettled = vi.fn();
+    emitter.on("tx-failed-validation", onFailedValidation);
     emitter.on("unexpected-error", onUnexpectedError);
     emitter.on("tx-settled", onSettled);
 
     await promise;
 
-    expect(onUnexpectedError).toHaveBeenCalledExactlyOnceWith(
-      new Error("Chain is not defined on wallet"),
+    expect(onFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "chain is not defined on wallet",
     );
+    expect(onUnexpectedError).not.toHaveBeenCalled();
+    expect(writeContract).not.toHaveBeenCalled();
     expect(onSettled).toHaveBeenCalledOnce();
   });
 
