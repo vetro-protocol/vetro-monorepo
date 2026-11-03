@@ -26,8 +26,8 @@ type RequestDepositParams = {
   // Authorized to call Agent.cancel on the remote chain; reverts if 0x0.
   operator: Address;
   receiver: Address;
-  // Min shares accepted on fulfillment (slippage, enforced remotely); 0n disables it.
-  sharesOutMin?: bigint;
+  // Despite the name, the Agent enforces it on the pegged tokens the gateway mints, not on shares; 0n disables it.
+  sharesOutMin: bigint;
 };
 
 const canRequestDeposit = async function ({
@@ -94,7 +94,7 @@ const runRequestDeposit = (
     callbackFee,
     operator,
     receiver,
-    sharesOutMin = BigInt(0),
+    sharesOutMin,
   }: RequestDepositParams,
 ) =>
   // eslint-disable-next-line complexity -- linear request workflow with branching event emissions
@@ -241,7 +241,7 @@ export const encodeRequestDeposit = ({
   callbackFee,
   operator,
   receiver,
-  sharesOutMin = BigInt(0),
+  sharesOutMin,
 }: Omit<RequestDepositParams, "address" | "approvalAmount"> & {
   automatic?: boolean;
 }) =>

@@ -22,7 +22,7 @@ type RequestRedeemParams = {
   approvalAmount?: bigint;
   asset: Address;
   // Min assets accepted on fulfillment (slippage, enforced remotely); 0n disables it.
-  assetsOutMin?: bigint;
+  assetsOutMin: bigint;
   callbackFee: bigint;
   // Instant vs cooldown path; must match the vault state (resolveIsInstant) or the Agent cancels and the user eats gas.
   isInstant: boolean;
@@ -96,7 +96,7 @@ const runRequestRedeem = (
     address = hemiEarnRouterAddress,
     approvalAmount,
     asset,
-    assetsOutMin = BigInt(0),
+    assetsOutMin,
     callbackFee,
     isInstant,
     operator,
@@ -249,7 +249,7 @@ export const requestRedeem = (...args: Parameters<typeof runRequestRedeem>) =>
 
 export const encodeRequestRedeem = ({
   asset,
-  assetsOutMin = BigInt(0),
+  assetsOutMin,
   automatic = true,
   callbackFee,
   isInstant,

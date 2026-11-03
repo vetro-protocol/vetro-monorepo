@@ -57,12 +57,13 @@ const validParameters = {
   callbackFee: BigInt(3),
   operator: "0x2222222222222222222222222222222222222222" as Address,
   receiver: "0x3333333333333333333333333333333333333333" as Address,
+  sharesOutMin: BigInt(0),
 };
 
 const expectedArgs = [
   validParameters.asset,
   validParameters.amount,
-  BigInt(0),
+  validParameters.sharesOutMin,
   validParameters.receiver,
   validParameters.operator,
   true,
@@ -562,9 +563,10 @@ describe("encodeRequestDeposit", function () {
     callbackFee: validParameters.callbackFee,
     operator: validParameters.operator,
     receiver: validParameters.receiver,
+    sharesOutMin: validParameters.sharesOutMin,
   };
 
-  it("encodes requestDeposit with automatic=true and sharesOutMin=0 by default", function () {
+  it("encodes requestDeposit with automatic=true by default", function () {
     const data = encodeRequestDeposit(encodeParameters);
 
     expect(decodeFunctionData({ abi: hemiEarnRouterAbi, data })).toEqual({

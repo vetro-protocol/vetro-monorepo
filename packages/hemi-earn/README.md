@@ -34,6 +34,7 @@ const { emitter, promise } = requestDeposit(walletClient, {
   callbackFee: 0n,
   operator: "0x...",
   receiver: "0x...",
+  sharesOutMin: 0n,
 });
 
 emitter.on("user-signed-deposit", (hash) => console.log("tx hash:", hash));
@@ -58,14 +59,14 @@ await promise;
   - `quoteRedeemFulfillment(client, { address, remoteAsset })` — the native fee that the Agent needs to send a redeem fulfillment back to Hemi. Pass `remoteAsset` from `getAssetData`. Use the result as `callbackFee`.
   - `resolveIsInstant(client, { address, caller })` — whether a redeem from the staking vault at `address` skips the cooldown. It is `true` when the cooldown is disabled or `caller` is on the instant-withdraw whitelist. Read it on Ethereum and pass it as `isInstant`.
 - Wallet actions (writes), exported from `/actions`. Each returns `{ emitter, promise }`. Each one sends the transaction from the account of the wallet client. If the wallet client has no account, the action fails validation:
-  - `requestDeposit(walletClient, { address?, amount, approvalAmount?, asset, callbackFee, operator, receiver, sharesOutMin? })` — Router `requestDeposit`. It fails validation when `getAssetData` returns `enabled: false`.
-  - `requestRedeem(walletClient, { address?, approvalAmount?, asset, assetsOutMin?, callbackFee, isInstant, operator, receiver, shares })` — Router `requestRedeem`. It reads the share token from the Router with `getAssetData`, and fails validation when `enabled` is `false`.
+  - `requestDeposit(walletClient, { address?, amount, approvalAmount?, asset, callbackFee, operator, receiver, sharesOutMin })` — Router `requestDeposit`. `sharesOutMin` is the minimum of pegged tokens that the gateway mints on Ethereum. Pass `0n` for no minimum. It fails validation when `getAssetData` returns `enabled: false`.
+  - `requestRedeem(walletClient, { address?, approvalAmount?, asset, assetsOutMin, callbackFee, isInstant, operator, receiver, shares })` — Router `requestRedeem`. `assetsOutMin` is the minimum of whitelisted tokens that the gateway redeem gives on Ethereum. Pass `0n` for no minimum. It reads the share token from the Router with `getAssetData`, and fails validation when `enabled` is `false`.
   - `claimDeposit`, `claimRedeem`, `recoverDeposit`, `recoverRedeem`, `cancelRedeem` — `(walletClient, { address?, requestId })`. Router writes. `cancelRedeem` calls Router `cancel`. Only the request operator can call it.
   - `cancelRequest`, `retryRequest`, `claimUnstake` — `(walletClient, { address, nativeFee?, requestId })`. Agent writes on Ethereum: `cancel`, `retry` and `claimUnstake`.
 - Calldata encoders, exported from `/actions`. Each returns the calldata of one write and sends nothing:
   - `encodeClaimDeposit({ requestId })`, `encodeClaimRedeem({ requestId })`, `encodeRecoverDeposit({ requestId })`, `encodeRecoverRedeem({ requestId })`.
-  - `encodeRequestDeposit({ amount, asset, automatic?, callbackFee, operator, receiver, sharesOutMin? })`. Unlike `requestDeposit`, it does not approve the token.
-  - `encodeRequestRedeem({ asset, assetsOutMin?, automatic?, callbackFee, isInstant, operator, receiver, shares })`. Unlike `requestRedeem`, it does not approve the share token.
+  - `encodeRequestDeposit({ amount, asset, automatic?, callbackFee, operator, receiver, sharesOutMin })`. Unlike `requestDeposit`, it does not approve the token.
+  - `encodeRequestRedeem({ asset, assetsOutMin, automatic?, callbackFee, isInstant, operator, receiver, shares })`. Unlike `requestRedeem`, it does not approve the share token.
 - ABIs: `hemiEarnRouterAbi` and `hemiEarnAgentAbi`.
 - Constants: `hemiEarnRouterAddress`, the Router on Hemi.
 - Hemi Earn metadata:

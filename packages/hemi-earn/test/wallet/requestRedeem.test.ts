@@ -55,6 +55,7 @@ const mockWalletClient = {
 const validParameters = {
   address: "0x000000000000000000000000000000000000bEEF" as Address,
   asset: "0x000000000000000000000000000000000000dEaD" as Address,
+  assetsOutMin: BigInt(0),
   callbackFee: BigInt(3),
   isInstant: false,
   operator: "0x2222222222222222222222222222222222222222" as Address,
@@ -65,7 +66,7 @@ const validParameters = {
 const buildExpectedArgs = (shares: bigint) => [
   validParameters.asset,
   shares,
-  BigInt(0),
+  validParameters.assetsOutMin,
   validParameters.receiver,
   validParameters.operator,
   true,
@@ -545,6 +546,7 @@ describe("requestRedeem", function () {
 describe("encodeRequestRedeem", function () {
   const encodeParameters = {
     asset: validParameters.asset,
+    assetsOutMin: validParameters.assetsOutMin,
     callbackFee: validParameters.callbackFee,
     isInstant: false,
     operator: validParameters.operator,
@@ -552,7 +554,7 @@ describe("encodeRequestRedeem", function () {
     shares: validParameters.shares,
   };
 
-  it("encodes requestRedeem with automatic=true and assetsOutMin=0 by default", function () {
+  it("encodes requestRedeem with automatic=true by default", function () {
     const data = encodeRequestRedeem(encodeParameters);
 
     expect(decodeFunctionData({ abi: hemiEarnRouterAbi, data })).toEqual({
