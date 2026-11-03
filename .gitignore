@@ -70,3 +70,6 @@ subgraph/tests/.latest.json
 subgraphs/*/.env
 subgraphs/*/.envio/
 subgraphs/*/envio-env.d.ts
+subgraphs/*/generated/
+subgraphs/*/tests/.bin/
+subgraphs/*/tests/.latest.json

@@ -8,6 +8,7 @@
     "subgraph/**/*",
     "subgraphs/*/.envio/**/*",
     "subgraphs/*/envio-env.d.ts",
+    "subgraphs/*/generated/**/*",
     "web/dist/**/*",
     "web/playwright-report/**/*",
     "web/storybook-static/**/*",
@@ -56,6 +57,12 @@
     },
     {
       "files": ["web/e2e/**/*.ts"],
+      "rules": {
+        "@vitest/require-hook": "off"
+      }
+    },
+    {
+      "files": ["subgraphs/ve-vetro-subgraph/tests/**/*.ts"],
       "rules": {
         "@vitest/require-hook": "off"
       }

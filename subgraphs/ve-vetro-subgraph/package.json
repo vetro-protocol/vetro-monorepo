@@ -1,0 +1,32 @@
+{
+  "name": "ve-vetro-subgraph",
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+    "prebuild": "$npm_execpath run codegen",
+    "build": "graph build",
+    "build:hemi": "$npm_execpath run build --network hemi",
+    "build:hemi-sepolia": "$npm_execpath run build --network hemi-sepolia",
+    "codegen": "graph codegen",
+    "create-local": "graph create --node http://localhost:8020/ $npm_package_name",
+    "deploy": "$npm_execpath run deploy-studio:hemi && $npm_execpath run deploy-studio:hemi-sepolia",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 $npm_package_name --version-label $npm_package_version",
+    "deploy-studio:hemi": "graph deploy --node https://api.studio.thegraph.com/deploy/ $npm_package_name-hemi --version-label $npm_package_version --network hemi ${GRAPH_API_KEY:+--deploy-key \"$GRAPH_API_KEY\"}",
+    "deploy-studio:hemi-sepolia": "graph deploy --node https://api.studio.thegraph.com/deploy/ $npm_package_name-hemi-sepolia --version-label $npm_package_version --network hemi-sepolia ${GRAPH_API_KEY:+--deploy-key \"$GRAPH_API_KEY\"}",
+    "graph:auth": "graph auth",
+    "postinstall": "$npm_execpath run codegen",
+    "remove-local": "graph remove --node http://localhost:8020/ $npm_package_name",
+    "tag": "../../scripts/tag-subgraph.sh",
+    "pretest": "$npm_execpath run codegen",
+    "test": "graph test --version=0.6.0"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "0.98.1",
+    "@graphprotocol/graph-ts": "0.38.2"
+  },
+  "devDependencies": {
+    "assemblyscript": "0.19.23",
+    "matchstick-as": "0.6.0"
+  },
+  "private": true
+}

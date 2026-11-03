@@ -7,11 +7,14 @@
     },
     "subgraph": {
       "entry": ["src/earn.ts", "tests/*.test.ts"],
-      "ignoreBinaries": ["scripts/tag-subgraph.sh"],
       "ignoreDependencies": ["assemblyscript"]
     },
     "subgraphs/*": {
       "entry": ["src/mappings/*.ts"]
+    },
+    "subgraphs/ve-vetro-subgraph": {
+      "entry": ["src/mappings/*.ts", "tests/*.test.ts"],
+      "ignoreDependencies": ["assemblyscript"]
     }
   }
 }
