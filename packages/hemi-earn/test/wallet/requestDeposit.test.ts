@@ -57,7 +57,7 @@ const validParameters = {
   callbackFee: BigInt(3),
   operator: "0x2222222222222222222222222222222222222222" as Address,
   receiver: "0x3333333333333333333333333333333333333333" as Address,
-  sharesOutMin: BigInt(0),
+  sharesOutMin: BigInt(95),
 };
 
 const expectedArgs = [

@@ -55,9 +55,9 @@ const mockWalletClient = {
 const validParameters = {
   address: "0x000000000000000000000000000000000000bEEF" as Address,
   asset: "0x000000000000000000000000000000000000dEaD" as Address,
-  assetsOutMin: BigInt(0),
+  assetsOutMin: BigInt(95),
   callbackFee: BigInt(3),
-  isInstant: false,
+  isInstant: true,
   operator: "0x2222222222222222222222222222222222222222" as Address,
   receiver: "0x3333333333333333333333333333333333333333" as Address,
   shares: BigInt(100),
@@ -71,7 +71,7 @@ const buildExpectedArgs = (shares: bigint) => [
   validParameters.operator,
   true,
   validParameters.callbackFee,
-  false,
+  validParameters.isInstant,
 ];
 
 describe("requestRedeem", function () {
@@ -548,7 +548,7 @@ describe("encodeRequestRedeem", function () {
     asset: validParameters.asset,
     assetsOutMin: validParameters.assetsOutMin,
     callbackFee: validParameters.callbackFee,
-    isInstant: false,
+    isInstant: validParameters.isInstant,
     operator: validParameters.operator,
     receiver: validParameters.receiver,
     shares: validParameters.shares,
@@ -563,12 +563,12 @@ describe("encodeRequestRedeem", function () {
     });
   });
 
-  it("encodes the instant path and the given automatic and assetsOutMin values", function () {
+  it("encodes the cooldown path and the given automatic and assetsOutMin values", function () {
     const data = encodeRequestRedeem({
       ...encodeParameters,
       assetsOutMin: BigInt(90),
       automatic: false,
-      isInstant: true,
+      isInstant: false,
     });
 
     expect(decodeFunctionData({ abi: hemiEarnRouterAbi, data })).toEqual({
@@ -580,7 +580,7 @@ describe("encodeRequestRedeem", function () {
         validParameters.operator,
         false,
         validParameters.callbackFee,
-        true,
+        false,
       ],
       functionName: "requestRedeem",
     });
