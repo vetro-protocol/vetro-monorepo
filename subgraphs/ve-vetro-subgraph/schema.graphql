@@ -1,0 +1,59 @@
+enum PositionStatus {
+  active
+  withdrawn
+}
+
+type VeVetroPosition @entity(immutable: false) {
+  id: ID!
+  amount: BigInt!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  claim: Claim
+  owner: Bytes!
+  start: BigInt!
+  status: PositionStatus!
+  transactionHash: Bytes!
+  "0 for transferable positions; the position is transferable when transferableAfter <= now"
+  transferableAfter: BigInt!
+  transfers: [PositionTransfer!]! @derivedFrom(field: "position")
+  "Raw lock end, as emitted by Lock and Deposit"
+  unlockTime: BigInt!
+}
+
+type PositionTransfer @entity(immutable: true) {
+  id: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  from: Bytes!
+  position: VeVetroPosition!
+  to: Bytes!
+  transactionHash: Bytes!
+}
+
+type Claim @entity(immutable: true) {
+  id: Bytes!
+  amount: BigInt!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  claimant: Bytes!
+  position: VeVetroPosition!
+  recipient: Bytes!
+  transactionHash: Bytes!
+  veHemiPositions: [ClaimedVeHemiPosition!]! @derivedFrom(field: "claim")
+}
+
+type ClaimedVeHemiPosition @entity(immutable: true) {
+  id: ID!
+  claim: Claim!
+  claimant: Bytes!
+  share: BigInt!
+  weight: BigInt!
+}
+
+"PositionClaimed events of a transaction, keyed by its hash, not yet followed by their Claimed event"
+type PendingClaim @entity(immutable: false) {
+  id: Bytes!
+  shares: [BigInt!]!
+  tokenIds: [BigInt!]!
+  weights: [BigInt!]!
+}

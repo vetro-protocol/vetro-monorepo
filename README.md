@@ -54,6 +54,7 @@ The monorepo contains the following workspaces:
 - `packages/*` - Shared packages
 - `subgraph` - Subgraph indexing Ethereum mainnet events for the API
 - `subgraphs/hemi-earn-indexer` - Envio indexer for the Hemi Earn cross-chain requests
+- `subgraphs/ve-vetro-subgraph` - Subgraph indexing the veVETRO positions and claims on Hemi
 - `web` - Web application
 
 In addition, it hosts these additional directories:
