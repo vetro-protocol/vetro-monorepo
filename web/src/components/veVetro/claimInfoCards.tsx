@@ -6,19 +6,14 @@ import { BoltIcon } from "components/icons/boltIcon";
 import { ExitCooldownIcon } from "components/icons/exitCooldownIcon";
 import { useVeVetroClaimableAmount } from "hooks/useVeVetroClaimableAmount";
 import { useVeVetroClaimEnd } from "hooks/useVeVetroClaimEnd";
-import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import { formatMediumDate } from "utils/date";
 import { vToken } from "utils/veVetro";
 
-const timeZone = "UTC";
+import { VAmountContainer } from "./vAmountContainer";
 
-const AmountContainer = ({ children }: { children?: ReactNode }) => (
-  <span>
-    {children} ${vToken.symbol}
-  </span>
-);
+const timeZone = "UTC";
 
 const ClaimableAmountCard = function () {
   const { t } = useTranslation();
@@ -35,7 +30,7 @@ const ClaimableAmountCard = function () {
       render={(amount) => (
         <DisplayAmount
           amount={amount}
-          container={AmountContainer}
+          container={VAmountContainer}
           showSymbol={false}
           token={vToken}
         />

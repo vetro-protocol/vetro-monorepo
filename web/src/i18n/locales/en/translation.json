@@ -669,6 +669,24 @@
         "claim-end-time-zone": "UTC · Hemi chain time",
         "claimable-amount": "Your claimable ${{symbol}}",
         "description": "Your veHEMI positions at the snapshot give you ${{symbol}}. You receive it as a veVETRO position, locked until the unlock date.",
+        "positions": {
+          "col-position": "Position",
+          "col-status": "Status",
+          "disconnected-description": "Connect your wallet to see the veHEMI positions you held at the snapshot.",
+          "disconnected-title": "No wallet connected",
+          "empty-description": "This wallet held no veHEMI positions at the snapshot.",
+          "empty-title": "No veHEMI positions at the snapshot",
+          "error-description": "We could not read your veHEMI positions at the snapshot.",
+          "error-title": "Positions not available",
+          "footnote": "Only positions you held at the snapshot count. A position you sold after the snapshot is still yours to claim.",
+          "position-id": "veHEMI #{{id}}",
+          "snapshot": "Block {{block}} · {{date}} UTC",
+          "status-claim-ended": "Claim period ended",
+          "status-claimed": "Claimed",
+          "status-eligible": "Eligible",
+          "status-expired": "Expired before the snapshot",
+          "title": "Your veHEMI positions at the snapshot"
+        },
         "title": "Claim your ${{symbol}}"
       }
     },

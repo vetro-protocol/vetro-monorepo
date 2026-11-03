@@ -677,6 +677,24 @@
         "claim-end-time-zone": "UTC · Hora de la cadena Hemi",
         "claimable-amount": "Sus ${{symbol}} reclamables",
         "description": "Sus posiciones de veHEMI en el momento del snapshot le otorgan ${{symbol}}. Lo recibe como una posición de veVETRO, bloqueada hasta la fecha de desbloqueo.",
+        "positions": {
+          "col-position": "Posición",
+          "col-status": "Estado",
+          "disconnected-description": "Conecte su billetera para ver las posiciones de veHEMI que tenía en el momento del snapshot.",
+          "disconnected-title": "Billetera no conectada",
+          "empty-description": "Esta billetera no tenía posiciones de veHEMI en el momento del snapshot.",
+          "empty-title": "No hay posiciones de veHEMI en el snapshot",
+          "error-description": "No pudimos leer sus posiciones de veHEMI en el momento del snapshot.",
+          "error-title": "Posiciones no disponibles",
+          "footnote": "Solo cuentan las posiciones que tenía en el momento del snapshot. Si vendió una posición después del snapshot, todavía puede reclamarla.",
+          "position-id": "veHEMI #{{id}}",
+          "snapshot": "Bloque {{block}} · {{date}} UTC",
+          "status-claim-ended": "Período de reclamo finalizado",
+          "status-claimed": "Reclamada",
+          "status-eligible": "Elegible",
+          "status-expired": "Vencida antes del snapshot",
+          "title": "Sus posiciones de veHEMI en el snapshot"
+        },
         "title": "Reclame sus ${{symbol}}"
       }
     },
