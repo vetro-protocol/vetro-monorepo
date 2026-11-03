@@ -662,10 +662,7 @@ export default Sentry.withSentry(
       genAI: { inputs: false, outputs: false },
       graphQL: { document: false, variables: false },
       httpBodies: [],
-      httpHeaders: {
-        request: { allow: ["referer", "user-agent"] },
-        response: false,
-      },
+      httpHeaders: { deny: ["forwarded", "-ip", "remote-", "via", "-user"] },
       queues: false,
       urlQueryParams: { deny: ["forwarded", "-ip", "remote-", "via", "-user"] },
       userInfo: false,
