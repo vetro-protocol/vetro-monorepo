@@ -69,7 +69,8 @@
     },
     "liquidity": "Liquidez",
     "open-menu": "Abrir menú de navegación",
-    "swap": "Intercambios"
+    "swap": "Intercambios",
+    "ve-vetro": "veVetro"
   },
   "pages": {
     "analytics": {
@@ -666,6 +667,14 @@
         "step-2-paragraph-2_one": "Haga clic en Canjear y elija el monto que desea recibir.",
         "step-2-paragraph-2_other": "Haga clic en Canjear, elija el monto y seleccione la stablecoin ({{allButLast}} o {{lastSymbol}}) que desea recibir.",
         "title": "Cómo canjear VUSD a stables"
+      }
+    },
+    "ve-vetro": {
+      "breadcrumb": "veVETRO",
+      "claim": {
+        "breadcrumb": "Reclamar",
+        "description": "Sus posiciones de veHEMI en el momento del snapshot le otorgan ${{symbol}}. Lo recibe como una posición de veVETRO, bloqueada hasta la fecha de desbloqueo.",
+        "title": "Reclame sus ${{symbol}}"
       }
     },
     "wallet": {
