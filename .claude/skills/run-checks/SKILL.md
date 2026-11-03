@@ -46,7 +46,7 @@ dependencies — the wrong direction here.)
 
   ```bash
   pnpm --filter ./subgraphs/<name> run build
-  pnpm --filter ./subgraphs/<name> run test   # Graph subgraphs use matchstick: downloads a binary + runs codegen first (heavier)
+  pnpm --filter ./subgraphs/<name> run test
   ```
 
 - **Lint** is fast (`eslint --cache`) — just run `pnpm run lint`. **Formatting**
