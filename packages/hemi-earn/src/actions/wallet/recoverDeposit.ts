@@ -13,18 +13,26 @@ import { hemiEarnRouterAddress } from "../../constants.ts";
 import type { RecoverDepositEvents } from "../../types.ts";
 
 type RecoverDepositParams = {
-  account: Address;
   address?: Address;
   requestId: bigint;
 };
 const runRecoverDeposit = (
   walletClient: WalletClient,
-  { account, address = hemiEarnRouterAddress, requestId }: RecoverDepositParams,
+  { address = hemiEarnRouterAddress, requestId }: RecoverDepositParams,
 ) =>
   async function (emitter: EventEmitter<RecoverDepositEvents>) {
     try {
       if (!walletClient.chain) {
         throw new Error("Chain is not defined on wallet");
+      }
+
+      const { account } = walletClient;
+      if (!account) {
+        emitter.emit(
+          "tx-failed-validation",
+          "account is not defined on wallet",
+        );
+        return;
       }
 
       // Router IDs start at 1; reject 0n instead of an opaque contract revert.

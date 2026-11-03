@@ -18,7 +18,6 @@ import { getAssetData } from "../public/getAssetData.ts";
 import { quoteRedeem } from "../public/quoteRedeem.ts";
 
 type RequestRedeemParams = {
-  account: Address;
   address?: Address;
   approvalAmount?: bigint;
   asset: Address;
@@ -33,17 +32,31 @@ type RequestRedeemParams = {
   shares: bigint;
 };
 
-const canRequestRedeem = function ({
+const canRequestRedeem = async function ({
+  address,
+  asset,
   operator,
   receiver,
   shares,
-  userShares,
+  walletClient,
 }: {
+  address: Address;
+  asset: Address;
   operator: Address;
   receiver: Address;
   shares: bigint;
-  userShares: bigint;
-}): { canRedeem: boolean; reason?: string } {
+  walletClient: WalletClient;
+}): Promise<
+  { canRedeem: false; reason: string } | { canRedeem: true; share: Address }
+> {
+  if (!walletClient.chain) {
+    return { canRedeem: false, reason: "chain is not defined on wallet" };
+  }
+
+  if (!walletClient.account) {
+    return { canRedeem: false, reason: "account is not defined on wallet" };
+  }
+
   if (typeof shares !== "bigint" || shares <= BigInt(0)) {
     return { canRedeem: false, reason: "invalid shares amount" };
   }
@@ -56,17 +69,22 @@ const canRequestRedeem = function ({
     return { canRedeem: false, reason: "invalid receiver" };
   }
 
+  const { share } = await getAssetData(walletClient, { address, asset });
+  const userShares = await balanceOf(walletClient, {
+    account: walletClient.account.address,
+    address: share,
+  });
+
   if (shares > userShares) {
     return { canRedeem: false, reason: "insufficient shares balance" };
   }
 
-  return { canRedeem: true };
+  return { canRedeem: true, share };
 };
 
 const runRequestRedeem = (
   walletClient: WalletClient,
   {
-    account,
     address = hemiEarnRouterAddress,
     approvalAmount,
     asset,
@@ -81,41 +99,26 @@ const runRequestRedeem = (
   // eslint-disable-next-line complexity -- linear redeem workflow with branching event emissions
   async function (emitter: EventEmitter<RequestRedeemEvents>) {
     try {
-      if (!walletClient.chain) {
-        throw new Error("Chain is not defined on wallet");
-      }
-
-      const validationData = await getAssetData(walletClient, {
+      const validation = await canRequestRedeem({
         address,
         asset,
-      })
-        .then(async ({ share }) => ({
-          share,
-          userShares: await balanceOf(walletClient, {
-            account,
-            address: share,
-          }),
-        }))
-        .catch(() => undefined);
-
-      if (!validationData) {
-        emitter.emit("withdraw-failed-validation", "failed to validate inputs");
-        return;
-      }
-
-      const { share, userShares } = validationData;
-
-      const { canRedeem, reason } = canRequestRedeem({
         operator,
         receiver,
         shares,
-        userShares,
-      });
+        walletClient,
+      }).catch(() => ({
+        canRedeem: false as const,
+        reason: "failed to validate inputs",
+      }));
 
-      if (!canRedeem) {
-        emitter.emit("withdraw-failed-validation", reason!);
+      if (!validation.canRedeem) {
+        emitter.emit("withdraw-failed-validation", validation.reason);
         return;
       }
+
+      const { share } = validation;
+      const account = walletClient.account!;
+      const chain = walletClient.chain!;
 
       emitter.emit("pre-quote");
       emitter.emit("check-allowance");
@@ -129,7 +132,7 @@ const runRequestRedeem = (
         }).catch((error: Error) => error),
         allowance(walletClient, {
           address: share,
-          owner: account,
+          owner: account.address,
           spender: address,
         }),
       ]);
@@ -194,7 +197,7 @@ const runRequestRedeem = (
           callbackFee,
           isInstant,
         ],
-        chain: walletClient.chain,
+        chain,
         functionName: "requestRedeem",
         value: nativeFee,
       }).catch(function (error: Error) {
@@ -245,7 +248,7 @@ export const encodeRequestRedeem = ({
   operator,
   receiver,
   shares,
-}: Omit<RequestRedeemParams, "account" | "address" | "approvalAmount"> & {
+}: Omit<RequestRedeemParams, "address" | "approvalAmount"> & {
   automatic?: boolean;
 }) =>
   encodeFunctionData({

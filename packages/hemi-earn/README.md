@@ -29,7 +29,6 @@ const walletClient = createWalletClient({
 });
 
 const { emitter, promise } = requestDeposit(walletClient, {
-  account: "0x...",
   amount: 1_000_000_000_000_000_000n,
   asset: "0x...", // pegged token on Hemi
   callbackFee: 0n,
@@ -58,11 +57,11 @@ await promise;
   - `quoteRedeem(client, { address?, asset, callbackFee, isInstant, shares })` — the native fee for `requestRedeem`.
   - `quoteRedeemFulfillment(client, { address, asset })` — the native fee that the Agent needs to send a redeem fulfillment back to Hemi. Use it as `callbackFee`.
   - `resolveIsInstant(client, { address, caller })` — whether a redeem from the staking vault at `address` skips the cooldown. It is `true` when the cooldown is disabled or `caller` is on the instant-withdraw whitelist. Read it on Ethereum and pass it as `isInstant`.
-- Wallet actions (writes), exported from `/actions`. Each returns `{ emitter, promise }`. Each one sends the transaction from `account`. The approval in `requestDeposit` and `requestRedeem` uses the account of the wallet client, so it must be the same address:
-  - `requestDeposit(walletClient, { account, address?, amount, approvalAmount?, asset, callbackFee, operator, receiver, sharesOutMin? })` — Router `requestDeposit`.
-  - `requestRedeem(walletClient, { account, address?, approvalAmount?, asset, assetsOutMin?, callbackFee, isInstant, operator, receiver, shares })` — Router `requestRedeem`. It reads the share token from the Router with `getAssetData`.
-  - `claimDeposit`, `claimRedeem`, `recoverDeposit`, `recoverRedeem`, `cancelRedeem` — `(walletClient, { account, address?, requestId })`. Router writes. `cancelRedeem` calls Router `cancel`. Only the request operator can call it.
-  - `cancelRequest`, `retryRequest`, `claimUnstake` — `(walletClient, { account, address, nativeFee?, requestId })`. Agent writes on Ethereum: `cancel`, `retry` and `claimUnstake`.
+- Wallet actions (writes), exported from `/actions`. Each returns `{ emitter, promise }`. Each one sends the transaction from the account of the wallet client. If the wallet client has no account, the action fails validation:
+  - `requestDeposit(walletClient, { address?, amount, approvalAmount?, asset, callbackFee, operator, receiver, sharesOutMin? })` — Router `requestDeposit`.
+  - `requestRedeem(walletClient, { address?, approvalAmount?, asset, assetsOutMin?, callbackFee, isInstant, operator, receiver, shares })` — Router `requestRedeem`. It reads the share token from the Router with `getAssetData`.
+  - `claimDeposit`, `claimRedeem`, `recoverDeposit`, `recoverRedeem`, `cancelRedeem` — `(walletClient, { address?, requestId })`. Router writes. `cancelRedeem` calls Router `cancel`. Only the request operator can call it.
+  - `cancelRequest`, `retryRequest`, `claimUnstake` — `(walletClient, { address, nativeFee?, requestId })`. Agent writes on Ethereum: `cancel`, `retry` and `claimUnstake`.
 - Calldata encoders, exported from `/actions`. Each returns the calldata of one write and sends nothing:
   - `encodeClaimDeposit({ requestId })`, `encodeClaimRedeem({ requestId })`, `encodeRecoverDeposit({ requestId })`, `encodeRecoverRedeem({ requestId })`.
   - `encodeRequestDeposit({ amount, asset, automatic?, callbackFee, operator, receiver, sharesOutMin? })`. Unlike `requestDeposit`, it does not approve the token.

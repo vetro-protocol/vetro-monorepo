@@ -17,7 +17,6 @@ import { resolveApprovalAmount } from "../../utils.ts";
 import { quoteDeposit } from "../public/quoteDeposit.ts";
 
 type RequestDepositParams = {
-  account: Address;
   address?: Address;
   amount: bigint;
   approvalAmount?: bigint;
@@ -31,20 +30,26 @@ type RequestDepositParams = {
 };
 
 const canRequestDeposit = async function ({
-  account,
   amount,
   asset,
   operator,
   receiver,
   walletClient,
 }: {
-  account: Address;
   amount: bigint;
   asset: Address;
   operator: Address;
   receiver: Address;
   walletClient: WalletClient;
 }): Promise<{ canDeposit: boolean; reason?: string }> {
+  if (!walletClient.chain) {
+    return { canDeposit: false, reason: "chain is not defined on wallet" };
+  }
+
+  if (!walletClient.account) {
+    return { canDeposit: false, reason: "account is not defined on wallet" };
+  }
+
   if (typeof amount !== "bigint" || amount <= BigInt(0)) {
     return { canDeposit: false, reason: "invalid amount" };
   }
@@ -58,7 +63,7 @@ const canRequestDeposit = async function ({
   }
 
   const tokenBalance = await balanceOf(walletClient, {
-    account,
+    account: walletClient.account.address,
     address: asset,
   });
 
@@ -72,7 +77,6 @@ const canRequestDeposit = async function ({
 const runRequestDeposit = (
   walletClient: WalletClient,
   {
-    account,
     address = hemiEarnRouterAddress,
     amount,
     approvalAmount,
@@ -86,12 +90,7 @@ const runRequestDeposit = (
   // eslint-disable-next-line complexity -- linear request workflow with branching event emissions
   async function (emitter: EventEmitter<RequestDepositEvents>) {
     try {
-      if (!walletClient.chain) {
-        throw new Error("Chain is not defined on wallet");
-      }
-
       const { canDeposit, reason } = await canRequestDeposit({
-        account,
         amount,
         asset,
         operator,
@@ -107,6 +106,9 @@ const runRequestDeposit = (
         return;
       }
 
+      const account = walletClient.account!;
+      const chain = walletClient.chain!;
+
       emitter.emit("pre-quote");
       emitter.emit("check-allowance");
       const [nativeFee, currentAllowance] = await Promise.all([
@@ -118,7 +120,7 @@ const runRequestDeposit = (
         }).catch((error: Error) => error),
         allowance(walletClient, {
           address: asset,
-          owner: account,
+          owner: account.address,
           spender: address,
         }),
       ]);
@@ -179,7 +181,7 @@ const runRequestDeposit = (
           true,
           callbackFee,
         ],
-        chain: walletClient.chain,
+        chain,
         functionName: "requestDeposit",
         value: nativeFee,
       }).catch(function (error: Error) {
@@ -229,7 +231,7 @@ export const encodeRequestDeposit = ({
   operator,
   receiver,
   sharesOutMin = BigInt(0),
-}: Omit<RequestDepositParams, "account" | "address" | "approvalAmount"> & {
+}: Omit<RequestDepositParams, "address" | "approvalAmount"> & {
   automatic?: boolean;
 }) =>
   encodeFunctionData({

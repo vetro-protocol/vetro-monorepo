@@ -14,12 +14,10 @@ import type { ClaimUnstakeEvents } from "../../types.ts";
 const runClaimUnstake = (
   walletClient: WalletClient,
   {
-    account,
     address,
     nativeFee = BigInt(0),
     requestId,
   }: {
-    account: Address;
     address: Address;
     nativeFee?: bigint;
     requestId: bigint;
@@ -29,6 +27,15 @@ const runClaimUnstake = (
     try {
       if (!walletClient.chain) {
         throw new Error("Chain is not defined on wallet");
+      }
+
+      const { account } = walletClient;
+      if (!account) {
+        emitter.emit(
+          "tx-failed-validation",
+          "account is not defined on wallet",
+        );
+        return;
       }
 
       if (!isAddressValid(address)) {
@@ -43,7 +50,7 @@ const runClaimUnstake = (
 
       if (nativeFee > BigInt(0)) {
         const balance = await getBalance(walletClient, {
-          address: account,
+          address: account.address,
         });
         if (balance < nativeFee) {
           emitter.emit("tx-failed-validation", "insufficient balance for fee");

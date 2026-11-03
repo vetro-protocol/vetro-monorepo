@@ -23,7 +23,6 @@ const mockWalletClient = {
 } as unknown as WalletClient;
 
 const validParameters = {
-  account: "0x1111111111111111111111111111111111111111" as Address,
   address: "0x000000000000000000000000000000000000bEEF" as Address,
   requestId: BigInt(1),
 };
@@ -31,7 +30,7 @@ const validParameters = {
 describe("cancelRedeem", function () {
   it("emits 'unexpected-error' when wallet client chain is not defined", async function () {
     const walletClientWithoutChain = {
-      account: validParameters.account,
+      account: mockWalletClient.account,
     } as WalletClient;
 
     const { emitter, promise } = cancelRedeem(
@@ -50,6 +49,26 @@ describe("cancelRedeem", function () {
       new Error("Chain is not defined on wallet"),
     );
     expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("emits 'tx-failed-validation' when wallet client account is not defined", async function () {
+    const walletClientWithoutAccount = {
+      chain: hemi,
+    } as unknown as WalletClient;
+
+    const { emitter, promise } = cancelRedeem(
+      walletClientWithoutAccount,
+      validParameters,
+    );
+
+    const onFailedValidation = vi.fn();
+    emitter.on("tx-failed-validation", onFailedValidation);
+
+    await promise;
+
+    expect(onFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "account is not defined on wallet",
+    );
   });
 
   it("emits 'tx-failed-validation' when requestId is zero", async function () {
@@ -97,7 +116,7 @@ describe("cancelRedeem", function () {
     expect(writeContract).toHaveBeenCalledWith(
       mockWalletClient,
       expect.objectContaining({
-        account: validParameters.account,
+        account: mockWalletClient.account,
         address: validParameters.address,
         args: [validParameters.requestId],
         functionName: "cancel",
