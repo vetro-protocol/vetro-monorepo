@@ -673,6 +673,9 @@
       "breadcrumb": "veVETRO",
       "claim": {
         "breadcrumb": "Reclamar",
+        "claim-end": "El período de reclamo termina",
+        "claim-end-time-zone": "UTC · Hora de la cadena Hemi",
+        "claimable-amount": "Sus ${{symbol}} reclamables",
         "description": "Sus posiciones de veHEMI en el momento del snapshot le otorgan ${{symbol}}. Lo recibe como una posición de veVETRO, bloqueada hasta la fecha de desbloqueo.",
         "title": "Reclame sus ${{symbol}}"
       }
