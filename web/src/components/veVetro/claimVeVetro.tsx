@@ -17,17 +17,20 @@ const ClaimVeVetroDrawer = lazy(() =>
 
 export function ClaimVeVetro() {
   const { t } = useTranslation();
-  const { data: amount } = useVeVetroClaimableAmount();
+  const { data: amount, isError: isAmountError } = useVeVetroClaimableAmount();
   const { data: hasClaimEnded, isError: isClaimEndError } =
     useVeVetroHasClaimEnded();
-  const { data: isClaimOpen } = useVeVetroIsClaimOpen();
+  const { data: isClaimOpen, isError: isClaimOpenError } =
+    useVeVetroIsClaimOpen();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const claimBlocker = getClaimBlocker({
     amount,
     hasClaimEnded,
+    isAmountError,
     isClaimEndError,
     isClaimOpen,
+    isClaimOpenError,
   });
 
   const tooltips = {
@@ -35,7 +38,7 @@ export function ClaimVeVetro() {
       amount: formatUnits(minClaimAmount, vToken.decimals),
       symbol: vToken.symbol,
     }),
-    "claim-end-error": t("pages.ve-vetro.claim.claim-button-claim-end-error"),
+    "load-error": t("pages.ve-vetro.claim.claim-button-load-error"),
     loading: undefined,
     "not-open": t("pages.ve-vetro.claim.claim-button-not-open"),
     "nothing-to-claim": t("pages.ve-vetro.claim.claim-button-nothing-to-claim"),

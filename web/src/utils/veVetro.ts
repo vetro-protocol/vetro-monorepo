@@ -38,19 +38,28 @@ function getAmountBlocker(amount: bigint | undefined) {
 export function getClaimBlocker({
   amount,
   hasClaimEnded,
+  isAmountError,
   isClaimEndError,
   isClaimOpen,
+  isClaimOpenError,
 }: {
   amount: bigint | undefined;
   hasClaimEnded: boolean | undefined;
+  isAmountError: boolean;
   isClaimEndError: boolean;
   isClaimOpen: boolean | undefined;
+  isClaimOpenError: boolean;
 }) {
   if (isClaimOpen === false || hasClaimEnded === true) {
     return "not-open";
   }
-  if (hasClaimEnded === undefined && isClaimEndError) {
-    return "claim-end-error";
+  const hasLoadError = [
+    { data: amount, isError: isAmountError },
+    { data: hasClaimEnded, isError: isClaimEndError },
+    { data: isClaimOpen, isError: isClaimOpenError },
+  ].some(({ data, isError }) => data === undefined && isError);
+  if (hasLoadError) {
+    return "load-error";
   }
   const amountBlocker = getAmountBlocker(amount);
   if (amountBlocker) {

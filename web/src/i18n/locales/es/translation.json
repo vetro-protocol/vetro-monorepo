@@ -675,7 +675,7 @@
         "breadcrumb": "Reclamar",
         "claim-button": "Reclamar veVETRO",
         "claim-button-below-minimum": "Por debajo del mínimo de {{amount}} ${{symbol}}",
-        "claim-button-claim-end-error": "No se pudo leer el período de reclamo",
+        "claim-button-load-error": "No se pudieron cargar los datos del reclamo",
         "claim-button-not-open": "Los reclamos no están abiertos",
         "claim-button-nothing-to-claim": "No hay nada para reclamar",
         "claim-end": "El período de reclamo termina",

@@ -5,8 +5,10 @@ import { getClaimBlocker, minClaimAmount } from "../../src/utils/veVetro";
 const claimable = {
   amount: minClaimAmount,
   hasClaimEnded: false,
+  isAmountError: false,
   isClaimEndError: false,
   isClaimOpen: true,
+  isClaimOpenError: false,
 };
 
 describe("getClaimBlocker", function () {
@@ -50,19 +52,22 @@ describe("getClaimBlocker", function () {
     ).toBe("not-open");
   });
 
-  it("returns claim-end-error when the claim end failed to load", function () {
+  it.each([
+    ["amount", { amount: undefined, isAmountError: true }],
+    ["claim end", { hasClaimEnded: undefined, isClaimEndError: true }],
+    ["claim open status", { isClaimOpen: undefined, isClaimOpenError: true }],
+  ])("returns load-error when the %s failed to load", function (_, partial) {
+    expect(getClaimBlocker({ ...claimable, ...partial })).toBe("load-error");
+  });
+
+  it("ignores a load error when the values are already known", function () {
     expect(
       getClaimBlocker({
         ...claimable,
-        hasClaimEnded: undefined,
+        isAmountError: true,
         isClaimEndError: true,
+        isClaimOpenError: true,
       }),
-    ).toBe("claim-end-error");
-  });
-
-  it("ignores a claim end error when the claim end is already known", function () {
-    expect(
-      getClaimBlocker({ ...claimable, isClaimEndError: true }),
     ).toBeUndefined();
   });
 

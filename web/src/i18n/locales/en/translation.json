@@ -667,7 +667,7 @@
         "breadcrumb": "Claim",
         "claim-button": "Claim veVETRO",
         "claim-button-below-minimum": "Below the {{amount}} ${{symbol}} minimum",
-        "claim-button-claim-end-error": "Could not read the claim window",
+        "claim-button-load-error": "Could not load the claim data",
         "claim-button-not-open": "Claims are not open",
         "claim-button-nothing-to-claim": "Nothing to claim",
         "claim-end": "Claim window ends",
