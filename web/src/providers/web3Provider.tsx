@@ -15,7 +15,7 @@ import {
   walletConnectWallet,
 } from "@rainbow-me/rainbowkit/wallets";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { createRpcTransport } from "@vetro-protocol/core";
+import { createRpcTransport, vetroLinks } from "@vetro-protocol/core";
 import { Trans } from "react-i18next";
 import { WagmiProvider } from "wagmi";
 
@@ -60,13 +60,13 @@ const WalletDisclaimer: DisclaimerComponent = ({ Text }) => (
         privacy: (
           <ExternalLink
             className={disclaimerLinkClassName}
-            href="https://vetro.org/privacy-policy"
+            href={vetroLinks.privacyPolicyUrl}
           />
         ),
         terms: (
           <ExternalLink
             className={disclaimerLinkClassName}
-            href="https://vetro.org/terms-of-use"
+            href={vetroLinks.termsOfUseUrl}
           />
         ),
       }}

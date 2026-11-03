@@ -1,3 +1,4 @@
+import { vetroLinks } from "@vetro-protocol/core";
 import type { Context, Next } from "hono";
 
 // Shaped for the SEND_EMAIL binding's attachments. Content is raw binary; the
@@ -259,7 +260,7 @@ you can ignore this email.
 --
 Vetro Service & Support Corp.
 You received this because you used the contact form at ${env.WEBSITE_URL}.
-Privacy policy: https://vetro.org/privacy-policy
+Privacy policy: ${vetroLinks.privacyPolicyUrl}
 Contact: ${env.CONTACT_FORM_RECIPIENT!}`,
     to: email,
   });
