@@ -141,7 +141,10 @@ function ClaimProgress({
     description: t(claimStepDescriptions[claimStatus], {
       symbol: vToken.symbol,
     }),
-    status: claimStepStatuses[claimStatus],
+    status:
+      claimStatus === "idle" && !requireTermsSignature
+        ? stepStatus.ready
+        : claimStepStatuses[claimStatus],
     title: t("pages.ve-vetro.claim.drawer.claim-step-title", {
       symbol: vToken.symbol,
     }),
