@@ -1,6 +1,8 @@
+import { CloseIcon } from "components/icons/closeIcon";
 import { useOverlay } from "hooks/useOverlay";
 import { type ReactNode, useEffect, useId } from "react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   children: ReactNode;
@@ -19,6 +21,7 @@ export function Drawer({
 }: Props) {
   const { handleClose, handleTransitionEnd, isOpen, ref } =
     useOverlay<HTMLDivElement>(onClose);
+  const { t } = useTranslation();
   const titleId = useId();
 
   useEffect(
@@ -45,11 +48,24 @@ export function Drawer({
         ref={ref}
         role="dialog"
       >
-        {title && (
-          <h3 className="px-6 py-8 text-gray-900" id={titleId}>
-            {title}
-          </h3>
-        )}
+        <div
+          className={`flex px-6 ${title ? "items-start gap-4 py-8" : "justify-end pt-6"}`}
+        >
+          {title && (
+            <h3 className="min-w-0 flex-1 text-gray-900" id={titleId}>
+              {title}
+            </h3>
+          )}
+          <button
+            aria-label={t("common.close")}
+            className="-mx-1 flex h-7 shrink-0 cursor-pointer items-center px-1 text-gray-500 transition-colors hover:text-gray-700"
+            // Goes through handleClose (not onClose) to keep the exit transition
+            onClick={handleClose}
+            type="button"
+          >
+            <CloseIcon />
+          </button>
+        </div>
         <div className="min-h-0 flex-1">{children}</div>
       </div>
     </>,
