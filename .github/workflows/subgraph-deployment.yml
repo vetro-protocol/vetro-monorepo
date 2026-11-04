@@ -13,7 +13,6 @@ concurrency:
 
 jobs:
   deploy-vetro-app-subgraph:
-    name: Deploy vetro-app-subgraph
     permissions:
       contents: read
     if: startsWith(github.event.release.tag_name, 'vetro-app-subgraph@')
@@ -31,7 +30,6 @@ jobs:
         env:
           GRAPH_API_KEY: ${{ secrets.GRAPH_API_KEY }}
   deploy-ve-vetro-subgraph:
-    name: Deploy ve-vetro-subgraph
     permissions:
       contents: read
     if: startsWith(github.event.release.tag_name, 've-vetro-subgraph@')
