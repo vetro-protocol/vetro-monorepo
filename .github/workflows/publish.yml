@@ -5,8 +5,15 @@ on:
     types:
       - published
 
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: false
+
 jobs:
   publish:
+    name: publish
     permissions:
       contents: read
       id-token: write # for npm provenance
@@ -22,8 +29,10 @@ jobs:
     runs-on: ubuntu-latest
     environment: release
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: hemilabs/actions/setup-node-env@8f87619b7f0122c39e14a32514ab3e4e0d4c3966 # v2.3.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: hemilabs/actions/setup-node-env@34879d59453841c18fd53190b39251a5c566f8db # v3.0.0
         with:
           package-manager: pnpm
       - name: Publish package
