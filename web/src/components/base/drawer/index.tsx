@@ -59,7 +59,6 @@ export function Drawer({
           <button
             aria-label={t("common.close")}
             className="-mx-1 flex h-7 shrink-0 cursor-pointer items-center px-1 text-gray-500 transition-colors hover:text-gray-700"
-            // Goes through handleClose (not onClose) to keep the exit transition
             onClick={handleClose}
             type="button"
           >
