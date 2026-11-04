@@ -187,7 +187,7 @@ export function ClaimVeVetroDrawer({
   const { t } = useTranslation();
   const { data: requireTermsSignature = true } =
     useVeVetroRequireTermsSignature();
-  const claimStatus = claimStarted ? status : "idle";
+  const claimStatus = claimStarted || !requireTermsSignature ? status : "idle";
   const signStatus = claimStarted ? "success" : status;
 
   return (
