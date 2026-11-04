@@ -1,3 +1,4 @@
+import { vetroLinks } from "@vetro-protocol/core";
 import { sVetBtcAddress, sVusdAddress } from "@vetro-protocol/earn/addresses";
 import type { Address } from "viem";
 
@@ -32,12 +33,9 @@ export const hemiEarnVaults: HemiEarnVault[] = [
   },
 ];
 
+// Annotated so the published types do not import the private core package.
 export const hemiEarnLinks: {
   privacyPolicyUrl: string;
   supportUrl: string;
   termsOfUseUrl: string;
-} = {
-  privacyPolicyUrl: "https://vetro.org/privacy-policy",
-  supportUrl: "https://app.vetro.org/contact",
-  termsOfUseUrl: "https://vetro.org/terms-of-use",
-};
+} = vetroLinks;

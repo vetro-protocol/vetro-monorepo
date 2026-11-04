@@ -7,8 +7,7 @@ import { Header } from "components/base/table/header";
 import { ExternalLinkIcon } from "components/icons/externalLinkIcon";
 import { TokenLogo } from "components/tokenLogo";
 import type { fetchVeVetroSnapshotPositions } from "fetchers/fetchVeVetroSnapshotPositions";
-import { useNowTickingPast } from "hooks/useNowTickingPast";
-import { useVeVetroClaimEnd } from "hooks/useVeVetroClaimEnd";
+import { useVeVetroHasClaimEnded } from "hooks/useVeVetroHasClaimEnded";
 import { useVeVetroSnapshotPositions } from "hooks/useVeVetroSnapshotPositions";
 import { useVeVetroSnapshotTimestamp } from "hooks/useVeVetroSnapshotTimestamp";
 import { useMemo } from "react";
@@ -24,6 +23,7 @@ import {
 import { hemi } from "viem/chains";
 import { useAccount } from "wagmi";
 
+import { ClaimVeVetro } from "./claimVeVetro";
 import {
   DisconnectedState,
   EmptyState,
@@ -39,13 +39,8 @@ const explorerUrl = hemi.blockExplorers.default.url;
 
 function StatusCell({ claimed, weight }: Position) {
   const { t } = useTranslation();
-  const { data: claimEnd } = useVeVetroClaimEnd();
-  const now = BigInt(
-    useNowTickingPast(
-      claimEnd === undefined ? undefined : [claimEnd + 1n],
-      (timestamp) => Number(timestamp),
-    ),
-  );
+  const { data: hasClaimEnded, isError: isClaimEndError } =
+    useVeVetroHasClaimEnded();
 
   if (weight === 0n) {
     return (
@@ -61,10 +56,14 @@ function StatusCell({ claimed, weight }: Position) {
       </StatusBadge>
     );
   }
-  if (claimEnd === undefined) {
-    return <Skeleton width={80} />;
+  if (hasClaimEnded === undefined) {
+    return isClaimEndError ? (
+      <span className="text-b-medium text-gray-500">—</span>
+    ) : (
+      <Skeleton width={80} />
+    );
   }
-  if (now > claimEnd) {
+  if (hasClaimEnded) {
     return (
       <span className="text-xsm text-gray-500">
         {t("pages.ve-vetro.claim.positions.status-claim-ended")}
@@ -169,7 +168,10 @@ export function SnapshotPositionsTable() {
   return (
     <div>
       <SectionHeader title={t("pages.ve-vetro.claim.positions.title")}>
-        <SnapshotCaption />
+        <div className="flex flex-wrap items-center gap-4">
+          <SnapshotCaption />
+          {address && <ClaimVeVetro key={address} />}
+        </div>
       </SectionHeader>
       <Table
         columns={columns}

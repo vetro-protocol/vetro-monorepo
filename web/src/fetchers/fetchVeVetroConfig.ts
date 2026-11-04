@@ -6,4 +6,5 @@
 export const fetchVeVetroConfig = async () => ({
   claimEnd: 1800835140n,
   snapshotTimestamp: 1792972800n,
+  unlockTimestamp: 1808776440n,
 });
