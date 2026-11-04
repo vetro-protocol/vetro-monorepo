@@ -28,8 +28,6 @@ const placeholderPreviews: Record<
 // Placeholder for the `previewClaim` action of `@vetro-protocol/ve-vetro/actions`,
 // which reads `VeVetroDistributor.previewClaim(tokenId)`. Replace the call
 // below with `previewClaim(hemiClient, { address: distributorAddress, tokenId })`.
-// Use it and not the lens's `previewClaimBatch`, because the batch sets
-// `share` to `0` for a claimed id.
 const previewClaim = async ({
   account,
   tokenId,

@@ -34,6 +34,19 @@ export const veVetroDistributorAbi = [
     type: "function",
   },
   {
+    inputs: [{ name: "tokenId", type: "uint256" }],
+    name: "previewClaim",
+    outputs: [
+      { name: "ownerOfRecord", type: "address" },
+      { name: "weight", type: "uint256" },
+      { name: "bucket", type: "uint8" },
+      { name: "share", type: "uint256" },
+      { name: "claimed", type: "bool" },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       { name: "claimant", type: "address" },
       { name: "recipient", type: "address" },

@@ -13,7 +13,8 @@ npm add @vetro-protocol/ve-vetro viem
 - `veHemiSnapshotBlock` is the last block at or before the snapshot timestamp. The UI uses it to enumerate the veHEMI token ids. The veHEMI address is exported as `veHemiAddress`.
 - To find the veHEMI token ids of an owner, read `getBalanceOf` at `veHemiSnapshotBlock`, then read `getTokenOfOwnerByIndex` for each index from `0n` to the balance minus `1n`, at the same block. The RPC must serve the state at the snapshot block. Some holders have many positions, and the public RPC limits requests. Create the client with `batch: { multicall: true }` so viem aggregates the `getTokenOfOwnerByIndex` calls at the same block. viem's `hemi` chain has no Multicall3 address, so add it to the chain, as in the example below.
 - Ideally, the veHEMI reads come from the [ve-hemi-actions](https://github.com/hemilabs/ui-monorepo/tree/main/packages/ve-hemi-actions) package.
-- `getClaimableSubset` reads the distributor lens. It filters the token ids to the ids that the claimant can still claim, and returns their total amount. A claim of `ids` can still revert when `amount` is below the minimum lock amount of the target. To check the full claim, call `previewClaimBatch` on the lens. The lens returns no ids while `isClaimOpen` is `false`. Check `isClaimOpen` first to tell "claims not open" from "nothing to claim".
+- `getClaimableSubset` reads the distributor lens. It filters the token ids to the ids that the claimant can still claim, and returns their total amount. A claim of `ids` reverts when `amount` is below `minClaimAmount` (10 $V). Send all the ids in one claim. The lens returns no ids while `isClaimOpen` is `false`. Check `isClaimOpen` first to tell "claims not open" from "nothing to claim".
+- `previewClaim` reads the claim data of one veHEMI token id: the owner and the weight at the snapshot, the bucket, the share and whether the id is claimed. Use it to show each position. `share` keeps its value after the claim and after `claimEnd`.
 - `isClaimOpen` tells whether the distributor accepts claims now. When `getConfig(...).requireTermsSignature` is `true`, the claim needs a signature of the terms. `verifyTermsSignature` checks that signature before the claim.
 - To read the EIP-712 domain of the terms signature, use `getEip712Domain` from viem.
 - To read veVETRO positions, call the same vote-escrow actions (`getBalanceOf`, `getTokenOfOwnerByIndex`, `getLockedBalance`) with the veVETRO address and no `blockNumber`.
@@ -21,7 +22,11 @@ npm add @vetro-protocol/ve-vetro viem
 ## Usage
 
 ```ts
-import { veHemiAddress, veHemiSnapshotBlock } from "@vetro-protocol/ve-vetro";
+import {
+  minClaimAmount,
+  veHemiAddress,
+  veHemiSnapshotBlock,
+} from "@vetro-protocol/ve-vetro";
 import {
   getBalanceOf,
   getClaimableSubset,
@@ -29,6 +34,7 @@ import {
   getLockedBalance,
   getTokenOfOwnerByIndex,
   isClaimOpen,
+  previewClaim,
   verifyTermsSignature,
 } from "@vetro-protocol/ve-vetro/actions";
 import { createPublicClient, http } from "viem";
@@ -76,6 +82,16 @@ const { amount, ids } = await getClaimableSubset(publicClient, {
   tokenIds,
 });
 
+// A claim below the minimum amount reverts.
+const canClaim = ids.length > 0 && amount >= minClaimAmount;
+
+// Claim data of each veHEMI position, such as its share and whether it is claimed.
+const previews = await Promise.all(
+  tokenIds.map((tokenId) =>
+    previewClaim(publicClient, { address: distributorAddress, tokenId }),
+  ),
+);
+
 // Whether the distributor accepts claims now.
 const claimOpen = await isClaimOpen(publicClient, {
   address: distributorAddress,
@@ -110,11 +126,12 @@ const lockedBalance = await getLockedBalance(publicClient, {
 
 - Public actions (reads), exported from `/actions`:
   - `getBalanceOf(client, { address, blockNumber?, owner })` — the number of positions that `owner` holds in the vote-escrow token at `address`. Pass `blockNumber` to read at that block. Without it, the action reads the latest block.
-  - `getClaimableSubset(client, { address, claimant, tokenIds })` — reads the distributor lens at `address`. It returns `{ amount, ids }`: `ids` are the token ids in `tokenIds` that `claimant` can still claim, and `amount` is their total claimable amount. A claim of `ids` can still revert when `amount` is below the minimum lock amount of the target. To check the full claim, call `previewClaimBatch` on the lens. The lens returns no ids while `isClaimOpen` is `false`. Check `isClaimOpen` first to tell "claims not open" from "nothing to claim".
+  - `getClaimableSubset(client, { address, claimant, tokenIds })` — reads the distributor lens at `address`. It returns `{ amount, ids }`: `ids` are the token ids in `tokenIds` that `claimant` can still claim, and `amount` is their total claimable amount. A claim of `ids` reverts when `amount` is below `minClaimAmount`. The lens returns no ids while `isClaimOpen` is `false`. Check `isClaimOpen` first to tell "claims not open" from "nothing to claim".
   - `getConfig(client, { address })` — the settings of the distributor at `address`: `snapshotTimestamp`, `claimEnd`, `unlockTimestamp`, `mintNonTransferable`, `splitByType`, `requireTermsSignature`, `totalAllocation`, `regularBps`, `lockedBps`, `forfeitableBps`, `shortfallAllowance`, `expectedTotalAtSnapshot` and `termsHash`.
   - `getLockedBalance(client, { address, tokenId })` — the `{ amount, end }` lock of the position `tokenId` in the vote-escrow token at `address`. It reads the latest block.
   - `getTokenOfOwnerByIndex(client, { address, blockNumber?, index, owner })` — the token id at position `index` in the list of positions that `owner` holds in the vote-escrow token at `address`. Pass `blockNumber` to read at that block. Without it, the action reads the latest block.
   - `isClaimOpen(client, { address })` — whether the distributor at `address` accepts claims now.
+  - `previewClaim(client, { address, tokenId })` — reads the distributor at `address`. It returns `{ bucket, claimed, ownerOfRecord, share, weight }` for the veHEMI position `tokenId`: `ownerOfRecord` and `weight` at the snapshot (`zeroAddress` and `0n` when the id has no history, and for every id while the distributor is not configured), `bucket` (`0` regular, `1` locked, `2` forfeitable; always `0` when `splitByType` is `false`), `share` (the amount of this id, `0n` before claims open, kept after the claim) and `claimed`.
   - `verifyTermsSignature(client, { address, claimant, recipient, signature })` — whether `signature` is a valid signature of the terms for `claimant` and `recipient`, as the distributor at `address` checks it. `signature` is hex. `0x` is accepted.
 - ABIs: `veHemiAbi`, `veVetroDistributorAbi` and `veVetroDistributorLensAbi` — the minimal ABI subsets used by the package. `veHemiAbi` also applies to veVETRO.
-- Constants: `veHemiAddress`, `veHemiSnapshotBlock`.
+- Constants: `minClaimAmount` (the distributor's `MIN_TARGET_LOCK_AMOUNT`, 10 $V in base units: a claim below it reverts), `veHemiAddress`, `veHemiSnapshotBlock`.
