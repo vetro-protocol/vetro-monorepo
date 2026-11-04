@@ -17,7 +17,7 @@ import {
   verifyTurnstile,
 } from "./contact.ts";
 import { convertBigIntsToString } from "./convert-bigints-to-string.ts";
-import { getHemiEarnIndexer, getSubgraph } from "./env.ts";
+import { getHemiEarnIndexer, getSubgraph, getVeVetroSubgraph } from "./env.ts";
 import { UpstreamGraphQLError } from "./graphql.ts";
 import { getCostBasis as getHemiEarnCostBasis } from "./hemi-earn/cost-basis.ts";
 import { getRequests as getHemiEarnRequests } from "./hemi-earn/requests.ts";
@@ -51,6 +51,7 @@ import {
 import { createOriginFn, parseOrigins } from "./validate-origin.ts";
 import * as variableStake from "./variable-stake.ts";
 import { validPeriods as vaultHistoryValidPeriods } from "./vault-history-period.ts";
+import { getVeVetro } from "./ve-vetro.ts";
 import { readWarmedTask, warmScheduled } from "./warm-cache.ts";
 import {
   apyTask,
@@ -546,6 +547,29 @@ app.get(
       return c.json(data);
     } catch (error) {
       throw new Error(`Failed to get exit tickets: ${error.message}`);
+    }
+  },
+);
+
+app.get(
+  "/ve-vetro/:address",
+  validateAddress,
+  cache({
+    cacheControl: "max-age=10",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const data = await getVeVetro({
+        address: c.req.param("address"),
+        subgraph: getVeVetroSubgraph(c.env),
+      });
+      return c.json(data);
+    } catch (error) {
+      if (error instanceof UpstreamGraphQLError) {
+        throw error;
+      }
+      throw new Error(`Failed to get veVETRO claims: ${error.message}`);
     }
   },
 );

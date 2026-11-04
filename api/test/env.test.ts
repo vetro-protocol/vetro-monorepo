@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { getHemiEarnIndexer, getSubgraph } from "../src/env.ts";
+import {
+  getHemiEarnIndexer,
+  getSubgraph,
+  getVeVetroSubgraph,
+} from "../src/env.ts";
 import { UpstreamGraphQLError } from "../src/graphql.ts";
 
 describe("getSubgraph", function () {
@@ -26,6 +30,38 @@ describe("getSubgraph", function () {
     expect(subgraph).toStrictEqual({
       url: "http://localhost:8000/subgraphs/name/vetro",
     });
+  });
+});
+
+describe("getVeVetroSubgraph", function () {
+  it("uses The Graph gateway with the shared API key", function () {
+    const subgraph = getVeVetroSubgraph({
+      SUBGRAPH_API_KEY: "test-key",
+      VE_VETRO_SUBGRAPH_ID: "ve-vetro-id",
+    });
+
+    expect(subgraph).toStrictEqual({
+      headers: { Authorization: "Bearer test-key" },
+      url: "https://gateway.thegraph.com/api/subgraphs/id/ve-vetro-id",
+    });
+  });
+
+  it("uses VE_VETRO_SUBGRAPH_URL without headers when it is set", function () {
+    const subgraph = getVeVetroSubgraph({
+      SUBGRAPH_API_KEY: "test-key",
+      VE_VETRO_SUBGRAPH_ID: "ve-vetro-id",
+      VE_VETRO_SUBGRAPH_URL: "http://localhost:8000/subgraphs/name/ve-vetro",
+    });
+
+    expect(subgraph).toStrictEqual({
+      url: "http://localhost:8000/subgraphs/name/ve-vetro",
+    });
+  });
+
+  it("throws when neither the id nor the URL is set", function () {
+    expect(() => getVeVetroSubgraph({ SUBGRAPH_API_KEY: "test-key" })).toThrow(
+      "VE_VETRO_SUBGRAPH_ID must be set",
+    );
   });
 });
 

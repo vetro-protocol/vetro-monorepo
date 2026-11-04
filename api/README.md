@@ -662,6 +662,49 @@ ticket in cooldown or ready to claim has neither, a cancelled ticket has
 ]
 ```
 
+### `GET /ve-vetro/:address`
+
+Returns the veVETRO claims that the address made and the veVETRO positions that it owns, newest first. Cached for 10 seconds.
+`:address` must be a well-formed Ethereum address. Returns `404` if malformed.
+
+- `indexedBlock` is the last block that the subgraph indexed. After a claim, wait until it reaches the block of the claim transaction, then read again.
+- `claimant` and `recipient` are in the checksummed format. `recipient` receives the position, so it can differ from `claimant`.
+- `positionTokenId` is the veVETRO position that the claim minted. `veHemiTokenIds` are the veHEMI positions that the claim paid, in ascending order.
+- `positions` includes withdrawn positions, with `status` `withdrawn`. Otherwise, `status` is `active`.
+- `transferable` is `true` when the position can be transferred now. A non-transferable position becomes transferable at its first unlock time.
+- `unlockTime` is the lock end as the contract stores it, rounded down to six days.
+- The amounts and the token ids are strings. The timestamps are numbers, in seconds.
+
+`claims` and `positions` are `[]` when the address has none.
+
+#### Sample Response
+
+```json
+{
+  "claims": [
+    {
+      "amount": "1250000000000000000000",
+      "claimant": "0x0000000000000000000000000000000000000001",
+      "positionTokenId": "42",
+      "recipient": "0x0000000000000000000000000000000000000001",
+      "timestamp": 1801353600,
+      "transactionHash": "0x0000000000000000000000000000000000000000000000000000000000000001",
+      "veHemiTokenIds": ["1203", "1388"]
+    }
+  ],
+  "indexedBlock": 5700123,
+  "positions": [
+    {
+      "amount": "1250000000000000000000",
+      "status": "active",
+      "tokenId": "42",
+      "transferable": false,
+      "unlockTime": 1832889600
+    }
+  ]
+}
+```
+
 ### `POST /contact`
 
 Submit a support request. The contents are emailed to the configured recipient
@@ -732,11 +775,13 @@ Secrets are set separately using the Wrangler CLI.
 | ORIGINS                     | Comma-separated list of allowed origins. (1)                                                                                                                                                                                                                                         | `http://localhost:5173`   |
 | PORTAL_API_URL              | Base URL of the portal API. `GET /analytics/tvl-history` reads the daily and current USD price of a non-USD peg unit (BTC) from it. `GET /liquidity/pools` uses its USD price for a coin of a Uniswap or Sushi pool when the DEX subgraph has no price for that coin.                | `http://localhost:3006`   |
 | SENTRY_DSN                  | Sentry DSN. When unset, Sentry is disabled.                                                                                                                                                                                                                                          |                           |
-| SUBGRAPH_API_KEY            | The Graph API key. Also used for the BrownFi, Sushi and Uniswap subgraphs of `GET /liquidity/pools`.                                                                                                                                                                                 |                           |
+| SUBGRAPH_API_KEY            | The Graph API key. Also used for the veVETRO subgraph and for the BrownFi, Sushi and Uniswap subgraphs of `GET /liquidity/pools`.                                                                                                                                                    |                           |
 | SUBGRAPH_ID                 | The subgraph id.                                                                                                                                                                                                                                                                     |                           |
 | SUBGRAPH_URL                | The VETRO subgraph URL. Use it for a local subgraph. When unset, the API uses The Graph gateway with `SUBGRAPH_API_KEY` and `SUBGRAPH_ID`.                                                                                                                                           | (localhost)               |
 | TURNSTILE_ALLOWED_HOSTNAMES | Optional comma-separated hostname allowlist. When set, a Turnstile token whose siteverify `hostname` is not listed is rejected (`403`). Unset (local/staging) skips this check.                                                                                                      |                           |
 | TURNSTILE_SECRET_KEY        | Cloudflare Turnstile secret key for verifying `POST /contact` tokens. When unset, verification is skipped. (2)                                                                                                                                                                       |                           |
+| VE_VETRO_SUBGRAPH_ID        | The veVETRO subgraph id, for `GET /ve-vetro/:address`.                                                                                                                                                                                                                               |                           |
+| VE_VETRO_SUBGRAPH_URL       | The veVETRO subgraph URL. Use it for a local subgraph. When unset, the API uses The Graph gateway with `SUBGRAPH_API_KEY` and `VE_VETRO_SUBGRAPH_ID`.                                                                                                                                | (localhost)               |
 | WEBSITE_URL                 | Public URL of the web app, referenced in the contact form confirmation email.                                                                                                                                                                                                        | `http://localhost:5173/`  |
 
 (1) Globs with stars (`*`) are supported. I.e. `https://*.hemi.xyz` will match any subdomain or subdomain chain.
