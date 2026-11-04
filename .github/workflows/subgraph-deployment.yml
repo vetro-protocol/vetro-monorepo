@@ -21,8 +21,8 @@ jobs:
       - uses: hemilabs/actions/setup-node-env@8f87619b7f0122c39e14a32514ab3e4e0d4c3966 # v2.3.0
         with:
           package-manager: pnpm
-      - run: npm run deploy -- --deploy-key "$GRAPH_API_KEY"
-        working-directory: subgraph
+      - run: pnpm run deploy
+        working-directory: subgraphs/vetro-app-subgraph
         env:
           GRAPH_API_KEY: ${{ secrets.GRAPH_API_KEY }}
   deploy-ve-vetro-subgraph:

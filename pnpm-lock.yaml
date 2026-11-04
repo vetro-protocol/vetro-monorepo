@@ -506,22 +506,6 @@ importers:
         specifier: 5.0.1
         version: 5.0.1(@opentelemetry/api@1.9.1)(@types/node@25.0.9)(@vitest/browser-playwright@5.0.1)(@vitest/coverage-v8@5.0.1)(@vitest/ui@5.0.1)(vite@8.3.4(@types/node@25.0.9)(esbuild@0.28.2)(jiti@2.6.1)(yaml@2.8.4))
 
-  subgraph:
-    dependencies:
-      '@graphprotocol/graph-cli':
-        specifier: 0.98.1
-        version: 0.98.1(patch_hash=292989c6ec0108c55f7a64e5fa65246d9cafe745bae932b200ad551bd4105eab)(@types/node@25.0.9)(bufferutil@4.1.0)(typescript@6.0.2)(utf-8-validate@5.0.10)(zod@3.25.76)
-      '@graphprotocol/graph-ts':
-        specifier: 0.38.2
-        version: 0.38.2
-    devDependencies:
-      assemblyscript:
-        specifier: 0.19.23
-        version: 0.19.23
-      matchstick-as:
-        specifier: 0.6.0
-        version: 0.6.0
-
   subgraphs/hemi-earn-indexer:
     dependencies:
       envio:
@@ -542,6 +526,22 @@ importers:
         version: 5.0.1(@opentelemetry/api@1.9.1)(@types/node@24.1.0)(@vitest/browser-playwright@5.0.1)(@vitest/coverage-v8@5.0.1)(@vitest/ui@5.0.1)(vite@8.3.4(@types/node@24.1.0)(esbuild@0.28.2)(jiti@2.6.1)(yaml@2.8.4))
 
   subgraphs/ve-vetro-subgraph:
+    dependencies:
+      '@graphprotocol/graph-cli':
+        specifier: 0.98.1
+        version: 0.98.1(patch_hash=292989c6ec0108c55f7a64e5fa65246d9cafe745bae932b200ad551bd4105eab)(@types/node@25.0.9)(bufferutil@4.1.0)(typescript@6.0.2)(utf-8-validate@5.0.10)(zod@3.25.76)
+      '@graphprotocol/graph-ts':
+        specifier: 0.38.2
+        version: 0.38.2
+    devDependencies:
+      assemblyscript:
+        specifier: 0.19.23
+        version: 0.19.23
+      matchstick-as:
+        specifier: 0.6.0
+        version: 0.6.0
+
+  subgraphs/vetro-app-subgraph:
     dependencies:
       '@graphprotocol/graph-cli':
         specifier: 0.98.1

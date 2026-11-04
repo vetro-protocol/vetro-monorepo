@@ -52,9 +52,9 @@ The monorepo contains the following workspaces:
 - `api` - Service that provides data to the Vetro web application
 - `internal-dashboard` - Internal-facing dashboard for operational metrics
 - `packages/*` - Shared packages
-- `subgraph` - Subgraph indexing Ethereum mainnet events for the API
 - `subgraphs/hemi-earn-indexer` - Envio indexer for the Hemi Earn cross-chain requests
 - `subgraphs/ve-vetro-subgraph` - Subgraph indexing the veVETRO positions and claims on Hemi
+- `subgraphs/vetro-app-subgraph` - Subgraph indexing Ethereum mainnet events for the API
 - `web` - Web application
 
 In addition, it hosts these additional directories:

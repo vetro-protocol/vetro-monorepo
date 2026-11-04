@@ -217,4 +217,4 @@ And where the UI lives:
 
 - Page roots: under `web/src/pages/` — one file or folder per page (check the folder; e.g. `earn/` and `analytics/` are folders, others are single files)
 - Forms/flows: `web/src/components/{swapForm,bridgeForm,borrow}` and `web/src/pages/earn/components`
-- Analytics/history data is backed by `api/` and the `subgraph/`
+- Analytics/history data is backed by `api/` and `subgraphs/vetro-app-subgraph/`

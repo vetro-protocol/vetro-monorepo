@@ -5,15 +5,15 @@
     "api": {
       "ignoreDependencies": ["@sentry/cli"]
     },
-    "subgraph": {
-      "entry": ["src/earn.ts", "tests/*.test.ts"],
-      "ignoreDependencies": ["assemblyscript"]
-    },
     "subgraphs/*": {
       "entry": ["src/mappings/*.ts"]
     },
     "subgraphs/ve-vetro-subgraph": {
       "entry": ["src/mappings/*.ts", "tests/*.test.ts"],
+      "ignoreDependencies": ["assemblyscript"]
+    },
+    "subgraphs/vetro-app-subgraph": {
+      "entry": ["src/earn.ts", "tests/*.test.ts"],
       "ignoreDependencies": ["assemblyscript"]
     }
   }

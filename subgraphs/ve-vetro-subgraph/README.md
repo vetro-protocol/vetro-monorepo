@@ -17,14 +17,14 @@ Run the unit tests:
 pnpm run test
 ```
 
-To test against a local deployment of the contracts, start an anvil node on port 8545 with chain id 31337, deploy the contracts, and start the graph-node of [`subgraph`](../../subgraph/README.md) (`docker compose up --detach` in that folder). Then add a `mainnet` entry to `networks.json` with the deployed addresses and blocks, and deploy:
+To test against a local deployment of the contracts, start an anvil node on port 8545 with chain id 31337, deploy the contracts, and start the [local graph-node](../README.md#local-graph-node). Then add a `mainnet` entry to `networks.json` with the deployed addresses and blocks, and deploy:
 
 ```sh
 pnpm run create-local
 pnpm run deploy-local --network mainnet
 ```
 
-Do not commit the `mainnet` entry, or the addresses that `--network` writes into `subgraph.yaml`. After restarting anvil, delete `subgraph/data/postgres`, because the new chain has a different genesis block.
+Do not commit the `mainnet` entry, or the addresses that `--network` writes into `subgraph.yaml`. After restarting anvil, delete `subgraphs/data/postgres`, because the new chain has a different genesis block.
 
 Use the GraphQL explorer at `http://localhost:8000/subgraphs/name/ve-vetro-subgraph`.
 
@@ -50,4 +50,4 @@ query {
 
 ## Release
 
-Deploying to the Subgraph Studio projects `ve-vetro-subgraph-hemi` and `ve-vetro-subgraph-hemi-sepolia` runs on `ve-vetro-subgraph@<version>` releases. After merging a version bump, sign the tag on the merge commit with `pnpm run tag` and publish a release from it.
+Deploying to the Subgraph Studio projects `ve-vetro-subgraph-hemi` and `ve-vetro-subgraph-hemi-sepolia` runs on `ve-vetro-subgraph@<version>` releases. See the [subgraphs README](../README.md#release).
