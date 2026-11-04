@@ -21,6 +21,7 @@
       "files": [
         "*.{js,mjs}",
         "api/**/*.ts",
+        "geo-block/**/*.ts",
         "internal-dashboard/**/*.{js,ts,tsx}",
         "packages/**/*.{js,ts,tsx}",
         "subgraphs/**/*.ts",
@@ -80,7 +81,7 @@
       }
     },
     {
-      "files": ["api/**/*.ts", "web/scripts/**/*.ts"],
+      "files": ["api/**/*.ts", "geo-block/**/*.ts", "web/scripts/**/*.ts"],
       "rules": {
         "no-console": "off"
       }

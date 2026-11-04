@@ -1,0 +1,15 @@
+{
+  "name": "@vetro-protocol/geo-block",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "node build.ts",
+    "test": "node build.ts --check"
+  },
+  "devDependencies": {
+    "@tailwindcss/node": "4.3.0",
+    "@tailwindcss/oxide": "4.3.0",
+    "tailwindcss": "4.3.0"
+  },
+  "private": true,
+  "type": "module"
+}

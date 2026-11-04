@@ -59,4 +59,4 @@ The monorepo contains the following workspaces:
 
 In addition, it hosts these additional directories:
 
-- `geo-block` - A static HTML page shown to users in sanctioned countries
+- `geo-block` - A static HTML page shown to users in sanctioned countries. Its Tailwind CSS is prebuilt and inlined in the page; after changing its classes, run `pnpm --filter @vetro-protocol/geo-block run build`. CI fails if the inlined CSS is out of date.
