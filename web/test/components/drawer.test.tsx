@@ -84,9 +84,11 @@ describe("Drawer", function () {
       </Drawer>,
     );
 
+    const drawer = screen.getByRole("dialog", { name: "Wallet" });
+    await expect.element(drawer).toBeInTheDocument();
     await expect
-      .element(screen.getByRole("dialog", { name: "Wallet" }))
-      .toBeInTheDocument();
+      .element(drawer.getByRole("button", { name: "Close" }))
+      .toBeVisible();
   });
 
   it("calls onClose after the exit transition when the parent requests close", async function () {
@@ -114,6 +116,18 @@ describe("Drawer", function () {
     endTransition(screen.getByRole("button", { name: "Inside" }).element());
     expect(onClose).not.toHaveBeenCalled();
 
+    endTransition(drawer.element());
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it("closes with the close button after the exit transition", async function () {
+    const onClose = vi.fn();
+    const { drawer } = await renderDrawer(<DrawerTree onClose={onClose} />);
+
+    await drawer.getByRole("button", { name: "Close" }).click();
+    await waitForClosed(drawer);
+
+    expect(onClose).not.toHaveBeenCalled();
     endTransition(drawer.element());
     expect(onClose).toHaveBeenCalledOnce();
   });
