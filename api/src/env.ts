@@ -34,6 +34,19 @@ export function getSubgraph(env: Env) {
   });
 }
 
+export function getVeVetroSubgraph(env: Env) {
+  if (env.VE_VETRO_SUBGRAPH_URL) {
+    return { url: env.VE_VETRO_SUBGRAPH_URL };
+  }
+  if (!env.VE_VETRO_SUBGRAPH_ID) {
+    throw new Error("VE_VETRO_SUBGRAPH_ID must be set");
+  }
+  return theGraphSubgraph({
+    apiKey: env.SUBGRAPH_API_KEY,
+    subgraphId: env.VE_VETRO_SUBGRAPH_ID,
+  });
+}
+
 export function getHemiEarnIndexer(env: Env) {
   if (!env.HEMI_EARN_INDEXER_URL) {
     throw new UpstreamGraphQLError("HEMI_EARN_INDEXER_URL must be set");

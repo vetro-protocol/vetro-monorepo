@@ -25,5 +25,7 @@ interface Env {
   SUBGRAPH_URL?: string;
   TURNSTILE_ALLOWED_HOSTNAMES?: string;
   TURNSTILE_SECRET_KEY?: string;
+  VE_VETRO_SUBGRAPH_ID?: string;
+  VE_VETRO_SUBGRAPH_URL?: string;
   WEBSITE_URL: string;
 }
