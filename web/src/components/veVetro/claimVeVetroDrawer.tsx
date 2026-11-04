@@ -36,11 +36,11 @@ function ClaimAmount({ submitted }: { submitted: Submitted | undefined }) {
   return (
     <TokenInteraction
       amount={
-        submitted ? (
-          <RenderCryptoValue token={vToken} value={submitted.amount} />
-        ) : (
-          <RenderCryptoValue status={status} token={vToken} value={amount} />
-        )
+        <RenderCryptoValue
+          status={status}
+          token={vToken}
+          value={submitted?.amount ?? amount}
+        />
       }
       detail={t("pages.ve-vetro.claim.drawer.as-position")}
       label={t("pages.ve-vetro.claim.drawer.you-will-claim")}
