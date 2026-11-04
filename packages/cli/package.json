@@ -55,11 +55,11 @@
     "@tsconfig/node24": "24.0.4",
     "@types/node": "24.1.0",
     "@vetro-protocol/core": "workspace:*",
-    "@vitest/coverage-v8": "5.0.1",
+    "@vitest/coverage-v8": "5.0.5",
     "esbuild": "0.28.2",
     "typescript": "5.9.3",
     "viem-oz-access-control": "1.0.0",
-    "vitest": "5.0.1"
+    "vitest": "5.0.5"
   },
   "engines": {
     "node": ">=24"
