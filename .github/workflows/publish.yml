@@ -8,8 +8,9 @@ on:
 permissions: {}
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  group: ${{ github.workflow }}
   cancel-in-progress: false
+  queue: max
 
 jobs:
   publish:
