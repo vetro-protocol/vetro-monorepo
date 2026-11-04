@@ -1,4 +1,4 @@
-import { checksumAddress } from "viem";
+import { type Address, checksumAddress, type Hash } from "viem";
 
 import { type Subgraph } from "./env.ts";
 import * as graphql from "./graphql.ts";
@@ -6,10 +6,10 @@ import * as graphql from "./graphql.ts";
 type ClaimRow = {
   amount: string;
   blockTimestamp: string;
-  claimant: `0x${string}`;
+  claimant: Address;
   position: { id: string };
-  recipient: `0x${string}`;
-  transactionHash: `0x${string}`;
+  recipient: Address;
+  transactionHash: Hash;
   veHemiPositions: { id: string }[];
 };
 
