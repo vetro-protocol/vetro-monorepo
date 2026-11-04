@@ -5,6 +5,7 @@
 // timestamps are `0n` while the config is not set.
 export const fetchVeVetroConfig = async () => ({
   claimEnd: 1800835140n,
+  requireTermsSignature: true,
   snapshotTimestamp: 1792972800n,
   unlockTimestamp: 1808776440n,
 });

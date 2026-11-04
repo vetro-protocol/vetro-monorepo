@@ -3,12 +3,16 @@ import { fetchVeVetroSnapshotPositions } from "fetchers/fetchVeVetroSnapshotPosi
 import type { Address } from "viem";
 import { useAccount } from "wagmi";
 
+export const veVetroSnapshotPositionsQueryKey = (
+  account: Address | undefined,
+) => ["ve-vetro-snapshot-positions", account];
+
 const veVetroSnapshotPositionsOptions = (account: Address | undefined) =>
   queryOptions({
     enabled: !!account,
     queryFn: ({ client: queryClient }) =>
       fetchVeVetroSnapshotPositions({ account: account!, queryClient }),
-    queryKey: ["ve-vetro-snapshot-positions", account],
+    queryKey: veVetroSnapshotPositionsQueryKey(account),
   });
 
 export function useVeVetroSnapshotPositions() {

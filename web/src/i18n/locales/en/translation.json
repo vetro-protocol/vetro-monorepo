@@ -680,12 +680,20 @@
           "agreement-terms": "I have read and agree to the Vetro <terms>Terms of Use</terms>, including Section 18 (veVETRO Claim), and the <privacy>Privacy Policy</privacy>.",
           "agreement-title": "Claim your veVETRO",
           "as-position": "As 1 veVETRO position",
+          "claim-complete-title": "Claim complete",
+          "claim-step-completed": "Your ${{symbol}} is claimed as a veVETRO position.",
           "claim-step-description": "One transaction on Hemi.",
+          "claim-step-failed": "The claim was not completed.",
+          "claim-step-progress": "Confirm the transaction in your wallet.",
           "claim-step-title": "Claim ${{symbol}}",
           "from": "From",
           "from-positions": "{{count}} veHEMI position",
           "from-positions_other": "{{count}} veHEMI positions",
           "progress": "Claim progress",
+          "sign-step-completed": "Terms signed.",
+          "sign-step-description": "Free. No transaction.",
+          "sign-step-failed": "The signature was not completed.",
+          "sign-step-progress": "Confirm the signature in your wallet.",
           "sign-terms": "Sign the terms",
           "title": "Claiming ${{symbol}}",
           "unlocks-on": "Unlocks on",
@@ -709,7 +717,10 @@
           "status-expired": "Expired before the snapshot",
           "title": "Your veHEMI positions at the snapshot"
         },
-        "title": "Claim your ${{symbol}}"
+        "title": "Claim your ${{symbol}}",
+        "toast-description": "Your ${{symbol}} is now in a veVETRO position.",
+        "toast-title": "Claim confirmed",
+        "view-progress": "View progress"
       }
     },
     "wallet": {
