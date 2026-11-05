@@ -12,6 +12,7 @@ npm add @vetro-protocol/ve-vetro viem
 
 - `veHemiSnapshotBlock` is the last block at or before the snapshot timestamp. The UI uses it to enumerate the veHEMI token ids. The veHEMI address is exported as `veHemiAddress`.
 - To find the veHEMI token ids of an owner, read `getBalanceOf` at `veHemiSnapshotBlock`, then read `getTokenOfOwnerByIndex` for each index from `0n` to the balance minus `1n`, at the same block. The RPC must serve the state at the snapshot block. Some holders have many positions, and the public RPC limits requests. Create the client with `batch: { multicall: true }` so viem aggregates the `getTokenOfOwnerByIndex` calls at the same block. viem's `hemi` chain has no Multicall3 address, so add it to the chain, as in the example below.
+- If the RPC cannot serve the state at the snapshot block, `getIdsOfRecord` reads the token ids of record from the distributor lens. It scans the ids from `fromId` to `toIdExclusive` (not included), and returns the ids of record that had weight at the snapshot, and `nextId`, the first id it did not scan. One call can stop before `toIdExclusive`, so call it again from `nextId` while `nextId` is less than `toIdExclusive`. The lens does not scan the ids above the last veHEMI token id.
 - Ideally, the veHEMI reads come from the [ve-hemi-actions](https://github.com/hemilabs/ui-monorepo/tree/main/packages/ve-hemi-actions) package.
 - `getClaimableSubset` reads the distributor lens. It filters the token ids to the ids that the claimant can still claim, and returns their total amount. A claim of `ids` reverts when `amount` is below `minClaimAmount` (10 $V). Send all the ids in one claim. The lens returns no ids while `isClaimOpen` is `false`. Check `isClaimOpen` first to tell "claims not open" from "nothing to claim".
 - `previewClaim` reads the claim data of one veHEMI token id: the owner and the weight at the snapshot, the bucket, the share and whether the id is claimed. Use it to show each position. `share` keeps its value after the claim and after `claimEnd`.
@@ -33,13 +34,20 @@ import {
   getBalanceOf,
   getClaimableSubset,
   getConfig,
+  getIdsOfRecord,
   getLockedBalance,
   getTokenOfOwnerByIndex,
   isClaimOpen,
   previewClaim,
   verifyTermsSignature,
 } from "@vetro-protocol/ve-vetro/actions";
-import { createPublicClient, createWalletClient, custom, http } from "viem";
+import {
+  createPublicClient,
+  createWalletClient,
+  custom,
+  http,
+  maxUint256,
+} from "viem";
 import { hemi } from "viem/chains";
 
 const publicClient = createPublicClient({
@@ -82,6 +90,14 @@ const tokenIds = await Promise.all(
     }),
   ),
 );
+
+// Alternative: veHEMI token ids of record of the owner, from the lens.
+const idsOfRecord = await getIdsOfRecord(publicClient, {
+  address: lensAddress,
+  fromId: 0n,
+  holder: owner,
+  toIdExclusive: maxUint256,
+});
 
 // Token ids the owner can still claim, and their total amount.
 const { amount, ids } = await getClaimableSubset(publicClient, {
