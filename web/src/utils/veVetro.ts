@@ -1,7 +1,7 @@
 import { knownTokens } from "@vetro-protocol/core";
 import { minClaimAmount } from "@vetro-protocol/ve-vetro";
 import { type Address, zeroAddress } from "viem";
-import { hemi, hemiSepolia, mainnet } from "viem/chains";
+import { hemi, mainnet } from "viem/chains";
 
 export const hemiToken = knownTokens.find(
   (token) => token.chainId === hemi.id && token.symbol === "HEMI",
@@ -19,9 +19,6 @@ export const veHemiSnapshotBlock = 5_592_174n;
 // The terms must hash to the distributor's `config().termsHash`, or the claim
 // reverts with `InvalidTermsSignature`.
 export const veVetroDistributorAddress: Address = zeroAddress;
-
-// TODO: use `hemi` instead of `hemiSepolia` before release.
-export const veVetroChain = hemiSepolia;
 
 // TODO real date needs to be defined
 const termsDate = "November 4, 2026";

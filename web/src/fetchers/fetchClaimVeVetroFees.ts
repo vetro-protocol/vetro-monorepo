@@ -1,7 +1,7 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { fetchTotalNetworkFees } from "fetchers/fetchTotalNetworkFees";
+import { hemi } from "hemi-viem";
 import { getChainById } from "networks";
-import { veVetroChain } from "utils/veVetro";
 import type { Client } from "viem";
 
 // Placeholder until the ve-vetro package (#1062) has the `claim` write action.
@@ -15,7 +15,7 @@ export const fetchClaimVeVetroFees = ({
   queryClient: QueryClient;
 }) =>
   fetchTotalNetworkFees({
-    chain: getChainById(veVetroChain.id),
+    chain: getChainById(hemi.id),
     gasUnits: claimGasUnits,
     queryClient,
   });
