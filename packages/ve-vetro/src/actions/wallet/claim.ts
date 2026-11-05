@@ -77,7 +77,7 @@ const canClaim = async function ({
       address,
       claimant: client.account.address,
       recipient,
-      signature: signature!,
+      signature: signature ?? "0x",
     }))
   ) {
     return { canClaim: false, reason: "Invalid terms signature" };
