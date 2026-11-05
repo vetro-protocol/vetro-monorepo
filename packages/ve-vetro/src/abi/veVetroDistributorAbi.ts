@@ -1,5 +1,19 @@
 export const veVetroDistributorAbi = [
   {
+    inputs: [
+      { name: "tokenIds", type: "uint256[]" },
+      { name: "recipient", type: "address" },
+      { name: "termsSignature", type: "bytes" },
+    ],
+    name: "claim",
+    outputs: [
+      { name: "targetTokenId", type: "uint256" },
+      { name: "amount", type: "uint256" },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "config",
     outputs: [
