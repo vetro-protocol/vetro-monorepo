@@ -1,5 +1,5 @@
 import type { Chain } from "viem";
-import { arbitrum, base, bsc, hemi, optimism } from "viem/chains";
+import { arbitrum, base, bsc, hemi, hemiSepolia, optimism } from "viem/chains";
 
 import { mainnet } from "./mainnet";
 
@@ -10,6 +10,8 @@ export const allChains = [
   base,
   optimism,
   bsc,
+  // TODO: remove when the veVETRO claim uses Hemi instead of Hemi Sepolia.
+  hemiSepolia,
 ] as const;
 
 export const getChainById = function (chainId: Chain["id"]) {

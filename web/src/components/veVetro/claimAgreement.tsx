@@ -10,18 +10,21 @@ const linkClassName =
 type AgreementCheckboxProps = {
   checked: boolean;
   children: ReactNode;
+  disabled: boolean;
   onChange: (checked: boolean) => void;
 };
 
 const AgreementCheckbox = ({
   checked,
   children,
+  disabled,
   onChange,
 }: AgreementCheckboxProps) => (
-  <label className="text-xsm flex cursor-pointer items-start gap-3 text-gray-900">
+  <label className="text-xsm flex cursor-pointer items-start gap-3 text-gray-900 has-disabled:cursor-not-allowed">
     <span className="flex h-5 items-center">
       <Checkbox
         checked={checked}
+        disabled={disabled}
         onChange={(e) => onChange(e.target.checked)}
       />
     </span>
@@ -30,6 +33,7 @@ const AgreementCheckbox = ({
 );
 
 type Props = {
+  disabled: boolean;
   onRestrictionChange: (checked: boolean) => void;
   onTermsChange: (checked: boolean) => void;
   restrictionAccepted: boolean;
@@ -37,6 +41,7 @@ type Props = {
 };
 
 export function ClaimAgreement({
+  disabled,
   onRestrictionChange,
   onTermsChange,
   restrictionAccepted,
@@ -54,7 +59,11 @@ export function ClaimAgreement({
           {t("pages.ve-vetro.claim.drawer.agreement-description")}
         </p>
       </div>
-      <AgreementCheckbox checked={termsAccepted} onChange={onTermsChange}>
+      <AgreementCheckbox
+        checked={termsAccepted}
+        disabled={disabled}
+        onChange={onTermsChange}
+      >
         <Trans
           components={{
             privacy: (
@@ -75,6 +84,7 @@ export function ClaimAgreement({
       </AgreementCheckbox>
       <AgreementCheckbox
         checked={restrictionAccepted}
+        disabled={disabled}
         onChange={onRestrictionChange}
       >
         {t("pages.ve-vetro.claim.drawer.agreement-restriction")}

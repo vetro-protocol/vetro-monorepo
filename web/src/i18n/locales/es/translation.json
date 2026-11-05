@@ -688,12 +688,20 @@
           "agreement-terms": "He leído y acepto los <terms>Términos de Uso</terms> de Vetro, incluida la Sección 18 (Reclamo de veVETRO), y la <privacy>Política de Privacidad</privacy>.",
           "agreement-title": "Reclame su veVETRO",
           "as-position": "Como 1 posición veVETRO",
+          "claim-complete-title": "Reclamo completado",
+          "claim-step-completed": "Su ${{symbol}} se reclamó como una posición veVETRO.",
           "claim-step-description": "Una transacción en Hemi.",
+          "claim-step-failed": "El reclamo no se completó.",
+          "claim-step-progress": "Confirme la transacción en su billetera.",
           "claim-step-title": "Reclamar ${{symbol}}",
           "from": "De",
           "from-positions": "{{count}} posición veHEMI",
           "from-positions_other": "{{count}} posiciones veHEMI",
           "progress": "Progreso del reclamo",
+          "sign-step-completed": "Términos firmados.",
+          "sign-step-description": "Gratis. Sin transacción.",
+          "sign-step-failed": "La firma no se completó.",
+          "sign-step-progress": "Confirme la firma en su billetera.",
           "sign-terms": "Firmar los términos",
           "title": "Reclamando ${{symbol}}",
           "unlocks-on": "Se desbloquea el",
@@ -717,7 +725,10 @@
           "status-expired": "Vencida antes del snapshot",
           "title": "Sus posiciones de veHEMI en el snapshot"
         },
-        "title": "Reclame sus ${{symbol}}"
+        "title": "Reclame sus ${{symbol}}",
+        "toast-description": "Su ${{symbol}} ahora está en una posición veVETRO.",
+        "toast-title": "Reclamo confirmado",
+        "view-progress": "Ver progreso"
       }
     },
     "wallet": {

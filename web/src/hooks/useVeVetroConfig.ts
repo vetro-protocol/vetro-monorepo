@@ -5,4 +5,5 @@ export const veVetroConfigOptions = () =>
   queryOptions({
     queryFn: fetchVeVetroConfig,
     queryKey: ["ve-vetro-config"],
+    staleTime: Infinity,
   });
