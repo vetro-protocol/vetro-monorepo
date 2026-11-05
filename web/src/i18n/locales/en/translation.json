@@ -702,6 +702,7 @@
           "footnote": "Only positions you held at the snapshot count. A position you sold after the snapshot is still yours to claim.",
           "position-id": "veHEMI #{{id}}",
           "snapshot": "Block {{block}} · {{date}} UTC",
+          "snapshot-date": "{{date}} UTC",
           "status-claim-ended": "Claim period ended",
           "status-claimed": "Claimed",
           "status-eligible": "Eligible",

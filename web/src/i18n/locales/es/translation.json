@@ -710,6 +710,7 @@
           "footnote": "Solo cuentan las posiciones que tenía en el momento del snapshot. Si vendió una posición después del snapshot, todavía puede reclamarla.",
           "position-id": "veHEMI #{{id}}",
           "snapshot": "Bloque {{block}} · {{date}} UTC",
+          "snapshot-date": "{{date}} UTC",
           "status-claim-ended": "Período de reclamo finalizado",
           "status-claimed": "Reclamada",
           "status-eligible": "Elegible",

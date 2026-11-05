@@ -11,6 +11,7 @@ export const veHemiSnapshotTokenIdsOptions = ({
 }) =>
   queryOptions({
     enabled: !!account && !!client,
-    queryFn: () => fetchVeHemiSnapshotTokenIds(client!),
+    queryFn: () =>
+      fetchVeHemiSnapshotTokenIds({ account: account!, client: client! }),
     queryKey: ["ve-hemi-snapshot-token-ids", account],
   });
