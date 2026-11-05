@@ -163,6 +163,6 @@ const lockedBalance = await getLockedBalance(publicClient, {
   - `verifyTermsSignature(client, { address, claimant, recipient, signature })` — whether `signature` is a valid signature of the terms for `claimant` and `recipient`, as the distributor at `address` checks it. `signature` is hex. `0x` is accepted.
 - Wallet actions (writes), exported from `/actions`:
   - `claim(walletClient, { address, recipient, signature?, tokenIds })` — claims `tokenIds` for the wallet account on the distributor at `address`. `signature` is the terms signature. It is needed only when `getConfig(...).requireTermsSignature` is `true`, and the action checks it with `verifyTermsSignature` first. The action sends no transaction when claims are not open.
-  - `encodeClaim(params)` — returns the calldata of the claim.
+  - `encodeClaim({ address, recipient, signature?, tokenIds })` — returns the calldata of `claim(tokenIds, recipient, signature)`. `signature` defaults to `0x`. `address` is not part of the calldata. Unlike `claim`, it does not check the params, whether claims are open, or the terms signature.
 - ABIs: `veHemiAbi`, `veVetroDistributorAbi` and `veVetroDistributorLensAbi` — the minimal ABI subsets used by the package. `veHemiAbi` also applies to veVETRO.
 - Constants: `minClaimAmount` (the distributor's `MIN_TARGET_LOCK_AMOUNT`, 10 $V in base units: a claim below it reverts), `veHemiAddress`, `veHemiSnapshotBlock`.
