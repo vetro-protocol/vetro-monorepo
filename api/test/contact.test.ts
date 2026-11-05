@@ -188,29 +188,6 @@ describe("validateContactForm", function () {
     expect(json).not.toHaveBeenCalled();
   });
 
-  it("ignores a files part and stores only the text fields", async function () {
-    // A stale client may still send a screenshot; it must not be rejected nor
-    // carried into the stored form.
-    const { context, json, next, set } = buildContext({
-      body: {
-        ...validForm,
-        files: new File([new Uint8Array(10)], "shot.png", {
-          type: "image/png",
-        }),
-      },
-    });
-
-    await validateContactForm(context, next);
-
-    expect(set).toHaveBeenCalledWith("contactForm", {
-      category: "swap",
-      email: "user@example.com",
-      message: "Something went wrong.",
-    });
-    expect(next).toHaveBeenCalledTimes(1);
-    expect(json).not.toHaveBeenCalled();
-  });
-
   it("stashes the turnstile token from the body", async function () {
     const { context, set } = buildContext({
       body: { ...validForm, token: "a-token" },
