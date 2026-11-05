@@ -731,14 +731,9 @@ set, the hostname reported by siteverify must also match one of its entries.
 | `email`    | text | Must be well-formed.                                                              |
 | `message`  | text | Non-empty, at most 5000 characters.                                               |
 | `token`    | text | Turnstile token; required (and verified) only when `TURNSTILE_SECRET_KEY` is set. |
-| `files`    | file | Optional screenshots (repeat the field for multiple). See limits below.           |
 
-Attachments are optional. Each file must be `image/png` or `image/jpeg`; at most
-5 files may be attached, and their combined size must not exceed 3.5 MB. Valid
-attachments are sent along with the support email as raw binary; the mail
-binding base64-encodes them into the message (they are not included in the
-submitter's confirmation email). The limit leaves headroom under Cloudflare's
-5 MiB total-message cap once the content is base64-encoded.
+Any other field (such as a file) is ignored, but still counts toward the 50,000
+byte limit on the whole request body.
 
 #### Response
 
@@ -747,11 +742,8 @@ confirmation email to the submitter is best-effort: if it fails, the failure is
 reported to Sentry and the response is still `204`.
 
 Returns `400` for an invalid body / email /
-category / message, unsupported or oversized attachments (`Unsupported
-attachment type`, `Too many attachments`, `Attachments too large`), or a missing
-captcha token, `411` (`Length required`) when the `Content-Length` header is
-missing or is not a number, `413` (`Request too large`) when the request body
-exceeds the size limit, `403` when captcha verification fails (or cannot be completed —
+category / message, or a missing captcha token, `413` (`Request too large`) when
+the request body exceeds 50,000 bytes, `403` when captcha verification fails (or cannot be completed —
 fail-closed), and `500` if sending the support email fails.
 
 ## Configuration
