@@ -1,5 +1,6 @@
+import { hemi } from "hemi-viem";
 import type { Chain } from "viem";
-import { arbitrum, base, bsc, hemi, hemiSepolia, optimism } from "viem/chains";
+import { arbitrum, base, bsc, hemiSepolia, optimism } from "viem/chains";
 
 import { mainnet } from "./mainnet";
 
