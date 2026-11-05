@@ -7,14 +7,6 @@ export const hemiToken = knownTokens.find(
   (token) => token.chainId === hemi.id && token.symbol === "HEMI",
 )!;
 
-// Placeholders until the ve-vetro package (#1062) is merged. Replace with
-// the `veHemiAddress` and `veHemiSnapshotBlock` exports of
-// `@vetro-protocol/ve-vetro`.
-export const veHemiAddress: Address =
-  "0x371d3718D5b7F75EAb050FAe6Da7DF3092031c89";
-
-export const veHemiSnapshotBlock = 5_592_174n;
-
 // Placeholders until the distributor is deployed and its terms are published.
 // The terms must hash to the distributor's `config().termsHash`, or the claim
 // reverts with `InvalidTermsSignature`.

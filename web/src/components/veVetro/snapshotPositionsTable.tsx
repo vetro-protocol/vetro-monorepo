@@ -1,3 +1,4 @@
+import { veHemiAddress, veHemiSnapshotBlock } from "@vetro-protocol/ve-vetro";
 import { DisplayAmount } from "components/base/displayAmount";
 import { ExternalLink } from "components/base/externalLink";
 import { SectionHeader } from "components/base/sectionHeader";
@@ -14,12 +15,7 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import { formatMediumDate } from "utils/date";
-import {
-  hemiToken,
-  veHemiAddress,
-  veHemiSnapshotBlock,
-  vToken,
-} from "utils/veVetro";
+import { hemiToken, vToken } from "utils/veVetro";
 import { hemi } from "viem/chains";
 import { useAccount } from "wagmi";
 
