@@ -1,6 +1,7 @@
 import type { Client } from "viem";
 
-// Placeholder until the ve-vetro package (#1062) is merged. Replace with
+// Placeholder until the distributor is deployed: the mocked previews and
+// claimable subset use these token ids. Replace with
 // these reads from `@vetro-protocol/ve-vetro/actions`:
 // 1. `getBalanceOf(client, { address: veHemiAddress, blockNumber: veHemiSnapshotBlock, owner: account })`
 // 2. `getTokenOfOwnerByIndex(client, { address: veHemiAddress, blockNumber: veHemiSnapshotBlock, index, owner: account })`
