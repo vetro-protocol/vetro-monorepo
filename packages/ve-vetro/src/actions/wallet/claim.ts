@@ -21,7 +21,7 @@ export type ClaimParams = {
   address: Address;
   recipient: Address;
   signature?: Hex;
-  tokenIds: bigint[];
+  tokenIds: readonly bigint[];
 };
 
 const canClaim = async function ({
