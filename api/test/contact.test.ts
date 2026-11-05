@@ -1,11 +1,7 @@
 import type { Context } from "hono";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import {
-  buildAttachments,
-  validateContactForm,
-  verifyTurnstile,
-} from "../src/contact.ts";
+import { validateContactForm, verifyTurnstile } from "../src/contact.ts";
 
 const validForm = {
   category: "swap",
@@ -13,18 +9,10 @@ const validForm = {
   message: "Something went wrong.",
 };
 
-// Builds the multipart FormData validateContactForm now parses. `files` (an
-// optional File[]) is appended under the repeated "files" field.
 function toFormData(body: Record<string, unknown>) {
   const form = new FormData();
   for (const [key, value] of Object.entries(body)) {
     if (value === undefined) {
-      continue;
-    }
-    if (key === "files") {
-      for (const file of value as File[]) {
-        form.append("files", file);
-      }
       continue;
     }
     form.append(key, value as string);
@@ -78,7 +66,7 @@ function buildContext({
 describe("validateContactForm", function () {
   it("returns 413 before parsing when Content-Length exceeds the limit", async function () {
     const { context, json, next } = buildContext({
-      headers: { "Content-Length": String(4_000_001) },
+      headers: { "Content-Length": String(50_001) },
     });
 
     await validateContactForm(context, next);
@@ -86,6 +74,18 @@ describe("validateContactForm", function () {
     expect(context.req.formData).not.toHaveBeenCalled();
     expect(json).toHaveBeenCalledWith({ error: "Request too large" }, 413);
     expect(next).not.toHaveBeenCalled();
+  });
+
+  it("accepts a body of exactly the Content-Length limit", async function () {
+    const { context, json, next } = buildContext({
+      headers: { "Content-Length": String(50_000) },
+    });
+
+    await validateContactForm(context, next);
+
+    expect(context.req.formData).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(json).not.toHaveBeenCalled();
   });
 
   it("returns 411 before parsing when Content-Length is missing", async function () {
@@ -183,9 +183,29 @@ describe("validateContactForm", function () {
 
     await validateContactForm(context, next);
 
+    expect(set).toHaveBeenCalledWith("contactForm", validForm);
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(json).not.toHaveBeenCalled();
+  });
+
+  it("ignores a files part and stores only the text fields", async function () {
+    // A stale client may still send a screenshot; it must not be rejected nor
+    // carried into the stored form.
+    const { context, json, next, set } = buildContext({
+      body: {
+        ...validForm,
+        files: new File([new Uint8Array(10)], "shot.png", {
+          type: "image/png",
+        }),
+      },
+    });
+
+    await validateContactForm(context, next);
+
     expect(set).toHaveBeenCalledWith("contactForm", {
-      ...validForm,
-      files: [],
+      category: "swap",
+      email: "user@example.com",
+      message: "Something went wrong.",
     });
     expect(next).toHaveBeenCalledTimes(1);
     expect(json).not.toHaveBeenCalled();
@@ -199,78 +219,6 @@ describe("validateContactForm", function () {
     await validateContactForm(context, vi.fn());
 
     expect(set).toHaveBeenCalledWith("turnstileToken", "a-token");
-  });
-
-  it("accepts and stores valid image attachments", async function () {
-    // Encoding is deferred to the handler; validation just stores the files.
-    const { context, json, next, set } = buildContext({
-      body: {
-        ...validForm,
-        files: [new File(["hi"], "shot.png", { type: "image/png" })],
-      },
-    });
-
-    await validateContactForm(context, next);
-
-    expect(set).toHaveBeenCalledWith("contactForm", {
-      ...validForm,
-      files: [expect.any(File)],
-    });
-    expect(next).toHaveBeenCalledTimes(1);
-    expect(json).not.toHaveBeenCalled();
-  });
-
-  it("returns 400 for an unsupported attachment type", async function () {
-    const { context, json, next } = buildContext({
-      body: {
-        ...validForm,
-        files: [new File(["x"], "notes.pdf", { type: "application/pdf" })],
-      },
-    });
-
-    await validateContactForm(context, next);
-
-    expect(json).toHaveBeenCalledWith(
-      { error: "Unsupported attachment type" },
-      400,
-    );
-    expect(next).not.toHaveBeenCalled();
-  });
-
-  it("returns 400 for too many attachments", async function () {
-    const { context, json, next } = buildContext({
-      body: {
-        ...validForm,
-        files: Array.from(
-          { length: 6 },
-          (_, index) =>
-            new File(["x"], `shot-${index}.png`, { type: "image/png" }),
-        ),
-      },
-    });
-
-    await validateContactForm(context, next);
-
-    expect(json).toHaveBeenCalledWith({ error: "Too many attachments" }, 400);
-    expect(next).not.toHaveBeenCalled();
-  });
-
-  it("returns 400 when attachments exceed the total size budget", async function () {
-    const { context, json, next } = buildContext({
-      body: {
-        ...validForm,
-        files: [
-          new File([new Uint8Array(3_500_001)], "big.png", {
-            type: "image/png",
-          }),
-        ],
-      },
-    });
-
-    await validateContactForm(context, next);
-
-    expect(json).toHaveBeenCalledWith({ error: "Attachments too large" }, 400);
-    expect(next).not.toHaveBeenCalled();
   });
 });
 
@@ -440,45 +388,5 @@ describe("verifyTurnstile", function () {
       403,
     );
     expect(next).not.toHaveBeenCalled();
-  });
-});
-
-describe("buildAttachments", function () {
-  const decode = (content: ArrayBuffer) => Buffer.from(content).toString();
-
-  it("passes raw file bytes for the SEND_EMAIL binding to encode", async function () {
-    const attachments = await buildAttachments([
-      new File(["hi"], "shot.png", { type: "image/png" }),
-    ]);
-
-    expect(attachments).toEqual([
-      {
-        // Raw bytes, not base64 — the binding base64-encodes them itself.
-        content: expect.any(ArrayBuffer),
-        disposition: "attachment",
-        filename: "shot.png",
-        type: "image/png",
-      },
-    ]);
-    expect(decode(attachments[0].content)).toBe("hi");
-  });
-
-  it("returns an empty array when there are no files", async function () {
-    expect(await buildAttachments([])).toEqual([]);
-  });
-
-  it("reads multiple files in order", async function () {
-    const attachments = await buildAttachments([
-      new File(["hi"], "first.png", { type: "image/png" }),
-      new File(["yo"], "second.jpg", { type: "image/jpeg" }),
-    ]);
-
-    expect(attachments.map((attachment) => attachment.filename)).toEqual([
-      "first.png",
-      "second.jpg",
-    ]);
-    expect(attachments.map((attachment) => decode(attachment.content))).toEqual(
-      ["hi", "yo"],
-    );
   });
 });

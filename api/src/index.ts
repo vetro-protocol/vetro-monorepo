@@ -10,7 +10,6 @@ import { type Address, checksumAddress } from "viem";
 import { getApyHistory } from "./apy-history.ts";
 import * as borrow from "./borrow.ts";
 import {
-  buildAttachments,
   sendContactConfirmation,
   sendContactEmail,
   validateContactForm,
@@ -635,11 +634,8 @@ app.post(
 );
 
 app.post("/contact", validateContactForm, verifyTurnstile, async function (c) {
-  const { category, email, files, message } = c.get("contactForm");
-  // Read files only now that the captcha has passed (verifyTurnstile ran).
-  const attachments = await buildAttachments(files);
+  const { category, email, message } = c.get("contactForm");
   await sendContactEmail({
-    attachments,
     category,
     email,
     env: c.env,
