@@ -1,7 +1,7 @@
 import { knownTokens } from "@vetro-protocol/core";
 import { minClaimAmount } from "@vetro-protocol/ve-vetro";
 import { type Address, zeroAddress } from "viem";
-import { hemi, mainnet } from "viem/chains";
+import { hemi, hemiSepolia, mainnet } from "viem/chains";
 
 export const hemiToken = knownTokens.find(
   (token) => token.chainId === hemi.id && token.symbol === "HEMI",
@@ -12,10 +12,19 @@ export const hemiToken = knownTokens.find(
 // reverts with `InvalidTermsSignature`.
 export const veVetroDistributorAddress: Address = zeroAddress;
 
-// TODO real date needs to be defined
-const termsDate = "November 4, 2026";
+// TODO: use `hemi` instead of `hemiSepolia` before release.
+const veVetroChain = hemiSepolia;
 
-export const veVetroTerms = `I agree to the Vetro Terms of Use (version dated ${termsDate}), including Section 18 (veVETRO Claim). I confirm that I am not a Restricted Person for the veVETRO Claim and that I do not reside in, and I am not a citizen of, located in, or incorporated or organised in, the United States, the European Economic Area, Canada, the United Kingdom, or any Prohibited Jurisdiction.`;
+const veVetroTermsByChain = {
+  // TODO: check against the mainnet distributor's `config().termsHash` once
+  // it is deployed.
+  [hemi.id]:
+    "I agree to the Vetro Terms of Use (version dated November 5 2026), including Section 18 (veVETRO Claim). I confirm that I am not a Restricted Person for the veVETRO Claim and do not reside in, and am not a citizen of, located in, or incorporated or organised in, the United States, the European Economic Area, Canada, the United Kingdom, or any Prohibited Jurisdiction.",
+  [hemiSepolia.id]:
+    "I agree to the Test Token Terms of Use (version dated November 5 2026), including Section X (veTEST Claim). I confirm that I am not a Restricted Person for the veTEST Claim and do not reside in, and am not a citizen of, located in, or incorporated or organised in, the United States, the European Economic Area, Canada, the United Kingdom, or any Prohibited Jurisdiction.",
+};
+
+export const veVetroTerms = veVetroTermsByChain[veVetroChain.id];
 
 export const vToken = knownTokens.find(
   (token) => token.chainId === mainnet.id && token.symbol === "V",
