@@ -3,6 +3,7 @@ import type { Client } from "viem";
 import {
   getKeeperRole,
   getPrice,
+  getReserve,
   getTokenConfig,
   getWhitelistedTokens,
   getWithdrawable,
@@ -17,6 +18,8 @@ export const treasuryPublicActions = () => (client: Client) => ({
     getKeeperRole(client, params),
   getPrice: (params: Parameters<typeof getPrice>[1]) =>
     getPrice(client, params),
+  getReserve: (params: Parameters<typeof getReserve>[1]) =>
+    getReserve(client, params),
   getTokenConfig: (params: Parameters<typeof getTokenConfig>[1]) =>
     getTokenConfig(client, params),
   getWhitelistedTokens: (params: Parameters<typeof getWhitelistedTokens>[1]) =>
