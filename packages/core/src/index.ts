@@ -7,6 +7,7 @@ export type {
   DexPoolReward,
   DexRewardToken,
 } from "./dex/types.ts";
+export { vetroLinks } from "./links.ts";
 export { gatewayAddresses, gateways } from "./protocolGraph.ts";
 export { restrictedCountries } from "./restrictedCountries.ts";
 export {

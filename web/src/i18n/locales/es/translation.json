@@ -69,7 +69,8 @@
     },
     "liquidity": "Liquidez",
     "open-menu": "Abrir menú de navegación",
-    "swap": "Intercambios"
+    "swap": "Intercambios",
+    "ve-vetro": "veVETRO"
   },
   "pages": {
     "analytics": {
@@ -666,6 +667,68 @@
         "step-2-paragraph-2_one": "Haga clic en Canjear y elija el monto que desea recibir.",
         "step-2-paragraph-2_other": "Haga clic en Canjear, elija el monto y seleccione la stablecoin ({{allButLast}} o {{lastSymbol}}) que desea recibir.",
         "title": "Cómo canjear VUSD a stables"
+      }
+    },
+    "ve-vetro": {
+      "breadcrumb": "veVETRO",
+      "claim": {
+        "breadcrumb": "Reclamar",
+        "claim-button": "Reclamar veVETRO",
+        "claim-button-below-minimum": "Por debajo del mínimo de {{amount}} ${{symbol}}",
+        "claim-button-load-error": "No se pudieron cargar los datos del reclamo",
+        "claim-button-not-open": "Los reclamos no están abiertos",
+        "claim-button-nothing-to-claim": "No hay nada para reclamar",
+        "claim-end": "El período de reclamo termina",
+        "claim-end-time-zone": "UTC · Hora de la cadena Hemi",
+        "claimable-amount": "Sus ${{symbol}} reclamables",
+        "description": "Sus posiciones de veHEMI en el momento del snapshot le otorgan ${{symbol}}. Lo recibe como una posición de veVETRO, bloqueada hasta la fecha de desbloqueo.",
+        "drawer": {
+          "agreement-description": "Los titulares elegibles de veHEMI pueden reclamar veVETRO de forma gratuita. Vetro Service & Support Ltd. pone veVETRO a disposición. Es intransferible y está bloqueado, y puede no tener valor. El Reclamo de veVETRO no está disponible para personas en los Estados Unidos, el Espacio Económico Europeo, Canadá, el Reino Unido o cualquier Jurisdicción Prohibida, ni para ninguna otra Persona Restringida.",
+          "agreement-restriction": "Confirmo que no soy una Persona Restringida para el Reclamo de veVETRO. No resido en, ni soy ciudadano de, ni me encuentro en, ni estoy constituido u organizado en los Estados Unidos, el Espacio Económico Europeo, Canadá, el Reino Unido ni ninguna Jurisdicción Prohibida. No estoy usando una VPN ni otros medios para eludir estas restricciones.",
+          "agreement-terms": "He leído y acepto los <terms>Términos de Uso</terms> de Vetro, incluida la Sección 18 (Reclamo de veVETRO), y la <privacy>Política de Privacidad</privacy>.",
+          "agreement-title": "Reclame su veVETRO",
+          "as-position": "Como 1 posición veVETRO",
+          "claim-complete-title": "Reclamo completado",
+          "claim-step-completed": "Su ${{symbol}} se reclamó como una posición veVETRO.",
+          "claim-step-description": "Una transacción en Hemi.",
+          "claim-step-failed": "El reclamo no se completó.",
+          "claim-step-progress": "Confirme la transacción en su billetera.",
+          "claim-step-title": "Reclamar ${{symbol}}",
+          "from": "De",
+          "from-positions": "{{count}} posición veHEMI",
+          "from-positions_other": "{{count}} posiciones veHEMI",
+          "progress": "Progreso del reclamo",
+          "sign-step-completed": "Términos firmados.",
+          "sign-step-description": "Gratis. Sin transacción.",
+          "sign-step-failed": "La firma no se completó.",
+          "sign-step-progress": "Confirme la firma en su billetera.",
+          "sign-terms": "Firmar los términos",
+          "title": "Reclamando ${{symbol}}",
+          "unlocks-on": "Se desbloquea el",
+          "you-will-claim": "Usted reclamará"
+        },
+        "positions": {
+          "col-position": "Posición",
+          "col-status": "Estado",
+          "disconnected-description": "Conecte su billetera para ver las posiciones de veHEMI que tenía en el momento del snapshot.",
+          "disconnected-title": "Billetera no conectada",
+          "empty-description": "Esta billetera no tenía posiciones de veHEMI en el momento del snapshot.",
+          "empty-title": "No hay posiciones de veHEMI en el snapshot",
+          "error-description": "No pudimos leer sus posiciones de veHEMI en el momento del snapshot.",
+          "error-title": "Posiciones no disponibles",
+          "footnote": "Solo cuentan las posiciones que tenía en el momento del snapshot. Si vendió una posición después del snapshot, todavía puede reclamarla.",
+          "position-id": "veHEMI #{{id}}",
+          "snapshot": "Bloque {{block}} · {{date}} UTC",
+          "status-claim-ended": "Período de reclamo finalizado",
+          "status-claimed": "Reclamada",
+          "status-eligible": "Elegible",
+          "status-expired": "Vencida antes del snapshot",
+          "title": "Sus posiciones de veHEMI en el snapshot"
+        },
+        "title": "Reclame sus ${{symbol}}",
+        "toast-description": "Su ${{symbol}} ahora está en una posición veVETRO.",
+        "toast-title": "Reclamo confirmado",
+        "view-progress": "Ver progreso"
       }
     },
     "wallet": {

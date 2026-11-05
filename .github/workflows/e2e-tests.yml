@@ -20,21 +20,25 @@ jobs:
       contents: read
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-      - uses: hemilabs/actions/setup-node-env@8f87619b7f0122c39e14a32514ab3e4e0d4c3966 # v2.3.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: hemilabs/actions/setup-node-env@34879d59453841c18fd53190b39251a5c566f8db # v3.0.0
         with:
           package-manager: pnpm
       - run: pnpm --filter @vetro-protocol/cli run test:e2e
         env:
-          FORK_URL: ${{ secrets.INFURA_API }}
+          FORK_URL: ${{ secrets.INFURA_API }} # zizmor: ignore[secrets-outside-env] -- TODO: move INFURA_API to an environment
     timeout-minutes: 5
   run-web-e2e-tests:
     permissions:
       contents: read
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-      - uses: hemilabs/actions/setup-node-env@8f87619b7f0122c39e14a32514ab3e4e0d4c3966 # v2.3.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: hemilabs/actions/setup-node-env@34879d59453841c18fd53190b39251a5c566f8db # v3.0.0
         with:
           package-manager: pnpm
       - parallel:
@@ -45,7 +49,7 @@ jobs:
       - run: pnpm --filter @vetro-protocol/web exec playwright test
         env:
           DEBUG: pw:webserver
-          VITE_RPC_URL_MAINNET: ${{ secrets.INFURA_API }}
+          VITE_RPC_URL_MAINNET: ${{ secrets.INFURA_API }} # zizmor: ignore[secrets-outside-env] -- TODO: move INFURA_API to an environment
       - if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:

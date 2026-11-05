@@ -5,6 +5,8 @@ import { useAccount } from "wagmi";
 
 import { StakeSubmitButton } from "../src/pages/earn/components/earnForm/stakeSubmitButton";
 
+import { mockGeoRestricted } from "./mockGeoRestricted";
+
 const mockAccount = (account: Partial<ReturnType<typeof useAccount>>) =>
   mocked(useAccount).mockReturnValue(account as ReturnType<typeof useAccount>);
 
@@ -109,6 +111,17 @@ export const Blocked: Story = {
     isPending: false,
     pendingText: "Request exit",
   },
+};
+
+export const GeoRestricted: Story = {
+  args: {
+    actionText: "Deposit",
+    inputError: undefined,
+    isLoading: false,
+    isPending: false,
+    pendingText: "Depositing...",
+  },
+  beforeEach: mockGeoRestricted,
 };
 
 export const WithdrawAction: Story = {

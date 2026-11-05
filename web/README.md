@@ -18,6 +18,7 @@ Vite only exposes variables prefixed with `VITE_` to the client bundle. Set thes
 | `VITE_RPC_URL_MAINNET`           | No       | RPC URL(s) for Ethereum mainnet. Several URLs joined by `+` become a fallback transport. Falls back to viem's default when unset.                                                                                                   |
 | `VITE_SENTRY_DSN`                | No       | Sentry DSN. When unset, Sentry is disabled.                                                                                                                                                                                         |
 | `VITE_VETRO_API_URL`             | Yes      | Vetro backend API base URL (analytics, APR history, exit tickets, rewards, etc.).                                                                                                                                                   |
+| `VITE_VEVETRO_ENABLED`           | No       | Feature flag for the veVetro page. Enabled only when set to `"true"`.                                                                                                                                                               |
 | `VITE_WALLET_CONNECT_PROJECT_ID` | No       | WalletConnect project ID.                                                                                                                                                                                                           |
 
 The following variables are read at build time (not baked into the bundle) and only matter in CI/CD:

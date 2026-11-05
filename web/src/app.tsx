@@ -1,4 +1,4 @@
-import * as Sentry from "@sentry/react";
+import { wrapReactRouterRouting } from "@sentry/react/react-router";
 import { AnalyticsTracker } from "components/analyticsTracker";
 import { AppLayout, MainContent } from "components/base/appLayout";
 import { AppViewport } from "components/base/appViewport";
@@ -18,6 +18,7 @@ import { Faq } from "pages/faq";
 import { Liquidity } from "pages/liquidity";
 import { NotFound } from "pages/notFound";
 import { Swap } from "pages/swap";
+import { VeVetro } from "pages/veVetro";
 import { Suspense, lazy } from "react";
 import {
   BrowserRouter,
@@ -30,7 +31,7 @@ import {
 import { featureFlags } from "utils/featureFlags";
 import { isGeoRestricted } from "utils/geoRestriction";
 
-const SentryRoutes = Sentry.withSentryReactRouterV7Routing(Routes);
+const SentryRoutes = wrapReactRouterRouting(Routes);
 
 const analyticsEnabled =
   !!import.meta.env.VITE_ANALYTICS_URL &&
@@ -125,6 +126,9 @@ function LanguageRoutes() {
             <Route element={<Analytics />} path="analytics" />
             <Route element={<Faq />} path="faq" />
             <Route element={<Contact />} path="contact" />
+            {featureFlags.veVetro && (
+              <Route element={<VeVetro />} path="vevetro" />
+            )}
           </Route>
           <Route
             element={

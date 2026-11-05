@@ -14,7 +14,7 @@ export const stepStatus = {
 type StepStatus = (typeof stepStatus)[keyof typeof stepStatus];
 
 export type Step = {
-  description: ReactNode;
+  description?: ReactNode;
   status: StepStatus;
   title: ReactNode;
 };
@@ -101,7 +101,9 @@ export const VerticalStepper = ({ steps }: Props) => (
         {/* Step content */}
         <div className="text-xsm flex flex-col gap-0.5 leading-5">
           <p className="font-semibold text-gray-900">{step.title}</p>
-          <p className="text-gray-500">{step.description}</p>
+          {step.description && (
+            <p className="text-gray-500">{step.description}</p>
+          )}
         </div>
       </div>
     ))}

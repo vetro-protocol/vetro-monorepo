@@ -1,6 +1,6 @@
 ---
 name: run-checks
-description: Verify a change in this monorepo — typecheck, lint, and test, scoped to what you touched (with whole-repo and E2E fallbacks). Use after any non-trivial edit to web/, api/, packages/, subgraph/, or subgraphs/, and whenever the user asks to "verify", "run the checks", "make sure it passes", or before opening a PR.
+description: Verify a change in this monorepo — typecheck, lint, and test, scoped to what you touched (with whole-repo and E2E fallbacks). Use after any non-trivial edit to web/, api/, packages/, or subgraphs/, and whenever the user asks to "verify", "run the checks", "make sure it passes", or before opening a PR.
 ---
 
 # Verify (VETRO monorepo)
@@ -42,12 +42,6 @@ dependencies — the wrong direction here.)
   pnpm --filter <app> run test
   ```
 
-- Changed **`subgraph/`**:
-
-  ```bash
-  pnpm --filter vetro-app-subgraph run test    # matchstick: downloads a binary + runs codegen first (heavier)
-  ```
-
 - Changed **`subgraphs/<name>/`**:
 
   ```bash
@@ -72,14 +66,13 @@ across every workspace instead of a scoped filter.
 ```bash
 # typecheck everything — apps via tsc, packages via build
 pnpm -r --if-present run tsc && pnpm --filter='./packages/*' run build
-# test every app + package (subgraph matchstick excluded — run it separately if you touched it)
-pnpm --filter='!vetro-app-subgraph' -r --if-present run test
+# test every app + package (Graph subgraphs' matchstick excluded — run it separately if you touched them)
+pnpm --filter='!./subgraphs/*-subgraph' -r --if-present run test
 ```
 
 Lint, formatting, and knip are already whole-repo: `pnpm run lint`,
 `pnpm run format:check`, `pnpm run deps:check`. Even this wide pass skips
-`subgraph/` typecheck/lint (eslint ignores `subgraph/**`) and the e2e suite
-(§3) — lean on CI for those.
+the e2e suite (§3) — lean on CI for that.
 
 ## 3. E2E suite (web — heavy, opt-in)
 

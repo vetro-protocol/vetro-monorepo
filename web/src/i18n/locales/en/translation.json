@@ -69,7 +69,8 @@
     },
     "liquidity": "Liquidity",
     "open-menu": "Open navigation menu",
-    "swap": "Swap"
+    "swap": "Swap",
+    "ve-vetro": "veVETRO"
   },
   "pages": {
     "analytics": {
@@ -658,6 +659,68 @@
         "step-2-paragraph-2_one": "Click Redeem, and choose the amount you want to receive.",
         "step-2-paragraph-2_other": "Click Redeem, choose the amount, and select the stablecoin ({{allButLast}}, or {{lastSymbol}}) you want to receive.",
         "title": "How to redeem VUSD to stables"
+      }
+    },
+    "ve-vetro": {
+      "breadcrumb": "veVETRO",
+      "claim": {
+        "breadcrumb": "Claim",
+        "claim-button": "Claim veVETRO",
+        "claim-button-below-minimum": "Below the {{amount}} ${{symbol}} minimum",
+        "claim-button-load-error": "Could not load the claim data",
+        "claim-button-not-open": "Claims are not open",
+        "claim-button-nothing-to-claim": "Nothing to claim",
+        "claim-end": "Claim window ends",
+        "claim-end-time-zone": "UTC · Hemi chain time",
+        "claimable-amount": "Your claimable ${{symbol}}",
+        "description": "Your veHEMI positions at the snapshot give you ${{symbol}}. You receive it as a veVETRO position, locked until the unlock date.",
+        "drawer": {
+          "agreement-description": "Eligible veHEMI holders can claim veVETRO for free. veVETRO is made available by Vetro Service & Support Ltd. It is non-transferable and locked, and may have no value. The veVETRO Claim is not available to persons in the United States, the European Economic Area, Canada, the United Kingdom, or any Prohibited Jurisdiction, or to any other Restricted Person.",
+          "agreement-restriction": "I confirm that I am not a Restricted Person for the veVETRO Claim. I do not reside in, and I am not a citizen of, located in, or incorporated or organised in, the United States, the European Economic Area, Canada, the United Kingdom, or any Prohibited Jurisdiction. I am not using a VPN or other means to get around these restrictions.",
+          "agreement-terms": "I have read and agree to the Vetro <terms>Terms of Use</terms>, including Section 18 (veVETRO Claim), and the <privacy>Privacy Policy</privacy>.",
+          "agreement-title": "Claim your veVETRO",
+          "as-position": "As 1 veVETRO position",
+          "claim-complete-title": "Claim complete",
+          "claim-step-completed": "Your ${{symbol}} is claimed as a veVETRO position.",
+          "claim-step-description": "One transaction on Hemi.",
+          "claim-step-failed": "The claim was not completed.",
+          "claim-step-progress": "Confirm the transaction in your wallet.",
+          "claim-step-title": "Claim ${{symbol}}",
+          "from": "From",
+          "from-positions": "{{count}} veHEMI position",
+          "from-positions_other": "{{count}} veHEMI positions",
+          "progress": "Claim progress",
+          "sign-step-completed": "Terms signed.",
+          "sign-step-description": "Free. No transaction.",
+          "sign-step-failed": "The signature was not completed.",
+          "sign-step-progress": "Confirm the signature in your wallet.",
+          "sign-terms": "Sign the terms",
+          "title": "Claiming ${{symbol}}",
+          "unlocks-on": "Unlocks on",
+          "you-will-claim": "You will claim"
+        },
+        "positions": {
+          "col-position": "Position",
+          "col-status": "Status",
+          "disconnected-description": "Connect your wallet to see the veHEMI positions you held at the snapshot.",
+          "disconnected-title": "No wallet connected",
+          "empty-description": "This wallet held no veHEMI positions at the snapshot.",
+          "empty-title": "No veHEMI positions at the snapshot",
+          "error-description": "We could not read your veHEMI positions at the snapshot.",
+          "error-title": "Positions not available",
+          "footnote": "Only positions you held at the snapshot count. A position you sold after the snapshot is still yours to claim.",
+          "position-id": "veHEMI #{{id}}",
+          "snapshot": "Block {{block}} · {{date}} UTC",
+          "status-claim-ended": "Claim period ended",
+          "status-claimed": "Claimed",
+          "status-eligible": "Eligible",
+          "status-expired": "Expired before the snapshot",
+          "title": "Your veHEMI positions at the snapshot"
+        },
+        "title": "Claim your ${{symbol}}",
+        "toast-description": "Your ${{symbol}} is now in a veVETRO position.",
+        "toast-title": "Claim confirmed",
+        "view-progress": "View progress"
       }
     },
     "wallet": {

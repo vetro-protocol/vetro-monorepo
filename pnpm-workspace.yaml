@@ -29,11 +29,11 @@ packages:
   - "api"
   - "internal-dashboard"
   - "packages/*"
-  - "subgraph"
   - "subgraphs/*"
   - "web"
 
 patchedDependencies:
+  "@graphprotocol/graph-cli@*": "patches/@graphprotocol__graph-cli.patch"
   "@hemilabs/wallet-watch-asset@1.0.2": "patches/@hemilabs__wallet-watch-asset@1.0.2.patch"
 
 # https://github.com/microsoft/vscode-eslint/issues/1986#issuecomment-2799868163
@@ -42,8 +42,8 @@ publicHoistPattern:
 
 trustPolicy: no-downgrade
 
-# semver@6.3.1 (pulled in transitively via @sentry/vite-plugin ->
-# @babel/core -> @babel/helper-compilation-targets) was published without
+# semver@6.3.1 (pulled in transitively via @babel/core, which
+# eslint-plugin-react-hooks and Storybook's react-docgen use) was published without
 # provenance attestation, while earlier 6.x releases had it, so our
 # `trustPolicy: no-downgrade` rejects it. It is a widely-used, long-published
 # version already present in the committed lockfile; allowlist it so installs

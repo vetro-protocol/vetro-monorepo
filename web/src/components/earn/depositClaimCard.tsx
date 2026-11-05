@@ -105,7 +105,7 @@ export const DepositClaimCard = function ({
         </span>
       )}
       subtitle={
-        <div className="flex w-full gap-x-2 *:flex-1">
+        <div className="flex w-full gap-x-2 *:flex-1 [&_button]:w-full">
           <ClaimDeposit
             peggedToken={peggedToken}
             shareToken={shareToken}

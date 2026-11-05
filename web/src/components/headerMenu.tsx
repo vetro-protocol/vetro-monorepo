@@ -1,3 +1,4 @@
+import { vetroLinks } from "@vetro-protocol/core";
 import { type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -77,12 +78,12 @@ export function HeaderMenu() {
     {
       items: [
         {
-          href: "https://vetro.org/terms-of-use",
+          href: vetroLinks.termsOfUseUrl,
           icon: <DocumentIcon className={itemIconClassName} />,
           label: t("nav.header-menu.terms-of-use"),
         },
         {
-          href: "https://vetro.org/privacy-policy",
+          href: vetroLinks.privacyPolicyUrl,
           icon: <DocumentIcon className={itemIconClassName} />,
           label: t("nav.header-menu.privacy-policy"),
         },

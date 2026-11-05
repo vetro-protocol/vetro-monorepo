@@ -1,10 +1,9 @@
-import { Button } from "components/base/button";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { MaxButton } from "components/base/maxButton";
 import { Spinner } from "components/base/spinner";
 import { type Step, VerticalStepper } from "components/base/verticalStepper";
 import { DrawerFeesContainer } from "components/feesContainer";
-import { ExclamationTriangleIcon } from "components/icons/exclamationTriangleIcon";
+import { GeoRestrictedButton } from "components/geoRestrictedButton";
 import { TokenDropdown } from "components/tokenDropdown";
 import { TokenInput } from "components/tokenInput";
 import { Balance } from "components/tokenInput/balance";
@@ -15,7 +14,6 @@ import { useTokenConfig } from "hooks/useTokenConfig";
 import type { ComponentProps, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
-import { isGeoRestricted } from "utils/geoRestriction";
 import { formatAmount } from "utils/token";
 import type { Address } from "viem";
 
@@ -56,7 +54,6 @@ const isFlowInProgress = (flowStatus: ClaimRedeemFlowStatus) =>
   flowStatus !== "redeem-error";
 
 function SubmitLabel({
-  geoRestricted,
   inputError,
   isActiveError,
   isLoading,
@@ -64,7 +61,6 @@ function SubmitLabel({
   isPreviewError,
   renderRetry,
 }: {
-  geoRestricted: boolean;
   inputError: InputError | undefined;
   isActiveError: boolean;
   isLoading: boolean;
@@ -74,14 +70,6 @@ function SubmitLabel({
 }) {
   const { t } = useTranslation();
 
-  if (geoRestricted) {
-    return (
-      <>
-        <ExclamationTriangleIcon />
-        {t("common.geo-restriction-title")}
-      </>
-    );
-  }
   if (isPaused) {
     return t("pages.swap.redeem-queue.redeems-paused-for-token");
   }
@@ -136,13 +124,11 @@ export function ClaimRedeemProgressDrawer({
     token: toToken.address,
   });
 
-  const geoRestricted = isGeoRestricted();
   const isPaused = tokenConfig?.withdrawActive === false;
   const renderRetry = flowStatus === "redeem-error";
   const isDataLoaded =
     !isLoading && tokenConfig !== undefined && outputBigInt !== undefined;
   const isDisabled =
-    geoRestricted ||
     isPaused ||
     !isDataLoaded ||
     !!inputError ||
@@ -186,15 +172,14 @@ export function ClaimRedeemProgressDrawer({
           value={outputValue}
         />
       </div>
-      <div className="border-y border-gray-200 bg-gray-50 px-6 py-3 *:w-full">
-        <Button
+      <div className="border-y border-gray-200 bg-gray-50 px-6 py-3 *:w-full [&_button]:w-full">
+        <GeoRestrictedButton
           disabled={isDisabled}
           onClick={renderRetry ? onRetry : onSubmit}
           size="small"
           variant="primary"
         >
           <SubmitLabel
-            geoRestricted={geoRestricted}
             inputError={inputError}
             isActiveError={isTokenConfigError}
             isLoading={!isDataLoaded}
@@ -202,7 +187,7 @@ export function ClaimRedeemProgressDrawer({
             isPreviewError={isPreviewError}
             renderRetry={renderRetry}
           />
-        </Button>
+        </GeoRestrictedButton>
       </div>
       <DrawerFeesContainer>
         <SwapFees

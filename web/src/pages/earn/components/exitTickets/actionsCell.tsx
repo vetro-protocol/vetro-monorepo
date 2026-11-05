@@ -1,5 +1,6 @@
-import { Button, ButtonIcon } from "components/base/button";
+import { ButtonIcon } from "components/base/button";
 import { Toast } from "components/base/toast";
+import { GeoRestrictedButton } from "components/geoRestrictedButton";
 import { TrashIcon } from "components/icons/trashIcon";
 import { RequireWalletConnected } from "components/requireWalletConnected";
 import { Tooltip } from "components/tooltip";
@@ -25,44 +26,34 @@ type Props = {
 
 type WithdrawButtonProps = {
   disabled: boolean;
-  geoRestricted: boolean;
   isWithdrawing: boolean;
   onWithdraw: VoidFunction;
 };
 
 function WithdrawButton({
   disabled,
-  geoRestricted,
   isWithdrawing,
   onWithdraw,
 }: WithdrawButtonProps) {
   const { t } = useTranslation();
 
-  const button = (
-    <Button
-      disabled={disabled || isWithdrawing || geoRestricted}
-      onClick={onWithdraw}
-      size="xSmall"
-      variant="primary"
-    >
-      <span className="invisible">
-        {t("pages.earn.exit-tickets.withdrawing")}
-      </span>
-      <span className="absolute">
-        {isWithdrawing
-          ? t("pages.earn.exit-tickets.withdrawing")
-          : t("pages.earn.exit-tickets.withdraw")}
-      </span>
-    </Button>
-  );
-
   return (
     <RequireWalletConnected size="xSmall">
-      {geoRestricted ? (
-        <Tooltip content={t("common.geo-restriction-title")}>{button}</Tooltip>
-      ) : (
-        button
-      )}
+      <GeoRestrictedButton
+        disabled={disabled || isWithdrawing}
+        onClick={onWithdraw}
+        size="xSmall"
+        variant="primary"
+      >
+        <span className="invisible">
+          {t("pages.earn.exit-tickets.withdrawing")}
+        </span>
+        <span className="absolute">
+          {isWithdrawing
+            ? t("pages.earn.exit-tickets.withdrawing")
+            : t("pages.earn.exit-tickets.withdraw")}
+        </span>
+      </GeoRestrictedButton>
     </RequireWalletConnected>
   );
 }
@@ -134,7 +125,6 @@ export function ActionsCell({
           {status === "ready" && (
             <WithdrawButton
               disabled={disabled}
-              geoRestricted={geoRestricted}
               isWithdrawing={isWithdrawing}
               onWithdraw={handleWithdraw}
             />

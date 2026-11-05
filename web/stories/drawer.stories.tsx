@@ -28,7 +28,7 @@ export const Default: Story = {
             <div className="p-6">
               <h2 className="mb-4 text-lg font-semibold">Drawer Content</h2>
               <p className="text-sm text-gray-600">
-                Click outside or press Escape to close.
+                Click the X, click outside or press Escape to close.
               </p>
             </div>
           </Drawer>
@@ -50,8 +50,8 @@ const LazyDrawerContent = lazy(
                   Lazy Loaded Content
                 </h2>
                 <p className="text-sm text-gray-600">
-                  This content was loaded lazily. Click outside or press Escape
-                  to close.
+                  This content was loaded lazily. Click the X, click outside or
+                  press Escape to close.
                 </p>
               </div>
             ),
@@ -94,7 +94,7 @@ function TitleStory({ title }: { title: string }) {
       {isDrawerOpen && (
         <Drawer onClose={() => setIsDrawerOpen(false)} title={title}>
           <p className="px-6 text-sm text-gray-600">
-            Click outside or press Escape to close.
+            Click the X, click outside or press Escape to close.
           </p>
         </Drawer>
       )}

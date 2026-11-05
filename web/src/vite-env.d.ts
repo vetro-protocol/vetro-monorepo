@@ -13,5 +13,6 @@ interface ImportMetaEnv {
   readonly VITE_SENTRY_DSN?: string;
   readonly VITE_TURNSTILE_SITE_KEY: string;
   readonly VITE_VETRO_API_URL: string;
+  readonly VITE_VEVETRO_ENABLED?: string;
   readonly VITE_WALLET_CONNECT_PROJECT_ID: string;
 }

@@ -5,23 +5,44 @@ on:
     types:
       - published
 
+permissions: {}
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: false
 
 jobs:
-  deploy-subgraph:
+  deploy-vetro-app-subgraph:
     permissions:
       contents: read
     if: startsWith(github.event.release.tag_name, 'vetro-app-subgraph@')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     environment: release
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-      - uses: hemilabs/actions/setup-node-env@8f87619b7f0122c39e14a32514ab3e4e0d4c3966 # v2.3.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: hemilabs/actions/setup-node-env@34879d59453841c18fd53190b39251a5c566f8db # v3.0.0
         with:
           package-manager: pnpm
-      - run: npm run deploy -- --deploy-key "$GRAPH_API_KEY"
-        working-directory: subgraph
+      - run: pnpm run deploy
+        working-directory: subgraphs/vetro-app-subgraph
+        env:
+          GRAPH_API_KEY: ${{ secrets.GRAPH_API_KEY }}
+  deploy-ve-vetro-subgraph:
+    permissions:
+      contents: read
+    if: startsWith(github.event.release.tag_name, 've-vetro-subgraph@')
+    runs-on: ubuntu-26.04
+    environment: release
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: hemilabs/actions/setup-node-env@34879d59453841c18fd53190b39251a5c566f8db # v3.0.0
+        with:
+          package-manager: pnpm
+      - run: pnpm run deploy
+        working-directory: subgraphs/ve-vetro-subgraph
         env:
           GRAPH_API_KEY: ${{ secrets.GRAPH_API_KEY }}

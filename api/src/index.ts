@@ -17,7 +17,7 @@ import {
   verifyTurnstile,
 } from "./contact.ts";
 import { convertBigIntsToString } from "./convert-bigints-to-string.ts";
-import { getHemiEarnIndexer, getSubgraph } from "./env.ts";
+import { getHemiEarnIndexer, getSubgraph, getVeVetroSubgraph } from "./env.ts";
 import { UpstreamGraphQLError } from "./graphql.ts";
 import { getCostBasis as getHemiEarnCostBasis } from "./hemi-earn/cost-basis.ts";
 import { getRequests as getHemiEarnRequests } from "./hemi-earn/requests.ts";
@@ -51,6 +51,7 @@ import {
 import { createOriginFn, parseOrigins } from "./validate-origin.ts";
 import * as variableStake from "./variable-stake.ts";
 import { validPeriods as vaultHistoryValidPeriods } from "./vault-history-period.ts";
+import { getVeVetro } from "./ve-vetro.ts";
 import { readWarmedTask, warmScheduled } from "./warm-cache.ts";
 import {
   apyTask,
@@ -550,6 +551,29 @@ app.get(
   },
 );
 
+app.get(
+  "/ve-vetro/:address",
+  validateAddress,
+  cache({
+    cacheControl: "max-age=10",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const data = await getVeVetro({
+        address: c.req.param("address"),
+        subgraph: getVeVetroSubgraph(c.env),
+      });
+      return c.json(data);
+    } catch (error) {
+      if (error instanceof UpstreamGraphQLError) {
+        throw error;
+      }
+      throw new Error(`Failed to get veVETRO claims: ${error.message}`);
+    }
+  },
+);
+
 app.get("/hemi-earn/terms", function (c) {
   // Do not cache to force accepting the latest terms version.
   c.header("Cache-Control", "no-store");
@@ -656,8 +680,18 @@ const handler = Object.assign(app, {
 
 export default Sentry.withSentry(
   (env: Env) => ({
+    dataCollection: {
+      cookies: false,
+      databaseQueryData: false,
+      genAI: { inputs: false, outputs: false },
+      graphQL: { document: false, variables: false },
+      httpBodies: [],
+      httpHeaders: { deny: ["forwarded", "-ip", "remote-", "via", "-user"] },
+      queues: false,
+      urlQueryParams: { deny: ["forwarded", "-ip", "remote-", "via", "-user"] },
+      userInfo: false,
+    },
     dsn: env.SENTRY_DSN,
-    enableLogs: true,
     environment: "production",
     integrations: [
       Sentry.consoleLoggingIntegration({ levels: ["error", "info", "warn"] }),

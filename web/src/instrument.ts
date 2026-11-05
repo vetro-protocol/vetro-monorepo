@@ -1,24 +1,21 @@
 import * as Sentry from "@sentry/react";
-import React from "react";
-import {
-  createRoutesFromChildren,
-  matchRoutes,
-  useLocation,
-  useNavigationType,
-} from "react-router";
+import { reactRouterBrowserTracingIntegration } from "@sentry/react/react-router";
 
 Sentry.init({
+  dataCollection: {
+    cookies: false,
+    httpHeaders: {
+      request: { allow: ["referer", "user-agent"] },
+      response: false,
+    },
+    urlQueryParams: { deny: ["forwarded", "-ip", "remote-", "via", "-user"] },
+    userInfo: false,
+  },
   dsn: import.meta.env.VITE_SENTRY_DSN,
   enabled: !!import.meta.env.VITE_SENTRY_DSN,
   environment: import.meta.env.VITE_DEPLOY_ENV,
   integrations: [
-    Sentry.reactRouterV7BrowserTracingIntegration({
-      createRoutesFromChildren,
-      matchRoutes,
-      useEffect: React.useEffect,
-      useLocation,
-      useNavigationType,
-    }),
+    reactRouterBrowserTracingIntegration(),
     Sentry.replayIntegration({
       blockAllMedia: true,
       maskAllInputs: true,
