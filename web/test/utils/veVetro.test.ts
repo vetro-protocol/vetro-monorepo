@@ -1,6 +1,7 @@
+import { minClaimAmount } from "@vetro-protocol/ve-vetro";
 import { describe, expect, it } from "vitest";
 
-import { getClaimBlocker, minClaimAmount } from "../../src/utils/veVetro";
+import { getClaimBlocker } from "../../src/utils/veVetro";
 
 const claimable = {
   amount: minClaimAmount,

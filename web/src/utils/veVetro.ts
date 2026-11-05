@@ -1,26 +1,16 @@
 import { knownTokens } from "@vetro-protocol/core";
-import { type Address, parseUnits, zeroAddress } from "viem";
-import { hemi, hemiSepolia, mainnet } from "viem/chains";
+import { minClaimAmount } from "@vetro-protocol/ve-vetro";
+import { type Address, zeroAddress } from "viem";
+import { hemi, mainnet } from "viem/chains";
 
 export const hemiToken = knownTokens.find(
   (token) => token.chainId === hemi.id && token.symbol === "HEMI",
 )!;
 
-// Placeholders until the ve-vetro package (#1062) is merged. Replace with
-// the `veHemiAddress` and `veHemiSnapshotBlock` exports of
-// `@vetro-protocol/ve-vetro`.
-export const veHemiAddress: Address =
-  "0x371d3718D5b7F75EAb050FAe6Da7DF3092031c89";
-
-export const veHemiSnapshotBlock = 5_592_174n;
-
 // Placeholders until the distributor is deployed and its terms are published.
 // The terms must hash to the distributor's `config().termsHash`, or the claim
 // reverts with `InvalidTermsSignature`.
 export const veVetroDistributorAddress: Address = zeroAddress;
-
-// TODO: use `hemi` instead of `hemiSepolia` before release.
-export const veVetroChain = hemiSepolia;
 
 // TODO real date needs to be defined
 const termsDate = "November 4, 2026";
@@ -30,10 +20,6 @@ export const veVetroTerms = `I agree to the Vetro Terms of Use (version dated ${
 export const vToken = knownTokens.find(
   (token) => token.chainId === mainnet.id && token.symbol === "V",
 )!;
-
-// The distributor's `MIN_TARGET_LOCK_AMOUNT`: a claim below it reverts.
-// TODO: export it from `@vetro-protocol/ve-vetro` and import it from there.
-export const minClaimAmount = parseUnits("10", vToken.decimals);
 
 function getAmountBlocker(amount: bigint | undefined) {
   if (amount === undefined) {

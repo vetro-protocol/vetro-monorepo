@@ -1,17 +1,25 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { fetchClaimVeVetroFees } from "fetchers/fetchClaimVeVetroFees";
-import type { Address } from "viem";
+import { useHemiClient } from "hooks/useHemiClient";
+import type { Address, Client } from "viem";
 import { useAccount } from "wagmi";
 
-const claimVeVetroFeesOptions = (account: Address | undefined) =>
+const claimVeVetroFeesOptions = ({
+  account,
+  client,
+}: {
+  account: Address | undefined;
+  client: Client | undefined;
+}) =>
   queryOptions({
-    enabled: !!account,
+    enabled: !!account && !!client,
     queryFn: ({ client: queryClient }) =>
-      fetchClaimVeVetroFees({ queryClient }),
+      fetchClaimVeVetroFees({ client: client!, queryClient }),
     queryKey: ["ve-vetro-claim-fees", account],
   });
 
 export function useClaimVeVetroFees() {
   const { address: account } = useAccount();
-  return useQuery(claimVeVetroFeesOptions(account));
+  const client = useHemiClient();
+  return useQuery(claimVeVetroFeesOptions({ account, client }));
 }

@@ -1,3 +1,4 @@
+import { minClaimAmount } from "@vetro-protocol/ve-vetro";
 import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
 import { Toast } from "components/base/toast";
@@ -10,7 +11,7 @@ import { useVeVetroHasClaimEnded } from "hooks/useVeVetroHasClaimEnded";
 import { useVeVetroIsClaimOpen } from "hooks/useVeVetroIsClaimOpen";
 import { lazy, Suspense, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { getClaimBlocker, minClaimAmount, vToken } from "utils/veVetro";
+import { getClaimBlocker, vToken } from "utils/veVetro";
 import { formatUnits } from "viem";
 
 import type { Submitted } from "./claimVeVetroDrawer";

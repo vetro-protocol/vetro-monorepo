@@ -1,6 +1,8 @@
 import { useEnsureConnectedTo } from "@hemilabs/react-hooks/useEnsureConnectedTo";
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { hemi } from "hemi-viem";
+import { useHemiClient } from "hooks/useHemiClient";
 import {
   veVetroClaimableSubsetOptions,
   veVetroClaimableSubsetQueryKey,
@@ -8,7 +10,7 @@ import {
 import { veVetroConfigOptions } from "hooks/useVeVetroConfig";
 import { veVetroEip712DomainOptions } from "hooks/useVeVetroEip712Domain";
 import { veVetroSnapshotPositionsQueryKey } from "hooks/useVeVetroSnapshotPositions";
-import { veVetroChain, veVetroTerms } from "utils/veVetro";
+import { veVetroTerms } from "utils/veVetro";
 import type { Address, Hex } from "viem";
 import { signTypedData } from "viem/actions";
 import { useAccount, useWalletClient } from "wagmi";
@@ -39,10 +41,11 @@ type Params = {
 
 export function useClaimVeVetro({ onClaimStart }: Params = {}) {
   const { address: account } = useAccount();
-  const { data: walletClient } = useWalletClient({ chainId: veVetroChain.id });
+  const client = useHemiClient();
+  const { data: walletClient } = useWalletClient({ chainId: hemi.id });
   const ensureConnectedTo = useEnsureConnectedTo();
   const queryClient = useQueryClient();
-  const { queryKey: nativeBalanceKey } = useNativeBalance(veVetroChain.id);
+  const { queryKey: nativeBalanceKey } = useNativeBalance(hemi.id);
 
   return useMutation({
     async mutationFn() {
@@ -52,18 +55,21 @@ export function useClaimVeVetro({ onClaimStart }: Params = {}) {
       if (!walletClient) {
         throw new Error("No wallet client available");
       }
+      if (!client) {
+        throw new Error("No public client available");
+      }
 
       const { requireTermsSignature } = await queryClient.ensureQueryData(
-        veVetroConfigOptions(),
+        veVetroConfigOptions(client),
       );
 
-      await ensureConnectedTo(veVetroChain.id);
+      await ensureConnectedTo(hemi.id);
 
       const termsSignature = requireTermsSignature
         ? await signTypedData(walletClient, {
             account,
             domain: await queryClient.ensureQueryData(
-              veVetroEip712DomainOptions(),
+              veVetroEip712DomainOptions(client),
             ),
             message: {
               claimant: account,
@@ -78,7 +84,7 @@ export function useClaimVeVetro({ onClaimStart }: Params = {}) {
       onClaimStart?.();
 
       const { ids: tokenIds } = await queryClient.fetchQuery({
-        ...veVetroClaimableSubsetOptions(account),
+        ...veVetroClaimableSubsetOptions({ account, client }),
         staleTime: 0,
       });
 

@@ -1,21 +1,33 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { fetchVeVetroSnapshotPositions } from "fetchers/fetchVeVetroSnapshotPositions";
-import type { Address } from "viem";
+import { useHemiClient } from "hooks/useHemiClient";
+import type { Address, Client } from "viem";
 import { useAccount } from "wagmi";
 
 export const veVetroSnapshotPositionsQueryKey = (
   account: Address | undefined,
 ) => ["ve-vetro-snapshot-positions", account];
 
-const veVetroSnapshotPositionsOptions = (account: Address | undefined) =>
+const veVetroSnapshotPositionsOptions = ({
+  account,
+  client,
+}: {
+  account: Address | undefined;
+  client: Client | undefined;
+}) =>
   queryOptions({
-    enabled: !!account,
+    enabled: !!account && !!client,
     queryFn: ({ client: queryClient }) =>
-      fetchVeVetroSnapshotPositions({ account: account!, queryClient }),
+      fetchVeVetroSnapshotPositions({
+        account: account!,
+        client: client!,
+        queryClient,
+      }),
     queryKey: veVetroSnapshotPositionsQueryKey(account),
   });
 
 export function useVeVetroSnapshotPositions() {
   const { address: account } = useAccount();
-  return useQuery(veVetroSnapshotPositionsOptions(account));
+  const client = useHemiClient();
+  return useQuery(veVetroSnapshotPositionsOptions({ account, client }));
 }
