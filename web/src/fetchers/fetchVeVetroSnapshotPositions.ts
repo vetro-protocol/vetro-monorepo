@@ -1,7 +1,7 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { veHemiSnapshotTokenIdsOptions } from "hooks/useVeHemiSnapshotTokenIds";
 import { vToken } from "utils/veVetro";
-import { type Address, parseUnits } from "viem";
+import { type Address, type Client, parseUnits } from "viem";
 
 const placeholderPreviews: Record<
   string,
@@ -27,12 +27,13 @@ const placeholderPreviews: Record<
 
 // Placeholder for the `previewClaim` action of `@vetro-protocol/ve-vetro/actions`,
 // which reads `VeVetroDistributor.previewClaim(tokenId)`. Replace the call
-// below with `previewClaim(hemiClient, { address: distributorAddress, tokenId })`.
+// below with `previewClaim(client, { address: distributorAddress, tokenId })`.
 const previewClaim = async ({
   account,
   tokenId,
 }: {
   account: Address;
+  client: Client;
   tokenId: bigint;
 }) => ({
   bucket: 0,
@@ -42,16 +43,18 @@ const previewClaim = async ({
 
 export const fetchVeVetroSnapshotPositions = async function ({
   account,
+  client,
   queryClient,
 }: {
   account: Address;
+  client: Client;
   queryClient: QueryClient;
 }) {
   const tokenIds = await queryClient.ensureQueryData(
-    veHemiSnapshotTokenIdsOptions(account),
+    veHemiSnapshotTokenIdsOptions({ account, client }),
   );
   const previews = await Promise.all(
-    tokenIds.map((tokenId) => previewClaim({ account, tokenId })),
+    tokenIds.map((tokenId) => previewClaim({ account, client, tokenId })),
   );
   return previews.map(({ claimed, share, weight }, index) => ({
     claimed,

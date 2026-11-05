@@ -1,6 +1,7 @@
 import { useEnsureConnectedTo } from "@hemilabs/react-hooks/useEnsureConnectedTo";
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useHemiClient } from "hooks/useHemiClient";
 import {
   veVetroClaimableSubsetOptions,
   veVetroClaimableSubsetQueryKey,
@@ -39,6 +40,7 @@ type Params = {
 
 export function useClaimVeVetro({ onClaimStart }: Params = {}) {
   const { address: account } = useAccount();
+  const client = useHemiClient();
   const { data: walletClient } = useWalletClient({ chainId: veVetroChain.id });
   const ensureConnectedTo = useEnsureConnectedTo();
   const queryClient = useQueryClient();
@@ -52,9 +54,12 @@ export function useClaimVeVetro({ onClaimStart }: Params = {}) {
       if (!walletClient) {
         throw new Error("No wallet client available");
       }
+      if (!client) {
+        throw new Error("No public client available");
+      }
 
       const { requireTermsSignature } = await queryClient.ensureQueryData(
-        veVetroConfigOptions(),
+        veVetroConfigOptions(client),
       );
 
       await ensureConnectedTo(veVetroChain.id);
@@ -63,7 +68,7 @@ export function useClaimVeVetro({ onClaimStart }: Params = {}) {
         ? await signTypedData(walletClient, {
             account,
             domain: await queryClient.ensureQueryData(
-              veVetroEip712DomainOptions(),
+              veVetroEip712DomainOptions(client),
             ),
             message: {
               claimant: account,
@@ -78,7 +83,7 @@ export function useClaimVeVetro({ onClaimStart }: Params = {}) {
       onClaimStart?.();
 
       const { ids: tokenIds } = await queryClient.fetchQuery({
-        ...veVetroClaimableSubsetOptions(account),
+        ...veVetroClaimableSubsetOptions({ account, client }),
         staleTime: 0,
       });
 
