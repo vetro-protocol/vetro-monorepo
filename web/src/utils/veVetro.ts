@@ -1,5 +1,6 @@
 import { knownTokens } from "@vetro-protocol/core";
-import { type Address, parseUnits, zeroAddress } from "viem";
+import { minClaimAmount } from "@vetro-protocol/ve-vetro";
+import { type Address, zeroAddress } from "viem";
 import { hemi, hemiSepolia, mainnet } from "viem/chains";
 
 export const hemiToken = knownTokens.find(
@@ -30,10 +31,6 @@ export const veVetroTerms = `I agree to the Vetro Terms of Use (version dated ${
 export const vToken = knownTokens.find(
   (token) => token.chainId === mainnet.id && token.symbol === "V",
 )!;
-
-// The distributor's `MIN_TARGET_LOCK_AMOUNT`: a claim below it reverts.
-// TODO: export it from `@vetro-protocol/ve-vetro` and import it from there.
-export const minClaimAmount = parseUnits("10", vToken.decimals);
 
 function getAmountBlocker(amount: bigint | undefined) {
   if (amount === undefined) {

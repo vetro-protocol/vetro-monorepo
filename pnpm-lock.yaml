@@ -631,6 +631,9 @@ importers:
       '@vetro-protocol/treasury':
         specifier: workspace:*
         version: link:../packages/treasury
+      '@vetro-protocol/ve-vetro':
+        specifier: workspace:*
+        version: link:../packages/ve-vetro
       crypto-shortener:
         specifier: 1.2.0
         version: 1.2.0
