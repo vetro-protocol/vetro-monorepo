@@ -11,12 +11,12 @@
   },
   "hemi-sepolia": {
     "VeVetro": {
-      "address": "0x0000000000000000000000000000000000000000",
-      "startBlock": 0
+      "address": "0xC0A49F097DBeE078cf1ee55BaEF7D7Bdb73f9715",
+      "startBlock": 7147595
     },
     "VeVetroDistributor": {
-      "address": "0x0000000000000000000000000000000000000000",
-      "startBlock": 0
+      "address": "0xF55B1C52D4B2a942E531C4f4d960F946d4C307dc",
+      "startBlock": 7147607
     }
   }
 }
