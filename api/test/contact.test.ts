@@ -104,6 +104,31 @@ describe("POST /contact", function () {
     expect(await response.json()).toEqual({ error: "Request too large" });
   });
 
+  it("fits the largest valid submission within the limit", async function () {
+    // The message limit counts UTF-16 units, so 3-byte BMP characters give the
+    // most UTF-8 bytes per unit (astral characters use 2 units for 4 bytes).
+    const largestForm = {
+      category: "bridge",
+      email: "a.very.long.mailbox.name@support.example.com",
+      message: "€".repeat(5000),
+      token: "t".repeat(2048),
+    };
+    const { context, next } = buildContext({ body: largestForm });
+    await validateContactForm(context, next);
+    expect(next).toHaveBeenCalledTimes(1);
+
+    const request = new Request("http://localhost/contact", {
+      body: toFormData(largestForm),
+      method: "POST",
+    });
+    const byteLength = (await request.arrayBuffer()).byteLength;
+
+    // 15000 (message) + 2048 (token) + 44 (email) + 6 (category)
+    const fieldBytes = 17_098;
+    expect(byteLength).toBeGreaterThan(fieldBytes);
+    expect(byteLength).toBeLessThanOrEqual(maxRequestBytes);
+  });
+
   it("passes a body within the limit on to validation", async function () {
     const form = toFormData({ ...validForm, email: "not-an-email" });
 
