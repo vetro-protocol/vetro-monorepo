@@ -17,6 +17,7 @@ npm add @vetro-protocol/ve-vetro viem
 - `previewClaim` reads the claim data of one veHEMI token id: the owner and the weight at the snapshot, the bucket, the share and whether the id is claimed. Use it to show each position. `share` keeps its value after the claim and after `claimEnd`.
 - `isClaimOpen` tells whether the distributor accepts claims now. When `getConfig(...).requireTermsSignature` is `true`, the claim needs a signature of the terms. `verifyTermsSignature` checks that signature before the claim.
 - To read the EIP-712 domain of the terms signature, use `getEip712Domain` from viem.
+- `claim` claims the `ids` from `getClaimableSubset` in one transaction, and mints one veVETRO position to `recipient`.
 - To read veVETRO positions, call the same vote-escrow actions (`getBalanceOf`, `getTokenOfOwnerByIndex`, `getLockedBalance`) with the veVETRO address and no `blockNumber`.
 
 ## Usage
@@ -28,6 +29,7 @@ import {
   veHemiSnapshotBlock,
 } from "@vetro-protocol/ve-vetro";
 import {
+  claim,
   getBalanceOf,
   getClaimableSubset,
   getConfig,
@@ -37,7 +39,7 @@ import {
   previewClaim,
   verifyTermsSignature,
 } from "@vetro-protocol/ve-vetro/actions";
-import { createPublicClient, http } from "viem";
+import { createPublicClient, createWalletClient, custom, http } from "viem";
 import { hemi } from "viem/chains";
 
 const publicClient = createPublicClient({
@@ -55,6 +57,12 @@ const distributorAddress = "0x...";
 const lensAddress = "0x...";
 const owner = "0x...";
 const veVetroAddress = "0x...";
+
+const walletClient = createWalletClient({
+  account: owner,
+  chain: hemi,
+  transport: custom(window.ethereum),
+});
 
 // Number of veHEMI positions of the owner at the snapshot block.
 const balance = await getBalanceOf(publicClient, {
@@ -108,6 +116,16 @@ const signatureValid = await verifyTermsSignature(publicClient, {
   signature: "0x...",
 });
 
+// Claim all the claimable ids in one transaction.
+const { emitter, promise } = claim(walletClient, {
+  address: distributorAddress,
+  recipient: owner,
+  signature: "0x...",
+  tokenIds: ids,
+});
+emitter.on("claim-transaction-succeeded", (receipt) => {});
+await promise;
+
 // First veVETRO position of the owner, at the latest block.
 const veVetroTokenId = await getTokenOfOwnerByIndex(publicClient, {
   address: veVetroAddress,
@@ -122,6 +140,16 @@ const lockedBalance = await getLockedBalance(publicClient, {
 });
 ```
 
+## Events
+
+`claim` returns `{ emitter, promise }`. The emitter sends:
+
+- `claim-failed-validation` `[reason]` — the action sends no transaction.
+- `pre-claim`, `user-signed-claim` `[hash]`, `user-signing-claim-error` `[error]`
+- `claim-transaction-succeeded` `[receipt]`, `claim-transaction-reverted` `[receipt]`, `claim-failed` `[error]`
+- `unexpected-error` `[error]`
+- `claim-settled` — always sent last.
+
 ## API
 
 - Public actions (reads), exported from `/actions`:
@@ -133,5 +161,8 @@ const lockedBalance = await getLockedBalance(publicClient, {
   - `isClaimOpen(client, { address })` — whether the distributor at `address` accepts claims now.
   - `previewClaim(client, { address, tokenId })` — reads the distributor at `address`. It returns `{ bucket, claimed, ownerOfRecord, share, weight }` for the veHEMI position `tokenId`: `ownerOfRecord` and `weight` at the snapshot (`zeroAddress` and `0n` when the id has no history, and for every id while the distributor is not configured), `bucket` (`0` regular, `1` locked, `2` forfeitable; always `0` when `splitByType` is `false`), `share` (the amount of this id, `0n` before claims open, kept after the claim) and `claimed`.
   - `verifyTermsSignature(client, { address, claimant, recipient, signature })` — whether `signature` is a valid signature of the terms for `claimant` and `recipient`, as the distributor at `address` checks it. `signature` is hex. `0x` is accepted.
+- Wallet actions (writes), exported from `/actions`:
+  - `claim(walletClient, { address, recipient, signature?, tokenIds })` — claims `tokenIds` for the wallet account on the distributor at `address`. `signature` is the terms signature. It is needed only when `getConfig(...).requireTermsSignature` is `true`, and the action checks it with `verifyTermsSignature` first. The action sends no transaction when claims are not open.
+  - `encodeClaim({ address, recipient, signature?, tokenIds })` — returns the calldata of `claim(tokenIds, recipient, signature)`. `signature` defaults to `0x`. `address` is not part of the calldata. Unlike `claim`, it does not check the params, whether claims are open, or the terms signature.
 - ABIs: `veHemiAbi`, `veVetroDistributorAbi` and `veVetroDistributorLensAbi` — the minimal ABI subsets used by the package. `veHemiAbi` also applies to veVETRO.
 - Constants: `minClaimAmount` (the distributor's `MIN_TARGET_LOCK_AMOUNT`, 10 $V in base units: a claim below it reverts), `veHemiAddress`, `veHemiSnapshotBlock`.
