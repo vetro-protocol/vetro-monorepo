@@ -13,6 +13,7 @@ pnpm add @vetro-protocol/treasury viem
 - Read-only — no wallet actions, no events. The treasury is administered separately; consumers query it.
 - `getWhitelistedTokens` lists every underlying asset the treasury accepts.
 - `getTokenConfig` / `getPrice` return the per-token configuration and oracle price (denominated in the gateway's peg unit; convert to USD via the matching `Gateway.pegBaseSymbol`).
+- `getReserve` returns the total value of every whitelisted token the treasury holds, as the treasury values it on-chain, so it always matches the protocol's own valuation.
 - `getWithdrawable` returns how much of a given token can be withdrawn given the current state.
 
 ## Usage
@@ -43,6 +44,7 @@ The same actions are also available via the `.extend()` factory (`treasuryPublic
 - Public actions (reads):
   - `getKeeperRole(client, params)` — the `bytes32` hash of the treasury's keeper role.
   - `getPrice(client, params)` — oracle price for a whitelisted token, in the treasury's peg unit.
+  - `getReserve(client, params)` — the total value of all whitelisted tokens the treasury holds (its balance plus each token's vault position), in the pegged token (18 decimals). Params: `address` (the treasury).
   - `getTokenConfig(client, params)` — per-token configuration struct.
   - `getWhitelistedTokens(client, params)` — full list of accepted underlying tokens.
   - `getWithdrawable(client, params)` — current withdrawable amount for a token.
