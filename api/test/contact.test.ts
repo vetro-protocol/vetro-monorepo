@@ -1,7 +1,12 @@
 import type { Context } from "hono";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { validateContactForm, verifyTurnstile } from "../src/contact.ts";
+import {
+  maxRequestBytes,
+  validateContactForm,
+  verifyTurnstile,
+} from "../src/contact.ts";
+import worker from "../src/index.ts";
 
 const validForm = {
   category: "swap",
@@ -22,12 +27,7 @@ function toFormData(body: Record<string, unknown>) {
 
 // Minimal Hono Context for testing. `vars` seeds the get/set store so tests can
 // preload context values (e.g. the turnstileToken validateContactForm stashes).
-function buildContext({
-  body = validForm,
-  env = {},
-  headers = { "Content-Length": "1000" },
-  vars = {},
-} = {}) {
+function buildContext({ body = validForm, env = {}, vars = {} } = {}) {
   const json = vi.fn((data, status) => ({ data, status }));
   const next = vi.fn();
   const store: Record<string, unknown> = { ...vars };
@@ -48,9 +48,7 @@ function buildContext({
         }
         return toFormData(body);
       }),
-      header: vi.fn(
-        (name: string) => (headers as Record<string, string>)[name],
-      ),
+      header: vi.fn(() => undefined),
     },
     set,
   };
@@ -63,53 +61,60 @@ function buildContext({
   };
 }
 
+describe("POST /contact", function () {
+  // Only ORIGINS is read before the body limit or validateContactForm rejects
+  // the request; a fully valid form would also need the Turnstile and email
+  // bindings.
+  const env = { ORIGINS: "http://localhost" } as Env;
+
+  const postContact = (init: RequestInit) =>
+    worker.request("/contact", { method: "POST", ...init }, env);
+
+  it("returns 413 for a multipart body larger than the limit", async function () {
+    const form = toFormData({
+      ...validForm,
+      message: "a".repeat(maxRequestBytes + 1),
+    });
+
+    const response = await postContact({ body: form });
+
+    expect(response.status).toBe(413);
+    expect(await response.json()).toEqual({ error: "Request too large" });
+  });
+
+  it("returns 413 for an oversized body sent without Content-Length", async function () {
+    // A streamed body carries no Content-Length, so only counting the bytes
+    // actually received can reject it.
+    const chunk = new TextEncoder().encode("a".repeat(maxRequestBytes + 1));
+    const body = new ReadableStream({
+      start(controller) {
+        controller.enqueue(chunk);
+        controller.close();
+      },
+    });
+
+    const response = await postContact({
+      body,
+      // @ts-expect-error Node requires duplex for stream bodies; lib.dom lacks it
+      duplex: "half",
+      headers: { "Content-Type": "multipart/form-data; boundary=x" },
+    });
+
+    expect(response.status).toBe(413);
+    expect(await response.json()).toEqual({ error: "Request too large" });
+  });
+
+  it("passes a body within the limit on to validation", async function () {
+    const form = toFormData({ ...validForm, email: "not-an-email" });
+
+    const response = await postContact({ body: form });
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "Invalid email address" });
+  });
+});
+
 describe("validateContactForm", function () {
-  it("returns 413 before parsing when Content-Length exceeds the limit", async function () {
-    const { context, json, next } = buildContext({
-      headers: { "Content-Length": String(50_001) },
-    });
-
-    await validateContactForm(context, next);
-
-    expect(context.req.formData).not.toHaveBeenCalled();
-    expect(json).toHaveBeenCalledWith({ error: "Request too large" }, 413);
-    expect(next).not.toHaveBeenCalled();
-  });
-
-  it("accepts a body of exactly the Content-Length limit", async function () {
-    const { context, json, next } = buildContext({
-      headers: { "Content-Length": String(50_000) },
-    });
-
-    await validateContactForm(context, next);
-
-    expect(context.req.formData).toHaveBeenCalledTimes(1);
-    expect(next).toHaveBeenCalledTimes(1);
-    expect(json).not.toHaveBeenCalled();
-  });
-
-  it("returns 411 before parsing when Content-Length is missing", async function () {
-    const { context, json, next } = buildContext({ headers: {} });
-
-    await validateContactForm(context, next);
-
-    expect(context.req.formData).not.toHaveBeenCalled();
-    expect(json).toHaveBeenCalledWith({ error: "Length required" }, 411);
-    expect(next).not.toHaveBeenCalled();
-  });
-
-  it("returns 411 before parsing when Content-Length is not a number", async function () {
-    const { context, json, next } = buildContext({
-      headers: { "Content-Length": "abc" },
-    });
-
-    await validateContactForm(context, next);
-
-    expect(context.req.formData).not.toHaveBeenCalled();
-    expect(json).toHaveBeenCalledWith({ error: "Length required" }, 411);
-    expect(next).not.toHaveBeenCalled();
-  });
-
   it("returns 400 for a malformed request body", async function () {
     // @ts-expect-error Testing invalid input
     const { context, json, next } = buildContext({ body: "not json" });

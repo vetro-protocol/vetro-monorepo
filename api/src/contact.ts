@@ -29,11 +29,11 @@ const isValidMessage = (message: unknown): message is string =>
   message.trim().length > 0 &&
   message.length <= maxMessageLength;
 
-// Upper bound on the whole request body, checked before formData() buffers it.
+// Upper bound on the whole request body, enforced by bodyLimit on POST /contact.
 // Covers the message (5000 UTF-16 units, at most 15 KB as UTF-8), the Turnstile
 // token (about 2 KB), email, category and multipart boundaries, with headroom.
 // Any extra part (e.g. a file from a stale client) is ignored but still counts.
-const maxRequestBytes = 50_000;
+export const maxRequestBytes = 50_000;
 
 const siteverifyUrl =
   "https://challenges.cloudflare.com/turnstile/v0/siteverify";
@@ -106,23 +106,7 @@ export async function verifyTurnstile(
   return c.json({ error: "Captcha verification failed" }, 403);
 }
 
-function checkRequestSize(c: Context) {
-  const contentLength = Number(c.req.header("Content-Length"));
-  if (Number.isNaN(contentLength)) {
-    return c.json({ error: "Length required" }, 411);
-  }
-  if (contentLength > maxRequestBytes) {
-    return c.json({ error: "Request too large" }, 413);
-  }
-  return undefined;
-}
-
 export async function validateContactForm(c: Context, next: Next) {
-  const sizeError = checkRequestSize(c);
-  if (sizeError) {
-    return sizeError;
-  }
-
   let form: FormData;
   try {
     form = await c.req.formData();

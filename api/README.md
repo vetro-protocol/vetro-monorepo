@@ -742,9 +742,8 @@ confirmation email to the submitter is best-effort: if it fails, the failure is
 reported to Sentry and the response is still `204`.
 
 Returns `400` for an invalid body / email /
-category / message, or a missing captcha token, `411` (`Length required`) when the `Content-Length` header is
-missing or is not a number, `413` (`Request too large`) when the request body
-exceeds 50,000 bytes, `403` when captcha verification fails (or cannot be completed —
+category / message, or a missing captcha token, `413` (`Request too large`) when
+the request body exceeds 50,000 bytes, `403` when captcha verification fails (or cannot be completed —
 fail-closed), and `500` if sending the support email fails.
 
 ## Configuration
