@@ -1,4 +1,5 @@
-import { type Address, type PublicClient } from "viem";
+import { type Address, type Client } from "viem";
+import { readContract } from "viem/actions";
 
 const aggregatorV3Abi = [
   {
@@ -42,21 +43,21 @@ const aggregatorV3Abi = [
   },
 ] as const;
 
-const getDecimals = (client: PublicClient, address: Address) =>
-  client.readContract({
+const getDecimals = (client: Client, address: Address) =>
+  readContract(client, {
     abi: aggregatorV3Abi,
     address,
     functionName: "decimals",
   });
 
-const getLatestAnswer = (client: PublicClient, address: Address) =>
-  client.readContract({
+const getLatestAnswer = (client: Client, address: Address) =>
+  readContract(client, {
     abi: aggregatorV3Abi,
     address,
     functionName: "latestAnswer",
   });
 
-export const getPrice = (client: PublicClient, address: Address) =>
+export const getPrice = (client: Client, address: Address) =>
   Promise.all([getLatestAnswer(client, address), getDecimals(client, address)]);
 
 /**
@@ -71,11 +72,11 @@ export async function getFreshPrice({
   stalePeriod,
 }: {
   address: Address;
-  client: PublicClient;
+  client: Client;
   stalePeriod: bigint;
 }) {
   const [[, answer, , updatedAt], priceDecimals] = await Promise.all([
-    client.readContract({
+    readContract(client, {
       abi: aggregatorV3Abi,
       address,
       functionName: "latestRoundData",
