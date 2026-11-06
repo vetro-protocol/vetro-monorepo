@@ -1,26 +1,16 @@
 import { gatewayAddresses } from "@vetro-protocol/gateway";
-import { getPeggedToken, getTreasury } from "@vetro-protocol/gateway/actions";
-import {
-  getTokenConfig,
-  getWhitelistedTokens,
-  getWithdrawable,
-} from "@vetro-protocol/treasury/actions";
+import { getPeggedToken } from "@vetro-protocol/gateway/actions";
 import { type Address } from "viem";
 import { decimals } from "viem-erc20/actions";
 import { asset, totalAssets } from "viem-erc4626/actions";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { getFreshPrice } from "../src/chainlink.ts";
 import {
   allocateComposition,
   getVaultComposition,
 } from "../src/vault-composition.ts";
-import {
-  getStrategies,
-  getStrategyConfig,
-  getTotalDebt,
-  getVaultName,
-} from "../src/vesper.ts";
+import { readWarmedTask } from "../src/warm-cache.ts";
+import { treasuryTask } from "../src/warm-tasks.ts";
 
 vi.mock("@vetro-protocol/core", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@vetro-protocol/core")>()),
@@ -29,17 +19,6 @@ vi.mock("@vetro-protocol/core", async (importOriginal) => ({
 
 vi.mock("@vetro-protocol/gateway/actions", () => ({
   getPeggedToken: vi.fn(),
-  getTreasury: vi.fn(),
-}));
-
-vi.mock("@vetro-protocol/treasury/actions", () => ({
-  getTokenConfig: vi.fn(),
-  getWhitelistedTokens: vi.fn(),
-  getWithdrawable: vi.fn(),
-}));
-
-vi.mock("../src/chainlink.ts", () => ({
-  getFreshPrice: vi.fn(),
 }));
 
 vi.mock("viem-erc20/actions", () => ({
@@ -51,25 +30,20 @@ vi.mock("viem-erc4626/actions", () => ({
   totalAssets: vi.fn(),
 }));
 
-vi.mock("../src/vesper.ts", () => ({
-  getStrategies: vi.fn(),
-  getStrategyConfig: vi.fn(),
-  getTotalDebt: vi.fn(),
-  getVaultName: vi.fn(),
+vi.mock("../src/warm-cache.ts", () => ({
+  readWarmedTask: vi.fn(),
+}));
+
+vi.mock("../src/warm-tasks.ts", () => ({
+  treasuryTask: {},
 }));
 
 const stakingVaultAddress: Address =
   "0x0000000000000000000000000000000000000010";
 const peggedTokenAddress: Address =
   "0x0000000000000000000000000000000000000001";
-const treasuryAddress: Address = "0x0000000000000000000000000000000000000002";
 const usdcAddress: Address = "0x0000000000000000000000000000000000000004";
 const usdtAddress: Address = "0x0000000000000000000000000000000000000005";
-const usdcYieldVault: Address = "0x0000000000000000000000000000000000000014";
-const usdtYieldVault: Address = "0x0000000000000000000000000000000000000015";
-const strategyA: Address = "0x0000000000000000000000000000000000000021";
-const strategyB: Address = "0x0000000000000000000000000000000000000022";
-const strategyInactive: Address = "0x0000000000000000000000000000000000000023";
 
 describe("allocateComposition", function () {
   it("distributes the total pro rata by value", function () {
@@ -173,43 +147,55 @@ describe("allocateComposition", function () {
 
 describe("getVaultComposition", function () {
   const gatewayAddress = gatewayAddresses[0];
+  const now = 1_700_000_000;
   const unitPrice = 10n ** 8n;
-  const stalePeriod = 3_600n;
-  const oracles: Record<Address, Address> = {
-    [usdcAddress]: "0x0000000000000000000000000000000000000031",
-    [usdtAddress]: "0x0000000000000000000000000000000000000032",
-  };
+  const stalePeriod = 3_600;
+  const c = { env: {} } as never;
 
-  type Strategy = {
-    active: boolean;
-    address: Address;
-    debt: bigint;
-    name: string;
-  };
-
-  type TokenSetup = {
-    latestPrice: bigint;
-    strategies: Strategy[];
-    tokenDecimals: number;
-    totalDebt: bigint;
+  type WarmedTokenOptions = {
+    activeStrategies?: { name: string; totalDebt: bigint }[];
+    latestPrice?: bigint;
+    stalePeriod?: number;
+    tokenAddress: Address;
+    totalDebt?: bigint;
+    updatedAt?: number;
     withdrawable: bigint;
-    yieldVault: Address;
   };
 
-  const tokens: Record<Address, TokenSetup & { oracle: Address }> = {};
+  // The shape the warmed treasury task yields: bigints as strings
+  const warmedToken = ({
+    activeStrategies = [],
+    latestPrice = unitPrice,
+    stalePeriod: tokenStalePeriod = stalePeriod,
+    tokenAddress,
+    totalDebt = 0n,
+    updatedAt = now,
+    withdrawable,
+  }: WarmedTokenOptions) => ({
+    activeStrategies: activeStrategies.map((strategy) => ({
+      address: "0x0000000000000000000000000000000000000021",
+      name: strategy.name,
+      totalDebt: strategy.totalDebt.toString(),
+    })),
+    latestPrice: latestPrice.toString(),
+    priceDecimals: 8,
+    stalePeriod: tokenStalePeriod.toString(),
+    tokenAddress,
+    tokenDecimals: 6,
+    totalDebt: totalDebt.toString(),
+    updatedAt: updatedAt.toString(),
+    withdrawable: withdrawable.toString(),
+  });
 
-  const findStrategy = (address: Address) =>
-    Object.values(tokens)
-      .flatMap(({ strategies }) => strategies)
-      .find((strategy) => strategy.address === address)!;
-
-  function setupToken(token: Address, setup: TokenSetup) {
-    tokens[token] = { ...setup, oracle: oracles[token] };
-  }
+  const mockWarmedTokens = (...tokens: WarmedTokenOptions[]) =>
+    vi
+      .mocked(readWarmedTask)
+      .mockResolvedValue(tokens.map(warmedToken) as never);
 
   beforeEach(function () {
     vi.resetAllMocks();
-    Object.keys(tokens).forEach((key) => delete tokens[key as Address]);
+    vi.useFakeTimers();
+    vi.setSystemTime(now * 1000);
 
     vi.mocked(asset).mockResolvedValue(peggedTokenAddress);
     vi.mocked(totalAssets).mockResolvedValue(10n ** 24n);
@@ -220,86 +206,24 @@ describe("getVaultComposition", function () {
           : "0x00000000000000000000000000000000000000ff",
       ),
     );
-    vi.mocked(getTreasury).mockResolvedValue(treasuryAddress);
     vi.mocked(decimals).mockResolvedValue(18);
-    vi.mocked(getWhitelistedTokens).mockImplementation(() =>
-      Promise.resolve(Object.keys(tokens) as Address[]),
-    );
-    vi.mocked(getTokenConfig).mockImplementation((_client, { token }) =>
-      Promise.resolve([
-        tokens[token].yieldVault,
-        tokens[token].oracle,
-        stalePeriod,
-        true,
-        true,
-        tokens[token].tokenDecimals,
-      ] as never),
-    );
-    vi.mocked(getWithdrawable).mockImplementation((_client, { token }) =>
-      Promise.resolve(tokens[token].withdrawable),
-    );
-    vi.mocked(getFreshPrice).mockImplementation(({ address }) =>
-      Promise.resolve({
-        decimals: 8,
-        price: Object.values(tokens).find(({ oracle }) => oracle === address)!
-          .latestPrice,
-      }),
-    );
-    vi.mocked(getTotalDebt).mockImplementation((_client, { address }) =>
-      Promise.resolve(
-        Object.values(tokens).find(({ yieldVault }) => yieldVault === address)!
-          .totalDebt,
-      ),
-    );
-    vi.mocked(getStrategies).mockImplementation((_client, { address }) =>
-      Promise.resolve(
-        Object.values(tokens)
-          .find(({ yieldVault }) => yieldVault === address)!
-          .strategies.map((strategy) => strategy.address),
-      ),
-    );
-    vi.mocked(getStrategyConfig).mockImplementation((_client, { strategy }) =>
-      Promise.resolve({
-        active: findStrategy(strategy).active,
-        debtRatio: 0n,
-        totalDebt: findStrategy(strategy).debt,
-        totalLoss: 0n,
-        totalProfit: 0n,
-      }),
-    );
-    vi.mocked(getVaultName).mockImplementation((_client, { address }) =>
-      Promise.resolve(findStrategy(address).name),
-    );
   });
 
-  it("builds the composition with the strategies and the idle reserve of each token", async function () {
-    setupToken(usdcAddress, {
-      latestPrice: unitPrice,
-      strategies: [
-        {
-          active: true,
-          address: strategyA,
-          debt: 600_000_000n,
-          name: "Morpho_USDC_Core",
-        },
-        {
-          active: false,
-          address: strategyInactive,
-          debt: 999_000_000n,
-          name: "Inactive_Strategy",
-        },
-      ],
-      tokenDecimals: 6,
+  afterEach(function () {
+    vi.useRealTimers();
+  });
+
+  it("builds the composition from the warmed treasury of the vault's gateway", async function () {
+    mockWarmedTokens({
+      activeStrategies: [{ name: "Morpho USDC Core", totalDebt: 600_000_000n }],
+      tokenAddress: usdcAddress,
       totalDebt: 600_000_000n,
       // 1000 USDC withdrawable, 600 of them lent out
       withdrawable: 1_000_000_000n,
-      yieldVault: usdcYieldVault,
     });
 
     // 600 USDC in the strategy and 400 idle, over a vault with 10^24 assets
-    expect(
-      await getVaultComposition({ rpcUrl: undefined, stakingVaultAddress }),
-    ).toEqual({
+    expect(await getVaultComposition({ c, stakingVaultAddress })).toEqual({
       items: [
         {
           amount: 6n * 10n ** 23n,
@@ -318,32 +242,30 @@ describe("getVaultComposition", function () {
       ],
       total: 10n ** 24n,
     });
+    expect(vi.mocked(readWarmedTask)).toHaveBeenCalledWith({
+      c,
+      item: gatewayAddress,
+      task: treasuryTask,
+    });
   });
 
   it("caps the oracle price at par and values below-par tokens at their price", async function () {
-    // above par: valued at par, like Treasury.reserve()
-    setupToken(usdcAddress, {
-      latestPrice: unitPrice + 1_000_000n,
-      strategies: [],
-      tokenDecimals: 6,
-      totalDebt: 0n,
-      withdrawable: 500_000_000n,
-      yieldVault: usdcYieldVault,
-    });
-    // 500 USDT at 0.5: worth 250
-    setupToken(usdtAddress, {
-      latestPrice: unitPrice / 2n,
-      strategies: [],
-      tokenDecimals: 6,
-      totalDebt: 0n,
-      withdrawable: 500_000_000n,
-      yieldVault: usdtYieldVault,
-    });
+    mockWarmedTokens(
+      // above par: valued at par, like Treasury.reserve()
+      {
+        latestPrice: unitPrice + 1_000_000n,
+        tokenAddress: usdcAddress,
+        withdrawable: 500_000_000n,
+      },
+      // 500 USDT at 0.5: worth 250
+      {
+        latestPrice: unitPrice / 2n,
+        tokenAddress: usdtAddress,
+        withdrawable: 500_000_000n,
+      },
+    );
 
-    const result = await getVaultComposition({
-      rpcUrl: undefined,
-      stakingVaultAddress,
-    });
+    const result = await getVaultComposition({ c, stakingVaultAddress });
 
     // 500 and 250 over 750, applied to 10^24
     expect(result.items.map(({ amount, token }) => [token, amount])).toEqual([
@@ -353,26 +275,14 @@ describe("getVaultComposition", function () {
   });
 
   it("does not report a negative reserve when the debt exceeds the withdrawable amount", async function () {
-    setupToken(usdcAddress, {
-      latestPrice: unitPrice,
-      strategies: [
-        {
-          active: true,
-          address: strategyB,
-          debt: 100_000_000n,
-          name: "Strategy",
-        },
-      ],
-      tokenDecimals: 6,
+    mockWarmedTokens({
+      activeStrategies: [{ name: "Strategy", totalDebt: 100_000_000n }],
+      tokenAddress: usdcAddress,
       totalDebt: 100_000_000n,
       withdrawable: 90_000_000n,
-      yieldVault: usdcYieldVault,
     });
 
-    const result = await getVaultComposition({
-      rpcUrl: undefined,
-      stakingVaultAddress,
-    });
+    const result = await getVaultComposition({ c, stakingVaultAddress });
 
     expect(result.items).toEqual([
       {
@@ -388,54 +298,62 @@ describe("getVaultComposition", function () {
   it("values a token far off par at its price instead of failing", async function () {
     // 0.8 is well beyond any price tolerance, which Treasury.getPrice rejects
     // but Treasury.reserve() accepts
-    setupToken(usdcAddress, {
-      latestPrice: (unitPrice * 8n) / 10n,
-      strategies: [],
-      tokenDecimals: 6,
-      totalDebt: 0n,
-      withdrawable: 500_000_000n,
-      yieldVault: usdcYieldVault,
-    });
-    setupToken(usdtAddress, {
-      latestPrice: unitPrice,
-      strategies: [],
-      tokenDecimals: 6,
-      totalDebt: 0n,
-      withdrawable: 100_000_000n,
-      yieldVault: usdtYieldVault,
-    });
+    mockWarmedTokens(
+      {
+        latestPrice: (unitPrice * 8n) / 10n,
+        tokenAddress: usdcAddress,
+        withdrawable: 500_000_000n,
+      },
+      { tokenAddress: usdtAddress, withdrawable: 100_000_000n },
+    );
 
-    const result = await getVaultComposition({
-      rpcUrl: undefined,
-      stakingVaultAddress,
-    });
+    const result = await getVaultComposition({ c, stakingVaultAddress });
 
     // 400 and 100 over 500, applied to 10^24
     expect(result.items.map(({ amount, token }) => [token, amount])).toEqual([
       [usdcAddress, 8n * 10n ** 23n],
       [usdtAddress, 2n * 10n ** 23n],
     ]);
-    expect(vi.mocked(getFreshPrice)).toHaveBeenCalledWith({
-      address: oracles[usdcAddress],
-      client: expect.anything(),
-      stalePeriod,
-    });
   });
 
-  it("fails when the oracle price is stale", async function () {
-    setupToken(usdcAddress, {
-      latestPrice: unitPrice,
-      strategies: [],
-      tokenDecimals: 6,
-      totalDebt: 0n,
-      withdrawable: 1n,
-      yieldVault: usdcYieldVault,
+  it("accepts a price updated exactly stalePeriod seconds ago", async function () {
+    mockWarmedTokens({
+      tokenAddress: usdcAddress,
+      updatedAt: now - stalePeriod,
+      withdrawable: 1_000_000n,
     });
-    vi.mocked(getFreshPrice).mockRejectedValue(new Error("Stale oracle price"));
 
     await expect(
-      getVaultComposition({ rpcUrl: undefined, stakingVaultAddress }),
-    ).rejects.toThrow("Stale oracle price");
+      getVaultComposition({ c, stakingVaultAddress }),
+    ).resolves.toBeDefined();
+  });
+
+  it("fails when a price was updated more than stalePeriod seconds ago", async function () {
+    // Fresh when the cron warmed it, but stale by the time of the request
+    mockWarmedTokens(
+      { tokenAddress: usdcAddress, withdrawable: 1_000_000n },
+      {
+        tokenAddress: usdtAddress,
+        updatedAt: now - stalePeriod - 1,
+        withdrawable: 1_000_000n,
+      },
+    );
+
+    await expect(
+      getVaultComposition({ c, stakingVaultAddress }),
+    ).rejects.toThrow(`Stale oracle price for ${usdtAddress}`);
+  });
+
+  it("fails when a price is not positive", async function () {
+    mockWarmedTokens({
+      latestPrice: 0n,
+      tokenAddress: usdcAddress,
+      withdrawable: 1_000_000n,
+    });
+
+    await expect(
+      getVaultComposition({ c, stakingVaultAddress }),
+    ).rejects.toThrow(`Invalid oracle price for ${usdcAddress}`);
   });
 
   it("fails when no gateway matches the vault's asset", async function () {
@@ -444,7 +362,8 @@ describe("getVaultComposition", function () {
     );
 
     await expect(
-      getVaultComposition({ rpcUrl: undefined, stakingVaultAddress }),
+      getVaultComposition({ c, stakingVaultAddress }),
     ).rejects.toThrow("No gateway found");
+    expect(vi.mocked(readWarmedTask)).not.toHaveBeenCalled();
   });
 });

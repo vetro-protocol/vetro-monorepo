@@ -15,7 +15,7 @@ import { type Address, formatUnits, type PublicClient } from "viem";
 import { decimals, totalSupply } from "viem-erc20/actions";
 import { balanceOf, previewRedeem, totalAssets } from "viem-erc4626/actions";
 
-import { getPrice } from "./chainlink.ts";
+import { getLatestPrice } from "./chainlink.ts";
 import { gaugedStrategiesKey } from "./liquidity/incentives.ts";
 import type { StakeDaoStrategy } from "./liquidity/stake-dao.ts";
 import { findStakingVaultForPeggedToken } from "./staking-vault.ts";
@@ -66,7 +66,10 @@ export async function getTreasuryComposition({
   });
   const treasuryTokens = await Promise.all(
     whitelistedTokens.map(async function (tokenAddress) {
-      const [[vaultAddress, oracleAddress], withdrawable] = await Promise.all([
+      const [
+        [vaultAddress, oracleAddress, stalePeriod, , , tokenDecimals],
+        withdrawable,
+      ] = await Promise.all([
         getTokenConfig(client, {
           address: treasuryAddress,
           token: tokenAddress,
@@ -76,12 +79,15 @@ export async function getTreasuryComposition({
           token: tokenAddress,
         }),
       ]);
-      const [strategies, [latestPrice, priceDecimals], totalDebt] =
-        await Promise.all([
-          getStrategies(client, { address: vaultAddress }),
-          getPrice(client, oracleAddress),
-          getTotalDebt(client, { address: vaultAddress }),
-        ]);
+      const [
+        strategies,
+        { decimals: priceDecimals, price: latestPrice, updatedAt },
+        totalDebt,
+      ] = await Promise.all([
+        getStrategies(client, { address: vaultAddress }),
+        getLatestPrice({ address: oracleAddress, client }),
+        getTotalDebt(client, { address: vaultAddress }),
+      ]);
       const strategyData = await Promise.all(
         strategies.map((strategyAddress) =>
           Promise.all([
@@ -115,8 +121,11 @@ export async function getTreasuryComposition({
         activeStrategies,
         latestPrice,
         priceDecimals,
+        stalePeriod,
         tokenAddress,
+        tokenDecimals,
         totalDebt,
+        updatedAt,
         withdrawable,
       };
     }),

@@ -460,14 +460,14 @@ app.get(
   "/variable-stake/composition/:stakingVaultAddress",
   validateStakingVaultAddress,
   cache({
-    cacheControl: "max-age=300",
+    cacheControl: "max-age=60",
     cacheName: "vetro-api",
   }),
   async function (c) {
     try {
       const stakingVaultAddress = c.get("stakingVaultAddress");
       const data = await getVaultComposition({
-        rpcUrl: c.env.CUSTOM_RPC_URL_MAINNET,
+        c,
         stakingVaultAddress,
       });
       return c.json(convertBigIntsToString(data));

@@ -1,22 +1,13 @@
 import { createMainnetClient } from "@vetro-protocol/core";
 import { gatewayAddresses } from "@vetro-protocol/gateway";
-import { getPeggedToken, getTreasury } from "@vetro-protocol/gateway/actions";
-import {
-  getTokenConfig,
-  getWhitelistedTokens,
-  getWithdrawable,
-} from "@vetro-protocol/treasury/actions";
+import { getPeggedToken } from "@vetro-protocol/gateway/actions";
+import type { Context } from "hono";
 import { type Address, isAddressEqual } from "viem";
 import { decimals } from "viem-erc20/actions";
 import { asset, totalAssets } from "viem-erc4626/actions";
 
-import { getFreshPrice } from "./chainlink.ts";
-import {
-  getStrategies,
-  getStrategyConfig,
-  getTotalDebt,
-  getVaultName,
-} from "./vesper.ts";
+import { readWarmedTask } from "./warm-cache.ts";
+import { treasuryTask } from "./warm-tasks.ts";
 
 type CompositionItem = {
   name?: string;
@@ -102,91 +93,76 @@ async function findGatewayForPeggedToken({
  * the Treasury's pro rata: one item per active strategy plus one idle reserve
  * per whitelisted token. Excludes the strategic reserves and the surplus, as
  * they are the pegged token itself.
+ *
+ * The Treasury data is the one `GET /analytics/treasury` serves, warmed by the
+ * cron. Its prices can be up to the warmed value's TTL old, so their freshness
+ * is checked here, at request time, against the `updatedAt` stored with each
+ * one. Analytics doesn't check it, so it keeps working with a stale price.
  */
 export async function getVaultComposition({
-  rpcUrl,
+  c,
   stakingVaultAddress,
 }: {
-  rpcUrl: string | undefined;
+  c: Context<{ Bindings: Env }>;
   stakingVaultAddress: Address;
 }) {
-  const client = createMainnetClient(rpcUrl);
+  const client = createMainnetClient(c.env.CUSTOM_RPC_URL_MAINNET);
   const [peggedTokenAddress, total] = await Promise.all([
     asset(client, { address: stakingVaultAddress }),
     totalAssets(client, { address: stakingVaultAddress }),
   ]);
-  const gatewayAddress = await findGatewayForPeggedToken({
-    client,
-    peggedTokenAddress,
-  });
-  const [peggedDecimals, treasuryAddress] = await Promise.all([
+  const [gatewayAddress, peggedDecimals] = await Promise.all([
+    findGatewayForPeggedToken({ client, peggedTokenAddress }),
     decimals(client, { address: peggedTokenAddress }),
-    getTreasury(client, { address: gatewayAddress }),
   ]);
-  const whitelistedTokens = await getWhitelistedTokens(client, {
-    address: treasuryAddress,
+  const treasuryTokens = await readWarmedTask({
+    c,
+    item: gatewayAddress,
+    task: treasuryTask,
   });
 
-  const items = await Promise.all(
-    whitelistedTokens.map(async function (token) {
-      const [
-        [yieldVaultAddress, oracleAddress, stalePeriod, , , tokenDecimals],
-        withdrawable,
-      ] = await Promise.all([
-        getTokenConfig(client, { address: treasuryAddress, token }),
-        getWithdrawable(client, { address: treasuryAddress, token }),
-      ]);
-      // Not Treasury.getPrice: it reverts when a token is off par beyond the
-      // price tolerance, while reserve() only requires the price to be fresh.
-      const { decimals: priceDecimals, price: latestPrice } =
-        await getFreshPrice({
-          address: oracleAddress,
-          client,
-          stalePeriod,
-        });
-      const unitPrice = 10n ** BigInt(priceDecimals);
-      const [strategies, totalDebt] = await Promise.all([
-        getStrategies(client, { address: yieldVaultAddress }),
-        getTotalDebt(client, { address: yieldVaultAddress }),
-      ]);
-      const strategyData = await Promise.all(
-        strategies.map((address) =>
-          Promise.all([
-            getStrategyConfig(client, {
-              address: yieldVaultAddress,
-              strategy: address,
-            }),
-            getVaultName(client, { address }),
-          ]),
+  // Same clock as the Treasury's staleness check, in seconds
+  const now = BigInt(Math.floor(Date.now() / 1000));
+  const items = treasuryTokens.flatMap(function (treasuryToken) {
+    const price = BigInt(treasuryToken.latestPrice);
+    if (price <= 0n) {
+      throw new Error(`Invalid oracle price for ${treasuryToken.tokenAddress}`);
+    }
+    if (
+      BigInt(treasuryToken.updatedAt) + BigInt(treasuryToken.stalePeriod) <
+      now
+    ) {
+      throw new Error(`Stale oracle price for ${treasuryToken.tokenAddress}`);
+    }
+
+    // Values the amount like Treasury.reserve() does: the oracle price is
+    // capped at par, and the result is in pegged token units. Not like
+    // Treasury.getPrice, which reverts when a token is off par beyond the
+    // price tolerance.
+    const unitPrice = 10n ** BigInt(treasuryToken.priceDecimals);
+    const cappedPrice = price < unitPrice ? price : unitPrice;
+    const toPeggedValue = (amount: bigint) =>
+      (amount * cappedPrice * 10n ** BigInt(peggedDecimals)) /
+      (unitPrice * 10n ** BigInt(treasuryToken.tokenDecimals));
+
+    const totalDebt = BigInt(treasuryToken.totalDebt);
+    const withdrawable = BigInt(treasuryToken.withdrawable);
+    return [
+      ...treasuryToken.activeStrategies.map((strategy) => ({
+        name: strategy.name,
+        token: treasuryToken.tokenAddress,
+        type: "strategy" as const,
+        value: toPeggedValue(BigInt(strategy.totalDebt)),
+      })),
+      {
+        token: treasuryToken.tokenAddress,
+        type: "reserve" as const,
+        value: toPeggedValue(
+          withdrawable > totalDebt ? withdrawable - totalDebt : 0n,
         ),
-      );
+      },
+    ] satisfies CompositionItem[];
+  });
 
-      // Values the amount like Treasury.reserve() does: the oracle price is
-      // capped at par, and the result is in pegged token units.
-      const cappedPrice = latestPrice < unitPrice ? latestPrice : unitPrice;
-      const toPeggedValue = (amount: bigint) =>
-        (amount * cappedPrice * 10n ** BigInt(peggedDecimals)) /
-        (unitPrice * 10n ** BigInt(tokenDecimals));
-
-      return [
-        ...strategyData
-          .filter(([{ active }]) => active)
-          .map(([{ totalDebt: strategyDebt }, name]) => ({
-            name: name.replaceAll("_", " "),
-            token,
-            type: "strategy" as const,
-            value: toPeggedValue(strategyDebt),
-          })),
-        {
-          token,
-          type: "reserve" as const,
-          value: toPeggedValue(
-            withdrawable > totalDebt ? withdrawable - totalDebt : 0n,
-          ),
-        },
-      ] satisfies CompositionItem[];
-    }),
-  );
-
-  return allocateComposition({ items: items.flat(), total });
+  return allocateComposition({ items, total });
 }

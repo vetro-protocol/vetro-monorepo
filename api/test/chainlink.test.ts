@@ -1,15 +1,13 @@
 import type { Address, Client } from "viem";
 import { readContract } from "viem/actions";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import { getFreshPrice } from "../src/chainlink.ts";
+import { getLatestPrice } from "../src/chainlink.ts";
 
 vi.mock("viem/actions", () => ({ readContract: vi.fn() }));
 
 const address: Address = "0x0000000000000000000000000000000000000031";
 const client = {} as Client;
-const now = 1_700_000_000;
-const stalePeriod = 3_600n;
 
 const mockOracle = ({
   answer,
@@ -18,7 +16,7 @@ const mockOracle = ({
 }: {
   answer: bigint;
   decimals?: number;
-  updatedAt: number;
+  updatedAt: bigint;
 }) =>
   vi
     .mocked(readContract)
@@ -29,67 +27,50 @@ const mockOracle = ({
       Promise.resolve(
         functionName === "decimals"
           ? decimals
-          : [1n, answer, 0n, BigInt(updatedAt), 1n],
+          : [1n, answer, 0n, updatedAt, 1n],
       )) as never);
 
-describe("getFreshPrice", function () {
-  beforeEach(function () {
-    vi.useFakeTimers();
-    vi.setSystemTime(now * 1000);
-  });
+describe("getLatestPrice", function () {
+  it("returns the price, its decimals and when it was updated", async function () {
+    mockOracle({ answer: 99_950_000n, updatedAt: 1_700_000_000n });
 
-  afterEach(function () {
-    vi.useRealTimers();
-  });
-
-  it("returns the price and its decimals", async function () {
-    mockOracle({
-      answer: 99_950_000n,
-      updatedAt: now - 60,
-    });
-
-    expect(await getFreshPrice({ address, client, stalePeriod })).toEqual({
+    expect(await getLatestPrice({ address, client })).toEqual({
       decimals: 8,
       price: 99_950_000n,
+      updatedAt: 1_700_000_000n,
     });
   });
 
-  it("does not fail when the price is far from par", async function () {
-    mockOracle({ answer: 50_000_000n, updatedAt: now });
+  it("reads the latest round data and decimals of the given oracle", async function () {
+    mockOracle({ answer: 1n, decimals: 18, updatedAt: 1n });
 
-    expect(await getFreshPrice({ address, client, stalePeriod })).toEqual({
+    const result = await getLatestPrice({ address, client });
+
+    expect(result.decimals).toBe(18);
+    expect(vi.mocked(readContract)).toHaveBeenCalledWith(client, {
+      abi: expect.anything(),
+      address,
+      functionName: "latestRoundData",
+    });
+    expect(vi.mocked(readContract)).toHaveBeenCalledWith(client, {
+      abi: expect.anything(),
+      address,
+      functionName: "decimals",
+    });
+  });
+
+  it.each([
+    ["is far from par", 50_000_000n, 1_700_000_000n],
+    ["was updated long ago", 100_000_000n, 1n],
+    ["is not positive", 0n, 1_700_000_000n],
+    ["is negative", -1n, 1_700_000_000n],
+  ])("does not throw when the price %s", async function (_, answer, updatedAt) {
+    mockOracle({ answer, updatedAt });
+
+    expect(await getLatestPrice({ address, client })).toEqual({
       decimals: 8,
-      price: 50_000_000n,
+      price: answer,
+      updatedAt,
     });
-  });
-
-  it("accepts a price updated exactly stalePeriod seconds ago", async function () {
-    mockOracle({
-      answer: 100_000_000n,
-      updatedAt: now - Number(stalePeriod),
-    });
-
-    await expect(
-      getFreshPrice({ address, client, stalePeriod }),
-    ).resolves.toBeDefined();
-  });
-
-  it("fails when the price is older than stalePeriod", async function () {
-    mockOracle({
-      answer: 100_000_000n,
-      updatedAt: now - Number(stalePeriod) - 1,
-    });
-
-    await expect(
-      getFreshPrice({ address, client, stalePeriod }),
-    ).rejects.toThrow("Stale oracle price");
-  });
-
-  it("fails when the price is not positive", async function () {
-    mockOracle({ answer: 0n, updatedAt: now });
-
-    await expect(
-      getFreshPrice({ address, client, stalePeriod }),
-    ).rejects.toThrow("Invalid oracle price");
   });
 });
