@@ -1,11 +1,13 @@
 import { queryOptions } from "@tanstack/react-query";
-import { fetchVeVetroConfig } from "fetchers/fetchVeVetroConfig";
+import { getConfig } from "@vetro-protocol/ve-vetro/actions";
+import { veVetroContracts } from "utils/veVetro";
 import type { Client } from "viem";
 
 export const veVetroConfigOptions = (client: Client | undefined) =>
   queryOptions({
     enabled: !!client,
-    queryFn: () => fetchVeVetroConfig(client!),
+    queryFn: () =>
+      getConfig(client!, { address: veVetroContracts.distributor }),
     queryKey: ["ve-vetro-config"],
     staleTime: Infinity,
   });

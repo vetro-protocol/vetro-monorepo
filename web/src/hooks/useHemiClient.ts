@@ -1,4 +1,5 @@
-import { hemi } from "hemi-viem";
+import { veVetroChain } from "networks";
 import { usePublicClient } from "wagmi";
 
-export const useHemiClient = () => usePublicClient({ chainId: hemi.id });
+export const useHemiClient = () =>
+  usePublicClient({ chainId: veVetroChain.id });

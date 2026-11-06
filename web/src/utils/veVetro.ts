@@ -1,20 +1,20 @@
 import { knownTokens } from "@vetro-protocol/core";
-import { minClaimAmount } from "@vetro-protocol/ve-vetro";
-import { type Address, zeroAddress } from "viem";
-import { hemi, hemiSepolia, mainnet } from "viem/chains";
+import {
+  minClaimAmount,
+  veVetroContractsByChain,
+} from "@vetro-protocol/ve-vetro";
+import { hemi, hemiSepolia } from "hemi-viem";
+import { veVetroChain } from "networks";
+import { mainnet } from "viem/chains";
 
 export const hemiToken = knownTokens.find(
   (token) => token.chainId === hemi.id && token.symbol === "HEMI",
 )!;
 
-// Placeholders until the distributor is deployed and its terms are published.
+export const veVetroContracts = veVetroContractsByChain[veVetroChain.id];
+
 // The terms must hash to the distributor's `config().termsHash`, or the claim
 // reverts with `InvalidTermsSignature`.
-export const veVetroDistributorAddress: Address = zeroAddress;
-
-// TODO: use `hemi` instead of `hemiSepolia` before release.
-const veVetroChain = hemiSepolia;
-
 const veVetroTermsByChain = {
   // TODO: check against the mainnet distributor's `config().termsHash` once
   // it is deployed.
@@ -26,9 +26,14 @@ const veVetroTermsByChain = {
 
 export const veVetroTerms = veVetroTermsByChain[veVetroChain.id];
 
-export const vToken = knownTokens.find(
-  (token) => token.chainId === mainnet.id && token.symbol === "V",
-)!;
+export const vToken =
+  veVetroChain.id === hemiSepolia.id
+    ? knownTokens.find(
+        (token) => token.chainId === hemiSepolia.id && token.symbol === "TT",
+      )!
+    : knownTokens.find(
+        (token) => token.chainId === mainnet.id && token.symbol === "V",
+      )!;
 
 function getAmountBlocker(amount: bigint | undefined) {
   if (amount === undefined) {

@@ -1,11 +1,9 @@
 import type { QueryClient } from "@tanstack/react-query";
+import { getClaimableSubset } from "@vetro-protocol/ve-vetro/actions";
 import { veHemiSnapshotTokenIdsOptions } from "hooks/useVeHemiSnapshotTokenIds";
-import { vToken } from "utils/veVetro";
-import { type Address, type Client, parseUnits } from "viem";
+import { veVetroContracts } from "utils/veVetro";
+import type { Address, Client } from "viem";
 
-// Placeholder until the distributor lens is deployed. Replace the return value
-// with `getClaimableSubset(client, { address: lensAddress, claimant: account, tokenIds })`
-// from `@vetro-protocol/ve-vetro/actions`, which returns `{ amount, ids }`.
 export const fetchVeVetroClaimableSubset = async function ({
   account,
   client,
@@ -18,8 +16,9 @@ export const fetchVeVetroClaimableSubset = async function ({
   const tokenIds = await queryClient.ensureQueryData(
     veHemiSnapshotTokenIdsOptions({ account, client }),
   );
-  return {
-    amount: parseUnits("12478.06", vToken.decimals),
-    ids: tokenIds.filter((tokenId) => tokenId !== 4410n),
-  };
+  return getClaimableSubset(client, {
+    address: veVetroContracts.lens,
+    claimant: account,
+    tokenIds,
+  });
 };

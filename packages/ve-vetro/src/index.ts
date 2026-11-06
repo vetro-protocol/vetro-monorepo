@@ -6,4 +6,5 @@ export {
   minClaimAmount,
   veHemiAddress,
   veHemiSnapshotBlock,
+  veVetroContractsByChain,
 } from "./constants.ts";

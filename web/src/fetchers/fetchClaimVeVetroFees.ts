@@ -1,10 +1,11 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { fetchTotalNetworkFees } from "fetchers/fetchTotalNetworkFees";
-import { hemi } from "hemi-viem";
+import { veVetroChain } from "networks";
 import type { Client } from "viem";
 
-// Placeholder until the ve-vetro package has the `claim` write action.
-// Replace with `estimateGas(client, { account, data: encodeClaim(...), to: distributorAddress })`.
+// `estimateGas` with `encodeClaim` reverts before the user signs the terms,
+// because the distributor checks the signature. The drawer shows the fee before
+// that signature.
 const claimGasUnits = 600_000n;
 
 export const fetchClaimVeVetroFees = ({
@@ -14,7 +15,7 @@ export const fetchClaimVeVetroFees = ({
   queryClient: QueryClient;
 }) =>
   fetchTotalNetworkFees({
-    chain: hemi,
+    chain: veVetroChain,
     gasUnits: claimGasUnits,
     queryClient,
   });

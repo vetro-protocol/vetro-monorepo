@@ -1,19 +1,58 @@
-import type { Client } from "viem";
+import {
+  getBalanceOf,
+  getIdsOfRecord,
+  getTokenOfOwnerByIndex,
+} from "@vetro-protocol/ve-vetro/actions";
+import { veVetroContracts } from "utils/veVetro";
+import { type Address, type Client, maxUint256 } from "viem";
 
-// Placeholder until the distributor is deployed: the mocked previews and
-// claimable subset use these token ids. Replace with
-// these reads from `@vetro-protocol/ve-vetro/actions`:
-// 1. `getBalanceOf(client, { address: veHemiAddress, blockNumber: veHemiSnapshotBlock, owner: account })`
-// 2. `getTokenOfOwnerByIndex(client, { address: veHemiAddress, blockNumber: veHemiSnapshotBlock, index, owner: account })`
-//    for each index from `0n` to the balance minus `1n`.
-// Create the Hemi client with `batch: { multicall: true }` and a `multicall3`
-// contract on the `hemi` chain, as the package README shows, so viem batches the
-// reads at the snapshot block.
+async function fetchIdsOfRecord({
+  account,
+  client,
+}: {
+  account: Address;
+  client: Client;
+}) {
+  const tokenIds: bigint[] = [];
+  let fromId = 0n;
+  while (fromId < maxUint256) {
+    const { ids, nextId } = await getIdsOfRecord(client, {
+      address: veVetroContracts.lens,
+      fromId,
+      holder: account,
+      toIdExclusive: maxUint256,
+    });
+    tokenIds.push(...ids);
+    fromId = nextId;
+  }
+  return tokenIds;
+}
+
 // The list includes the positions that expired before the snapshot.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const fetchVeHemiSnapshotTokenIds = async (_client: Client) => [
-  1042n,
-  2219n,
-  3307n,
-  4410n,
-];
+export const fetchVeHemiSnapshotTokenIds = async function ({
+  account,
+  client,
+}: {
+  account: Address;
+  client: Client;
+}) {
+  const { snapshotBlock: blockNumber, veHemi: address } = veVetroContracts;
+  if (blockNumber === undefined) {
+    return fetchIdsOfRecord({ account, client });
+  }
+  const balance = await getBalanceOf(client, {
+    address,
+    blockNumber,
+    owner: account,
+  });
+  return Promise.all(
+    Array.from({ length: Number(balance) }, (_, index) =>
+      getTokenOfOwnerByIndex(client, {
+        address,
+        blockNumber,
+        index: BigInt(index),
+        owner: account,
+      }),
+    ),
+  );
+};
