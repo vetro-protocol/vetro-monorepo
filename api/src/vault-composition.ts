@@ -2,7 +2,6 @@ import { createMainnetClient } from "@vetro-protocol/core";
 import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { getPeggedToken, getTreasury } from "@vetro-protocol/gateway/actions";
 import {
-  getPrice,
   getTokenConfig,
   getWhitelistedTokens,
   getWithdrawable,
@@ -11,6 +10,7 @@ import { type Address, isAddressEqual } from "viem";
 import { decimals } from "viem-erc20/actions";
 import { asset, totalAssets } from "viem-erc4626/actions";
 
+import { getFreshPrice } from "./chainlink.ts";
 import {
   getStrategies,
   getStrategyConfig,
@@ -130,15 +130,21 @@ export async function getVaultComposition({
   const items = await Promise.all(
     whitelistedTokens.map(async function (token) {
       const [
-        [yieldVaultAddress, , , , , tokenDecimals],
+        [yieldVaultAddress, oracleAddress, stalePeriod, , , tokenDecimals],
         withdrawable,
-        // Reverts if the oracle price is stale
-        [latestPrice, unitPrice],
       ] = await Promise.all([
         getTokenConfig(client, { address: treasuryAddress, token }),
         getWithdrawable(client, { address: treasuryAddress, token }),
-        getPrice(client, { address: treasuryAddress, token }),
       ]);
+      // Not Treasury.getPrice: it reverts when a token is off par beyond the
+      // price tolerance, while reserve() only requires the price to be fresh.
+      const { decimals: priceDecimals, price: latestPrice } =
+        await getFreshPrice({
+          address: oracleAddress,
+          client,
+          stalePeriod,
+        });
+      const unitPrice = 10n ** BigInt(priceDecimals);
       const [strategies, totalDebt] = await Promise.all([
         getStrategies(client, { address: yieldVaultAddress }),
         getTotalDebt(client, { address: yieldVaultAddress }),

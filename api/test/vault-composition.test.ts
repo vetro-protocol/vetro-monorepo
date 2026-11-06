@@ -1,7 +1,6 @@
 import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { getPeggedToken, getTreasury } from "@vetro-protocol/gateway/actions";
 import {
-  getPrice,
   getTokenConfig,
   getWhitelistedTokens,
   getWithdrawable,
@@ -11,6 +10,7 @@ import { decimals } from "viem-erc20/actions";
 import { asset, totalAssets } from "viem-erc4626/actions";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { getFreshPrice } from "../src/chainlink.ts";
 import {
   allocateComposition,
   getVaultComposition,
@@ -33,10 +33,13 @@ vi.mock("@vetro-protocol/gateway/actions", () => ({
 }));
 
 vi.mock("@vetro-protocol/treasury/actions", () => ({
-  getPrice: vi.fn(),
   getTokenConfig: vi.fn(),
   getWhitelistedTokens: vi.fn(),
   getWithdrawable: vi.fn(),
+}));
+
+vi.mock("../src/chainlink.ts", () => ({
+  getFreshPrice: vi.fn(),
 }));
 
 vi.mock("viem-erc20/actions", () => ({
@@ -171,6 +174,11 @@ describe("allocateComposition", function () {
 describe("getVaultComposition", function () {
   const gatewayAddress = gatewayAddresses[0];
   const unitPrice = 10n ** 8n;
+  const stalePeriod = 3_600n;
+  const oracles: Record<Address, Address> = {
+    [usdcAddress]: "0x0000000000000000000000000000000000000031",
+    [usdtAddress]: "0x0000000000000000000000000000000000000032",
+  };
 
   type Strategy = {
     active: boolean;
@@ -188,7 +196,7 @@ describe("getVaultComposition", function () {
     yieldVault: Address;
   };
 
-  const tokens: Record<Address, TokenSetup> = {};
+  const tokens: Record<Address, TokenSetup & { oracle: Address }> = {};
 
   const findStrategy = (address: Address) =>
     Object.values(tokens)
@@ -196,7 +204,7 @@ describe("getVaultComposition", function () {
       .find((strategy) => strategy.address === address)!;
 
   function setupToken(token: Address, setup: TokenSetup) {
-    tokens[token] = setup;
+    tokens[token] = { ...setup, oracle: oracles[token] };
   }
 
   beforeEach(function () {
@@ -220,8 +228,8 @@ describe("getVaultComposition", function () {
     vi.mocked(getTokenConfig).mockImplementation((_client, { token }) =>
       Promise.resolve([
         tokens[token].yieldVault,
-        "0x0000000000000000000000000000000000000099",
-        3600n,
+        tokens[token].oracle,
+        stalePeriod,
         true,
         true,
         tokens[token].tokenDecimals,
@@ -230,8 +238,12 @@ describe("getVaultComposition", function () {
     vi.mocked(getWithdrawable).mockImplementation((_client, { token }) =>
       Promise.resolve(tokens[token].withdrawable),
     );
-    vi.mocked(getPrice).mockImplementation((_client, { token }) =>
-      Promise.resolve([tokens[token].latestPrice, unitPrice] as never),
+    vi.mocked(getFreshPrice).mockImplementation(({ address }) =>
+      Promise.resolve({
+        decimals: 8,
+        price: Object.values(tokens).find(({ oracle }) => oracle === address)!
+          .latestPrice,
+      }),
     );
     vi.mocked(getTotalDebt).mockImplementation((_client, { address }) =>
       Promise.resolve(
@@ -373,6 +385,43 @@ describe("getVaultComposition", function () {
     ]);
   });
 
+  it("values a token far off par at its price instead of failing", async function () {
+    // 0.8 is well beyond any price tolerance, which Treasury.getPrice rejects
+    // but Treasury.reserve() accepts
+    setupToken(usdcAddress, {
+      latestPrice: (unitPrice * 8n) / 10n,
+      strategies: [],
+      tokenDecimals: 6,
+      totalDebt: 0n,
+      withdrawable: 500_000_000n,
+      yieldVault: usdcYieldVault,
+    });
+    setupToken(usdtAddress, {
+      latestPrice: unitPrice,
+      strategies: [],
+      tokenDecimals: 6,
+      totalDebt: 0n,
+      withdrawable: 100_000_000n,
+      yieldVault: usdtYieldVault,
+    });
+
+    const result = await getVaultComposition({
+      rpcUrl: undefined,
+      stakingVaultAddress,
+    });
+
+    // 400 and 100 over 500, applied to 10^24
+    expect(result.items.map(({ amount, token }) => [token, amount])).toEqual([
+      [usdcAddress, 8n * 10n ** 23n],
+      [usdtAddress, 2n * 10n ** 23n],
+    ]);
+    expect(vi.mocked(getFreshPrice)).toHaveBeenCalledWith({
+      address: oracles[usdcAddress],
+      client: expect.anything(),
+      stalePeriod,
+    });
+  });
+
   it("fails when the oracle price is stale", async function () {
     setupToken(usdcAddress, {
       latestPrice: unitPrice,
@@ -382,11 +431,11 @@ describe("getVaultComposition", function () {
       withdrawable: 1n,
       yieldVault: usdcYieldVault,
     });
-    vi.mocked(getPrice).mockRejectedValue(new Error("StalePrice"));
+    vi.mocked(getFreshPrice).mockRejectedValue(new Error("Stale oracle price"));
 
     await expect(
       getVaultComposition({ rpcUrl: undefined, stakingVaultAddress }),
-    ).rejects.toThrow("StalePrice");
+    ).rejects.toThrow("Stale oracle price");
   });
 
   it("fails when no gateway matches the vault's asset", async function () {
