@@ -63,7 +63,13 @@ Entries span every chain the app touches, so filter by `chainId` before using it
 
 `string[]`.
 
-ISO 3166-1 alpha-2 codes of the geo-restricted countries. The web worker flags requests from these countries, and the app lets them view the app but disables wallet actions. The API serves the list at `GET /restricted-countries`.
+ISO 3166-1 alpha-2 codes of the geo-restricted countries: the EU 27 member states, the EEA (Norway, Iceland, Liechtenstein), the US, Canada and the UK. The API serves the list at `GET /restrictions`.
+
+### `sanctionedCountries`
+
+`string[]`.
+
+ISO 3166-1 alpha-2 codes of the sanctioned countries. The Cloudflare rule for `app.vetro.org` mirrors this list, and changes to it come from ops. The API serves the list at `GET /restrictions`.
 
 ### `vetroLinks`
 

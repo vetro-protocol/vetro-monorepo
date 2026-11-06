@@ -1,5 +1,5 @@
 import * as Sentry from "@sentry/cloudflare";
-import { restrictedCountries } from "@vetro-protocol/core";
+import { restrictedCountries, sanctionedCountries } from "@vetro-protocol/core";
 import { sVetBtcAddress, sVusdAddress } from "@vetro-protocol/earn";
 import { type Context, Hono, type Next } from "hono";
 import { bodyLimit } from "hono/body-limit";
@@ -366,8 +366,8 @@ app.get(
   },
 );
 
-app.get("/restricted-countries", (c) =>
-  c.json({ countries: restrictedCountries }),
+app.get("/restrictions", (c) =>
+  c.json({ restrictedCountries, sanctionedCountries }),
 );
 
 app.get(
