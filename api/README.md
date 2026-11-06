@@ -554,6 +554,36 @@ Valid periods are: `"1w"`, `"1m"`, `"3m"` and `"1y"`.
 ]
 ```
 
+### `GET /variable-stake/composition/:stakingVaultAddress`
+
+Returns the composition of a staking vault's deposits, ready to display. The vault holds only the pegged token, which is a claim on the pooled Treasury (collateral isn't earmarked per holder), so its composition is the Treasury's, pro rata. Each item is one active strategy (its `totalDebt`) or the idle reserve of one whitelisted token (`withdrawable − totalDebt`). Items are valued like `Treasury.reserve()` does (oracle price capped at par, in pegged-token units). `share = value ÷ Σ item values` and `amount = share × total`; the rounding remainder goes to the largest item. The strategic reserves and the surplus are excluded, as they are the pegged token itself. Items with a zero amount are omitted, and the rest are sorted by `amount`, descending. Cached for 5 minutes.
+`:stakingVaultAddress` must be a known staking vault. Returns `400` if malformed and `404` if the address is not a known staking vault. The request fails if an oracle price is stale.
+`total` is the vault's ERC4626 `totalAssets`, and the `amount` of the items add up exactly to it. Both are raw `uint256` amounts in the pegged token's base units (not pre-scaled). `share` is a fraction of `total` (e.g. `0.31` means 31%). `token` is the checksummed address of the whitelisted token the item comes from. `type` is `"strategy"` or `"reserve"`; `name` is only present on `strategy` items, so clients translate the label of `reserve` items. Clients can group by summing `amount` and `share`, either by `token` or by merging the `reserve` items with the strategies.
+
+#### Sample Response
+
+```jsonc
+{
+  "items": [
+    {
+      "amount": "3100000000000000000000000",
+      "name": "Morpho AlphaPing USDC Core",
+      "share": 0.31,
+      "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      "type": "strategy",
+    },
+    {
+      "amount": "200000000000000000000000",
+      "share": 0.02,
+      "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      "type": "reserve",
+    },
+    // ...more items...
+  ],
+  "total": "10000000000000000000000000",
+}
+```
+
 ### `GET /variable-stake/share-value-history/:stakingVaultAddress/:period`
 
 Returns the historical share value for a staking vault over the given period (Earn token vs underlying pegged token, e.g. sVUSD per VUSD). One entry per UTC day from the subgraph, plus a final point read live from the vault's on-chain `convertToAssets` (one whole share) at request time. The subgraph writes its history once per UTC day, so its latest point can lag the actual share value by up to ~24h; the appended live point keeps the last value in sync with the current exchange rate. When the subgraph already has a point for the current UTC day, the live point is not added as a duplicate: it is skipped if its share value matches that day's point, or it replaces that day's point if the share value differs, so the series never has two points on the same day. Results across multiple subgraph pages are concatenated, so long windows return their full history (e.g. `"1y"` may include up to ~366 entries plus the live point). If the live read fails the series is returned without the appended point.
