@@ -500,15 +500,19 @@ Query params:
 ]
 ```
 
-### `GET /restricted-countries`
+### `GET /restrictions`
 
-Returns the geo-restricted countries as ISO 3166-1 alpha-2 codes, sorted alphabetically. The Vetro web app disables wallet actions for users in these countries. The response is not cached, so it always matches the deployed list.
+Returns two lists of ISO 3166-1 alpha-2 country codes, each sorted alphabetically. The response is not cached, so it always matches the deployed lists.
+
+- `restrictedCountries`: the geo-restricted countries — the EU 27 member states, the EEA (Norway, Iceland, Liechtenstein), the US, Canada and the UK.
+- `sanctionedCountries`: the sanctioned countries.
 
 #### Sample Response
 
 ```jsonc
 {
-  "countries": ["AT", "BE", "BG", /* … */ "SK", "US"],
+  "restrictedCountries": ["AT", "BE", "BG", /* … */ "SK", "US"],
+  "sanctionedCountries": ["AF", "BA", "BY", /* … */ "VE", "YE"],
 }
 ```
 
