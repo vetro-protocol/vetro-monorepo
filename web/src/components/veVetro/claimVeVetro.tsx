@@ -1,17 +1,17 @@
 import { minClaimAmount } from "@vetro-protocol/ve-vetro";
 import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
+import { I18nLink } from "components/base/i18nLink";
 import { Toast } from "components/base/toast";
 import { GeoRestrictedButton } from "components/geoRestrictedButton";
 import { useClaimVeVetro } from "hooks/useClaimVeVetro";
 import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
 import { useVeVetroClaimableAmount } from "hooks/useVeVetroClaimableAmount";
 import { useVeVetroClaimablePositionCount } from "hooks/useVeVetroClaimablePositionCount";
-import { useVeVetroHasClaimEnded } from "hooks/useVeVetroHasClaimEnded";
-import { useVeVetroIsClaimOpen } from "hooks/useVeVetroIsClaimOpen";
+import { useVeVetroClaimBlocker } from "hooks/useVeVetroClaimBlocker";
 import { lazy, Suspense, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { getClaimBlocker, vToken } from "utils/veVetro";
+import { vToken } from "utils/veVetro";
 import { formatUnits } from "viem";
 
 import type { Submitted } from "./claimVeVetroDrawer";
@@ -22,13 +22,51 @@ const ClaimVeVetroDrawer = lazy(() =>
   })),
 );
 
+const toastAutoCloseMs = 15_000;
+
+type ClaimButtonProps = {
+  claimBlocker: ReturnType<typeof useVeVetroClaimBlocker>;
+  isPending: boolean;
+  onClick: VoidFunction;
+};
+
+function ClaimButton({ claimBlocker, isPending, onClick }: ClaimButtonProps) {
+  const { t } = useTranslation();
+
+  const tooltips = {
+    "below-minimum": t("pages.ve-vetro.claim.claim-button-below-minimum", {
+      amount: formatUnits(minClaimAmount, vToken.decimals),
+      symbol: vToken.symbol,
+    }),
+    "load-error": t("pages.ve-vetro.claim.claim-button-load-error"),
+    loading: undefined,
+    "not-open": t("pages.ve-vetro.claim.claim-button-not-open"),
+    "nothing-to-claim": t("pages.ve-vetro.claim.claim-button-nothing-to-claim"),
+  };
+
+  return (
+    <GeoRestrictedButton
+      disabled={!isPending && claimBlocker !== undefined}
+      onClick={onClick}
+      size="small"
+      tooltip={
+        isPending || claimBlocker === undefined
+          ? undefined
+          : tooltips[claimBlocker]
+      }
+      type="button"
+    >
+      {isPending
+        ? t("pages.ve-vetro.claim.view-progress")
+        : t("pages.ve-vetro.claim.claim-button")}
+    </GeoRestrictedButton>
+  );
+}
+
 export function ClaimVeVetro() {
   const { t } = useTranslation();
-  const { data: amount, isError: isAmountError } = useVeVetroClaimableAmount();
-  const { data: hasClaimEnded, isError: isClaimEndError } =
-    useVeVetroHasClaimEnded();
-  const { data: isClaimOpen, isError: isClaimOpenError } =
-    useVeVetroIsClaimOpen();
+  const { data: amount } = useVeVetroClaimableAmount();
+  const claimBlocker = useVeVetroClaimBlocker();
   const { data: positionCount } = useVeVetroClaimablePositionCount();
   const [claimStarted, setClaimStarted] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -47,26 +85,6 @@ export function ClaimVeVetro() {
     onClose: startCloseDrawer,
     success: isDrawerOpen && claimVeVetro.isSuccess,
   });
-
-  const claimBlocker = getClaimBlocker({
-    amount,
-    hasClaimEnded,
-    isAmountError,
-    isClaimEndError,
-    isClaimOpen,
-    isClaimOpenError,
-  });
-
-  const tooltips = {
-    "below-minimum": t("pages.ve-vetro.claim.claim-button-below-minimum", {
-      amount: formatUnits(minClaimAmount, vToken.decimals),
-      symbol: vToken.symbol,
-    }),
-    "load-error": t("pages.ve-vetro.claim.claim-button-load-error"),
-    loading: undefined,
-    "not-open": t("pages.ve-vetro.claim.claim-button-not-open"),
-    "nothing-to-claim": t("pages.ve-vetro.claim.claim-button-nothing-to-claim"),
-  };
 
   function claim() {
     if (amount === undefined || positionCount === undefined) {
@@ -101,21 +119,13 @@ export function ClaimVeVetro() {
 
   return (
     <>
-      <GeoRestrictedButton
-        disabled={!claimVeVetro.isPending && claimBlocker !== undefined}
-        onClick={handleOpenDrawer}
-        size="small"
-        tooltip={
-          claimVeVetro.isPending || claimBlocker === undefined
-            ? undefined
-            : tooltips[claimBlocker]
-        }
-        type="button"
-      >
-        {claimVeVetro.isPending
-          ? t("pages.ve-vetro.claim.view-progress")
-          : t("pages.ve-vetro.claim.claim-button")}
-      </GeoRestrictedButton>
+      {(claimVeVetro.isPending || claimBlocker !== "nothing-to-claim") && (
+        <ClaimButton
+          claimBlocker={claimBlocker}
+          isPending={claimVeVetro.isPending}
+          onClick={handleOpenDrawer}
+        />
+      )}
       {isDrawerOpen && (
         <Drawer
           onClose={handleCloseDrawer}
@@ -145,6 +155,15 @@ export function ClaimVeVetro() {
       )}
       {showToast && (
         <Toast
+          action={
+            <I18nLink
+              className="text-sm leading-5 font-medium text-blue-400 hover:text-blue-300"
+              to="/vevetro"
+            >
+              {t("pages.ve-vetro.claim.toast-see-positions")}
+            </I18nLink>
+          }
+          autoCloseMs={toastAutoCloseMs}
           description={t("pages.ve-vetro.claim.toast-description", {
             symbol: vToken.symbol,
           })}

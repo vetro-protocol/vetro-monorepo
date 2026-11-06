@@ -18,6 +18,7 @@ type VeVetroContracts = {
   lens: Address;
   snapshotBlock: bigint | undefined;
   veHemi: Address;
+  veVetro: Address;
 };
 
 export const veVetroContractsByChain: Record<
@@ -30,6 +31,7 @@ export const veVetroContractsByChain: Record<
     lens: zeroAddress,
     snapshotBlock: veHemiSnapshotBlock,
     veHemi: veHemiAddress,
+    veVetro: zeroAddress,
   },
   [hemiSepolia.id]: {
     distributor: "0xF55B1C52D4B2a942E531C4f4d960F946d4C307dc",
@@ -38,5 +40,6 @@ export const veVetroContractsByChain: Record<
     // start, so the ownership at the snapshot block does not include them.
     snapshotBlock: undefined,
     veHemi: "0x42ef3B1CC45b94De46eC84a89802DcbCE73e71b4",
+    veVetro: "0xC0A49F097DBeE078cf1ee55BaEF7D7Bdb73f9715",
   },
 };

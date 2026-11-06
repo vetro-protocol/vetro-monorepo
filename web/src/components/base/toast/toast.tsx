@@ -1,4 +1,5 @@
 import { CloseIcon } from "components/icons/closeIcon";
+import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Stack } from "../stack";
@@ -13,6 +14,7 @@ const autoCloseDelayMs = 7000;
 export type ToastContent = { description: string; title: string };
 
 export type ToastData = {
+  action?: ReactNode;
   description?: string;
   id: number | string;
   title: string;
@@ -26,18 +28,23 @@ type ToasterProps = {
 };
 
 type ToastProps = {
+  action?: ReactNode;
+  autoCloseMs?: number;
   description?: string;
   onClose: VoidFunction;
   title: string;
   variant?: ToastVariant;
 };
 
+type ToastCardProps = Omit<ToastProps, "autoCloseMs">;
+
 const ToastCard = function ({
+  action,
   description,
   onClose,
   title,
   variant = "success",
-}: ToastProps) {
+}: ToastCardProps) {
   const { t } = useTranslation();
 
   return (
@@ -54,6 +61,7 @@ const ToastCard = function ({
         {description && (
           <p className="text-sm leading-5 text-gray-400">{description}</p>
         )}
+        {action}
       </div>
       <button
         aria-label={t("common.close-notification")}
@@ -78,10 +86,17 @@ export const Toaster = ({ autoCloseMs, onClose, toasts }: ToasterProps) => (
   />
 );
 
-export const Toast = ({ description, onClose, title, variant }: ToastProps) => (
+export const Toast = ({
+  action,
+  autoCloseMs = autoCloseDelayMs,
+  description,
+  onClose,
+  title,
+  variant,
+}: ToastProps) => (
   <Toaster
-    autoCloseMs={autoCloseDelayMs}
+    autoCloseMs={autoCloseMs}
     onClose={onClose}
-    toasts={[{ description, id: "toast", title, variant }]}
+    toasts={[{ action, description, id: "toast", title, variant }]}
   />
 );

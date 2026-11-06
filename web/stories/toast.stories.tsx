@@ -1,8 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { useCallback, useRef, useState } from "react";
+import { MemoryRouter, Route, Routes } from "react-router";
 import { fn } from "storybook/test";
 
 import { Button } from "../src/components/base/button";
+import { I18nLink } from "../src/components/base/i18nLink";
 import { Toast, type ToastData, Toaster } from "../src/components/base/toast";
 
 const meta: Meta<typeof Toast> = {
@@ -30,6 +32,31 @@ export const TitleOnly: Story = {
   args: {
     title: "Stake deposit confirmed",
   },
+};
+
+export const WithAction: Story = {
+  args: {
+    action: (
+      <I18nLink
+        className="text-sm leading-5 font-medium text-blue-400 hover:text-blue-300"
+        to="/vevetro"
+      >
+        See your positions
+      </I18nLink>
+    ),
+    autoCloseMs: 15_000,
+    description: "Your $V is now in a veVETRO position.",
+    title: "Claim confirmed",
+  },
+  decorators: [
+    (StoryComponent) => (
+      <MemoryRouter initialEntries={["/en/vevetro/claim"]}>
+        <Routes>
+          <Route element={<StoryComponent />} path="/:lang/*" />
+        </Routes>
+      </MemoryRouter>
+    ),
+  ],
 };
 
 export const Error: Story = {

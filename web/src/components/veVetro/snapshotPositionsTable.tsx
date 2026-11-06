@@ -19,11 +19,7 @@ import { hemiToken, veVetroContracts, vToken } from "utils/veVetro";
 import { useAccount } from "wagmi";
 
 import { ClaimVeVetro } from "./claimVeVetro";
-import {
-  DisconnectedState,
-  EmptyState,
-  ErrorState,
-} from "./snapshotPositionsStates";
+import { DisconnectedState, EmptyState, ErrorState } from "./tableStates";
 import { VAmountContainer } from "./vAmountContainer";
 
 type Position = Awaited<
@@ -161,12 +157,30 @@ export function SnapshotPositionsTable() {
 
   function getPlaceholder() {
     if (!address) {
-      return <DisconnectedState />;
+      return (
+        <DisconnectedState
+          description={t(
+            "pages.ve-vetro.claim.positions.disconnected-description",
+          )}
+          title={t("pages.ve-vetro.claim.positions.disconnected-title")}
+        />
+      );
     }
     if (isError) {
-      return <ErrorState onRetry={() => refetch()} />;
+      return (
+        <ErrorState
+          description={t("pages.ve-vetro.claim.positions.error-description")}
+          onRetry={() => refetch()}
+          title={t("pages.ve-vetro.claim.positions.error-title")}
+        />
+      );
     }
-    return <EmptyState />;
+    return (
+      <EmptyState
+        description={t("pages.ve-vetro.claim.positions.empty-description")}
+        title={t("pages.ve-vetro.claim.positions.empty-title")}
+      />
+    );
   }
 
   return (

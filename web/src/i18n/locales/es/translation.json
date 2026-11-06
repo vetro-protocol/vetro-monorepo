@@ -719,9 +719,25 @@
         },
         "title": "Reclame sus ${{symbol}}",
         "toast-description": "Su ${{symbol}} ahora está en una posición veVETRO.",
+        "toast-see-positions": "Ver sus posiciones",
         "toast-title": "Reclamo confirmado",
         "view-progress": "Ver progreso"
-      }
+      },
+      "positions": {
+        "claim-button": "Reclamar ${{symbol}}",
+        "col-position": "Posición",
+        "col-unlock-date": "Fecha de desbloqueo",
+        "disconnected-description": "Conecte su billetera para ver sus posiciones de veVETRO.",
+        "disconnected-title": "Billetera no conectada",
+        "empty-description": "Esta billetera no tiene posiciones de veVETRO.",
+        "empty-title": "No hay posiciones de veVETRO",
+        "error-description": "No pudimos leer sus posiciones de veVETRO.",
+        "error-title": "Posiciones no disponibles",
+        "position-id": "veVETRO #{{id}}",
+        "title": "Sus posiciones de veVETRO",
+        "unlock-date": "{{date}} UTC"
+      },
+      "title": "veVETRO"
     },
     "wallet": {
       "activity-empty-description-filtered": "Intente ajustar sus filtros.",

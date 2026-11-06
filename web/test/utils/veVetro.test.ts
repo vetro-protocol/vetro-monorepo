@@ -1,15 +1,17 @@
 import { minClaimAmount } from "@vetro-protocol/ve-vetro";
+import type { Log, TransactionReceipt } from "viem";
 import { describe, expect, it } from "vitest";
 
-import { getClaimBlocker } from "../../src/utils/veVetro";
+import {
+  addClaimedPositions,
+  getClaimBlocker,
+  getClaimedPositions,
+} from "../../src/utils/veVetro";
 
 const claimable = {
   amount: minClaimAmount,
   hasClaimEnded: false,
-  isAmountError: false,
-  isClaimEndError: false,
   isClaimOpen: true,
-  isClaimOpenError: false,
 };
 
 describe("getClaimBlocker", function () {
@@ -52,31 +54,75 @@ describe("getClaimBlocker", function () {
       getClaimBlocker({ ...claimable, amount: 0n, isClaimOpen: false }),
     ).toBe("not-open");
   });
+});
 
-  it.each([
-    ["amount", { amount: undefined, isAmountError: true }],
-    ["claim end", { hasClaimEnded: undefined, isClaimEndError: true }],
-    ["claim open status", { isClaimOpen: undefined, isClaimOpenError: true }],
-  ])("returns load-error when the %s failed to load", function (_, partial) {
-    expect(getClaimBlocker({ ...claimable, ...partial })).toBe("load-error");
+// The veVETRO Deposit log of a Hemi Sepolia claim, which minted position 1.
+const depositLog: Log = {
+  address: "0xc0a49f097dbee078cf1ee55baef7d7bdb73f9715",
+  blockHash: null,
+  blockNumber: null,
+  data: "0x000000000000000000000000000000000000000000000023c757072b8e73482e000000000000000000000000000000000000000000000000000000006bb7a960000000000000000000000000000000000000000000000000000000006aec94c8",
+  logIndex: null,
+  removed: false,
+  topics: [
+    "0x7162984403f6c73c8639375d45a9187dfd04602231bd8e587c415718b5f7e5f9",
+    "0x000000000000000000000000f55b1c52d4b2a942e531c4f4d960f946d4c307dc",
+    "0x0000000000000000000000000000000000000000000000000000000000000001",
+  ],
+  transactionHash: null,
+  transactionIndex: null,
+};
+
+const toReceipt = (logs: Log[]) => ({ logs }) as TransactionReceipt;
+
+describe("getClaimedPositions", function () {
+  it("reads the position from the veVETRO Deposit log", function () {
+    // getLockedBalance(1) on the veVETRO contract returns this amount and end.
+    expect(getClaimedPositions(toReceipt([depositLog]))).toEqual([
+      {
+        amount: 660000000000010700846n,
+        tokenId: 1n,
+        unlockTime: 1807198560,
+      },
+    ]);
   });
 
-  it("ignores a load error when the values are already known", function () {
+  it("ignores Deposit logs of other contracts", function () {
+    const otherLog: Log = {
+      ...depositLog,
+      address: "0x0000000000000000000000000000000000000001",
+    };
+    expect(getClaimedPositions(toReceipt([otherLog]))).toEqual([]);
+  });
+});
+
+describe("addClaimedPositions", function () {
+  const existing = { amount: 5n, tokenId: 1n, unlockTime: 100 };
+
+  it("puts a new position first", function () {
+    const claimed = { amount: 7n, tokenId: 2n, unlockTime: 200 };
     expect(
-      getClaimBlocker({
-        ...claimable,
-        isAmountError: true,
-        isClaimEndError: true,
-        isClaimOpenError: true,
+      addClaimedPositions({
+        claimedPositions: [claimed],
+        positions: [existing],
       }),
-    ).toBeUndefined();
+    ).toEqual([claimed, existing]);
   });
 
-  it.each([
-    ["amount", { amount: undefined }],
-    ["claim end", { hasClaimEnded: undefined }],
-    ["claim open status", { isClaimOpen: undefined }],
-  ])("returns loading while the %s is loading", function (_, partial) {
-    expect(getClaimBlocker({ ...claimable, ...partial })).toBe("loading");
+  it("keeps a position the list already has", function () {
+    const claimed = { ...existing };
+    expect(
+      addClaimedPositions({
+        claimedPositions: [claimed],
+        positions: [existing],
+      }),
+    ).toEqual([existing]);
+  });
+
+  it("starts from an empty list when the list is not cached", function () {
+    const claimed = { amount: 7n, tokenId: 2n, unlockTime: 200 };
+    expect(
+      addClaimedPositions({ claimedPositions: [claimed], positions: [] }),
+    ).toEqual([claimed]);
   });
 });
