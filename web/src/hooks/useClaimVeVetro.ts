@@ -4,6 +4,7 @@ import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpd
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { claim } from "@vetro-protocol/ve-vetro/actions";
 import type { fetchVeVetroClaimableSubset } from "fetchers/fetchVeVetroClaimableSubset";
+import type { fetchVeVetroPositions } from "fetchers/fetchVeVetroPositions";
 import type { fetchVeVetroSnapshotPositions } from "fetchers/fetchVeVetroSnapshotPositions";
 import { useHemiClient } from "hooks/useHemiClient";
 import {
@@ -12,9 +13,15 @@ import {
 } from "hooks/useVeVetroClaimableSubset";
 import { veVetroConfigOptions } from "hooks/useVeVetroConfig";
 import { veVetroEip712DomainOptions } from "hooks/useVeVetroEip712Domain";
+import { veVetroPositionsQueryKey } from "hooks/useVeVetroPositions";
 import { veVetroSnapshotPositionsQueryKey } from "hooks/useVeVetroSnapshotPositions";
 import { veVetroChain } from "networks";
-import { veVetroContracts, veVetroTerms } from "utils/veVetro";
+import {
+  addClaimedPositions,
+  getClaimedPositions,
+  veVetroContracts,
+  veVetroTerms,
+} from "utils/veVetro";
 import { signTypedData } from "viem/actions";
 import { useAccount, useWalletClient } from "wagmi";
 
@@ -23,6 +30,8 @@ type ClaimableSubset = Awaited<ReturnType<typeof fetchVeVetroClaimableSubset>>;
 type SnapshotPositions = Awaited<
   ReturnType<typeof fetchVeVetroSnapshotPositions>
 >;
+
+type VeVetroPositions = Awaited<ReturnType<typeof fetchVeVetroPositions>>;
 
 const termsAcceptanceTypes = {
   TermsAcceptance: [
@@ -116,6 +125,14 @@ export function useClaimVeVetro({ onClaimStart }: Params = {}) {
         queryClient.setQueryData<ClaimableSubset>(
           veVetroClaimableSubsetQueryKey(account),
           (old) => old && { amount: 0n, ids: [] },
+        );
+        queryClient.setQueryData<VeVetroPositions>(
+          veVetroPositionsQueryKey(account),
+          (old) =>
+            addClaimedPositions({
+              claimedPositions: getClaimedPositions(receipt),
+              positions: old ?? [],
+            }),
         );
         queryClient.setQueryData<SnapshotPositions>(
           veVetroSnapshotPositionsQueryKey(account),

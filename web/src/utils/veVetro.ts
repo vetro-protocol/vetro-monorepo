@@ -5,6 +5,12 @@ import {
 } from "@vetro-protocol/ve-vetro";
 import { hemi, hemiSepolia } from "hemi-viem";
 import { veVetroChain } from "networks";
+import {
+  isAddressEqual,
+  parseAbiItem,
+  parseEventLogs,
+  type TransactionReceipt,
+} from "viem";
 import { mainnet } from "viem/chains";
 
 export const hemiToken = knownTokens.find(
@@ -12,6 +18,12 @@ export const hemiToken = knownTokens.find(
 )!;
 
 export const veVetroContracts = veVetroContractsByChain[veVetroChain.id];
+
+export const veVetroToken = knownTokens.find(
+  (token) =>
+    token.chainId === veVetroChain.id &&
+    isAddressEqual(token.address, veVetroContracts.veVetro),
+);
 
 // The terms must hash to the distributor's `config().termsHash`, or the claim
 // reverts with `InvalidTermsSignature`.
@@ -35,9 +47,17 @@ export const vToken =
         (token) => token.chainId === mainnet.id && token.symbol === "V",
       )!;
 
-function getAmountBlocker(amount: bigint | undefined) {
-  if (amount === undefined) {
-    return "loading";
+export function getClaimBlocker({
+  amount,
+  hasClaimEnded,
+  isClaimOpen,
+}: {
+  amount: bigint;
+  hasClaimEnded: boolean;
+  isClaimOpen: boolean;
+}) {
+  if (!isClaimOpen || hasClaimEnded) {
+    return "not-open";
   }
   if (amount === 0n) {
     return "nothing-to-claim";
@@ -48,38 +68,39 @@ function getAmountBlocker(amount: bigint | undefined) {
   return undefined;
 }
 
-export function getClaimBlocker({
-  amount,
-  hasClaimEnded,
-  isAmountError,
-  isClaimEndError,
-  isClaimOpen,
-  isClaimOpenError,
+type VeVetroPosition = {
+  amount: bigint;
+  tokenId: bigint;
+  unlockTime: number;
+};
+
+const depositEvent = parseAbiItem(
+  "event Deposit(address indexed provider, uint256 indexed tokenId, uint256 amount, uint256 lockTime, uint256 timestamp)",
+);
+
+// veVETRO's Deposit has the absolute lock end in `lockTime`.
+export const getClaimedPositions = (receipt: TransactionReceipt) =>
+  parseEventLogs({ abi: [depositEvent], logs: receipt.logs })
+    .filter(({ address }) => isAddressEqual(address, veVetroContracts.veVetro))
+    .map(({ args }) => ({
+      amount: args.amount,
+      tokenId: args.tokenId,
+      unlockTime: Number(args.lockTime),
+    }));
+
+// A claim always mints a new position. The list can already have it when a
+// refetch got the indexed claim before the receipt.
+export const addClaimedPositions = ({
+  claimedPositions,
+  positions,
 }: {
-  amount: bigint | undefined;
-  hasClaimEnded: boolean | undefined;
-  isAmountError: boolean;
-  isClaimEndError: boolean;
-  isClaimOpen: boolean | undefined;
-  isClaimOpenError: boolean;
-}) {
-  if (isClaimOpen === false || hasClaimEnded === true) {
-    return "not-open";
-  }
-  const hasLoadError = [
-    { data: amount, isError: isAmountError },
-    { data: hasClaimEnded, isError: isClaimEndError },
-    { data: isClaimOpen, isError: isClaimOpenError },
-  ].some(({ data, isError }) => data === undefined && isError);
-  if (hasLoadError) {
-    return "load-error";
-  }
-  const amountBlocker = getAmountBlocker(amount);
-  if (amountBlocker) {
-    return amountBlocker;
-  }
-  if (hasClaimEnded === undefined || isClaimOpen === undefined) {
-    return "loading";
-  }
-  return undefined;
-}
+  claimedPositions: VeVetroPosition[];
+  positions: VeVetroPosition[];
+}) =>
+  claimedPositions.reduce(
+    (result, claimed) =>
+      result.some(({ tokenId }) => tokenId === claimed.tokenId)
+        ? result
+        : [claimed, ...result],
+    positions,
+  );

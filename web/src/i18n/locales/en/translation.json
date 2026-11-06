@@ -711,9 +711,25 @@
         },
         "title": "Claim your ${{symbol}}",
         "toast-description": "Your ${{symbol}} is now in a veVETRO position.",
+        "toast-see-positions": "See your positions",
         "toast-title": "Claim confirmed",
         "view-progress": "View progress"
-      }
+      },
+      "positions": {
+        "claim-button": "Claim ${{symbol}}",
+        "col-position": "Position",
+        "col-unlock-date": "Unlock date",
+        "disconnected-description": "Connect your wallet to see your veVETRO positions.",
+        "disconnected-title": "No wallet connected",
+        "empty-description": "This wallet has no veVETRO positions.",
+        "empty-title": "No veVETRO positions",
+        "error-description": "We could not read your veVETRO positions.",
+        "error-title": "Positions not available",
+        "position-id": "veVETRO #{{id}}",
+        "title": "Your veVETRO positions",
+        "unlock-date": "{{date}} UTC"
+      },
+      "title": "veVETRO"
     },
     "wallet": {
       "activity-empty-description-filtered": "Try adjusting your filters.",

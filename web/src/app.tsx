@@ -19,6 +19,7 @@ import { Liquidity } from "pages/liquidity";
 import { NotFound } from "pages/notFound";
 import { Swap } from "pages/swap";
 import { VeVetro } from "pages/veVetro";
+import { VeVetroClaim } from "pages/veVetroClaim";
 import { Suspense, lazy } from "react";
 import {
   BrowserRouter,
@@ -127,7 +128,10 @@ function LanguageRoutes() {
             <Route element={<Faq />} path="faq" />
             <Route element={<Contact />} path="contact" />
             {featureFlags.veVetro && (
-              <Route element={<VeVetro />} path="vevetro" />
+              <>
+                <Route element={<VeVetro />} path="vevetro" />
+                <Route element={<VeVetroClaim />} path="vevetro/claim" />
+              </>
             )}
           </Route>
           <Route
