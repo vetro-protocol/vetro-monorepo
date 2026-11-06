@@ -16,6 +16,9 @@ function getConnectedDecision({
   isPositionsError: boolean;
   positions: unknown[] | undefined;
 }) {
+  if (positions !== undefined && positions.length > 0) {
+    return "list";
+  }
   if (
     claimBlocker === "load-error" ||
     (positions === undefined && isPositionsError)
@@ -25,9 +28,7 @@ function getConnectedDecision({
   if (positions === undefined || claimBlocker === "loading") {
     return "loading";
   }
-  return claimBlocker === undefined && positions.length === 0
-    ? "claim"
-    : "list";
+  return claimBlocker === undefined ? "claim" : "list";
 }
 
 function useLandingDecision() {
