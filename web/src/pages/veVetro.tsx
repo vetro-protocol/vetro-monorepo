@@ -28,7 +28,7 @@ function getConnectedDecision({
   if (positions === undefined || claimBlocker === "loading") {
     return "loading";
   }
-  return claimBlocker === undefined ? "claim" : "list";
+  return claimBlocker === "nothing-to-claim" ? "list" : "claim";
 }
 
 function useLandingDecision() {
