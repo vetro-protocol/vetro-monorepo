@@ -83,7 +83,7 @@
         "PORTAL_API_URL": "https://portal-api.hemi.xyz",
         "SUBGRAPH_ID": "7vnTMFYNE6Nv7RTeoaog4QgqQ3bwZTFoPUGv2gcmTxJ6",
         "TURNSTILE_SECRET_KEY": "1x0000000000000000000000000000000AA",
-        // TODO: set VE_VETRO_SUBGRAPH_ID once the veVETRO subgraph is deployed.
+        "VE_VETRO_SUBGRAPH_ID": "2ktb3ZmGb5rYZV9tkfqBvjuSkcN6wgAzb3hR416sEjvo",
         "WEBSITE_URL": "https://vetro.letshamsterdance.xyz/",
       },
       "send_email": [{ "name": "SEND_EMAIL" }],
