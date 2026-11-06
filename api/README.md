@@ -53,7 +53,7 @@ Get the staked total for a given gateway's pegged token: the amount deposited in
 
 ### `GET /analytics/treasury/:gatewayAddress`
 
-Get the composition of the treasury by whitelisted token for a given gateway. Each item of `activeStrategies` has the strategy `address`, its `name`, its `totalDebt`, its `apy` (a percentage), and its `source` (the protocol position that it holds). The `apy` is the current native APY that the protocol of the strategy reports, plus the live APR of its incentives (Merkl campaigns and StakeDAO rewards). The `apy` is omitted when one of its sources fails, and the `source` is omitted when it is not known. Cached for 5 minutes.
+Get the composition of the treasury by whitelisted token for a given gateway. Each item of `activeStrategies` has the strategy `address`, its `name`, its `totalDebt`, its `apy` (a percentage), and its `source` (the protocol position that it holds). The `apy` is the current native APY that the protocol of the strategy reports, plus the live APR of its incentives (Merkl campaigns and StakeDAO rewards). The `apy` is omitted when one of its sources fails, and the `source` is omitted when it is not known. Each token also has the oracle price data: `latestPrice` (with its `priceDecimals`) and `updatedAt`, the timestamp in seconds of its last update, plus `stalePeriod`, the seconds after which the Treasury considers the price stale. The price is returned as is: this endpoint does not check whether it is stale, not positive or off par. `tokenDecimals` are the decimals of the token. Cached for 5 minutes.
 `:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway.
 
 #### Sample Response
@@ -75,8 +75,11 @@ Get the composition of the treasury by whitelisted token for a given gateway. Ea
     ],
     "latestPrice": "99987053",
     "priceDecimals": 8,
+    "stalePeriod": "90000",
     "tokenAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+    "tokenDecimals": 6,
     "totalDebt": "4021526891",
+    "updatedAt": "1762380011",
     "withdrawable": "4032465582"
   },
   {
@@ -94,8 +97,11 @@ Get the composition of the treasury by whitelisted token for a given gateway. Ea
     ],
     "latestPrice": "99991000",
     "priceDecimals": 8,
+    "stalePeriod": "90000",
     "tokenAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+    "tokenDecimals": 6,
     "totalDebt": "234771834",
+    "updatedAt": "1762380011",
     "withdrawable": "260862058"
   }
 ]
@@ -552,6 +558,36 @@ Valid periods are: `"1w"`, `"1m"`, `"3m"` and `"1y"`.
   { "apy": 9.95, "timestamp": 1707868800000 },
   // ...more records...
 ]
+```
+
+### `GET /variable-stake/composition/:stakingVaultAddress`
+
+Returns the composition of a staking vault's deposits, ready to display. The vault holds only the pegged token, which is a claim on the pooled Treasury (collateral isn't earmarked per holder), so its composition is the Treasury's, pro rata. Each item is one active strategy (its `totalDebt`) or the idle reserve of one whitelisted token (`withdrawable − totalDebt`). Items are valued like `Treasury.reserve()` does (oracle price capped at par, in pegged-token units). `share = value ÷ Σ item values` and `amount = share × total`; the rounding remainder goes to the largest item. The strategic reserves and the surplus are excluded, as they are the pegged token itself. Items with a zero amount are omitted, and the rest are sorted by `amount`, descending. The Treasury data is the one `GET /analytics/treasury` serves, warmed by a cron job and shared with it, so this endpoint does not read each strategy or oracle itself. Only `total` (the vault's `totalAssets`) is read live. Prices are checked when the request arrives, not when the data was warmed: the request fails with an error if the price of any whitelisted token is not positive, or if it was last updated more than its `stalePeriod` ago. A price that is off par does not fail it; it is valued at its price, capped at par. Cached for 1 minute.
+`:stakingVaultAddress` must be a known staking vault. Returns `400` if malformed and `404` if the address is not a known staking vault. Fails with an error when a price is stale or not positive, as described above.
+`total` is the vault's ERC4626 `totalAssets`, and the `amount` of the items add up exactly to it. Both are raw `uint256` amounts in the pegged token's base units (not pre-scaled). `share` is a fraction of `total` (e.g. `0.31` means 31%). `token` is the checksummed address of the whitelisted token the item comes from. `type` is `"strategy"` or `"reserve"`; `name` is only present on `strategy` items, so clients translate the label of `reserve` items. Clients can group by summing `amount` and `share`, either by `token` or by merging the `reserve` items with the strategies.
+
+#### Sample Response
+
+```jsonc
+{
+  "items": [
+    {
+      "amount": "3100000000000000000000000",
+      "name": "Morpho AlphaPing USDC Core",
+      "share": 0.31,
+      "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      "type": "strategy",
+    },
+    {
+      "amount": "200000000000000000000000",
+      "share": 0.02,
+      "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      "type": "reserve",
+    },
+    // ...more items...
+  ],
+  "total": "10000000000000000000000000",
+}
 ```
 
 ### `GET /variable-stake/share-value-history/:stakingVaultAddress/:period`

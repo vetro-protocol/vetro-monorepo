@@ -50,6 +50,7 @@ import {
 } from "./utils/promises.ts";
 import { createOriginFn, parseOrigins } from "./validate-origin.ts";
 import * as variableStake from "./variable-stake.ts";
+import { getVaultComposition } from "./vault-composition.ts";
 import { validPeriods as vaultHistoryValidPeriods } from "./vault-history-period.ts";
 import { getVeVetro } from "./ve-vetro.ts";
 import { readWarmedTask, warmScheduled } from "./warm-cache.ts";
@@ -451,6 +452,27 @@ app.get(
     } catch (error) {
       console.log(error.stack);
       throw new Error(`Failed to get exit queue data: ${error.message}`);
+    }
+  },
+);
+
+app.get(
+  "/variable-stake/composition/:stakingVaultAddress",
+  validateStakingVaultAddress,
+  cache({
+    cacheControl: "max-age=60",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const stakingVaultAddress = c.get("stakingVaultAddress");
+      const data = await getVaultComposition({
+        c,
+        stakingVaultAddress,
+      });
+      return c.json(convertBigIntsToString(data));
+    } catch (error) {
+      throw new Error(`Failed to get vault composition: ${error.message}`);
     }
   },
 );
