@@ -5,7 +5,7 @@ import { Toast } from "../../src/components/base/toast";
 
 import { endTransition } from "./transitions";
 
-const autoCloseMs = 100;
+const autoCloseMs = 300;
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Without Tailwind there is no CSS transition, so the exit is finished manually
@@ -57,5 +57,26 @@ describe("Toast", function () {
 
     expect(onClose).not.toHaveBeenCalled();
     await expect.element(replacement).toBeInTheDocument();
+  });
+
+  it("auto-closes the replacement when focus was in the replaced toast", async function () {
+    const onClose = vi.fn();
+    const screen = await render(
+      <Toast autoCloseMs={autoCloseMs} onClose={onClose} title="First" />,
+    );
+
+    (
+      screen
+        .getByRole("button", { name: "Close notification" })
+        .element() as HTMLElement
+    ).focus();
+    await screen.rerender(
+      <Toast autoCloseMs={autoCloseMs} onClose={onClose} title="Second" />,
+    );
+    const second = screen.getByText("Second");
+    await wait(autoCloseMs * 2);
+    finishExit(second.element() as HTMLElement);
+
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });
