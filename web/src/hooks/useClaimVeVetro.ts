@@ -1,29 +1,37 @@
 import { useEnsureConnectedTo } from "@hemilabs/react-hooks/useEnsureConnectedTo";
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
+import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpdateNativeBalanceAfterReceipt";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { claim } from "@vetro-protocol/ve-vetro/actions";
+import type { fetchVeVetroClaimableSubset } from "fetchers/fetchVeVetroClaimableSubset";
+import type { fetchVeVetroPositions } from "fetchers/fetchVeVetroPositions";
+import type { fetchVeVetroSnapshotPositions } from "fetchers/fetchVeVetroSnapshotPositions";
+import { useHemiClient } from "hooks/useHemiClient";
 import {
   veVetroClaimableSubsetOptions,
   veVetroClaimableSubsetQueryKey,
 } from "hooks/useVeVetroClaimableSubset";
 import { veVetroConfigOptions } from "hooks/useVeVetroConfig";
 import { veVetroEip712DomainOptions } from "hooks/useVeVetroEip712Domain";
+import { veVetroPositionsQueryKey } from "hooks/useVeVetroPositions";
 import { veVetroSnapshotPositionsQueryKey } from "hooks/useVeVetroSnapshotPositions";
-import { veVetroChain, veVetroTerms } from "utils/veVetro";
-import type { Address, Hex } from "viem";
+import { veVetroChain } from "networks";
+import {
+  addClaimedPositions,
+  getClaimedPositions,
+  veVetroContracts,
+  veVetroTerms,
+} from "utils/veVetro";
 import { signTypedData } from "viem/actions";
 import { useAccount, useWalletClient } from "wagmi";
 
-// Placeholder until the ve-vetro package has the `claim` write action. Replace
-// with `claim(walletClient, { address: veVetroDistributorAddress, recipient, termsSignature, tokenIds })`
-// from `@vetro-protocol/ve-vetro/actions`.
-const claim = (params: {
-  recipient: Address;
-  termsSignature: Hex;
-  tokenIds: bigint[];
-}) =>
-  new Promise<typeof params>((resolve) =>
-    setTimeout(() => resolve(params), 3000),
-  );
+type ClaimableSubset = Awaited<ReturnType<typeof fetchVeVetroClaimableSubset>>;
+
+type SnapshotPositions = Awaited<
+  ReturnType<typeof fetchVeVetroSnapshotPositions>
+>;
+
+type VeVetroPositions = Awaited<ReturnType<typeof fetchVeVetroPositions>>;
 
 const termsAcceptanceTypes = {
   TermsAcceptance: [
@@ -39,10 +47,17 @@ type Params = {
 
 export function useClaimVeVetro({ onClaimStart }: Params = {}) {
   const { address: account } = useAccount();
-  const { data: walletClient } = useWalletClient({ chainId: veVetroChain.id });
+  const client = useHemiClient();
+  const { data: walletClient } = useWalletClient({
+    assertChainId: false,
+    chainId: veVetroChain.id,
+  });
   const ensureConnectedTo = useEnsureConnectedTo();
   const queryClient = useQueryClient();
   const { queryKey: nativeBalanceKey } = useNativeBalance(veVetroChain.id);
+  const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
+    veVetroChain.id,
+  );
 
   return useMutation({
     async mutationFn() {
@@ -52,18 +67,21 @@ export function useClaimVeVetro({ onClaimStart }: Params = {}) {
       if (!walletClient) {
         throw new Error("No wallet client available");
       }
+      if (!client) {
+        throw new Error("No public client available");
+      }
 
       const { requireTermsSignature } = await queryClient.ensureQueryData(
-        veVetroConfigOptions(),
+        veVetroConfigOptions(client),
       );
 
       await ensureConnectedTo(veVetroChain.id);
 
-      const termsSignature = requireTermsSignature
+      const signature = requireTermsSignature
         ? await signTypedData(walletClient, {
             account,
             domain: await queryClient.ensureQueryData(
-              veVetroEip712DomainOptions(),
+              veVetroEip712DomainOptions(client),
             ),
             message: {
               claimant: account,
@@ -73,16 +91,65 @@ export function useClaimVeVetro({ onClaimStart }: Params = {}) {
             primaryType: "TermsAcceptance",
             types: termsAcceptanceTypes,
           })
-        : "0x";
+        : undefined;
 
       onClaimStart?.();
 
       const { ids: tokenIds } = await queryClient.fetchQuery({
-        ...veVetroClaimableSubsetOptions(account),
+        ...veVetroClaimableSubsetOptions({ account, client }),
         staleTime: 0,
       });
 
-      return claim({ recipient: account, termsSignature, tokenIds });
+      const { emitter, promise } = claim(walletClient, {
+        address: veVetroContracts.distributor,
+        recipient: account,
+        signature,
+        tokenIds,
+      });
+
+      let failed = false;
+      const markFailed = function () {
+        failed = true;
+      };
+
+      emitter.on("claim-failed", markFailed);
+      emitter.on("claim-failed-validation", markFailed);
+      emitter.on("unexpected-error", markFailed);
+      emitter.on("user-signing-claim-error", markFailed);
+      emitter.on("claim-transaction-reverted", function (receipt) {
+        updateNativeBalanceAfterReceipt(receipt);
+        markFailed();
+      });
+      emitter.on("claim-transaction-succeeded", function (receipt) {
+        updateNativeBalanceAfterReceipt(receipt);
+        queryClient.setQueryData<ClaimableSubset>(
+          veVetroClaimableSubsetQueryKey(account),
+          (old) => old && { amount: 0n, ids: [] },
+        );
+        queryClient.setQueryData<VeVetroPositions>(
+          veVetroPositionsQueryKey(account),
+          (old) =>
+            addClaimedPositions({
+              claimedPositions: getClaimedPositions(receipt),
+              positions: old ?? [],
+            }),
+        );
+        queryClient.setQueryData<SnapshotPositions>(
+          veVetroSnapshotPositionsQueryKey(account),
+          (old) =>
+            old?.map((position) =>
+              tokenIds.includes(position.tokenId)
+                ? { ...position, claimed: true }
+                : position,
+            ),
+        );
+      });
+
+      await promise;
+
+      if (failed) {
+        throw new Error("veVETRO claim failed");
+      }
     },
     onSettled() {
       queryClient.invalidateQueries({ queryKey: nativeBalanceKey });

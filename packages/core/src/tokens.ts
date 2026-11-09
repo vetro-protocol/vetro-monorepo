@@ -1,4 +1,12 @@
-import { arbitrum, base, bsc, hemi, mainnet, optimism } from "viem/chains";
+import {
+  arbitrum,
+  base,
+  bsc,
+  hemi,
+  hemiSepolia,
+  mainnet,
+  optimism,
+} from "viem/chains";
 
 import { sVetBtcAddress, sVusdAddress } from "./stakingVaultAddresses.ts";
 import type { Token } from "./types.ts";
@@ -433,8 +441,7 @@ export const knownTokens: Token[] = [
     extensions: {
       allowanceSlot: 1n,
     },
-    // TODO update url once logos are added - see https://github.com/hemilabs/token-list/issues/129
-    logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetrousd.svg",
+    logoURI: "https://hemilabs.github.io/token-list/logos/v.svg",
     name: "Vetro",
     symbol: "V",
   },
@@ -477,5 +484,21 @@ export const knownTokens: Token[] = [
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/weth.svg",
     name: "Wrapped Ether",
     symbol: "WETH",
+  },
+  {
+    address: "0x247e74A71E59374f2C95589A58F2a748055696Bc",
+    chainId: hemiSepolia.id,
+    decimals: 18,
+    logoURI: "https://hemilabs.github.io/token-list/logos/v.svg",
+    name: "TEST",
+    symbol: "TT",
+  },
+  {
+    address: "0xC0A49F097DBeE078cf1ee55BaEF7D7Bdb73f9715",
+    chainId: hemiSepolia.id,
+    decimals: 18,
+    logoURI: "https://hemilabs.github.io/token-list/logos/vevetro.svg",
+    name: "veTEST",
+    symbol: "veTEST",
   },
 ];

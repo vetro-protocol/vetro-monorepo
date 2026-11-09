@@ -1,11 +1,18 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import { fetchVeVetroIsClaimOpen } from "fetchers/fetchVeVetroIsClaimOpen";
+import { isClaimOpen } from "@vetro-protocol/ve-vetro/actions";
+import { useHemiClient } from "hooks/useHemiClient";
+import { veVetroContracts } from "utils/veVetro";
+import type { Client } from "viem";
 
-const veVetroIsClaimOpenOptions = () =>
+const veVetroIsClaimOpenOptions = (client: Client | undefined) =>
   queryOptions({
-    queryFn: fetchVeVetroIsClaimOpen,
+    enabled: !!client,
+    queryFn: () =>
+      isClaimOpen(client!, { address: veVetroContracts.distributor }),
     queryKey: ["ve-vetro-is-claim-open"],
   });
 
-export const useVeVetroIsClaimOpen = () =>
-  useQuery(veVetroIsClaimOpenOptions());
+export function useVeVetroIsClaimOpen() {
+  const client = useHemiClient();
+  return useQuery(veVetroIsClaimOpenOptions(client));
+}

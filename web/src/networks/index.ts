@@ -1,7 +1,12 @@
+import { hemi, hemiSepolia } from "hemi-viem";
 import type { Chain } from "viem";
-import { arbitrum, base, bsc, hemi, hemiSepolia, optimism } from "viem/chains";
+import { arbitrum, base, bsc, optimism } from "viem/chains";
 
 import { mainnet } from "./mainnet";
+
+const isProduction = import.meta.env.VITE_DEPLOY_ENV === "production";
+
+export const veVetroChain = isProduction ? hemi : hemiSepolia;
 
 export const allChains = [
   mainnet,
@@ -10,8 +15,7 @@ export const allChains = [
   base,
   optimism,
   bsc,
-  // TODO: remove when the veVETRO claim uses Hemi instead of Hemi Sepolia.
-  hemiSepolia,
+  ...(isProduction ? [] : [hemiSepolia]),
 ] as const;
 
 export const getChainById = function (chainId: Chain["id"]) {

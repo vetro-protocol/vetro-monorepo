@@ -1,8 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
+import { useHemiClient } from "hooks/useHemiClient";
 import { veVetroConfigOptions } from "hooks/useVeVetroConfig";
 
-export const useVeVetroSnapshotTimestamp = () =>
-  useQuery({
-    ...veVetroConfigOptions(),
+export function useVeVetroSnapshotTimestamp() {
+  const client = useHemiClient();
+  return useQuery({
+    ...veVetroConfigOptions(client),
     select: ({ snapshotTimestamp }) => snapshotTimestamp,
   });
+}

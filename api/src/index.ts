@@ -1,5 +1,5 @@
 import * as Sentry from "@sentry/cloudflare";
-import { restrictedCountries } from "@vetro-protocol/core";
+import { restrictedCountries, sanctionedCountries } from "@vetro-protocol/core";
 import { sVetBtcAddress, sVusdAddress } from "@vetro-protocol/earn";
 import { type Context, Hono, type Next } from "hono";
 import { bodyLimit } from "hono/body-limit";
@@ -10,7 +10,7 @@ import { type Address, checksumAddress } from "viem";
 import { getApyHistory } from "./apy-history.ts";
 import * as borrow from "./borrow.ts";
 import {
-  buildAttachments,
+  maxRequestBytes,
   sendContactConfirmation,
   sendContactEmail,
   validateContactForm,
@@ -50,6 +50,7 @@ import {
 } from "./utils/promises.ts";
 import { createOriginFn, parseOrigins } from "./validate-origin.ts";
 import * as variableStake from "./variable-stake.ts";
+import { getVaultComposition } from "./vault-composition.ts";
 import { validPeriods as vaultHistoryValidPeriods } from "./vault-history-period.ts";
 import { getVeVetro } from "./ve-vetro.ts";
 import { readWarmedTask, warmScheduled } from "./warm-cache.ts";
@@ -365,8 +366,8 @@ app.get(
   },
 );
 
-app.get("/restricted-countries", (c) =>
-  c.json({ countries: restrictedCountries }),
+app.get("/restrictions", (c) =>
+  c.json({ restrictedCountries, sanctionedCountries }),
 );
 
 app.get(
@@ -451,6 +452,27 @@ app.get(
     } catch (error) {
       console.log(error.stack);
       throw new Error(`Failed to get exit queue data: ${error.message}`);
+    }
+  },
+);
+
+app.get(
+  "/variable-stake/composition/:stakingVaultAddress",
+  validateStakingVaultAddress,
+  cache({
+    cacheControl: "max-age=60",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const stakingVaultAddress = c.get("stakingVaultAddress");
+      const data = await getVaultComposition({
+        c,
+        stakingVaultAddress,
+      });
+      return c.json(convertBigIntsToString(data));
+    } catch (error) {
+      throw new Error(`Failed to get vault composition: ${error.message}`);
     }
   },
 );
@@ -634,26 +656,32 @@ app.post(
   },
 );
 
-app.post("/contact", validateContactForm, verifyTurnstile, async function (c) {
-  const { category, email, files, message } = c.get("contactForm");
-  // Read files only now that the captcha has passed (verifyTurnstile ran).
-  const attachments = await buildAttachments(files);
-  await sendContactEmail({
-    attachments,
-    category,
-    email,
-    env: c.env,
-    message,
-  });
-  // The confirmation to the submitter is best-effort: a failure here must not
-  // fail the request, since the support notification already went out.
-  try {
-    await sendContactConfirmation({ category, email, env: c.env });
-  } catch (error) {
-    Sentry.captureException(error);
-  }
-  return c.body(null, 204);
-});
+app.post(
+  "/contact",
+  bodyLimit({
+    maxSize: maxRequestBytes,
+    onError: (c) => c.json({ error: "Request too large" }, 413),
+  }),
+  validateContactForm,
+  verifyTurnstile,
+  async function (c) {
+    const { category, email, message } = c.get("contactForm");
+    await sendContactEmail({
+      category,
+      email,
+      env: c.env,
+      message,
+    });
+    // The confirmation to the submitter is best-effort: a failure here must not
+    // fail the request, since the support notification already went out.
+    try {
+      await sendContactConfirmation({ category, email, env: c.env });
+    } catch (error) {
+      Sentry.captureException(error);
+    }
+    return c.body(null, 204);
+  },
+);
 
 app.notFound((c) => c.json({ error: "Not Found" }, 404));
 

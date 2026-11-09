@@ -10,32 +10,23 @@ import type { fetchVeVetroSnapshotPositions } from "fetchers/fetchVeVetroSnapsho
 import { useVeVetroHasClaimEnded } from "hooks/useVeVetroHasClaimEnded";
 import { useVeVetroSnapshotPositions } from "hooks/useVeVetroSnapshotPositions";
 import { useVeVetroSnapshotTimestamp } from "hooks/useVeVetroSnapshotTimestamp";
+import { veVetroChain } from "networks";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import { formatMediumDate } from "utils/date";
-import {
-  hemiToken,
-  veHemiAddress,
-  veHemiSnapshotBlock,
-  vToken,
-} from "utils/veVetro";
-import { hemi } from "viem/chains";
+import { hemiToken, veVetroContracts, vToken } from "utils/veVetro";
 import { useAccount } from "wagmi";
 
 import { ClaimVeVetro } from "./claimVeVetro";
-import {
-  DisconnectedState,
-  EmptyState,
-  ErrorState,
-} from "./snapshotPositionsStates";
+import { DisconnectedState, EmptyState, ErrorState } from "./tableStates";
 import { VAmountContainer } from "./vAmountContainer";
 
 type Position = Awaited<
   ReturnType<typeof fetchVeVetroSnapshotPositions>
 >[number];
 
-const explorerUrl = hemi.blockExplorers.default.url;
+const explorerUrl = veVetroChain.blockExplorers.default.url;
 
 function StatusCell({ claimed, weight }: Position) {
   const { t } = useTranslation();
@@ -87,12 +78,20 @@ function SnapshotCaption() {
   if (snapshotTimestamp === undefined) {
     return null;
   }
+  const { snapshotBlock } = veVetroContracts;
+  const date = formatMediumDate(
+    Number(snapshotTimestamp),
+    i18n.language,
+    "UTC",
+  );
   return (
     <span className="text-caption text-gray-500">
-      {t("pages.ve-vetro.claim.positions.snapshot", {
-        block: veHemiSnapshotBlock.toLocaleString(i18n.language),
-        date: formatMediumDate(Number(snapshotTimestamp), i18n.language, "UTC"),
-      })}
+      {snapshotBlock === undefined
+        ? t("pages.ve-vetro.claim.positions.snapshot-date", { date })
+        : t("pages.ve-vetro.claim.positions.snapshot", {
+            block: snapshotBlock.toLocaleString(i18n.language),
+            date,
+          })}
     </span>
   );
 }
@@ -110,7 +109,7 @@ export function SnapshotPositionsTable() {
             <TokenLogo {...hemiToken} />
             <ExternalLink
               className="text-b-medium flex items-center gap-2 text-gray-900 [&:hover>svg]:text-gray-900 [&>svg]:text-gray-500 [&>svg]:transition-colors"
-              href={`${explorerUrl}/token/${veHemiAddress}/instance/${row.original.tokenId}`}
+              href={`${explorerUrl}/token/${veVetroContracts.veHemi}/instance/${row.original.tokenId}`}
             >
               {t("pages.ve-vetro.claim.positions.position-id", {
                 id: row.original.tokenId.toString(),
@@ -138,7 +137,8 @@ export function SnapshotPositionsTable() {
           row.original.weight === 0n ? (
             <span className="text-b-medium text-gray-500">—</span>
           ) : (
-            <div className="text-b-medium text-gray-900">
+            <div className="text-b-medium flex items-center gap-2 text-gray-900">
+              <TokenLogo {...vToken} />
               <DisplayAmount
                 amount={row.original.share}
                 container={VAmountContainer}
@@ -157,12 +157,30 @@ export function SnapshotPositionsTable() {
 
   function getPlaceholder() {
     if (!address) {
-      return <DisconnectedState />;
+      return (
+        <DisconnectedState
+          description={t(
+            "pages.ve-vetro.claim.positions.disconnected-description",
+          )}
+          title={t("pages.ve-vetro.claim.positions.disconnected-title")}
+        />
+      );
     }
     if (isError) {
-      return <ErrorState onRetry={() => refetch()} />;
+      return (
+        <ErrorState
+          description={t("pages.ve-vetro.claim.positions.error-description")}
+          onRetry={() => refetch()}
+          title={t("pages.ve-vetro.claim.positions.error-title")}
+        />
+      );
     }
-    return <EmptyState />;
+    return (
+      <EmptyState
+        description={t("pages.ve-vetro.claim.positions.empty-description")}
+        title={t("pages.ve-vetro.claim.positions.empty-title")}
+      />
+    );
   }
 
   return (

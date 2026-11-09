@@ -1,15 +1,58 @@
-// Placeholder until the ve-vetro package (#1062) is merged. Replace with
-// these reads from `@vetro-protocol/ve-vetro/actions`, on a Hemi client:
-// 1. `getBalanceOf(hemiClient, { address: veHemiAddress, blockNumber: veHemiSnapshotBlock, owner: account })`
-// 2. `getTokenOfOwnerByIndex(hemiClient, { address: veHemiAddress, blockNumber: veHemiSnapshotBlock, index, owner: account })`
-//    for each index from `0n` to the balance minus `1n`.
-// Create the Hemi client with `batch: { multicall: true }` and a `multicall3`
-// contract on the `hemi` chain, as the package README shows, so viem batches the
-// reads at the snapshot block.
+import {
+  getBalanceOf,
+  getIdsOfRecord,
+  getTokenOfOwnerByIndex,
+} from "@vetro-protocol/ve-vetro/actions";
+import { veVetroContracts } from "utils/veVetro";
+import { type Address, type Client, maxUint256 } from "viem";
+
+async function fetchIdsOfRecord({
+  account,
+  client,
+}: {
+  account: Address;
+  client: Client;
+}) {
+  const tokenIds: bigint[] = [];
+  let fromId = 0n;
+  while (fromId < maxUint256) {
+    const { ids, nextId } = await getIdsOfRecord(client, {
+      address: veVetroContracts.lens,
+      fromId,
+      holder: account,
+      toIdExclusive: maxUint256,
+    });
+    tokenIds.push(...ids);
+    fromId = nextId;
+  }
+  return tokenIds;
+}
+
 // The list includes the positions that expired before the snapshot.
-export const fetchVeHemiSnapshotTokenIds = async () => [
-  1042n,
-  2219n,
-  3307n,
-  4410n,
-];
+export const fetchVeHemiSnapshotTokenIds = async function ({
+  account,
+  client,
+}: {
+  account: Address;
+  client: Client;
+}) {
+  const { snapshotBlock: blockNumber, veHemi: address } = veVetroContracts;
+  if (blockNumber === undefined) {
+    return fetchIdsOfRecord({ account, client });
+  }
+  const balance = await getBalanceOf(client, {
+    address,
+    blockNumber,
+    owner: account,
+  });
+  return Promise.all(
+    Array.from({ length: Number(balance) }, (_, index) =>
+      getTokenOfOwnerByIndex(client, {
+        address,
+        blockNumber,
+        index: BigInt(index),
+        owner: account,
+      }),
+    ),
+  );
+};

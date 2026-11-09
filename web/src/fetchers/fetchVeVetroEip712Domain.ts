@@ -1,11 +1,12 @@
-import { veVetroChain, veVetroDistributorAddress } from "utils/veVetro";
+import { veVetroContracts } from "utils/veVetro";
+import type { Client } from "viem";
+import { getEip712Domain } from "viem/actions";
 
-// Placeholder until the distributor is deployed. Replace with the `domain` of
-// `getEip712Domain(hemiClient, { address: veVetroDistributorAddress })` from
-// `viem/actions`, which reads the distributor's ERC-5267 `eip712Domain()`.
-export const fetchVeVetroEip712Domain = async () => ({
-  chainId: veVetroChain.id,
-  name: "VeVetroDistributor",
-  verifyingContract: veVetroDistributorAddress,
-  version: "1",
-});
+export const fetchVeVetroEip712Domain = async function (client: Client) {
+  const {
+    domain: { chainId, name, verifyingContract, version },
+  } = await getEip712Domain(client, {
+    address: veVetroContracts.distributor,
+  });
+  return { chainId, name, verifyingContract, version };
+};

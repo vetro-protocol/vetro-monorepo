@@ -6,7 +6,12 @@ import { InboxCircleIcon } from "components/icons/inboxCircleIcon";
 import { WarningCircleIcon } from "components/icons/warningCircleIcon";
 import { useTranslation } from "react-i18next";
 
-export function DisconnectedState() {
+type StateTexts = {
+  description: string;
+  title: string;
+};
+
+export function DisconnectedState({ description, title }: StateTexts) {
   const { openConnectModal } = useConnectModal();
   const { t } = useTranslation();
 
@@ -22,31 +27,29 @@ export function DisconnectedState() {
             {t("common.connect-wallet")}
           </Button>
         }
-        description={t(
-          "pages.ve-vetro.claim.positions.disconnected-description",
-        )}
+        description={description}
         icon={<InboxCircleIcon />}
-        title={t("pages.ve-vetro.claim.positions.disconnected-title")}
+        title={title}
       />
     </TableState>
   );
 }
 
-export function EmptyState() {
-  const { t } = useTranslation();
+export const EmptyState = ({ description, title }: StateTexts) => (
+  <TableState>
+    <StatusMessage
+      description={description}
+      icon={<InboxCircleIcon />}
+      title={title}
+    />
+  </TableState>
+);
 
-  return (
-    <TableState>
-      <StatusMessage
-        description={t("pages.ve-vetro.claim.positions.empty-description")}
-        icon={<InboxCircleIcon />}
-        title={t("pages.ve-vetro.claim.positions.empty-title")}
-      />
-    </TableState>
-  );
-}
-
-export function ErrorState({ onRetry }: { onRetry: VoidFunction }) {
+export function ErrorState({
+  description,
+  onRetry,
+  title,
+}: StateTexts & { onRetry: VoidFunction }) {
   const { t } = useTranslation();
 
   return (
@@ -62,9 +65,9 @@ export function ErrorState({ onRetry }: { onRetry: VoidFunction }) {
             {t("common.retry")}
           </Button>
         }
-        description={t("pages.ve-vetro.claim.positions.error-description")}
+        description={description}
         icon={<WarningCircleIcon />}
-        title={t("pages.ve-vetro.claim.positions.error-title")}
+        title={title}
       />
     </TableState>
   );

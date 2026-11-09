@@ -507,10 +507,17 @@ importers:
         version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@25.0.9)(@vitest/browser-playwright@5.0.5)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(vite@8.3.4(@types/node@25.0.9)(esbuild@0.28.2)(jiti@2.6.1)(yaml@2.8.4))
 
   packages/ve-vetro:
+    dependencies:
+      to-promise-event:
+        specifier: 1.0.0
+        version: 1.0.0
     devDependencies:
       '@tsconfig/node24':
         specifier: 24.0.4
         version: 24.0.4
+      '@types/node':
+        specifier: 24.1.0
+        version: 24.1.0
       '@vetro-protocol/core':
         specifier: workspace:*
         version: link:../core
@@ -525,7 +532,7 @@ importers:
         version: 2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)
       vitest:
         specifier: 5.0.5
-        version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@25.0.9)(@vitest/browser-playwright@5.0.5)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(vite@8.3.4(@types/node@25.0.9)(esbuild@0.28.2)(jiti@2.6.1)(yaml@2.8.4))
+        version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@24.1.0)(@vitest/browser-playwright@5.0.5)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(vite@8.3.4(@types/node@24.1.0)(esbuild@0.28.2)(jiti@2.6.1)(yaml@2.8.4))
 
   subgraphs/hemi-earn-indexer:
     dependencies:
@@ -631,12 +638,18 @@ importers:
       '@vetro-protocol/treasury':
         specifier: workspace:*
         version: link:../packages/treasury
+      '@vetro-protocol/ve-vetro':
+        specifier: workspace:*
+        version: link:../packages/ve-vetro
       crypto-shortener:
         specifier: 1.2.0
         version: 1.2.0
       fetch-plus-plus:
         specifier: 1.0.0
         version: 1.0.0(encoding@0.1.13)
+      hemi-viem:
+        specifier: 2.7.0
+        version: 2.7.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
       i18next:
         specifier: 26.2.0
         version: 26.2.0(typescript@5.9.3)
@@ -6475,6 +6488,11 @@ packages:
 
   help-me@5.0.0:
     resolution: {integrity: sha512-7xgomUX6ADmcYzFik0HzAxh/73YlKR9bmFzf51CZwR+b6YtzU2m0u49hQCqV6SvlqIqsaxovfwdvbnsw3b/zpg==, tarball: https://registry.npmjs.org/help-me/-/help-me-5.0.0.tgz}
+
+  hemi-viem@2.7.0:
+    resolution: {integrity: sha512-vqodW5YV8EBnf9qAvYzCTzV1Sap0DZ3e01kJ49ZZapEq2tkIvO94pWbNPWeAjUl2UGVIILylgMrbXLZe4byNQg==, tarball: https://registry.npmjs.org/hemi-viem/-/hemi-viem-2.7.0.tgz}
+    peerDependencies:
+      viem: ^2.x
 
   hmac-drbg@1.0.1:
     resolution: {integrity: sha512-Tti3gMqLdZfhOQY1Mzf/AanLiqh1WTiJgEj26ZuYQ9fbkLomzGchCws4FyrSd4VkpBfiNhaE1On+lOz894jvXg==, tarball: https://registry.npmjs.org/hmac-drbg/-/hmac-drbg-1.0.1.tgz}
@@ -17330,6 +17348,10 @@ snapshots:
       function-bind: 1.1.2
 
   help-me@5.0.0: {}
+
+  hemi-viem@2.7.0(viem@2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)):
+    dependencies:
+      viem: 2.44.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5)
 
   hmac-drbg@1.0.1:
     dependencies:
