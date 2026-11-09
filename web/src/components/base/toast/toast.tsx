@@ -92,11 +92,19 @@ export const Toast = ({
   description,
   onClose,
   title,
-  variant,
+  variant = "success",
 }: ToastProps) => (
   <Toaster
     autoCloseMs={autoCloseMs}
     onClose={onClose}
-    toasts={[{ action, description, id: "toast", title, variant }]}
+    toasts={[
+      {
+        action,
+        description,
+        id: JSON.stringify([variant, title, description]),
+        title,
+        variant,
+      },
+    ]}
   />
 );
