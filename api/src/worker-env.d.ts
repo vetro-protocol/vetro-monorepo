@@ -21,10 +21,10 @@ interface Env {
   CF_VERSION_METADATA?: WorkerVersionMetadata;
   SENTRY_DSN?: string;
   SUBGRAPH_API_KEY?: string;
-  SUBGRAPH_ID?: string;
-  SUBGRAPH_URL?: string;
   TURNSTILE_ALLOWED_HOSTNAMES?: string;
   TURNSTILE_SECRET_KEY?: string;
+  VETRO_APP_SUBGRAPH_ID?: string;
+  VETRO_APP_SUBGRAPH_URL?: string;
   VE_VETRO_SUBGRAPH_ID?: string;
   VE_VETRO_SUBGRAPH_URL?: string;
   WEBSITE_URL: string;
