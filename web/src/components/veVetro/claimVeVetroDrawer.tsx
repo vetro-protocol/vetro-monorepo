@@ -51,8 +51,11 @@ function ClaimAmount({ submitted }: { submitted: Submitted | undefined }) {
 
 function ClaimDetails({ submitted }: { submitted: Submitted | undefined }) {
   const { i18n, t } = useTranslation();
-  const { data: currentPositionCount, isError: isPositionCountError } =
-    useVeVetroClaimablePositionCount();
+  const {
+    data: currentPositionCount,
+    fetchStatus: positionCountFetchStatus,
+    isError: isPositionCountError,
+  } = useVeVetroClaimablePositionCount();
   const positionCount = submitted?.positionCount ?? currentPositionCount;
   const unlockTimestamp = useVeVetroUnlockTimestamp();
   const networkFee = useClaimVeVetroFees();
@@ -61,6 +64,7 @@ function ClaimDetails({ submitted }: { submitted: Submitted | undefined }) {
     <DrawerFeesContainer>
       <FeeDetails
         className="first:border-t-0"
+        fetchStatus={positionCountFetchStatus}
         isError={submitted === undefined && isPositionCountError}
         label={t("pages.ve-vetro.claim.drawer.from")}
         value={
@@ -72,6 +76,7 @@ function ClaimDetails({ submitted }: { submitted: Submitted | undefined }) {
         }
       />
       <FeeDetails
+        fetchStatus={unlockTimestamp.fetchStatus}
         isError={unlockTimestamp.isError}
         label={t("pages.ve-vetro.claim.drawer.unlocks-on")}
         value={
