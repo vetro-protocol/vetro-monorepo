@@ -3,7 +3,13 @@ import { sentryVitePlugin } from "@sentry/vite-plugin";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { execFileSync } from "node:child_process";
-import { defineConfig, loadEnv, type Plugin, type UserConfig } from "vite";
+import {
+  defineConfig,
+  loadEnv,
+  type Plugin,
+  type ProxyOptions,
+  type UserConfig,
+} from "vite";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 
 import { getApiPreviewUrl } from "./scripts/apiPreviewUrl.ts";
@@ -78,6 +84,11 @@ function getBuildInfo(env: Record<string, string>) {
 
 const isProduction = process.env.VITE_DEPLOY_ENV === "production";
 
+// miniflare adds CF-Connecting-IP, and Cloudflare rejects proxied requests
+// that carry it (error 1000).
+const removeConnectingIp: NonNullable<ProxyOptions["configure"]> = (proxy) =>
+  proxy.on("proxyReq", (proxyReq) => proxyReq.removeHeader("cf-connecting-ip"));
+
 const config = {
   build: {
     // "hidden" generates source maps for Sentry but strips sourceMappingURL
@@ -96,6 +107,24 @@ const config = {
   ],
   resolve: {
     tsconfigPaths: true,
+  },
+  // The remote APIs reject localhost origins in CORS. Point the API URLs in
+  // .env.local at these paths to call the APIs through the dev server.
+  server: {
+    proxy: {
+      "/portal-api": {
+        changeOrigin: true,
+        configure: removeConnectingIp,
+        rewrite: (path) => path.replace(/^\/portal-api/, ""),
+        target: "https://portal-api.hemi.xyz",
+      },
+      "/vetro-api": {
+        changeOrigin: true,
+        configure: removeConnectingIp,
+        rewrite: (path) => path.replace(/^\/vetro-api/, ""),
+        target: "https://vetro-api.letshamsterdance.xyz",
+      },
+    },
   },
 } satisfies UserConfig;
 
