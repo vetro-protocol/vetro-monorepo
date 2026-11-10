@@ -124,6 +124,7 @@ export function Stack({
 }: Props) {
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const heightsRef = useRef<Record<string, number>>({});
   const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
@@ -150,20 +151,20 @@ export function Stack({
 
   useEffect(() => () => clearTimeout(leaveTimerRef.current), []);
 
-  const isEmpty = items.length === 0;
+  const itemIds = items.map((item) => item.id).join();
 
   useEffect(
-    function resetFocusWhenEmpty() {
-      // Removing the focused element may not fire a blur, which would leave
+    function resetFocusWhenFocusedItemIsRemoved() {
+      // Removing the focused element does not reach onBlur, which would leave
       // the next toasts paused forever.
-      if (isEmpty) {
+      if (!containerRef.current?.contains(document.activeElement)) {
         setFocused(false);
       }
     },
-    [isEmpty],
+    [itemIds],
   );
 
-  if (isEmpty) return null;
+  if (items.length === 0) return null;
 
   function handleFocus() {
     setFocused(true);
@@ -194,6 +195,7 @@ export function Stack({
       onFocus={handleFocus}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      ref={containerRef}
     >
       <ol className="relative list-none">
         {items.map(function renderItem(item, index) {
