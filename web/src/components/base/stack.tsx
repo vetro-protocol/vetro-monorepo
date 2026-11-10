@@ -155,6 +155,8 @@ export function Stack({
 
   useEffect(
     function resetFocusWhenFocusedItemIsRemoved() {
+      // Removing the focused element does not reach onBlur, which would leave
+      // the next toasts paused forever.
       if (!containerRef.current?.contains(document.activeElement)) {
         setFocused(false);
       }
