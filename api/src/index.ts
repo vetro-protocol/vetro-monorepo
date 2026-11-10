@@ -17,7 +17,11 @@ import {
   verifyTurnstile,
 } from "./contact.ts";
 import { convertBigIntsToString } from "./convert-bigints-to-string.ts";
-import { getHemiEarnIndexer, getSubgraph, getVeVetroSubgraph } from "./env.ts";
+import {
+  getHemiEarnIndexer,
+  getVetroAppSubgraph,
+  getVeVetroSubgraph,
+} from "./env.ts";
 import { UpstreamGraphQLError } from "./graphql.ts";
 import { getCostBasis as getHemiEarnCostBasis } from "./hemi-earn/cost-basis.ts";
 import { getRequests as getHemiEarnRequests } from "./hemi-earn/requests.ts";
@@ -184,7 +188,7 @@ app.get(
         gatewayAddress,
         period,
         portalApiUrl: c.env.PORTAL_API_URL,
-        subgraph: getSubgraph(c.env),
+        subgraph: getVetroAppSubgraph(c.env),
       });
       return c.json(data);
     } catch (error) {
@@ -382,7 +386,7 @@ app.get(
       const address = c.req.param("address") as `0x${string}`;
       const data = await variableStake.getCostBasis({
         address,
-        subgraph: getSubgraph(c.env),
+        subgraph: getVetroAppSubgraph(c.env),
       });
       return c.json(convertBigIntsToString(data));
     } catch (error) {
@@ -446,7 +450,7 @@ app.get(
       const data = await variableStake.getExitTicketQueueSize({
         gatewayAddress,
         rpcUrl,
-        subgraph: getSubgraph(c.env),
+        subgraph: getVetroAppSubgraph(c.env),
       });
       return c.json(convertBigIntsToString(data));
     } catch (error) {
@@ -493,7 +497,7 @@ app.get(
         period,
         rpcUrl: c.env.CUSTOM_RPC_URL_MAINNET,
         stakingVaultAddress,
-        subgraph: getSubgraph(c.env),
+        subgraph: getVetroAppSubgraph(c.env),
       });
       return c.json(data);
     } catch (error) {
@@ -518,7 +522,7 @@ app.get(
         c,
         period,
         stakingVaultAddress,
-        subgraph: getSubgraph(c.env),
+        subgraph: getVetroAppSubgraph(c.env),
       });
       return c.json(data);
     } catch (error) {
@@ -543,7 +547,7 @@ app.get(
         period,
         rpcUrl: c.env.CUSTOM_RPC_URL_MAINNET,
         stakingVaultAddress,
-        subgraph: getSubgraph(c.env),
+        subgraph: getVetroAppSubgraph(c.env),
       });
       return c.json(data);
     } catch (error) {
@@ -564,7 +568,7 @@ app.get(
       const address = c.req.param("address") as `0x${string}`;
       const data = await variableStake.getUserExitTickets({
         address,
-        subgraph: getSubgraph(c.env),
+        subgraph: getVetroAppSubgraph(c.env),
       });
       return c.json(data);
     } catch (error) {
