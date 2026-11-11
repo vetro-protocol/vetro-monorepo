@@ -1,6 +1,6 @@
 {
   "name": "ve-vetro-subgraph",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
   "scripts": {
     "prebuild": "pnpm run codegen",

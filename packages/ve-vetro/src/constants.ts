@@ -34,12 +34,12 @@ export const veVetroContractsByChain: Record<
     veVetro: zeroAddress,
   },
   [hemiSepolia.id]: {
-    distributor: "0xF55B1C52D4B2a942E531C4f4d960F946d4C307dc",
-    lens: "0x710F58A3A1D1852884E35ecD3FAA17630e16624A",
+    distributor: "0xAEed58d42D0c1D1FE250D51ea1f1278bF77bD01D",
+    lens: "0xDcd5D80DA098B3593A379CC09a773c8B936ce635",
     // The testnet veHEMI has positions created after the snapshot with a past
     // start, so the ownership at the snapshot block does not include them.
     snapshotBlock: undefined,
-    veHemi: "0x42ef3B1CC45b94De46eC84a89802DcbCE73e71b4",
-    veVetro: "0xC0A49F097DBeE078cf1ee55BaEF7D7Bdb73f9715",
+    veHemi: "0x0b995225984023106368F9c607B2D521a9b20e07",
+    veVetro: "0x9dB844120404510d6E2b777CC72c19aC4ED12C07",
   },
 };

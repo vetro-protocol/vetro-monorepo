@@ -486,7 +486,7 @@ export const knownTokens: Token[] = [
     symbol: "WETH",
   },
   {
-    address: "0x247e74A71E59374f2C95589A58F2a748055696Bc",
+    address: "0xF9AF86Ea83C959a26D7C91d12582ff28C9732658",
     chainId: hemiSepolia.id,
     decimals: 18,
     logoURI: "https://hemilabs.github.io/token-list/logos/v.svg",
@@ -494,7 +494,7 @@ export const knownTokens: Token[] = [
     symbol: "TT",
   },
   {
-    address: "0xC0A49F097DBeE078cf1ee55BaEF7D7Bdb73f9715",
+    address: "0x9dB844120404510d6E2b777CC72c19aC4ED12C07",
     chainId: hemiSepolia.id,
     decimals: 18,
     logoURI: "https://hemilabs.github.io/token-list/logos/vevetro.svg",
