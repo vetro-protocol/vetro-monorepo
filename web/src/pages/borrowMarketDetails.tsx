@@ -1,6 +1,7 @@
 import { Breadcrumb } from "components/base/breadcrumb";
 import { BreadcrumbSelector } from "components/base/breadcrumb/breadcrumbSelector";
 import { ButtonLink } from "components/base/button";
+import { QueryResult } from "components/base/queryResult";
 import { Toast, type ToastContent } from "components/base/toast";
 import { BorrowForm } from "components/borrow/borrowForm";
 import { ExistingPositionNotice } from "components/borrow/existingPositionNotice";
@@ -128,20 +129,19 @@ const BorrowMarketDetailsLoaded = function ({
 };
 
 const BorrowMarketDetailsContent = function ({ marketId }: { marketId: Hash }) {
-  const { data: market, isError } = useMarketData(marketId);
-
-  if (market) {
-    return <BorrowMarketDetailsLoaded market={market} />;
-  }
-
-  if (isError) {
-    return <ErrorPage />;
-  }
+  const marketQuery = useMarketData(marketId);
 
   return (
-    <div className="p-8">
-      <Skeleton count={3} height={40} />
-    </div>
+    <QueryResult
+      data={(market) => <BorrowMarketDetailsLoaded market={market} />}
+      error={<ErrorPage />}
+      loading={
+        <div className="p-8">
+          <Skeleton count={3} height={40} />
+        </div>
+      }
+      query={marketQuery}
+    />
   );
 };
 

@@ -1,3 +1,4 @@
+import { QueryResult } from "components/base/queryResult";
 import { SegmentedControl } from "components/base/segmentedControl";
 import { ChartPlaceholder } from "components/chartPlaceholders";
 import { ClockRevertedIcon } from "components/icons/clockRevertedIcon";
@@ -97,7 +98,8 @@ function ChartTooltipLabel({
 export function HistoricApr({ marketId }: Props) {
   const { i18n, t } = useTranslation();
   const [period, setPeriod] = useState<ChartPeriod>("1m");
-  const { data: chartData, isError, refetch } = useAprHistory(marketId, period);
+  const aprHistoryQuery = useAprHistory(marketId, period);
+  const { data: chartData, isError, refetch } = aprHistoryQuery;
 
   return (
     <div className="px-3 py-6 xl:px-14">
@@ -109,15 +111,16 @@ export function HistoricApr({ marketId }: Props) {
       </div>
       <div className="mt-3 flex flex-col gap-3 gap-y-6 xl:flex-row xl:items-center xl:justify-between">
         <span className="text-h3">
-          {chartData !== undefined ? (
-            t("pages.borrow.avg", {
-              percentage: formatPercentage(getAverage(chartData)),
-            })
-          ) : isError ? (
-            "-"
-          ) : (
-            <Skeleton width={80} />
-          )}
+          <QueryResult
+            data={(data) =>
+              t("pages.borrow.avg", {
+                percentage: formatPercentage(getAverage(data)),
+              })
+            }
+            error="-"
+            loading={<Skeleton width={80} />}
+            query={aprHistoryQuery}
+          />
         </span>
         <SegmentedControl
           onChange={setPeriod}

@@ -1,5 +1,6 @@
 import { DisplayAmount } from "components/base/displayAmount";
 import { ExternalLink } from "components/base/externalLink";
+import { QueryResult } from "components/base/queryResult";
 import { SectionHeader } from "components/base/sectionHeader";
 import { StatusBadge } from "components/base/statusBadge";
 import { Table, type TableColumnDef } from "components/base/table";
@@ -30,8 +31,7 @@ const explorerUrl = veVetroChain.blockExplorers.default.url;
 
 function StatusCell({ claimed, weight }: Position) {
   const { t } = useTranslation();
-  const { data: hasClaimEnded, isError: isClaimEndError } =
-    useVeVetroHasClaimEnded();
+  const hasClaimEndedQuery = useVeVetroHasClaimEnded();
 
   if (weight === 0n) {
     return (
@@ -47,52 +47,50 @@ function StatusCell({ claimed, weight }: Position) {
       </StatusBadge>
     );
   }
-  if (hasClaimEnded === undefined) {
-    return isClaimEndError ? (
-      <span className="text-b-medium text-gray-500">—</span>
-    ) : (
-      <Skeleton width={80} />
-    );
-  }
-  if (hasClaimEnded) {
-    return (
-      <span className="text-xsm text-gray-500">
-        {t("pages.ve-vetro.claim.positions.status-claim-ended")}
-      </span>
-    );
-  }
   return (
-    <StatusBadge variant="ready">
-      {t("pages.ve-vetro.claim.positions.status-eligible")}
-    </StatusBadge>
+    <QueryResult
+      data={(ended) =>
+        ended ? (
+          <span className="text-xsm text-gray-500">
+            {t("pages.ve-vetro.claim.positions.status-claim-ended")}
+          </span>
+        ) : (
+          <StatusBadge variant="ready">
+            {t("pages.ve-vetro.claim.positions.status-eligible")}
+          </StatusBadge>
+        )
+      }
+      error={<span className="text-b-medium text-gray-500">—</span>}
+      loading={<Skeleton width={80} />}
+      query={hasClaimEndedQuery}
+    />
   );
 }
 
 function SnapshotCaption() {
   const { i18n, t } = useTranslation();
-  const { data: snapshotTimestamp, isLoading } = useVeVetroSnapshotTimestamp();
+  const snapshotTimestampQuery = useVeVetroSnapshotTimestamp();
 
-  if (isLoading) {
-    return <Skeleton width={240} />;
-  }
-  if (snapshotTimestamp === undefined) {
-    return null;
-  }
-  const { snapshotBlock } = veVetroContracts;
-  const date = formatMediumDate(
-    Number(snapshotTimestamp),
-    i18n.language,
-    "UTC",
-  );
   return (
-    <span className="text-caption text-gray-500">
-      {snapshotBlock === undefined
-        ? t("pages.ve-vetro.claim.positions.snapshot-date", { date })
-        : t("pages.ve-vetro.claim.positions.snapshot", {
-            block: snapshotBlock.toLocaleString(i18n.language),
-            date,
-          })}
-    </span>
+    <QueryResult
+      data={function (timestamp) {
+        const { snapshotBlock } = veVetroContracts;
+        const date = formatMediumDate(Number(timestamp), i18n.language, "UTC");
+        return (
+          <span className="text-caption text-gray-500">
+            {snapshotBlock === undefined
+              ? t("pages.ve-vetro.claim.positions.snapshot-date", { date })
+              : t("pages.ve-vetro.claim.positions.snapshot", {
+                  block: snapshotBlock.toLocaleString(i18n.language),
+                  date,
+                })}
+          </span>
+        );
+      }}
+      error={null}
+      loading={<Skeleton width={240} />}
+      query={snapshotTimestampQuery}
+    />
   );
 }
 
