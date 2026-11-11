@@ -1,4 +1,5 @@
 import type { DexPool } from "@vetro-protocol/core";
+import { QueryResult } from "components/base/queryResult";
 import { DefaultTokenLogo } from "components/defaultTokenLogo";
 import { TokenLogo } from "components/tokenLogo";
 import { useTokenInfo } from "hooks/useTokenInfo";
@@ -16,14 +17,15 @@ type CoinLogoProps = {
 };
 
 const CoinLogo = function ({ address, chainId }: CoinLogoProps) {
-  const { data: token, isError } = useTokenInfo({ address, chainId });
-  if (token) {
-    return <TokenLogo {...token} size="medium" />;
-  }
-  if (isError) {
-    return <DefaultTokenLogo size="medium" symbol="?" />;
-  }
-  return <Skeleton circle height={24} width={24} />;
+  const tokenInfoQuery = useTokenInfo({ address, chainId });
+  return (
+    <QueryResult
+      data={(token) => <TokenLogo {...token} size="medium" />}
+      error={<DefaultTokenLogo size="medium" symbol="?" />}
+      loading={<Skeleton circle height={24} width={24} />}
+      query={tokenInfoQuery}
+    />
+  );
 };
 
 type PoolNameProps = {

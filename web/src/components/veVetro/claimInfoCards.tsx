@@ -1,5 +1,6 @@
 import { DisplayAmount } from "components/base/displayAmount";
 import { InfoCard } from "components/base/infoCard";
+import { QueryResult } from "components/base/queryResult";
 import { CardRow } from "components/earn/cardRow";
 import { Subtitle } from "components/earn/subtitle";
 import { BoltIcon } from "components/icons/boltIcon";
@@ -41,20 +42,8 @@ const ClaimableAmountCard = function () {
 
 const ClaimEndCard = function () {
   const { i18n, t } = useTranslation();
-  const { data, isLoading } = useVeVetroClaimEnd();
-
-  function renderSubtitle() {
-    if (data !== undefined) {
-      return (
-        <Subtitle>{t("pages.ve-vetro.claim.claim-end-time-zone")}</Subtitle>
-      );
-    }
-    return isLoading ? (
-      <Subtitle>
-        <Skeleton width={140} />
-      </Subtitle>
-    ) : undefined;
-  }
+  const claimEndQuery = useVeVetroClaimEnd();
+  const { data, isLoading } = claimEndQuery;
 
   return (
     <InfoCard
@@ -65,7 +54,20 @@ const ClaimEndCard = function () {
       render={(claimEnd) =>
         formatMediumDate(Number(claimEnd), i18n.language, timeZone)
       }
-      subtitle={renderSubtitle()}
+      subtitle={
+        <QueryResult
+          data={() => (
+            <Subtitle>{t("pages.ve-vetro.claim.claim-end-time-zone")}</Subtitle>
+          )}
+          error={null}
+          loading={
+            <Subtitle>
+              <Skeleton width={140} />
+            </Subtitle>
+          }
+          query={claimEndQuery}
+        />
+      }
     />
   );
 };

@@ -1,3 +1,4 @@
+import { QueryResult } from "components/base/queryResult";
 import { useTokenInfo } from "hooks/useTokenInfo";
 import { Fragment } from "react";
 import Skeleton from "react-loading-skeleton";
@@ -10,14 +11,15 @@ type CoinSymbolProps = {
 };
 
 const CoinSymbol = function ({ address, chainId }: CoinSymbolProps) {
-  const { data: token, isError } = useTokenInfo({ address, chainId });
-  if (token) {
-    return token.symbol;
-  }
-  if (isError) {
-    return formatEvmAddress(address);
-  }
-  return <Skeleton inline width={40} />;
+  const tokenInfoQuery = useTokenInfo({ address, chainId });
+  return (
+    <QueryResult
+      data={(token) => token.symbol}
+      error={formatEvmAddress(address)}
+      loading={<Skeleton inline width={40} />}
+      query={tokenInfoQuery}
+    />
+  );
 };
 
 type CoinSymbolsProps = {
