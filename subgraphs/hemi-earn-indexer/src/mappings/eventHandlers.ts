@@ -49,6 +49,7 @@ const baseRequest = ({
   requestId,
   requestTxHash: undefined,
   retryCount: 0,
+  sharesMinted: undefined,
   stakedAmount: undefined,
   status: "PENDING",
 });
@@ -337,6 +338,7 @@ indexer.onEvent(
         kind: existing.kind ?? "DEPOSIT",
         processedAt: BigInt(event.block.timestamp),
         processTxHash: event.transaction.hash,
+        sharesMinted: event.params.shares,
         stakedAmount: event.params.staked, // pegged staked into the vault
       }),
       requestId: event.params.requestId,

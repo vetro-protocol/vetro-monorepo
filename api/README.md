@@ -190,7 +190,7 @@ Returns `500` if a read of the Router on Hemi fails.
 
 The API replays the processed deposits of the address, its processed and pending redeems, and its share token transfers, in time order:
 
-- A deposit adds its staked pegged amount when it is processed.
+- A deposit adds the staked value of the shares received (`staked × received ÷ minted`) when it is processed. The share OFT trims the shares that the vault mints to a multiple of its shared decimals (`1e12`), so the received shares can be fewer than the minted ones. A new position does not start below its cost basis.
 - A transfer in adds its value at the share-to-asset rate nearest in time to the transfer.
 - A redeem or a transfer out reduces the cost basis in proportion to the shares that leave.
 

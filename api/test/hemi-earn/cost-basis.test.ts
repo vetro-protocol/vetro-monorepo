@@ -5,7 +5,8 @@ import * as graphql from "../../src/graphql.ts";
 import { getCostBasis } from "../../src/hemi-earn/cost-basis.ts";
 import { resolveShareByAsset } from "../../src/hemi-earn/router.ts";
 
-vi.mock("../../src/graphql.ts", () => ({
+vi.mock("../../src/graphql.ts", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../../src/graphql.ts")>()),
   runQuery: vi.fn(),
 }));
 
@@ -35,12 +36,14 @@ const deposit = ({
   asset,
   requestedAt,
   shares,
+  sharesMinted,
   staked,
   timestamp,
 }: {
   asset: string;
   requestedAt?: string;
   shares: string;
+  sharesMinted?: string;
   staked: string;
   timestamp: string;
 }) => ({
@@ -50,6 +53,7 @@ const deposit = ({
   kind: "DEPOSIT",
   processedAt: timestamp,
   requestedAt: requestedAt ?? timestamp,
+  ...(sharesMinted === undefined ? {} : { sharesMinted }),
   stakedAmount: staked,
 });
 
@@ -90,12 +94,14 @@ const transfer = ({
 function configure({
   assets = [],
   rates = [],
+  rejectSharesMinted = false,
   requests = [],
   shareByAsset = {},
   transfers = [],
 }: {
   assets?: string[];
   rates?: RateRow[];
+  rejectSharesMinted?: boolean;
   requests?: unknown[];
   shareByAsset?: Record<string, string>;
   transfers?: unknown[];
@@ -108,6 +114,11 @@ function configure({
     variables,
   }) {
     if (query.includes("GetEarnCostBasis")) {
+      if (rejectSharesMinted && query.includes("sharesMinted")) {
+        throw new graphql.UpstreamGraphQLError(
+          "field 'sharesMinted' not found in type: 'Request'",
+        );
+      }
       return { Request: requests };
     }
     if (query.includes("GetShareTransfers")) {
@@ -383,5 +394,64 @@ describe("hemi-earn/cost-basis/getCostBasis", function () {
     await expect(
       getCostBasis({ address: account, indexer, rpcUrl }),
     ).rejects.toThrow("rate limited");
+  });
+
+  it("books a deposit at the received shares when the indexer has sharesMinted", async function () {
+    configure({
+      requests: [
+        deposit({
+          asset: assetA,
+          shares: "90",
+          sharesMinted: "100",
+          staked: "100",
+          timestamp: "1000",
+        }),
+      ],
+      shareByAsset: { [assetA]: shareA },
+    });
+
+    const result = await getCostBasis({ address: account, indexer, rpcUrl });
+
+    expect(result).toEqual({ [checksumAddress(shareA as Address)]: "90" });
+  });
+
+  it("books the staked amount when the indexer does not know sharesMinted", async function () {
+    configure({
+      rejectSharesMinted: true,
+      requests: [
+        deposit({
+          asset: assetA,
+          shares: "90",
+          staked: "100",
+          timestamp: "1000",
+        }),
+      ],
+      shareByAsset: { [assetA]: shareA },
+    });
+
+    const result = await getCostBasis({ address: account, indexer, rpcUrl });
+
+    expect(result).toEqual({ [checksumAddress(shareA as Address)]: "100" });
+    const costBasisQueries = vi
+      .mocked(graphql.runQuery)
+      .mock.calls.filter(([{ query }]) => query.includes("GetEarnCostBasis"));
+    expect(costBasisQueries).toHaveLength(2);
+    expect(costBasisQueries[1][0].query).not.toContain("sharesMinted");
+  });
+
+  it("does not retry when the indexer fails with another error", async function () {
+    configure({ requests: [] });
+    vi.mocked(graphql.runQuery).mockRejectedValue(
+      new graphql.UpstreamGraphQLError("connection refused"),
+    );
+
+    await expect(
+      getCostBasis({ address: account, indexer, rpcUrl }),
+    ).rejects.toThrow("connection refused");
+    expect(
+      vi
+        .mocked(graphql.runQuery)
+        .mock.calls.filter(([{ query }]) => query.includes("GetEarnCostBasis")),
+    ).toHaveLength(1);
   });
 });
