@@ -194,6 +194,8 @@ The API replays the processed deposits of the address, its processed and pending
 - A transfer in adds its value at the share-to-asset rate nearest in time to the transfer.
 - A redeem or a transfer out reduces the cost basis in proportion to the shares that leave.
 
+Cancelled and recovered requests are skipped.
+
 The keys are the checksummed share token addresses on Hemi. The values are decimal strings in the pegged token's base units. A value can have a fractional part after a proportional reduction. The response has only the share tokens with a balance above zero, so `costBasis` is `{}` when the address has no position.
 
 #### Sample Response
