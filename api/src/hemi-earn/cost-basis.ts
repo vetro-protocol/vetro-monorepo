@@ -53,6 +53,7 @@ const getRequestRows = ({
         Request(
           where: {
             receiver: { _eq: $receiver }
+            status: { _nin: ["CANCELLED", "RECOVERED"] }
             _or: [
               { processedAt: { _is_null: false } }
               { kind: { _eq: "REDEEM" }, status: { _eq: "PENDING" } }
