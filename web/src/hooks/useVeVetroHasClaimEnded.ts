@@ -4,6 +4,7 @@ import { useVeVetroClaimEnd } from "hooks/useVeVetroClaimEnd";
 export function useVeVetroHasClaimEnded() {
   const {
     data: claimEnd,
+    fetchStatus,
     isError,
     isLoading,
     isPending,
@@ -16,6 +17,7 @@ export function useVeVetroHasClaimEnded() {
   );
   return {
     data: claimEnd === undefined ? undefined : now > claimEnd,
+    fetchStatus,
     isError,
     isLoading,
     isPending,

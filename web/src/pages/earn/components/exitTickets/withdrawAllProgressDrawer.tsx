@@ -2,6 +2,7 @@ import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { DollarSign } from "components/base/dollarSign";
 import { DrawerRetryFooter } from "components/base/drawer/drawerRetryFooter";
 import { RenderFiatValue } from "components/base/fiatValue";
+import { QueryResult } from "components/base/queryResult";
 import { Spinner } from "components/base/spinner";
 import { CheckCircleIcon } from "components/base/toast/checkCircleIcon";
 import { TokenInteraction } from "components/base/tokenInteraction";
@@ -105,29 +106,29 @@ type VaultRowProps = {
 // Owns its vault's pegged-token query so the row can render its own loading and
 // error states without blocking the rest of the flow.
 function VaultRow({ amount, stakingVaultAddress, status }: VaultRowProps) {
-  const { data: peggedToken, isError } =
-    useVaultPeggedToken(stakingVaultAddress);
+  const peggedTokenQuery = useVaultPeggedToken(stakingVaultAddress);
 
-  if (isError) {
-    return (
-      <div className="flex items-center justify-between bg-gray-50 p-6">
-        <span className="text-4xl leading-10 font-semibold text-gray-300">
-          -
-        </span>
-        <StatusIcon status={status} />
-      </div>
-    );
-  }
-
-  if (!peggedToken) {
-    return (
-      <div className="flex items-center justify-between bg-gray-50 p-6">
-        <Skeleton className="h-10 w-40" />
-      </div>
-    );
-  }
-
-  return <Row amount={amount} peggedToken={peggedToken} status={status} />;
+  return (
+    <QueryResult
+      data={(token) => (
+        <Row amount={amount} peggedToken={token} status={status} />
+      )}
+      error={
+        <div className="flex items-center justify-between bg-gray-50 p-6">
+          <span className="text-4xl leading-10 font-semibold text-gray-300">
+            -
+          </span>
+          <StatusIcon status={status} />
+        </div>
+      }
+      loading={
+        <div className="flex items-center justify-between bg-gray-50 p-6">
+          <Skeleton className="h-10 w-40" />
+        </div>
+      }
+      query={peggedTokenQuery}
+    />
+  );
 }
 
 const StepperSkeleton = ({ count }: { count: number }) => (

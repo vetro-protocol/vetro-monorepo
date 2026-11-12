@@ -1,6 +1,6 @@
 {
   "name": "@vetro-protocol/hemi-earn",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Vetro Protocol Hemi Earn actions for viem.",
   "license": "MIT",
   "files": [

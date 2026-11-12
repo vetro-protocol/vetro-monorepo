@@ -65,7 +65,7 @@ const ToastCard = function ({
       </div>
       <button
         aria-label={t("common.close-notification")}
-        className="flex h-5 shrink-0 cursor-pointer items-center text-gray-400 opacity-0 transition-all group-hover:opacity-100 hover:text-white"
+        className="flex h-5 shrink-0 cursor-pointer items-center text-gray-400 opacity-0 transition-all group-hover:opacity-100 hover:text-white focus-visible:opacity-100"
         onClick={onClose}
         type="button"
       >
@@ -92,11 +92,19 @@ export const Toast = ({
   description,
   onClose,
   title,
-  variant,
+  variant = "success",
 }: ToastProps) => (
   <Toaster
     autoCloseMs={autoCloseMs}
     onClose={onClose}
-    toasts={[{ action, description, id: "toast", title, variant }]}
+    toasts={[
+      {
+        action,
+        description,
+        id: JSON.stringify([variant, title, description]),
+        title,
+        variant,
+      },
+    ]}
   />
 );

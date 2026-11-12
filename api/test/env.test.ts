@@ -2,16 +2,16 @@ import { describe, expect, it } from "vitest";
 
 import {
   getHemiEarnIndexer,
-  getSubgraph,
+  getVetroAppSubgraph,
   getVeVetroSubgraph,
 } from "../src/env.ts";
 import { UpstreamGraphQLError } from "../src/graphql.ts";
 
-describe("getSubgraph", function () {
+describe("getVetroAppSubgraph", function () {
   it("sends The Graph key in the Authorization header, not in the URL", function () {
-    const subgraph = getSubgraph({
+    const subgraph = getVetroAppSubgraph({
       SUBGRAPH_API_KEY: "test-key",
-      SUBGRAPH_ID: "subgraph-id",
+      VETRO_APP_SUBGRAPH_ID: "subgraph-id",
     });
 
     expect(subgraph).toStrictEqual({
@@ -20,11 +20,11 @@ describe("getSubgraph", function () {
     });
   });
 
-  it("uses SUBGRAPH_URL without headers when it is set", function () {
-    const subgraph = getSubgraph({
+  it("uses VETRO_APP_SUBGRAPH_URL without headers when it is set", function () {
+    const subgraph = getVetroAppSubgraph({
       SUBGRAPH_API_KEY: "test-key",
-      SUBGRAPH_ID: "subgraph-id",
-      SUBGRAPH_URL: "http://localhost:8000/subgraphs/name/vetro",
+      VETRO_APP_SUBGRAPH_ID: "subgraph-id",
+      VETRO_APP_SUBGRAPH_URL: "http://localhost:8000/subgraphs/name/vetro",
     });
 
     expect(subgraph).toStrictEqual({

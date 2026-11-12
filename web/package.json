@@ -13,7 +13,7 @@
     "pretest:e2e": "playwright install chromium",
     "test:e2e": "playwright test",
     "test:e2e:ui": "pnpm run test:e2e --headed",
-    "pretest:integration": "playwright install ${CI:+--with-deps} chromium --only-shell",
+    "pretest:integration": "playwright install chromium --only-shell",
     "test:integration": "vitest run --project integration",
     "test:unit": "vitest run --project unit",
     "tsc": "tsc"

@@ -14,6 +14,7 @@ import { aprWadToApy } from "./apr-wad-to-apy.ts";
 import { type Subgraph } from "./env.ts";
 import * as graphql from "./graphql.ts";
 import * as merkl from "./merkl.ts";
+import { paginateSubgraphQuery } from "./paginate-subgraph-query.ts";
 import { findStakingVaultForPeggedToken } from "./staking-vault.ts";
 import { SECONDS_PER_YEAR } from "./utils/time.ts";
 
@@ -237,10 +238,8 @@ type ExitTicket = {
 };
 
 /**
- * Query the subgraph. Get all exit tickets for the user. No pagination is
- * supported. If more than 100 entities exist, pagination will have to be
- * implemented in the query. Then the function may have to support returning
- * paginated results too.
+ * Query the subgraph. Get all exit tickets for the user, paging through the
+ * results.
  */
 export async function getUserExitTickets({
   address,
@@ -250,8 +249,13 @@ export async function getUserExitTickets({
   subgraph: Subgraph;
 }): Promise<ExitTicket[]> {
   const query = `
-    query ($owner: Bytes!) {
-      exitTickets(orderBy: claimableAt, where: { owner: $owner }) {
+    query ($first: Int!, $owner: Bytes!, $skip: Int!) {
+      exitTickets(
+        first: $first,
+        orderBy: claimableAt,
+        skip: $skip,
+        where: { owner: $owner }
+      ) {
         assets
         cancelTxHash
         claimableAt
@@ -266,18 +270,12 @@ export async function getUserExitTickets({
   const variables = {
     owner: address.toLowerCase(),
   };
-  const { exitTickets } = await graphql.runQuery<{
-    exitTickets: ExitTicket[];
-  }>({ ...subgraph, query, variables });
-  if (!Array.isArray(exitTickets)) {
-    throw new Error(`Invalid subgraph response for exit tickets of ${address}`);
-  }
-  if (exitTickets.length === 100) {
-    // TODO https://github.com/vetro-protocol/vetro-monorepo/issues/339
-    console.warn(
-      `Got exactly 100 exit tickets for ${address}. Implement pagination!`,
-    );
-  }
+  const exitTickets = await paginateSubgraphQuery<ExitTicket>({
+    ...subgraph,
+    field: "exitTickets",
+    query,
+    variables,
+  });
   return exitTickets.map((ticket) => ({
     ...ticket,
     owner: checksumAddress(ticket.owner),
@@ -309,9 +307,10 @@ export async function getExitTicketQueueSize({
     peggedTokenAddress,
   });
   const query = `
-    query ($stakingVault: Bytes!) {
+    query ($first: Int!, $skip: Int!, $stakingVault: Bytes!) {
       exitTickets(
-        first: 100,
+        first: $first,
+        skip: $skip,
         where: {
           stakingVaultAddress: $stakingVault,
           cancelTxHash: null,
@@ -322,20 +321,12 @@ export async function getExitTicketQueueSize({
       }
     }`;
   const variables = { stakingVault: stakingVaultAddress.toLowerCase() };
-  const { exitTickets } = await graphql.runQuery<{
-    exitTickets: { shares: string }[];
-  }>({ ...subgraph, query, variables });
-  if (!Array.isArray(exitTickets)) {
-    throw new Error(
-      `Invalid subgraph response for exit tickets of vault ${stakingVaultAddress}`,
-    );
-  }
-  // TODO https://github.com/vetro-protocol/vetro-monorepo/issues/339
-  if (exitTickets.length === 100) {
-    console.warn(
-      `Got exactly 100 open exit tickets for vault ${stakingVaultAddress}. Implement pagination!`,
-    );
-  }
+  const exitTickets = await paginateSubgraphQuery<{ shares: string }>({
+    ...subgraph,
+    field: "exitTickets",
+    query,
+    variables,
+  });
   const shares = exitTickets.reduce(
     (acc, ticket) => acc + BigInt(ticket.shares),
     0n,

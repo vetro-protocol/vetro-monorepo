@@ -1,4 +1,5 @@
 import {
+  type FocusEvent,
   type ReactNode,
   type TransitionEvent,
   useCallback,
@@ -43,17 +44,17 @@ type Props = {
 type ItemAnimationProps = {
   autoCloseMs: number | undefined;
   children: ReactNode;
-  hovered: boolean;
   onHeightChange: (height: number) => void;
   onRemove?: VoidFunction;
+  paused: boolean;
 };
 
 function ItemAnimation({
   autoCloseMs,
   children,
-  hovered,
   onHeightChange,
   onRemove,
+  paused,
 }: ItemAnimationProps) {
   const [mounted, setMounted] = useState(false);
   const [exiting, setExiting] = useState(false);
@@ -70,7 +71,7 @@ function ItemAnimation({
     function autoClose() {
       if (autoCloseMs === undefined) return undefined;
       if (exiting) return undefined;
-      if (hovered) {
+      if (paused) {
         elapsedRef.current += Date.now() - timerStartRef.current;
         return undefined;
       }
@@ -85,7 +86,7 @@ function ItemAnimation({
       }, remaining);
       return () => clearTimeout(timer);
     },
-    [autoCloseMs, exiting, hovered],
+    [autoCloseMs, exiting, paused],
   );
 
   useEffect(function measureHeight() {
@@ -122,6 +123,8 @@ export function Stack({
   position = "bottom-right",
 }: Props) {
   const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const heightsRef = useRef<Record<string, number>>({});
   const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
@@ -148,7 +151,31 @@ export function Stack({
 
   useEffect(() => () => clearTimeout(leaveTimerRef.current), []);
 
+  const itemIds = items.map((item) => item.id).join();
+
+  useEffect(
+    function resetFocusWhenFocusedItemIsRemoved() {
+      // Removing the focused element does not reach onBlur, which would leave
+      // the next toasts paused forever.
+      if (!containerRef.current?.contains(document.activeElement)) {
+        setFocused(false);
+      }
+    },
+    [itemIds],
+  );
+
   if (items.length === 0) return null;
+
+  function handleFocus() {
+    setFocused(true);
+  }
+
+  function handleBlur(e: FocusEvent<HTMLDivElement>) {
+    // Moving focus between elements inside the stack must not resume the timer
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      setFocused(false);
+    }
+  }
 
   function handleMouseEnter() {
     clearTimeout(leaveTimerRef.current);
@@ -164,8 +191,11 @@ export function Stack({
   return createPortal(
     <div
       className={positions[position]}
+      onBlur={handleBlur}
+      onFocus={handleFocus}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      ref={containerRef}
     >
       <ol className="relative list-none">
         {items.map(function renderItem(item, index) {
@@ -193,9 +223,9 @@ export function Stack({
             >
               <ItemAnimation
                 autoCloseMs={autoCloseMs}
-                hovered={hovered}
                 onHeightChange={(h) => handleHeightChange(item.id, h)}
                 onRemove={onRemove ? () => onRemove(item.id) : undefined}
+                paused={hovered || focused}
               >
                 {item.content}
               </ItemAnimation>

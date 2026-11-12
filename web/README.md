@@ -28,6 +28,13 @@ The following variables are read at build time (not baked into the bundle) and o
 | `SENTRY_AUTH_TOKEN`        | No       | Sentry auth token. Required for source map uploads to Sentry during a `"production"` `build`.                                                                                                                                     |
 | `STAGING_API_PREVIEW_HOST` | No       | API preview host (`<api-worker>.<subdomain>`). When `VITE_DEPLOY_ENV=preview`, `VITE_VETRO_API_URL` becomes `https://<branch-alias>-<host>`, with the branch alias that Workers Builds gives the API worker. Only relevant to CI. |
 
+The remote APIs do not allow `localhost` origins in CORS. The `dev` server proxies `/portal-api` and `/vetro-api` to them. To use the proxy, point the API URLs at it in `web/.env.local`, with the port the dev server runs on:
+
+```bash
+VITE_PORTAL_API_URL="http://localhost:5173/portal-api"
+VITE_VETRO_API_URL="http://localhost:5173/vetro-api"
+```
+
 ## Scripts
 
 ### Local Fork Setup

@@ -1,4 +1,5 @@
 import type { UseQueryResult } from "@tanstack/react-query";
+import { QueryResult } from "components/base/queryResult";
 import { OracleTooltip } from "components/oracleTooltip";
 import { useTokenConfig } from "hooks/useTokenConfig";
 import Skeleton from "react-loading-skeleton";
@@ -34,13 +35,18 @@ export const OutputLabel = function ({
 
   return (
     <span className="flex items-center gap-x-1">
-      {isTokenConfigError || unitPreview.status === "error" ? (
-        "-"
-      ) : unitPreview.data !== undefined ? (
-        `1 ${fromToken.symbol} = ${formatUnits(unitPreview.data, toToken.decimals)} ${toToken.symbol}`
-      ) : (
-        <Skeleton className="h-full" containerClassName="w-24" />
-      )}
+      <QueryResult
+        data={(data) =>
+          `1 ${fromToken.symbol} = ${formatUnits(data, toToken.decimals)} ${toToken.symbol}`
+        }
+        error="-"
+        loading={<Skeleton className="h-full" containerClassName="w-24" />}
+        query={{
+          data: unitPreview.data,
+          fetchStatus: unitPreview.fetchStatus,
+          isError: isTokenConfigError || unitPreview.status === "error",
+        }}
+      />
       <OracleTooltip
         oracle={tokenConfig.oracle}
         useParentContainer

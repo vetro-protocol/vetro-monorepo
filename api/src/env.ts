@@ -21,16 +21,16 @@ export type Subgraph = {
   url: string;
 };
 
-export function getSubgraph(env: Env) {
-  if (env.SUBGRAPH_URL) {
-    return { url: env.SUBGRAPH_URL };
+export function getVetroAppSubgraph(env: Env) {
+  if (env.VETRO_APP_SUBGRAPH_URL) {
+    return { url: env.VETRO_APP_SUBGRAPH_URL };
   }
-  if (!env.SUBGRAPH_ID) {
-    throw new Error("SUBGRAPH_ID must be set");
+  if (!env.VETRO_APP_SUBGRAPH_ID) {
+    throw new Error("VETRO_APP_SUBGRAPH_ID must be set");
   }
   return theGraphSubgraph({
     apiKey: env.SUBGRAPH_API_KEY,
-    subgraphId: env.SUBGRAPH_ID,
+    subgraphId: env.VETRO_APP_SUBGRAPH_ID,
   });
 }
 
