@@ -19,6 +19,7 @@ type RequestRow = {
   kind: "DEPOSIT" | "REDEEM";
   processedAt: string | null;
   requestedAt: string | null;
+  sharesMinted?: string | null;
   stakedAmount: string | null;
 };
 
@@ -41,9 +42,11 @@ type TimedEvent = { event: CostBasisEvent; timestamp: bigint };
 const getRequestRows = ({
   indexer,
   receiver,
+  withSharesMinted,
 }: {
   indexer: Subgraph;
   receiver: string;
+  withSharesMinted: boolean;
 }) =>
   paginateHasuraQuery<RequestRow>({
     ...indexer,
@@ -69,11 +72,34 @@ const getRequestRows = ({
           kind
           processedAt
           requestedAt
+          ${withSharesMinted ? "sharesMinted" : ""}
           stakedAmount
         }
       }`,
     variables: { receiver },
   });
+
+// TODO: Remove this fallback once the indexer with `sharesMinted` is in
+// production. Until then, an older indexer rejects the field.
+async function getRequestRowsWithFallback({
+  indexer,
+  receiver,
+}: {
+  indexer: Subgraph;
+  receiver: string;
+}) {
+  try {
+    return await getRequestRows({ indexer, receiver, withSharesMinted: true });
+  } catch (error) {
+    if (
+      error instanceof graphql.UpstreamGraphQLError &&
+      error.message.includes("sharesMinted")
+    ) {
+      return getRequestRows({ indexer, receiver, withSharesMinted: false });
+    }
+    throw error;
+  }
+}
 
 const getShareTransferRows = ({
   account,
@@ -218,6 +244,7 @@ function requestToEvent({
         kind: "DEPOSIT",
         share,
         shares: row.amountOut,
+        sharesMinted: row.sharesMinted ?? null,
         staked: row.stakedAmount,
       },
       timestamp: BigInt(row.processedAt),
@@ -308,7 +335,7 @@ export async function getCostBasis({
   const account = address.toLowerCase();
 
   const [requestRows, transferRows] = await Promise.all([
-    getRequestRows({ indexer, receiver: account }),
+    getRequestRowsWithFallback({ indexer, receiver: account }),
     getShareTransferRows({ account, indexer }),
   ]);
 

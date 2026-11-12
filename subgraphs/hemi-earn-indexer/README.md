@@ -17,7 +17,7 @@ All events have the same `requestId`. The `requestId` is the `Request` entity id
 The `Request` entity (see `schema.graphql`) has:
 
 - The parties and the asset: `initiator`, `receiver`, `asset`, `kind`.
-- The amounts: `amountIn`, `amountOut`, and `stakedAmount`. `stakedAmount` is the pegged amount that a deposit staked, and it is the cost basis of the earned value.
+- The amounts: `amountIn`, `amountOut`, `sharesMinted`, and `stakedAmount`. `stakedAmount` is the pegged amount that a deposit staked, and it is the cost basis of the earned value. `sharesMinted` is the amount of shares that the Agent minted for a deposit. The share OFT trims it to a multiple of its shared decimals before the receiver gets it, and `amountOut` takes the trimmed amount. The ratio `amountOut ÷ sharesMinted` scales `stakedAmount` down to the value that the receiver got.
 - The lifecycle `status`, and the timestamp and transaction hash of each step.
 
 ### Fair-market-value data

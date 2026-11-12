@@ -564,6 +564,59 @@ describe("Agent receives", function () {
     expect(req.amountOut).toBe(12n);
     expect(req.stakedAmount).toBe(999n); // pegged staked into the vault
   });
+
+  it("keeps the Agent's sharesMinted when RequestFulfilled sets the trimmed amountOut", async function () {
+    await ti.process({
+      chains: {
+        [ETH]: {
+          simulate: [
+            {
+              block: { number: ETH_START, timestamp: 1_700_000_050 },
+              contract: "Agent",
+              event: "DepositRequestProcessed",
+              logIndex: 0,
+              params: {
+                assets: 1000n,
+                requestId: 64n,
+                shares: 1_234_567_890_123n,
+                staked: 1000n,
+              },
+              transaction: { from: SENDER, hash: "0xproc" },
+            },
+          ],
+          startBlock: ETH_START,
+        },
+        [HEMI]: {
+          simulate: [
+            {
+              block: { number: HEMI_START, timestamp: 1_700_000_000 },
+              contract: "Router",
+              event: "DepositRequested",
+              params: {
+                amountOutMin: 0n,
+                asset: ASSET,
+                assets: 1000n,
+                automatic: false,
+                receiver: RECEIVER,
+                requestId: 64n,
+              },
+            },
+            {
+              block: { number: HEMI_START + 1, timestamp: 1_700_000_100 },
+              contract: "Router",
+              event: "RequestFulfilled",
+              params: { amount: 1_000_000_000_000n, requestId: 64n },
+            },
+          ],
+          startBlock: HEMI_START,
+        },
+      },
+    });
+
+    const req = await ti.Request.getOrThrow("64");
+    expect(req.amountOut).toBe(1_000_000_000_000n);
+    expect(req.sharesMinted).toBe(1_234_567_890_123n);
+  });
 });
 
 describe("ShareToken transfers", function () {
