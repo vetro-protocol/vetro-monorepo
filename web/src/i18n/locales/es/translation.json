@@ -699,6 +699,7 @@
           "you-will-claim": "Usted reclamará"
         },
         "positions": {
+          "col-allocation": "Asignación de ${{symbol}}",
           "col-position": "Posición",
           "col-status": "Estado",
           "disconnected-description": "Conecte su billetera para ver las posiciones de veHEMI que tenía en el momento del snapshot.",
@@ -711,6 +712,7 @@
           "position-id": "veHEMI #{{id}}",
           "snapshot": "Bloque {{block}} · {{date}} UTC",
           "snapshot-date": "{{date}} UTC",
+          "status-below-minimum": "Por debajo del mínimo",
           "status-claim-ended": "Período de reclamo finalizado",
           "status-claimed": "Reclamada",
           "status-eligible": "Elegible",
