@@ -691,8 +691,8 @@
           "you-will-claim": "You will claim"
         },
         "positions": {
-          "col-allocation": "${{symbol}} allocation",
           "col-position": "Position",
+          "col-quantity": "Quantity",
           "col-status": "Status",
           "disconnected-description": "Connect your wallet to see the veHEMI positions you held at the snapshot.",
           "disconnected-title": "No wallet connected",

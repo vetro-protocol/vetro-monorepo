@@ -177,11 +177,7 @@ export function SnapshotPositionsTable() {
             </div>
           ),
         header: () => (
-          <Header
-            text={t("pages.ve-vetro.claim.positions.col-allocation", {
-              symbol: vToken.symbol,
-            })}
-          />
+          <Header text={t("pages.ve-vetro.claim.positions.col-quantity")} />
         ),
         id: "amount",
         meta: { className: "justify-end", width: "160px" },
