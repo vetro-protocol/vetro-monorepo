@@ -4,12 +4,15 @@ import { PageTitle } from "components/base/pageTitle";
 import { VeVetroIcon } from "components/navbar/veVetroIcon";
 import { StripedDivider } from "components/stripedDivider";
 import { ClaimInfoCards } from "components/veVetro/claimInfoCards";
+import { ClaimUnavailable } from "components/veVetro/claimUnavailable";
 import { SnapshotPositionsTable } from "components/veVetro/snapshotPositionsTable";
 import { useTranslation } from "react-i18next";
+import { isGeoRestricted } from "utils/geoRestriction";
 import { vToken } from "utils/veVetro";
 
 export const VeVetroClaim = function () {
   const { t } = useTranslation();
+  const geoRestricted = isGeoRestricted();
   return (
     <div className="flex flex-col">
       <Breadcrumb
@@ -25,17 +28,23 @@ export const VeVetroClaim = function () {
           { text: t("pages.ve-vetro.claim.breadcrumb") },
         ]}
       />
-      <PageTitle
-        description={t("pages.ve-vetro.claim.description", {
-          symbol: vToken.symbol,
-        })}
-        value={t("pages.ve-vetro.claim.title", { symbol: vToken.symbol })}
-      />
-      <div className="bg-gray-100">
-        <ClaimInfoCards />
-        <StripedDivider variant="small" />
-        <SnapshotPositionsTable />
-      </div>
+      {geoRestricted ? (
+        <ClaimUnavailable />
+      ) : (
+        <>
+          <PageTitle
+            description={t("pages.ve-vetro.claim.description", {
+              symbol: vToken.symbol,
+            })}
+            value={t("pages.ve-vetro.claim.title", { symbol: vToken.symbol })}
+          />
+          <div className="bg-gray-100">
+            <ClaimInfoCards />
+            <StripedDivider variant="small" />
+            <SnapshotPositionsTable />
+          </div>
+        </>
+      )}
     </div>
   );
 };

@@ -715,6 +715,8 @@
         "toast-description": "Your ${{symbol}} is now in a veVETRO position.",
         "toast-see-positions": "See your positions",
         "toast-title": "Claim confirmed",
+        "unavailable-description": "The veVETRO Claim isn't available in your location or for this wallet. See Section 18 of the <terms>Terms of Use</terms>.",
+        "unavailable-title": "veVETRO Claim unavailable",
         "view-progress": "View progress"
       },
       "positions": {
