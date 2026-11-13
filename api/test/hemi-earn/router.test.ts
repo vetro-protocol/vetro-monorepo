@@ -1,5 +1,5 @@
-import { zeroAddress } from "viem";
-import { readContract } from "viem/actions";
+import { getAssetData } from "@vetro-protocol/hemi-earn/actions";
+import { type Address, zeroAddress } from "viem";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -7,12 +7,14 @@ import {
   resolveShareByAsset,
 } from "../../src/hemi-earn/router.ts";
 
-vi.mock("viem/actions", () => ({ readContract: vi.fn() }));
+vi.mock("@vetro-protocol/hemi-earn/actions", () => ({
+  getAssetData: vi.fn(),
+}));
 
 const client = {} as ReturnType<typeof createHemiClient>;
-const share = "0x00000000000000000000000000000000000000D1";
+const share: Address = "0x00000000000000000000000000000000000000D1";
 
-const assetData = (assetShare: string) => ({
+const assetData = (assetShare: Address) => ({
   enabled: true,
   remoteAsset: zeroAddress,
   remoteShare: zeroAddress,
@@ -22,7 +24,7 @@ const assetData = (assetShare: string) => ({
 describe("hemi-earn/router/resolveShareByAsset", function () {
   it("returns the lowercase share and reads each asset only once", async function () {
     const asset = "0x00000000000000000000000000000000000000c1";
-    vi.mocked(readContract).mockResolvedValue(assetData(share));
+    vi.mocked(getAssetData).mockResolvedValue(assetData(share));
 
     expect(await resolveShareByAsset({ asset, client })).toBe(
       share.toLowerCase(),
@@ -30,12 +32,12 @@ describe("hemi-earn/router/resolveShareByAsset", function () {
     expect(
       await resolveShareByAsset({ asset: asset.toUpperCase(), client }),
     ).toBe(share.toLowerCase());
-    expect(readContract).toHaveBeenCalledTimes(1);
+    expect(getAssetData).toHaveBeenCalledTimes(1);
   });
 
   it("returns null when the Router does not know the asset, and reads it again later", async function () {
     const asset = "0x00000000000000000000000000000000000000c2";
-    vi.mocked(readContract)
+    vi.mocked(getAssetData)
       .mockResolvedValueOnce(assetData(zeroAddress))
       .mockResolvedValueOnce(assetData(share));
 
@@ -43,12 +45,12 @@ describe("hemi-earn/router/resolveShareByAsset", function () {
     expect(await resolveShareByAsset({ asset, client })).toBe(
       share.toLowerCase(),
     );
-    expect(readContract).toHaveBeenCalledTimes(2);
+    expect(getAssetData).toHaveBeenCalledTimes(2);
   });
 
   it("reads the asset again after a failed read", async function () {
     const asset = "0x00000000000000000000000000000000000000c3";
-    vi.mocked(readContract)
+    vi.mocked(getAssetData)
       .mockRejectedValueOnce(new Error("rate limited"))
       .mockResolvedValueOnce(assetData(share));
 
@@ -58,6 +60,6 @@ describe("hemi-earn/router/resolveShareByAsset", function () {
     expect(await resolveShareByAsset({ asset, client })).toBe(
       share.toLowerCase(),
     );
-    expect(readContract).toHaveBeenCalledTimes(2);
+    expect(getAssetData).toHaveBeenCalledTimes(2);
   });
 });

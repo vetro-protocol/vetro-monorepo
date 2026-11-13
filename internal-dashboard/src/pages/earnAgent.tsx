@@ -1,3 +1,4 @@
+import { hemiEarnAgentAddress } from "@vetro-protocol/hemi-earn";
 import { type ReactNode } from "react";
 import { type Address } from "viem";
 import { mainnet } from "viem/chains";
@@ -6,7 +7,6 @@ import { ExplorerLink } from "../components/dex/explorerLink";
 import { StateMessage } from "../components/dex/stateMessage";
 import { CooldownStatusBadge } from "../components/earnAgent/cooldownStatusBadge";
 import { CooldownTable } from "../components/earnAgent/cooldownTable";
-import { earnAgentAddress } from "../config/earnAgent";
 import { useEarnAgentStatus } from "../hooks/useEarnAgentStatus";
 import { summarizeCooldown } from "../lib/cooldownSummary";
 
@@ -66,7 +66,7 @@ export const EarnAgentPage = function () {
           Earn vaults.
         </p>
         <div className="mt-3 divide-y divide-neutral-100">
-          <AddressRow address={earnAgentAddress} label="Agent address" />
+          <AddressRow address={hemiEarnAgentAddress} label="Agent address" />
         </div>
       </header>
 
