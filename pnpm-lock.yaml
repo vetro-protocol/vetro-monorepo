@@ -73,6 +73,9 @@ importers:
       '@vetro-protocol/gateway':
         specifier: workspace:*
         version: link:../packages/gateway
+      '@vetro-protocol/hemi-earn':
+        specifier: workspace:*
+        version: link:../packages/hemi-earn
       '@vetro-protocol/treasury':
         specifier: workspace:*
         version: link:../packages/treasury
@@ -128,6 +131,9 @@ importers:
       '@vetro-protocol/gateway':
         specifier: workspace:*
         version: link:../packages/gateway
+      '@vetro-protocol/hemi-earn':
+        specifier: workspace:*
+        version: link:../packages/hemi-earn
       '@vetro-protocol/treasury':
         specifier: workspace:*
         version: link:../packages/treasury

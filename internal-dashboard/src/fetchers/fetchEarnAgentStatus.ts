@@ -1,13 +1,15 @@
 import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { getPendingRequests } from "@vetro-protocol/earn/actions";
+import {
+  hemiEarnAgentAbi,
+  hemiEarnAgentAddress,
+} from "@vetro-protocol/hemi-earn";
 import { type Address, type Hex, getAddress } from "viem";
 import { getStorageAt, readContract } from "viem/actions";
 import { decimals, symbol } from "viem-erc20/actions";
 import { asset } from "viem-erc4626/actions";
 
 import {
-  earnAgentAbi,
-  earnAgentAddress,
   erc1967AdminSlot,
   erc1967ImplementationSlot,
 } from "../config/earnAgent";
@@ -43,15 +45,15 @@ const slotToAddress = (slotValue: Hex | undefined) =>
   );
 
 const agentContract = {
-  abi: earnAgentAbi,
-  address: earnAgentAddress,
+  abi: hemiEarnAgentAbi,
+  address: hemiEarnAgentAddress,
 } as const;
 
 const fetchVaultCooldownPosition = async function (vaultAddress: Address) {
   const address = getAddress(vaultAddress);
   const [[requestIds, assets, claimableAt], vaultSymbol, assetAddress] =
     await Promise.all([
-      getPendingRequests(client, { account: earnAgentAddress, address }),
+      getPendingRequests(client, { account: hemiEarnAgentAddress, address }),
       symbol(client, { address }),
       asset(client, { address }),
     ]);
@@ -78,11 +80,11 @@ export const fetchEarnAgentStatus = async function () {
       readContract(client, { ...agentContract, functionName: "owner" }),
       readContract(client, { ...agentContract, functionName: "pendingOwner" }),
       getStorageAt(client, {
-        address: earnAgentAddress,
+        address: hemiEarnAgentAddress,
         slot: erc1967ImplementationSlot,
       }),
       getStorageAt(client, {
-        address: earnAgentAddress,
+        address: hemiEarnAgentAddress,
         slot: erc1967AdminSlot,
       }),
       Promise.all(stakingVaultAddresses.map(fetchVaultCooldownPosition)),

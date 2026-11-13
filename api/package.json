@@ -14,6 +14,7 @@
     "@vetro-protocol/core": "workspace:*",
     "@vetro-protocol/earn": "workspace:*",
     "@vetro-protocol/gateway": "workspace:*",
+    "@vetro-protocol/hemi-earn": "workspace:*",
     "@vetro-protocol/treasury": "workspace:*",
     "hono": "4.13.11",
     "tiny-fetch-json": "2.0.1",

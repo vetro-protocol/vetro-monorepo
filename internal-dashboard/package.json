@@ -15,6 +15,7 @@
     "@vetro-protocol/core": "workspace:*",
     "@vetro-protocol/earn": "workspace:*",
     "@vetro-protocol/gateway": "workspace:*",
+    "@vetro-protocol/hemi-earn": "workspace:*",
     "@vetro-protocol/treasury": "workspace:*",
     "crypto-shortener": "1.2.0",
     "fetch-plus-plus": "1.0.0",
