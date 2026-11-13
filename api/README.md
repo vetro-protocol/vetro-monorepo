@@ -502,22 +502,6 @@ Query params:
 ]
 ```
 
-### `GET /restrictions`
-
-Returns two lists of ISO 3166-1 alpha-2 country codes, each sorted alphabetically. The response is not cached, so it always matches the deployed lists.
-
-- `restrictedCountries`: the geo-restricted countries — the EU 27 member states, the EEA (Norway, Iceland, Liechtenstein), the US, Canada and the UK.
-- `sanctionedCountries`: the sanctioned countries.
-
-#### Sample Response
-
-```jsonc
-{
-  "restrictedCountries": ["AT", "BE", "BG", /* … */ "SK", "US"],
-  "sanctionedCountries": ["AF", "BA", "BY", /* … */ "VE", "YE"],
-}
-```
-
 ### `GET /variable-stake/cost-basis/:address`
 
 Returns the user's cost basis (in the vault asset's native smallest unit; decimal precision depends on the underlying vault asset) for each known Vetro staking vault. Vaults where the user has no position return `"0"`.
