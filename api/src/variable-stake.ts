@@ -284,10 +284,10 @@ export async function getUserExitTickets({
 }
 
 /**
- * Queries the subgraph for all open exit tickets scoped to the given gateway's
- * staking vault and returns the number of open tickets and their combined
- * value in the vault's underlying asset (shares converted via the vault's
- * exchange rate).
+ * Reads the exit ticket queue summary of the given gateway's staking vault from
+ * the subgraph and returns the number of open tickets and their combined value
+ * in the vault's underlying asset (shares converted via the vault's exchange
+ * rate).
  */
 export async function getExitTicketQueueSize({
   gatewayAddress,
@@ -307,36 +307,25 @@ export async function getExitTicketQueueSize({
     peggedTokenAddress,
   });
   const query = `
-    query ($first: Int!, $skip: Int!, $stakingVault: Bytes!) {
-      exitTickets(
-        first: $first,
-        skip: $skip,
-        where: {
-          stakingVaultAddress: $stakingVault,
-          cancelTxHash: null,
-          claimTxHash: null
-        }
-      ) {
+    query ($id: ID!) {
+      exitTicketQueueSummary(id: $id) {
+        openTickets
         shares
       }
     }`;
-  const variables = { stakingVault: stakingVaultAddress.toLowerCase() };
-  const exitTickets = await paginateSubgraphQuery<{ shares: string }>({
-    ...subgraph,
-    field: "exitTickets",
-    query,
-    variables,
-  });
-  const shares = exitTickets.reduce(
-    (acc, ticket) => acc + BigInt(ticket.shares),
-    0n,
-  );
+  const variables = { id: stakingVaultAddress.toLowerCase() };
+  const { exitTicketQueueSummary } = await graphql.runQuery<{
+    exitTicketQueueSummary: { openTickets: number; shares: string } | null;
+  }>({ ...subgraph, query, variables });
+  if (!exitTicketQueueSummary) {
+    return { assets: 0n, openTickets: 0 };
+  }
   const assets = await convertToAssets(client, {
     address: stakingVaultAddress,
-    shares,
+    shares: BigInt(exitTicketQueueSummary.shares),
   });
   return {
     assets,
-    openTickets: exitTickets.length,
+    openTickets: exitTicketQueueSummary.openTickets,
   };
 }
