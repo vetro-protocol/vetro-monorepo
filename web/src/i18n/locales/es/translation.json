@@ -723,6 +723,8 @@
         "toast-description": "Su ${{symbol}} ahora está en una posición veVETRO.",
         "toast-see-positions": "Ver sus posiciones",
         "toast-title": "Reclamo confirmado",
+        "unavailable-description": "El Reclamo de veVETRO no está disponible en su ubicación ni para esta billetera. Consulte la Sección 18 de los <terms>Términos de Uso</terms>.",
+        "unavailable-title": "Reclamo de veVETRO no disponible",
         "view-progress": "Ver progreso"
       },
       "positions": {
