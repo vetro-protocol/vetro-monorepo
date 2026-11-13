@@ -72,4 +72,7 @@ await promise;
 - Hemi Earn metadata:
   - `hemiEarnVaults` — ordered `HemiEarnVault[]`; frontends offer the vaults that are not delisted, in this order. Each entry has `address` (Ethereum staking vault), `apyIncludesFees` (whether the Vetro API APY is net of fees), `curators?` (brand names of the curators running the vault's live strategies; only if different from the operator), `delisted` (whether the vault is delisted; a delisted entry is never removed from the list, so frontends keep its metadata while holders withdraw from it), `operator` (full legal name) and `typicalTransferTime` (seconds; how long a cross-chain transfer usually takes, in either direction).
   - `hemiEarnLinks` — URLs of pages hosted by Vetro: `privacyPolicyUrl`, `supportUrl` and `termsOfUseUrl`.
+- Country lists, exported from `/restrictions` so a consumer such as a worker doesn't load the rest of the package. Both are ISO 3166-1 alpha-2 codes:
+  - `restrictedCountries` — the geo-restricted countries: the EU 27 member states, the EEA (Norway, Iceland, Liechtenstein), the US, Canada and the UK.
+  - `sanctionedCountries` — the sanctioned countries.
 - Types: `CancelRedeemEvents`, `CancelRequestEvents`, `ClaimDepositEvents`, `ClaimRedeemEvents`, `ClaimUnstakeEvents`, `HemiEarnVault`, `RecoverDepositEvents`, `RecoverRedeemEvents`, `RequestDepositEvents`, `RequestKind`, `RequestRedeemEvents`, `RequestStatus`, `RetryRequestEvents`.

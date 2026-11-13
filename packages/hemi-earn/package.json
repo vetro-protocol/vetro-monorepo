@@ -1,6 +1,6 @@
 {
   "name": "@vetro-protocol/hemi-earn",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Vetro Protocol Hemi Earn actions for viem.",
   "license": "MIT",
   "files": [
@@ -58,7 +58,11 @@
         "default": "./_esm/actions/index.js",
         "types": "./_types/actions/index.d.ts"
       },
-      "./package.json": "./package.json"
+      "./package.json": "./package.json",
+      "./restrictions": {
+        "default": "./_esm/restrictions.js",
+        "types": "./_types/restrictions.d.ts"
+      }
     },
     "main": "./_esm/index.js",
     "provenance": true,
@@ -74,7 +78,11 @@
       "types": "./src/actions/index.ts",
       "default": "./src/actions/index.ts"
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./restrictions": {
+      "types": "./src/restrictions.ts",
+      "default": "./src/restrictions.ts"
+    }
   },
   "sideEffects": false
 }
