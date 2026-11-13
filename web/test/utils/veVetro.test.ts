@@ -6,6 +6,7 @@ import {
   addClaimedPositions,
   getClaimBlocker,
   getClaimedPositions,
+  isBelowMinClaim,
 } from "../../src/utils/veVetro";
 
 const claimable = {
@@ -13,6 +14,15 @@ const claimable = {
   hasClaimEnded: false,
   isClaimOpen: true,
 };
+
+describe("isBelowMinClaim", function () {
+  it("is true only for amounts above zero and below the minimum", function () {
+    expect(isBelowMinClaim(0n)).toBe(false);
+    expect(isBelowMinClaim(1n)).toBe(true);
+    expect(isBelowMinClaim(minClaimAmount - 1n)).toBe(true);
+    expect(isBelowMinClaim(minClaimAmount)).toBe(false);
+  });
+});
 
 describe("getClaimBlocker", function () {
   it("returns undefined when the claim is open and the amount is at the minimum", function () {

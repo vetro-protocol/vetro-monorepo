@@ -8,6 +8,7 @@ import { Header } from "components/base/table/header";
 import { ExternalLinkIcon } from "components/icons/externalLinkIcon";
 import { TokenLogo } from "components/tokenLogo";
 import type { fetchVeVetroSnapshotPositions } from "fetchers/fetchVeVetroSnapshotPositions";
+import { useVeVetroClaimableAmount } from "hooks/useVeVetroClaimableAmount";
 import { useVeVetroHasClaimEnded } from "hooks/useVeVetroHasClaimEnded";
 import { useVeVetroSnapshotPositions } from "hooks/useVeVetroSnapshotPositions";
 import { useVeVetroSnapshotTimestamp } from "hooks/useVeVetroSnapshotTimestamp";
@@ -16,7 +17,12 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import { formatMediumDate } from "utils/date";
-import { hemiToken, veVetroContracts, vToken } from "utils/veVetro";
+import {
+  hemiToken,
+  isBelowMinClaim,
+  veVetroContracts,
+  vToken,
+} from "utils/veVetro";
 import { useAccount } from "wagmi";
 
 import { ClaimVeVetro } from "./claimVeVetro";
@@ -28,6 +34,33 @@ type Position = Awaited<
 >[number];
 
 const explorerUrl = veVetroChain.blockExplorers.default.url;
+
+const statusError = <span className="text-b-medium text-gray-500">—</span>;
+const statusLoading = <Skeleton width={80} />;
+
+function UnclaimedStatus() {
+  const { t } = useTranslation();
+  const claimableAmountQuery = useVeVetroClaimableAmount();
+
+  return (
+    <QueryResult
+      data={(amount) =>
+        isBelowMinClaim(amount) ? (
+          <span className="text-xsm text-gray-500">
+            {t("pages.ve-vetro.claim.positions.status-below-minimum")}
+          </span>
+        ) : (
+          <StatusBadge variant="ready">
+            {t("pages.ve-vetro.claim.positions.status-eligible")}
+          </StatusBadge>
+        )
+      }
+      error={statusError}
+      loading={statusLoading}
+      query={claimableAmountQuery}
+    />
+  );
+}
 
 function StatusCell({ claimed, weight }: Position) {
   const { t } = useTranslation();
@@ -55,13 +88,11 @@ function StatusCell({ claimed, weight }: Position) {
             {t("pages.ve-vetro.claim.positions.status-claim-ended")}
           </span>
         ) : (
-          <StatusBadge variant="ready">
-            {t("pages.ve-vetro.claim.positions.status-eligible")}
-          </StatusBadge>
+          <UnclaimedStatus />
         )
       }
-      error={<span className="text-b-medium text-gray-500">—</span>}
-      loading={<Skeleton width={80} />}
+      error={statusError}
+      loading={statusLoading}
       query={hasClaimEndedQuery}
     />
   );
@@ -145,7 +176,13 @@ export function SnapshotPositionsTable() {
               />
             </div>
           ),
-        header: () => <Header text={`$${vToken.symbol}`} />,
+        header: () => (
+          <Header
+            text={t("pages.ve-vetro.claim.positions.col-allocation", {
+              symbol: vToken.symbol,
+            })}
+          />
+        ),
         id: "amount",
         meta: { className: "justify-end", width: "160px" },
       },

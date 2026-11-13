@@ -691,6 +691,7 @@
           "you-will-claim": "You will claim"
         },
         "positions": {
+          "col-allocation": "${{symbol}} allocation",
           "col-position": "Position",
           "col-status": "Status",
           "disconnected-description": "Connect your wallet to see the veHEMI positions you held at the snapshot.",
@@ -703,6 +704,7 @@
           "position-id": "veHEMI #{{id}}",
           "snapshot": "Block {{block}} · {{date}} UTC",
           "snapshot-date": "{{date}} UTC",
+          "status-below-minimum": "Below minimum",
           "status-claim-ended": "Claim period ended",
           "status-claimed": "Claimed",
           "status-eligible": "Eligible",

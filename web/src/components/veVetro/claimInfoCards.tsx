@@ -1,3 +1,4 @@
+import { minClaimAmount } from "@vetro-protocol/ve-vetro";
 import { DisplayAmount } from "components/base/displayAmount";
 import { InfoCard } from "components/base/infoCard";
 import { QueryResult } from "components/base/queryResult";
@@ -10,7 +11,8 @@ import { useVeVetroClaimEnd } from "hooks/useVeVetroClaimEnd";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import { formatMediumDate } from "utils/date";
-import { vToken } from "utils/veVetro";
+import { isBelowMinClaim, vToken } from "utils/veVetro";
+import { formatUnits } from "viem";
 
 import { VAmountContainer } from "./vAmountContainer";
 
@@ -36,6 +38,16 @@ const ClaimableAmountCard = function () {
           token={vToken}
         />
       )}
+      subtitle={
+        data !== undefined && isBelowMinClaim(data) ? (
+          <Subtitle>
+            {t("pages.ve-vetro.claim.claim-button-below-minimum", {
+              amount: formatUnits(minClaimAmount, vToken.decimals),
+              symbol: vToken.symbol,
+            })}
+          </Subtitle>
+        ) : undefined
+      }
     />
   );
 };
