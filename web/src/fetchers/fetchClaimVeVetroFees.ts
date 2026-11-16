@@ -1,25 +1,49 @@
 import type { QueryClient } from "@tanstack/react-query";
+import { encodeClaim } from "@vetro-protocol/ve-vetro/actions";
 import { fetchTotalNetworkFees } from "fetchers/fetchTotalNetworkFees";
+import { veVetroConfigOptions } from "hooks/useVeVetroConfig";
 import { veVetroChain } from "networks";
-import type { Client } from "viem";
+import { veVetroContracts } from "utils/veVetro";
+import type { Address, Client, Hex } from "viem";
+import { estimateGas } from "viem/actions";
 
-// `estimateGas` with `encodeClaim` reverts before the user signs the terms,
-// because the distributor checks the signature. The drawer shows the fee before
-// that signature. The units are rounded up from testnet claims: 879k gas for
-// 3 positions, 1.04-1.17M for 8 and 1.83M for 44.
-const baseGasUnits = 1_100_000n;
-const gasUnitsPerPosition = 18_000n;
+// The user signs the terms after the fee shows, so the estimate uses a
+// placeholder signature that this ERC-1271 code override accepts.
+const echoSelectorCode: Hex = "0x60003560e01c60e01b60005260206000f3";
+const placeholderSignature: Hex = `0x${"00".repeat(65)}`;
 
-export const fetchClaimVeVetroFees = ({
-  positionCount,
+export const fetchClaimVeVetroFees = async function ({
+  account,
+  client,
   queryClient,
+  tokenIds,
 }: {
+  account: Address;
   client: Client;
-  positionCount: number;
   queryClient: QueryClient;
-}) =>
-  fetchTotalNetworkFees({
+  tokenIds: readonly bigint[];
+}) {
+  const { requireTermsSignature } = await queryClient.ensureQueryData(
+    veVetroConfigOptions(client),
+  );
+
+  const gasUnits = await estimateGas(client, {
+    account,
+    data: encodeClaim({
+      address: veVetroContracts.distributor,
+      recipient: account,
+      signature: requireTermsSignature ? placeholderSignature : undefined,
+      tokenIds,
+    }),
+    stateOverride: requireTermsSignature
+      ? [{ address: account, code: echoSelectorCode }]
+      : undefined,
+    to: veVetroContracts.distributor,
+  });
+
+  return fetchTotalNetworkFees({
     chain: veVetroChain,
-    gasUnits: baseGasUnits + gasUnitsPerPosition * BigInt(positionCount),
+    gasUnits,
     queryClient,
   });
+};

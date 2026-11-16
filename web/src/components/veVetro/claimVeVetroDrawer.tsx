@@ -16,7 +16,7 @@ import { GeoRestrictedButton } from "components/geoRestrictedButton";
 import { NetworkFees } from "components/networkFees";
 import { useClaimVeVetroFees } from "hooks/useClaimVeVetroFees";
 import { useVeVetroClaimableAmount } from "hooks/useVeVetroClaimableAmount";
-import { useVeVetroClaimablePositionCount } from "hooks/useVeVetroClaimablePositionCount";
+import { useVeVetroClaimableTokenIds } from "hooks/useVeVetroClaimableTokenIds";
 import { useVeVetroRequireTermsSignature } from "hooks/useVeVetroRequireTermsSignature";
 import { useVeVetroUnlockTimestamp } from "hooks/useVeVetroUnlockTimestamp";
 import { useTranslation } from "react-i18next";
@@ -27,7 +27,7 @@ import { ClaimAgreement } from "./claimAgreement";
 
 const timeZone = "UTC";
 
-export type Submitted = { amount: bigint; positionCount: number };
+export type Submitted = { amount: bigint; tokenIds: readonly bigint[] };
 
 function ClaimAmount({ submitted }: { submitted: Submitted | undefined }) {
   const { t } = useTranslation();
@@ -52,26 +52,29 @@ function ClaimAmount({ submitted }: { submitted: Submitted | undefined }) {
 function ClaimDetails({ submitted }: { submitted: Submitted | undefined }) {
   const { i18n, t } = useTranslation();
   const {
-    data: currentPositionCount,
-    fetchStatus: positionCountFetchStatus,
-    isError: isPositionCountError,
-  } = useVeVetroClaimablePositionCount();
-  const positionCount = submitted?.positionCount ?? currentPositionCount;
+    data: currentTokenIds,
+    fetchStatus: tokenIdsFetchStatus,
+    isError: isTokenIdsError,
+  } = useVeVetroClaimableTokenIds();
+  const tokenIds = submitted?.tokenIds ?? currentTokenIds;
   const unlockTimestamp = useVeVetroUnlockTimestamp();
-  const networkFee = useClaimVeVetroFees(positionCount);
+  const networkFee = useClaimVeVetroFees({
+    enabled: submitted === undefined,
+    tokenIds,
+  });
 
   return (
     <DrawerFeesContainer>
       <FeeDetails
         className="first:border-t-0"
-        fetchStatus={positionCountFetchStatus}
-        isError={submitted === undefined && isPositionCountError}
+        fetchStatus={tokenIdsFetchStatus}
+        isError={submitted === undefined && isTokenIdsError}
         label={t("pages.ve-vetro.claim.drawer.from")}
         value={
-          positionCount === undefined
+          tokenIds === undefined
             ? undefined
             : t("pages.ve-vetro.claim.drawer.from-positions", {
-                count: positionCount,
+                count: tokenIds.length,
               })
         }
       />
