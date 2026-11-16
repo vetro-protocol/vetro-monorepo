@@ -13,6 +13,7 @@ import { veVetroChain } from "networks";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { formatMediumDate } from "utils/date";
+import { isGeoRestricted } from "utils/geoRestriction";
 import { veVetroContracts, veVetroToken, vToken } from "utils/veVetro";
 import { useAccount } from "wagmi";
 
@@ -119,7 +120,7 @@ export function VeVetroPositionsTable() {
   return (
     <div>
       <SectionHeader title={t("pages.ve-vetro.positions.title")}>
-        {address && claimBlocker === undefined && (
+        {address && claimBlocker === undefined && !isGeoRestricted() && (
           <ButtonLink href="/vevetro/claim" size="small" variant="primary">
             {t("pages.ve-vetro.positions.claim-button", {
               symbol: vToken.symbol,

@@ -49,6 +49,7 @@ const baseRequest = ({
   requestId,
   requestTxHash: undefined,
   retryCount: 0,
+  sharesMinted: undefined,
   stakedAmount: undefined,
   status: "PENDING",
 });
@@ -140,9 +141,7 @@ indexer.onEvent(
         amountOutMin: event.params.amountOutMin,
         asset: lc(event.params.asset),
         automatic: event.params.automatic,
-        initiator: event.transaction.from
-          ? lc(event.transaction.from)
-          : undefined,
+        initiator: lc(event.params.caller),
         kind: "DEPOSIT",
         receiver: lc(event.params.receiver),
         requestedAt: BigInt(event.block.timestamp),
@@ -163,9 +162,7 @@ indexer.onEvent(
         amountOutMin: event.params.amountOutMin,
         asset: lc(event.params.asset),
         automatic: event.params.automatic,
-        initiator: event.transaction.from
-          ? lc(event.transaction.from)
-          : undefined,
+        initiator: lc(event.params.caller),
         kind: "REDEEM",
         receiver: lc(event.params.receiver),
         requestedAt: BigInt(event.block.timestamp),
@@ -337,6 +334,7 @@ indexer.onEvent(
         kind: existing.kind ?? "DEPOSIT",
         processedAt: BigInt(event.block.timestamp),
         processTxHash: event.transaction.hash,
+        sharesMinted: event.params.shares,
         stakedAmount: event.params.staked, // pegged staked into the vault
       }),
       requestId: event.params.requestId,

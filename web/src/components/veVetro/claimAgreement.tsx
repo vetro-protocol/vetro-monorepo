@@ -1,11 +1,11 @@
 import { vetroLinks } from "@vetro-protocol/core";
 import { Checkbox } from "components/base/checkbox";
-import { ExternalLink } from "components/base/externalLink";
+import {
+  ExternalLink,
+  inlineLinkClassName,
+} from "components/base/externalLink";
 import type { ReactNode } from "react";
 import { Trans, useTranslation } from "react-i18next";
-
-const linkClassName =
-  "font-medium text-blue-500 transition-colors hover:text-blue-600";
 
 type AgreementCheckboxProps = {
   checked: boolean;
@@ -68,13 +68,13 @@ export function ClaimAgreement({
           components={{
             privacy: (
               <ExternalLink
-                className={linkClassName}
+                className={inlineLinkClassName}
                 href={vetroLinks.privacyPolicyUrl}
               />
             ),
             terms: (
               <ExternalLink
-                className={linkClassName}
+                className={inlineLinkClassName}
                 href={vetroLinks.termsOfUseUrl}
               />
             ),

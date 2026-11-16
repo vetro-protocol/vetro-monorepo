@@ -10,12 +10,14 @@ const shareB = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
 const deposit = ({
   share,
   shares,
+  sharesMinted = null,
   staked,
 }: {
   share: string;
   shares: string;
+  sharesMinted?: string | null;
   staked: string | null;
-}) => ({ kind: "DEPOSIT" as const, share, shares, staked });
+}) => ({ kind: "DEPOSIT" as const, share, shares, sharesMinted, staked });
 
 const redeem = ({ share, shares }: { share: string; shares: string }) => ({
   kind: "REDEEM" as const,
@@ -43,6 +45,36 @@ describe("hemi-earn/replay/replayCostBasis", function () {
   it("adds a deposit as WAD-scaled cost basis and minted shares", function () {
     const positions = replayCostBasis([
       deposit({ share: shareA, shares: "50", staked: "100" }),
+    ]);
+    expect(positions.get(shareA)).toEqual({
+      costBasis: 100n * WAD,
+      shares: 50n,
+    });
+  });
+
+  it("books a deposit at the staked amount that the received shares represent", function () {
+    const positions = replayCostBasis([
+      deposit({
+        share: shareA,
+        shares: "99000000000000",
+        sharesMinted: "99776138857662",
+        staked: "100000000000000",
+      }),
+    ]);
+    expect(positions.get(shareA)).toEqual({
+      costBasis: (100000000000000n * WAD * 99000000000000n) / 99776138857662n,
+      shares: 99000000000000n,
+    });
+  });
+
+  it("books the full staked amount when the minted shares are zero", function () {
+    const positions = replayCostBasis([
+      deposit({
+        share: shareA,
+        shares: "50",
+        sharesMinted: "0",
+        staked: "100",
+      }),
     ]);
     expect(positions.get(shareA)).toEqual({
       costBasis: 100n * WAD,

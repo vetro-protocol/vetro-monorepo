@@ -1,7 +1,7 @@
 export { hemiEarnAgentAbi } from "./abi/hemiEarnAgentAbi.ts";
 export { hemiEarnRouterAbi } from "./abi/hemiEarnRouterAbi.ts";
 
-export { hemiEarnRouterAddress } from "./constants.ts";
+export { hemiEarnAgentAddress, hemiEarnRouterAddress } from "./constants.ts";
 
 export type {
   CancelRedeemEvents,

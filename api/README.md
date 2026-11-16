@@ -190,9 +190,11 @@ Returns `500` if a read of the Router on Hemi fails.
 
 The API replays the processed deposits of the address, its processed and pending redeems, and its share token transfers, in time order:
 
-- A deposit adds its staked pegged amount when it is processed.
+- A deposit adds the staked value of the shares received (`staked × received ÷ minted`) when it is processed. The share OFT trims the shares that the vault mints to a multiple of its shared decimals (`1e12`), so the received shares can be fewer than the minted ones. A new position does not start below its cost basis.
 - A transfer in adds its value at the share-to-asset rate nearest in time to the transfer.
 - A redeem or a transfer out reduces the cost basis in proportion to the shares that leave.
+
+Cancelled and recovered requests are skipped.
 
 The keys are the checksummed share token addresses on Hemi. The values are decimal strings in the pegged token's base units. A value can have a fractional part after a proportional reduction. The response has only the share tokens with a balance above zero, so `costBasis` is `{}` when the address has no position.
 
@@ -498,22 +500,6 @@ Query params:
     "volumeUsd24h": 442.56,
   },
 ]
-```
-
-### `GET /restrictions`
-
-Returns two lists of ISO 3166-1 alpha-2 country codes, each sorted alphabetically. The response is not cached, so it always matches the deployed lists.
-
-- `restrictedCountries`: the geo-restricted countries — the EU 27 member states, the EEA (Norway, Iceland, Liechtenstein), the US, Canada and the UK.
-- `sanctionedCountries`: the sanctioned countries.
-
-#### Sample Response
-
-```jsonc
-{
-  "restrictedCountries": ["AT", "BE", "BG", /* … */ "SK", "US"],
-  "sanctionedCountries": ["AF", "BA", "BY", /* … */ "VE", "YE"],
-}
 ```
 
 ### `GET /variable-stake/cost-basis/:address`

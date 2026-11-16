@@ -19,7 +19,10 @@ import { createRpcTransport, vetroLinks } from "@vetro-protocol/core";
 import { Trans } from "react-i18next";
 import { WagmiProvider } from "wagmi";
 
-import { ExternalLink } from "../components/base/externalLink";
+import {
+  ExternalLink,
+  inlineLinkClassName,
+} from "../components/base/externalLink";
 import { allChains } from "../networks";
 
 export const config = getDefaultConfig({
@@ -50,22 +53,19 @@ const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1 } },
 });
 
-const disclaimerLinkClassName =
-  "font-medium text-blue-500 transition-colors hover:text-blue-600";
-
 const WalletDisclaimer: DisclaimerComponent = ({ Text }) => (
   <Text>
     <Trans
       components={{
         privacy: (
           <ExternalLink
-            className={disclaimerLinkClassName}
+            className={inlineLinkClassName}
             href={vetroLinks.privacyPolicyUrl}
           />
         ),
         terms: (
           <ExternalLink
-            className={disclaimerLinkClassName}
+            className={inlineLinkClassName}
             href={vetroLinks.termsOfUseUrl}
           />
         ),

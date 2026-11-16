@@ -58,7 +58,7 @@ function ClaimDetails({ submitted }: { submitted: Submitted | undefined }) {
   } = useVeVetroClaimablePositionCount();
   const positionCount = submitted?.positionCount ?? currentPositionCount;
   const unlockTimestamp = useVeVetroUnlockTimestamp();
-  const networkFee = useClaimVeVetroFees();
+  const networkFee = useClaimVeVetroFees(positionCount);
 
   return (
     <DrawerFeesContainer>

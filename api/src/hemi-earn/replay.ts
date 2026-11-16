@@ -3,7 +3,13 @@ import { type Address } from "viem";
 export type RatePoint = { denominator: string; numerator: string };
 
 export type CostBasisEvent =
-  | { kind: "DEPOSIT"; share: string; shares: string; staked: string | null }
+  | {
+      kind: "DEPOSIT";
+      share: string;
+      shares: string;
+      sharesMinted: string | null;
+      staked: string | null;
+    }
   | { kind: "REDEEM"; share: string; shares: string }
   | {
       kind: "TRANSFER_IN";
@@ -53,6 +59,28 @@ function dispose({
   };
 }
 
+// The share OFT trims the minted shares to its shared decimals, so the holder
+// gets fewer shares than the vault minted. Book only the staked value that
+// the received shares represent, so a new position does not start at a loss.
+function priceDeposit({
+  shares,
+  sharesMinted,
+  staked,
+}: {
+  shares: string;
+  sharesMinted: string | null;
+  staked: string | null;
+}) {
+  if (staked === null) {
+    return 0n;
+  }
+  const cost = BigInt(staked) * WAD;
+  if (sharesMinted === null || BigInt(sharesMinted) === 0n) {
+    return cost;
+  }
+  return (cost * BigInt(shares)) / BigInt(sharesMinted);
+}
+
 function applyEvent({
   event,
   position,
@@ -62,7 +90,7 @@ function applyEvent({
 }) {
   if (event.kind === "DEPOSIT") {
     return acquire({
-      cost: event.staked === null ? 0n : BigInt(event.staked) * WAD,
+      cost: priceDeposit(event),
       position,
       shares: BigInt(event.shares),
     });

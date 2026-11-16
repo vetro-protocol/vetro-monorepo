@@ -41,6 +41,9 @@ type Request {
   requestId: BigInt!
   requestTxHash: String
   retryCount: Int!
+  # shares the Agent minted for a deposit, before the share OFT trims them to
+  # its shared decimals (RequestFulfilled overwrites amountOut with the trimmed amount)
+  sharesMinted: BigInt
   stakedAmount: BigInt
   status: RequestStatus!
 }

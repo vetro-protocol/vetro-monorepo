@@ -149,7 +149,7 @@ export const hemiEarnRouterAbi = [
         type: "uint256",
       },
       {
-        indexed: true,
+        indexed: false,
         internalType: "address",
         name: "asset",
         type: "address",
@@ -165,6 +165,12 @@ export const hemiEarnRouterAbi = [
         internalType: "uint256",
         name: "amountOutMin",
         type: "uint256",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "caller",
+        type: "address",
       },
       {
         indexed: true,
@@ -192,7 +198,7 @@ export const hemiEarnRouterAbi = [
         type: "uint256",
       },
       {
-        indexed: true,
+        indexed: false,
         internalType: "address",
         name: "asset",
         type: "address",
@@ -208,6 +214,12 @@ export const hemiEarnRouterAbi = [
         internalType: "uint256",
         name: "amountOutMin",
         type: "uint256",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "caller",
+        type: "address",
       },
       {
         indexed: true,

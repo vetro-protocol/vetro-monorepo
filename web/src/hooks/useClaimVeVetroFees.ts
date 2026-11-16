@@ -7,19 +7,25 @@ import { useAccount } from "wagmi";
 const claimVeVetroFeesOptions = ({
   account,
   client,
+  positionCount,
 }: {
   account: Address | undefined;
   client: Client | undefined;
+  positionCount: number | undefined;
 }) =>
   queryOptions({
-    enabled: !!account && !!client,
+    enabled: !!account && !!client && positionCount !== undefined,
     queryFn: ({ client: queryClient }) =>
-      fetchClaimVeVetroFees({ client: client!, queryClient }),
-    queryKey: ["ve-vetro-claim-fees", account],
+      fetchClaimVeVetroFees({
+        client: client!,
+        positionCount: positionCount!,
+        queryClient,
+      }),
+    queryKey: ["ve-vetro-claim-fees", account, positionCount],
   });
 
-export function useClaimVeVetroFees() {
+export function useClaimVeVetroFees(positionCount: number | undefined) {
   const { address: account } = useAccount();
   const client = useHemiClient();
-  return useQuery(claimVeVetroFeesOptions({ account, client }));
+  return useQuery(claimVeVetroFeesOptions({ account, client, positionCount }));
 }

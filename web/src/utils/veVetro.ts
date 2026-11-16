@@ -47,6 +47,9 @@ export const vToken =
         (token) => token.chainId === mainnet.id && token.symbol === "V",
       )!;
 
+export const isBelowMinClaim = (amount: bigint) =>
+  amount > 0n && amount < minClaimAmount;
+
 export function getClaimBlocker({
   amount,
   hasClaimEnded,
@@ -62,7 +65,7 @@ export function getClaimBlocker({
   if (amount === 0n) {
     return "nothing-to-claim";
   }
-  if (amount < minClaimAmount) {
+  if (isBelowMinClaim(amount)) {
     return "below-minimum";
   }
   return undefined;

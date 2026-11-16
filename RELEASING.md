@@ -22,9 +22,9 @@ When you do want to publish, bump the version in the PR that contains the change
 From `master`, after the package's `version` has been bumped in `package.json`, run the release script (`scripts/release.sh`) for that package. It:
 
 - Pulls the latest tags from origin so its checks aren't affected by local repo state.
-- Refuses to continue if a release for this package version already exists on the remote — prompting you to bump the version.
+- Stops if the tag for this package version already exists, prompting you to bump the version. Don't create or push the tag by hand first.
 - Composes release notes from the PRs that touched the package's directory since the previous release of the same package. The first GitHub release of a package falls back to a short "Initial release" placeholder instead of dumping the full history.
-- After your confirmation, creates the tag, pushes it, and opens a **draft** GitHub Release.
+- After your confirmation, opens a **draft** GitHub Release targeting the current `HEAD` commit. It doesn't create or push the tag: GitHub creates it when you publish the release, so abandoning the draft leaves no tag behind.
 
 Nothing has hit npm yet. Review the draft on GitHub and edit the notes if you want. When ready, click **"Publish release"** — that's the only thing that fires the npm publish.
 
