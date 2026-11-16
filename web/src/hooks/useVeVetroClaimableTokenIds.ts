@@ -3,11 +3,11 @@ import { useHemiClient } from "hooks/useHemiClient";
 import { veVetroClaimableSubsetOptions } from "hooks/useVeVetroClaimableSubset";
 import { useAccount } from "wagmi";
 
-export function useVeVetroClaimablePositionCount() {
+export function useVeVetroClaimableTokenIds() {
   const { address: account } = useAccount();
   const client = useHemiClient();
   return useQuery({
     ...veVetroClaimableSubsetOptions({ account, client }),
-    select: ({ ids }) => ids.length,
+    select: ({ ids }) => ids,
   });
 }
