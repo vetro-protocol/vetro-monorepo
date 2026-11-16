@@ -9,6 +9,7 @@ import {
   assignColor,
   toReserveBufferAmount,
   toYieldItems,
+  toYieldTotal,
 } from "utils/allocations";
 import { formatUsd } from "utils/currency";
 import { formatPercentage } from "utils/format";
@@ -69,6 +70,55 @@ export const YieldDetails = function ({
   );
 };
 
+const withReserveBuffer = ({
+  bufferAmount,
+  label,
+  yieldItems,
+}: {
+  bufferAmount: number;
+  label: string;
+  yieldItems: ReturnType<typeof toYieldItems>;
+}) =>
+  bufferAmount > 0
+    ? [
+        ...yieldItems,
+        {
+          amount: bufferAmount,
+          apy: 0,
+          color: assignColor(yieldItems.length),
+          href: undefined,
+          label,
+        },
+      ]
+    : yieldItems;
+
+export const YieldTotal = function ({
+  items,
+}: {
+  items: { amount: number; apy: number | undefined }[];
+}) {
+  const { t } = useTranslation();
+  if (!items.length) {
+    return null;
+  }
+  const { amount, amountWithApy, apy } = toYieldTotal(items);
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 py-3">
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        <div className="size-1.5 shrink-0" />
+        <span className="text-b-medium text-gray-900">
+          {t("common.charts.total-label")}
+        </span>
+      </div>
+      <span className="text-b-medium text-right text-gray-900 @md:w-24">
+        <span className="sr-only">{t("common.charts.balance-column")} </span>
+        {formatUsd(amount)}
+      </span>
+      <YieldDetails amount={amountWithApy} apy={apy} />
+    </div>
+  );
+};
+
 export const YieldCard = function ({
   peggedToken,
   peggedTokenError = false,
@@ -107,27 +157,20 @@ export const YieldCard = function ({
       })
     : 0;
 
-  const strategyItems = yieldItems?.map(
-    ({ amount, apy, color, href, label }) => ({
-      amount,
-      color,
-      details: <YieldDetails amount={amount} apy={apy} />,
-      href,
-      label,
-    }),
-  );
-  const items =
-    strategyItems && bufferAmount > 0
-      ? [
-          ...strategyItems,
-          {
-            amount: bufferAmount,
-            color: assignColor(strategyItems.length),
-            details: <YieldDetails amount={bufferAmount} apy={0} />,
-            label: t("common.charts.reserve-buffer-label"),
-          },
-        ]
-      : strategyItems;
+  const rows =
+    yieldItems &&
+    withReserveBuffer({
+      bufferAmount,
+      label: t("common.charts.reserve-buffer-label"),
+      yieldItems,
+    });
+  const items = rows?.map(({ amount, apy, color, href, label }) => ({
+    amount,
+    color,
+    details: <YieldDetails amount={amount} apy={apy} />,
+    href,
+    label,
+  }));
 
   const value =
     yieldItems && treasury
@@ -137,6 +180,7 @@ export const YieldCard = function ({
   return (
     <AllocationCard
       amountLabel={t("common.charts.balance-column")}
+      footer={rows && <YieldTotal items={rows} />}
       footnote={t("common.charts.projection-footnote")}
       header={<YieldHeader />}
       icon={<PieChartIcon className="text-blue-500" />}

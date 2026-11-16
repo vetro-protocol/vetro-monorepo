@@ -233,3 +233,20 @@ export const toReserveBufferAmount = function ({
 
   return Math.max(0, amount);
 };
+
+/** Weighted average of the APYs by amount */
+export const toYieldTotal = function (
+  items: { amount: number; apy: number | undefined }[],
+) {
+  const amount = items.reduce((sum, item) => sum + item.amount, 0);
+  const withApy = items.filter(({ apy }) => apy !== undefined);
+  const amountWithApy = withApy.reduce((sum, item) => sum + item.amount, 0);
+  if (amountWithApy <= 0) {
+    return { amount, amountWithApy, apy: undefined };
+  }
+  const weightedApy = withApy.reduce(
+    (sum, item) => sum + item.amount * (item.apy ?? 0),
+    0,
+  );
+  return { amount, amountWithApy, apy: weightedApy / amountWithApy };
+};

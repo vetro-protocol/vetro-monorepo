@@ -8,6 +8,7 @@ import type { AllocationItem } from "./types";
 
 type Props = {
   amountLabel?: string;
+  footer?: ReactNode;
   footnote?: string;
   formatAmount?: (value: number) => string;
   header?: ReactNode;
@@ -21,6 +22,7 @@ type Props = {
 
 export const AllocationCard = function ({
   amountLabel,
+  footer,
   footnote,
   formatAmount = formatUsd,
   header,
@@ -62,6 +64,7 @@ export const AllocationCard = function ({
           />
           <AllocationLegend
             amountLabel={amountLabel}
+            footer={footer}
             formatAmount={formatAmount}
             header={header}
             hoveredLabel={hoveredLabel}

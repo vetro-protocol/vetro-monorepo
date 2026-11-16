@@ -11,6 +11,7 @@ import {
   toTvlHistorySeries,
   toTvlItems,
   toYieldItems,
+  toYieldTotal,
 } from "../../src/utils/allocations";
 
 const findToken = (symbol: string) =>
@@ -556,6 +557,51 @@ describe("pages/analytics/utils", function () {
 
       expect(items).toHaveLength(1);
       expect(items[0]?.label).toBe("USDT Strategy");
+    });
+  });
+
+  describe("toYieldTotal", function () {
+    it("returns the sum of the amounts and the APY weighted by amount", function () {
+      const result = toYieldTotal([
+        { amount: 300, apy: 6 },
+        { amount: 100, apy: 2 },
+        { amount: 100, apy: 0 },
+      ]);
+
+      expect(result).toEqual({
+        amount: 500,
+        amountWithApy: 500,
+        apy: (300 * 6 + 100 * 2) / 500,
+      });
+    });
+
+    it("skips the items with no APY in the APY", function () {
+      const result = toYieldTotal([
+        { amount: 300, apy: 6 },
+        { amount: 100, apy: 2 },
+        { amount: 50, apy: undefined },
+      ]);
+
+      expect(result).toEqual({
+        amount: 450,
+        amountWithApy: 400,
+        apy: (300 * 6 + 100 * 2) / 400,
+      });
+    });
+
+    it("returns no APY when no item has an APY", function () {
+      const result = toYieldTotal([{ amount: 100, apy: undefined }]);
+
+      expect(result).toEqual({ amount: 100, amountWithApy: 0, apy: undefined });
+    });
+
+    it("returns no APY when the amounts with an APY sum to 0", function () {
+      const result = toYieldTotal([
+        { amount: 0, apy: 6 },
+        { amount: 100, apy: undefined },
+      ]);
+
+      expect(result).toEqual({ amount: 100, amountWithApy: 0, apy: undefined });
     });
   });
 

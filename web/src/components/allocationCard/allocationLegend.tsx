@@ -9,6 +9,7 @@ const skeletonRows = 4;
 
 type Props = {
   amountLabel?: string;
+  footer?: ReactNode;
   formatAmount: (value: number) => string;
   header?: ReactNode;
   hoveredLabel: string | null;
@@ -20,6 +21,7 @@ type Props = {
 
 export const AllocationLegend = ({
   amountLabel,
+  footer,
   formatAmount,
   header,
   hoveredLabel,
@@ -62,6 +64,7 @@ export const AllocationLegend = ({
             {details}
           </div>
         ))}
+        {footer}
       </>
     )}
     {isError &&
