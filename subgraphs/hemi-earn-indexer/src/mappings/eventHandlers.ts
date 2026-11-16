@@ -141,9 +141,7 @@ indexer.onEvent(
         amountOutMin: event.params.amountOutMin,
         asset: lc(event.params.asset),
         automatic: event.params.automatic,
-        initiator: event.transaction.from
-          ? lc(event.transaction.from)
-          : undefined,
+        initiator: lc(event.params.caller),
         kind: "DEPOSIT",
         receiver: lc(event.params.receiver),
         requestedAt: BigInt(event.block.timestamp),
@@ -164,9 +162,7 @@ indexer.onEvent(
         amountOutMin: event.params.amountOutMin,
         asset: lc(event.params.asset),
         automatic: event.params.automatic,
-        initiator: event.transaction.from
-          ? lc(event.transaction.from)
-          : undefined,
+        initiator: lc(event.params.caller),
         kind: "REDEEM",
         receiver: lc(event.params.receiver),
         requestedAt: BigInt(event.block.timestamp),

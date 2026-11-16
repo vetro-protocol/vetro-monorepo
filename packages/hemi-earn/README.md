@@ -11,7 +11,7 @@ pnpm add @vetro-protocol/hemi-earn viem
 ## Overview
 
 - The Router is on Hemi, at `hemiEarnRouterAddress`. Router actions use this address by default. Each one accepts an optional `address` to use a different Router.
-- The Agent is on Ethereum. Read its address from the Router with `getAgentAddress`, then pass it as `address` to the Agent actions.
+- The Agent is on Ethereum, at `hemiEarnAgentAddress`. Agent actions do not use it by default: pass it, or the address that `getAgentAddress` reads from the Router, as `address`.
 - A deposit or a redeem is a request. `requestDeposit` and `requestRedeem` quote the LayerZero fee, approve the token if necessary, and send the request with the fee as `msg.value`. If the native balance is less than the fee, they stop before the approval. If an approval occurs, they quote the fee again before they send the request. `requestDeposit` and `requestRedeem` set `automatic` to `true`. Thus when the Agent fulfills or cancels the request, the Router sends the tokens to the receiver. If that transfer fails, the Router emits `AutoFinalizationFailed`. Then the user calls `claimDeposit` or `claimRedeem` for a fulfilled request, or `recoverDeposit` or `recoverRedeem` for a cancelled one. A request encoded with `automatic: false` always needs these calls.
 - `hemiEarnVaults` and `hemiEarnLinks` hold the off-chain data that Hemi Earn frontends show for Vetro vaults.
 
@@ -68,7 +68,7 @@ await promise;
   - `encodeRequestDeposit({ amount, asset, automatic?, callbackFee, operator, receiver, sharesOutMin })`. Unlike `requestDeposit`, it does not approve the token.
   - `encodeRequestRedeem({ asset, assetsOutMin, automatic?, callbackFee, isInstant, operator, receiver, shares })`. Unlike `requestRedeem`, it does not approve the share token.
 - ABIs: `hemiEarnRouterAbi` and `hemiEarnAgentAbi`.
-- Constants: `hemiEarnRouterAddress`, the Router on Hemi.
+- Constants: `hemiEarnRouterAddress`, the Router on Hemi, and `hemiEarnAgentAddress`, the Agent on Ethereum.
 - Hemi Earn metadata:
   - `hemiEarnVaults` — ordered `HemiEarnVault[]`; frontends offer the vaults that are not delisted, in this order. Each entry has `address` (Ethereum staking vault), `apyIncludesFees` (whether the Vetro API APY is net of fees), `curators?` (brand names of the curators running the vault's live strategies; only if different from the operator), `delisted` (whether the vault is delisted; a delisted entry is never removed from the list, so frontends keep its metadata while holders withdraw from it), `operator` (full legal name) and `typicalTransferTime` (seconds; how long a cross-chain transfer usually takes, in either direction).
   - `hemiEarnLinks` — URLs of pages hosted by Vetro: `privacyPolicyUrl`, `supportUrl` and `termsOfUseUrl`.

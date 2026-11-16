@@ -29,7 +29,7 @@ Two more entities support the FMV cost basis of share tokens that a wallet gets 
 
 ### `initiator`
 
-The Router `*Requested` events do not include `msg.sender`. The indexer reads the initiator from the transaction (`event.transaction.from`, set in `field_selection` in `config.yaml`). This is the EOA that sent the transaction. For a direct call, this is the user. For a Safe, this is the owner that executed the transaction. For an ERC-4337 smart account, this is the bundler.
+The indexer reads the initiator from the `caller` param of the Router `*Requested` events. `caller` is the `msg.sender` of the request, so it is the wallet that made the request, also when the wallet is a Safe or an ERC-4337 smart account. It is not the transaction sender (`tx.from`), which for these wallets is an owner, a relayer, or a bundler.
 
 ### Addresses
 

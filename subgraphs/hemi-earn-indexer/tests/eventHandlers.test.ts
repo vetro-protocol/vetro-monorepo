@@ -10,14 +10,17 @@ const { mockAddresses } = TestHelpers.Addresses;
 
 const HEMI = 43111;
 const ETH = 1;
-const HEMI_START = 4_539_427; // Router deploy block on Hemi
-const ETH_START = 25_224_437; // Agent deploy block on Ethereum
+const HEMI_START = 5_726_643; // Router deploy block on Hemi
+const ETH_START = 26_407_184; // Agent deploy block on Ethereum
 const startBlock = { [ETH]: ETH_START, [HEMI]: HEMI_START };
 
 const ASSET = mockAddresses[0];
 const RECEIVER = mockAddresses[1];
 const SENDER = mockAddresses[2];
 const SHARE = mockAddresses[3];
+// The requesting wallet (msg.sender), which differs from SENDER, the transaction
+// sender, for a Safe or an ERC-4337 smart account.
+const CALLER = mockAddresses[4];
 const SHARE_OFT = indexer.chains[HEMI].ShareToken.addresses[0] as `0x${string}`;
 const zeroAddress = "0x0000000000000000000000000000000000000000";
 const ROUTER = indexer.chains[HEMI].Router.addresses[0] as `0x${string}`;
@@ -62,10 +65,11 @@ describe("Router request creation", function () {
             asset: ASSET,
             assets: 1000n,
             automatic: false,
+            caller: CALLER,
             receiver: RECEIVER,
             requestId: 1n,
           },
-          transaction: { from: SENDER, hash: "0xdep" },
+          transaction: { hash: "0xdep" },
         },
       ],
     });
@@ -79,7 +83,8 @@ describe("Router request creation", function () {
     expect(req.automatic).toBe(false);
     expect(req.asset).toBe(ASSET.toLowerCase());
     expect(req.receiver).toBe(RECEIVER.toLowerCase());
-    expect(req.initiator).toBe(SENDER.toLowerCase());
+    // The requesting wallet (caller), not the transaction sender.
+    expect(req.initiator).toBe(CALLER.toLowerCase());
     expect(req.requestedAt).toBe(1_700_000_000n);
     expect(req.requestTxHash).toBe("0xdep");
   });
@@ -96,11 +101,12 @@ describe("Router request creation", function () {
             amountOutMin: 0n,
             asset: ASSET,
             automatic: true,
+            caller: CALLER,
             receiver: RECEIVER,
             requestId: 2n,
             shares: 500n,
           },
-          transaction: { from: SENDER, hash: "0xred" },
+          transaction: { hash: "0xred" },
         },
       ],
     });
@@ -111,6 +117,7 @@ describe("Router request creation", function () {
     // redeem input = shares
     expect(req.amountIn).toBe(500n);
     expect(req.automatic).toBe(true);
+    expect(req.initiator).toBe(CALLER.toLowerCase());
   });
 });
 
@@ -128,6 +135,7 @@ describe("status ranking and terminal stickiness", function () {
             asset: ASSET,
             assets: 1000n,
             automatic: false,
+            caller: CALLER,
             receiver: RECEIVER,
             requestId: 10n,
           },
@@ -143,7 +151,7 @@ describe("status ranking and terminal stickiness", function () {
           contract: "Router",
           event: "RequestClaimed",
           params: { requestId: 10n },
-          transaction: { from: SENDER, hash: "0xclaim" },
+          transaction: { hash: "0xclaim" },
         },
       ],
     });
@@ -199,7 +207,7 @@ describe("cross-chain partial view", function () {
                 shares: 12n,
                 staked: 1000n,
               },
-              transaction: { from: SENDER, hash: "0xproc" },
+              transaction: { hash: "0xproc" },
             },
           ],
           startBlock: ETH_START,
@@ -215,10 +223,11 @@ describe("cross-chain partial view", function () {
                 asset: ASSET,
                 assets: 1000n,
                 automatic: false,
+                caller: CALLER,
                 receiver: RECEIVER,
                 requestId: 20n,
               },
-              transaction: { from: SENDER, hash: "0xreq" },
+              transaction: { hash: "0xreq" },
             },
           ],
           startBlock: HEMI_START,
@@ -230,7 +239,7 @@ describe("cross-chain partial view", function () {
     // Router-side fields
     expect(req.kind).toBe("DEPOSIT");
     expect(req.status).toBe("PENDING");
-    expect(req.initiator).toBe(SENDER.toLowerCase());
+    expect(req.initiator).toBe(CALLER.toLowerCase());
     expect(req.requestTxHash).toBe("0xreq");
     expect(req.asset).toBe(ASSET.toLowerCase());
 
@@ -423,7 +432,7 @@ describe("terminal lifecycle", function () {
           contract: "Router",
           event: "RequestRecovered",
           params: { requestId: 60n },
-          transaction: { from: SENDER, hash: "0xrecover" },
+          transaction: { hash: "0xrecover" },
         },
       ],
     });
@@ -454,7 +463,7 @@ describe("terminal lifecycle", function () {
           contract: "Router",
           event: "RequestRecovered",
           params: { requestId: 62n },
-          transaction: { from: SENDER, hash: "0xrecover62" },
+          transaction: { hash: "0xrecover62" },
         },
       ],
     });
@@ -477,7 +486,7 @@ describe("terminal lifecycle", function () {
           contract: "Router",
           event: "RequestClaimed",
           params: { requestId: 61n },
-          transaction: { from: SENDER, hash: "0xclaim" },
+          transaction: { hash: "0xclaim" },
         },
         {
           block: { number: HEMI_START + 1, timestamp: 1_700_000_100 },
@@ -533,7 +542,7 @@ describe("Agent receives", function () {
                 shares: 12n,
                 staked: 999n,
               },
-              transaction: { from: SENDER, hash: "0xproc" },
+              transaction: { hash: "0xproc" },
             },
           ],
           startBlock: ETH_START,
@@ -549,6 +558,7 @@ describe("Agent receives", function () {
                 asset: ASSET,
                 assets: 1000n, // Router-authoritative deposit input
                 automatic: false,
+                caller: CALLER,
                 receiver: RECEIVER,
                 requestId: 63n,
               },
@@ -581,7 +591,7 @@ describe("Agent receives", function () {
                 shares: 1_234_567_890_123n,
                 staked: 1000n,
               },
-              transaction: { from: SENDER, hash: "0xproc" },
+              transaction: { hash: "0xproc" },
             },
           ],
           startBlock: ETH_START,
@@ -597,6 +607,7 @@ describe("Agent receives", function () {
                 asset: ASSET,
                 assets: 1000n,
                 automatic: false,
+                caller: CALLER,
                 receiver: RECEIVER,
                 requestId: 64n,
               },
@@ -637,7 +648,7 @@ describe("ShareToken transfers", function () {
     logIndex,
     params: { from, to, value: 1n },
     srcAddress: SHARE_OFT,
-    transaction: { from: SENDER, hash },
+    transaction: { hash },
   });
 
   it("stores a wallet-to-wallet transfer", async function () {
@@ -651,7 +662,7 @@ describe("ShareToken transfers", function () {
           logIndex: 5,
           params: { from: SENDER, to: RECEIVER, value: 1000n },
           srcAddress: SHARE_OFT,
-          transaction: { from: SENDER, hash: "0xtransfer" },
+          transaction: { hash: "0xtransfer" },
         },
       ],
     });
@@ -703,7 +714,7 @@ describe("rate snapshots", function () {
           contract: "Agent",
           event: "DepositRequestReceived",
           params: { asset: ASSET, assets: 1000n, requestId: 70n },
-          transaction: { from: SENDER, hash: "0xrecv" },
+          transaction: { hash: "0xrecv" },
         },
         {
           block: { number: ETH_START, timestamp: 1_700_000_200 },
@@ -711,7 +722,7 @@ describe("rate snapshots", function () {
           event: "DepositRequestProcessed",
           logIndex: 3,
           params: { assets: 1000n, requestId: 70n, shares: 12n, staked: 999n },
-          transaction: { from: SENDER, hash: "0xproc" },
+          transaction: { hash: "0xproc" },
         },
       ],
     });
@@ -732,7 +743,7 @@ describe("rate snapshots", function () {
           contract: "Agent",
           event: "RedeemRequestReceived",
           params: { asset: ASSET, requestId: 71n, share: SHARE, shares: 500n },
-          transaction: { from: SENDER, hash: "0xrrecv" },
+          transaction: { hash: "0xrrecv" },
         },
         {
           block: { number: ETH_START, timestamp: 1_700_000_200 },
@@ -745,7 +756,7 @@ describe("rate snapshots", function () {
             shares: 500n,
             unstaked: 480n,
           },
-          transaction: { from: SENDER, hash: "0xrproc" },
+          transaction: { hash: "0xrproc" },
         },
       ],
     });
@@ -766,7 +777,7 @@ describe("rate snapshots", function () {
           event: "DepositRequestProcessed",
           logIndex: 5,
           params: { assets: 1000n, requestId: 72n, shares: 12n, staked: 999n },
-          transaction: { from: SENDER, hash: "0xnoasset" },
+          transaction: { hash: "0xnoasset" },
         },
       ],
     });
@@ -783,7 +794,7 @@ describe("rate snapshots", function () {
           contract: "Agent",
           event: "DepositRequestReceived",
           params: { asset: ASSET, assets: 1000n, requestId: 73n },
-          transaction: { from: SENDER, hash: "0xrecv2" },
+          transaction: { hash: "0xrecv2" },
         },
         {
           block: { number: ETH_START, timestamp: 1_700_000_200 },
@@ -791,7 +802,7 @@ describe("rate snapshots", function () {
           event: "DepositRequestProcessed",
           logIndex: 1,
           params: { assets: 1000n, requestId: 73n, shares: 10n, staked: 1000n },
-          transaction: { from: SENDER, hash: "0xp1" },
+          transaction: { hash: "0xp1" },
         },
         {
           block: { number: ETH_START + 1, timestamp: 1_700_000_300 },
@@ -799,7 +810,7 @@ describe("rate snapshots", function () {
           event: "DepositRequestProcessed",
           logIndex: 1,
           params: { assets: 1000n, requestId: 73n, shares: 10n, staked: 1010n },
-          transaction: { from: SENDER, hash: "0xp2" },
+          transaction: { hash: "0xp2" },
         },
       ],
     });
