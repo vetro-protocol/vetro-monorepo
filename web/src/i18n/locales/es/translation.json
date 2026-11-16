@@ -699,8 +699,8 @@
           "you-will-claim": "Usted reclamará"
         },
         "positions": {
-          "col-allocation": "Asignación de ${{symbol}}",
           "col-position": "Posición",
+          "col-quantity": "Cantidad",
           "col-status": "Estado",
           "disconnected-description": "Conecte su billetera para ver las posiciones de veHEMI que tenía en el momento del snapshot.",
           "disconnected-title": "Billetera no conectada",
