@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render } from "vitest-browser-react";
 
 import { Toast } from "../../src/components/base/toast";
@@ -14,6 +14,19 @@ function finishExit(title: HTMLElement) {
 }
 
 describe("Toast", function () {
+  // Hovering pauses the auto-close timer. Without Tailwind the toast renders at
+  // the top of the page, where a previous test file can leave the mouse.
+  beforeEach(async function () {
+    const screen = await render(
+      <div
+        data-testid="corner"
+        style={{ bottom: 0, height: 8, position: "fixed", right: 0, width: 8 }}
+      />,
+    );
+    await screen.getByTestId("corner").hover();
+    await screen.unmount();
+  });
+
   it("restarts the auto-close timer when the toast is replaced", async function () {
     const onClose = vi.fn();
     const screen = await render(
