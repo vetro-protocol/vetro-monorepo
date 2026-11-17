@@ -27,7 +27,6 @@ export const knownTokens: Token[] = [
     extensions: {
       allowanceSlot: 6n,
       balanceSlot: 5,
-      priceSymbol: "BTC",
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/hemibtc.svg",
     name: "Hemi Bitcoin",
@@ -87,7 +86,6 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       balanceSlot: 0,
-      priceSymbol: "USDT",
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetrousd.svg",
     name: "Vetro USD",
@@ -99,7 +97,6 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 6n,
-      priceSymbol: "USDT",
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetrousd.svg",
     name: "Vetro USD",
@@ -111,7 +108,6 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 6n,
-      priceSymbol: "USDT",
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetrousd.svg",
     name: "Vetro USD",
@@ -123,7 +119,6 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 6n,
-      priceSymbol: "USDT",
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetrousd.svg",
     name: "Vetro USD",
@@ -135,7 +130,6 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 6n,
-      priceSymbol: "USDT",
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetrousd.svg",
     name: "Vetro USD",
@@ -147,7 +141,6 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 6n,
-      priceSymbol: "USDT",
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetrousd.svg",
     name: "Vetro USD",
@@ -184,7 +177,6 @@ export const knownTokens: Token[] = [
     extensions: {
       allowanceSlot: 1n,
       balanceSlot: 0,
-      priceSymbol: "WBTC",
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetbtc.svg",
     name: "Vetro BTC",
@@ -196,7 +188,6 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 6n,
-      priceSymbol: "WBTC",
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetbtc.svg",
     name: "Vetro BTC",
@@ -208,7 +199,6 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 6n,
-      priceSymbol: "WBTC",
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetbtc.svg",
     name: "Vetro BTC",
@@ -220,7 +210,6 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 6n,
-      priceSymbol: "WBTC",
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetbtc.svg",
     name: "Vetro BTC",
@@ -232,7 +221,6 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 6n,
-      priceSymbol: "WBTC",
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetbtc.svg",
     name: "Vetro BTC",
@@ -244,7 +232,6 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 6n,
-      priceSymbol: "WBTC",
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetbtc.svg",
     name: "Vetro BTC",

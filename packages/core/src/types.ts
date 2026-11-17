@@ -6,8 +6,9 @@ export type Gateway = {
   // "USD" is treated as identity (no conversion needed). Whitelisted-token
   // oracles are denominated in this peg unit (e.g. WBTC/BTC for the vetBTC
   // gateway, USDT/USD for the VUSD gateway), so the USD price for any
-  // whitelisted token is `oracle × portal[pegBaseSymbol]`. See
-  // `web/src/fetchers/fetchPrices.ts` for the merge.
+  // whitelisted token is `oracle × portal[pegBaseSymbol]`, and the pegged
+  // token is `portal[pegBaseSymbol]`. See `web/src/fetchers/fetchPrices.ts`
+  // for the merge.
   pegBaseSymbol: string;
   peggedToken: Address;
   // A gateway can be deployed without a staking vault
