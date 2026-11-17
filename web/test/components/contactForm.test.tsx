@@ -253,5 +253,9 @@ describe("ContactForm", function () {
     const body = fetchMock.mock.calls[1][1]?.body as FormData;
     expect(body.get("email")).toBe("john@email.com");
     expect(body.get("message")).toBe("My deposit failed");
+    await expect.element(form.email).toHaveValue("");
+    await expect.element(form.message).toHaveValue("");
+    await expect.element(form.topic).toHaveTextContent("Select a topic");
+    expect(resetCaptcha).toHaveBeenCalledTimes(2);
   });
 });
