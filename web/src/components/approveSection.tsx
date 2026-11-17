@@ -27,7 +27,11 @@ export const ApproveSection = function ({ active, onToggle }: Props) {
         <InfoIcon />
       </Tooltip>
       <div className="ml-auto">
-        <ToggleButton active={active} onClick={onToggle} />
+        <ToggleButton
+          active={active}
+          label={t("common.approve-10x")}
+          onClick={onToggle}
+        />
       </div>
     </div>
   );

@@ -1,11 +1,13 @@
 type Props = {
   active: boolean;
+  label?: string;
   onClick?: VoidFunction;
 };
 
-export const ToggleButton = ({ active, onClick }: Props) => (
+export const ToggleButton = ({ active, label, onClick }: Props) => (
   <button
     aria-checked={active}
+    aria-label={label}
     className={`h-5 w-10 cursor-pointer rounded-full p-1 transition-colors ${
       active ? "bg-blue-500 hover:bg-blue-600" : "hover:shadow-bs bg-gray-100"
     }`}
