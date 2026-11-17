@@ -52,6 +52,11 @@ const toGaugeAddress = (address: Address | undefined) =>
 const coinAmount = (coin: CurveCoin) =>
   Number(formatUnits(BigInt(coin.poolBalance), Number(coin.decimals)));
 
+const hasUnpricedCoin = (pool: CurveApiPool) =>
+  pool.coins.some(
+    (coin) => coin.usdPrice === null && BigInt(coin.poolBalance) > 0n,
+  );
+
 const buildPool = function ({
   pool,
   prices,
@@ -61,10 +66,7 @@ const buildPool = function ({
   prices: Record<string, string>;
   volume: CurveVolume | undefined;
 }): DexPool {
-  const hasUnpricedCoin = pool.coins.some(
-    (coin) => coin.usdPrice === null && BigInt(coin.poolBalance) > 0n,
-  );
-  const tvlUsd = hasUnpricedCoin
+  const tvlUsd = hasUnpricedCoin(pool)
     ? poolTvlUsd(
         pool.coins.map((coin) => ({
           amount: coinAmount(coin),
@@ -121,14 +123,14 @@ export async function getCurvePools({
   client: Client;
   portalApiUrl: string;
 }) {
-  const [poolsResponse, volumesResponse, prices] = await Promise.all([
+  const liquidityUsdPrices = getLiquidityUsdPrices({ client, portalApiUrl });
+  const [poolsResponse, volumesResponse] = await Promise.all([
     fetchJson(`${curveApiUrl}/getPools/all/ethereum`) as Promise<{
       data: { poolData: CurveApiPool[] };
     }>,
     fetchJson(`${curveApiUrl}/getVolumes/ethereum`) as Promise<{
       data: { pools: CurveVolume[] };
     }>,
-    getLiquidityUsdPrices({ client, portalApiUrl }),
   ]);
   const volumes = new Map(
     volumesResponse.data.pools.map((volume) => [
@@ -136,13 +138,15 @@ export async function getCurvePools({
       volume,
     ]),
   );
-  return poolsResponse.data.poolData
-    .filter((pool) => pool.coins.some((coin) => isTrackedToken(coin.address)))
-    .map((pool) =>
-      buildPool({
-        pool,
-        prices,
-        volume: volumes.get(pool.address.toLowerCase()),
-      }),
-    );
+  const pools = poolsResponse.data.poolData.filter((pool) =>
+    pool.coins.some((coin) => isTrackedToken(coin.address)),
+  );
+  const prices = pools.some(hasUnpricedCoin) ? await liquidityUsdPrices : {};
+  return pools.map((pool) =>
+    buildPool({
+      pool,
+      prices,
+      volume: volumes.get(pool.address.toLowerCase()),
+    }),
+  );
 }

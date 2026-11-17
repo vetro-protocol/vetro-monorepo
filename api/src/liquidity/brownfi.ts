@@ -84,6 +84,19 @@ type BrownfiPool = {
 const sum = (values: string[]) =>
   values.reduce((total, value) => total + Number(value), 0);
 
+const derivedUsdPrice = function ({
+  nativeUsdPrice,
+  token,
+}: {
+  nativeUsdPrice: number | undefined;
+  token: RawToken;
+}) {
+  const derived = Number(token.derivedMatic);
+  return nativeUsdPrice !== undefined && derived > 0
+    ? derived * nativeUsdPrice
+    : undefined;
+};
+
 const buildPool = function ({
   nativeUsdPrice,
   pool,
@@ -96,17 +109,13 @@ const buildPool = function ({
   const coins = [
     { amount: pool.totalValueLockedToken0, token: pool.token0 },
     { amount: pool.totalValueLockedToken1, token: pool.token1 },
-  ].map(function ({ amount, token }) {
-    const derived = Number(token.derivedMatic);
-    return {
-      address: checksumAddress(token.id),
-      amount: Number(amount),
-      usdPrice:
-        nativeUsdPrice !== undefined && derived > 0
-          ? derived * nativeUsdPrice
-          : portalUsdPrice({ address: token.id, chainId: hemi.id, prices }),
-    };
-  });
+  ].map(({ amount, token }) => ({
+    address: checksumAddress(token.id),
+    amount: Number(amount),
+    usdPrice:
+      derivedUsdPrice({ nativeUsdPrice, token }) ??
+      portalUsdPrice({ address: token.id, chainId: hemi.id, prices }),
+  }));
   const tvlUsd = poolTvlUsd(coins);
   return {
     address: checksumAddress(pool.id),
@@ -138,31 +147,28 @@ export async function getBrownfiPools({
   portalApiUrl: string;
   subgraphApiKey: string | undefined;
 }) {
-  const [data, prices] = await Promise.all([
-    runQuery<{
-      bundles: { maticPriceUSD: string }[];
-      pools: BrownfiPool[];
-    }>({
-      ...theGraphSubgraph({
-        apiKey: subgraphApiKey,
-        subgraphId: brownfiSubgraphId,
-      }),
-      query: poolsQuery,
-      variables: {
-        ...lastFullDay(nowSeconds),
-        tokens: hemiTrackedTokenAddresses.map((address) =>
-          address.toLowerCase(),
-        ),
-      },
+  const liquidityUsdPrices = getLiquidityUsdPrices({ client, portalApiUrl });
+  const data = await runQuery<{
+    bundles: { maticPriceUSD: string }[];
+    pools: BrownfiPool[];
+  }>({
+    ...theGraphSubgraph({
+      apiKey: subgraphApiKey,
+      subgraphId: brownfiSubgraphId,
     }),
-    getLiquidityUsdPrices({ client, portalApiUrl }),
-  ]);
-  const nativeUsdPrice = Number(data.bundles[0]?.maticPriceUSD);
-  return data.pools.map((pool) =>
-    buildPool({
-      nativeUsdPrice: nativeUsdPrice > 0 ? nativeUsdPrice : undefined,
-      pool,
-      prices,
-    }),
+    query: poolsQuery,
+    variables: {
+      ...lastFullDay(nowSeconds),
+      tokens: hemiTrackedTokenAddresses.map((address) => address.toLowerCase()),
+    },
+  });
+  const bundleUsdPrice = Number(data.bundles[0]?.maticPriceUSD);
+  const nativeUsdPrice = bundleUsdPrice > 0 ? bundleUsdPrice : undefined;
+  const hasUnpricedToken = data.pools.some((pool) =>
+    [pool.token0, pool.token1].some(
+      (token) => derivedUsdPrice({ nativeUsdPrice, token }) === undefined,
+    ),
   );
+  const prices = hasUnpricedToken ? await liquidityUsdPrices : {};
+  return data.pools.map((pool) => buildPool({ nativeUsdPrice, pool, prices }));
 }
