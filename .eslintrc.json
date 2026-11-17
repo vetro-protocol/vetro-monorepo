@@ -83,6 +83,24 @@
       "rules": {
         "no-console": "off"
       }
+    },
+    {
+      "excludedFiles": ["web/src/utils/lazyWithReload.ts"],
+      "files": ["web/src/**/*.{ts,tsx}"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "importNames": ["lazy"],
+                "message": "Use lazyWithReload from utils/lazyWithReload, so a chunk that fails to load after a deploy reloads the page.",
+                "name": "react"
+              }
+            ]
+          }
+        ]
+      }
     }
   ],
   "root": true

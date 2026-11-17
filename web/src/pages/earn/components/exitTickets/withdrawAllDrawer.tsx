@@ -2,17 +2,18 @@ import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
 import { useClaimWithdrawBatch } from "hooks/useClaimWithdrawBatch";
 import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
-import { Suspense, lazy, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { addActivity, updateActivity } from "stores/activityStore";
 import { unixNowTimestamp } from "utils/date";
+import { lazyWithReload } from "utils/lazyWithReload";
 import { formatAmount } from "utils/token";
 import { type Address, isAddressEqual } from "viem";
 import { useAccount } from "wagmi";
 
 import type { VaultStatus } from "./withdrawAllProgressDrawer";
 
-const WithdrawAllProgressDrawer = lazy(() =>
+const WithdrawAllProgressDrawer = lazyWithReload(() =>
   import("./withdrawAllProgressDrawer").then((m) => ({
     default: m.WithdrawAllProgressDrawer,
   })),

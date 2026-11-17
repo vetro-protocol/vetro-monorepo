@@ -24,9 +24,10 @@ import {
   useRequestDeposit,
 } from "pages/earn/hooks/targetYieldPool/useRequestDeposit";
 import { useRequestDepositFees } from "pages/earn/hooks/targetYieldPool/useRequestDepositFees";
-import { type FormEvent, Suspense, lazy, useCallback, useState } from "react";
+import { type FormEvent, Suspense, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
+import { lazyWithReload } from "utils/lazyWithReload";
 import { combineQueryResults } from "utils/queries";
 import { parseTokenUnits } from "utils/token";
 import type { Address } from "viem";
@@ -41,7 +42,7 @@ import { SharesToReceiveValue } from "./sharesToReceiveValue";
 import { TargetAprValue } from "./targetAprValue";
 import { useDepositBlockingText } from "./useDepositBlockingText";
 
-const RequestDepositProgressDrawer = lazy(() =>
+const RequestDepositProgressDrawer = lazyWithReload(() =>
   import("./requestDepositProgressDrawer").then((m) => ({
     default: m.RequestDepositProgressDrawer,
   })),

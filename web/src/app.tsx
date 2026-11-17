@@ -5,6 +5,7 @@ import { AppViewport } from "components/base/appViewport";
 import { ErrorBoundary } from "components/base/errorBoundary";
 import { GeoRestrictionRibbon } from "components/geoRestrictionRibbon";
 import { Header } from "components/header";
+import { ReloadOnNewVersion } from "components/reloadOnNewVersion";
 import { I18nInitializer, useUnsupportedLanguageRedirect } from "i18n/config";
 import { NuqsAdapter } from "nuqs/adapters/react-router/v8";
 import { Analytics } from "pages/analytics";
@@ -20,7 +21,7 @@ import { NotFound } from "pages/notFound";
 import { Swap } from "pages/swap";
 import { VeVetro } from "pages/veVetro";
 import { VeVetroClaim } from "pages/veVetroClaim";
-import { Suspense, lazy } from "react";
+import { Suspense } from "react";
 import {
   BrowserRouter,
   Navigate,
@@ -31,6 +32,7 @@ import {
 } from "react-router";
 import { featureFlags } from "utils/featureFlags";
 import { isGeoRestricted } from "utils/geoRestriction";
+import { lazyWithReload } from "utils/lazyWithReload";
 
 const SentryRoutes = wrapReactRouterRouting(Routes);
 
@@ -38,19 +40,19 @@ const analyticsEnabled =
   !!import.meta.env.VITE_ANALYTICS_URL &&
   !!import.meta.env.VITE_ANALYTICS_WEBSITE_ID;
 
-const AppNotifications = lazy(() =>
+const AppNotifications = lazyWithReload(() =>
   import("components/appNotifications").then((m) => ({
     default: m.AppNotifications,
   })),
 );
 
-const FixedTermEarnDetails = lazy(() =>
+const FixedTermEarnDetails = lazyWithReload(() =>
   import("pages/fixedTermEarnDetails").then((m) => ({
     default: m.FixedTermEarnDetails,
   })),
 );
 
-const VariableYieldEarnDetails = lazy(() =>
+const VariableYieldEarnDetails = lazyWithReload(() =>
   import("pages/variableYieldEarnDetails").then((m) => ({
     default: m.VariableYieldEarnDetails,
   })),
@@ -155,6 +157,7 @@ export const App = () => (
   <BrowserRouter>
     <NuqsAdapter>
       {analyticsEnabled && <AnalyticsTracker />}
+      <ReloadOnNewVersion />
       <AppViewport>
         <SentryRoutes>
           {/* Redirect root to English */}

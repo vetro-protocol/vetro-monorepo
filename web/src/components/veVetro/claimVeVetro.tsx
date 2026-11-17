@@ -9,14 +9,15 @@ import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
 import { useVeVetroClaimableAmount } from "hooks/useVeVetroClaimableAmount";
 import { useVeVetroClaimableTokenIds } from "hooks/useVeVetroClaimableTokenIds";
 import { useVeVetroClaimBlocker } from "hooks/useVeVetroClaimBlocker";
-import { lazy, Suspense, useCallback, useState } from "react";
+import { Suspense, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { lazyWithReload } from "utils/lazyWithReload";
 import { vToken } from "utils/veVetro";
 import { formatUnits } from "viem";
 
 import type { Submitted } from "./claimVeVetroDrawer";
 
-const ClaimVeVetroDrawer = lazy(() =>
+const ClaimVeVetroDrawer = lazyWithReload(() =>
   import("./claimVeVetroDrawer").then((m) => ({
     default: m.ClaimVeVetroDrawer,
   })),
