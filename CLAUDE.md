@@ -31,7 +31,7 @@ The `web/` app exposes the Swap, Earn, Borrow, Bridge, Liquidity, and Analytics 
   - For a plain button, use `GeoRestrictedButton` (`web/src/components/geoRestrictedButton.tsx`). It disables the button, shows the `common.geo-restriction-title` tooltip, and checks again on click. If the button needs its own tooltip, pass it in the `tooltip` prop. Do not wrap it in another `Tooltip`.
   - The tooltip wraps the button in a `w-fit` element. If a parent sizes its children (`*:flex-1`, `*:w-full`), also add `[&_button]:w-full`.
   - For other controls (form submit buttons, icon buttons), check `isGeoRestricted()` in the component that renders the control.
-- **Values the chain knows**: Don't hardcode gas limits, terms hashes, prices, ratios or decimals that the chain can provide. Estimate gas for the real call and read the rest on-chain. If a constant can't be avoided, comment where it comes from and verify it against that source. A value that rarely changes may be hardcoded as placeholderData for a useQuery hook that still reads it on-chain, so the UI renders fast and corrects itself if the value changes (e.g. knownTokens, protocolGraph). Exception: mock values used during development are fine behind a feature flag (`web/src/utils/featureFlags.ts`).
+- **Values the chain knows**: Don't hardcode gas limits, terms hashes, prices, ratios or decimals that the chain can provide. Estimate gas for the real call and read the rest on-chain. If a constant can't be avoided, comment where it comes from and verify it against that source. A value that rarely changes may be hardcoded as `placeholderData` for a `useQuery` hook that still reads it on-chain, so the UI renders fast and corrects itself if the value changes (e.g. `knownTokens`, `protocolGraph`). Exception: mock values used during development are fine behind a feature flag (`web/src/utils/featureFlags.ts`).
 - **Keyboard and touch**: Every interactive element must work with the keyboard (Enter, Space, Escape) and on touch screens, so no content may be reachable only on hover. Collapsed or hidden content must not take focus (use `inert` or unmount it). UI that closes on a timer pauses while it has focus, as well as on hover.
 - **Time-based status**: A status that depends on a timestamp (eligible, ready, expired, open) must update when that time passes, not only on the next fetch.
 
@@ -52,13 +52,13 @@ The `web/` app exposes the Swap, Earn, Borrow, Bridge, Liquidity, and Analytics 
 - **Component integration tests**: A component in `web/src/components/base` with interaction logic gets integration tests in `web/test/components/`. Many existing base components do not have tests yet. Important components outside `base` can also get them when their interaction logic is worth testing. Vitest reads tests only from `web/test`: a `.test.tsx` file runs in a real browser, and a `.test.ts` file runs in Node. Test behavior (values, roles, focus, callbacks), not class names or styles. Tailwind is not loaded.
 - **Assert exact values**: Compare against an independently computed value (e.g. read the contract directly), not shape-only checks like `toMatch(/^\d+$/)`, which also pass on `0` or a decimals mixup.
 - **Tests must be able to fail**: A test must fail if the behavior in its title breaks. Perform the action it names (focus, retry, submit) and assert the result. Use non-default inputs, such as a non-zero min-out, so a dropped parameter shows up.
-- **Error paths**: Write-action tests cover every error event the action emits (validation, user rejection, failed transaction), as the sibling actions' tests do.
 - **Isolation**: Reset shared state between tests, such as the pointer position, timers and mocks, so a test doesn't depend on the one before it.
 
 ### Packages (`packages/`)
 
 - **Contract address param**: Name the target contract's param `address` in new actions, as viem does. Some older actions use `vaultAddress`/`gatewayAddress`/`oftAddress`; don't copy those names.
 - **Write actions**: Return `{ emitter, promise }` via `to-promise-event`, even for single transactions. Wrap third-party write actions that return a bare hash instead of re-exporting them.
+- **Error paths**: Write-action tests cover every error event the action emits (validation, user rejection, failed transaction), as the sibling actions' tests do.
 - **README sync**: The package README documents every `/actions` export and its params (including `encode*` helpers). Update it in the same change.
 - **Match sibling packages**: A new package or action follows the closest existing one (`earn`, `gateway`, `bridge`) in validation, error events, the order of steps and test coverage. Note each intended difference in the PR.
 - **Write action safety**:
@@ -76,7 +76,7 @@ Endpoints:
 
 - **Requests**: Enforce body size limits while reading the body, not after buffering it, and don't trust `Content-Length`. Return 400 for malformed input before any check that returns 401 or 403. Expose the headers clients must read, such as `Retry-After`, through CORS.
 - **Caching**: Don't cache a response, with `cache()` or `Cache-Control`, when the server checks its values against live config or env vars. Clients would read stale values after a deploy.
-- **Upstream failures**: When an upstream fetch fails, keep the last good cached value. Never write partial data to the cache, and never return 200 with missing values replaced by zero or `null`.
+- **Upstream failures**: When an upstream fetch fails, keep the last good cached value. Never write partial data to the cache, and never return 200 with missing values replaced by zero. A missing value may be `null` only when `api/README.md` documents the field as nullable and clients show it as unknown (e.g. `apr` and `volumeUsd24h` on `/liquidity/pools`).
 
 When changing the API in `api/src/` in a way that affects external behavior — adding, removing, or modifying an endpoint's URL, params, response shape (field names, types, and nullability), sample data, or error semantics — review and update `api/README.md` in the same change. Code is the source of truth; the README must reflect it.
 
