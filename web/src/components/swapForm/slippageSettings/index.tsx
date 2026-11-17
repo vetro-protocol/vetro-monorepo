@@ -1,4 +1,5 @@
 import { useOnClickOutside } from "@hemilabs/react-hooks/useOnClickOutside";
+import { useOnKeyUp } from "@hemilabs/react-hooks/useOnKeyUp";
 import { ButtonIcon } from "components/base/button";
 import { ToggleButton } from "components/base/toggleButton";
 import { ExclamationTriangleIcon } from "components/icons/exclamationTriangleIcon";
@@ -6,6 +7,7 @@ import { GearIcon } from "components/icons/gearIcon";
 import { useFadeMount } from "hooks/useFadeMount";
 import {
   type KeyboardEvent,
+  type RefObject,
   type TransitionEvent,
   useRef,
   useState,
@@ -28,10 +30,11 @@ type Props = {
 
 type TriggerProps = {
   onClick: VoidFunction;
+  ref: RefObject<HTMLButtonElement | null>;
   slippage: number;
 };
 
-function SlippageTrigger({ onClick, slippage }: TriggerProps) {
+function SlippageTrigger({ onClick, ref, slippage }: TriggerProps) {
   const { t } = useTranslation();
   const high = isHighSlippage(slippage);
   return (
@@ -48,6 +51,7 @@ function SlippageTrigger({ onClick, slippage }: TriggerProps) {
       <ButtonIcon
         aria-label={t("pages.swap.slippage.title")}
         onClick={onClick}
+        ref={ref}
         type="button"
         variant={high ? "danger" : "tertiary"}
       >
@@ -152,6 +156,7 @@ export function SlippageSettings({ onChange, slippage }: Props) {
     slippage === DEFAULT_SLIPPAGE ? "" : String(slippage),
   );
   const [pendingHigh, setPendingHigh] = useState<number | null>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   const draftValue = isAuto || draft === "" ? DEFAULT_SLIPPAGE : Number(draft);
 
@@ -210,9 +215,23 @@ export function SlippageSettings({ onChange, slippage }: Props) {
     }
   });
 
+  useOnKeyUp(function (event) {
+    if (event.key !== "Escape" || !isVisible) {
+      return;
+    }
+    if (ref.current?.contains(document.activeElement)) {
+      triggerRef.current?.focus();
+    }
+    commitAndClose();
+  });
+
   return (
     <div className="relative" ref={ref}>
-      <SlippageTrigger onClick={handleTriggerClick} slippage={slippage} />
+      <SlippageTrigger
+        onClick={handleTriggerClick}
+        ref={triggerRef}
+        slippage={slippage}
+      />
       {isMounted ? (
         <SlippagePanel
           draft={draft}
