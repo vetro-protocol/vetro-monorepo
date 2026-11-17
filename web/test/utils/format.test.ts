@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   formatEvmAddress,
+  formatFiatNumberRoundDown,
   formatNumber,
   formatPercentage,
   formatPercentageTick,
@@ -31,6 +32,17 @@ describe("utils/format", function () {
       expect(
         formatEvmAddress("0xABCDEF1234567890ABCDEF1234567890ABCDEF12"),
       ).toBe("0xABCD...EF12");
+    });
+  });
+
+  describe("formatFiatNumberRoundDown", function () {
+    it("should round down to 2 decimals", function () {
+      expect(formatFiatNumberRoundDown(0.999008)).toBe("0.99");
+      expect(formatFiatNumberRoundDown(12345.678)).toBe("12,345.67");
+    });
+
+    it("should keep 2 decimals on a whole amount", function () {
+      expect(formatFiatNumberRoundDown(1)).toBe("1.00");
     });
   });
 

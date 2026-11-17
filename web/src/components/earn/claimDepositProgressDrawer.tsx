@@ -10,6 +10,7 @@ import {
 import type { NetworkFees } from "components/networkFees";
 import type { ComponentProps } from "react";
 import { useTranslation } from "react-i18next";
+import { formatFiatNumberRoundDown } from "utils/format";
 
 type Props = {
   assets: bigint;
@@ -48,7 +49,11 @@ export function ClaimDepositProgressDrawer({
         detail={
           <>
             <DollarSign />
-            <RenderFiatValue token={peggedToken} value={assets} />
+            <RenderFiatValue
+              customFormatter={formatFiatNumberRoundDown}
+              token={peggedToken}
+              value={assets}
+            />
           </>
         }
         label={t("pages.earn.stake.you-will-receive")}

@@ -20,6 +20,7 @@ import { useTranslation } from "react-i18next";
 import type { BridgeableToken } from "types";
 import { pickCounterpartToken } from "utils/bridge";
 import { knownBridgeableTokens } from "utils/bridgeableTokens";
+import { formatFiatNumberRoundDown } from "utils/format";
 import { getInputError } from "utils/inputError";
 import { getNativeToken } from "utils/nativeToken";
 import { parseTokenUnits, removeOftDust } from "utils/token";
@@ -314,7 +315,11 @@ export function BridgeForm() {
             balance={<TokenBalance token={toToken} />}
             disabled
             fiatValue={
-              <BridgeTokenFiatValue token={toToken} value={amountBigInt} />
+              <BridgeTokenFiatValue
+                customFormatter={formatFiatNumberRoundDown}
+                token={toToken}
+                value={amountBigInt}
+              />
             }
             label={t("pages.bridge.form.you-will-receive")}
             tokenSelector={

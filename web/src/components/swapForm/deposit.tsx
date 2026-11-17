@@ -25,7 +25,7 @@ import { type FormEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
 import { applyBps } from "utils/bigint";
-import { formatNumber } from "utils/format";
+import { formatFiatNumberRoundDown, formatNumber } from "utils/format";
 import { getInputError } from "utils/inputError";
 import { applySlippage } from "utils/slippage";
 import { formatAmount } from "utils/token";
@@ -320,7 +320,11 @@ export function Deposit({
             balance={<TokenBalance token={toToken} />}
             disabled
             fiatValue={
-              <RenderFiatValue token={toToken} value={depositPreview} />
+              <RenderFiatValue
+                customFormatter={formatFiatNumberRoundDown}
+                token={toToken}
+                value={depositPreview}
+              />
             }
             label={t("pages.swap.form.you-will-receive-estimated")}
             tokenSelector={<TokenSelectorReadOnly {...toToken} />}

@@ -11,6 +11,7 @@ import type { NetworkFees } from "components/networkFees";
 import { useConvertToAssets } from "hooks/useConvertToAssets";
 import type { ComponentProps } from "react";
 import { useTranslation } from "react-i18next";
+import { formatFiatNumberRoundDown } from "utils/format";
 import type { Address } from "viem";
 
 type Props = {
@@ -44,15 +45,18 @@ export function RequestExitProgressDrawer({
     useConvertToAssets({ shares: claimableShares, stakingVaultAddress });
 
   const renderFiatDetail = ({
+    customFormatter,
     queryStatus,
     value,
   }: {
+    customFormatter?: (amount: string) => string;
     queryStatus: typeof assetsStatus;
     value: bigint | undefined;
   }) => (
     <>
       <DollarSign />
       <RenderFiatValue
+        customFormatter={customFormatter}
         queryStatus={queryStatus}
         token={peggedToken}
         value={value}
@@ -98,7 +102,11 @@ export function RequestExitProgressDrawer({
             value={assets}
           />
         }
-        detail={renderFiatDetail({ queryStatus: assetsStatus, value: assets })}
+        detail={renderFiatDetail({
+          customFormatter: formatFiatNumberRoundDown,
+          queryStatus: assetsStatus,
+          value: assets,
+        })}
         label={t("pages.earn.stake.you-will-receive-estimated")}
         token={peggedToken}
       />

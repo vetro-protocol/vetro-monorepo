@@ -13,6 +13,7 @@ import { NetworkFees } from "components/networkFees";
 import type { ComponentProps } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
+import { formatFiatNumberRoundDown } from "utils/format";
 
 import { getDepositSteps } from "./getDepositSteps";
 import type { DepositStep } from "./stakeFormReducer";
@@ -68,6 +69,17 @@ export function DepositProgressDrawer({
     </>
   );
 
+  const receivedFiatDetail = (
+    <>
+      <DollarSign />
+      <RenderFiatValue
+        customFormatter={formatFiatNumberRoundDown}
+        token={peggedToken}
+        value={assets}
+      />
+    </>
+  );
+
   return (
     <div className="flex h-full flex-col">
       <TokenInteractionList>
@@ -85,7 +97,7 @@ export function DepositProgressDrawer({
               value={shares}
             />
           }
-          detail={fiatDetail}
+          detail={receivedFiatDetail}
           label={t("pages.earn.stake.you-will-receive-estimated")}
           token={shareToken}
         />

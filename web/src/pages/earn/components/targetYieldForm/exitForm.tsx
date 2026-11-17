@@ -31,6 +31,7 @@ import { useRequestExitFees } from "pages/earn/hooks/targetYieldPool/useRequestE
 import { type FormEvent, Suspense, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
+import { formatFiatNumberRoundDown } from "utils/format";
 import { lazyWithReload } from "utils/lazyWithReload";
 import { combineQueryResults } from "utils/queries";
 import { parseTokenUnits } from "utils/token";
@@ -280,6 +281,7 @@ export function ExitForm({
     }
     return (
       <RenderFiatValue
+        customFormatter={formatFiatNumberRoundDown}
         queryStatus={assetsStatus}
         token={peggedToken}
         value={assets}

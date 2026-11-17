@@ -4,10 +4,12 @@ import { RenderFiatValue } from "components/base/fiatValue";
 import { convertToAssetsQueryOptions } from "hooks/useConvertToAssets";
 import { useEthereumClient } from "hooks/useEthereumClient";
 import { vaultPeggedTokenQueryOptions } from "hooks/useVaultPeggedToken";
+import type { ComponentProps } from "react";
 import type { TokenWithGateway } from "types";
 import { mainnet } from "viem/chains";
 
 type Props = {
+  customFormatter?: ComponentProps<typeof RenderFiatValue>["customFormatter"];
   token: Token;
   value: bigint | undefined;
 };
@@ -28,7 +30,7 @@ const findStakingVaultAddress = (shareSymbol: string) =>
       t.extensions?.isVaultShare,
   )?.address;
 
-export function ShareTokenFiatValue({ token, value }: Props) {
+export function ShareTokenFiatValue({ customFormatter, token, value }: Props) {
   const client = useEthereumClient();
   const queryClient = useQueryClient();
 
@@ -60,6 +62,7 @@ export function ShareTokenFiatValue({ token, value }: Props) {
 
   return (
     <RenderFiatValue
+      customFormatter={customFormatter}
       queryStatus={status}
       token={data?.peggedToken}
       value={data?.assetsValue}

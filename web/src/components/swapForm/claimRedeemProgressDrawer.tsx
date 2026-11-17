@@ -15,6 +15,7 @@ import { useTokenConfig } from "hooks/useTokenConfig";
 import type { ComponentProps, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
+import { formatFiatNumberRoundDown } from "utils/format";
 import type { Address } from "viem";
 
 import { OutputLabel, type UnitPreview } from "./outputLabel";
@@ -158,7 +159,13 @@ export function ClaimRedeemProgressDrawer({
         <TokenInput
           balance={<TokenBalance token={toToken} />}
           disabled
-          fiatValue={<RenderFiatValue token={toToken} value={outputBigInt} />}
+          fiatValue={
+            <RenderFiatValue
+              customFormatter={formatFiatNumberRoundDown}
+              token={toToken}
+              value={outputBigInt}
+            />
+          }
           label={t("pages.swap.form.you-will-receive-estimated")}
           tokenSelector={
             <TokenDropdown

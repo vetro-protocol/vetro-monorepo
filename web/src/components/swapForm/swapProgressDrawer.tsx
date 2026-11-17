@@ -10,6 +10,7 @@ import { DrawerFeesContainer } from "components/feesContainer";
 import type { ComponentProps, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
+import { formatFiatNumberRoundDown } from "utils/format";
 import { parseTokenUnits } from "utils/token";
 import type { Address } from "viem";
 
@@ -78,6 +79,7 @@ export function SwapProgressDrawer({
                 <>
                   <DollarSign />
                   <RenderFiatValue
+                    customFormatter={formatFiatNumberRoundDown}
                     queryStatus={isOutputError ? "error" : "success"}
                     token={toToken}
                     value={outputAmount}
