@@ -2,7 +2,7 @@ import { type Token } from "@vetro-protocol/core";
 import { TokenLogo } from "components/tokenLogo";
 import { Tooltip } from "components/tooltip";
 import { type ComponentType, type ReactNode } from "react";
-import { formatNumber } from "utils/format";
+import { formatNumber, smallestFormattedNumber } from "utils/format";
 import { formatUnits, parseUnits } from "viem/utils";
 
 type CustomContainer = ComponentType<{
@@ -38,6 +38,8 @@ export const DisplayAmount = function ({
   const one = parseUnits("1", token.decimals);
 
   const notZero = amount !== 0n;
+  const belowPrecision =
+    amount > 0n && amount < parseUnits(smallestFormattedNumber, token.decimals);
   // Only show dots for small numbers (x < 1), if the amount is not zero and we're truncating decimals
   const showDots = amount < one && notZero && formattedAmount !== stringAmount;
   return (
@@ -59,9 +61,11 @@ export const DisplayAmount = function ({
       visible={notZero ? undefined : false}
     >
       <Container>
-        <AmountContainer>{`${formattedAmount}${
-          showDots ? "..." : ""
-        }`}</AmountContainer>
+        <AmountContainer>
+          {belowPrecision
+            ? `< ${smallestFormattedNumber}`
+            : `${formattedAmount}${showDots ? "..." : ""}`}
+        </AmountContainer>
         {showSymbol ? (
           <SymbolContainer>{` ${token.symbol}`}</SymbolContainer>
         ) : null}
