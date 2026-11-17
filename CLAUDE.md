@@ -65,8 +65,8 @@ The `web/` app exposes the Swap, Earn, Borrow, Bridge, Liquidity, and Analytics 
   - Min-out params are required, with no `0n` default.
   - The signer is the wallet client's account, not a separate `account` param.
   - On-chain flags such as `enabled` are checked before sending.
-  - A LayerZero fee is quoted after any approval, right before the send. The native balance is checked against the fee before the first transaction.
-- **OFT amounts**: Amounts that cross an OFT lose the dust below the shared decimals. Use the received amount, not the sent one.
+  - A LayerZero fee is quoted again after any approval, right before the send. Check the native balance against the fee plus gas before the first transaction and again before the send.
+- **OFT amounts**: Amounts that cross an OFT lose the dust below the shared decimals. Use the received amount for what the destination holds, and keep the sent or minted amount where accounting needs both.
 
 ### API project
 
@@ -83,5 +83,5 @@ When changing the API in `api/src/` in a way that affects external behavior — 
 ### Subgraphs and indexers (`subgraphs/`)
 
 - **Requester**: Take the user from the event's account param, never from `tx.from`, which is the relayer or bundler for Safe and ERC-4337 wallets.
-- **Reading lists**: Never rely on the default `first` (100). Page with an `id_gt` cursor. When the set can change between pages, such as open tickets, read an aggregate entity instead of summing the pages.
+- **Reading lists**: Never rely on the default `first` (100). Page with `paginateSubgraphQuery` or `paginateHasuraQuery` (`api/src/`), with a cursor on the full sort order. When the set can change between pages, such as open tickets, read an aggregate entity instead of summing the pages.
 - **Ordering**: Sort keys must give a total order. Break ties by block, log index and id.
