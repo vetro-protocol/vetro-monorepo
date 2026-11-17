@@ -18,10 +18,18 @@ const percentageTickRounder = smartRound(6, 0, 2);
 export const formatFiatNumber = (value: number | string) =>
   fiatRounder(value, { shouldFormat: true });
 
-export const formatNumber = (value: number | string) =>
-  cryptoRounder(value, { roundingMode: "round-down", shouldFormat: true });
-
 export const smallestFormattedNumber = `0.${"0".repeat(cryptoDecimals - 1)}1`;
+
+export const formatNumber = function (value: number | string) {
+  const num = typeof value === "string" ? parseFloat(value) : value;
+  if (num > 0 && num < Number(smallestFormattedNumber)) {
+    return `< ${smallestFormattedNumber}`;
+  }
+  return cryptoRounder(value, {
+    roundingMode: "round-down",
+    shouldFormat: true,
+  });
+};
 
 export const formatPercentage = function (value: number | string) {
   const num = typeof value === "string" ? parseFloat(value) : value;

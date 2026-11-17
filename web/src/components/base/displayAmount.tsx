@@ -41,7 +41,11 @@ export const DisplayAmount = function ({
   const belowPrecision =
     amount > 0n && amount < parseUnits(smallestFormattedNumber, token.decimals);
   // Only show dots for small numbers (x < 1), if the amount is not zero and we're truncating decimals
-  const showDots = amount < one && notZero && formattedAmount !== stringAmount;
+  const showDots =
+    !belowPrecision &&
+    amount < one &&
+    notZero &&
+    formattedAmount !== stringAmount;
   return (
     <Tooltip
       content={
@@ -61,11 +65,9 @@ export const DisplayAmount = function ({
       visible={notZero ? undefined : false}
     >
       <Container>
-        <AmountContainer>
-          {belowPrecision
-            ? `< ${smallestFormattedNumber}`
-            : `${formattedAmount}${showDots ? "..." : ""}`}
-        </AmountContainer>
+        <AmountContainer>{`${formattedAmount}${
+          showDots ? "..." : ""
+        }`}</AmountContainer>
         {showSymbol ? (
           <SymbolContainer>{` ${token.symbol}`}</SymbolContainer>
         ) : null}

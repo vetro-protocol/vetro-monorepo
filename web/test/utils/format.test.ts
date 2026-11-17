@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   formatEvmAddress,
+  formatNumber,
   formatPercentage,
   formatPercentageTick,
 } from "../../src/utils/format";
@@ -30,6 +31,30 @@ describe("utils/format", function () {
       expect(
         formatEvmAddress("0xABCDEF1234567890ABCDEF1234567890ABCDEF12"),
       ).toBe("0xABCD...EF12");
+    });
+  });
+
+  describe("formatNumber", function () {
+    it("should truncate to 6 significant digits without rounding up", function () {
+      expect(formatNumber("0.236158167836923785")).toBe("0.236158");
+      expect(formatNumber("0.9999999")).toBe("0.999999");
+    });
+
+    it("should drop the decimals of a large number", function () {
+      expect(formatNumber("1234567.891")).toBe("1,234,567");
+    });
+
+    it("should format a positive number below the smallest formatted number", function () {
+      expect(formatNumber("0.00000042")).toBe("< 0.000001");
+      expect(formatNumber(1e-12)).toBe("< 0.000001");
+    });
+
+    it("should format the smallest formatted number", function () {
+      expect(formatNumber("0.000001")).toBe("0.000001");
+    });
+
+    it("should format zero", function () {
+      expect(formatNumber("0")).toBe("0");
     });
   });
 
