@@ -1,3 +1,4 @@
+import { RenderCryptoValue } from "components/base/cryptoValue";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { MaxButton } from "components/base/maxButton";
 import { Spinner } from "components/base/spinner";
@@ -14,7 +15,6 @@ import { useTokenConfig } from "hooks/useTokenConfig";
 import type { ComponentProps, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
-import { formatAmount } from "utils/token";
 import type { Address } from "viem";
 
 import { OutputLabel, type UnitPreview } from "./outputLabel";
@@ -142,11 +142,9 @@ export function ClaimRedeemProgressDrawer({
           balance={
             <Balance
               label={t("pages.swap.redeem-queue.available-to-redeem")}
-              value={formatAmount({
-                amount: amountLocked,
-                decimals: fromToken.decimals,
-                isError: false,
-              })}
+              value={
+                <RenderCryptoValue token={fromToken} value={amountLocked} />
+              }
             />
           }
           fiatValue={<RenderFiatValue token={fromToken} value={amountBigInt} />}
