@@ -63,7 +63,7 @@ describe("fetchEarnedAmountUsd", function () {
       { [vault1]: 10n * 10n ** 18n } as Record<Address, bigint>,
     );
     queryClient.setQueryData(pricesOptions({ client, queryClient }).queryKey, {
-      USDT: "1",
+      VUSD: "1",
     });
 
     const result = await fetchEarnedAmountUsd({
@@ -110,7 +110,7 @@ describe("fetchEarnedAmountUsd", function () {
       { [vault1]: 10n * 10n ** 18n } as Record<Address, bigint>,
     );
     queryClient.setQueryData(pricesOptions({ client, queryClient }).queryKey, {
-      USDT: "1",
+      VUSD: "1",
     });
 
     const result = await fetchEarnedAmountUsd({
@@ -156,7 +156,7 @@ describe("fetchEarnedAmountUsd", function () {
       { [vault2]: 2n * 10n ** 18n } as Record<Address, bigint>,
     );
     queryClient.setQueryData(pricesOptions({ client, queryClient }).queryKey, {
-      WBTC: "60000",
+      VETBTC: "60000",
     } as Record<string, string>);
 
     const result = await fetchEarnedAmountUsd({
@@ -203,7 +203,7 @@ describe("fetchEarnedAmountUsd", function () {
       { [vault1]: 0n } as Record<Address, bigint>,
     );
     queryClient.setQueryData(pricesOptions({ client, queryClient }).queryKey, {
-      USDT: "1",
+      VUSD: "1",
     });
 
     const result = await fetchEarnedAmountUsd({
@@ -250,7 +250,7 @@ describe("fetchEarnedAmountUsd", function () {
       { [vault1]: 0n } as Record<Address, bigint>,
     );
     queryClient.setQueryData(pricesOptions({ client, queryClient }).queryKey, {
-      USDT: "1",
+      VUSD: "1",
     });
 
     const result = await fetchEarnedAmountUsd({

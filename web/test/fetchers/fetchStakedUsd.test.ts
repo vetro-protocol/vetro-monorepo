@@ -45,9 +45,9 @@ describe("fetchStakedUsd", function () {
       }).queryKey,
       10n * 10n ** 18n,
     );
-    // VUSD's priceSymbol is USDT, so getTokenPrice looks up the USDT key.
+    // getTokenPrice looks up the uppercased symbol of the pegged token.
     queryClient.setQueryData(pricesOptions({ client, queryClient }).queryKey, {
-      USDT: "1",
+      VUSD: "1",
     });
 
     const result = await fetchStakedUsd({
