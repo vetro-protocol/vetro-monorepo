@@ -21,13 +21,14 @@ import { mainnet } from "networks/mainnet";
 import type { DepositStep } from "pages/earn/components/earnForm/stakeFormReducer";
 import { StakeSubmitButton } from "pages/earn/components/earnForm/stakeSubmitButton";
 import { useTotalDepositFees } from "pages/earn/hooks/useTotalDepositFees";
-import { type FormEvent, Suspense, lazy, useCallback, useState } from "react";
+import { type FormEvent, Suspense, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
+import { lazyWithReload } from "utils/lazyWithReload";
 import { type Address, parseUnits } from "viem";
 import { useAccount } from "wagmi";
 
-const StakeDepositProgressDrawer = lazy(() =>
+const StakeDepositProgressDrawer = lazyWithReload(() =>
   import("./stakeDepositProgressDrawer").then((m) => ({
     default: m.StakeDepositProgressDrawer,
   })),

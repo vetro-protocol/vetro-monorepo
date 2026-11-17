@@ -1,35 +1,60 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  isUpdateAvailable,
-  shouldReloadOnChunkError,
-} from "../../src/utils/buildVersion";
+import { isUpdateAvailable, shouldReload } from "../../src/utils/buildVersion";
 
-describe("shouldReloadOnChunkError", function () {
+describe("shouldReload", function () {
   it("reloads when no reload was tried in this tab", function () {
     expect(
-      shouldReloadOnChunkError({ lastReloadedFrom: null, runningVersion: "b" }),
+      shouldReload({
+        isOnline: true,
+        lastReloadedFrom: null,
+        runningVersion: "b",
+      }),
     ).toBe(true);
   });
 
   it("reloads when the last reload came from an older build", function () {
     expect(
-      shouldReloadOnChunkError({ lastReloadedFrom: "a", runningVersion: "b" }),
+      shouldReload({
+        isOnline: true,
+        lastReloadedFrom: "a",
+        runningVersion: "b",
+      }),
     ).toBe(true);
   });
 
   it("does not reload twice from the same build", function () {
     expect(
-      shouldReloadOnChunkError({ lastReloadedFrom: "b", runningVersion: "b" }),
+      shouldReload({
+        isOnline: true,
+        lastReloadedFrom: "b",
+        runningVersion: "b",
+      }),
+    ).toBe(false);
+  });
+
+  it("does not reload while offline", function () {
+    expect(
+      shouldReload({
+        isOnline: false,
+        lastReloadedFrom: null,
+        runningVersion: "b",
+      }),
     ).toBe(false);
   });
 });
 
 describe("isUpdateAvailable", function () {
-  it("is false when the live version is unknown", function () {
+  it("is false when the live version is not loaded yet", function () {
     expect(
       isUpdateAvailable({ liveVersion: undefined, runningVersion: "a" }),
     ).toBe(false);
+  });
+
+  it("is false when the live version could not be fetched", function () {
+    expect(isUpdateAvailable({ liveVersion: null, runningVersion: "a" })).toBe(
+      false,
+    );
   });
 
   it("is false when the live version matches the running one", function () {

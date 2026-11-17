@@ -12,12 +12,13 @@ import {
 } from "pages/earn/hooks/targetYieldPool/useClaimExit";
 import { useClaimExitFees } from "pages/earn/hooks/targetYieldPool/useClaimExitFees";
 import { useRedeemRequest } from "pages/earn/hooks/targetYieldPool/useRedeemRequest";
-import { Suspense, lazy, useCallback, useState } from "react";
+import { Suspense, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { lazyWithReload } from "utils/lazyWithReload";
 import { formatAmount } from "utils/token";
 import type { Address } from "viem";
 
-const ClaimExitProgressDrawer = lazy(() =>
+const ClaimExitProgressDrawer = lazyWithReload(() =>
   import("components/earn/claimExitProgressDrawer").then((m) => ({
     default: m.ClaimExitProgressDrawer,
   })),

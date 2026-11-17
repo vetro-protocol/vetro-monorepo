@@ -2,7 +2,7 @@ export async function fetchLiveVersion() {
   try {
     const response = await fetch("/version.json", { cache: "no-store" });
     if (!response.ok) {
-      return undefined;
+      return null;
     }
     // The SPA fallback serves index.html with a 200 when the file is missing
     // (e.g. under vite dev), so validate the body before trusting it.
@@ -15,24 +15,26 @@ export async function fetchLiveVersion() {
     ) {
       return data.version;
     }
-    return undefined;
+    return null;
   } catch {
-    return undefined;
+    return null;
   }
 }
 
-export const shouldReloadOnChunkError = ({
+export const shouldReload = ({
+  isOnline,
   lastReloadedFrom,
   runningVersion,
 }: {
+  isOnline: boolean;
   lastReloadedFrom: string | null;
   runningVersion: string;
-}) => lastReloadedFrom !== runningVersion;
+}) => isOnline && lastReloadedFrom !== runningVersion;
 
 export const isUpdateAvailable = ({
   liveVersion,
   runningVersion,
 }: {
-  liveVersion: string | undefined;
+  liveVersion: string | null | undefined;
   runningVersion: string;
-}) => liveVersion !== undefined && liveVersion !== runningVersion;
+}) => typeof liveVersion === "string" && liveVersion !== runningVersion;

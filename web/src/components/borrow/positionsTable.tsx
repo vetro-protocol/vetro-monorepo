@@ -10,7 +10,7 @@ import {
 } from "hooks/borrow/usePositionsData";
 import { usePrices } from "hooks/usePrices";
 import { useScrollToHash } from "hooks/useScrollToHash";
-import { lazy, Suspense, useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { isPositionAtRisk } from "utils/borrowPosition";
 import {
@@ -19,6 +19,7 @@ import {
   formatLtvAsPercentage,
 } from "utils/borrowReview";
 import { formatFiatNumber, formatPercentage } from "utils/format";
+import { lazyWithReload } from "utils/lazyWithReload";
 import { getTokenPrice } from "utils/token";
 import { type Hash, formatUnits } from "viem";
 import { useAccount } from "wagmi";
@@ -33,25 +34,25 @@ import {
 } from "./positionsEmptyState";
 import { TokenValueCell } from "./tokenValueCell";
 
-const BorrowMoreDrawerForm = lazy(() =>
+const BorrowMoreDrawerForm = lazyWithReload(() =>
   import("./borrowMoreDrawerForm").then((m) => ({
     default: m.BorrowMoreDrawerForm,
   })),
 );
 
-const SupplyCollateralDrawerForm = lazy(() =>
+const SupplyCollateralDrawerForm = lazyWithReload(() =>
   import("./supplyCollateralDrawerForm").then((m) => ({
     default: m.SupplyCollateralDrawerForm,
   })),
 );
 
-const RepayLoanDrawerForm = lazy(() =>
+const RepayLoanDrawerForm = lazyWithReload(() =>
   import("./repayLoanDrawerForm").then((m) => ({
     default: m.RepayLoanDrawerForm,
   })),
 );
 
-const WithdrawCollateralDrawerForm = lazy(() =>
+const WithdrawCollateralDrawerForm = lazyWithReload(() =>
   import("./withdrawCollateralDrawerForm").then((m) => ({
     default: m.WithdrawCollateralDrawerForm,
   })),

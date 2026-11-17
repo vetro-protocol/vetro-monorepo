@@ -1,5 +1,4 @@
 import "./instrument";
-import "./reloadOnPreloadError";
 import "@rainbow-me/rainbowkit/styles.css";
 import "./index.css";
 

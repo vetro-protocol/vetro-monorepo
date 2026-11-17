@@ -22,13 +22,14 @@ import { StakeSubmitButton } from "pages/earn/components/earnForm/stakeSubmitBut
 import { useCanInstantWithdraw } from "pages/earn/hooks/useCanInstantWithdraw";
 import { useCooldownDuration } from "pages/earn/hooks/useCooldownDuration";
 import { useTotalWithdrawFees } from "pages/earn/hooks/useTotalWithdrawFees";
-import { type FormEvent, Suspense, lazy, useCallback, useState } from "react";
+import { type FormEvent, Suspense, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
+import { lazyWithReload } from "utils/lazyWithReload";
 import { type Address, parseUnits } from "viem";
 import { useAccount } from "wagmi";
 
-const StakeWithdrawProgressDrawer = lazy(() =>
+const StakeWithdrawProgressDrawer = lazyWithReload(() =>
   import("./stakeWithdrawProgressDrawer").then((m) => ({
     default: m.StakeWithdrawProgressDrawer,
   })),

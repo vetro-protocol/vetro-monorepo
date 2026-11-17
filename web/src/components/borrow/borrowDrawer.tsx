@@ -2,10 +2,11 @@ import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
 import { type Step, stepStatus } from "components/base/verticalStepper";
 import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
-import { type ComponentProps, Suspense, lazy } from "react";
+import { type ComponentProps, Suspense } from "react";
 import { useTranslation } from "react-i18next";
+import { lazyWithReload } from "utils/lazyWithReload";
 
-const BorrowProgressDrawer = lazy(() =>
+const BorrowProgressDrawer = lazyWithReload(() =>
   import("./borrowProgressDrawer").then((m) => ({
     default: m.BorrowProgressDrawer,
   })),

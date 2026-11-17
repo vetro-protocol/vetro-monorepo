@@ -1,11 +1,12 @@
 import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
-import { Suspense, lazy, useState } from "react";
+import { Suspense, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { lazyWithReload } from "utils/lazyWithReload";
 
 import { WalletDrawerContext } from "./walletDrawerContext";
 
-const WalletDrawerContent = lazy(() =>
+const WalletDrawerContent = lazyWithReload(() =>
   import("./walletDrawerContent").then((m) => ({
     default: m.WalletDrawerContent,
   })),

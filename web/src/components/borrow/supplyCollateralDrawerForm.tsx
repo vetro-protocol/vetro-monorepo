@@ -2,10 +2,11 @@ import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
 import type { ToastContent } from "components/base/toast";
 import type { MarketData } from "hooks/borrow/useMarketData";
-import { Suspense, lazy } from "react";
+import { Suspense } from "react";
 import { useTranslation } from "react-i18next";
+import { lazyWithReload } from "utils/lazyWithReload";
 
-const SupplyCollateralForm = lazy(() =>
+const SupplyCollateralForm = lazyWithReload(() =>
   import("./supplyCollateralForm").then((m) => ({
     default: m.SupplyCollateralForm,
   })),
