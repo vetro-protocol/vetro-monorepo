@@ -1,8 +1,9 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render } from "vitest-browser-react";
 
 import { Toast } from "../../src/components/base/toast";
 
+import { moveMouseAway } from "./mouse";
 import { endTransition } from "./transitions";
 
 const autoCloseMs = 300;
@@ -14,6 +15,8 @@ function finishExit(title: HTMLElement) {
 }
 
 describe("Toast", function () {
+  beforeEach(moveMouseAway);
+
   it("restarts the auto-close timer when the toast is replaced", async function () {
     const onClose = vi.fn();
     const screen = await render(
