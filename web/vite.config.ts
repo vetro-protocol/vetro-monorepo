@@ -49,6 +49,19 @@ function injectUmamiIfEnabled() {
   } satisfies Plugin;
 }
 
+const emitVersionFile = (version: string) =>
+  ({
+    applyToEnvironment: (environment) => environment.name === "client",
+    generateBundle() {
+      this.emitFile({
+        fileName: "version.json",
+        source: JSON.stringify({ version }),
+        type: "asset",
+      });
+    },
+    name: "emit-version-file",
+  }) satisfies Plugin;
+
 function getLocalBuildInfo() {
   try {
     const branch = execFileSync("git", ["rev-parse", "--abbrev-ref", "HEAD"], {
@@ -164,5 +177,7 @@ export default defineConfig(function ({ mode }) {
         "import.meta.env.VITE_VETRO_API_URL": JSON.stringify(apiPreviewUrl),
       }),
     },
+    // Prepended because the Sentry plugin must stay last.
+    plugins: [emitVersionFile(buildInfo.version), ...config.plugins],
   };
 });

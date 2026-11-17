@@ -1,11 +1,15 @@
-const reloadedKey = "vetro:preload-error-reloaded";
+import { shouldReloadOnChunkError } from "utils/buildVersion";
+
+const reloadedFromKey = "vetro:preload-error-reloaded-from";
+const runningVersion = import.meta.env.VITE_BUILD_VERSION;
 
 function tryMarkReloaded() {
   try {
-    if (sessionStorage.getItem(reloadedKey)) {
+    const lastReloadedFrom = sessionStorage.getItem(reloadedFromKey);
+    if (!shouldReloadOnChunkError({ lastReloadedFrom, runningVersion })) {
       return false;
     }
-    sessionStorage.setItem(reloadedKey, "true");
+    sessionStorage.setItem(reloadedFromKey, runningVersion);
     return true;
   } catch {
     return false;
@@ -13,8 +17,8 @@ function tryMarkReloaded() {
 }
 
 // A tab left open across a deploy requests chunks that no longer exist. Reload
-// once per tab session to pick up the new build; if it fails again, let the
-// error reach the error page and Sentry.
+// once per build to pick up the new one; if the same build fails again, the
+// chunk is really missing, so let the error reach the error page and Sentry.
 window.addEventListener("vite:preloadError", function (event) {
   if (!tryMarkReloaded()) {
     return;

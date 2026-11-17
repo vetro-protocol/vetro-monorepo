@@ -5,6 +5,7 @@ import { AppViewport } from "components/base/appViewport";
 import { ErrorBoundary } from "components/base/errorBoundary";
 import { GeoRestrictionRibbon } from "components/geoRestrictionRibbon";
 import { Header } from "components/header";
+import { ReloadOnNewVersion } from "components/reloadOnNewVersion";
 import { I18nInitializer, useUnsupportedLanguageRedirect } from "i18n/config";
 import { NuqsAdapter } from "nuqs/adapters/react-router/v8";
 import { Analytics } from "pages/analytics";
@@ -155,6 +156,7 @@ export const App = () => (
   <BrowserRouter>
     <NuqsAdapter>
       {analyticsEnabled && <AnalyticsTracker />}
+      <ReloadOnNewVersion />
       <AppViewport>
         <SentryRoutes>
           {/* Redirect root to English */}
