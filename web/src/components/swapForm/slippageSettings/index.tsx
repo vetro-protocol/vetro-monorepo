@@ -106,7 +106,11 @@ function SlippagePanel({
           <span className={isAuto ? "text-gray-900" : "text-gray-400"}>
             {t("pages.swap.slippage.auto")}
           </span>
-          <ToggleButton active={isAuto} onClick={handleToggleAuto} />
+          <ToggleButton
+            active={isAuto}
+            label={t("pages.swap.slippage.auto")}
+            onClick={handleToggleAuto}
+          />
           <span className="h-4 w-px bg-gray-200" />
           <div
             className={`text-caption flex items-center rounded-full px-3 py-1 shadow-sm ${
