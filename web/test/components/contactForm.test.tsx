@@ -81,9 +81,12 @@ describe("ContactForm", function () {
     vi.unstubAllGlobals();
   });
 
-  it("shows no errors before the user touches a field", async function () {
-    const { screen } = await renderForm();
+  it("shows no errors while the first field has focus", async function () {
+    const { email, screen } = await renderForm();
 
+    await email.click();
+
+    await expect.element(email).toHaveFocus();
     await expect.element(screen.getByRole("alert")).not.toBeInTheDocument();
   });
 
