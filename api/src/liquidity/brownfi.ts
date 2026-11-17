@@ -1,11 +1,18 @@
 import { knownTokens, type DexPool } from "@vetro-protocol/core";
-import { type Address, checksumAddress, isAddressEqual } from "viem";
+import {
+  type Address,
+  checksumAddress,
+  type Client,
+  isAddressEqual,
+} from "viem";
 import { hemi, mainnet } from "viem/chains";
 
 import { theGraphSubgraph } from "../env.ts";
 import { runQuery } from "../graphql.ts";
 
+import { getLiquidityUsdPrices } from "./oracle-usd-prices.ts";
 import { feeApr, lastFullDay, poolTvlUsd } from "./pool-metrics.ts";
+import { portalUsdPrice } from "./portal-usd-price.ts";
 import { trackedTokenAddresses } from "./tracked-tokens.ts";
 
 const trackedSymbols = knownTokens
@@ -80,9 +87,11 @@ const sum = (values: string[]) =>
 const buildPool = function ({
   nativeUsdPrice,
   pool,
+  prices,
 }: {
   nativeUsdPrice: number | undefined;
   pool: BrownfiPool;
+  prices: Record<string, string>;
 }): DexPool {
   const coins = [
     { amount: pool.totalValueLockedToken0, token: pool.token0 },
@@ -95,7 +104,7 @@ const buildPool = function ({
       usdPrice:
         nativeUsdPrice !== undefined && derived > 0
           ? derived * nativeUsdPrice
-          : undefined,
+          : portalUsdPrice({ address: token.id, chainId: hemi.id, prices }),
     };
   });
   const tvlUsd = poolTvlUsd(coins);
@@ -119,31 +128,41 @@ const buildPool = function ({
 };
 
 export async function getBrownfiPools({
+  client,
   nowSeconds,
+  portalApiUrl,
   subgraphApiKey,
 }: {
+  client: Client;
   nowSeconds: number;
+  portalApiUrl: string;
   subgraphApiKey: string | undefined;
 }) {
-  const data = await runQuery<{
-    bundles: { maticPriceUSD: string }[];
-    pools: BrownfiPool[];
-  }>({
-    ...theGraphSubgraph({
-      apiKey: subgraphApiKey,
-      subgraphId: brownfiSubgraphId,
+  const [data, prices] = await Promise.all([
+    runQuery<{
+      bundles: { maticPriceUSD: string }[];
+      pools: BrownfiPool[];
+    }>({
+      ...theGraphSubgraph({
+        apiKey: subgraphApiKey,
+        subgraphId: brownfiSubgraphId,
+      }),
+      query: poolsQuery,
+      variables: {
+        ...lastFullDay(nowSeconds),
+        tokens: hemiTrackedTokenAddresses.map((address) =>
+          address.toLowerCase(),
+        ),
+      },
     }),
-    query: poolsQuery,
-    variables: {
-      ...lastFullDay(nowSeconds),
-      tokens: hemiTrackedTokenAddresses.map((address) => address.toLowerCase()),
-    },
-  });
+    getLiquidityUsdPrices({ client, portalApiUrl }),
+  ]);
   const nativeUsdPrice = Number(data.bundles[0]?.maticPriceUSD);
   return data.pools.map((pool) =>
     buildPool({
       nativeUsdPrice: nativeUsdPrice > 0 ? nativeUsdPrice : undefined,
       pool,
+      prices,
     }),
   );
 }

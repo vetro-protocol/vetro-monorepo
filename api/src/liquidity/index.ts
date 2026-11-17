@@ -13,9 +13,15 @@ type VenueArgs = {
 };
 
 const venuePools = {
-  brownfi: ({ nowSeconds, subgraphApiKey }: VenueArgs) =>
-    getBrownfiPools({ nowSeconds, subgraphApiKey }),
-  curve: () => getCurvePools(),
+  brownfi: ({ nowSeconds, portalApiUrl, rpcUrl, subgraphApiKey }: VenueArgs) =>
+    getBrownfiPools({
+      client: createMainnetClient(rpcUrl),
+      nowSeconds,
+      portalApiUrl,
+      subgraphApiKey,
+    }),
+  curve: ({ portalApiUrl, rpcUrl }: VenueArgs) =>
+    getCurvePools({ client: createMainnetClient(rpcUrl), portalApiUrl }),
   sushi: ({ nowSeconds, portalApiUrl, rpcUrl, subgraphApiKey }: VenueArgs) =>
     getSushiPools({
       client: createMainnetClient(rpcUrl),

@@ -1,4 +1,5 @@
 import type { Address } from "viem";
+import { mainnet } from "viem/chains";
 
 import { portalUsdPrice } from "./portal-usd-price.ts";
 import { isTrackedToken } from "./tracked-tokens.ts";
@@ -34,15 +35,19 @@ const coinUsdPrices = function ({
   token1PerToken0: number;
   tokens: Address[];
 }) {
-  // The portal prices a tracked token at its peg, so a tracked token takes
-  // its price from the pool ratio when the other coin has a price.
+  // `portalUsdPrice` prices a pegged token at its peg, so a tracked token
+  // takes its price from the pool ratio when the other coin has a price.
   const marketPrices = withPoolRatio({
     prices: tokens.map(
       (address, index) =>
         subgraphPrices[index] ??
         (isTrackedToken(address)
           ? undefined
-          : portalUsdPrice({ address, prices: portalPrices })),
+          : portalUsdPrice({
+              address,
+              chainId: mainnet.id,
+              prices: portalPrices,
+            })),
     ),
     token1PerToken0,
   });
@@ -51,7 +56,11 @@ const coinUsdPrices = function ({
   }
   return withPoolRatio({
     prices: tokens.map((address) =>
-      portalUsdPrice({ address, prices: portalPrices }),
+      portalUsdPrice({
+        address,
+        chainId: mainnet.id,
+        prices: portalPrices,
+      }),
     ),
     token1PerToken0,
   });
