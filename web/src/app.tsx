@@ -7,6 +7,8 @@ import { GeoRestrictionRibbon } from "components/geoRestrictionRibbon";
 import { Header } from "components/header";
 import { ReloadOnNewVersion } from "components/reloadOnNewVersion";
 import { I18nInitializer, useUnsupportedLanguageRedirect } from "i18n/config";
+import { detectLanguage } from "i18n/language";
+import { normalizePath } from "i18n/path";
 import { NuqsAdapter } from "nuqs/adapters/react-router/v8";
 import { Analytics } from "pages/analytics";
 import { Borrow } from "pages/borrow";
@@ -63,8 +65,8 @@ const VariableYieldEarnDetails = lazyWithReload(() =>
  * - Outer: catches errors before translations load (Header, I18nInitializer) — ErrorPage renders without i18n
  * - Inner: catches page-level errors after translations are available — ErrorPage can use translated strings
  *
- * The inner ErrorBoundary is keyed by pathname so it resets on navigation,
- * allowing recovery from page-level errors without a full reload.
+ * The inner ErrorBoundary is keyed by the language-independent path so
+ * changing languages preserves the current page state.
  */
 function LanguageRoutes() {
   const { pathname } = useLocation();
@@ -91,7 +93,7 @@ function LanguageRoutes() {
             <ErrorPage />
           </MainContent>
         }
-        key={pathname}
+        key={normalizePath(pathname)}
       >
         <Routes>
           <Route element={<Navigate replace to="swap" />} index />
@@ -153,6 +155,12 @@ function LanguageRoutes() {
   );
 }
 
+function PreferredLanguageRedirect() {
+  const { hash, search } = useLocation();
+
+  return <Navigate replace to={`/${detectLanguage()}${search}${hash}`} />;
+}
+
 export const App = () => (
   <BrowserRouter>
     <NuqsAdapter>
@@ -160,14 +168,12 @@ export const App = () => (
       <ReloadOnNewVersion />
       <AppViewport>
         <SentryRoutes>
-          {/* Redirect root to English */}
-          <Route element={<Navigate replace to="/en" />} path="/" />
+          <Route element={<PreferredLanguageRedirect />} path="/" />
 
           {/* Language-prefixed routes */}
           <Route element={<LanguageRoutes />} path="/:lang/*" />
 
-          {/* Catch-all: redirect unknown paths to English */}
-          <Route element={<Navigate replace to="/en" />} path="*" />
+          <Route element={<PreferredLanguageRedirect />} path="*" />
         </SentryRoutes>
       </AppViewport>
     </NuqsAdapter>

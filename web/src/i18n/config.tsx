@@ -3,7 +3,12 @@ import { useLayoutEffect } from "react";
 import { initReactI18next } from "react-i18next";
 import { useLocation, useParams } from "react-router";
 
-import { fallbackLng, getLanguageFromPath, supportedLngs } from "./language";
+import {
+  detectLanguage,
+  fallbackLng,
+  getLanguageFromPath,
+  supportedLngs,
+} from "./language";
 import { resources } from "./resources";
 
 export const initializeI18n = function () {
@@ -31,7 +36,7 @@ export const useUnsupportedLanguageRedirect = function () {
   if (!lang || supportedLngs.includes(lang)) {
     return undefined;
   }
-  return `/${fallbackLng}${pathname}${search}${hash}`;
+  return `/${detectLanguage()}${pathname}${search}${hash}`;
 };
 
 // Component to sync the route language parameter with i18n

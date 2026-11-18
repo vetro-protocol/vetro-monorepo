@@ -1,12 +1,20 @@
 import { vetroLinks } from "@vetro-protocol/core";
+import {
+  fallbackLng,
+  getLanguageFromPath,
+  storeLanguage,
+  supportedLngs,
+} from "i18n/language";
 import { type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import { Link, useLocation } from "react-router";
 
 import { ButtonIcon } from "./base/button";
 import { Dropdown } from "./base/dropdown";
 import { ExternalLink } from "./base/externalLink";
 import { I18nLink } from "./base/i18nLink";
 import { BuildInfo } from "./buildInfo";
+import { CheckIcon } from "./icons/checkIcon";
 import { DocumentIcon } from "./icons/documentIcon";
 import { ExternalLinkIcon } from "./icons/externalLinkIcon";
 import { HomeIcon } from "./icons/homeIcon";
@@ -22,9 +30,20 @@ const itemClassName =
 
 const itemIconClassName = "size-4 text-gray-500 group-hover:text-gray-900";
 
+function getLanguageName(language: string) {
+  const displayName =
+    new Intl.DisplayNames([language], { type: "language" }).of(language) ??
+    language;
+  return (
+    displayName.charAt(0).toLocaleUpperCase(language) + displayName.slice(1)
+  );
+}
+
 type MenuItem = {
+  ariaCurrent?: "page";
   icon: ReactNode;
   label: string;
+  onSelect?: VoidFunction;
 } & ({ href: string; to?: never } | { href?: never; to: string });
 
 type Section = {
@@ -34,6 +53,9 @@ type Section = {
 
 export function HeaderMenu() {
   const { t } = useTranslation();
+  const { hash, pathname, search } = useLocation();
+  const currentLanguage = getLanguageFromPath(pathname) ?? fallbackLng;
+  const pathWithoutLanguage = pathname.slice(currentLanguage.length + 1);
 
   const sections: Section[] = [
     {
@@ -90,6 +112,25 @@ export function HeaderMenu() {
       ],
       label: t("nav.header-menu.company"),
     },
+    {
+      items: supportedLngs.map((language) => ({
+        ariaCurrent: language === currentLanguage ? "page" : undefined,
+        icon:
+          language === currentLanguage ? (
+            <span className="flex size-4 items-center justify-center rounded-full bg-blue-500">
+              <CheckIcon className="size-2.5" />
+            </span>
+          ) : (
+            <span aria-hidden="true" className="size-4" />
+          ),
+        label: getLanguageName(language),
+        onSelect: function selectLanguage() {
+          storeLanguage(language);
+        },
+        to: `/${language}${pathWithoutLanguage}${search}${hash}`,
+      })),
+      label: t("nav.header-menu.language"),
+    },
   ];
 
   return (
@@ -116,6 +157,24 @@ export function HeaderMenu() {
       ) {
         const className = `${itemClassName} ${isFocused ? "bg-gray-100" : ""}`;
         if (item.to) {
+          if (item.onSelect) {
+            return (
+              <Link
+                aria-current={item.ariaCurrent}
+                className={className}
+                onClick={function selectLanguage() {
+                  item.onSelect?.();
+                  onActivate();
+                }}
+                ref={ref}
+                role="menuitem"
+                tabIndex={tabIndex}
+                to={item.to}
+              >
+                {children}
+              </Link>
+            );
+          }
           return (
             <I18nLink
               className={className}
