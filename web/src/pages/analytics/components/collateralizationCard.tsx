@@ -52,13 +52,14 @@ export const CollateralizationCard = function ({
   } = useCollateralizationRatio(peggedToken?.gatewayAddress);
   const { data: prices, isError: isPricesError } = usePrices();
 
-  const isError = peggedTokenError || isCollateralizationError || isPricesError;
+  const isError = peggedTokenError || isCollateralizationError;
   const isLoading =
-    !isError && (!peggedToken || isCollateralizationLoading || !prices);
+    !isError &&
+    (!peggedToken || isCollateralizationLoading || (!prices && !isPricesError));
 
   const value = getRatioText(collateralization);
 
-  if (!collateralization || !peggedToken || !prices) {
+  if (!collateralization || !peggedToken || isLoading) {
     return (
       <AllocationCard
         icon={<ShieldIcon />}
@@ -70,10 +71,12 @@ export const CollateralizationCard = function ({
     );
   }
 
+  const knownPrices = prices ?? {};
+
   const formatAmount = (amount: string) =>
     formatPeggedAmountUsd({
       amount: BigInt(amount),
-      prices,
+      prices: knownPrices,
       token: peggedToken,
     });
 
@@ -111,7 +114,7 @@ export const CollateralizationCard = function ({
           surplus: (percentage) =>
             t("pages.analytics.surplus-label", { percentage }),
         },
-        prices,
+        prices: knownPrices,
         token: peggedToken,
       })}
       label={t("pages.analytics.collateralization-ratio-label")}
