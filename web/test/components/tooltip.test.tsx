@@ -73,6 +73,29 @@ describe("Tooltip", function () {
     await expect.element(screen.getByText("Tooltip text")).toBeVisible();
   });
 
+  it("keeps focus when a disabled child becomes enabled", async function () {
+    const renderTree = (disabled: boolean) => (
+      <Tooltip content="Tooltip text">
+        <button disabled={disabled}>Claim</button>
+      </Tooltip>
+    );
+    const screen = await render(renderTree(true));
+    await userEvent.tab();
+    const wrapper = document.activeElement;
+    expect(wrapper).toContainElement(
+      screen.getByRole("button", { name: "Claim" }).element() as HTMLElement,
+    );
+
+    await screen.rerender(renderTree(false));
+    await new Promise(requestAnimationFrame);
+
+    expect(document.activeElement).toBe(wrapper);
+    await userEvent.tab();
+    await expect
+      .element(screen.getByRole("button", { name: "Claim" }))
+      .toHaveFocus();
+  });
+
   it("opens on tap", async function () {
     const screen = await render(
       <Tooltip content="Tooltip text">

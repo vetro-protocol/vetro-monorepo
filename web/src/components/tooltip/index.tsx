@@ -176,7 +176,7 @@ export const Tooltip = function ({
           pointerTypeRef.current = event.pointerType;
         }}
         ref={triggerRef}
-        tabIndex={canOpen && !hasFocusableChild ? 0 : undefined}
+        tabIndex={canOpen && !hasFocusableChild ? 0 : -1}
       >
         {children}
       </div>
