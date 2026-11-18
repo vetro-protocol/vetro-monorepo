@@ -5,6 +5,7 @@ import { ToggleButton } from "components/base/toggleButton";
 import { ExclamationTriangleIcon } from "components/icons/exclamationTriangleIcon";
 import { GearIcon } from "components/icons/gearIcon";
 import { useFadeMount } from "hooks/useFadeMount";
+import { useOverlayLayer } from "hooks/useOverlay";
 import {
   type KeyboardEvent,
   type RefObject,
@@ -214,9 +215,10 @@ export function SlippageSettings({ onChange, slippage }: Props) {
       commitAndClose();
     }
   });
+  const isTopmost = useOverlayLayer({ isActive: isMounted, ref });
 
   useOnKeyUp(function (event) {
-    if (event.key !== "Escape" || !isVisible) {
+    if (event.key !== "Escape" || !isVisible || !isTopmost()) {
       return;
     }
     if (ref.current?.contains(document.activeElement)) {

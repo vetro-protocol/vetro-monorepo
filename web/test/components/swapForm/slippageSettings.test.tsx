@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 
+import { Drawer } from "../../../src/components/base/drawer";
 import { SlippageSettings } from "../../../src/components/swapForm/slippageSettings";
 import { endTransition, waitForOpen } from "../transitions";
 
@@ -272,5 +273,48 @@ describe("SlippageSettings", function () {
     await openPanel();
 
     await expect.element(input).toHaveValue("1.5");
+  });
+
+  describe("inside a drawer", function () {
+    async function renderInDrawer() {
+      const onChange = vi.fn();
+      const onDrawerClose = vi.fn();
+      const screen = await render(
+        <Drawer ariaLabel="Claim" onClose={onDrawerClose}>
+          <Wrapper initialSlippage={0} onChange={onChange} />
+        </Drawer>,
+      );
+      const drawer = screen.getByRole("dialog", { name: "Claim" });
+      await waitForOpen(drawer);
+      await screen.getByRole("button", { name: "Advanced settings" }).click();
+      const input = screen.getByRole("textbox");
+      await expect.element(input).toBeInTheDocument();
+      return { drawer, input, onChange, onDrawerClose, screen };
+    }
+
+    it("closes only the panel when the user presses Escape", async function () {
+      const { drawer, input, onChange, onDrawerClose } = await renderInDrawer();
+      await input.fill("4");
+
+      await userEvent.keyboard("{Escape}");
+
+      expect(onChange).toHaveBeenCalledExactlyOnceWith(4);
+      expect(drawer.element()).toHaveAttribute("data-state", "open");
+      expect(onDrawerClose).not.toHaveBeenCalled();
+    });
+
+    it("keeps the drawer open and shows the warning when the user presses Escape with a high slippage", async function () {
+      const { drawer, input, onChange, screen } = await renderInDrawer();
+      await input.fill("7");
+
+      await userEvent.keyboard("{Escape}");
+
+      const dialog = screen.getByRole("dialog", {
+        name: "High slippage warning",
+      });
+      await waitForOpen(dialog);
+      expect(drawer.element()).toHaveAttribute("data-state", "open");
+      expect(onChange).not.toHaveBeenCalled();
+    });
   });
 });
