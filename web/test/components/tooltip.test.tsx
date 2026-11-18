@@ -255,4 +255,60 @@ describe("Tooltip", function () {
 
     await waitForClosed(drawer);
   });
+
+  it("does not pass a tap on a trigger without an action to its parents", async function () {
+    const onParentClick = vi.fn();
+    const screen = await render(
+      <div onClick={onParentClick}>
+        <Tooltip content="Tooltip text">
+          <span>Info</span>
+        </Tooltip>
+      </div>,
+    );
+    const info = screen.getByText("Info").element() as HTMLElement;
+
+    info.dispatchEvent(
+      new PointerEvent("pointerdown", { bubbles: true, pointerType: "touch" }),
+    );
+    info.click();
+
+    await expect.element(screen.getByText("Tooltip text")).toBeVisible();
+    expect(onParentClick).not.toHaveBeenCalled();
+  });
+
+  it("passes a mouse click on a trigger without an action to its parents", async function () {
+    const onParentClick = vi.fn();
+    const screen = await render(
+      <div onClick={onParentClick}>
+        <Tooltip content="Tooltip text">
+          <span>Info</span>
+        </Tooltip>
+      </div>,
+    );
+
+    await screen.getByText("Info").click();
+
+    expect(onParentClick).toHaveBeenCalledOnce();
+  });
+
+  it("passes a tap on a button in the trigger to its parents", async function () {
+    const onParentClick = vi.fn();
+    const screen = await render(
+      <div onClick={onParentClick}>
+        <Tooltip content="Tooltip text">
+          <button>Claim</button>
+        </Tooltip>
+      </div>,
+    );
+    const button = screen
+      .getByRole("button", { name: "Claim" })
+      .element() as HTMLElement;
+
+    button.dispatchEvent(
+      new PointerEvent("pointerdown", { bubbles: true, pointerType: "touch" }),
+    );
+    button.click();
+
+    expect(onParentClick).toHaveBeenCalledOnce();
+  });
 });

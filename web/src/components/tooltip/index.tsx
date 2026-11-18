@@ -46,6 +46,7 @@ export const Tooltip = function ({
   const [open, setOpen] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
   const pointerDownInOverlayRef = useRef(false);
+  const pointerTypeRef = useRef("");
   const triggerRef = useRef<HTMLDivElement>(null);
   const canOpen = visible !== false;
   const isOpen = visible ?? open;
@@ -111,10 +112,12 @@ export const Tooltip = function ({
     }
     // A disabled child passes the click to the wrapper (see tooltip.css). The
     // browser drops clicks on disabled controls, so parents must not get it.
-    if (
+    const clickOnDisabledChild =
       event.target === event.currentTarget &&
-      triggerRef.current?.querySelector(":disabled")
-    ) {
+      triggerRef.current?.querySelector(":disabled");
+    const tapWithoutAction =
+      pointerTypeRef.current === "touch" && !hasFocusableChild;
+    if (clickOnDisabledChild || tapWithoutAction) {
       event.stopPropagation();
     }
     setOpen(true);
@@ -153,6 +156,9 @@ export const Tooltip = function ({
         onBlur={closeOnFocusLeave}
         onClick={onClick}
         onFocus={onFocus}
+        onPointerDown={function (event) {
+          pointerTypeRef.current = event.pointerType;
+        }}
         ref={triggerRef}
         tabIndex={canOpen && !hasFocusableChild ? 0 : undefined}
       >
