@@ -12,7 +12,7 @@ import {
 import { resources } from "./resources";
 
 export const initializeI18n = function () {
-  const lng = getLanguageFromPath(window.location.pathname) ?? fallbackLng;
+  const lng = getLanguageFromPath(window.location.pathname) ?? detectLanguage();
   document.documentElement.lang = lng;
   return i18n.use(initReactI18next).init({
     debug: import.meta.env.MODE === "development",

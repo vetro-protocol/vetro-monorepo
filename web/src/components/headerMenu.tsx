@@ -43,6 +43,7 @@ type MenuItem = {
   ariaCurrent?: "page";
   icon: ReactNode;
   label: string;
+  lang?: string;
   onSelect?: VoidFunction;
 } & ({ href: string; to?: never } | { href?: never; to: string });
 
@@ -124,6 +125,7 @@ export function HeaderMenu() {
             <span aria-hidden="true" className="size-4" />
           ),
         label: getLanguageName(language),
+        lang: language,
         onSelect: function selectLanguage() {
           storeLanguage(language);
         },
@@ -140,7 +142,7 @@ export function HeaderMenu() {
       renderItem={(item) => (
         <>
           {item.icon}
-          {item.label}
+          <span lang={item.lang}>{item.label}</span>
           {item.href && (
             <span
               aria-hidden="true"
