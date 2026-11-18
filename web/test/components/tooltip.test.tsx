@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 
 import { Drawer } from "../../src/components/base/drawer";
+import { Modal } from "../../src/components/base/modal";
 import { Tooltip } from "../../src/components/tooltip";
 
 import { moveMouseAway } from "./mouse";
@@ -234,6 +236,34 @@ describe("Tooltip", function () {
     await expect.element(screen.getByText("Tooltip text")).not.toBeVisible();
     await new Promise(requestAnimationFrame);
     await expect.element(drawer).toHaveAttribute("data-state", "open");
+  });
+
+  it("lets Escape close a modal that its trigger opened", async function () {
+    function ModalFromTooltip() {
+      const [isModalOpen, setIsModalOpen] = useState(false);
+      return (
+        <>
+          <Tooltip content="Tooltip text">
+            <button onClick={() => setIsModalOpen(true)}>Delete</button>
+          </Tooltip>
+          {isModalOpen && (
+            <Modal ariaLabel="Confirm" onClose={vi.fn()}>
+              {() => <p>Are you sure?</p>}
+            </Modal>
+          )}
+        </>
+      );
+    }
+    const screen = await render(<ModalFromTooltip />);
+    await screen.getByRole("button", { name: "Delete" }).click();
+    const modal = screen.getByRole("dialog", { name: "Confirm" });
+    await waitForOpen(modal);
+    await expect.element(screen.getByText("Tooltip text")).toBeVisible();
+
+    await userEvent.keyboard("{Escape}");
+
+    await waitForClosed(modal);
+    await expect.element(screen.getByText("Tooltip text")).not.toBeVisible();
   });
 
   it("lets Escape close the drawer after visible hides an open tooltip", async function () {

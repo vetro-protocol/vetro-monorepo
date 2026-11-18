@@ -5,7 +5,13 @@ import {
   useChainModal,
   useConnectModal,
 } from "@rainbow-me/rainbowkit";
-import { type TransitionEvent, useEffect, useRef, useState } from "react";
+import {
+  type RefObject,
+  type TransitionEvent,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 // Overlays (Drawer, Modal, ...) each portal into document.body as siblings, so
 // a click inside a modal opened from within a drawer reads as "outside" the
@@ -18,30 +24,31 @@ import { type TransitionEvent, useEffect, useRef, useState } from "react";
 // one beneath it — its effect runs after, landing it on top of the stack. React
 // runs effects child-before-parent, so this would invert if a nested overlay
 // ever mounted already-open in the same commit as its parent.
-const overlayStack: symbol[] = [];
+const overlayStack: RefObject<HTMLElement | null>[] = [];
+
+export function isCoveredByOverlay(node: Node | null) {
+  const topmost = overlayStack.at(-1)?.current;
+  return Boolean(topmost && !topmost.contains(node));
+}
 
 export function useOverlay<T extends HTMLElement>(onClose: VoidFunction) {
   const [isOpen, setIsOpen] = useState(false);
   const { accountModalOpen } = useAccountModal();
   const { chainModalOpen } = useChainModal();
   const { connectModalOpen } = useConnectModal();
-  const idRef = useRef<symbol | null>(null);
-  if (idRef.current === null) {
-    idRef.current = Symbol("overlay");
-  }
+  const ref = useRef<T>(null);
 
   useEffect(function registerInStack() {
-    const id = idRef.current!;
-    overlayStack.push(id);
+    overlayStack.push(ref);
     return function unregister() {
-      const index = overlayStack.indexOf(id);
+      const index = overlayStack.indexOf(ref);
       if (index !== -1) {
         overlayStack.splice(index, 1);
       }
     };
   }, []);
 
-  const isTopmost = () => overlayStack.at(-1) === idRef.current;
+  const isTopmost = () => overlayStack.at(-1) === ref;
 
   function handleClose() {
     if (accountModalOpen || chainModalOpen || connectModalOpen) {
@@ -57,7 +64,7 @@ export function useOverlay<T extends HTMLElement>(onClose: VoidFunction) {
     handleClose();
   }
 
-  const ref = useOnClickOutside<T>(handleDismiss);
+  useOnClickOutside<T>(handleDismiss, ref);
 
   useOnKeyUp(function (e) {
     if (e.key === "Escape") {

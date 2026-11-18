@@ -1,3 +1,4 @@
+import { isCoveredByOverlay } from "hooks/useOverlay";
 import RcTooltip from "rc-tooltip";
 import {
   type FocusEvent,
@@ -63,12 +64,16 @@ export const Tooltip = function ({
         return undefined;
       }
       // Overlays close on the Escape keyup at the document, so stop it at the
-      // window capture phase to close only the tooltip.
+      // window capture phase to close only the tooltip. An overlay opened from
+      // the trigger covers the tooltip, so that overlay must get the Escape.
       function onKeyUp(event: KeyboardEvent) {
-        if (event.key === "Escape") {
-          event.stopPropagation();
-          setOpen(false);
+        if (event.key !== "Escape") {
+          return;
         }
+        if (!isCoveredByOverlay(triggerRef.current)) {
+          event.stopPropagation();
+        }
+        setOpen(false);
       }
       function onPointerDown(event: PointerEvent) {
         const target = event.target as Node;
