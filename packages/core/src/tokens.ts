@@ -14,10 +14,13 @@ import type { Token } from "./types.ts";
 // The staking vaults are OZ 5.x upgradeable contracts, which store ERC20 state
 // in an ERC-7201 namespace ("openzeppelin.storage.ERC20") instead of at small
 // sequential slots. Inside that struct, _balances is at offset 0 and
-// _allowances at offset 1, so the slot below is `ERC20StorageLocation + 1`
-// (see `ERC20Upgradeable.sol` in @openzeppelin/contracts-upgradeable v5).
+// _allowances at offset 1, so the slots below are `ERC20StorageLocation` and
+// `ERC20StorageLocation + 1` (see `ERC20Upgradeable.sol` in
+// @openzeppelin/contracts-upgradeable v5).
 const erc7201Erc20AllowanceSlot =
   0x52c63247e1f47db19d5ce0460030c497f067ca4cebf71ba98eeadabe20bace01n;
+const erc7201Erc20BalanceSlot =
+  0x52c63247e1f47db19d5ce0460030c497f067ca4cebf71ba98eeadabe20bace00n;
 
 export const knownTokens: Token[] = [
   {
@@ -26,7 +29,7 @@ export const knownTokens: Token[] = [
     decimals: 8,
     extensions: {
       allowanceSlot: 6n,
-      balanceSlot: 5,
+      balanceSlot: 5n,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/hemibtc.svg",
     name: "Hemi Bitcoin",
@@ -38,7 +41,7 @@ export const knownTokens: Token[] = [
     decimals: 6,
     extensions: {
       allowanceSlot: 10n,
-      balanceSlot: 9,
+      balanceSlot: 9n,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/usdc.svg",
     name: "USD Coin",
@@ -50,7 +53,7 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 1n,
-      balanceSlot: 0,
+      balanceSlot: 0n,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/frxusd.svg",
     name: "Frax USD",
@@ -62,7 +65,7 @@ export const knownTokens: Token[] = [
     decimals: 8,
     extensions: {
       allowanceSlot: 2n,
-      balanceSlot: 0,
+      balanceSlot: 0n,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/wbtc.svg",
     name: "Wrapped BTC",
@@ -74,7 +77,7 @@ export const knownTokens: Token[] = [
     decimals: 6,
     extensions: {
       allowanceSlot: 5n,
-      balanceSlot: 2,
+      balanceSlot: 2n,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/usdt.svg",
     name: "Tether USD",
@@ -85,7 +88,7 @@ export const knownTokens: Token[] = [
     chainId: mainnet.id,
     decimals: 18,
     extensions: {
-      balanceSlot: 0,
+      balanceSlot: 0n,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetrousd.svg",
     name: "Vetro USD",
@@ -152,7 +155,7 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 4n,
-      balanceSlot: 3,
+      balanceSlot: 3n,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/weth.svg",
     name: "Wrapped Ether",
@@ -164,7 +167,7 @@ export const knownTokens: Token[] = [
     decimals: 8,
     extensions: {
       allowanceSlot: 10n,
-      balanceSlot: 9,
+      balanceSlot: 9n,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/cbbtc.svg",
     name: "Coinbase Wrapped BTC",
@@ -176,7 +179,7 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 1n,
-      balanceSlot: 0,
+      balanceSlot: 0n,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetbtc.svg",
     name: "Vetro BTC",
@@ -243,6 +246,7 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: erc7201Erc20AllowanceSlot,
+      balanceSlot: erc7201Erc20BalanceSlot,
       isVaultShare: true,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/svetbtc.svg",
@@ -315,6 +319,7 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: erc7201Erc20AllowanceSlot,
+      balanceSlot: erc7201Erc20BalanceSlot,
       isVaultShare: true,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/svusd.svg",

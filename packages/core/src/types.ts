@@ -28,7 +28,7 @@ export type Token = {
   decimals: number;
   extensions?: {
     allowanceSlot?: bigint;
-    balanceSlot?: number;
+    balanceSlot?: bigint;
     // When true, the token's fiat value is computed by converting shares to
     // the vault's underlying asset (ERC-4626 convertToAssets) on the chain
     // where the staking vault lives, then pricing the resulting asset.

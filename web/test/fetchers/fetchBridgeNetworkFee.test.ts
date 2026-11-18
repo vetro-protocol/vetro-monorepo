@@ -4,6 +4,7 @@ import { approvalRequired } from "@vetro-protocol/bridge/actions";
 import { previewBridgeQueryKey } from "hooks/usePreviewBridge";
 import { tokenPricesOptions } from "hooks/useTokenPrices";
 import type { BridgeableToken } from "types";
+import { createErc20BalanceStateOverride } from "utils/erc20StateOverride";
 import { type Address, type Client, parseEther, zeroAddress } from "viem";
 import { estimateGas } from "viem/actions";
 import { bsc, hemi, mainnet } from "viem/chains";
@@ -28,6 +29,7 @@ vi.mock("viem/actions", () => ({
 
 vi.mock("utils/erc20StateOverride", () => ({
   createErc20AllowanceStateOverride: vi.fn().mockReturnValue([]),
+  createErc20BalanceStateOverride: vi.fn().mockReturnValue([]),
 }));
 
 vi.mock("@hemilabs/react-hooks/useEstimateFees", () => ({
@@ -236,26 +238,34 @@ describe("fetchBridgeNetworkFee", function () {
     expect(result).toBeCloseTo(3);
   });
 
-  it("throws when amount exceeds token balance", async function () {
+  it("estimates with the balance overridden when the amount exceeds the balance", async function () {
+    const sendGas = 200_000n;
+    const networkFeeWei = parseEther("0.01");
     const queryClient = createPrepopulatedQueryClient({ balance: 50n });
 
-    await expect(
-      fetchBridgeNetworkFee({
-        amount: 100n,
-        approveAmount: 100n,
-        client: mockClient,
-        destinationChainId,
-        oftAddress,
-        owner: mockOwner,
-        queryClient,
-        recipient: mockRecipient,
-        sourceChainId,
-        sourceToken: mockToken,
-      }),
-    ).rejects.toThrow("Insufficient token balance");
+    vi.mocked(approvalRequired).mockResolvedValue(false);
+    vi.mocked(estimateGas).mockResolvedValue(sendGas);
+    mockNetworkFeeAndPrices({ networkFeeWei, prices: { ETH: "2000" } });
 
-    expect(approvalRequired).not.toHaveBeenCalled();
-    expect(estimateGas).not.toHaveBeenCalled();
-    expect(estimateApprovalGasUnits).not.toHaveBeenCalled();
+    const result = await fetchBridgeNetworkFee({
+      amount: 100n,
+      approveAmount: undefined,
+      client: mockClient,
+      destinationChainId,
+      oftAddress,
+      owner: mockOwner,
+      queryClient,
+      recipient: mockRecipient,
+      sourceChainId,
+      sourceToken: mockToken,
+    });
+
+    // 0.01 ETH * $2000 = $20
+    expect(result).toBeCloseTo(20);
+    expect(createErc20BalanceStateOverride).toHaveBeenCalledWith({
+      balance: 100n,
+      owner: mockOwner,
+      token: mockToken,
+    });
   });
 });

@@ -4,7 +4,10 @@ import { encodeRedeem } from "@vetro-protocol/gateway/actions";
 import { redeemDelayOptions } from "hooks/useRedeemDelay";
 import { treasuryReservesOptions } from "hooks/useTreasuryReserves";
 import type { TokenWithGateway } from "types";
-import { createErc20AllowanceStateOverride } from "utils/erc20StateOverride";
+import {
+  createErc20AllowanceStateOverride,
+  createErc20SpendStateOverride,
+} from "utils/erc20StateOverride";
 import { type Address, type Client, isAddressEqual } from "viem";
 import { estimateGas } from "viem/actions";
 
@@ -15,8 +18,8 @@ import { estimateApprovalGasUnits } from "./estimateApprovalGasUnits";
  * need an ERC-20 approval because tokens are sent directly to the gateway.
  * Two-step redeemers (redeemDelay > 0) skip the approval because their
  * tokens are already locked in the vault.
- * Throws if the amount exceeds the user's token balance (instant redeem) or
- * the treasury reserves for the output token (two-step redeem).
+ * Throws if the amount exceeds the treasury reserves for the output token
+ * (two-step redeem).
  */
 export const fetchRedeemGasUnits = async function ({
   amount,
@@ -50,20 +53,17 @@ export const fetchRedeemGasUnits = async function ({
   );
 
   // For instant redeems (redeemDelay === 0), tokens come from the user's
-  // wallet, so check the balance. For vault redeems (redeemDelay > 0),
+  // wallet, so read the balance. For vault redeems (redeemDelay > 0),
   // tokens are already locked in the contract.
+  let balance: bigint | undefined;
   if (redeemDelay === 0n) {
-    const balance = await queryClient.ensureQueryData(
+    balance = await queryClient.ensureQueryData(
       tokenBalanceQueryOptions({
         account: owner,
         client,
         token: { address: token.address, chainId },
       }),
     );
-
-    if (amount > balance) {
-      throw new Error("Insufficient token balance");
-    }
   } else {
     const reserves = await queryClient.ensureQueryData(
       treasuryReservesOptions({
@@ -92,11 +92,20 @@ export const fetchRedeemGasUnits = async function ({
       receiver: owner,
       tokenOut,
     }),
-    stateOverride: createErc20AllowanceStateOverride({
-      owner,
-      spender: token.gatewayAddress,
-      token,
-    }),
+    stateOverride:
+      balance === undefined
+        ? createErc20AllowanceStateOverride({
+            owner,
+            spender: token.gatewayAddress,
+            token,
+          })
+        : createErc20SpendStateOverride({
+            amount,
+            balance,
+            owner,
+            spender: token.gatewayAddress,
+            token,
+          }),
     to: token.gatewayAddress,
   });
 
