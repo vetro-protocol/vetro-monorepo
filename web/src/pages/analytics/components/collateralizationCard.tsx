@@ -11,20 +11,18 @@ import { formatPercentage } from "utils/format";
 
 import { ShieldIcon } from "../icons/shieldIcon";
 
-type Props = {
+type BackingRowProps = {
+  isSubRow?: boolean;
+  label: string;
+  value: string;
+};
+
+type CollateralizationCardProps = {
   peggedToken: TokenWithGateway | undefined;
   peggedTokenError: boolean;
 };
 
-const BackingRow = ({
-  isSubRow = false,
-  label,
-  value,
-}: {
-  isSubRow?: boolean;
-  label: string;
-  value: string;
-}) => (
+const BackingRow = ({ isSubRow = false, label, value }: BackingRowProps) => (
   <div
     className={`text-b-medium flex items-center justify-between gap-3 border-b border-gray-200 py-3 ${isSubRow ? "pl-9 text-gray-500" : "pl-4.5 text-gray-900"}`}
   >
@@ -43,7 +41,7 @@ const getRatioText = (
 export const CollateralizationCard = function ({
   peggedToken,
   peggedTokenError,
-}: Props) {
+}: CollateralizationCardProps) {
   const { t } = useTranslation();
   const {
     data: collateralization,
