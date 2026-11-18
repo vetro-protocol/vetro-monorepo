@@ -62,20 +62,21 @@ export const CollateralizationCard = function ({
     hasPrice ? formatUsd(toUsd(BigInt(amount))) : "-";
 
   const getItems = function () {
-    if (!hasSupply || !peggedToken || !prices) {
+    if (!collateralization || !peggedToken || !prices) {
       return undefined;
     }
     const surplus = BigInt(collateralization.surplus);
     const isDeficit = surplus < 0n;
     const absoluteSurplus = isDeficit ? -surplus : surplus;
     const surplusUsd = toUsd(absoluteSurplus);
-    const percentage = formatPercentage(
-      Math.abs(collateralization.ratio - 100),
-    );
+    const percentage = hasSupply
+      ? formatPercentage(Math.abs(collateralization.ratio - 100))
+      : "-";
     const supply = BigInt(collateralization.supply);
     const barSurplus = isDeficit ? 0n : surplus;
+    const barTotal = supply + barSurplus;
     const toBarShare = (amount: bigint) =>
-      Number((amount * 10000n) / (supply + barSurplus)) / 100;
+      barTotal > 0n ? Number((amount * 10000n) / barTotal) / 100 : 0;
 
     const getSurplusText = function () {
       if (!hasPrice) {
