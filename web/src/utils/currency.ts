@@ -1,6 +1,7 @@
 import type { Token } from "@vetro-protocol/core";
 import { formatUnits } from "viem";
 
+import { formatNumberWithOptions } from "./format";
 import { getTokenPrice } from "./token";
 
 export const formatUsd = function (value: number) {
@@ -10,12 +11,15 @@ export const formatUsd = function (value: number) {
   if (value < 0 && value > -0.01) {
     return "< -$0.01";
   }
-  return new Intl.NumberFormat("en-US", {
-    currency: "USD",
-    maximumFractionDigits: 2,
-    notation: "compact",
-    style: "currency",
-  }).format(value);
+  return formatNumberWithOptions({
+    options: {
+      currency: "USD",
+      maximumFractionDigits: 2,
+      notation: "compact",
+      style: "currency",
+    },
+    value,
+  });
 };
 
 type TokenAmountUsdArgs = {
@@ -47,12 +51,15 @@ export const formatTokenAmountUsd = (args: TokenAmountUsdArgs) =>
   formatUsd(tokenAmountToUsd(args));
 
 export function splitDecimalParts(value: number) {
-  const formatted = new Intl.NumberFormat("en-US", {
-    currency: "USD",
-    maximumFractionDigits: 2,
-    minimumFractionDigits: 2,
-    style: "currency",
-  }).format(value);
+  const formatted = formatNumberWithOptions({
+    options: {
+      currency: "USD",
+      maximumFractionDigits: 2,
+      minimumFractionDigits: 2,
+      style: "currency",
+    },
+    value,
+  });
 
   const dotIndex = formatted.lastIndexOf(".");
   const decimal = formatted.slice(dotIndex);
