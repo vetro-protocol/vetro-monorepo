@@ -15,9 +15,10 @@ import {
 
 // Overlays (Drawer, Modal, ...) each portal into document.body as siblings, so
 // a click inside a modal opened from within a drawer reads as "outside" the
-// drawer. Track mounted overlays so only the topmost one dismisses on
-// outside-click / Escape — a modal closes without taking the drawer beneath it
-// with it.
+// drawer. Inline popovers inside an overlay (e.g. the slippage panel) register
+// too, so they close before the overlay that holds them. Track mounted layers
+// so only the topmost one dismisses on outside-click / Escape — a modal or
+// popover closes without taking the drawer beneath it with it.
 //
 // Registration happens in an effect, so this reflects z-order only because a
 // nested overlay is always opened by user interaction (a later commit) than the
@@ -31,24 +32,39 @@ export function isCoveredByOverlay(node: Node | null) {
   return Boolean(topmost && !topmost.contains(node));
 }
 
+export function useOverlayLayer({
+  isActive,
+  ref,
+}: {
+  isActive: boolean;
+  ref: RefObject<HTMLElement | null>;
+}) {
+  useEffect(
+    function registerInStack() {
+      if (!isActive) {
+        return undefined;
+      }
+      overlayStack.push(ref);
+      return function unregister() {
+        const index = overlayStack.indexOf(ref);
+        if (index !== -1) {
+          overlayStack.splice(index, 1);
+        }
+      };
+    },
+    [isActive, ref],
+  );
+
+  return () => overlayStack.at(-1) === ref;
+}
+
 export function useOverlay<T extends HTMLElement>(onClose: VoidFunction) {
   const [isOpen, setIsOpen] = useState(false);
   const { accountModalOpen } = useAccountModal();
   const { chainModalOpen } = useChainModal();
   const { connectModalOpen } = useConnectModal();
   const ref = useRef<T>(null);
-
-  useEffect(function registerInStack() {
-    overlayStack.push(ref);
-    return function unregister() {
-      const index = overlayStack.indexOf(ref);
-      if (index !== -1) {
-        overlayStack.splice(index, 1);
-      }
-    };
-  }, []);
-
-  const isTopmost = () => overlayStack.at(-1) === ref;
+  const isTopmost = useOverlayLayer({ isActive: true, ref });
 
   function handleClose() {
     if (accountModalOpen || chainModalOpen || connectModalOpen) {
