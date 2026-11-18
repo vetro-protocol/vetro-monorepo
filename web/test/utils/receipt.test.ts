@@ -15,16 +15,18 @@ const other: Address = "0x2222222222222222222222222222222222222222";
 const token: Address = "0x3333333333333333333333333333333333333333";
 
 const transferLog = ({
+  address = token,
   from,
   to,
   value,
 }: {
+  address?: Address;
   from: Address;
   to: Address;
   value: bigint;
 }) =>
   ({
-    address: token,
+    address,
     blockHash: `0x${"0".repeat(64)}`,
     blockNumber: 1n,
     data: encodeAbiParameters([{ type: "uint256" }], [value]),
@@ -60,5 +62,30 @@ describe("getReceivedAmount", function () {
 
   it("returns undefined when there are no logs", function () {
     expect(getReceivedAmount({ account, logs: [] })).toBeUndefined();
+  });
+
+  it("returns the transfer emitted by the given token", function () {
+    const logs = [
+      transferLog({
+        address: other,
+        from: zeroAddress,
+        to: account,
+        value: 7n,
+      }),
+      transferLog({ from: zeroAddress, to: account, value: 500n }),
+    ];
+    expect(getReceivedAmount({ account, logs, token })).toBe(500n);
+  });
+
+  it("returns undefined when the given token sent nothing to the account", function () {
+    const logs = [
+      transferLog({
+        address: other,
+        from: zeroAddress,
+        to: account,
+        value: 7n,
+      }),
+    ];
+    expect(getReceivedAmount({ account, logs, token })).toBeUndefined();
   });
 });

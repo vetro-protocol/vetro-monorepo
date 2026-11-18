@@ -80,7 +80,11 @@ export const useClaimDeposit = function ({
         function (receipt: TransactionReceipt) {
           updateNativeBalanceAfterReceipt(receipt);
 
-          const shares = getReceivedAmount({ account, logs: receipt.logs });
+          const shares = getReceivedAmount({
+            account,
+            logs: receipt.logs,
+            token: stakingVaultAddress,
+          });
 
           queryClient.setQueryData(depositRequestKey, emptyDepositRequest);
           queryClient.setQueryData(
