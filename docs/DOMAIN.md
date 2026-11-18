@@ -160,11 +160,12 @@ The circulating supply of the pegged token. The breakdown shows the whitelisted 
 
 #### Collateralization ratio
 
-The backing divided by the circulating supply. The backing is the sum of three parts:
+The backing divided by the circulating supply. The backing is the sum of two parts:
 
 - **Strategic reserves**: VUSD-meta vault shares that the treasury, the UMM role and the Vetro multisig hold, valued at their redeem value. Only the VUSD gateway has them.
 - **Liquid reserves**: the treasury `withdrawable` of each whitelisted token, converted to the pegged token at the gateway redeem rate.
-- **Surplus**: the pegged token that the treasury, the UMM role and the yield distributor hold.
+
+The **surplus** is the backing minus the supply. When it is negative, the card shows it as a **deficit**.
 
 #### Historic TVL
 

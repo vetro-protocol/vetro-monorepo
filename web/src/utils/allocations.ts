@@ -161,52 +161,6 @@ export const toYieldItems = ({
       label,
     }));
 
-// Converts collateralization data into percentage-based allocation items.
-// Rounds to 2 decimal places and adjusts the largest item so they sum to exactly 100.
-export const toCollateralizationItems = function (
-  data:
-    | {
-        strategicReserves: string;
-        surplus: string;
-        total: string;
-        treasuryTotal: string;
-      }
-    | undefined,
-  labels: {
-    liquidReserves: string;
-    strategicReserves: string;
-    surplus: string;
-  },
-) {
-  if (!data || BigInt(data.total) <= 0n) {
-    return undefined;
-  }
-  const total = BigInt(data.total);
-  const toPercentage = (value: string) =>
-    Number((BigInt(value) * 10000n + total / 2n) / total) / 100;
-  const round = (n: number) => Number(n.toFixed(2));
-  const items = [
-    {
-      amount: toPercentage(data.strategicReserves),
-      label: labels.strategicReserves,
-    },
-    {
-      amount: toPercentage(data.treasuryTotal),
-      label: labels.liquidReserves,
-    },
-    {
-      amount: toPercentage(data.surplus),
-      label: labels.surplus,
-    },
-  ].sort((a, b) => b.amount - a.amount);
-
-  // Adjust the largest so percentages sum to exactly 100
-  const sum = items.reduce((acc, item) => acc + item.amount, 0);
-  items[0].amount = round(items[0].amount + (100 - sum));
-
-  return items;
-};
-
 // Returns the reserve buffer amount in USD (idle funds not deployed to any strategy).
 // Returns 0 when there is no buffer. Color is intentionally omitted — callers assign it.
 export const toReserveBufferAmount = function ({

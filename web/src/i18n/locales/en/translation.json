@@ -74,11 +74,14 @@
   },
   "pages": {
     "analytics": {
+      "backing-reserves-label": "Backing reserves",
       "collateralization-ratio-label": "Collateralization ratio",
+      "deficit-label": "Deficit (undercollateralized {{percentage}})",
       "historic-tvl-label": "Historic TVL",
-      "liquid-reserves-label": "Liquid Reserves",
-      "strategic-reserves-label": "Strategic Reserves",
-      "surplus-label": "Surplus",
+      "liquid-reserves-label": "Liquid reserves",
+      "strategic-reserves-label": "Strategic reserves",
+      "supply-label": "{{symbol}} supply (redeemable 1:1)",
+      "surplus-label": "Surplus (overcollateralized {{percentage}})",
       "title": "Monitor protocol analytics",
       "tvl-label": "Total Value Locked (TVL)"
     },

@@ -1,4 +1,3 @@
-import { getYieldDistributor } from "@vetro-protocol/earn/actions";
 import { gatewayAddresses } from "@vetro-protocol/gateway";
 import {
   getPeggedToken,
@@ -34,10 +33,6 @@ vi.mock("@vetro-protocol/core", async (importOriginal) => ({
   createMainnetClient: vi.fn(() => ({})),
 }));
 
-vi.mock("@vetro-protocol/earn/actions", () => ({
-  getYieldDistributor: vi.fn(),
-}));
-
 vi.mock("@vetro-protocol/gateway/actions", () => ({
   getPeggedToken: vi.fn(),
   getTreasury: vi.fn(),
@@ -67,15 +62,11 @@ const gatewayAddress = gatewayAddresses[0];
 const peggedTokenAddress: Address =
   "0x0000000000000000000000000000000000000001";
 const treasuryAddress: Address = "0x0000000000000000000000000000000000000002";
-const yieldDistributorAddress: Address =
-  "0x0000000000000000000000000000000000000003";
 const usdcAddress: Address = "0x0000000000000000000000000000000000000004";
 const usdtAddress: Address = "0x0000000000000000000000000000000000000005";
 
 const url = "https://rpc.example";
 
-// Per-account pegged-token balances feeding getSurplus, keyed by account.
-let surplusBalances: Partial<Record<Address, bigint>>;
 // Strategic reserves value (the meta-vault previewRedeem result).
 let strategicReserves: bigint;
 // Per whitelisted token: withdrawable amount and the gateway redeem rate.
@@ -85,7 +76,6 @@ let gatewayRates: Partial<Record<Address, bigint>>;
 const run = () => getCollateralizationRatio({ gatewayAddress, url });
 
 beforeEach(function () {
-  surplusBalances = {};
   strategicReserves = 0n;
   withdrawables = {};
   gatewayRates = {};
@@ -96,18 +86,13 @@ beforeEach(function () {
   vi.mocked(findStakingVaultForPeggedToken).mockResolvedValue(
     "0x0000000000000000000000000000000000000006",
   );
-  vi.mocked(getYieldDistributor).mockResolvedValue(yieldDistributorAddress);
   vi.mocked(totalSupply).mockResolvedValue(0n);
   vi.mocked(totalAssets).mockResolvedValue(0n);
   vi.mocked(getWhitelistedTokens).mockResolvedValue([]);
 
-  // Surplus reads the pegged token's balance across several accounts; only the
-  // configured account contributes, everything else is zero. The meta-vault
-  // balance reads (for strategic reserves) are also routed here but ignored,
-  // since previewMetaRedeem below returns the strategic value directly.
-  vi.mocked(balanceOf).mockImplementation(
-    async (_client, { account }) => surplusBalances[account] ?? 0n,
-  );
+  // The meta-vault balance reads are ignored, since previewMetaRedeem below
+  // returns the strategic value directly.
+  vi.mocked(balanceOf).mockResolvedValue(0n);
   // getStrategicReserves redeems the accumulated meta shares; the mock returns
   // the configured strategic reserves regardless of the share amount.
   vi.mocked(previewMetaRedeem).mockImplementation(
@@ -136,24 +121,42 @@ describe("analytics/getCollateralizationRatio", function () {
     });
   });
 
-  it("computes the ratio from strategic reserves and surplus with no treasury", async function () {
+  it("computes the ratio from strategic reserves with no treasury", async function () {
     strategicReserves = parseUnits("80", 18);
-    surplusBalances[treasuryAddress] = parseUnits("20", 18);
     vi.mocked(totalSupply).mockResolvedValue(parseUnits("100", 18));
 
     const result = await run();
 
     expect(result.strategicReserves).toBe(parseUnits("80", 18));
-    expect(result.surplus).toBe(parseUnits("20", 18));
     expect(result.treasuryTotal).toBe(0n);
-    expect(result.total).toBe(parseUnits("100", 18));
+    expect(result.total).toBe(parseUnits("80", 18));
     expect(result.supply).toBe(parseUnits("100", 18));
-    expect(result.ratio).toBe(100);
+    expect(result.ratio).toBe(80);
+  });
+
+  it("returns the backing minus the supply as the surplus", async function () {
+    strategicReserves = parseUnits("10", 18);
+    vi.mocked(totalSupply).mockResolvedValue(parseUnits("100", 18));
+    vi.mocked(getWhitelistedTokens).mockResolvedValue([usdcAddress]);
+    withdrawables[usdcAddress] = parseUnits("95", 6);
+    gatewayRates[usdcAddress] = parseUnits("1", 6);
+
+    const result = await run();
+
+    expect(result.surplus).toBe(parseUnits("5", 18));
+  });
+
+  it("returns a negative surplus when under-collateralized", async function () {
+    strategicReserves = parseUnits("90", 18);
+    vi.mocked(totalSupply).mockResolvedValue(parseUnits("100", 18));
+
+    const result = await run();
+
+    expect(result.surplus).toBe(parseUnits("-10", 18));
   });
 
   it("includes treasury holdings converted via the gateway previewRedeem rate", async function () {
-    strategicReserves = parseUnits("50", 18);
-    surplusBalances[treasuryAddress] = parseUnits("10", 18);
+    strategicReserves = parseUnits("60", 18);
     vi.mocked(totalSupply).mockResolvedValue(parseUnits("100", 18));
     vi.mocked(getWhitelistedTokens).mockResolvedValue([usdcAddress]);
     // 40 USDC withdrawable, 1 VUSD redeems for 1 USDC → 40 VUSD of backing.
@@ -168,8 +171,7 @@ describe("analytics/getCollateralizationRatio", function () {
   });
 
   it("sums multiple whitelisted treasury tokens", async function () {
-    strategicReserves = parseUnits("30", 18);
-    surplusBalances[treasuryAddress] = parseUnits("10", 18);
+    strategicReserves = parseUnits("40", 18);
     vi.mocked(totalSupply).mockResolvedValue(parseUnits("100", 18));
     vi.mocked(getWhitelistedTokens).mockResolvedValue([
       usdcAddress,
@@ -188,8 +190,7 @@ describe("analytics/getCollateralizationRatio", function () {
   });
 
   it("skips treasury tokens whose redeem rate is zero", async function () {
-    strategicReserves = parseUnits("50", 18);
-    surplusBalances[treasuryAddress] = parseUnits("10", 18);
+    strategicReserves = parseUnits("60", 18);
     vi.mocked(totalSupply).mockResolvedValue(parseUnits("100", 18));
     vi.mocked(getWhitelistedTokens).mockResolvedValue([usdcAddress]);
     withdrawables[usdcAddress] = parseUnits("40", 18);
