@@ -300,6 +300,7 @@ describe("SlippageSettings", function () {
 
       expect(onChange).toHaveBeenCalledExactlyOnceWith(4);
       expect(drawer.element()).toHaveAttribute("data-state", "open");
+      endTransition(drawer.element());
       expect(onDrawerClose).not.toHaveBeenCalled();
     });
 
