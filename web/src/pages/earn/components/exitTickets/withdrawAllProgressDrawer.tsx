@@ -19,6 +19,7 @@ import {
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import type { TokenWithGateway } from "types";
+import { formatFiatNumberRoundDown } from "utils/format";
 import { formatAmount } from "utils/token";
 import type { Address } from "viem";
 
@@ -88,7 +89,11 @@ const Row = ({ amount, peggedToken, status }: RowProps) => (
       detail={
         <>
           <DollarSign />
-          <RenderFiatValue token={peggedToken} value={amount} />
+          <RenderFiatValue
+            customFormatter={formatFiatNumberRoundDown}
+            token={peggedToken}
+            value={amount}
+          />
         </>
       }
       token={peggedToken}
