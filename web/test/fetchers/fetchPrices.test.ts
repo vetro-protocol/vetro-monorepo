@@ -1,12 +1,19 @@
-import type { Gateway } from "@vetro-protocol/gateway";
+import { knownTokens } from "@vetro-protocol/core";
+import { type Gateway, gateways } from "@vetro-protocol/gateway";
+import { fetchPeggedToken } from "fetchers/fetchPeggedToken";
 import { oraclePricesOptions } from "hooks/useOraclePrices";
+import { peggedTokenQueryOptions } from "hooks/usePeggedToken";
 import { tokenPricesOptions } from "hooks/useTokenPrices";
 import type { Address, Client } from "viem";
 import { mainnet } from "viem/chains";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { fetchPrices } from "../../src/fetchers/fetchPrices";
 import { createTestQueryClient } from "../utils";
+
+vi.mock("fetchers/fetchPeggedToken", () => ({
+  fetchPeggedToken: vi.fn(),
+}));
 
 const client = { chain: mainnet } as unknown as Client;
 
@@ -21,6 +28,43 @@ const vetBtcGateway: Gateway = {
 const vetEthGateway: Gateway = {
   address: "0x0000000000000000000000000000000000000003" as Address,
   pegBaseSymbol: "ETH",
+};
+
+const graphVusdGateway = gateways.find(
+  (gateway) => gateway.pegBaseSymbol === "USD",
+)!;
+
+const peggedSymbols: Record<Address, string> = {
+  [vetBtcGateway.address]: "vetBTC",
+  [vetEthGateway.address]: "vetETH",
+  [vusdGateway.address]: "VUSD",
+};
+
+const peggedToken = ({
+  gatewayAddress,
+  symbol,
+}: {
+  gatewayAddress: Address;
+  symbol: string;
+}) => ({
+  ...knownTokens.find((token) => token.symbol === "VUSD")!,
+  gatewayAddress,
+  symbol,
+});
+
+const seedPeggedToken = function ({
+  gatewayAddress,
+  queryClient,
+  symbol,
+}: {
+  gatewayAddress: Address;
+  queryClient: ReturnType<typeof createTestQueryClient>;
+  symbol: string;
+}) {
+  queryClient.setQueryData(
+    peggedTokenQueryOptions({ client, gatewayAddress }).queryKey,
+    peggedToken({ gatewayAddress, symbol }),
+  );
 };
 
 const seed = function (
@@ -43,10 +87,22 @@ const seed = function (
       }).queryKey,
       dict,
     );
+    const symbol = peggedSymbols[gatewayAddress as Address];
+    if (symbol) {
+      seedPeggedToken({
+        gatewayAddress: gatewayAddress as Address,
+        queryClient,
+        symbol,
+      });
+    }
   });
 };
 
 describe("fetchPrices", function () {
+  beforeEach(function () {
+    vi.mocked(fetchPeggedToken).mockReset();
+  });
+
   it("returns portal-only entries when no gateways are provided", async function () {
     const queryClient = createTestQueryClient();
     seed(queryClient, {
@@ -173,6 +229,7 @@ describe("fetchPrices", function () {
 
     expect(result.WBTC).toBe("0");
     expect(result.CBBTC).toBe("0");
+    expect(result.VETBTC).toBe("0");
     // Other portal entries unaffected.
     expect(result.ETH).toBe("2288");
   });
@@ -192,8 +249,8 @@ describe("fetchPrices", function () {
       queryClient,
     });
 
-    // Nothing to override; portal passes through.
-    expect(result).toEqual({ BTC: "76800", WBTC: "76580" });
+    // No oracle entry to override; only the pegged token is added.
+    expect(result).toEqual({ BTC: "76800", VETBTC: "76800", WBTC: "76580" });
   });
 
   it("oracle entries override portal entries on collision", async function () {
@@ -215,5 +272,94 @@ describe("fetchPrices", function () {
 
     // Oracle wins.
     expect(Number(result.WBTC)).toBeCloseTo(76646.4, 4);
+  });
+
+  it("prices a USD pegged token at 1, apart from its whitelisted tokens", async function () {
+    const queryClient = createTestQueryClient();
+    seed(queryClient, {
+      oraclesByGateway: { [vusdGateway.address]: { USDT: "1.001" } },
+      portal: { USDT: "1" },
+    });
+
+    const result = await fetchPrices({
+      client,
+      gateways: [vusdGateway],
+      queryClient,
+    });
+
+    expect(result.VUSD).toBe("1");
+    expect(result.USDT).toBe("1.001");
+  });
+
+  it("prices a BTC pegged token at the portal BTC price", async function () {
+    const queryClient = createTestQueryClient();
+    seed(queryClient, {
+      oraclesByGateway: { [vetBtcGateway.address]: { WBTC: "0.998" } },
+      portal: { BTC: "76800" },
+    });
+
+    const result = await fetchPrices({
+      client,
+      gateways: [vetBtcGateway],
+      queryClient,
+    });
+
+    expect(result.VETBTC).toBe("76800");
+  });
+
+  it("keeps the peg price when the portal has a market price for the pegged token", async function () {
+    const queryClient = createTestQueryClient();
+    seed(queryClient, {
+      oraclesByGateway: { [vusdGateway.address]: {} },
+      portal: { VUSD: "0.97" },
+    });
+
+    const result = await fetchPrices({
+      client,
+      gateways: [vusdGateway],
+      queryClient,
+    });
+
+    expect(result.VUSD).toBe("1");
+  });
+
+  it("takes the pegged token from the protocol graph without an on-chain read", async function () {
+    const queryClient = createTestQueryClient();
+    seed(queryClient, {
+      oraclesByGateway: { [graphVusdGateway.address]: {} },
+      portal: {},
+    });
+
+    const result = await fetchPrices({
+      client,
+      gateways: [graphVusdGateway],
+      queryClient,
+    });
+
+    expect(result).toEqual({ VUSD: "1" });
+    expect(fetchPeggedToken).not.toHaveBeenCalled();
+  });
+
+  it("reads the pegged token on-chain when the protocol graph lacks the gateway", async function () {
+    const queryClient = createTestQueryClient();
+    const unknownGateway: Gateway = {
+      address: "0x0000000000000000000000000000000000000004" as Address,
+      pegBaseSymbol: "ETH",
+    };
+    seed(queryClient, {
+      oraclesByGateway: { [unknownGateway.address]: {} },
+      portal: { ETH: "2288" },
+    });
+    vi.mocked(fetchPeggedToken).mockResolvedValue(
+      peggedToken({ gatewayAddress: unknownGateway.address, symbol: "vetETH" }),
+    );
+
+    const result = await fetchPrices({
+      client,
+      gateways: [unknownGateway],
+      queryClient,
+    });
+
+    expect(result).toEqual({ ETH: "2288", VETETH: "2288" });
   });
 });

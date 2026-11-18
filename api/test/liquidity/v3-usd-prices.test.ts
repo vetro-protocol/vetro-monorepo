@@ -4,8 +4,10 @@ import { describe, expect, it } from "vitest";
 import type { V3SubgraphPool } from "../../src/liquidity/v3-subgraph.ts";
 import { v3PoolUsdValues } from "../../src/liquidity/v3-usd-prices.ts";
 
+const svetBtc: Address = "0x0cB9D84d4bcEc8d3D5B2d99a6F07f4605325987e";
 const svusd: Address = "0x476310E34D2810f7d79C43A74E4D79405bd7a925";
 const usdt: Address = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
+const vetBtc: Address = "0xf196C68233464A16CFDa319a47c21f4cECa62001";
 const vusd: Address = "0xCa83DDE9c22254f58e771bE5E157773212AcBAc3";
 
 const buildSubgraphPool = ({
@@ -81,7 +83,7 @@ describe("liquidity/v3PoolUsdValues", function () {
           volumeToken0: 100,
         }),
         token1PerToken0: 1,
-        tokens: [svusd, vusd],
+        tokens: [svetBtc, vetBtc],
       }),
     ).toEqual({
       feesUsd24h: null,

@@ -14,6 +14,14 @@ VETRO lets users mint a **pegged token** — a token fully backed by reserves an
 
 > **Don't hardcode symbols.** The active instances are read **on-chain**, not from a static list — `tokenList.ts` is only an ERC-20 metadata cache for display. Write against the role (`peggedToken`, `shareToken`, `whitelistedToken`) and read instances from their gateway/vault; `VUSD` is just today's most prominent instance, not a special case to branch on. See [Where things live](#where-things-live) for the exact files.
 
+**USD values.** These values are for display only. The app uses these rules:
+
+- A pegged token is valued at its peg (1 VUSD = 1 USD, 1 vetBTC = 1 BTC).
+- A share token is valued through its pegged token.
+- Other tokens take their Treasury oracle price first, then the Portal prices API price.
+- An oracle price is in the peg unit, and the Portal prices API converts that unit (e.g. BTC) to USD.
+- The Liquidity page is the exception. There, a market price from the pools comes before these rules.
+
 So there are two reasons to hold a pegged token — keep it as a settlement asset (Swap) or stake it for yield (Earn) — plus a path for crypto holders who want liquidity without selling (Borrow).
 
 ## How the contracts fit together
