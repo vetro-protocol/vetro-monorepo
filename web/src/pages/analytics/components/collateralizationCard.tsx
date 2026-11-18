@@ -3,9 +3,11 @@ import { useCollateralizationRatio } from "hooks/useCollateralizationRatio";
 import { usePrices } from "hooks/usePrices";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
-import { formatUsd, tokenAmountToUsd } from "utils/currency";
+import {
+  formatPeggedAmountUsd,
+  toCollateralizationItems,
+} from "utils/allocations";
 import { formatPercentage } from "utils/format";
-import { getTokenPrice } from "utils/token";
 
 import { ShieldIcon } from "../icons/shieldIcon";
 
@@ -31,6 +33,13 @@ const BackingRow = ({
   </div>
 );
 
+const getRatioText = (
+  collateralization: { ratio: number; supply: string } | undefined,
+) =>
+  collateralization && BigInt(collateralization.supply) > 0n
+    ? formatPercentage(collateralization.ratio)
+    : "";
+
 export const CollateralizationCard = function ({
   peggedToken,
   peggedTokenError,
@@ -47,103 +56,64 @@ export const CollateralizationCard = function ({
   const isLoading =
     !isError && (!peggedToken || isCollateralizationLoading || !prices);
 
-  const hasSupply =
-    collateralization !== undefined && BigInt(collateralization.supply) > 0n;
+  const value = getRatioText(collateralization);
 
-  const value = hasSupply ? formatPercentage(collateralization.ratio) : "";
+  if (!collateralization || !peggedToken || !prices) {
+    return (
+      <AllocationCard
+        icon={<ShieldIcon />}
+        isError={isError}
+        isLoading={isLoading}
+        label={t("pages.analytics.collateralization-ratio-label")}
+        value={value}
+      />
+    );
+  }
 
-  const hasPrice =
-    peggedToken !== undefined && Number(getTokenPrice(peggedToken, prices)) > 0;
-
-  const toUsd = (amount: bigint) =>
-    peggedToken ? tokenAmountToUsd({ amount, prices, token: peggedToken }) : 0;
-
-  const formatAmountUsd = (amount: string) =>
-    hasPrice ? formatUsd(toUsd(BigInt(amount))) : "-";
-
-  const getItems = function () {
-    if (!collateralization || !peggedToken || !prices) {
-      return undefined;
-    }
-    const surplus = BigInt(collateralization.surplus);
-    const isDeficit = surplus < 0n;
-    const absoluteSurplus = isDeficit ? -surplus : surplus;
-    const surplusUsd = toUsd(absoluteSurplus);
-    const percentage = hasSupply
-      ? formatPercentage(Math.abs(collateralization.ratio - 100))
-      : "-";
-    const supply = BigInt(collateralization.supply);
-    const barSurplus = isDeficit ? 0n : surplus;
-    const barTotal = supply + barSurplus;
-    const toBarShare = (amount: bigint) =>
-      barTotal > 0n ? Number((amount * 10000n) / barTotal) / 100 : 0;
-
-    const getSurplusText = function () {
-      if (!hasPrice) {
-        return "-";
-      }
-      if (isDeficit) {
-        return formatUsd(-surplusUsd);
-      }
-      return surplusUsd >= 0.01
-        ? `+${formatUsd(surplusUsd)}`
-        : formatUsd(surplusUsd);
-    };
-
-    const getSurplusClassName = function () {
-      if (!hasPrice) {
-        return undefined;
-      }
-      return isDeficit ? "text-rose-500" : "text-emerald-500";
-    };
-
-    return [
-      {
-        amount: toBarShare(supply),
-        color: "bg-blue-500",
-        formattedAmount: formatAmountUsd(collateralization.supply),
-        label: t("pages.analytics.supply-label", {
-          symbol: peggedToken.symbol,
-        }),
-      },
-      {
-        amount: toBarShare(barSurplus),
-        amountClassName: getSurplusClassName(),
-        color: isDeficit ? "bg-rose-500" : "bg-emerald-400",
-        formattedAmount: getSurplusText(),
-        label: isDeficit
-          ? t("pages.analytics.deficit-label", { percentage })
-          : t("pages.analytics.surplus-label", { percentage }),
-      },
-    ];
-  };
+  const formatAmount = (amount: string) =>
+    formatPeggedAmountUsd({
+      amount: BigInt(amount),
+      prices,
+      token: peggedToken,
+    });
 
   return (
     <AllocationCard
       header={
-        collateralization && (
-          <>
-            <BackingRow
-              label={t("pages.analytics.backing-reserves-label")}
-              value={formatAmountUsd(collateralization.total)}
-            />
-            <BackingRow
-              isSubRow
-              label={t("pages.analytics.liquid-reserves-label")}
-              value={formatAmountUsd(collateralization.treasuryTotal)}
-            />
-            <BackingRow
-              isSubRow
-              label={t("pages.analytics.strategic-reserves-label")}
-              value={formatAmountUsd(collateralization.strategicReserves)}
-            />
-          </>
-        )
+        <>
+          <BackingRow
+            label={t("pages.analytics.backing-reserves-label")}
+            value={formatAmount(collateralization.total)}
+          />
+          <BackingRow
+            isSubRow
+            label={t("pages.analytics.liquid-reserves-label")}
+            value={formatAmount(collateralization.treasuryTotal)}
+          />
+          <BackingRow
+            isSubRow
+            label={t("pages.analytics.strategic-reserves-label")}
+            value={formatAmount(collateralization.strategicReserves)}
+          />
+        </>
       }
       icon={<ShieldIcon />}
       isError={isError}
       isLoading={isLoading}
-      items={getItems()}
+      items={toCollateralizationItems({
+        data: collateralization,
+        labels: {
+          deficit: (percentage) =>
+            t("pages.analytics.deficit-label", { percentage }),
+          supply: t("pages.analytics.supply-label", {
+            symbol: peggedToken.symbol,
+          }),
+          surplus: (percentage) =>
+            t("pages.analytics.surplus-label", { percentage }),
+        },
+        prices,
+        token: peggedToken,
+      })}
       label={t("pages.analytics.collateralization-ratio-label")}
       value={value}
     />

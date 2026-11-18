@@ -1,7 +1,8 @@
 import type { StrategySource, Token } from "@vetro-protocol/core";
 import type { TreasuryToken, TvlHistoryEntry } from "types";
-import { tokenAmountToUsd } from "utils/currency";
-import { formatNumber } from "utils/format";
+import { formatUsd, tokenAmountToUsd } from "utils/currency";
+import { formatNumber, formatPercentage } from "utils/format";
+import { getTokenPrice } from "utils/token";
 import { getStakeDaoStrategyUrl } from "utils/url";
 import { formatUnits, isAddressEqual, type Address } from "viem";
 
@@ -160,6 +161,95 @@ export const toYieldItems = ({
       href,
       label,
     }));
+
+// Formats a raw pegged token amount in USD, or "-" when the pegged token has
+// no price, because its USD value is unknown.
+export const formatPeggedAmountUsd = ({
+  amount,
+  prices,
+  token,
+}: {
+  amount: bigint;
+  prices: Prices;
+  token: Token;
+}) =>
+  Number(getTokenPrice(token, prices)) > 0
+    ? formatUsd(tokenAmountToUsd({ amount, prices, token }))
+    : "-";
+
+// Transforms /analytics/collateralization-ratio response into the supply and
+// surplus (or deficit) items. The bar has no segment for a deficit, because a
+// bar cannot show a negative value.
+export const toCollateralizationItems = function ({
+  data,
+  labels,
+  prices,
+  token,
+}: {
+  data: { ratio: number; supply: string; surplus: string };
+  labels: {
+    deficit: (percentage: string) => string;
+    supply: string;
+    surplus: (percentage: string) => string;
+  };
+  prices: Prices;
+  token: Token;
+}) {
+  const supply = BigInt(data.supply);
+  const surplus = BigInt(data.surplus);
+  const isDeficit = surplus < 0n;
+  const absoluteSurplus = isDeficit ? -surplus : surplus;
+  const hasPrice = Number(getTokenPrice(token, prices)) > 0;
+  const percentage =
+    supply > 0n ? formatPercentage(Math.abs(data.ratio - 100)) : "-";
+
+  const barSurplus = isDeficit ? 0n : surplus;
+  const barTotal = supply + barSurplus;
+  const toBarShare = (amount: bigint) =>
+    barTotal > 0n ? Number((amount * 10000n) / barTotal) / 100 : 0;
+
+  const getSurplusText = function () {
+    if (!hasPrice) {
+      return "-";
+    }
+    const surplusUsd = tokenAmountToUsd({
+      amount: absoluteSurplus,
+      prices,
+      token,
+    });
+    if (isDeficit) {
+      return formatUsd(-surplusUsd);
+    }
+    return surplusUsd >= 0.01
+      ? `+${formatUsd(surplusUsd)}`
+      : formatUsd(surplusUsd);
+  };
+
+  const getSurplusClassName = function () {
+    if (!hasPrice) {
+      return undefined;
+    }
+    return isDeficit ? "text-rose-500" : "text-emerald-500";
+  };
+
+  return [
+    {
+      amount: toBarShare(supply),
+      color: "bg-blue-500",
+      formattedAmount: formatPeggedAmountUsd({ amount: supply, prices, token }),
+      label: labels.supply,
+    },
+    {
+      amount: toBarShare(barSurplus),
+      amountClassName: getSurplusClassName(),
+      color: isDeficit ? "bg-rose-500" : "bg-emerald-400",
+      formattedAmount: getSurplusText(),
+      label: isDeficit
+        ? labels.deficit(percentage)
+        : labels.surplus(percentage),
+    },
+  ];
+};
 
 // Returns the reserve buffer amount in USD (idle funds not deployed to any strategy).
 // Returns 0 when there is no buffer. Color is intentionally omitted — callers assign it.
