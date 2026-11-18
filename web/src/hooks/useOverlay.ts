@@ -15,9 +15,10 @@ import {
 
 // Overlays (Drawer, Modal, ...) each portal into document.body as siblings, so
 // a click inside a modal opened from within a drawer reads as "outside" the
-// drawer. Track mounted overlays so only the topmost one dismisses on
-// outside-click / Escape — a modal closes without taking the drawer beneath it
-// with it.
+// drawer. Inline popovers inside an overlay (e.g. the slippage panel) register
+// too, so they close before the overlay that holds them. Track mounted layers
+// so only the topmost one dismisses on outside-click / Escape — a modal or
+// popover closes without taking the drawer beneath it with it.
 //
 // Registration happens in an effect, so this reflects z-order only because a
 // nested overlay is always opened by user interaction (a later commit) than the
