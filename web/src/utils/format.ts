@@ -20,6 +20,20 @@ export const formatFiatNumber = (value: number | string) =>
 
 export const smallestFormattedNumber = `0.${"0".repeat(cryptoDecimals - 1)}1`;
 
+type FormatNumberWithOptionsArgs = {
+  options?: Intl.NumberFormatOptions;
+  value: bigint | number | string;
+};
+
+export const formatNumberWithOptions = ({
+  options = {},
+  value,
+}: FormatNumberWithOptionsArgs) =>
+  new Intl.NumberFormat("en-US", options).format(
+    // @ts-expect-error NumberFormat.format accepts strings at runtime; typings omit them.
+    value,
+  );
+
 export const formatNumber = function (value: number | string) {
   const num = typeof value === "string" ? parseFloat(value) : value;
   if (num > 0 && num < Number(smallestFormattedNumber)) {

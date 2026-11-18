@@ -17,6 +17,7 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import { formatMediumDate } from "utils/date";
+import { formatNumberWithOptions } from "utils/format";
 import {
   hemiToken,
   isBelowMinClaim,
@@ -112,7 +113,7 @@ function SnapshotCaption() {
             {snapshotBlock === undefined
               ? t("pages.ve-vetro.claim.positions.snapshot-date", { date })
               : t("pages.ve-vetro.claim.positions.snapshot", {
-                  block: snapshotBlock.toLocaleString(i18n.language),
+                  block: formatNumberWithOptions({ value: snapshotBlock }),
                   date,
                 })}
           </span>

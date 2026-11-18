@@ -101,6 +101,31 @@
           }
         ]
       }
+    },
+    {
+      "excludedFiles": ["web/src/utils/date.ts", "web/src/utils/format.ts"],
+      "files": ["web/src/**/*.{ts,tsx}"],
+      "rules": {
+        "no-restricted-syntax": [
+          "error",
+          {
+            "message": "Use a formatting helper from utils/format or utils/date instead.",
+            "selector": "MemberExpression[object.name='Intl'][property.name=/Format$/]"
+          },
+          {
+            "message": "Use a formatting helper from utils/format or utils/date instead.",
+            "selector": "MemberExpression[computed=true][object.name='Intl'][property.value=/Format$/]"
+          },
+          {
+            "message": "Use a formatting helper from utils/format or utils/date instead.",
+            "selector": "MemberExpression[property.name=/^toLocale.*String$/]"
+          },
+          {
+            "message": "Use a formatting helper from utils/format or utils/date instead.",
+            "selector": "MemberExpression[computed=true][property.value=/^toLocale.*String$/]"
+          }
+        ]
+      }
     }
   ],
   "root": true

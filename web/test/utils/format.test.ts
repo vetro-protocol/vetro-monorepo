@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   formatEvmAddress,
   formatNumber,
+  formatNumberWithOptions,
   formatPercentage,
   formatPercentageTick,
 } from "../../src/utils/format";
@@ -55,6 +56,23 @@ describe("utils/format", function () {
 
     it("should format zero", function () {
       expect(formatNumber("0")).toBe("0");
+    });
+  });
+
+  describe("formatNumberWithOptions", function () {
+    it("should preserve bigint precision while grouping with en-US separators", function () {
+      expect(
+        formatNumberWithOptions({ value: 123456789012345678901234n }),
+      ).toBe("123,456,789,012,345,678,901,234");
+    });
+
+    it("should preserve decimal string precision", function () {
+      expect(
+        formatNumberWithOptions({
+          options: { maximumFractionDigits: 18 },
+          value: "1.234567890123456789",
+        }),
+      ).toBe("1.234567890123456789");
     });
   });
 
