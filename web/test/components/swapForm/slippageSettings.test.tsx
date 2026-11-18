@@ -280,9 +280,12 @@ describe("SlippageSettings", function () {
       const onChange = vi.fn();
       const onDrawerClose = vi.fn();
       const screen = await render(
-        <Drawer ariaLabel="Claim" onClose={onDrawerClose}>
-          <Wrapper initialSlippage={0} onChange={onChange} />
-        </Drawer>,
+        <>
+          <button type="button">Page</button>
+          <Drawer ariaLabel="Claim" onClose={onDrawerClose}>
+            <Wrapper initialSlippage={0} onChange={onChange} />
+          </Drawer>
+        </>,
       );
       const drawer = screen.getByRole("dialog", { name: "Claim" });
       await waitForOpen(drawer);
@@ -297,6 +300,19 @@ describe("SlippageSettings", function () {
       await input.fill("4");
 
       await userEvent.keyboard("{Escape}");
+
+      expect(onChange).toHaveBeenCalledExactlyOnceWith(4);
+      expect(drawer.element()).toHaveAttribute("data-state", "open");
+      endTransition(drawer.element());
+      expect(onDrawerClose).not.toHaveBeenCalled();
+    });
+
+    it("closes only the panel when the user clicks outside the drawer", async function () {
+      const { drawer, input, onChange, onDrawerClose, screen } =
+        await renderInDrawer();
+      await input.fill("4");
+
+      await screen.getByRole("button", { name: "Page" }).click();
 
       expect(onChange).toHaveBeenCalledExactlyOnceWith(4);
       expect(drawer.element()).toHaveAttribute("data-state", "open");
