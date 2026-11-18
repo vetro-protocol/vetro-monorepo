@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   formatEvmAddress,
@@ -60,6 +60,22 @@ describe("utils/format", function () {
   });
 
   describe("formatNumberWithOptions", function () {
+    const NumberFormat = Intl.NumberFormat;
+
+    beforeEach(function () {
+      // Force a non-US default so a missing locale changes the output.
+      vi.spyOn(Intl, "NumberFormat").mockImplementation(
+        // eslint-disable-next-line prefer-arrow/prefer-arrow-functions -- Called with new.
+        function (locales, options) {
+          return new NumberFormat(locales ?? "de-DE", options);
+        },
+      );
+    });
+
+    afterEach(function () {
+      vi.restoreAllMocks();
+    });
+
     it("should preserve bigint precision while grouping with en-US separators", function () {
       expect(
         formatNumberWithOptions({ value: 123456789012345678901234n }),
