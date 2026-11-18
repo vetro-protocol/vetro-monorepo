@@ -311,4 +311,22 @@ describe("Tooltip", function () {
 
     expect(onParentClick).toHaveBeenCalledOnce();
   });
+
+  it("stays open on mouse leave while the trigger has keyboard focus", async function () {
+    const screen = await render(
+      <Tooltip content="Tooltip text">
+        <button>Claim</button>
+      </Tooltip>,
+    );
+    await userEvent.tab();
+    await screen.getByRole("button", { name: "Claim" }).hover();
+
+    await moveMouseAway();
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    await expect
+      .element(screen.getByRole("button", { name: "Claim" }))
+      .toHaveFocus();
+    await expect.element(screen.getByText("Tooltip text")).toBeVisible();
+  });
 });

@@ -123,6 +123,17 @@ export const Tooltip = function ({
     setOpen(true);
   }
 
+  function onHoverChange(next: boolean) {
+    const focused = document.activeElement;
+    const hasKeyboardFocus =
+      focused?.matches(":focus-visible") &&
+      (triggerRef.current?.contains(focused) ||
+        overlayRef.current?.contains(focused));
+    if (next || !hasKeyboardFocus) {
+      setOpen(next);
+    }
+  }
+
   function onFocus(event: FocusEvent) {
     if (canOpen && (event.target as Element).matches(":focus-visible")) {
       setOpen(true);
@@ -133,7 +144,7 @@ export const Tooltip = function ({
     <RcTooltip
       getTooltipContainer={useParentContainer ? getTooltipContainer : undefined}
       motion={motion}
-      onVisibleChange={setOpen}
+      onVisibleChange={onHoverChange}
       overlay={
         <div
           className="text-b-medium max-w-xs rounded-md bg-gray-900 px-1.5 py-1 text-white"
