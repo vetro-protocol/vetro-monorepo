@@ -48,6 +48,7 @@ export const Tooltip = function ({
   const pointerDownInOverlayRef = useRef(false);
   const triggerRef = useRef<HTMLDivElement>(null);
   const canOpen = visible !== false;
+  const isOpen = visible ?? open;
 
   useLayoutEffect(function () {
     setHasFocusableChild(
@@ -57,7 +58,7 @@ export const Tooltip = function ({
 
   useEffect(
     function () {
-      if (!open) {
+      if (!isOpen) {
         return undefined;
       }
       // Overlays close on the Escape keyup at the document, so stop it at the
@@ -89,7 +90,7 @@ export const Tooltip = function ({
         document.removeEventListener("pointerup", onPointerUp);
       };
     },
-    [open],
+    [isOpen],
   );
 
   function closeOnFocusLeave(event: FocusEvent) {
@@ -145,7 +146,7 @@ export const Tooltip = function ({
       placement="top"
       showArrow={false}
       trigger={["hover"]}
-      visible={visible ?? open}
+      visible={isOpen}
     >
       <div
         className={`vetro-tooltip-trigger flex cursor-pointer ${stretch ? "size-full" : "w-fit"}`}

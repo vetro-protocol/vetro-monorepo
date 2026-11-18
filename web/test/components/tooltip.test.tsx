@@ -6,7 +6,7 @@ import { Drawer } from "../../src/components/base/drawer";
 import { Tooltip } from "../../src/components/tooltip";
 
 import { moveMouseAway } from "./mouse";
-import { waitForOpen } from "./transitions";
+import { waitForClosed, waitForOpen } from "./transitions";
 
 function tapCenter(element: Element) {
   const { height, left, top, width } = element.getBoundingClientRect();
@@ -234,5 +234,25 @@ describe("Tooltip", function () {
     await expect.element(screen.getByText("Tooltip text")).not.toBeVisible();
     await new Promise(requestAnimationFrame);
     await expect.element(drawer).toHaveAttribute("data-state", "open");
+  });
+
+  it("lets Escape close the drawer after visible hides an open tooltip", async function () {
+    const renderTree = (visible?: boolean) => (
+      <Drawer onClose={vi.fn()} title="Settings">
+        <Tooltip content="Tooltip text" visible={visible}>
+          <span>Info</span>
+        </Tooltip>
+      </Drawer>
+    );
+    const screen = await render(renderTree());
+    const drawer = screen.getByRole("dialog", { name: "Settings" });
+    await waitForOpen(drawer);
+    await screen.getByText("Info").hover();
+    await expect.element(screen.getByText("Tooltip text")).toBeVisible();
+    await screen.rerender(renderTree(false));
+
+    await userEvent.keyboard("{Escape}");
+
+    await waitForClosed(drawer);
   });
 });
