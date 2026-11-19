@@ -91,8 +91,8 @@ async function findGatewayForPeggedToken({
  * Get the composition of a staking vault's deposits. The vault holds only the
  * pegged token, which is a claim on the pooled Treasury, so its composition is
  * the Treasury's pro rata: one item per active strategy plus one idle reserve
- * per whitelisted token. Excludes the strategic reserves and the surplus, as
- * they are the pegged token itself.
+ * per whitelisted token. Excludes the strategic reserves and the
+ * protocol-held pegged token, as they are the pegged token itself.
  *
  * The Treasury data is the one `GET /analytics/treasury` serves, warmed by the
  * cron. Its prices can be up to the warmed value's TTL old, so their freshness

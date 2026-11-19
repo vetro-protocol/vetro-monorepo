@@ -6,9 +6,9 @@ Service that provides data to the Vetro web application.
 
 ### `GET /analytics/collateralization-ratio/:gatewayAddress`
 
-Get the collateralization ratio for a given gateway's pegged token: the total backing value divided by the circulating supply. The backing is the sum of the strategic reserves, the protocol surplus and the liquid Treasury reserves (whitelisted holdings valued in the pegged token). Cached for 5 minutes.
+Get the collateralization ratio for a given gateway's pegged token: the total backing value divided by the circulating supply. The backing (`total`) is the sum of the strategic reserves and the liquid Treasury reserves (`treasuryTotal`, whitelisted holdings valued in the pegged token). `surplus` is the backing minus the supply. It is negative when the pegged token is under-collateralized. Cached for 5 minutes.
 `:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway.
-The monetary fields (`strategicReserves`, `supply`, `surplus`, `total`, `treasuryTotal`) are raw `uint256` amounts in the pegged token's base units (not pre-scaled); format them with the token's decimals on the client. `ratio` is a number: the percentage `(total / supply) * 100` (e.g. `100.04`), or `0` when supply is `0`.
+The monetary fields (`strategicReserves`, `supply`, `total`, `treasuryTotal`) are raw `uint256` amounts in the pegged token's base units (not pre-scaled); format them with the token's decimals on the client. `surplus` is a signed integer in the same base units. `ratio` is a number: the percentage `(total / supply) * 100` (e.g. `100.04`), or `0` when supply is `0`.
 
 #### Sample response
 
@@ -17,9 +17,9 @@ The monetary fields (`strategicReserves`, `supply`, `surplus`, `total`, `treasur
   "ratio": 100.04,
   "strategicReserves": "10000000000000000000",
   "supply": "11425000000000000000000000",
-  "surplus": "1424707358963452827",
-  "total": "11430000004707358963452827",
-  "treasuryTotal": "11429988580000000000000000"
+  "surplus": "4997580000000000000000",
+  "total": "11429997580000000000000000",
+  "treasuryTotal": "11429987580000000000000000"
 }
 ```
 
@@ -553,7 +553,7 @@ Valid periods are: `"1w"`, `"1m"`, `"3m"` and `"1y"`.
 
 ### `GET /variable-stake/composition/:stakingVaultAddress`
 
-Returns the composition of a staking vault's deposits, ready to display. The vault holds only the pegged token, which is a claim on the pooled Treasury (collateral isn't earmarked per holder), so its composition is the Treasury's, pro rata. Each item is one active strategy (its `totalDebt`) or the idle reserve of one whitelisted token (`withdrawable − totalDebt`). Items are valued like `Treasury.reserve()` does (oracle price capped at par, in pegged-token units). `share = value ÷ Σ item values` and `amount = share × total`; the rounding remainder goes to the largest item. The strategic reserves and the surplus are excluded, as they are the pegged token itself. Items with a zero amount are omitted, and the rest are sorted by `amount`, descending. The Treasury data is the one `GET /analytics/treasury` serves, warmed by a cron job and shared with it, so this endpoint does not read each strategy or oracle itself. Only `total` (the vault's `totalAssets`) is read live. Prices are checked when the request arrives, not when the data was warmed: the request fails with an error if the price of any whitelisted token is not positive, or if it was last updated more than its `stalePeriod` ago. A price that is off par does not fail it; it is valued at its price, capped at par. Cached for 1 minute.
+Returns the composition of a staking vault's deposits, ready to display. The vault holds only the pegged token, which is a claim on the pooled Treasury (collateral isn't earmarked per holder), so its composition is the Treasury's, pro rata. Each item is one active strategy (its `totalDebt`) or the idle reserve of one whitelisted token (`withdrawable − totalDebt`). Items are valued like `Treasury.reserve()` does (oracle price capped at par, in pegged-token units). `share = value ÷ Σ item values` and `amount = share × total`; the rounding remainder goes to the largest item. The strategic reserves and the protocol-held pegged token are excluded, as they are the pegged token itself. Items with a zero amount are omitted, and the rest are sorted by `amount`, descending. The Treasury data is the one `GET /analytics/treasury` serves, warmed by a cron job and shared with it, so this endpoint does not read each strategy or oracle itself. Only `total` (the vault's `totalAssets`) is read live. Prices are checked when the request arrives, not when the data was warmed: the request fails with an error if the price of any whitelisted token is not positive, or if it was last updated more than its `stalePeriod` ago. A price that is off par does not fail it; it is valued at its price, capped at par. Cached for 1 minute.
 `:stakingVaultAddress` must be a known staking vault. Returns `400` if malformed and `404` if the address is not a known staking vault. Fails with an error when a price is stale or not positive, as described above.
 `total` is the vault's ERC4626 `totalAssets`, and the `amount` of the items add up exactly to it. Both are raw `uint256` amounts in the pegged token's base units (not pre-scaled). `share` is a fraction of `total` (e.g. `0.31` means 31%). `token` is the checksummed address of the whitelisted token the item comes from. `type` is `"strategy"` or `"reserve"`; `name` is only present on `strategy` items, so clients translate the label of `reserve` items. Clients can group by summing `amount` and `share`, either by `token` or by merging the `reserve` items with the strategies.
 

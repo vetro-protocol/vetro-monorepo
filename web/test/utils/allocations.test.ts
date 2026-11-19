@@ -1,10 +1,11 @@
 import { knownTokens, type StrategySource } from "@vetro-protocol/core";
-import { type Address, zeroAddress } from "viem";
+import { type Address, parseUnits, zeroAddress } from "viem";
 import { describe, expect, it } from "vitest";
 
 import type { TreasuryToken, TvlHistoryEntry } from "../../src/types";
 import {
   assignColor,
+  formatPeggedAmountUsd,
   getHistoryOnlyTokenAddresses,
   toCollateralizationItems,
   toReserveBufferAmount,
@@ -20,6 +21,7 @@ const findToken = (symbol: string) =>
 const usdtToken = findToken("USDT");
 const usdcToken = findToken("USDC");
 const frxUsdToken = findToken("frxUSD");
+const vusdToken = findToken("VUSD");
 
 // $1.00 expressed with 8 decimals
 const ONE_USD_PRICE = "100000000";
@@ -73,6 +75,130 @@ describe("pages/analytics/utils", function () {
 
     it("wraps around when index exceeds palette length", function () {
       expect(assignColor(8)).toBe("bg-emerald-400");
+    });
+  });
+
+  describe("formatPeggedAmountUsd", function () {
+    it("formats the amount at the pegged token price", function () {
+      expect(
+        formatPeggedAmountUsd({
+          amount: parseUnits("1500", 18),
+          prices: { VUSD: "2" },
+          token: vusdToken,
+        }),
+      ).toBe("$3K");
+    });
+
+    it("returns a dash when the pegged token has no price", function () {
+      expect(
+        formatPeggedAmountUsd({
+          amount: parseUnits("1500", 18),
+          prices: {},
+          token: vusdToken,
+        }),
+      ).toBe("-");
+    });
+  });
+
+  describe("toCollateralizationItems", function () {
+    const labels = {
+      deficit: (percentage: string) => `Deficit ${percentage}`,
+      supply: "VUSD supply",
+      surplus: (percentage: string) => `Surplus ${percentage}`,
+    };
+    const collateralizationPrices = { VUSD: "2" };
+
+    const run = (data: { ratio: number; supply: string; surplus: string }) =>
+      toCollateralizationItems({
+        data,
+        labels,
+        prices: collateralizationPrices,
+        token: vusdToken,
+      });
+
+    it("returns the supply and a positive surplus", function () {
+      const [supply, surplus] = run({
+        ratio: 125,
+        supply: parseUnits("1000", 18).toString(),
+        surplus: parseUnits("250", 18).toString(),
+      });
+
+      expect(supply).toEqual({
+        amount: 80,
+        color: "bg-blue-500",
+        formattedAmount: "$2K",
+        label: "VUSD supply",
+      });
+      expect(surplus).toEqual({
+        amount: 20,
+        amountClassName: "text-emerald-500",
+        color: "bg-emerald-400",
+        formattedAmount: "+$500",
+        label: "Surplus 25.00%",
+      });
+    });
+
+    it("returns a deficit with no bar segment", function () {
+      const [supply, deficit] = run({
+        ratio: 90,
+        supply: parseUnits("100", 18).toString(),
+        surplus: parseUnits("-10", 18).toString(),
+      });
+
+      expect(supply?.amount).toBe(100);
+      expect(deficit).toEqual({
+        amount: 0,
+        amountClassName: "text-rose-500",
+        color: "bg-rose-500",
+        formattedAmount: "-$20",
+        label: "Deficit 10.00%",
+      });
+    });
+
+    it("shows a dash as the percentage when supply is zero", function () {
+      const [supply, surplus] = run({
+        ratio: 0,
+        supply: "0",
+        surplus: parseUnits("50", 18).toString(),
+      });
+
+      expect(supply?.amount).toBe(0);
+      expect(surplus?.amount).toBe(100);
+      expect(surplus?.formattedAmount).toBe("+$100");
+      expect(surplus?.label).toBe("Surplus -");
+    });
+
+    it("returns empty bar amounts when supply and surplus are zero", function () {
+      const items = run({ ratio: 0, supply: "0", surplus: "0" });
+
+      expect(items.map((item) => item.amount)).toEqual([0, 0]);
+    });
+
+    it("shows dashes with no amount color when the pegged token has no price", function () {
+      const [supply, surplus] = toCollateralizationItems({
+        data: {
+          ratio: 90,
+          supply: parseUnits("100", 18).toString(),
+          surplus: parseUnits("-10", 18).toString(),
+        },
+        labels,
+        prices: {},
+        token: vusdToken,
+      });
+
+      expect(supply?.formattedAmount).toBe("-");
+      expect(surplus?.formattedAmount).toBe("-");
+      expect(surplus?.amountClassName).toBeUndefined();
+    });
+
+    it("omits the plus sign for a surplus below one cent", function () {
+      const [, surplus] = run({
+        ratio: 100,
+        supply: parseUnits("1000", 18).toString(),
+        surplus: parseUnits("0.002", 18).toString(),
+      });
+
+      expect(surplus?.formattedAmount).toBe("< $0.01");
     });
   });
 
@@ -602,95 +728,6 @@ describe("pages/analytics/utils", function () {
       ]);
 
       expect(result).toEqual({ amount: 100, amountWithApy: 0, apy: undefined });
-    });
-  });
-
-  describe("toCollateralizationItems", function () {
-    const labels = {
-      liquidReserves: "Liquid Reserves",
-      strategicReserves: "Strategic Reserves",
-      surplus: "Surplus",
-    };
-
-    it("returns undefined when data is undefined", function () {
-      expect(toCollateralizationItems(undefined, labels)).toBeUndefined();
-    });
-
-    it("returns undefined when total is 0", function () {
-      const data = {
-        strategicReserves: "0",
-        surplus: "0",
-        total: "0",
-        treasuryTotal: "0",
-      };
-      expect(toCollateralizationItems(data, labels)).toBeUndefined();
-    });
-
-    it("computes correct percentages", function () {
-      // 100/200 = 50%, 80/200 = 40%, 20/200 = 10%
-      const data = {
-        strategicReserves: "100",
-        surplus: "20",
-        total: "200",
-        treasuryTotal: "80",
-      };
-      const items = toCollateralizationItems(data, labels)!;
-
-      expect(items).toHaveLength(3);
-      expect(items[0]?.amount).toBe(50);
-      expect(items[1]?.amount).toBe(40);
-      expect(items[2]?.amount).toBe(10);
-    });
-
-    it("sorts items by percentage descending", function () {
-      const data = {
-        strategicReserves: "10",
-        surplus: "50",
-        total: "100",
-        treasuryTotal: "40",
-      };
-      const items = toCollateralizationItems(data, labels)!;
-
-      expect(items[0]?.label).toBe("Surplus");
-      expect(items[1]?.label).toBe("Liquid Reserves");
-      expect(items[2]?.label).toBe("Strategic Reserves");
-    });
-
-    it("adjusts largest item so percentages sum to exactly 100", function () {
-      // 200/300 = 66.67%, 70/300 = 23.33%, 30/300 = 10% → sum = 100%
-      // rounding remainder (0.01) is added to the largest item (66.67 → 66.67)
-      const data = {
-        strategicReserves: "30",
-        surplus: "70",
-        total: "300",
-        treasuryTotal: "200",
-      };
-      const items = toCollateralizationItems(data, labels)!;
-      const sum = items.reduce((acc, item) => acc + item.amount, 0);
-
-      expect(sum).toBe(100);
-      // largest item (Liquid Reserves) absorbs the rounding remainder
-      expect(items[0]?.label).toBe("Liquid Reserves");
-      expect(items[0]?.amount).toBe(66.67);
-      expect(items[1]?.label).toBe("Surplus");
-      expect(items[1]?.amount).toBe(23.33);
-      expect(items[2]?.label).toBe("Strategic Reserves");
-      expect(items[2]?.amount).toBe(10);
-    });
-
-    it("handles case where one component is 0", function () {
-      const data = {
-        strategicReserves: "80",
-        surplus: "0",
-        total: "100",
-        treasuryTotal: "20",
-      };
-      const items = toCollateralizationItems(data, labels)!;
-
-      expect(items).toHaveLength(3);
-      expect(items.find((i) => i.label === "Surplus")?.amount).toBe(0);
-      const sum = items.reduce((acc, item) => acc + item.amount, 0);
-      expect(sum).toBe(100);
     });
   });
 });
