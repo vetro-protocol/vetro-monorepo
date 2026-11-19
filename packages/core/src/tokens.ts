@@ -88,6 +88,7 @@ export const knownTokens: Token[] = [
     chainId: mainnet.id,
     decimals: 18,
     extensions: {
+      allowanceSlot: 1n,
       balanceSlot: 0n,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetrousd.svg",
@@ -100,6 +101,7 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 6n,
+      balanceSlot: 5n,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetrousd.svg",
     name: "Vetro USD",
@@ -111,6 +113,7 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 6n,
+      balanceSlot: 5n,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetrousd.svg",
     name: "Vetro USD",
@@ -122,6 +125,7 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 6n,
+      balanceSlot: 5n,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetrousd.svg",
     name: "Vetro USD",
@@ -133,6 +137,7 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 6n,
+      balanceSlot: 5n,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetrousd.svg",
     name: "Vetro USD",
@@ -144,6 +149,7 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 6n,
+      balanceSlot: 5n,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetrousd.svg",
     name: "Vetro USD",
@@ -191,6 +197,7 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 6n,
+      balanceSlot: 5n,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetbtc.svg",
     name: "Vetro BTC",
@@ -202,6 +209,7 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 6n,
+      balanceSlot: 5n,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetbtc.svg",
     name: "Vetro BTC",
@@ -213,6 +221,7 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 6n,
+      balanceSlot: 5n,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetbtc.svg",
     name: "Vetro BTC",
@@ -224,6 +233,7 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 6n,
+      balanceSlot: 5n,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetbtc.svg",
     name: "Vetro BTC",
@@ -235,6 +245,7 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 6n,
+      balanceSlot: 5n,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vetbtc.svg",
     name: "Vetro BTC",
@@ -259,6 +270,7 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 6n,
+      balanceSlot: 5n,
       isVaultShare: true,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/svetbtc.svg",
@@ -271,6 +283,7 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 6n,
+      balanceSlot: 5n,
       isVaultShare: true,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/svetbtc.svg",
@@ -283,6 +296,7 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 6n,
+      balanceSlot: 5n,
       isVaultShare: true,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/svetbtc.svg",
@@ -295,6 +309,7 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 6n,
+      balanceSlot: 5n,
       isVaultShare: true,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/svetbtc.svg",
@@ -307,6 +322,7 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 6n,
+      balanceSlot: 5n,
       isVaultShare: true,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/svetbtc.svg",
@@ -333,6 +349,8 @@ export const knownTokens: Token[] = [
     chainId: mainnet.id,
     decimals: 18,
     extensions: {
+      allowanceSlot: erc7201Erc20AllowanceSlot,
+      balanceSlot: erc7201Erc20BalanceSlot,
       isVaultShare: true,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/vusdx.svg",
@@ -345,6 +363,7 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 6n,
+      balanceSlot: 5n,
       isVaultShare: true,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/svusd.svg",
@@ -357,6 +376,7 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 6n,
+      balanceSlot: 5n,
       isVaultShare: true,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/svusd.svg",
@@ -369,6 +389,7 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 6n,
+      balanceSlot: 5n,
       isVaultShare: true,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/svusd.svg",
@@ -381,6 +402,7 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 6n,
+      balanceSlot: 5n,
       isVaultShare: true,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/svusd.svg",
@@ -393,6 +415,7 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 6n,
+      balanceSlot: 5n,
       isVaultShare: true,
     },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/svusd.svg",
@@ -421,6 +444,10 @@ export const knownTokens: Token[] = [
     address: "0xab5eB14c09D416F0aC63661E57EDB7AEcDb9BEfA",
     chainId: mainnet.id,
     decimals: 18,
+    extensions: {
+      allowanceSlot: 4n,
+      balanceSlot: 3n,
+    },
     logoURI:
       "https://cdn.jsdelivr.net/gh/curvefi/curve-assets/images/assets/0xab5eb14c09d416f0ac63661e57edb7aecdb9befa.png",
     name: "Metronome Synth USD",
@@ -432,6 +459,7 @@ export const knownTokens: Token[] = [
     decimals: 18,
     extensions: {
       allowanceSlot: 1n,
+      balanceSlot: 0n,
     },
     logoURI: "https://hemilabs.github.io/token-list/logos/v.svg",
     name: "Vetro",
@@ -441,6 +469,10 @@ export const knownTokens: Token[] = [
     address: "0xAA40c0c7644e0b2B224509571e10ad20d9C4ef28",
     chainId: hemi.id,
     decimals: 8,
+    extensions: {
+      allowanceSlot: 1n,
+      balanceSlot: 0n,
+    },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/hemibtc.svg",
     name: "Hemi Bitcoin",
     symbol: "hemiBTC",
@@ -449,6 +481,10 @@ export const knownTokens: Token[] = [
     address: "0x99e3dE3817F6081B2568208337ef83295b7f591D",
     chainId: hemi.id,
     decimals: 18,
+    extensions: {
+      allowanceSlot: 1n,
+      balanceSlot: 0n,
+    },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/hemi.svg",
     name: "Hemi",
     symbol: "HEMI",
@@ -457,6 +493,10 @@ export const knownTokens: Token[] = [
     address: "0xad11a8BEb98bbf61dbb1aa0F6d6F2ECD87b35afA",
     chainId: hemi.id,
     decimals: 6,
+    extensions: {
+      allowanceSlot: 10n,
+      balanceSlot: 9n,
+    },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/usdc.svg",
     name: "Bridged USDC (Stargate)",
     symbol: "USDC.e",
@@ -465,6 +505,10 @@ export const knownTokens: Token[] = [
     address: "0xbB0D083fb1be0A9f6157ec484b6C79E0A4e31C2e",
     chainId: hemi.id,
     decimals: 6,
+    extensions: {
+      allowanceSlot: 52n,
+      balanceSlot: 51n,
+    },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/usdt.svg",
     name: "USDT",
     symbol: "USDT",
@@ -473,6 +517,10 @@ export const knownTokens: Token[] = [
     address: "0x4200000000000000000000000000000000000006",
     chainId: hemi.id,
     decimals: 18,
+    extensions: {
+      allowanceSlot: 4n,
+      balanceSlot: 3n,
+    },
     logoURI: "https://hemilabs.github.io/token-list/l1Logos/weth.svg",
     name: "Wrapped Ether",
     symbol: "WETH",
@@ -481,6 +529,10 @@ export const knownTokens: Token[] = [
     address: "0xF9AF86Ea83C959a26D7C91d12582ff28C9732658",
     chainId: hemiSepolia.id,
     decimals: 18,
+    extensions: {
+      allowanceSlot: 1n,
+      balanceSlot: 0n,
+    },
     logoURI: "https://hemilabs.github.io/token-list/logos/v.svg",
     name: "TEST",
     symbol: "TT",
