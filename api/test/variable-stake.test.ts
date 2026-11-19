@@ -494,7 +494,7 @@ describe("variable-stake/getUserExitTickets", function () {
     assets: "1050000000000000000",
     cancelTxHash: null,
     claimableAt: "1700000000",
-    claimTxHash: null,
+    claimTxHash: `0x${"2".repeat(64)}`,
     owner: owner.toLowerCase(),
     requestId: "1",
     requestTxHash: `0x${"1".repeat(64)}`,

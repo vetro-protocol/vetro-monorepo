@@ -6,7 +6,6 @@ export type ExitTicket = {
   claimableAt: string;
   claimTxHash: Hash | null;
   owner: string;
-  receiver?: string;
   requestId: string;
   requestTxHash: Hash;
   shares: string;
