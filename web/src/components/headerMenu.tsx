@@ -116,14 +116,14 @@ export function HeaderMenu() {
     {
       items: supportedLngs.map((language) => ({
         ariaCurrent: language === currentLanguage ? "page" : undefined,
-        icon:
-          language === currentLanguage ? (
-            <span className="flex size-4 items-center justify-center rounded-full bg-blue-500">
-              <CheckIcon className="size-2.5" />
-            </span>
-          ) : (
-            <span aria-hidden="true" className="size-4" />
-          ),
+        icon: (
+          <span
+            aria-hidden="true"
+            className="w-5 shrink-0 text-xs text-gray-500"
+          >
+            {language.toUpperCase()}
+          </span>
+        ),
         label: getLanguageName(language),
         lang: language,
         onSelect: function selectLanguage() {
@@ -143,6 +143,12 @@ export function HeaderMenu() {
         <>
           {item.icon}
           <span lang={item.lang}>{item.label}</span>
+          {item.ariaCurrent && (
+            <CheckIcon
+              className="ml-auto size-3 text-blue-500"
+              stroke="currentColor"
+            />
+          )}
           {item.href && (
             <span
               aria-hidden="true"

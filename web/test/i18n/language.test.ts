@@ -39,25 +39,25 @@ describe("getPreferredLanguage", function () {
   it("prefers the stored language over the browser language", function () {
     expect(
       getPreferredLanguage({
-        browserLanguage: "en-US",
+        browserLanguages: ["en-US"],
         storedLanguage: "es",
       }),
     ).toBe("es");
   });
 
-  it("uses a supported browser language when the stored value is unsupported", function () {
+  it("uses the first supported browser language when the stored value is unsupported", function () {
     expect(
       getPreferredLanguage({
-        browserLanguage: "es-MX",
+        browserLanguages: ["fr-FR", "es-ES", "en-US"],
         storedLanguage: "fr",
       }),
     ).toBe("es");
   });
 
-  it("falls back to English when neither language is supported", function () {
+  it("falls back to English when no preference is supported", function () {
     expect(
       getPreferredLanguage({
-        browserLanguage: "fr-FR",
+        browserLanguages: ["fr-FR", "de-DE"],
         storedLanguage: null,
       }),
     ).toBe("en");
@@ -79,7 +79,7 @@ describe("language storage", function () {
   });
 
   it("detects the stored language when storage works", function () {
-    vi.stubGlobal("navigator", { language: "en-US" });
+    vi.stubGlobal("navigator", { languages: ["en-US"] });
     vi.stubGlobal("localStorage", {
       getItem: () => "es",
       setItem() {},
@@ -89,7 +89,7 @@ describe("language storage", function () {
   });
 
   it("falls back to the browser language when storage is blocked", function () {
-    vi.stubGlobal("navigator", { language: "es-AR" });
+    vi.stubGlobal("navigator", { languages: ["es-AR"] });
     vi.stubGlobal("localStorage", blockedStorage);
 
     expect(detectLanguage()).toBe("es");

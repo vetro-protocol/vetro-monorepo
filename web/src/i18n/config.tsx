@@ -7,6 +7,7 @@ import {
   detectLanguage,
   fallbackLng,
   getLanguageFromPath,
+  isSupportedLanguage,
   supportedLngs,
 } from "./language";
 import { resources } from "./resources";
@@ -33,7 +34,7 @@ export const useUnsupportedLanguageRedirect = function () {
   const { lang } = useParams<{ lang: string }>();
   const { hash, pathname, search } = useLocation();
 
-  if (!lang || supportedLngs.includes(lang)) {
+  if (!lang || isSupportedLanguage(lang)) {
     return undefined;
   }
   return `/${detectLanguage()}${pathname}${search}${hash}`;

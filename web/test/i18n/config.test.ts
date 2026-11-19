@@ -17,7 +17,7 @@ it.each([
     const documentElement = { lang: "" };
     vi.stubGlobal("document", { documentElement });
     vi.stubGlobal("localStorage", { getItem: () => null });
-    vi.stubGlobal("navigator", { language: "es-AR" });
+    vi.stubGlobal("navigator", { languages: ["es-AR"] });
     vi.stubGlobal("window", { location: { pathname } });
 
     await initializeI18n();
