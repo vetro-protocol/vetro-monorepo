@@ -33,6 +33,13 @@
         "better-tailwindcss/enforce-shorthand-classes": "error",
         "better-tailwindcss/no-concatenated-classes": "error",
         "better-tailwindcss/no-conflicting-classes": "error",
+        "no-restricted-syntax": [
+          "error",
+          {
+            "message": "Name maps of Tailwind classes *Class, *Classes or *ClassName so better-tailwindcss lints them.",
+            "selector": "JSXAttribute[name.name=/^(class|className)$/] MemberExpression[computed=true] > Identifier.object:not([name=/(Class|Classes|ClassName)$/])"
+          }
+        ],
         "better-tailwindcss/no-unknown-classes": "error"
       },
       "settings": {
@@ -184,6 +191,10 @@
           {
             "message": "Use a formatting helper from utils/format or utils/date instead.",
             "selector": "MemberExpression[computed=true][property.value=/^toLocale.*String$/]"
+          },
+          {
+            "message": "Name maps of Tailwind classes *Class, *Classes or *ClassName so better-tailwindcss lints them.",
+            "selector": "JSXAttribute[name.name=/^(class|className)$/] MemberExpression[computed=true] > Identifier.object:not([name=/(Class|Classes|ClassName)$/])"
           }
         ]
       }
