@@ -8,7 +8,12 @@ import { deposit } from "@vetro-protocol/earn/actions";
 import { mainnet } from "networks/mainnet";
 import type { TokenWithGateway } from "types";
 import { type CostBases, bumpCostBasis } from "utils/costBasis";
-import type { Address, Hash, TransactionReceipt } from "viem";
+import {
+  type Address,
+  type Hash,
+  type TransactionReceipt,
+  isAddressEqual,
+} from "viem";
 import { waitForTransactionReceipt } from "viem/actions";
 import { useAccount } from "wagmi";
 
@@ -28,8 +33,10 @@ type DepositStatus =
   | "depositing";
 
 type Variables = {
+  account: Address;
   approveAmount?: bigint;
   assets: bigint;
+  peggedToken: TokenWithGateway;
   pendingHash?: Hash;
   stakingVaultAddress: Address;
 };
@@ -40,13 +47,11 @@ type Params = {
     variables: Variables;
   }) => void;
   onTransactionHash?: (params: { hash: Hash; variables: Variables }) => void;
-  peggedToken: TokenWithGateway;
 };
 
 export const useStakeDeposit = function ({
   onStatusChange,
   onTransactionHash,
-  peggedToken,
 }: Params) {
   const { address: account } = useAccount();
   const { data: walletClient } = useEthereumWalletClient();
@@ -57,14 +62,16 @@ export const useStakeDeposit = function ({
     mainnet.id,
   );
 
-  const peggedTokenBalanceKey = tokenBalanceQueryKey(peggedToken, account);
-
-  const getVaultQueryKeys = (stakingVaultAddress: Address) => ({
+  const getVaultQueryKeys = ({
+    peggedToken,
+    stakingVaultAddress,
+  }: Pick<Variables, "peggedToken" | "stakingVaultAddress">) => ({
     allowanceKey: allowanceQueryKey({
       owner: account,
       spender: stakingVaultAddress,
       token: { address: peggedToken.address, chainId: mainnet.id },
     }),
+    peggedTokenBalanceKey: tokenBalanceQueryKey(peggedToken, account),
     poolDepositsKey: poolDepositsQueryKey({
       chainId: mainnet.id,
       stakingVaultAddress,
@@ -82,14 +89,23 @@ export const useStakeDeposit = function ({
 
   return useMutation({
     async mutationFn(variables: Variables) {
-      const { approveAmount, assets, pendingHash, stakingVaultAddress } =
-        variables;
-      if (!account) {
-        throw new Error("No account connected");
+      const {
+        approveAmount,
+        assets,
+        peggedToken,
+        pendingHash,
+        stakingVaultAddress,
+      } = variables;
+      if (!account || !isAddressEqual(account, variables.account)) {
+        throw new Error("The connected account changed");
       }
 
-      const { allowanceKey, poolDepositsKey, stakedKey } =
-        getVaultQueryKeys(stakingVaultAddress);
+      const {
+        allowanceKey,
+        peggedTokenBalanceKey,
+        poolDepositsKey,
+        stakedKey,
+      } = getVaultQueryKeys({ peggedToken, stakingVaultAddress });
 
       await ensureConnectedTo(mainnet.id);
 
@@ -203,9 +219,14 @@ export const useStakeDeposit = function ({
 
       await promise;
     },
-    async onSettled(_data, _error, { stakingVaultAddress }) {
-      const { allowanceKey, poolDepositsKey, sharesBalanceKey, stakedKey } =
-        getVaultQueryKeys(stakingVaultAddress);
+    async onSettled(_data, _error, { peggedToken, stakingVaultAddress }) {
+      const {
+        allowanceKey,
+        peggedTokenBalanceKey,
+        poolDepositsKey,
+        sharesBalanceKey,
+        stakedKey,
+      } = getVaultQueryKeys({ peggedToken, stakingVaultAddress });
 
       queryClient.invalidateQueries({
         queryKey: allowanceKey,

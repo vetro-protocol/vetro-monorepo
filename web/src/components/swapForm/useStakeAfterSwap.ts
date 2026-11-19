@@ -9,7 +9,7 @@ import { useStakeDepositTracking } from "pages/earn/hooks/useStakeDepositTrackin
 import { useCallback, useRef, useState } from "react";
 import type { TokenWithGateway } from "types";
 import { getReceivedAmount } from "utils/receipt";
-import type { Address, Hash, Log } from "viem";
+import { type Address, type Hash, type Log, isAddressEqual } from "viem";
 import { useAccount } from "wagmi";
 
 type StakeState = {
@@ -39,6 +39,57 @@ const getStakeTarget = ({
     ? { shareToken, stakingVaultAddress }
     : undefined;
 
+type RunTarget = {
+  account: Address;
+  peggedToken: TokenWithGateway;
+  stakingVaultAddress: Address;
+};
+
+const getMintedAssets = ({
+  logs,
+  target,
+}: {
+  logs: Log[];
+  target: RunTarget | undefined;
+}) =>
+  target
+    ? getReceivedAmount({
+        account: target.account,
+        logs,
+        token: target.peggedToken.address,
+      })
+    : undefined;
+
+const isSameAccount = ({
+  account,
+  expected,
+}: {
+  account: Address | undefined;
+  expected: Address;
+}) => account !== undefined && isAddressEqual(account, expected);
+
+const getFeeStake = ({
+  active,
+  approve10x,
+  depositPreview,
+  peggedToken,
+  stakingVaultAddress,
+}: {
+  active: boolean;
+  approve10x: boolean;
+  depositPreview: bigint | undefined;
+  peggedToken: TokenWithGateway;
+  stakingVaultAddress: Address | undefined;
+}) =>
+  active && stakingVaultAddress !== undefined && depositPreview !== undefined
+    ? {
+        amount: depositPreview,
+        approveAmount: approve10x ? depositPreview * 10n : undefined,
+        stakingVaultAddress,
+        token: peggedToken,
+      }
+    : undefined;
+
 const getRetryStep = function ({ approvalCompleted, hash }: StakeState) {
   if (hash) {
     return "depositing";
@@ -64,6 +115,7 @@ export const useStakeAfterSwap = function ({
   const [stake, setStake] = useState<StakeState>(initialStakeState);
   // Snapshot, because the allowance flips after the approval tx.
   const [started, setStarted] = useState<{
+    account: Address;
     needsApproval: boolean;
     previewAssets: bigint;
     stakingVaultAddress: Address;
@@ -71,6 +123,7 @@ export const useStakeAfterSwap = function ({
   // A stake left open in the wallet from an earlier flow can still emit
   // events. Only the variables of the latest stake call are accepted.
   const currentRun = useRef<object | undefined>(undefined);
+  const runTarget = useRef<RunTarget | undefined>(undefined);
 
   const { data: stakingVaultAddress } = useStakingVaultForPeggedToken({
     peggedTokenAddress: peggedToken.address,
@@ -122,7 +175,6 @@ export const useStakeAfterSwap = function ({
       setStake((prev) => ({ ...prev, hash }));
       onTransactionHash(hash);
     },
-    peggedToken,
   });
 
   const stakeAssets = function ({
@@ -134,11 +186,14 @@ export const useStakeAfterSwap = function ({
     needsApproval: boolean;
     pendingHash?: Hash;
   }) {
+    const target = runTarget.current!;
     const variables = {
+      account: target.account,
       approveAmount: approve10x ? assets * 10n : undefined,
       assets,
+      peggedToken: target.peggedToken,
       pendingHash,
-      stakingVaultAddress: stakingVaultAddress!,
+      stakingVaultAddress: target.stakingVaultAddress,
     };
     currentRun.current = variables;
     mutate(variables, {
@@ -154,7 +209,9 @@ export const useStakeAfterSwap = function ({
     drawerStake: started
       ? {
           approvalCompleted: stake.approvalCompleted,
-          canRetry: stake.assets !== undefined,
+          canRetry:
+            stake.assets !== undefined &&
+            isSameAccount({ account, expected: started.account }),
           needsApproval: started.needsApproval,
           output: shareToken && {
             assets: started.previewAssets,
@@ -165,23 +222,17 @@ export const useStakeAfterSwap = function ({
         }
       : undefined,
     enabled,
-    feeStake:
-      active &&
-      stakingVaultAddress !== undefined &&
-      depositPreview !== undefined
-        ? {
-            amount: depositPreview,
-            approveAmount: approve10x ? depositPreview * 10n : undefined,
-            stakingVaultAddress,
-            token: peggedToken,
-          }
-        : undefined,
+    feeStake: getFeeStake({
+      active,
+      approve10x,
+      depositPreview,
+      peggedToken,
+      stakingVaultAddress,
+    }),
     isAllowanceError: enabled && isAllowanceError,
     isLoading: enabled && allowance === undefined,
     onMinted(logs: Log[]) {
-      const assets = account
-        ? getReceivedAmount({ account, logs, token: peggedToken.address })
-        : undefined;
+      const assets = getMintedAssets({ logs, target: runTarget.current });
       if (assets === undefined) {
         setStake((prev) => ({ ...prev, step: "deposit-failed" }));
         return;
@@ -205,15 +256,19 @@ export const useStakeAfterSwap = function ({
     stakeTarget: getStakeTarget({ active, shareToken, stakingVaultAddress }),
     start() {
       currentRun.current = undefined;
+      const target =
+        enabled && account
+          ? { account, peggedToken, stakingVaultAddress: stakingVaultAddress! }
+          : undefined;
+      runTarget.current = target;
       setStake(initialStakeState);
       setStarted(
-        enabled
-          ? {
-              needsApproval: allowance! < (depositPreview ?? 0n),
-              previewAssets: depositPreview ?? 0n,
-              stakingVaultAddress: stakingVaultAddress!,
-            }
-          : undefined,
+        target && {
+          account: target.account,
+          needsApproval: allowance! < (depositPreview ?? 0n),
+          previewAssets: depositPreview ?? 0n,
+          stakingVaultAddress: target.stakingVaultAddress,
+        },
       );
     },
     toggle: {

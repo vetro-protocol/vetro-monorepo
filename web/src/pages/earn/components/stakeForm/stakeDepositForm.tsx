@@ -152,7 +152,6 @@ export function StakeDepositForm({
   const depositMutation = useStakeDeposit({
     onStatusChange: ({ status }) => handleDepositStepChange(status),
     onTransactionHash: ({ hash }) => onTransactionHash(hash),
-    peggedToken,
   });
 
   const depositFeesQuery = useTotalDepositFees({
@@ -201,8 +200,10 @@ export function StakeDepositForm({
       onDrawerOpenChange(true);
       depositMutation.mutate(
         {
+          account,
           approveAmount,
           assets: amountBigInt,
+          peggedToken,
           stakingVaultAddress,
         },
         {
