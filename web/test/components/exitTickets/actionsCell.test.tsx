@@ -1,7 +1,7 @@
+import { useActivityTracking } from "hooks/useActivityTracking";
 import type { ReactNode } from "react";
 import type { TokenWithGateway } from "types";
-import { formatAmount } from "utils/token";
-import { zeroAddress, zeroHash } from "viem";
+import { formatUnits, zeroAddress, zeroHash } from "viem";
 import { describe, expect, it, vi } from "vitest";
 import { render } from "vitest-browser-react";
 
@@ -43,15 +43,6 @@ vi.mock("utils/geoRestriction", () => ({
   isGeoRestricted: () => false,
 }));
 
-vi.mock("utils/token", async function (importOriginal) {
-  const actual = await importOriginal<typeof import("utils/token")>();
-
-  return {
-    ...actual,
-    formatAmount: vi.fn(),
-  };
-});
-
 const ticket = {
   assets: "1230000",
   claimableAt: "0",
@@ -73,7 +64,7 @@ const token = {
 } satisfies TokenWithGateway;
 
 describe("ActionsCell", function () {
-  it("disables ticket actions and skips formatting until the token is known", async function () {
+  it("disables ticket actions until the token is known", async function () {
     mocked.peggedToken = undefined;
 
     const screen = await render(<ActionsCell ticket={ticket} />);
@@ -85,12 +76,13 @@ describe("ActionsCell", function () {
       .element(screen.getByRole("button", { name: /delete/i }))
       .toBeDisabled();
 
-    expect(formatAmount).not.toHaveBeenCalled();
+    expect(useActivityTracking).toHaveBeenCalledWith(
+      expect.objectContaining({ text: "" }),
+    );
   });
 
-  it("enables ticket actions and formats using the token decimals", async function () {
+  it("enables ticket actions and formats activity text using the token decimals", async function () {
     mocked.peggedToken = token;
-    vi.mocked(formatAmount).mockReturnValue("1.23");
 
     const screen = await render(<ActionsCell ticket={ticket} />);
 
@@ -101,10 +93,12 @@ describe("ActionsCell", function () {
       .element(screen.getByRole("button", { name: /delete/i }))
       .not.toBeDisabled();
 
-    expect(formatAmount).toHaveBeenCalledWith({
-      amount: BigInt(ticket.assets),
-      decimals: token.decimals,
-      isError: false,
-    });
+    expect(useActivityTracking).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: expect.stringContaining(
+          `${formatUnits(BigInt(ticket.assets), token.decimals)} ${token.symbol}`,
+        ),
+      }),
+    );
   });
 });
