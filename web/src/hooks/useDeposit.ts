@@ -121,7 +121,11 @@ export const useDeposit = function ({
         updateNativeBalanceAfterReceipt(receipt);
 
         const mintedAmount =
-          getReceivedAmount({ account, logs: receipt.logs }) ?? preview;
+          getReceivedAmount({
+            account,
+            logs: receipt.logs,
+            token: peggedToken.address,
+          }) ?? preview;
 
         // optimistically deduce the deposited token, and increase PeggedToken balance
         queryClient.setQueryData(

@@ -7,6 +7,8 @@ import {
   toHex,
 } from "viem";
 
+import { mergeStateOverrides } from "./stateOverride";
+
 const getAddressMappingSlot = ({ key, slot }: { key: Address; slot: bigint }) =>
   keccak256(
     encodeAbiParameters(
@@ -56,7 +58,7 @@ export function createErc20AllowanceStateOverride({
   ];
 }
 
-export const createErc20BalanceStateOverride = ({
+const createErc20BalanceStateOverride = ({
   balance,
   owner,
   token,
@@ -72,10 +74,30 @@ export const createErc20BalanceStateOverride = ({
         slot: getAddressMappingSlot({
           key: owner,
           // 0 is the default balance slot for ERC20 tokens using OpenZeppelin's implementation
-          slot: BigInt(token.extensions?.balanceSlot ?? 0),
+          slot: token.extensions?.balanceSlot ?? 0n,
         }),
         value: toHex(balance, { size: 32 }),
       },
     ],
   },
 ];
+
+export const createErc20SpendStateOverride = ({
+  amount,
+  balance,
+  owner,
+  spender,
+  token,
+}: {
+  amount: bigint;
+  balance: bigint;
+  owner: Address;
+  spender: Address;
+  token: Token;
+}) =>
+  mergeStateOverrides(
+    createErc20AllowanceStateOverride({ owner, spender, token }),
+    amount > balance
+      ? createErc20BalanceStateOverride({ balance: amount, owner, token })
+      : [],
+  );

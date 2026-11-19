@@ -5,11 +5,7 @@ import { encodeRequestDeposit } from "@vetro-protocol/target-yield-earn/actions"
 import { estimateApprovalGasUnits } from "fetchers/estimateApprovalGasUnits";
 import { fetchTotalNetworkFees } from "fetchers/fetchTotalNetworkFees";
 import { getChainById } from "networks";
-import {
-  createErc20AllowanceStateOverride,
-  createErc20BalanceStateOverride,
-} from "utils/erc20StateOverride";
-import { mergeStateOverrides } from "utils/stateOverride";
+import { createErc20SpendStateOverride } from "utils/erc20StateOverride";
 import type { Address, Client } from "viem";
 import { estimateGas } from "viem/actions";
 
@@ -55,16 +51,13 @@ export const fetchRequestDepositFees = async function ({
         controller: owner,
         owner,
       }),
-      stateOverride: mergeStateOverrides(
-        createErc20AllowanceStateOverride({
-          owner,
-          spender: stakingVaultAddress,
-          token,
-        }),
-        amount > balance
-          ? createErc20BalanceStateOverride({ balance: amount, owner, token })
-          : [],
-      ),
+      stateOverride: createErc20SpendStateOverride({
+        amount,
+        balance,
+        owner,
+        spender: stakingVaultAddress,
+        token,
+      }),
       to: stakingVaultAddress,
     }),
   ]);

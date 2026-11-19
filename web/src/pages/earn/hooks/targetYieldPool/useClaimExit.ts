@@ -76,7 +76,11 @@ export const useClaimExit = function ({
         function (receipt: TransactionReceipt) {
           updateNativeBalanceAfterReceipt(receipt);
 
-          const assets = getReceivedAmount({ account, logs: receipt.logs });
+          const assets = getReceivedAmount({
+            account,
+            logs: receipt.logs,
+            token: peggedToken.address,
+          });
 
           queryClient.setQueryData(redeemRequestKey, emptyRedeemRequest);
           queryClient.setQueryData(
