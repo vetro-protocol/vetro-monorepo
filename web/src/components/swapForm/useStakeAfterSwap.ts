@@ -9,18 +9,20 @@ import { useStakeDepositTracking } from "pages/earn/hooks/useStakeDepositTrackin
 import { useCallback, useRef, useState } from "react";
 import type { TokenWithGateway } from "types";
 import { getReceivedAmount } from "utils/receipt";
-import type { Address, Log } from "viem";
+import type { Address, Hash, Log } from "viem";
 import { useAccount } from "wagmi";
 
 type StakeState = {
   approvalCompleted: boolean;
   assets: bigint | undefined;
+  hash: Hash | undefined;
   step: DepositStep;
 };
 
 const initialStakeState: StakeState = {
   approvalCompleted: false,
   assets: undefined,
+  hash: undefined,
   step: "idle",
 };
 
@@ -36,6 +38,13 @@ const getStakeTarget = ({
   active && shareToken && stakingVaultAddress
     ? { shareToken, stakingVaultAddress }
     : undefined;
+
+const getRetryStep = function ({ approvalCompleted, hash }: StakeState) {
+  if (hash) {
+    return "depositing";
+  }
+  return approvalCompleted ? "approved" : "idle";
+};
 
 export const useStakeAfterSwap = function ({
   approve10x,
@@ -106,20 +115,29 @@ export const useStakeAfterSwap = function ({
   const { mutate } = useStakeDeposit({
     onStatusChange: ({ status, variables }) =>
       handleStatusChange({ step: status, variables }),
-    onTransactionHash,
+    onTransactionHash({ hash, variables }) {
+      if (variables !== currentRun.current) {
+        return;
+      }
+      setStake((prev) => ({ ...prev, hash }));
+      onTransactionHash(hash);
+    },
     peggedToken,
   });
 
   const stakeAssets = function ({
     assets,
     needsApproval,
+    pendingHash,
   }: {
     assets: bigint;
     needsApproval: boolean;
+    pendingHash?: Hash;
   }) {
     const variables = {
       approveAmount: approve10x ? assets * 10n : undefined,
       assets,
+      pendingHash,
       stakingVaultAddress: stakingVaultAddress!,
     };
     currentRun.current = variables;
@@ -176,11 +194,12 @@ export const useStakeAfterSwap = function ({
     retry() {
       setStake((prev) => ({
         ...prev,
-        step: prev.approvalCompleted ? "approved" : "idle",
+        step: getRetryStep(prev),
       }));
       stakeAssets({
         assets: stake.assets!,
         needsApproval: !!started?.needsApproval && !stake.approvalCompleted,
+        pendingHash: stake.hash,
       });
     },
     stakeTarget: getStakeTarget({ active, shareToken, stakingVaultAddress }),

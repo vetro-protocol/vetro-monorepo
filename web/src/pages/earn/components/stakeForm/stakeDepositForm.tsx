@@ -151,7 +151,7 @@ export function StakeDepositForm({
 
   const depositMutation = useStakeDeposit({
     onStatusChange: ({ status }) => handleDepositStepChange(status),
-    onTransactionHash,
+    onTransactionHash: ({ hash }) => onTransactionHash(hash),
     peggedToken,
   });
 

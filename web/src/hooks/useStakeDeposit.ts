@@ -8,7 +8,8 @@ import { deposit } from "@vetro-protocol/earn/actions";
 import { mainnet } from "networks/mainnet";
 import type { TokenWithGateway } from "types";
 import { type CostBases, bumpCostBasis } from "utils/costBasis";
-import type { Address, TransactionReceipt } from "viem";
+import type { Address, Hash, TransactionReceipt } from "viem";
+import { waitForTransactionReceipt } from "viem/actions";
 import { useAccount } from "wagmi";
 
 import { costBasisQueryKey } from "./useCostBasis";
@@ -29,6 +30,7 @@ type DepositStatus =
 type Variables = {
   approveAmount?: bigint;
   assets: bigint;
+  pendingHash?: Hash;
   stakingVaultAddress: Address;
 };
 
@@ -37,7 +39,7 @@ type Params = {
     status: DepositStatus;
     variables: Variables;
   }) => void;
-  onTransactionHash?: (hash: string) => void;
+  onTransactionHash?: (params: { hash: Hash; variables: Variables }) => void;
   peggedToken: TokenWithGateway;
 };
 
@@ -80,7 +82,8 @@ export const useStakeDeposit = function ({
 
   return useMutation({
     async mutationFn(variables: Variables) {
-      const { approveAmount, assets, stakingVaultAddress } = variables;
+      const { approveAmount, assets, pendingHash, stakingVaultAddress } =
+        variables;
       if (!account) {
         throw new Error("No account connected");
       }
@@ -89,6 +92,45 @@ export const useStakeDeposit = function ({
         getVaultQueryKeys(stakingVaultAddress);
 
       await ensureConnectedTo(mainnet.id);
+
+      const handleDepositSucceeded = function (receipt: TransactionReceipt) {
+        updateNativeBalanceAfterReceipt(receipt);
+        onStatusChange?.({ status: "completed", variables });
+
+        // Optimistically update balances
+        queryClient.setQueryData(
+          peggedTokenBalanceKey,
+          (old: bigint | undefined) => (old !== undefined ? old - assets : old),
+        );
+        queryClient.setQueryData(stakedKey, (old: bigint | undefined) =>
+          old !== undefined ? old + assets : old,
+        );
+        queryClient.setQueryData(poolDepositsKey, (old: bigint | undefined) =>
+          old !== undefined ? old + assets : old,
+        );
+
+        queryClient.setQueryData(
+          costBasisQueryKey(account),
+          (old: CostBases | undefined) =>
+            bumpCostBasis({ assets, costBases: old, stakingVaultAddress }),
+        );
+      };
+
+      if (pendingHash) {
+        onTransactionHash?.({ hash: pendingHash, variables });
+        const pendingReceipt = await waitForTransactionReceipt(walletClient!, {
+          hash: pendingHash,
+        }).catch(() => undefined);
+        if (!pendingReceipt) {
+          onStatusChange?.({ status: "deposit-failed", variables });
+          return;
+        }
+        if (pendingReceipt.status === "success") {
+          handleDepositSucceeded(pendingReceipt);
+          return;
+        }
+        updateNativeBalanceAfterReceipt(pendingReceipt);
+      }
 
       const { emitter, promise } = deposit(walletClient!, {
         approveAmount,
@@ -107,7 +149,7 @@ export const useStakeDeposit = function ({
       });
 
       emitter.on("user-signed-deposit", function (hash) {
-        onTransactionHash?.(hash);
+        onTransactionHash?.({ hash, variables });
         onStatusChange?.({ status: "depositing", variables });
       });
 
@@ -157,36 +199,9 @@ export const useStakeDeposit = function ({
         },
       );
 
-      emitter.on(
-        "deposit-transaction-succeeded",
-        function (receipt: TransactionReceipt) {
-          updateNativeBalanceAfterReceipt(receipt);
-          onStatusChange?.({ status: "completed", variables });
+      emitter.on("deposit-transaction-succeeded", handleDepositSucceeded);
 
-          // Optimistically update balances
-          queryClient.setQueryData(
-            peggedTokenBalanceKey,
-            (old: bigint | undefined) =>
-              old !== undefined ? old - assets : old,
-          );
-          queryClient.setQueryData(stakedKey, (old: bigint | undefined) =>
-            old !== undefined ? old + assets : old,
-          );
-          queryClient.setQueryData(
-            poolDepositsKey,
-            (old: bigint | undefined) =>
-              old !== undefined ? old + assets : old,
-          );
-
-          queryClient.setQueryData(
-            costBasisQueryKey(account),
-            (old: CostBases | undefined) =>
-              bumpCostBasis({ assets, costBases: old, stakingVaultAddress }),
-          );
-        },
-      );
-
-      return promise;
+      await promise;
     },
     async onSettled(_data, _error, { stakingVaultAddress }) {
       const { allowanceKey, poolDepositsKey, sharesBalanceKey, stakedKey } =
