@@ -34,12 +34,17 @@ const hemiTrackedTokenAddresses = knownTokens
 
 const brownfiSubgraphId = "D1UwhrB45geUZTNQ2QwrXwGEhk69iBESApJJzz378ZeS";
 
+const maxPools = 1000;
+
+// Intentionally not paged: the VETRO pool set is small, and a full page fails
+// rather than truncating.
 const poolsQuery = `
   query VetroPools($since: Int!, $tokens: [String!]!, $until: Int!) {
     bundles(first: 1) {
       maticPriceUSD
     }
     pools(
+      first: ${maxPools}
       orderBy: totalValueLockedUSD
       orderDirection: desc
       where: { or: [{ token0_in: $tokens }, { token1_in: $tokens }] }
@@ -162,6 +167,11 @@ export async function getBrownfiPools({
       tokens: hemiTrackedTokenAddresses.map((address) => address.toLowerCase()),
     },
   });
+  if (data.pools.length === maxPools) {
+    throw new Error(
+      `BrownFi subgraph returned ${maxPools} pools; expected fewer`,
+    );
+  }
   const bundleUsdPrice = Number(data.bundles[0]?.maticPriceUSD);
   const nativeUsdPrice = bundleUsdPrice > 0 ? bundleUsdPrice : undefined;
   const hasUnpricedToken = data.pools.some((pool) =>
