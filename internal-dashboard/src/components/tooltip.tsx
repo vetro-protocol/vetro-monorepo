@@ -19,7 +19,7 @@ export const Tooltip = ({ children, label, multiline = false }: Props) => (
   <span className="group relative flex">
     {children}
     <span
-      className={`pointer-events-none absolute right-full z-10 mr-2 rounded-md bg-neutral-900 px-1.5 py-1 text-xs font-medium text-white ${labelClasses[multiline ? "multiline" : "singleLine"]}`}
+      className={`pointer-events-none absolute right-full z-10 mr-2 rounded-md bg-neutral-900 px-1.5 py-1 text-xs font-medium text-white ${multiline ? labelClasses.multiline : labelClasses.singleLine}`}
       role="tooltip"
     >
       {label}

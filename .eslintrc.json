@@ -27,6 +27,67 @@
       ]
     },
     {
+      "files": ["internal-dashboard/**/*.{js,ts,tsx}"],
+      "plugins": ["better-tailwindcss"],
+      "rules": {
+        "better-tailwindcss/enforce-shorthand-classes": "error",
+        "better-tailwindcss/no-concatenated-classes": "error",
+        "better-tailwindcss/no-conflicting-classes": "error",
+        "better-tailwindcss/no-unknown-classes": "error"
+      },
+      "settings": {
+        "better-tailwindcss": {
+          "cwd": "internal-dashboard",
+          "entryPoint": "src/index.css",
+          "selectors": {
+            "extends": [
+              {
+                "kind": "variable",
+                "match": [{ "type": "strings" }, { "type": "objectValues" }],
+                "name": "^[a-zA-Z]*(?:Class|Classes|ClassName)$"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "files": ["web/**/*.{js,ts,tsx}"],
+      "plugins": ["better-tailwindcss"],
+      "rules": {
+        "better-tailwindcss/enforce-shorthand-classes": "error",
+        "better-tailwindcss/no-concatenated-classes": "error",
+        "better-tailwindcss/no-conflicting-classes": "error",
+        "better-tailwindcss/no-unknown-classes": [
+          "error",
+          {
+            "ignore": [
+              "^button-",
+              "^button--base$",
+              "^input--base$",
+              "^textarea--base$",
+              "^vetro-tooltip-"
+            ]
+          }
+        ]
+      },
+      "settings": {
+        "better-tailwindcss": {
+          "cwd": "web",
+          "entryPoint": "src/index.css",
+          "selectors": {
+            "extends": [
+              {
+                "kind": "variable",
+                "match": [{ "type": "strings" }, { "type": "objectValues" }],
+                "name": "^[a-zA-Z]*(?:Class|Classes|ClassName)$"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
       "extends": ["bloq/markdown"],
       "files": ["*.md"],
       "rules": {
