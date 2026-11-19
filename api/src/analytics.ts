@@ -18,7 +18,7 @@ import { getLatestPrice } from "./chainlink.ts";
 import { gaugedStrategiesKey } from "./liquidity/incentives.ts";
 import type { StakeDaoStrategy } from "./liquidity/stake-dao.ts";
 import { findStakingVaultForPeggedToken } from "./staking-vault.ts";
-import { getStrategyApy, type StrategyApy } from "./strategy-apy.ts";
+import { getStrategyApy } from "./strategy-apy.ts";
 import { getStrategySource } from "./strategy-source.ts";
 import {
   getReceiptToken,
@@ -131,13 +131,11 @@ export async function getTreasuryComposition({
   );
 
   const strategyApy = await getStrategyApy({
-    stakeDaoStrategies: stakeDaoStrategies ?? [],
+    kv,
+    stakeDaoStrategies,
     strategies: treasuryTokens.flatMap(
       ({ activeStrategies }) => activeStrategies,
     ),
-  }).catch(function (error) {
-    console.warn(`Failed to get the strategy APY: ${error.message}`);
-    return {} as StrategyApy;
   });
   return treasuryTokens.map((treasuryToken) => ({
     ...treasuryToken,
