@@ -20,12 +20,17 @@ export type BrownfiPool = {
   totalValueLockedToken1: string;
 };
 
+const maxPools = 1000;
+
+// Intentionally not paged: the VETRO pool set is small, and a full page fails
+// rather than truncating.
 const poolsQuery = `
   query VetroPools($since: Int!, $tokens: [String!]!) {
     bundles(first: 1) {
       maticPriceUSD
     }
     pools(
+      first: ${maxPools}
       orderBy: totalValueLockedUSD
       orderDirection: desc
       where: { or: [{ token0_in: $tokens }, { token1_in: $tokens }] }
@@ -77,6 +82,11 @@ export const fetchVetroPools = async function ({
   }
   if (!body.data) {
     throw new Error("BrownFi subgraph returned no data");
+  }
+  if (body.data.pools.length === maxPools) {
+    throw new Error(
+      `BrownFi subgraph returned ${maxPools} pools; expected fewer`,
+    );
   }
 
   const nativeUsdPrice = Number(body.data.bundles[0]?.maticPriceUSD);
