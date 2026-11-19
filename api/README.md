@@ -618,6 +618,8 @@ Valid periods are: `"1w"`, `"1m"`, `"3m"` and `"1y"`.
 ### `GET /variable-stake/rewards/:address`
 
 Returns all user's rewards from the Merkl campaigns related to Vetro, indexed by staking vault address. Each supported staking vault has an entry in the response, with an empty array if the user has no rewards for that vault.
+`:address` must be a well-formed Ethereum address. Returns `404` if malformed.
+Returns `500` if Merkl fails.
 
 #### Sample Response
 
@@ -668,9 +670,13 @@ Returns all user's variable stake exit tickets to i.e. allow claiming the withdr
 
 The `owner` and `stakingVaultAddress` fields are returned in the checksummed format.
 
-The `cancelTxHash` and `claimTxHash` fields are optional and mutually exclusive: a
-ticket in cooldown or ready to claim has neither, a cancelled ticket has
-`cancelTxHash` and a claimed ticket has `claimTxHash`.
+`:address` must be a well-formed Ethereum address. Returns `404` if malformed.
+Returns `500` if the subgraph fails.
+
+`claimableAt` is a string containing the timestamp in seconds.
+`cancelTxHash` and `claimTxHash` are always present and are `null` when unset. At
+most one is non-null: a cancelled ticket has `cancelTxHash`, and a claimed
+ticket has `claimTxHash`.
 
 #### Sample Response
 
@@ -683,7 +689,8 @@ ticket in cooldown or ready to claim has neither, a cancelled ticket has
     "owner": "0x0000000000000000000000000000000000000001",
     "assets": "1050000000000000000",
     "shares": "1000000000000000000",
-    "claimableAt": 1700000000,
+    "claimableAt": "1700000000",
+    "cancelTxHash": null,
     "claimTxHash": "0x0000000000000000000000000000000000000000000000000000000000000004",
   },
 ]

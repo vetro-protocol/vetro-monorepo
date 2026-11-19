@@ -492,7 +492,9 @@ describe("variable-stake/getUserExitTickets", function () {
 
   const exitTicket = {
     assets: "1050000000000000000",
-    claimableAt: 1_700_000_000,
+    cancelTxHash: null,
+    claimableAt: "1700000000",
+    claimTxHash: `0x${"2".repeat(64)}`,
     owner: owner.toLowerCase(),
     requestId: "1",
     requestTxHash: `0x${"1".repeat(64)}`,

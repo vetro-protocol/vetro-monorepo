@@ -441,7 +441,9 @@ test("withdraw VUSD from the Earn pool (two-step cooldown exit)", async function
 
   const ticket: ExitTicket = {
     assets: assets.toString(),
+    cancelTxHash: null,
     claimableAt: claimableAt.toString(),
+    claimTxHash: null,
     owner: TEST_ADDRESS,
     requestId: requestId.toString(),
     requestTxHash: requestTxHash!,
@@ -627,7 +629,9 @@ test("delete an exit ticket while it is in cooldown", async function ({
   let exitTicketsBody: ExitTicket[] = [
     {
       assets: assets.toString(),
+      cancelTxHash: null,
       claimableAt: claimableAt.toString(),
+      claimTxHash: null,
       owner: TEST_ADDRESS,
       requestId: requestId.toString(),
       requestTxHash,
@@ -811,7 +815,9 @@ test("withdraw all the ready exit tickets", async function ({
     stakingVaultAddress: Address;
   }): ExitTicket => ({
     assets: request.assets.toString(),
+    cancelTxHash: null,
     claimableAt,
+    claimTxHash: null,
     owner: TEST_ADDRESS,
     requestId: request.requestId.toString(),
     requestTxHash: request.requestTxHash,
