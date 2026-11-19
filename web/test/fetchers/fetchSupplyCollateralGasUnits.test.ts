@@ -1,5 +1,6 @@
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
 import type { Token } from "@vetro-protocol/core";
+import { createErc20SpendStateOverride } from "utils/erc20StateOverride";
 import { type Client, zeroAddress, zeroHash } from "viem";
 import { estimateGas } from "viem/actions";
 import { describe, expect, it, vi } from "vitest";
@@ -26,7 +27,7 @@ vi.mock("viem/actions", () => ({
 }));
 
 vi.mock("utils/erc20StateOverride", () => ({
-  createErc20AllowanceStateOverride: vi.fn(),
+  createErc20SpendStateOverride: vi.fn(),
 }));
 
 const chainId = 1;
@@ -93,21 +94,35 @@ describe("fetchSupplyCollateralGasUnits", function () {
     expect(result).toBe(supplyGas);
   });
 
-  it("throws when amount exceeds collateral token balance", async function () {
+  it("estimates with the balance overridden when the amount exceeds the balance", async function () {
+    const supplyGas = 130000n;
     const queryClient = createPrepopulatedQueryClient(50n);
+    const stateOverride = [{ address: zeroAddress, stateDiff: [] }];
 
-    await expect(
-      fetchSupplyCollateralGasUnits({
-        amount: 100n,
-        approveAmount: 100n,
-        client: mockClient,
-        marketId: zeroHash,
-        owner: mockOwner,
-        queryClient,
-        token: mockToken,
-      }),
-    ).rejects.toThrow("Insufficient collateral token balance");
+    vi.mocked(estimateApprovalGasUnits).mockResolvedValue(0n);
+    vi.mocked(estimateGas).mockResolvedValue(supplyGas);
+    vi.mocked(createErc20SpendStateOverride).mockReturnValueOnce(stateOverride);
 
-    expect(estimateGas).not.toHaveBeenCalled();
+    const result = await fetchSupplyCollateralGasUnits({
+      amount: 100n,
+      approveAmount: 100n,
+      client: mockClient,
+      marketId: zeroHash,
+      owner: mockOwner,
+      queryClient,
+      token: mockToken,
+    });
+
+    expect(result).toBe(supplyGas);
+    expect(createErc20SpendStateOverride).toHaveBeenCalledWith({
+      amount: 100n,
+      balance: 50n,
+      owner: mockOwner,
+      spender: zeroAddress,
+      token: mockToken,
+    });
+    expect(vi.mocked(estimateGas).mock.lastCall?.[1].stateOverride).toBe(
+      stateOverride,
+    );
   });
 });
