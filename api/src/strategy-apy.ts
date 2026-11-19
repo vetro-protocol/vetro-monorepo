@@ -248,14 +248,20 @@ export async function getStrategyApy({
     strategies.map(async function ({ address, receiptToken }) {
       const freshApy = freshApys[address];
       if (!merklFailed && freshApy !== undefined) {
-        result[address] = freshApy;
-        await cacheStrategyApy({ address, apy: freshApy, kv });
-        return;
+        if (Number.isFinite(freshApy)) {
+          result[address] = freshApy;
+          await cacheStrategyApy({ address, apy: freshApy, kv });
+          return;
+        }
+        console.warn(
+          `Failed to get the APY of strategy ${address}: the combined APY is ${freshApy}`,
+        );
       }
       if (
+        freshApy !== undefined ||
         merklFailed ||
-        (freshApy === undefined &&
-          (nativeSourceUnavailable || receiptToken === undefined))
+        nativeSourceUnavailable ||
+        receiptToken === undefined
       ) {
         const cachedApy = cachedApys[address];
         if (cachedApy !== undefined) {

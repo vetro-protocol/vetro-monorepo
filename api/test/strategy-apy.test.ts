@@ -293,4 +293,30 @@ describe("strategy-apy/getStrategyApy", function () {
     expect(result).toEqual({ [strategyAddress]: 8 });
     expect(put).not.toHaveBeenCalled();
   });
+
+  it("uses the cached APY without writing when a live Merkl campaign has no APR", async function () {
+    const { kv, put } = createFakeKv({ cachedApy: 8 });
+    const now = Math.floor(Date.now() / 1000);
+    vi.mocked(getLiveOpportunities).mockResolvedValue([
+      {
+        campaigns: [
+          // @ts-expect-error Deliberately missing APR exercises non-finite APY fallback.
+          {
+            campaignId: `0x${"1".repeat(64)}`,
+            endTimestamp: now + 100,
+            rewardToken: { address: otherToken, chainId: 1 },
+            startTimestamp: now - 100,
+          },
+        ],
+        chainId: 1,
+        id: "missing-apr",
+        identifier: strategyReceiptToken,
+      },
+    ]);
+
+    const result = await getStrategyApys({ kv });
+
+    expect(result).toEqual({ [strategyAddress]: 8 });
+    expect(put).not.toHaveBeenCalled();
+  });
 });
