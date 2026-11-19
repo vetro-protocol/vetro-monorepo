@@ -242,9 +242,23 @@ describe("fetchBridgeNetworkFee", function () {
     const sendGas = 200_000n;
     const networkFeeWei = parseEther("0.01");
     const queryClient = createPrepopulatedQueryClient({ balance: 50n });
+    const balanceOverride = [
+      {
+        address: mockToken.address,
+        stateDiff: [
+          {
+            slot: `0x${"1".repeat(64)}` as const,
+            value: `0x${"2".repeat(64)}` as const,
+          },
+        ],
+      },
+    ];
 
     vi.mocked(approvalRequired).mockResolvedValue(false);
     vi.mocked(estimateGas).mockResolvedValue(sendGas);
+    vi.mocked(createErc20BalanceStateOverride).mockReturnValueOnce(
+      balanceOverride,
+    );
     mockNetworkFeeAndPrices({ networkFeeWei, prices: { ETH: "2000" } });
 
     const result = await fetchBridgeNetworkFee({
@@ -267,5 +281,8 @@ describe("fetchBridgeNetworkFee", function () {
       owner: mockOwner,
       token: mockToken,
     });
+    expect(vi.mocked(estimateGas).mock.lastCall?.[1].stateOverride).toEqual(
+      balanceOverride,
+    );
   });
 });
