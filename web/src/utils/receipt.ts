@@ -8,9 +8,9 @@ import {
 
 /**
  * Reads the amount received by `account` from a transaction's logs, taken from
- * the first ERC-20 Transfer event whose recipient is `account`, optionally
- * emitted by `token` only. Returns undefined when no such transfer is present,
- * letting callers fall back to their own estimate (e.g. the preview).
+ * the first ERC-20 Transfer event emitted by `token` whose recipient is
+ * `account`. Returns undefined when no such transfer is present, letting
+ * callers fall back to their own estimate (e.g. the preview).
  */
 export function getReceivedAmount({
   account,
@@ -19,7 +19,7 @@ export function getReceivedAmount({
 }: {
   account: Address;
   logs: Log[];
-  token?: Address;
+  token: Address;
 }) {
   const transferLogs = parseEventLogs({
     abi: erc20Abi,
@@ -29,6 +29,6 @@ export function getReceivedAmount({
   return transferLogs.find(
     (log) =>
       isAddressEqual(log.args.to, account) &&
-      (token === undefined || isAddressEqual(log.address, token)),
+      isAddressEqual(log.address, token),
   )?.args.value;
 }

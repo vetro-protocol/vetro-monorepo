@@ -44,7 +44,7 @@ const transferLog = ({
 describe("getReceivedAmount", function () {
   it("returns the value of the transfer to the account", function () {
     const logs = [transferLog({ from: zeroAddress, to: account, value: 500n })];
-    expect(getReceivedAmount({ account, logs })).toBe(500n);
+    expect(getReceivedAmount({ account, logs, token })).toBe(500n);
   });
 
   it("ignores transfers to other recipients", function () {
@@ -52,16 +52,16 @@ describe("getReceivedAmount", function () {
       transferLog({ from: account, to: other, value: 999n }),
       transferLog({ from: zeroAddress, to: account, value: 500n }),
     ];
-    expect(getReceivedAmount({ account, logs })).toBe(500n);
+    expect(getReceivedAmount({ account, logs, token })).toBe(500n);
   });
 
   it("returns undefined when no transfer targets the account", function () {
     const logs = [transferLog({ from: account, to: other, value: 999n })];
-    expect(getReceivedAmount({ account, logs })).toBeUndefined();
+    expect(getReceivedAmount({ account, logs, token })).toBeUndefined();
   });
 
   it("returns undefined when there are no logs", function () {
-    expect(getReceivedAmount({ account, logs: [] })).toBeUndefined();
+    expect(getReceivedAmount({ account, logs: [], token })).toBeUndefined();
   });
 
   it("returns the transfer emitted by the given token", function () {
