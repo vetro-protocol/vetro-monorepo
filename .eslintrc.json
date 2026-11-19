@@ -52,7 +52,8 @@
                 "kind": "variable",
                 "match": [{ "type": "strings" }, { "type": "objectValues" }],
                 "name": "^[a-zA-Z]*(?:Class|Classes|ClassName)$"
-              }
+              },
+              { "kind": "attribute", "name": "^[a-zA-Z]*ClassName$" }
             ]
           }
         }
@@ -88,7 +89,8 @@
                 "kind": "variable",
                 "match": [{ "type": "strings" }, { "type": "objectValues" }],
                 "name": "^[a-zA-Z]*(?:Class|Classes|ClassName)$"
-              }
+              },
+              { "kind": "attribute", "name": "^[a-zA-Z]*ClassName$" }
             ]
           }
         }
