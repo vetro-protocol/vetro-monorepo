@@ -4,7 +4,7 @@ import { approvalRequired } from "@vetro-protocol/bridge/actions";
 import { previewBridgeQueryKey } from "hooks/usePreviewBridge";
 import { tokenPricesOptions } from "hooks/useTokenPrices";
 import type { BridgeableToken } from "types";
-import { createErc20BalanceStateOverride } from "utils/erc20StateOverride";
+import { createErc20SpendStateOverride } from "utils/erc20StateOverride";
 import { type Address, type Client, parseEther, zeroAddress } from "viem";
 import { estimateGas } from "viem/actions";
 import { bsc, hemi, mainnet } from "viem/chains";
@@ -28,8 +28,7 @@ vi.mock("viem/actions", () => ({
 }));
 
 vi.mock("utils/erc20StateOverride", () => ({
-  createErc20AllowanceStateOverride: vi.fn().mockReturnValue([]),
-  createErc20BalanceStateOverride: vi.fn().mockReturnValue([]),
+  createErc20SpendStateOverride: vi.fn().mockReturnValue([]),
 }));
 
 vi.mock("@hemilabs/react-hooks/useEstimateFees", () => ({
@@ -242,23 +241,11 @@ describe("fetchBridgeNetworkFee", function () {
     const sendGas = 200_000n;
     const networkFeeWei = parseEther("0.01");
     const queryClient = createPrepopulatedQueryClient({ balance: 50n });
-    const balanceOverride = [
-      {
-        address: mockToken.address,
-        stateDiff: [
-          {
-            slot: `0x${"1".repeat(64)}` as const,
-            value: `0x${"2".repeat(64)}` as const,
-          },
-        ],
-      },
-    ];
+    const stateOverride = [{ address: zeroAddress, stateDiff: [] }];
 
     vi.mocked(approvalRequired).mockResolvedValue(false);
     vi.mocked(estimateGas).mockResolvedValue(sendGas);
-    vi.mocked(createErc20BalanceStateOverride).mockReturnValueOnce(
-      balanceOverride,
-    );
+    vi.mocked(createErc20SpendStateOverride).mockReturnValueOnce(stateOverride);
     mockNetworkFeeAndPrices({ networkFeeWei, prices: { ETH: "2000" } });
 
     const result = await fetchBridgeNetworkFee({
@@ -276,13 +263,15 @@ describe("fetchBridgeNetworkFee", function () {
 
     // 0.01 ETH * $2000 = $20
     expect(result).toBeCloseTo(20);
-    expect(createErc20BalanceStateOverride).toHaveBeenCalledWith({
-      balance: 100n,
+    expect(createErc20SpendStateOverride).toHaveBeenCalledWith({
+      amount: 100n,
+      balance: 50n,
       owner: mockOwner,
+      spender: oftAddress,
       token: mockToken,
     });
-    expect(vi.mocked(estimateGas).mock.lastCall?.[1].stateOverride).toEqual(
-      balanceOverride,
+    expect(vi.mocked(estimateGas).mock.lastCall?.[1].stateOverride).toBe(
+      stateOverride,
     );
   });
 });

@@ -58,7 +58,7 @@ export function createErc20AllowanceStateOverride({
   ];
 }
 
-export const createErc20BalanceStateOverride = ({
+const createErc20BalanceStateOverride = ({
   balance,
   owner,
   token,

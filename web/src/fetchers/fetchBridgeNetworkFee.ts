@@ -6,12 +6,8 @@ import { previewBridgeQueryOptions } from "hooks/usePreviewBridge";
 import { tokenPricesOptions } from "hooks/useTokenPrices";
 import { config } from "providers/web3Provider";
 import type { BridgeableToken } from "types";
-import {
-  createErc20AllowanceStateOverride,
-  createErc20BalanceStateOverride,
-} from "utils/erc20StateOverride";
+import { createErc20SpendStateOverride } from "utils/erc20StateOverride";
 import { weiToUsd } from "utils/fees";
-import { mergeStateOverrides } from "utils/stateOverride";
 import { type Address, type Chain, type Client } from "viem";
 import { estimateGas } from "viem/actions";
 
@@ -93,22 +89,13 @@ export const fetchBridgeNetworkFee = async function ({
       recipient,
       refundAddress: owner,
     }),
-    stateOverride: mergeStateOverrides(
-      needsApproval
-        ? createErc20AllowanceStateOverride({
-            owner,
-            spender: oftAddress,
-            token: sourceToken,
-          })
-        : [],
-      amount > balance
-        ? createErc20BalanceStateOverride({
-            balance: amount,
-            owner,
-            token: sourceToken,
-          })
-        : [],
-    ),
+    stateOverride: createErc20SpendStateOverride({
+      amount,
+      balance,
+      owner,
+      spender: oftAddress,
+      token: sourceToken,
+    }),
     to: oftAddress,
     value: fee.nativeFee,
   });
