@@ -26,24 +26,25 @@ type DepositStatus =
   | "deposit-failed"
   | "depositing";
 
-type Params = {
+type Variables = {
   approveAmount?: bigint;
   assets: bigint;
-  onStatusChange?: (status: DepositStatus) => void;
-  onSuccess?: VoidFunction;
-  onTransactionHash?: (hash: string) => void;
-  peggedToken: TokenWithGateway;
   stakingVaultAddress: Address;
 };
 
+type Params = {
+  onStatusChange?: (params: {
+    status: DepositStatus;
+    variables: Variables;
+  }) => void;
+  onTransactionHash?: (hash: string) => void;
+  peggedToken: TokenWithGateway;
+};
+
 export const useStakeDeposit = function ({
-  approveAmount,
-  assets,
   onStatusChange,
-  onSuccess,
   onTransactionHash,
   peggedToken,
-  stakingVaultAddress,
 }: Params) {
   const { address: account } = useAccount();
   const { data: walletClient } = useEthereumWalletClient();
@@ -54,35 +55,38 @@ export const useStakeDeposit = function ({
     mainnet.id,
   );
 
-  const allowanceKey = allowanceQueryKey({
-    owner: account,
-    spender: stakingVaultAddress,
-    token: { address: peggedToken.address, chainId: mainnet.id },
-  });
-
   const peggedTokenBalanceKey = tokenBalanceQueryKey(peggedToken, account);
 
-  const sharesBalanceKey = tokenBalanceQueryKey(
-    { address: stakingVaultAddress, chainId: mainnet.id },
-    account,
-  );
-
-  const stakedKey = stakedBalanceQueryKey({
-    account: account!,
-    chainId: mainnet.id,
-    stakingVaultAddress,
-  });
-
-  const poolDepositsKey = poolDepositsQueryKey({
-    chainId: mainnet.id,
-    stakingVaultAddress,
+  const getVaultQueryKeys = (stakingVaultAddress: Address) => ({
+    allowanceKey: allowanceQueryKey({
+      owner: account,
+      spender: stakingVaultAddress,
+      token: { address: peggedToken.address, chainId: mainnet.id },
+    }),
+    poolDepositsKey: poolDepositsQueryKey({
+      chainId: mainnet.id,
+      stakingVaultAddress,
+    }),
+    sharesBalanceKey: tokenBalanceQueryKey(
+      { address: stakingVaultAddress, chainId: mainnet.id },
+      account,
+    ),
+    stakedKey: stakedBalanceQueryKey({
+      account: account!,
+      chainId: mainnet.id,
+      stakingVaultAddress,
+    }),
   });
 
   return useMutation({
-    async mutationFn() {
+    async mutationFn(variables: Variables) {
+      const { approveAmount, assets, stakingVaultAddress } = variables;
       if (!account) {
         throw new Error("No account connected");
       }
+
+      const { allowanceKey, poolDepositsKey, stakedKey } =
+        getVaultQueryKeys(stakingVaultAddress);
 
       await ensureConnectedTo(mainnet.id);
 
@@ -95,27 +99,27 @@ export const useStakeDeposit = function ({
       });
 
       emitter.on("user-signed-approval", function () {
-        onStatusChange?.("approving");
+        onStatusChange?.({ status: "approving", variables });
       });
 
       emitter.on("approve-transaction-succeeded", function () {
-        onStatusChange?.("approved");
+        onStatusChange?.({ status: "approved", variables });
       });
 
       emitter.on("user-signed-deposit", function (hash) {
         onTransactionHash?.(hash);
-        onStatusChange?.("depositing");
+        onStatusChange?.({ status: "depositing", variables });
       });
 
       emitter.on("user-signing-approval-error", function () {
-        onStatusChange?.("approve-failed");
+        onStatusChange?.({ status: "approve-failed", variables });
       });
 
       emitter.on(
         "approve-transaction-reverted",
         function (receipt: TransactionReceipt) {
           updateNativeBalanceAfterReceipt(receipt);
-          onStatusChange?.("approve-failed");
+          onStatusChange?.({ status: "approve-failed", variables });
         },
       );
 
@@ -130,14 +134,26 @@ export const useStakeDeposit = function ({
       );
 
       emitter.on("user-signing-deposit-error", function () {
-        onStatusChange?.("deposit-failed");
+        onStatusChange?.({ status: "deposit-failed", variables });
+      });
+
+      emitter.on("deposit-failed", function () {
+        onStatusChange?.({ status: "deposit-failed", variables });
+      });
+
+      emitter.on("deposit-failed-validation", function () {
+        onStatusChange?.({ status: "deposit-failed", variables });
+      });
+
+      emitter.on("unexpected-error", function () {
+        onStatusChange?.({ status: "deposit-failed", variables });
       });
 
       emitter.on(
         "deposit-transaction-reverted",
         function (receipt: TransactionReceipt) {
           updateNativeBalanceAfterReceipt(receipt);
-          onStatusChange?.("deposit-failed");
+          onStatusChange?.({ status: "deposit-failed", variables });
         },
       );
 
@@ -145,8 +161,7 @@ export const useStakeDeposit = function ({
         "deposit-transaction-succeeded",
         function (receipt: TransactionReceipt) {
           updateNativeBalanceAfterReceipt(receipt);
-          onStatusChange?.("completed");
-          onSuccess?.();
+          onStatusChange?.({ status: "completed", variables });
 
           // Optimistically update balances
           queryClient.setQueryData(
@@ -173,7 +188,10 @@ export const useStakeDeposit = function ({
 
       return promise;
     },
-    async onSettled() {
+    async onSettled(_data, _error, { stakingVaultAddress }) {
+      const { allowanceKey, poolDepositsKey, sharesBalanceKey, stakedKey } =
+        getVaultQueryKeys(stakingVaultAddress);
+
       queryClient.invalidateQueries({
         queryKey: allowanceKey,
       });

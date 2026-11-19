@@ -1,4 +1,3 @@
-import { useAddTokenToWallet } from "@hemilabs/react-hooks/useAddTokenToWallet";
 import { useAllowance } from "@hemilabs/react-hooks/useAllowance";
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
@@ -14,12 +13,12 @@ import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenInput } from "components/tokenInput";
 import { TokenBalance } from "components/tokenInput/tokenBalance";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
-import { useActivityTracking } from "hooks/useActivityTracking";
 import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
 import { useStakeDeposit } from "hooks/useStakeDeposit";
 import { mainnet } from "networks/mainnet";
 import type { DepositStep } from "pages/earn/components/earnForm/stakeFormReducer";
 import { StakeSubmitButton } from "pages/earn/components/earnForm/stakeSubmitButton";
+import { useStakeDepositTracking } from "pages/earn/hooks/useStakeDepositTracking";
 import { useTotalDepositFees } from "pages/earn/hooks/useTotalDepositFees";
 import { type FormEvent, Suspense, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -114,14 +113,6 @@ export function StakeDepositForm({
     assets: bigint;
   } | null>(null);
 
-  const { mutate: watchToken } = useAddTokenToWallet({
-    token: {
-      address: shareToken.address,
-      chainId: mainnet.id,
-      extensions: { logoURI: shareToken.logoURI },
-    },
-  });
-
   const { data: peggedTokenBalance } = useTokenBalance({
     address: peggedToken.address,
     chainId: mainnet.id,
@@ -143,48 +134,25 @@ export function StakeDepositForm({
 
   const approveAmount = approve10x ? amountBigInt * 10n : undefined;
 
-  const { onCompleted, onFailed, onPending, onTransactionHash } =
-    useActivityTracking({
-      page: "earn",
-      text: t("pages.earn.activity.deposit-text", {
-        amount: inputValue,
-        symbol: peggedToken.symbol,
-      }),
-      title: `${t("nav.earn")} · ${t("pages.earn.stake.deposit")}`,
-    });
+  const { onTransactionHash, trackStep } = useStakeDepositTracking({
+    amount: inputValue,
+    onSuccess,
+    shareToken,
+    symbol: peggedToken.symbol,
+  });
 
   const handleDepositStepChange = useCallback(
     function handleDepositStepChange(step: DepositStep) {
       onDepositStepChange(step);
-      const handlers: Partial<Record<DepositStep, () => void>> = {
-        completed: onCompleted,
-        "deposit-failed": onFailed,
-        depositing: onPending,
-      };
-      handlers[step]?.();
+      trackStep(step);
     },
-    [onCompleted, onDepositStepChange, onFailed, onPending],
-  );
-
-  const handleDepositSuccess = useCallback(
-    function handleDepositSuccess() {
-      onSuccess({
-        description: t("pages.earn.stake.deposit-toast-description"),
-        title: t("pages.earn.stake.deposit-toast-title"),
-      });
-      watchToken();
-    },
-    [onSuccess, t, watchToken],
+    [onDepositStepChange, trackStep],
   );
 
   const depositMutation = useStakeDeposit({
-    approveAmount,
-    assets: amountBigInt,
-    onStatusChange: handleDepositStepChange,
-    onSuccess: handleDepositSuccess,
+    onStatusChange: ({ status }) => handleDepositStepChange(status),
     onTransactionHash,
     peggedToken,
-    stakingVaultAddress,
   });
 
   const depositFeesQuery = useTotalDepositFees({
@@ -231,7 +199,19 @@ export function StakeDepositForm({
       setSubmitted({ amount: inputValue, assets: amountBigInt });
       onResetSteps();
       onDrawerOpenChange(true);
-      depositMutation.mutate();
+      depositMutation.mutate(
+        {
+          approveAmount,
+          assets: amountBigInt,
+          stakingVaultAddress,
+        },
+        {
+          onError: () =>
+            handleDepositStepChange(
+              needsApproval ? "approve-failed" : "deposit-failed",
+            ),
+        },
+      );
     }
   }
 
