@@ -27,6 +27,76 @@
       ]
     },
     {
+      "files": ["internal-dashboard/**/*.{js,ts,tsx}"],
+      "plugins": ["better-tailwindcss"],
+      "rules": {
+        "better-tailwindcss/enforce-shorthand-classes": "error",
+        "better-tailwindcss/no-concatenated-classes": "error",
+        "better-tailwindcss/no-conflicting-classes": "error",
+        "better-tailwindcss/no-unknown-classes": "error",
+        "no-restricted-syntax": [
+          "error",
+          {
+            "message": "Name maps of Tailwind classes *Class, *Classes or *ClassName so better-tailwindcss lints them.",
+            "selector": "JSXAttribute[name.name=/^(class|className)$/] MemberExpression[computed=true] > Identifier.object:not([name=/(Class|Classes|ClassName)$/])"
+          }
+        ]
+      },
+      "settings": {
+        "better-tailwindcss": {
+          "cwd": "internal-dashboard",
+          "entryPoint": "src/index.css",
+          "selectors": {
+            "extends": [
+              {
+                "kind": "variable",
+                "match": [{ "type": "strings" }, { "type": "objectValues" }],
+                "name": "^[a-zA-Z]*(?:Class|Classes|ClassName)$"
+              },
+              { "kind": "attribute", "name": "^[a-zA-Z]*ClassName$" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "files": ["web/**/*.{js,ts,tsx}"],
+      "plugins": ["better-tailwindcss"],
+      "rules": {
+        "better-tailwindcss/enforce-shorthand-classes": "error",
+        "better-tailwindcss/no-concatenated-classes": "error",
+        "better-tailwindcss/no-conflicting-classes": "error",
+        "better-tailwindcss/no-unknown-classes": [
+          "error",
+          {
+            "ignore": [
+              "^button-",
+              "^button--base$",
+              "^input--base$",
+              "^textarea--base$",
+              "^vetro-tooltip-"
+            ]
+          }
+        ]
+      },
+      "settings": {
+        "better-tailwindcss": {
+          "cwd": "web",
+          "entryPoint": "src/index.css",
+          "selectors": {
+            "extends": [
+              {
+                "kind": "variable",
+                "match": [{ "type": "strings" }, { "type": "objectValues" }],
+                "name": "^[a-zA-Z]*(?:Class|Classes|ClassName)$"
+              },
+              { "kind": "attribute", "name": "^[a-zA-Z]*ClassName$" }
+            ]
+          }
+        }
+      }
+    },
+    {
       "extends": ["bloq/markdown"],
       "files": ["*.md"],
       "rules": {
@@ -123,6 +193,10 @@
           {
             "message": "Use a formatting helper from utils/format or utils/date instead.",
             "selector": "MemberExpression[computed=true][property.value=/^toLocale.*String$/]"
+          },
+          {
+            "message": "Name maps of Tailwind classes *Class, *Classes or *ClassName so better-tailwindcss lints them.",
+            "selector": "JSXAttribute[name.name=/^(class|className)$/] MemberExpression[computed=true] > Identifier.object:not([name=/(Class|Classes|ClassName)$/])"
           }
         ]
       }

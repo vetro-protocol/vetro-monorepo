@@ -22,7 +22,7 @@ const STACK_OFFSET = 12;
 // toasts remain visible above a drawer that lingers after the flow completes.
 // Both still paint above page content since they are portaled to the end of
 // `document.body`.
-const positions = {
+const positionClasses = {
   "bottom-center":
     "fixed bottom-20 left-1/2 z-0 w-80 -translate-x-1/2 sm:bottom-4",
   "bottom-right":
@@ -38,7 +38,7 @@ type Props = {
   autoCloseMs?: number;
   items: StackItem[];
   onRemove?: (id: number | string) => void;
-  position?: keyof typeof positions;
+  position?: keyof typeof positionClasses;
 };
 
 type ItemAnimationProps = {
@@ -190,7 +190,7 @@ export function Stack({
 
   return createPortal(
     <div
-      className={positions[position]}
+      className={positionClasses[position]}
       onBlur={handleBlur}
       onFocus={handleFocus}
       onMouseEnter={handleMouseEnter}

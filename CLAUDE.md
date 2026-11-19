@@ -10,7 +10,7 @@ The `web/` app exposes the Swap, Earn, Borrow, Bridge, Liquidity, and Analytics 
 ### CSS
 
 - Use tailwind v4 classes
-- If setting width and height to the same value (like `w-2 h-2`), use the alternative class `size-*`. For example: `size-2`.
+- In `@apply`, use shorthand classes (`size-*` for equal width and height); lint doesn't check CSS files.
 - **Minimum supported width**: 400px. Layouts must not overflow at 400px or above. Do not check smaller viewports.
 
 ### JavaScript/TypeScript
