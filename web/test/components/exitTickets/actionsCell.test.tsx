@@ -45,7 +45,9 @@ vi.mock("utils/geoRestriction", () => ({
 
 const ticket = {
   assets: "1230000",
+  cancelTxHash: null,
   claimableAt: "0",
+  claimTxHash: null,
   owner: zeroAddress,
   requestId: "1",
   requestTxHash: zeroHash,
