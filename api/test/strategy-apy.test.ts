@@ -212,6 +212,17 @@ describe("strategy-apy/getStrategyApy", function () {
     });
   });
 
+  it("prefers a fresh APY over the cached one and overwrites it", async function () {
+    const { kv, put } = createFakeKv({ cachedApy: 8 });
+
+    const result = await getStrategyApys({ kv });
+
+    expect(result).toEqual({ [strategyAddress]: 4 });
+    expect(put).toHaveBeenCalledWith(strategyApyKey, JSON.stringify(4), {
+      expirationTtl: 60 * 60,
+    });
+  });
+
   it("uses the cached APY when Merkl fails, even if a native APY is available", async function () {
     const { kv, put } = createFakeKv({ cachedApy: 8 });
     vi.mocked(getLiveOpportunities).mockRejectedValue(new Error("Merkl down"));
