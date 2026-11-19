@@ -1,4 +1,4 @@
-import { useQueries, useQueryClient } from "@tanstack/react-query";
+import { useQueries } from "@tanstack/react-query";
 import { mainnet } from "networks/mainnet";
 import type { Hash } from "viem";
 
@@ -10,7 +10,6 @@ export { type MarketData };
 
 export const useMarketsData = function (marketIds: Hash[]) {
   const client = useEthereumClient();
-  const queryClient = useQueryClient();
 
   const queries = useQueries({
     queries: marketIds.map((marketId) =>
@@ -18,7 +17,6 @@ export const useMarketsData = function (marketIds: Hash[]) {
         chainId: mainnet.id,
         client: client!,
         marketId,
-        queryClient,
       }),
     ),
   });

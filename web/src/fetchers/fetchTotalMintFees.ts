@@ -43,7 +43,6 @@ export const fetchTotalMintFees = async function ({
       fromToken,
       minPeggedTokenOut,
       owner,
-      queryClient,
     }),
   );
 
@@ -65,7 +64,7 @@ export const fetchTotalMintFees = async function ({
         }),
       )
       .then((protocolFeeBps) => applyBps(amount, protocolFeeBps)),
-    queryClient.ensureQueryData(pricesOptions({ client, queryClient })),
+    queryClient.ensureQueryData(pricesOptions({ client })),
   ]);
 
   const ethPrice = parseEthPrice(prices);

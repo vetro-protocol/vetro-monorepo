@@ -1,9 +1,4 @@
-import {
-  type QueryClient,
-  queryOptions,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { fetchTotalWithdrawCollateralFees } from "fetchers/fetchTotalWithdrawCollateralFees";
 import { fetchWithdrawCollateralGasUnits } from "fetchers/fetchWithdrawCollateralGasUnits";
 import { useEthereumClient } from "hooks/useEthereumClient";
@@ -35,18 +30,16 @@ export const withdrawCollateralGasUnitsOptions = ({
   client,
   marketId,
   owner,
-  queryClient,
 }: {
   amount: bigint;
   chainId: Chain["id"];
   client: Client | undefined;
   marketId: Hash;
   owner: Address | undefined;
-  queryClient: QueryClient;
 }) =>
   queryOptions({
     enabled: !!client && !!owner && amount > 0n,
-    queryFn: () =>
+    queryFn: ({ client: queryClient }) =>
       fetchWithdrawCollateralGasUnits({
         amount,
         client: client!,
@@ -86,18 +79,16 @@ const totalWithdrawCollateralFeesOptions = ({
   client,
   marketId,
   owner,
-  queryClient,
 }: {
   amount: bigint;
   chain: Chain;
   client: Client | undefined;
   marketId: Hash;
   owner: Address | undefined;
-  queryClient: QueryClient;
 }) =>
   queryOptions({
     enabled: !!client && !!owner && amount > 0n,
-    queryFn: () =>
+    queryFn: ({ client: queryClient }) =>
       fetchTotalWithdrawCollateralFees({
         amount,
         chain,
@@ -123,7 +114,6 @@ export const useTotalWithdrawCollateralFees = function ({
 }) {
   const { address: owner } = useAccount();
   const client = useEthereumClient();
-  const queryClient = useQueryClient();
 
   return useQuery(
     totalWithdrawCollateralFeesOptions({
@@ -132,7 +122,6 @@ export const useTotalWithdrawCollateralFees = function ({
       client,
       marketId,
       owner,
-      queryClient,
     }),
   );
 };

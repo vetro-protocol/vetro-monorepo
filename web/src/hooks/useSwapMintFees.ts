@@ -1,10 +1,5 @@
 import { useEstimateFees } from "@hemilabs/react-hooks/useEstimateFees";
-import {
-  type QueryClient,
-  queryOptions,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { fetchMintGasUnits } from "fetchers/fetchMintGasUnits";
 import { mainnet } from "networks/mainnet";
 import type { TokenWithGateway } from "types";
@@ -21,7 +16,6 @@ export const mintGasUnitsOptions = ({
   fromToken,
   minPeggedTokenOut,
   owner,
-  queryClient,
 }: {
   amount: bigint;
   approveAmount: bigint | undefined;
@@ -30,7 +24,6 @@ export const mintGasUnitsOptions = ({
   fromToken: TokenWithGateway;
   minPeggedTokenOut: bigint | undefined;
   owner: Address | undefined;
-  queryClient: QueryClient;
 }) =>
   queryOptions({
     enabled:
@@ -39,7 +32,7 @@ export const mintGasUnitsOptions = ({
       amount > 0n &&
       minPeggedTokenOut !== undefined &&
       minPeggedTokenOut > 0n,
-    queryFn: () =>
+    queryFn: ({ client: queryClient }) =>
       fetchMintGasUnits({
         amount,
         approveAmount,
@@ -73,7 +66,6 @@ export const useSwapMintFees = function ({
 }) {
   const { address: owner } = useAccount();
   const client = useEthereumClient();
-  const queryClient = useQueryClient();
 
   const { data: gasUnits, isError: isGasUnitsError } = useQuery(
     mintGasUnitsOptions({
@@ -84,7 +76,6 @@ export const useSwapMintFees = function ({
       fromToken,
       minPeggedTokenOut,
       owner,
-      queryClient,
     }),
   );
 

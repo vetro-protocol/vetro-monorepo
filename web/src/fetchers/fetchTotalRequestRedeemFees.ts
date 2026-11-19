@@ -34,7 +34,6 @@ export const fetchTotalRequestRedeemFees = async function ({
       client,
       fromToken,
       owner,
-      queryClient,
     }),
   );
 

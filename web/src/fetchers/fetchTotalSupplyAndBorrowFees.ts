@@ -39,7 +39,6 @@ export const fetchTotalSupplyAndBorrowFees = async function ({
       collateralToken,
       marketId,
       owner,
-      queryClient,
     }),
   );
 

@@ -1,4 +1,4 @@
-import { type QueryClient, queryOptions } from "@tanstack/react-query";
+import { queryOptions } from "@tanstack/react-query";
 import { fetchWithdrawGasUnits } from "fetchers/fetchWithdrawGasUnits";
 import { type Address, type Chain, type Client } from "viem";
 
@@ -7,19 +7,17 @@ export const withdrawGasUnitsOptions = ({
   amount,
   chainId,
   client,
-  queryClient,
   stakingVaultAddress,
 }: {
   account: Address | undefined;
   amount: bigint;
   chainId: Chain["id"];
   client: Client | undefined;
-  queryClient: QueryClient;
   stakingVaultAddress: Address;
 }) =>
   queryOptions({
     enabled: !!client && !!account && amount > 0n,
-    queryFn: () =>
+    queryFn: ({ client: queryClient }) =>
       fetchWithdrawGasUnits({
         account: account!,
         amount,

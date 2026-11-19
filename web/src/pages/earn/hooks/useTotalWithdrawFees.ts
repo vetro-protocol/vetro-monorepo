@@ -1,9 +1,4 @@
-import {
-  type QueryClient,
-  queryOptions,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { fetchTotalWithdrawFees } from "fetchers/fetchTotalWithdrawFees";
 import { useEthereumClient } from "hooks/useEthereumClient";
 import { mainnet } from "networks/mainnet";
@@ -15,19 +10,17 @@ const totalWithdrawFeesOptions = ({
   chain,
   client,
   owner,
-  queryClient,
   stakingVaultAddress,
 }: {
   amount: bigint;
   chain: Chain;
   client: Client | undefined;
   owner: Address | undefined;
-  queryClient: QueryClient;
   stakingVaultAddress: Address;
 }) =>
   queryOptions({
     enabled: !!client && !!owner && amount > 0n,
-    queryFn: () =>
+    queryFn: ({ client: queryClient }) =>
       fetchTotalWithdrawFees({
         amount,
         chain,
@@ -54,7 +47,6 @@ export const useTotalWithdrawFees = function ({
 }) {
   const { address: owner } = useAccount();
   const client = useEthereumClient();
-  const queryClient = useQueryClient();
 
   return useQuery(
     totalWithdrawFeesOptions({
@@ -62,7 +54,6 @@ export const useTotalWithdrawFees = function ({
       chain: mainnet,
       client,
       owner,
-      queryClient,
       stakingVaultAddress,
     }),
   );

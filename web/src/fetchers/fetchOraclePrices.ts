@@ -33,7 +33,7 @@ export const fetchOraclePrices = async function ({
   const chainId = client.chain!.id;
 
   const whitelistedTokens = await queryClient.ensureQueryData(
-    whitelistedTokensByGatewayOptions({ client, gatewayAddress, queryClient }),
+    whitelistedTokensByGatewayOptions({ client, gatewayAddress }),
   );
 
   const entries = await Promise.all(
@@ -43,7 +43,6 @@ export const fetchOraclePrices = async function ({
           chainId,
           client,
           gatewayAddress,
-          queryClient,
           token: token.address,
         }),
       );

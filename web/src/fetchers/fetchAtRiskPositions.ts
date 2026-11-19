@@ -36,7 +36,7 @@ export const fetchAtRiskPositions = async function ({
       }
 
       const market = await queryClient.ensureQueryData(
-        marketDataOptions({ chainId, client, marketId, queryClient }),
+        marketDataOptions({ chainId, client, marketId }),
       );
 
       return {
