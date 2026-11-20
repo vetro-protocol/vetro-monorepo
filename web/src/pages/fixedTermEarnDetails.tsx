@@ -14,7 +14,7 @@ import { TargetYieldForm } from "pages/earn/components/targetYieldForm";
 import { ErrorPage } from "pages/errorPage";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
-import { Navigate, useParams } from "react-router";
+import { Navigate, useLocation, useParams } from "react-router";
 import { type Address, isAddress, isAddressEqual } from "viem";
 
 const VaultDropdownItem = function ({
@@ -132,6 +132,7 @@ const FixedTermEarnDetailsContent = function ({
 
 export const FixedTermEarnDetails = function () {
   const { address, lang } = useParams<{ address: string; lang: string }>();
+  const { hash, search } = useLocation();
 
   const stakingVaultAddress =
     address && isAddress(address, { strict: false })
@@ -142,6 +143,15 @@ export const FixedTermEarnDetails = function () {
 
   if (!stakingVaultAddress) {
     return <Navigate replace to={`/${lang}/not-found`} />;
+  }
+
+  if (address !== stakingVaultAddress) {
+    return (
+      <Navigate
+        replace
+        to={`/${lang}/earn/fixed-term/${stakingVaultAddress}${search}${hash}`}
+      />
+    );
   }
 
   return (
