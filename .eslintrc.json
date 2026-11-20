@@ -200,7 +200,7 @@
           },
           {
             "message": "Do not take queryClient as a parameter of a queryOptions factory. Read it in the queryFn: queryFn: ({ client: queryClient }) => ...",
-            "selector": ":function:has(ObjectPattern > Property[key.name='queryClient']) CallExpression[callee.name='queryOptions']"
+            "selector": ":function:has(Identifier[name='queryClient'][typeAnnotation], TSPropertySignature[key.name='queryClient']) CallExpression[callee.name='queryOptions']"
           }
         ]
       }
