@@ -8,11 +8,9 @@ import {
   formatPeggedAmountUsd,
   getHistoryOnlyTokenAddresses,
   toCollateralizationItems,
-  toReserveBufferAmount,
   toTvlHistorySeries,
   toTvlItems,
-  toYieldItems,
-  toYieldTotal,
+  toYieldView,
 } from "../../src/utils/allocations";
 
 const findToken = (symbol: string) =>
@@ -34,24 +32,6 @@ const baseTreasuryToken: TreasuryToken = {
   totalDebt: "0",
   withdrawable: "0",
 };
-
-const strategy = ({
-  apy,
-  name,
-  source,
-  totalDebt,
-}: {
-  apy?: number;
-  name: string;
-  source?: StrategySource;
-  totalDebt: string;
-}) => ({
-  address: zeroAddress,
-  apy,
-  name,
-  source,
-  totalDebt,
-});
 
 // USD prices keyed by uppercase symbol (shape returned by `usePrices`).
 const prices = { USDC: "1", USDT: "1" };
@@ -199,126 +179,6 @@ describe("pages/analytics/utils", function () {
       });
 
       expect(surplus?.formattedAmount).toBe("< $0.01");
-    });
-  });
-
-  describe("toReserveBufferAmount", function () {
-    it("returns 0 when treasuryTokens is empty", function () {
-      expect(
-        toReserveBufferAmount({
-          prices,
-          treasuryTokens: [],
-          whitelistedTokens: [],
-        }),
-      ).toBe(0);
-    });
-
-    it("returns 0 when withdrawable equals totalDebt", function () {
-      const result = toReserveBufferAmount({
-        prices,
-        treasuryTokens: [
-          {
-            ...baseTreasuryToken,
-            totalDebt: "1000000000",
-            withdrawable: "1000000000",
-          },
-        ],
-        whitelistedTokens: [usdtToken],
-      });
-
-      expect(result).toBe(0);
-    });
-
-    it("returns 0 when buffer is negative", function () {
-      const result = toReserveBufferAmount({
-        prices,
-        treasuryTokens: [
-          {
-            ...baseTreasuryToken,
-            totalDebt: "1100000000",
-            withdrawable: "1000000000",
-          },
-        ],
-        whitelistedTokens: [usdtToken],
-      });
-
-      expect(result).toBe(0);
-    });
-
-    it("computes correct amount for a single token", function () {
-      // withdrawable: 1000 USDT, totalDebt: 900 USDT → buffer: 100 USDT @ $1 = $100
-      const result = toReserveBufferAmount({
-        prices,
-        treasuryTokens: [
-          {
-            ...baseTreasuryToken,
-            totalDebt: "900000000",
-            withdrawable: "1000000000",
-          },
-        ],
-        whitelistedTokens: [usdtToken],
-      });
-
-      expect(result).toBeCloseTo(100);
-    });
-
-    it("sums buffer across multiple tokens", function () {
-      // USDT buffer: $100, USDC buffer: $50 → total: $150
-      const result = toReserveBufferAmount({
-        prices,
-        treasuryTokens: [
-          {
-            ...baseTreasuryToken,
-            totalDebt: "900000000",
-            withdrawable: "1000000000",
-          },
-          {
-            ...baseTreasuryToken,
-            tokenAddress: usdcToken.address,
-            totalDebt: "50000000",
-            withdrawable: "100000000",
-          },
-        ],
-        whitelistedTokens: [usdtToken, usdcToken],
-      });
-
-      expect(result).toBeCloseTo(150);
-    });
-
-    it("uses decimals from whitelistedTokens", function () {
-      // 1 token with 18 decimals @ $1 → buffer: $1
-      const result = toReserveBufferAmount({
-        prices,
-        treasuryTokens: [
-          { ...baseTreasuryToken, withdrawable: "1000000000000000000" },
-        ],
-        whitelistedTokens: [{ ...usdtToken, decimals: 18 as const }],
-      });
-
-      expect(result).toBeCloseTo(1);
-    });
-
-    it("skips treasury tokens missing from the whitelist", function () {
-      // USDT contributes $100; the unknown USDC entry is ignored.
-      const result = toReserveBufferAmount({
-        prices,
-        treasuryTokens: [
-          {
-            ...baseTreasuryToken,
-            totalDebt: "900000000",
-            withdrawable: "1000000000",
-          },
-          {
-            ...baseTreasuryToken,
-            tokenAddress: usdcToken.address,
-            totalDebt: "0",
-            withdrawable: "1000000000",
-          },
-        ],
-        whitelistedTokens: [usdtToken],
-      });
-
-      expect(result).toBeCloseTo(100);
     });
   });
 
@@ -514,220 +374,164 @@ describe("pages/analytics/utils", function () {
     });
   });
 
-  describe("toYieldItems", function () {
-    it("returns empty array when no treasury tokens", function () {
-      expect(
-        toYieldItems({ prices, treasuryTokens: [], whitelistedTokens: [] }),
-      ).toEqual([]);
+  describe("toYieldView", function () {
+    const vusdPrices = { VUSD: "1" };
+    const strategyItem = {
+      address: zeroAddress,
+      apy: 5,
+      balance: parseUnits("300", 18),
+      name: "Morpho",
+      projectedYield: parseUnits("15", 18),
+      source: {
+        protocol: "morpho",
+        vaultAddress: usdcToken.address,
+      } as StrategySource,
+      token: usdcToken.address,
+      type: "strategy" as const,
+    };
+    const total = {
+      apy: 5,
+      balance: parseUnits("300", 18),
+      projectedYield: parseUnits("15", 18),
+    };
+    const reserveItem = (balance: string, token: Address) => ({
+      apy: 0,
+      balance: parseUnits(balance, 18),
+      projectedYield: 0n,
+      token,
+      type: "reserve" as const,
     });
 
-    it("includes strategies with zero amount", function () {
-      const items = toYieldItems({
-        prices,
-        treasuryTokens: [
-          {
-            ...baseTreasuryToken,
-            activeStrategies: [
-              strategy({ name: "Zero Strategy", totalDebt: "0" }),
-              strategy({
-                apy: 3.3,
-                name: "Active Strategy",
-                totalDebt: "500000000",
-              }),
-            ],
-            totalDebt: "500000000",
-            withdrawable: "500000000",
-          },
-        ],
-        whitelistedTokens: [usdtToken],
+    it("keeps the strategy order and merges the reserve items into one last row", function () {
+      const { rows } = toYieldView({
+        prices: vusdPrices,
+        reserveBufferLabel: "Reserve buffer",
+        summary: {
+          items: [
+            reserveItem("120", usdcToken.address),
+            strategyItem,
+            {
+              ...strategyItem,
+              apy: undefined,
+              balance: parseUnits("100", 18),
+              name: "Unknown APY",
+              projectedYield: undefined,
+              source: undefined,
+            },
+            reserveItem("30", usdtToken.address),
+          ],
+          total,
+        },
+        token: vusdToken,
       });
 
-      // 500 USDT (6 decimals) @ $1 = $500, sorted before the $0 strategy
-      expect(items).toHaveLength(2);
-      expect(items[0]?.label).toBe("Active Strategy");
-      expect(items[0]?.amount).toBeCloseTo(500);
-      expect(items[0]?.color).toBe("bg-emerald-400");
-      expect(items[0]?.apy).toBe(3.3);
-      expect(items[1]?.apy).toBeUndefined();
-      expect(items[1]).toEqual({
-        amount: 0,
-        color: "bg-blue-400",
-        label: "Zero Strategy",
-      });
-    });
-
-    it("flattens and sorts strategies by USD amount descending across tokens", function () {
-      const items = toYieldItems({
-        prices,
-        treasuryTokens: [
-          {
-            ...baseTreasuryToken,
-            activeStrategies: [
-              strategy({ apy: 1, name: "USDT 100", totalDebt: "100000000" }),
-              strategy({
-                apy: 3,
-                name: "USDT 300",
-                source: { protocol: "morpho", vaultAddress: usdtToken.address },
-                totalDebt: "300000000",
-              }),
-            ],
-            totalDebt: "400000000",
-            withdrawable: "400000000",
-          },
-          {
-            ...baseTreasuryToken,
-            activeStrategies: [
-              strategy({
-                apy: 2,
-                name: "USDC 200",
-                // @ts-expect-error a protocol that only a newer API knows
-                source: { protocol: "aave", vaultAddress: usdcToken.address },
-                totalDebt: "200000000",
-              }),
-            ],
-            tokenAddress: usdcToken.address,
-            totalDebt: "200000000",
-            withdrawable: "200000000",
-          },
-        ],
-        whitelistedTokens: [usdtToken, usdcToken],
-      });
-
-      expect(items.map((item) => item.label)).toEqual([
-        "USDT 300",
-        "USDC 200",
-        "USDT 100",
-      ]);
-      expect(items.map((item) => item.apy)).toEqual([3, 2, 1]);
-      expect(items.map((item) => item.href)).toEqual([
-        `https://app.morpho.org/ethereum/vault/${usdtToken.address}`,
-        undefined,
-        undefined,
-      ]);
-      expect(items.map((item) => item.color)).toEqual([
-        "bg-emerald-400",
-        "bg-blue-400",
-        "bg-amber-400",
-      ]);
-      expect(items[0]?.amount).toBeCloseTo(300);
-      expect(items[1]?.amount).toBeCloseTo(200);
-      expect(items[2]?.amount).toBeCloseTo(100);
-    });
-
-    it("keeps the original order for equal amounts", function () {
-      const items = toYieldItems({
-        prices,
-        treasuryTokens: [
-          {
-            ...baseTreasuryToken,
-            activeStrategies: [
-              strategy({ name: "First Zero", totalDebt: "0" }),
-              strategy({ name: "Second Zero", totalDebt: "0" }),
-            ],
-          },
-        ],
-        whitelistedTokens: [usdtToken],
-      });
-
-      expect(items).toEqual([
-        { amount: 0, color: "bg-emerald-400", label: "First Zero" },
-        { amount: 0, color: "bg-blue-400", label: "Second Zero" },
+      expect(rows).toEqual([
+        {
+          amount: 300,
+          apy: 5,
+          color: assignColor(0),
+          href: `https://app.morpho.org/ethereum/vault/${usdcToken.address}`,
+          label: "Morpho",
+          projectedYield: 15,
+        },
+        {
+          amount: 100,
+          apy: undefined,
+          color: assignColor(1),
+          href: undefined,
+          label: "Unknown APY",
+          projectedYield: undefined,
+        },
+        {
+          amount: 150,
+          apy: 0,
+          color: assignColor(2),
+          href: undefined,
+          label: "Reserve buffer",
+          projectedYield: 0,
+        },
       ]);
     });
 
-    it("computes correct USD amount per strategy", function () {
-      // 500 USDT (6 decimals) @ $1 = $500
-      const items = toYieldItems({
-        prices,
-        treasuryTokens: [
-          {
-            ...baseTreasuryToken,
-            activeStrategies: [
-              strategy({ name: "Strategy", totalDebt: "500000000" }),
-            ],
-            totalDebt: "500000000",
-            withdrawable: "500000000",
+    it("omits the reserve buffer row when it is empty", function () {
+      const { rows } = toYieldView({
+        prices: vusdPrices,
+        reserveBufferLabel: "Reserve buffer",
+        summary: {
+          items: [strategyItem, reserveItem("0", usdcToken.address)],
+          total,
+        },
+        token: vusdToken,
+      });
+
+      expect(rows.map(({ label }) => label)).toEqual(["Morpho"]);
+    });
+
+    it("has no link for a protocol that the web does not know", function () {
+      const {
+        rows: [row],
+      } = toYieldView({
+        prices: vusdPrices,
+        reserveBufferLabel: "Reserve buffer",
+        summary: {
+          items: [
+            {
+              ...strategyItem,
+              source: {
+                protocol: "unknown",
+                vaultAddress: usdcToken.address,
+              } as unknown as StrategySource,
+            },
+          ],
+          total,
+        },
+        token: vusdToken,
+      });
+
+      expect(row?.href).toBeUndefined();
+    });
+
+    it("converts the total and counts the strategies", function () {
+      const view = toYieldView({
+        prices: { VUSD: "0.5" },
+        reserveBufferLabel: "Reserve buffer",
+        summary: {
+          items: [strategyItem, strategyItem, reserveItem("10", zeroAddress)],
+          total: {
+            apy: null,
+            balance: parseUnits("610", 18),
+            projectedYield: null,
           },
-        ],
-        whitelistedTokens: [usdtToken],
+        },
+        token: vusdToken,
       });
 
-      expect(items[0]?.amount).toBeCloseTo(500);
-    });
-
-    it("skips treasury tokens missing from the whitelist", function () {
-      // USDT yields one strategy; the unknown USDC entry's strategies are skipped.
-      const items = toYieldItems({
-        prices,
-        treasuryTokens: [
-          {
-            ...baseTreasuryToken,
-            activeStrategies: [
-              strategy({ name: "USDT Strategy", totalDebt: "500000000" }),
-            ],
-            totalDebt: "500000000",
-            withdrawable: "500000000",
-          },
-          {
-            ...baseTreasuryToken,
-            activeStrategies: [
-              strategy({ name: "USDC Strategy", totalDebt: "200000000" }),
-            ],
-            tokenAddress: usdcToken.address,
-            totalDebt: "200000000",
-            withdrawable: "200000000",
-          },
-        ],
-        whitelistedTokens: [usdtToken],
-      });
-
-      expect(items).toHaveLength(1);
-      expect(items[0]?.label).toBe("USDT Strategy");
-    });
-  });
-
-  describe("toYieldTotal", function () {
-    it("returns the sum of the amounts and the APY weighted by amount", function () {
-      const result = toYieldTotal([
-        { amount: 300, apy: 6 },
-        { amount: 100, apy: 2 },
-        { amount: 100, apy: 0 },
-      ]);
-
-      expect(result).toEqual({
-        amount: 500,
-        amountWithApy: 500,
-        apy: (300 * 6 + 100 * 2) / 500,
+      expect(view.strategyCount).toBe(2);
+      expect(view.total).toEqual({
+        amount: 305,
+        apy: undefined,
+        projectedYield: undefined,
       });
     });
 
-    it("skips the items with no APY in the APY", function () {
-      const result = toYieldTotal([
-        { amount: 300, apy: 6 },
-        { amount: 100, apy: 2 },
-        { amount: 50, apy: undefined },
-      ]);
-
-      expect(result).toEqual({
-        amount: 450,
-        amountWithApy: 400,
-        apy: (300 * 6 + 100 * 2) / 400,
+    it("converts the amounts with the pegged token price", function () {
+      const {
+        rows: [row],
+        total: convertedTotal,
+      } = toYieldView({
+        prices: { VUSD: "0.5" },
+        reserveBufferLabel: "Reserve buffer",
+        summary: { items: [strategyItem], total },
+        token: vusdToken,
       });
-    });
 
-    it("returns no APY when no item has an APY", function () {
-      const result = toYieldTotal([{ amount: 100, apy: undefined }]);
-
-      expect(result).toEqual({ amount: 100, amountWithApy: 0, apy: undefined });
-    });
-
-    it("returns no APY when the amounts with an APY sum to 0", function () {
-      const result = toYieldTotal([
-        { amount: 0, apy: 6 },
-        { amount: 100, apy: undefined },
-      ]);
-
-      expect(result).toEqual({ amount: 100, amountWithApy: 0, apy: undefined });
+      expect(row?.amount).toBe(150);
+      expect(row?.projectedYield).toBe(7.5);
+      expect(convertedTotal).toEqual({
+        amount: 150,
+        apy: 5,
+        projectedYield: 7.5,
+      });
     });
   });
 });

@@ -85,14 +85,33 @@ const strategies = [
   },
 ];
 
-const toYieldStoryArgs = (items: typeof strategies) => ({
-  footer: <YieldTotal items={items} />,
-  items: items.map(({ amount, apy, ...item }) => ({
-    ...item,
-    amount,
-    details: <YieldDetails amount={amount} apy={apy} />,
-  })),
-});
+const toProjectedYield = ({ amount, apy }: (typeof strategies)[number]) =>
+  apy === undefined ? undefined : (amount * apy) / 100;
+
+const toYieldStoryArgs = function (items: typeof strategies) {
+  const amount = items.reduce((sum, item) => sum + item.amount, 0);
+  const yields = items.map(toProjectedYield);
+  const projectedYield = yields.includes(undefined)
+    ? undefined
+    : yields.reduce((sum: number, value) => sum + (value ?? 0), 0);
+  return {
+    footer: (
+      <YieldTotal
+        amount={amount}
+        apy={
+          projectedYield === undefined
+            ? undefined
+            : (projectedYield / amount) * 100
+        }
+        projectedYield={projectedYield}
+      />
+    ),
+    items: items.map(({ apy, ...item }, index) => ({
+      ...item,
+      details: <YieldDetails apy={apy} projectedYield={yields[index]} />,
+    })),
+  };
+};
 
 export const YieldAllocation: Story = {
   args: {
@@ -112,5 +131,21 @@ export const YieldAllocationWithTotalApy: Story = {
   args: {
     ...YieldAllocation.args,
     ...toYieldStoryArgs(strategies.slice(0, 3)),
+  },
+};
+
+export const WithSuffixAndDescription: Story = {
+  args: {
+    description: "+$1.69K per month · backend yield covers staker payouts 2.7×",
+    icon: <PieChartIcon />,
+    isError: false,
+    isLoading: false,
+    items: [
+      { amount: 12_180, color: "bg-blue-500", label: "Paid to stakers" },
+      { amount: 20_250, color: "bg-emerald-400", label: "Kept" },
+    ],
+    label: "Net protocol revenue",
+    suffix: "/ year",
+    value: "+$20.25K",
   },
 };

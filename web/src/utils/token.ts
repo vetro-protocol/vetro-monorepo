@@ -13,6 +13,14 @@ export const getTokenPrice = function (
   return price;
 };
 
+export const isUsdPriceMissing = ({
+  prices,
+  token,
+}: {
+  prices: Record<string, string> | undefined;
+  token: Token | undefined;
+}) => !!token && !!prices && !(Number(getTokenPrice(token, prices)) > 0);
+
 /**
  * Parses a token amount string into its raw representation in the smallest unit (e.g., wei for ETH)
  * truncating any excess decimal places beyond the token's defined decimals.

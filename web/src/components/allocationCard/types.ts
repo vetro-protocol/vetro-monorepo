@@ -9,6 +9,8 @@ export type AllocationItem = {
   formattedAmount?: string;
   href?: string;
   label: string;
+  labelClassName?: string;
   logoURI?: string;
+  subLabel?: ReactNode;
   tooltip?: string;
 };

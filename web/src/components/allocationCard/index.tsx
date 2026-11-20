@@ -8,6 +8,7 @@ import type { AllocationItem } from "./types";
 
 type Props = {
   amountLabel?: string;
+  description?: ReactNode;
   footer?: ReactNode;
   footnote?: string;
   formatAmount?: (value: number) => string;
@@ -17,11 +18,13 @@ type Props = {
   isLoading: boolean;
   items?: AllocationItem[];
   label: ReactNode;
+  suffix?: string;
   value: string;
 };
 
 export const AllocationCard = function ({
   amountLabel,
+  description,
   footer,
   footnote,
   formatAmount = formatUsd,
@@ -31,6 +34,7 @@ export const AllocationCard = function ({
   isLoading,
   items,
   label,
+  suffix,
   value,
 }: Props) {
   const [hoveredLabel, setHoveredLabel] = useState<string | null>(null);
@@ -50,7 +54,17 @@ export const AllocationCard = function ({
             <span className="text-b-medium text-gray-900">{label}</span>
             <div className="size-4">{icon}</div>
           </div>
-          <h3 className="text-gray-900">{renderValue()}</h3>
+          <h3 className="text-gray-900">
+            {renderValue()}
+            {suffix && (
+              <span className="text-b-medium ml-1.5 text-gray-500">
+                {suffix}
+              </span>
+            )}
+          </h3>
+          {description && (
+            <p className="text-b-medium text-gray-500">{description}</p>
+          )}
         </div>
       </div>
       {items !== undefined && (

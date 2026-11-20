@@ -2,6 +2,7 @@ import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { ApyHistoryCard } from "components/apyHistoryCard";
 import { PageTitle } from "components/base/pageTitle";
 import { ExitCooldownCard } from "components/exitCooldownCard";
+import { NetRevenueCard } from "components/netRevenueCard";
 import { ShareRatioCard } from "components/shareRatioCard";
 import { StakedCard } from "components/stakedCard";
 import { StripedDivider } from "components/stripedDivider";
@@ -144,6 +145,12 @@ export const Analytics = function () {
             peggedTokenError={isPeggedTokensError}
           />
         </div>
+      </AllocationRow>
+      <AllocationRow>
+        <NetRevenueCard
+          peggedToken={selectedToken}
+          peggedTokenError={isPeggedTokensError}
+        />
       </AllocationRow>
       <AllocationRow isLast>
         <YieldCard
