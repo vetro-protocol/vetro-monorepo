@@ -194,7 +194,6 @@ export async function getStrategyApy({
   if (strategies.length === 0) {
     return {};
   }
-  const cachedApys = await getCachedStrategyApys({ kv, strategies });
   const availableStakeDaoStrategies = stakeDaoStrategies ?? [];
   const receiptTokens = strategies.flatMap(({ address, receiptToken }) =>
     receiptToken ? [{ receiptToken, strategy: address }] : [],
@@ -209,21 +208,23 @@ export async function getStrategyApy({
         }),
     );
 
-  const [merklResult, morphoResult, lagoonResult] = await Promise.all([
-    getMerklOpportunities(
-      receiptTokens.map(({ receiptToken }) => receiptToken),
-    ),
-    getVaultApys({
-      addresses: vaultAddresses,
-      getApys: getMorphoApys,
-      source: "Morpho",
-    }),
-    getVaultApys({
-      addresses: vaultAddresses,
-      getApys: getLagoonApys,
-      source: "Lagoon",
-    }),
-  ]);
+  const [cachedApys, merklResult, morphoResult, lagoonResult] =
+    await Promise.all([
+      getCachedStrategyApys({ kv, strategies }),
+      getMerklOpportunities(
+        receiptTokens.map(({ receiptToken }) => receiptToken),
+      ),
+      getVaultApys({
+        addresses: vaultAddresses,
+        getApys: getMorphoApys,
+        source: "Morpho",
+      }),
+      getVaultApys({
+        addresses: vaultAddresses,
+        getApys: getLagoonApys,
+        source: "Lagoon",
+      }),
+    ]);
 
   const nativeApys = [...morphoResult.apys, ...lagoonResult.apys];
   let merklFailed = merklResult.failed;
