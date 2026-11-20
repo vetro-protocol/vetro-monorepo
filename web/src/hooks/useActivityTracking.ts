@@ -58,11 +58,21 @@ export function useActivityTracking({ page, text, title }: Params) {
     [account],
   );
 
+  const onReplaced = useCallback(
+    function onReplaced(hash: string) {
+      if (account && txHashRef.current) {
+        updateActivity(account, txHashRef.current, { txHash: hash });
+      }
+      txHashRef.current = hash;
+    },
+    [account],
+  );
+
   const onTransactionHash = useCallback(function onTransactionHash(
     hash: string,
   ) {
     txHashRef.current = hash;
   }, []);
 
-  return { onCompleted, onFailed, onPending, onTransactionHash };
+  return { onCompleted, onFailed, onPending, onReplaced, onTransactionHash };
 }

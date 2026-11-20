@@ -134,7 +134,7 @@ export function StakeDepositForm({
 
   const approveAmount = approve10x ? amountBigInt * 10n : undefined;
 
-  const { onTransactionHash, trackStep } = useStakeDepositTracking({
+  const { onReplaced, onTransactionHash, trackStep } = useStakeDepositTracking({
     amount: inputValue,
     onSuccess,
     shareToken,
@@ -152,6 +152,7 @@ export function StakeDepositForm({
   const depositMutation = useStakeDeposit({
     onStatusChange: ({ status }) => handleDepositStepChange(status),
     onTransactionHash: ({ hash }) => onTransactionHash(hash),
+    onTransactionReplaced: ({ hash }) => onReplaced(hash),
   });
 
   const depositFeesQuery = useTotalDepositFees({

@@ -27,7 +27,7 @@ export const useStakeDepositTracking = function ({
       extensions: { logoURI: shareToken?.logoURI },
     },
   });
-  const { onCompleted, onFailed, onPending, onTransactionHash } =
+  const { onCompleted, onFailed, onPending, onReplaced, onTransactionHash } =
     useActivityTracking({
       page: "earn",
       text: t("pages.earn.activity.deposit-text", { amount, symbol }),
@@ -63,5 +63,5 @@ export const useStakeDepositTracking = function ({
     ],
   );
 
-  return { onTransactionHash, trackStep };
+  return { onReplaced, onTransactionHash, trackStep };
 };

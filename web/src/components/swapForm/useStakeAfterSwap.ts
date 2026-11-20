@@ -137,7 +137,7 @@ export const useStakeAfterSwap = function ({
     token: peggedToken,
   });
 
-  const { onTransactionHash, trackStep } = useStakeDepositTracking({
+  const { onReplaced, onTransactionHash, trackStep } = useStakeDepositTracking({
     amount: outputValue,
     onSuccess,
     shareToken,
@@ -174,6 +174,13 @@ export const useStakeAfterSwap = function ({
       }
       setStake((prev) => ({ ...prev, hash }));
       onTransactionHash(hash);
+    },
+    onTransactionReplaced({ hash, variables }) {
+      if (variables !== currentRun.current) {
+        return;
+      }
+      setStake((prev) => ({ ...prev, hash }));
+      onReplaced(hash);
     },
   });
 

@@ -63,7 +63,7 @@ export function addActivity(address: Address, activity: Activity) {
 export function updateActivity(
   address: Address,
   txHash: string,
-  updates: Partial<Omit<Activity, "txHash">>,
+  updates: Partial<Activity>,
 ) {
   write(
     address,

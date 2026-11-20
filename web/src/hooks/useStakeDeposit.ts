@@ -53,6 +53,10 @@ type Params = {
     variables: Variables;
   }) => void;
   onTransactionHash?: (params: { hash: Hash; variables: Variables }) => void;
+  onTransactionReplaced?: (params: {
+    hash: Hash;
+    variables: Variables;
+  }) => void;
 };
 
 const getPendingDeposit = async function ({
@@ -103,6 +107,7 @@ const waitForPendingDeposit = async function ({
 export const useStakeDeposit = function ({
   onStatusChange,
   onTransactionHash,
+  onTransactionReplaced,
 }: Params) {
   const { address: account } = useAccount();
   const { data: walletClient } = useEthereumWalletClient();
@@ -202,7 +207,7 @@ export const useStakeDeposit = function ({
             client: walletClient!,
             hash: pendingHash,
             onRepriced: (hash: Hash) =>
-              onTransactionHash?.({ hash, variables }),
+              onTransactionReplaced?.({ hash, variables }),
           });
         if (isDeposit && pendingReceipt?.status === "success") {
           handleDepositSucceeded(pendingReceipt);
