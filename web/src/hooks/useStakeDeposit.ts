@@ -134,6 +134,7 @@ export const useStakeDeposit = function ({
 
       if (pendingHash) {
         onTransactionHash?.({ hash: pendingHash, variables });
+        onStatusChange?.({ status: "depositing", variables });
         const pendingReceipt = await waitForTransactionReceipt(walletClient!, {
           hash: pendingHash,
         }).catch(() => undefined);
