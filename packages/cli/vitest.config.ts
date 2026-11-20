@@ -11,14 +11,15 @@ export default defineConfig({
     },
     projects: [
       {
+        extends: true,
         test: {
           clearMocks: true,
           exclude: [...configDefaults.exclude, "test/e2e/**"],
           name: "unit",
-          restoreMocks: true,
         },
       },
       {
+        extends: true,
         test: {
           fileParallelism: false,
           globalSetup: ["./test/e2e/setup.ts"],
@@ -29,5 +30,6 @@ export default defineConfig({
         },
       },
     ],
+    restoreMocks: true,
   },
 });
