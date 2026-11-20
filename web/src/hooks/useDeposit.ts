@@ -8,20 +8,12 @@ import { deposit } from "@vetro-protocol/gateway/actions";
 import type { EventEmitter } from "events";
 import { mainnet } from "networks/mainnet";
 import type { TokenWithGateway, TreasuryToken } from "types";
-import {
-  addDepositToNetRevenue,
-  addDepositToYield,
-  type AnalyticsNetRevenue,
-  type AnalyticsYield,
-} from "utils/analyticsDeposit";
 import { getReceivedAmount } from "utils/receipt";
 import { applySlippage } from "utils/slippage";
 import { type Address, isAddressEqual } from "viem";
 import { useAccount } from "wagmi";
 
-import { analyticsNetRevenueQueryKey } from "./useAnalyticsNetRevenue";
 import { analyticsTreasuryQueryKey } from "./useAnalyticsTreasury";
-import { analyticsYieldQueryKey } from "./useAnalyticsYield";
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { maxMintQueryKey } from "./useMaxMint";
 import {
@@ -75,10 +67,6 @@ export const useDeposit = function ({
   });
 
   const analyticsTreasuryKey = analyticsTreasuryQueryKey(
-    peggedToken.gatewayAddress,
-  );
-  const analyticsYieldKey = analyticsYieldQueryKey(peggedToken.gatewayAddress);
-  const analyticsNetRevenueKey = analyticsNetRevenueQueryKey(
     peggedToken.gatewayAddress,
   );
 
@@ -174,21 +162,6 @@ export const useDeposit = function ({
                   }
                 : item,
             ),
-        );
-        queryClient.setQueryData(
-          analyticsYieldKey,
-          (old: AnalyticsYield | undefined) =>
-            old &&
-            addDepositToYield({
-              amount: mintedAmount,
-              data: old,
-              token: tokenIn,
-            }),
-        );
-        queryClient.setQueryData(
-          analyticsNetRevenueKey,
-          (old: AnalyticsNetRevenue | undefined) =>
-            old && addDepositToNetRevenue({ amount: mintedAmount, data: old }),
         );
       });
 
