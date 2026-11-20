@@ -14,6 +14,7 @@ import {
   type ReplacementReturnType,
   type TransactionReceipt,
   type WalletClient,
+  TransactionNotFoundError,
   isAddressEqual,
 } from "viem";
 import {
@@ -74,7 +75,12 @@ const getPendingDeposit = async function ({
   }
   const canResume = await getTransaction(client, { hash }).then(
     () => true,
-    () => false,
+    function (error) {
+      if (error instanceof TransactionNotFoundError) {
+        return false;
+      }
+      throw error;
+    },
   );
   return { canResume, receipt };
 };
