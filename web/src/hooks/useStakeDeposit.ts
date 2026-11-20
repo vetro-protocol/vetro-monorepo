@@ -234,11 +234,15 @@ export const useStakeDeposit = function ({
         vaultAddress: stakingVaultAddress,
       });
 
+      let isApproving = false;
+
       emitter.on("user-signed-approval", function () {
+        isApproving = true;
         onStatusChange?.({ status: "approving", variables });
       });
 
       emitter.on("approve-transaction-succeeded", function () {
+        isApproving = false;
         onStatusChange?.({ status: "approved", variables });
       });
 
@@ -274,7 +278,10 @@ export const useStakeDeposit = function ({
       });
 
       emitter.on("deposit-failed", function () {
-        onStatusChange?.({ status: "deposit-failed", variables });
+        onStatusChange?.({
+          status: isApproving ? "approve-failed" : "deposit-failed",
+          variables,
+        });
       });
 
       emitter.on("deposit-failed-validation", function () {
