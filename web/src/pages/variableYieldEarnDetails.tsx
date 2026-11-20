@@ -17,7 +17,7 @@ import { StakeForm } from "pages/earn/components/stakeForm";
 import { ErrorPage } from "pages/errorPage";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
-import { Navigate, useParams } from "react-router";
+import { Navigate, useLocation, useParams } from "react-router";
 import { type Address, isAddress, isAddressEqual } from "viem";
 
 const chartCardContainer =
@@ -147,6 +147,7 @@ const VariableYieldEarnDetailsContent = function ({
 
 export const VariableYieldEarnDetails = function () {
   const { address, lang } = useParams<{ address: string; lang: string }>();
+  const { hash, search } = useLocation();
 
   const stakingVaultAddress =
     address && isAddress(address, { strict: false })
@@ -155,6 +156,15 @@ export const VariableYieldEarnDetails = function () {
 
   if (!stakingVaultAddress) {
     return <Navigate replace to={`/${lang}/not-found`} />;
+  }
+
+  if (address !== stakingVaultAddress) {
+    return (
+      <Navigate
+        replace
+        to={`/${lang}/earn/variable-yield/${stakingVaultAddress}${search}${hash}`}
+      />
+    );
   }
 
   return (
