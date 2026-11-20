@@ -16,10 +16,10 @@ vi.mock("../../src/hooks/borrow/useMarketData", () => ({
 }));
 
 const CurrentLocation = function () {
-  const { pathname, search } = useLocation();
+  const { hash, pathname, search } = useLocation();
 
   return (
-    <output aria-label="Current location">{`${pathname}${search}`}</output>
+    <output aria-label="Current location">{`${pathname}${search}${hash}`}</output>
   );
 };
 
@@ -49,16 +49,16 @@ const renderBorrowMarketDetails = async (initialEntry: string) =>
     </MemoryRouter>,
   );
 
-it("canonicalizes uppercase market IDs and preserves the query string", async function () {
+it("canonicalizes uppercase market IDs and preserves the query and hash", async function () {
   const [marketId] = marketIds;
   const uppercaseMarketId = `0x${marketId.slice(2).toUpperCase()}`;
   const screen = await renderBorrowMarketDetails(
-    `/en/borrow/${uppercaseMarketId}?source=deep-link`,
+    `/en/borrow/${uppercaseMarketId}?source=deep-link#details`,
   );
 
   await expect
     .element(screen.getByLabelText("Current location"))
-    .toHaveTextContent(`/en/borrow/${marketId}?source=deep-link`);
+    .toHaveTextContent(`/en/borrow/${marketId}?source=deep-link#details`);
 });
 
 it("redirects valid but unsupported market IDs to not-found", async function () {

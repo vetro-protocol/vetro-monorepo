@@ -147,7 +147,7 @@ const BorrowMarketDetailsContent = function ({ marketId }: { marketId: Hash }) {
 
 export const BorrowMarketDetails = function () {
   const { lang, marketId } = useParams<{ lang: string; marketId: Hash }>();
-  const { search } = useLocation();
+  const { hash, search } = useLocation();
   const canonicalMarketId =
     marketId &&
     isHash(marketId) &&
@@ -159,7 +159,10 @@ export const BorrowMarketDetails = function () {
 
   if (marketId !== canonicalMarketId) {
     return (
-      <Navigate replace to={`/${lang}/borrow/${canonicalMarketId}${search}`} />
+      <Navigate
+        replace
+        to={`/${lang}/borrow/${canonicalMarketId}${search}${hash}`}
+      />
     );
   }
 
