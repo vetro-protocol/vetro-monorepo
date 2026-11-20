@@ -9,30 +9,11 @@ import {
   warmScheduled,
 } from "../src/warm-cache.ts";
 
+import { createFakeKv } from "./utils/fake-kv.ts";
+
 vi.mock("@sentry/cloudflare", () => ({
   captureException: vi.fn(),
 }));
-
-// A minimal in-memory KV that records writes and lets tests force put failures.
-function createFakeKv({
-  putError,
-  store = {},
-}: {
-  putError?: Error;
-  store?: Record<string, unknown>;
-} = {}) {
-  const puts: { key: string; value: string }[] = [];
-  return {
-    get: vi.fn(async (key: string) => (key in store ? store[key] : null)),
-    put: vi.fn(async function (key: string, value: string) {
-      if (putError) {
-        throw putError;
-      }
-      puts.push({ key, value });
-    }),
-    puts,
-  };
-}
 
 // A fake Hono context that runs `waitUntil` work so tests can await writes.
 function createFakeContext(kv: unknown) {
@@ -143,7 +124,7 @@ describe("warm-cache/warmScheduled", function () {
     await warmScheduled({
       cron: "* * * * *",
       env: {} as Env,
-      kv: kv as unknown as KVNamespace,
+      kv: kv.kv,
       tasks: [task, other],
     });
 
@@ -163,7 +144,7 @@ describe("warm-cache/warmScheduled", function () {
     await warmScheduled({
       cron: "* * * * *",
       env: {} as Env,
-      kv: kv as unknown as KVNamespace,
+      kv: kv.kv,
       tasks: [task],
     });
 
@@ -186,7 +167,7 @@ describe("warm-cache/warmScheduled", function () {
     await warmScheduled({
       cron: "* * * * *",
       env: {} as Env,
-      kv: kv as unknown as KVNamespace,
+      kv: kv.kv,
       tasks: [globalTask],
     });
 
@@ -203,7 +184,7 @@ describe("warm-cache/warmScheduled", function () {
     await warmScheduled({
       cron: "* * * * *",
       env: {} as Env,
-      kv: kv as unknown as KVNamespace,
+      kv: kv.kv,
       tasks: [{ ...task, items: ["a"] }],
     });
 
