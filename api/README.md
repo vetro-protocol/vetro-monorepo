@@ -167,7 +167,7 @@ Amounts are raw strings in the pegged token's base units, and APYs and APRs are 
   "staked": "115850000000000000000000",
   "stakerApr": 10,
   "stakerPayouts": "11585000000000000000000",
-  "stakingVaultAddress": "0xC8317A10385BE07901A4c9ee3d06E1D83AE378c9"
+  "stakingVaultAddress": "0x476310E34D2810f7d79C43A74E4D79405bd7a925"
 }
 ```
 
