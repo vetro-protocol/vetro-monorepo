@@ -30,7 +30,6 @@ describe("fetchStakedUsd", function () {
     queryClient.setQueryData(
       vaultPeggedTokenQueryOptions({
         client,
-        queryClient,
         stakingVaultAddress: vault1,
       }).queryKey,
       vusd,
@@ -40,13 +39,12 @@ describe("fetchStakedUsd", function () {
         account,
         chainId: mainnet.id,
         client,
-        queryClient,
         stakingVaultAddress: vault1,
       }).queryKey,
       10n * 10n ** 18n,
     );
     // getTokenPrice looks up the uppercased symbol of the pegged token.
-    queryClient.setQueryData(pricesOptions({ client, queryClient }).queryKey, {
+    queryClient.setQueryData(pricesOptions({ client }).queryKey, {
       VUSD: "1",
     });
 
@@ -65,7 +63,6 @@ describe("fetchStakedUsd", function () {
     queryClient.setQueryData(
       vaultPeggedTokenQueryOptions({
         client,
-        queryClient,
         stakingVaultAddress: vault2,
       }).queryKey,
       usdc,
@@ -75,12 +72,11 @@ describe("fetchStakedUsd", function () {
         account,
         chainId: mainnet.id,
         client,
-        queryClient,
         stakingVaultAddress: vault2,
       }).queryKey,
       25n * 10n ** 6n,
     );
-    queryClient.setQueryData(pricesOptions({ client, queryClient }).queryKey, {
+    queryClient.setQueryData(pricesOptions({ client }).queryKey, {
       USDC: "1.1",
     } as Record<string, string>);
 
@@ -100,7 +96,6 @@ describe("fetchStakedUsd", function () {
     queryClient.setQueryData(
       vaultPeggedTokenQueryOptions({
         client,
-        queryClient,
         stakingVaultAddress: vault1,
       }).queryKey,
       vusd,
@@ -110,15 +105,11 @@ describe("fetchStakedUsd", function () {
         account,
         chainId: mainnet.id,
         client,
-        queryClient,
         stakingVaultAddress: vault1,
       }).queryKey,
       10n * 10n ** 18n,
     );
-    queryClient.setQueryData(
-      pricesOptions({ client, queryClient }).queryKey,
-      {},
-    );
+    queryClient.setQueryData(pricesOptions({ client }).queryKey, {});
 
     const result = await fetchStakedUsd({
       account,

@@ -1,4 +1,4 @@
-import { useQueries, useQueryClient } from "@tanstack/react-query";
+import { useQueries } from "@tanstack/react-query";
 import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { Badge } from "components/base/badge";
 import { DollarSign } from "components/base/dollarSign";
@@ -59,7 +59,6 @@ function FromPoolsBadge() {
   const { t } = useTranslation();
   const { address: account } = useAccount();
   const client = useEthereumClient();
-  const queryClient = useQueryClient();
 
   const balanceQueries = useQueries({
     queries: stakingVaultAddresses.map((stakingVaultAddress) =>
@@ -67,7 +66,6 @@ function FromPoolsBadge() {
         account,
         chainId: mainnet.id,
         client,
-        queryClient,
         stakingVaultAddress,
       }),
     ),

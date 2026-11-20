@@ -48,7 +48,6 @@ export const fetchRedeemGasUnits = async function ({
       chainId,
       client,
       gatewayAddress: token.gatewayAddress,
-      queryClient,
     }),
   );
 
@@ -70,7 +69,6 @@ export const fetchRedeemGasUnits = async function ({
         chainId,
         client,
         gatewayAddress: token.gatewayAddress,
-        queryClient,
       }),
     );
     const reserve = reserves.find((r) =>

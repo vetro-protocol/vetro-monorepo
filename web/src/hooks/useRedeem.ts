@@ -112,7 +112,6 @@ export const useRedeem = function ({
               chainId: mainnet.id,
               client: walletClient,
               gatewayAddress: peggedToken.gatewayAddress,
-              queryClient,
             }),
           )
           .then((redeemDelay) => redeemDelay > 0n),
@@ -210,7 +209,6 @@ export const useRedeem = function ({
           chainId: mainnet.id,
           client: walletClient,
           gatewayAddress: peggedToken.gatewayAddress,
-          queryClient,
         }),
       );
       if (hasDelay) {

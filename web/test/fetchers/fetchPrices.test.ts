@@ -83,7 +83,6 @@ const seed = function (
       oraclePricesOptions({
         client,
         gatewayAddress: gatewayAddress as Address,
-        queryClient,
       }).queryKey,
       dict,
     );

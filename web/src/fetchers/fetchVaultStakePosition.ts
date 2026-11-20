@@ -24,17 +24,15 @@ export const fetchVaultStakePosition = async function ({
     queryClient.ensureQueryData(
       vaultPeggedTokenQueryOptions({
         client,
-        queryClient,
         stakingVaultAddress,
       }),
     ),
-    queryClient.ensureQueryData(pricesOptions({ client, queryClient })),
+    queryClient.ensureQueryData(pricesOptions({ client })),
     queryClient.ensureQueryData(
       stakedBalanceQueryOptions({
         account,
         chainId,
         client,
-        queryClient,
         stakingVaultAddress,
       }),
     ),

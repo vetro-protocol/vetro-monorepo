@@ -27,7 +27,6 @@ export const useShareValueHistory = function ({
           chainId: client!.chain!.id,
           client: client!,
           peggedTokenAddress: peggedToken!.address,
-          queryClient,
         }),
       );
       const data: ApiEntry[] = await fetch(

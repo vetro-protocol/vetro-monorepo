@@ -1,9 +1,4 @@
-import {
-  queryOptions,
-  useQuery,
-  useQueryClient,
-  type QueryClient,
-} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { graphWhitelistedTokens } from "utils/protocolGraph";
 import type { Client } from "viem";
@@ -19,24 +14,17 @@ const placeholderData = graphTokens.every((tokens) => tokens !== undefined)
   ? graphTokens.flat()
   : undefined;
 
-const whitelistedTokensOptions = ({
-  client,
-  queryClient,
-}: {
-  client: Client | undefined;
-  queryClient: QueryClient;
-}) =>
+const whitelistedTokensOptions = ({ client }: { client: Client | undefined }) =>
   queryOptions({
     enabled: !!client && !!client.chain,
     placeholderData,
-    queryFn: () =>
+    queryFn: ({ client: queryClient }) =>
       Promise.all(
         gatewayAddresses.map((gatewayAddress) =>
           queryClient.ensureQueryData(
             whitelistedTokensByGatewayOptions({
               client: client!,
               gatewayAddress,
-              queryClient,
             }),
           ),
         ),
@@ -47,7 +35,6 @@ const whitelistedTokensOptions = ({
 
 export const useWhitelistedTokens = function () {
   const client = useEthereumClient();
-  const queryClient = useQueryClient();
 
-  return useQuery(whitelistedTokensOptions({ client, queryClient }));
+  return useQuery(whitelistedTokensOptions({ client }));
 };

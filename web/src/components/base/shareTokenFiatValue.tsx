@@ -43,7 +43,6 @@ export function ShareTokenFiatValue({ customFormatter, token, value }: Props) {
         queryClient.ensureQueryData(
           vaultPeggedTokenQueryOptions({
             client,
-            queryClient,
             stakingVaultAddress,
           }),
         ),

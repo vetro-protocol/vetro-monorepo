@@ -1,9 +1,4 @@
-import {
-  type QueryClient,
-  queryOptions,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { gatewayAddresses } from "@vetro-protocol/gateway";
 import type { TokenWithGateway } from "types";
 import { graphPeggedToken } from "utils/protocolGraph";
@@ -28,15 +23,13 @@ const placeholderData = graphTokensByGateway();
 
 export const peggedTokensByGatewayQueryOptions = ({
   client,
-  queryClient,
 }: {
   client: Client | undefined;
-  queryClient: QueryClient;
 }) =>
   queryOptions({
     enabled: !!client,
     placeholderData,
-    queryFn: () =>
+    queryFn: ({ client: queryClient }) =>
       Promise.all(
         gatewayAddresses.map((gatewayAddress) =>
           queryClient.ensureQueryData(
@@ -57,7 +50,6 @@ export const peggedTokensByGatewayQueryOptions = ({
 
 export const usePeggedTokensByGateway = function () {
   const client = useEthereumClient();
-  const queryClient = useQueryClient();
 
-  return useQuery(peggedTokensByGatewayQueryOptions({ client, queryClient }));
+  return useQuery(peggedTokensByGatewayQueryOptions({ client }));
 };

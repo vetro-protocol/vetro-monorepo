@@ -69,7 +69,6 @@ export const fetchPrices = async function ({
             oraclePricesOptions({
               client,
               gatewayAddress: gateway.address,
-              queryClient,
             }),
           ),
           fetchPeggedTokenSymbol({

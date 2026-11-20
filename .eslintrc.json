@@ -197,6 +197,10 @@
           {
             "message": "Name maps of Tailwind classes *Class, *Classes or *ClassName so better-tailwindcss lints them.",
             "selector": "JSXAttribute[name.name=/^(class|className)$/] MemberExpression[computed=true] > Identifier.object:not([name=/(Class|Classes|ClassName)$/])"
+          },
+          {
+            "message": "Do not take queryClient as a parameter of a queryOptions factory. Read it in the queryFn: queryFn: ({ client: queryClient }) => ...",
+            "selector": ":function:has(Identifier[name='queryClient'][typeAnnotation], ObjectPattern > Property[key.name='queryClient'], TSPropertySignature[key.name='queryClient']) CallExpression[callee.name='queryOptions']"
           }
         ]
       }
