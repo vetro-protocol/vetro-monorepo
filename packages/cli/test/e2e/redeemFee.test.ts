@@ -1,6 +1,8 @@
+import { gatewayAddresses } from "@vetro-protocol/gateway";
+import { getRedeemFee } from "@vetro-protocol/gateway/actions";
 import { describe, expect, inject, it } from "vitest";
 
-import { runCli, runCliRaw, usdc, vusd } from "./helpers.ts";
+import { createClients, runCli, runCliRaw, usdc, vusd } from "./helpers.ts";
 
 describe("swap redeem-fee", function () {
   const rpcUrl = inject("anvilUrl");
@@ -14,13 +16,23 @@ describe("swap redeem-fee", function () {
   ];
 
   it("reads the redeem fee by symbol", async function () {
+    const { publicClient } = createClients(rpcUrl);
+    const expected = await getRedeemFee(publicClient, {
+      address: gatewayAddresses[0],
+      token: usdc.address,
+    });
     const fee = await runCli(redeemFeeOnFork(["--token", usdc.symbol]));
-    expect(fee).toMatch(/^\d+$/);
+    expect(fee).toBe(expected.toString());
   });
 
   it("reads the redeem fee by address", async function () {
+    const { publicClient } = createClients(rpcUrl);
+    const expected = await getRedeemFee(publicClient, {
+      address: gatewayAddresses[0],
+      token: usdc.address,
+    });
     const fee = await runCli(redeemFeeOnFork(["--token", usdc.address]));
-    expect(fee).toMatch(/^\d+$/);
+    expect(fee).toBe(expected.toString());
   });
 
   it("rejects a pegged token", async function () {

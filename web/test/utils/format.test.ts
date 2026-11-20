@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   formatEvmAddress,
@@ -82,10 +82,6 @@ describe("utils/format", function () {
           return new NumberFormat(locales ?? "de-DE", options);
         },
       );
-    });
-
-    afterEach(function () {
-      vi.restoreAllMocks();
     });
 
     it("should preserve bigint precision while grouping with en-US separators", function () {

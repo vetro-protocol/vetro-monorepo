@@ -160,7 +160,7 @@ describe("variable-stake/getApy", function () {
   });
 
   it("omits a vault whose on-chain reads fail without breaking others", async function () {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    vi.spyOn(console, "warn").mockImplementation(() => undefined);
     setVaultState({
       [vaultA]: {
         rewardRate: 132275132275132275132275132275132n,
@@ -183,11 +183,10 @@ describe("variable-stake/getApy", function () {
     expect(result[vaultA].apy).toBeCloseTo(9.95, 1);
     // The failed vault is omitted entirely (frontend renders "-"), not zeroed.
     expect(result).not.toHaveProperty(vaultB);
-    warn.mockRestore();
   });
 
   it("omits a vault whose reward-rate read fails (not just the distributor lookup)", async function () {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    vi.spyOn(console, "warn").mockImplementation(() => undefined);
     setVaultState({
       [vaultA]: {
         rewardRate: 132275132275132275132275132275132n,
@@ -213,11 +212,10 @@ describe("variable-stake/getApy", function () {
 
     expect(result[vaultA].apy).toBeCloseTo(9.95, 1);
     expect(result).not.toHaveProperty(vaultB);
-    warn.mockRestore();
   });
 
   it("returns {} when every vault's reads fail (e.g. a bad RPC url)", async function () {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    vi.spyOn(console, "warn").mockImplementation(() => undefined);
     // Simulate an unreachable RPC: every distributor lookup rejects.
     vi.mocked(getYieldDistributor).mockRejectedValue(
       new Error("HTTP request failed"),
@@ -226,7 +224,6 @@ describe("variable-stake/getApy", function () {
     const result = await getApy({ rpcUrl });
 
     expect(result).toEqual({});
-    warn.mockRestore();
   });
 });
 

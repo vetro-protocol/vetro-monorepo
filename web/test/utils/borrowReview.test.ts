@@ -78,8 +78,8 @@ describe("utils/borrowReview", function () {
 
       const result = calculateHealthFactor({ morphoMarket, position });
 
-      expect(result).toBeTypeOf("number");
-      expect(result).toBeGreaterThan(0);
+      // 10 collateral * 1 price * 0.86 LLTV / 1000 debt = 0.0086
+      expect(result).toBe(0.0086);
     });
 
     it("returns null when health factor is undefined (no borrow)", function () {

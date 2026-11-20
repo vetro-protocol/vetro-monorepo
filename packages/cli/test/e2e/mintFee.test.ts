@@ -1,9 +1,18 @@
+import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { describe, expect, inject, it } from "vitest";
 
-import { runCli, runCliRaw, usdc, vusd } from "./helpers.ts";
+import {
+  runCli,
+  runCliRaw,
+  setMintFee,
+  usdc,
+  vusd,
+  withSnapshot,
+} from "./helpers.ts";
 
 describe("swap mint-fee", function () {
   const rpcUrl = inject("anvilUrl");
+  const mintFee = 123n;
 
   const mintFeeOnFork = (extra: string[] = []) => [
     "swap",
@@ -14,13 +23,35 @@ describe("swap mint-fee", function () {
   ];
 
   it("reads the mint fee by symbol", async function () {
-    const fee = await runCli(mintFeeOnFork(["--token", usdc.symbol]));
-    expect(fee).toMatch(/^\d+$/);
+    await withSnapshot({
+      rpcUrl,
+      async run() {
+        await setMintFee({
+          gateway: gatewayAddresses[0],
+          mintFee,
+          rpcUrl,
+          token: usdc.address,
+        });
+        const fee = await runCli(mintFeeOnFork(["--token", usdc.symbol]));
+        expect(fee).toBe(mintFee.toString());
+      },
+    });
   });
 
   it("reads the mint fee by address", async function () {
-    const fee = await runCli(mintFeeOnFork(["--token", usdc.address]));
-    expect(fee).toMatch(/^\d+$/);
+    await withSnapshot({
+      rpcUrl,
+      async run() {
+        await setMintFee({
+          gateway: gatewayAddresses[0],
+          mintFee,
+          rpcUrl,
+          token: usdc.address,
+        });
+        const fee = await runCli(mintFeeOnFork(["--token", usdc.address]));
+        expect(fee).toBe(mintFee.toString());
+      },
+    });
   });
 
   it("rejects a pegged token", async function () {

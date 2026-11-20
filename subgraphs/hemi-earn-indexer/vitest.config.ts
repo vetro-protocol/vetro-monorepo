@@ -5,6 +5,7 @@ export default defineConfig({
     clearMocks: true,
     hookTimeout: 15_000,
     pool: "forks",
+    restoreMocks: true,
     testTimeout: 15_000,
   },
 });
