@@ -1,7 +1,7 @@
 import { sVusdAddress } from "@vetro-protocol/earn";
 import { vusdGatewayAddress } from "@vetro-protocol/gateway";
 import type { Context } from "hono";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { getNetRevenue, toNetRevenue } from "../src/net-revenue.ts";
 import * as stakingVault from "../src/staking-vault.ts";
@@ -21,10 +21,6 @@ const stakerApy = Math.expm1(0.1) * 100;
 const stakerPayouts = 11_585_000_000_000_000_000_000n;
 
 describe("getNetRevenue", function () {
-  afterEach(function () {
-    vi.restoreAllMocks();
-  });
-
   it("handles the dependent APY rejection when the pegged-token lookup fails", async function () {
     const error = new Error("Pegged-token RPC read failed");
     vi.spyOn(yieldSummary, "readPeggedToken").mockRejectedValue(error);

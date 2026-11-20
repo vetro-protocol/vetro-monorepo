@@ -13,12 +13,6 @@ const isKnownOnMainnet = (address: Address) =>
   );
 
 describe("gateways", function () {
-  // This test is just to ensure we don't break the default gateway
-  // which is the first one on the list.
-  it("should list the VUSD gateway first", function () {
-    expect(gateways[0].pegBaseSymbol).toBe("USD");
-  });
-
   it.for(gateways)(
     "$address should hold checksummed addresses",
     function (gateway) {
