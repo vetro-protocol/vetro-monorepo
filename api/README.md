@@ -107,6 +107,70 @@ Get the composition of the treasury by whitelisted token for a given gateway. Ea
 ]
 ```
 
+### `GET /analytics/yield/:gatewayAddress`
+
+Get the Yield allocation of a gateway's Treasury: one item per active strategy and one reserve buffer item per whitelisted token, sorted by `balance`, largest first. Cached for 1 minute.
+`:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway. Fails if an oracle price is not positive.
+
+Amounts are raw strings in the pegged token's base units. APYs are percentages (`4.87` means 4.87%). A strategy item has no `apy` and no `projectedYield` when its APY is unknown. `total.apy` and `total.projectedYield` are nullable.
+
+#### Sample response
+
+```jsonc
+{
+  "items": [
+    {
+      "address": "0xe53c583767923E3e209ce6FD91f6C5D12AE9A308",
+      "apy": 3.269585328484523,
+      "balance": "4021006335000000000000",
+      "name": "Morpho SkyMoney USDT Savings",
+      "projectedYield": "131470233167110528800",
+      "source": {
+        "protocol": "morpho",
+        "vaultAddress": "0x23f5E9c35820f4baB695Ac1F19c203cC3f8e1e11",
+      },
+      "token": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+      "type": "strategy",
+    },
+    {
+      "apy": 0,
+      "balance": "10937583900000000000",
+      "projectedYield": "0",
+      "token": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+      "type": "reserve",
+    },
+    // ...
+  ],
+  "total": {
+    "apy": 3.2607158187601577,
+    "balance": "4031943918900000000000",
+    "projectedYield": "131470233167110528800",
+  },
+}
+```
+
+### `GET /analytics/net-revenue/:gatewayAddress`
+
+Get the Net protocol revenue of a gateway. Cached for 1 minute.
+`:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway. Fails in the same cases as `GET /analytics/yield`.
+
+Amounts are raw strings in the pegged token's base units, and APYs are percentages. `backendApy`, `backendBalance` and `backendYield` are the `total` of `GET /analytics/yield`. `netRevenue` can be negative. `backendApy`, `backendYield`, `netRevenue`, `stakerApy` and `stakerPayouts` are nullable.
+
+#### Sample response
+
+```json
+{
+  "backendApy": 4.87,
+  "backendBalance": "665790000000000000000000",
+  "backendYield": "32430000000000000000000",
+  "netRevenue": "20254165000000000000000",
+  "staked": "115850000000000000000000",
+  "stakerApy": 10.51,
+  "stakerPayouts": "12175835000000000000000",
+  "stakingVaultAddress": "0xC8317A10385BE07901A4c9ee3d06E1D83AE378c9"
+}
+```
+
 ### `GET /analytics/tvl-history/:gatewayAddress/:period`
 
 Returns the daily TVL history for a gateway's pegged token: the circulating supply, plus the Treasury's withdrawable holdings per whitelisted token. One record per UTC day, plus a live point for today.

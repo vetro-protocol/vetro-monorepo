@@ -187,6 +187,19 @@ The value of one share token in the pegged token, over time.
 
 The APY of the staking vault, over time.
 
+#### Net protocol revenue
+
+Compares the yield that the treasury earns with the yield that the staking vault pays to its stakers. All values are projections for one year, for one gateway:
+
+- **Backend yield earned**: the projected yield of the Yield allocation total (the sum of `balance × APY` of each strategy; the reserve buffer has a 0% APY).
+- **Treasury balance**: the balance of the Yield allocation total (the strategies plus the reserve buffer).
+- **Backend APY**: the APY of the Yield allocation total, weighted by balance.
+- **Paid to stakers**: the current APY of the staking vault × the staked amount (its `totalAssets`).
+- **Net protocol revenue**: backend yield − staker payouts. The card also shows it per month (÷ 12).
+- **Coverage ratio**: backend yield ÷ staker payouts.
+
+The status is "Net positive" when the net is above zero, "Net negative" when it is below zero, and "Breakeven" when it shows as "$0". When a strategy with a balance has no APY, the backend yield is unknown, and the card shows "-" for it and for the values that depend on it.
+
 #### Yield allocation
 
 The active strategies, with the balance that each one has (its debt in the treasury vault). The **reserve buffer** is the part not in a strategy: the treasury `withdrawable` minus the total debt of the vault.
@@ -196,7 +209,7 @@ Each strategy also shows its APY and its projected yield per year (balance × AP
 - **Native APY**: the current net APY that the protocol of the strategy reports. For a Morpho vault, it is the current rate after fees. For a Lagoon vault, it is the realized rate between settlements over the last month, after fees and without rewards, compounded to one year. For a young Lagoon vault, it is the rate since inception. For a Curve pool, it is the base APY of the pool.
 - **Incentive APR**: only the incentives paid on the position that the strategy holds, for example Merkl campaigns or StakeDAO rewards.
 
-The reserve buffer has a 0% APY. When the API cannot calculate the APY of a strategy, the page shows "-".
+The reserve buffer has a 0% APY. When the API cannot calculate the APY of a strategy, the page shows "-". If that strategy has a balance, the Total row also shows "-" for the APY and the projected yield.
 
 ### Liquidity
 

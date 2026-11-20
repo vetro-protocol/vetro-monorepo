@@ -34,6 +34,7 @@ import {
 import { addIncentives } from "./liquidity/incentives.ts";
 import { venues } from "./liquidity/index.ts";
 import { excludeLowTvlPools } from "./liquidity/low-tvl.ts";
+import { getNetRevenue } from "./net-revenue.ts";
 import {
   validateAddress,
   validateGatewayAddress,
@@ -69,6 +70,7 @@ import {
   tvlTask,
   warmTasks,
 } from "./warm-tasks.ts";
+import { getYieldSummary } from "./yield-summary.ts";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -166,6 +168,46 @@ app.get(
       return c.json(data);
     } catch (error) {
       throw new Error(`Failed to get treasury composition: ${error.message}`);
+    }
+  },
+);
+
+app.get(
+  "/analytics/yield/:gatewayAddress",
+  validateGatewayAddress,
+  cache({
+    cacheControl: "max-age=60",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const data = await getYieldSummary({
+        c,
+        gatewayAddress: c.get("gatewayAddress"),
+      });
+      return c.json(convertBigIntsToString(data));
+    } catch (error) {
+      throw new Error(`Failed to get yield summary: ${error.message}`);
+    }
+  },
+);
+
+app.get(
+  "/analytics/net-revenue/:gatewayAddress",
+  validateGatewayAddress,
+  cache({
+    cacheControl: "max-age=60",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const data = await getNetRevenue({
+        c,
+        gatewayAddress: c.get("gatewayAddress"),
+      });
+      return c.json(convertBigIntsToString(data));
+    } catch (error) {
+      throw new Error(`Failed to get net revenue: ${error.message}`);
     }
   },
 );
