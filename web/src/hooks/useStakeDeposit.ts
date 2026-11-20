@@ -14,7 +14,7 @@ import {
   type TransactionReceipt,
   isAddressEqual,
 } from "viem";
-import { waitForTransactionReceipt } from "viem/actions";
+import { getTransactionReceipt, waitForTransactionReceipt } from "viem/actions";
 import { useAccount } from "wagmi";
 
 import { costBasisQueryKey } from "./useCostBasis";
@@ -132,21 +132,33 @@ export const useStakeDeposit = function ({
         );
       };
 
-      if (pendingHash) {
+      // The activity of a reverted stake is already failed, so Retry sends a
+      // new deposit without tracking the reverted hash again.
+      const minedReceipt = pendingHash
+        ? await getTransactionReceipt(walletClient!, {
+            hash: pendingHash,
+          }).catch(() => undefined)
+        : undefined;
+
+      if (pendingHash && minedReceipt?.status !== "reverted") {
         onTransactionHash?.({ hash: pendingHash, variables });
+        if (minedReceipt) {
+          handleDepositSucceeded(minedReceipt);
+          return;
+        }
         onStatusChange?.({ status: "depositing", variables });
         const pendingReceipt = await waitForTransactionReceipt(walletClient!, {
           hash: pendingHash,
         }).catch(() => undefined);
-        if (!pendingReceipt) {
-          onStatusChange?.({ status: "deposit-failed", variables });
-          return;
-        }
-        if (pendingReceipt.status === "success") {
+        if (pendingReceipt?.status === "success") {
           handleDepositSucceeded(pendingReceipt);
           return;
         }
-        updateNativeBalanceAfterReceipt(pendingReceipt);
+        if (pendingReceipt) {
+          updateNativeBalanceAfterReceipt(pendingReceipt);
+        }
+        onStatusChange?.({ status: "deposit-failed", variables });
+        return;
       }
 
       const { emitter, promise } = deposit(walletClient!, {
