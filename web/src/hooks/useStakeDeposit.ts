@@ -16,7 +16,11 @@ import {
   type WalletClient,
   isAddressEqual,
 } from "viem";
-import { getTransactionReceipt, waitForTransactionReceipt } from "viem/actions";
+import {
+  getTransaction,
+  getTransactionReceipt,
+  waitForTransactionReceipt,
+} from "viem/actions";
 import { useAccount } from "wagmi";
 
 import { costBasisQueryKey } from "./useCostBasis";
@@ -49,6 +53,26 @@ type Params = {
     variables: Variables;
   }) => void;
   onTransactionHash?: (params: { hash: Hash; variables: Variables }) => void;
+};
+
+const getPendingDeposit = async function ({
+  client,
+  hash,
+}: {
+  client: WalletClient;
+  hash: Hash;
+}) {
+  const receipt = await getTransactionReceipt(client, { hash }).catch(
+    () => undefined,
+  );
+  if (receipt) {
+    return { canResume: receipt.status === "success", receipt };
+  }
+  const canResume = await getTransaction(client, { hash }).then(
+    () => true,
+    () => false,
+  );
+  return { canResume, receipt };
 };
 
 const waitForPendingDeposit = async function ({
@@ -160,14 +184,13 @@ export const useStakeDeposit = function ({
       };
 
       // The activity of a reverted stake is already failed, so Retry sends a
-      // new deposit without tracking the reverted hash again.
-      const minedReceipt = pendingHash
-        ? await getTransactionReceipt(walletClient!, {
-            hash: pendingHash,
-          }).catch(() => undefined)
-        : undefined;
+      // new deposit without tracking the reverted hash again. A dropped or
+      // already replaced hash is never mined, so Retry also sends a new one.
+      const { canResume, receipt: minedReceipt } = pendingHash
+        ? await getPendingDeposit({ client: walletClient!, hash: pendingHash })
+        : { canResume: false, receipt: undefined };
 
-      if (pendingHash && minedReceipt?.status !== "reverted") {
+      if (pendingHash && canResume) {
         onTransactionHash?.({ hash: pendingHash, variables });
         if (minedReceipt) {
           handleDepositSucceeded(minedReceipt);
