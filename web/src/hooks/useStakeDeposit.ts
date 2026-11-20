@@ -11,7 +11,9 @@ import { type CostBases, bumpCostBasis } from "utils/costBasis";
 import {
   type Address,
   type Hash,
+  type ReplacementReturnType,
   type TransactionReceipt,
+  type WalletClient,
   isAddressEqual,
 } from "viem";
 import { getTransactionReceipt, waitForTransactionReceipt } from "viem/actions";
@@ -47,6 +49,31 @@ type Params = {
     variables: Variables;
   }) => void;
   onTransactionHash?: (params: { hash: Hash; variables: Variables }) => void;
+};
+
+const waitForPendingDeposit = async function ({
+  client,
+  hash,
+  onRepriced,
+}: {
+  client: WalletClient;
+  hash: Hash;
+  onRepriced: (replacementHash: Hash) => void;
+}) {
+  let replacement: ReplacementReturnType | undefined;
+  const receipt = await waitForTransactionReceipt(client, {
+    hash,
+    onReplaced(replaced) {
+      replacement = replaced;
+    },
+  }).catch(() => undefined);
+  if (replacement?.reason === "repriced") {
+    onRepriced(replacement.transaction.hash);
+  }
+  return {
+    isDeposit: !replacement || replacement.reason === "repriced",
+    receipt,
+  };
 };
 
 export const useStakeDeposit = function ({
@@ -147,10 +174,14 @@ export const useStakeDeposit = function ({
           return;
         }
         onStatusChange?.({ status: "depositing", variables });
-        const pendingReceipt = await waitForTransactionReceipt(walletClient!, {
-          hash: pendingHash,
-        }).catch(() => undefined);
-        if (pendingReceipt?.status === "success") {
+        const { isDeposit, receipt: pendingReceipt } =
+          await waitForPendingDeposit({
+            client: walletClient!,
+            hash: pendingHash,
+            onRepriced: (hash: Hash) =>
+              onTransactionHash?.({ hash, variables }),
+          });
+        if (isDeposit && pendingReceipt?.status === "success") {
           handleDepositSucceeded(pendingReceipt);
           return;
         }
