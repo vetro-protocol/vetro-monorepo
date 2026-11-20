@@ -87,7 +87,7 @@
       "net-revenue-coverage-breakeven": "backend yield exactly covers staker payouts",
       "net-revenue-coverage-negative": "backend yield covers {{percentage}} of staker payouts",
       "net-revenue-coverage-positive": "backend yield covers staker payouts {{ratio}}×",
-      "net-revenue-footnote": "Projection based on current balances, strategy APYs and the current {{shareSymbol}} APY. Actual revenue will vary as rates, allocations and staked amounts change.",
+      "net-revenue-footnote": "Projection based on current balances, strategy APYs and the current {{shareSymbol}} APR. Actual revenue will vary as rates, allocations and staked amounts change.",
       "net-revenue-kept-sublabel": "Kept by the protocol",
       "net-revenue-label": "Net protocol revenue",
       "net-revenue-paid-label": "Paid to {{shareSymbol}} stakers",

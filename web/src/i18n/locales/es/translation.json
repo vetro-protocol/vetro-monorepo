@@ -87,7 +87,7 @@
       "net-revenue-coverage-breakeven": "el yield del backend cubre exactamente los pagos a los stakers",
       "net-revenue-coverage-negative": "el yield del backend cubre el {{percentage}} de los pagos a los stakers",
       "net-revenue-coverage-positive": "el yield del backend cubre {{ratio}}× los pagos a los stakers",
-      "net-revenue-footnote": "Proyección basada en los saldos actuales, las TEA de las estrategias y la TEA actual de {{shareSymbol}}. Los ingresos reales variarán según cambien las tasas, las asignaciones y los montos en stake.",
+      "net-revenue-footnote": "Proyección basada en los saldos actuales, las TEA de las estrategias y la TNA actual de {{shareSymbol}}. Los ingresos reales variarán según cambien las tasas, las asignaciones y los montos en stake.",
       "net-revenue-kept-sublabel": "Retenido por el protocolo",
       "net-revenue-label": "Ingresos netos del protocolo",
       "net-revenue-paid-label": "Pagado a los stakers de {{shareSymbol}}",
