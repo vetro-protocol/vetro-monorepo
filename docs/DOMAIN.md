@@ -152,42 +152,37 @@ Key terms: **health factor** (above 1.0 safe; at/below 1.0 liquidatable), **LTV*
 
 ### Analytics
 
-"Monitor protocol analytics." A read-only dashboard of protocol health, per pegged token. The data comes from `api/`, and the page shows amounts in USD. The cards:
+"Monitor protocol analytics." A read-only dashboard of protocol health, per pegged token. The data comes from `api/`, and the page shows amounts in USD. Under the gateway filter, two tabs split the cards: **Overview** (the default) and **Accounting**. The URL keeps the selected tab (`?tab=`), and the tab stays the same when the user selects a different gateway.
 
-#### TVL
+#### Overview
+
+##### TVL
 
 The circulating supply of the pegged token. The breakdown shows the whitelisted tokens that back it: the treasury `withdrawable` of each token (idle funds plus funds in strategies), in USD.
 
-#### Collateralization ratio
-
-The backing divided by the circulating supply. The backing is the sum of two parts:
-
-- **Strategic reserves**: VUSD-meta vault shares that the treasury, the UMM role and the Vetro multisig hold, valued at their redeem value. Only the VUSD gateway has them.
-- **Liquid reserves**: the treasury `withdrawable` of each whitelisted token, converted to the pegged token at the gateway redeem rate.
-
-The **surplus** is the backing minus the supply. When it is negative, the card shows it as a **deficit**.
-
-#### Historic TVL
+##### Historic TVL
 
 The TVL breakdown over time, with one point per UTC day.
 
-#### Staked
+##### Staked
 
 The pegged token in the staking vault (its `totalAssets`).
 
-#### Exit cooldown
+##### Exit cooldown
 
 The value of the open exit tickets, in the pegged token.
 
-#### Share ratio
+##### Share ratio
 
 The value of one share token in the pegged token, over time.
 
-#### APY history
+##### APY history
 
 The APY of the staking vault, over time.
 
-#### Net protocol revenue
+#### Accounting
+
+##### Net protocol revenue
 
 Compares the yield that the treasury earns with the yield that the staking vault pays to its stakers. All values are projections for one year, for one gateway:
 
@@ -200,7 +195,16 @@ Compares the yield that the treasury earns with the yield that the staking vault
 
 The status is "Net positive" when the net is above zero, "Net negative" when it is below zero, and "Breakeven" when it shows as "$0". When a strategy with a balance has no APY, the backend yield is unknown, and the card shows "-" for it and for the values that depend on it.
 
-#### Yield allocation
+##### Collateralization ratio
+
+The backing divided by the circulating supply. The backing is the sum of two parts:
+
+- **Strategic reserves**: VUSD-meta vault shares that the treasury, the UMM role and the Vetro multisig hold, valued at their redeem value. Only the VUSD gateway has them.
+- **Liquid reserves**: the treasury `withdrawable` of each whitelisted token, converted to the pegged token at the gateway redeem rate.
+
+The **surplus** is the backing minus the supply. When it is negative, the card shows it as a **deficit**.
+
+##### Yield allocation
 
 The active strategies, with the balance that each one has (its debt in the treasury vault). The **reserve buffer** is the part not in a strategy: the treasury `withdrawable` minus the total debt of the vault.
 

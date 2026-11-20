@@ -75,6 +75,7 @@
   },
   "pages": {
     "analytics": {
+      "accounting-tab": "Contabilidad",
       "backing-reserves-label": "Reservas de respaldo",
       "collateralization-ratio-label": "Ratio de colateralización",
       "deficit-label": "Déficit (subcolateralizado {{percentage}})",
@@ -100,6 +101,7 @@
       "net-revenue-status-breakeven": "Equilibrio",
       "net-revenue-status-negative": "Neto negativo",
       "net-revenue-status-positive": "Neto positivo",
+      "overview-tab": "Resumen",
       "strategic-reserves-label": "Reservas estratégicas",
       "supply-label": "Suministro de {{symbol}} (canjeable 1:1)",
       "surplus-label": "Excedente (sobrecolateralizado {{percentage}})",
