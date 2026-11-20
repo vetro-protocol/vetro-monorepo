@@ -212,7 +212,7 @@ export function ClaimRedeemProgressDrawer({
       </DrawerFeesContainer>
       {steps.length > 0 && (
         <div className="mt-auto flex flex-col gap-2 px-6 pb-6">
-          <p className="text-[11px] leading-4 font-medium tracking-wide text-gray-500">
+          <p className="text-xss leading-4 font-medium tracking-wide text-gray-500">
             {t("pages.swap.progress.swap-progress")}
           </p>
           <div className="border-t border-gray-200">

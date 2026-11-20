@@ -5,7 +5,7 @@ import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
 import type { FetchStatus, QueryStatus } from "@tanstack/react-query";
 import { ApproveSection } from "components/approveSection";
 import { RenderFiatValue } from "components/base/fiatValue";
-import { Toast } from "components/base/toast";
+import { Toast, type ToastContent } from "components/base/toast";
 import { FormSection, FormSectionItem } from "components/feesContainer";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenDropdown } from "components/tokenDropdown";
@@ -35,10 +35,12 @@ import { Form } from "./form";
 import { OutputLabel } from "./outputLabel";
 import { RedeemQueueSection } from "./redeemQueueSection";
 import { SlippageSettings } from "./slippageSettings";
+import { StakeSection } from "./stakeSection";
 import { SubmitButton } from "./submitButton";
 import { type DepositFlowStatus, SwapDepositDrawer } from "./swapDepositDrawer";
 import { SwapFees } from "./swapFees";
 import { TreasuryReserves } from "./treasuryReserves";
+import { useStakeAfterSwap } from "./useStakeAfterSwap";
 
 type Props = {
   amountBigInt: bigint;
@@ -85,13 +87,7 @@ export function Deposit({
   const { t } = useTranslation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [flowStatus, setFlowStatus] = useState<DepositFlowStatus>("idle");
-  const [showToast, setShowToast] = useState(false);
-  const [toastData, setToastData] = useState({
-    fromAmount: "",
-    fromSymbol: "",
-    toAmount: "",
-    toSymbol: "",
-  });
+  const [toast, setToast] = useState<ToastContent | null>(null);
 
   const handleDrawerClose = useCallback(
     function handleDrawerClose() {
@@ -165,6 +161,14 @@ export function Deposit({
       title: t("nav.swap"),
     });
 
+  const stakeAfterSwap = useStakeAfterSwap({
+    approve10x,
+    depositPreview,
+    onSuccess: setToast,
+    outputValue,
+    peggedToken: toToken,
+  });
+
   const depositMutation = useDeposit({
     amountIn: amountBigInt,
     approveAmount,
@@ -190,16 +194,22 @@ export function Deposit({
         onFailed();
         setFlowStatus("deposit-error");
       });
-      emitter.on("deposit-transaction-succeeded", function () {
+      emitter.on("deposit-transaction-succeeded", function (receipt) {
         onCompleted();
         setFlowStatus("deposited");
-        setToastData({
-          fromAmount: formatNumber(fromInputValue),
-          fromSymbol: fromToken.symbol,
-          toAmount: formatNumber(outputValue),
-          toSymbol: toToken.symbol,
+        if (stakeAfterSwap.enabled) {
+          stakeAfterSwap.onMinted(receipt.logs);
+          return;
+        }
+        setToast({
+          description: t("pages.swap.toast.swap-success-description", {
+            fromAmount: formatNumber(fromInputValue),
+            fromSymbol: fromToken.symbol,
+            toAmount: formatNumber(outputValue),
+            toSymbol: toToken.symbol,
+          }),
+          title: t("pages.swap.toast.swap-success-title"),
         });
-        setShowToast(true);
         watchToken();
       });
       emitter.on("deposit-transaction-reverted", function () {
@@ -240,6 +250,7 @@ export function Deposit({
     approveAmount,
     fromToken,
     minPeggedTokenOut,
+    stake: stakeAfterSwap.feeStake,
   });
 
   // This is measured in {token} units - paid to the Vetro contracts
@@ -255,6 +266,7 @@ export function Deposit({
     approveAmount,
     fromToken,
     minPeggedTokenOut,
+    stake: stakeAfterSwap.feeStake,
   });
 
   const balancesLoaded =
@@ -264,11 +276,26 @@ export function Deposit({
     depositPreview === undefined ||
     needsApproval === undefined ||
     tokenConfig === undefined ||
-    (maxMint === undefined && !isMaxMintError);
+    (maxMint === undefined && !isMaxMintError) ||
+    stakeAfterSwap.isLoading;
+
+  const isAllowanceError = () =>
+    isNeedsApprovalError || stakeAfterSwap.isAllowanceError;
+
+  const mint = function (withApproval: boolean) {
+    setFlowStatus(withApproval ? "approving" : "deposit-ready");
+    depositMutation.mutate(undefined, {
+      onError: () =>
+        setFlowStatus(withApproval ? "approve-error" : "deposit-error"),
+    });
+  };
 
   const handleRetry = function () {
-    setFlowStatus(startedWithApproval ? "approving" : "deposit-ready");
-    depositMutation.mutate();
+    if (flowStatus === "deposited") {
+      stakeAfterSwap.retry();
+      return;
+    }
+    mint(startedWithApproval);
   };
 
   function handleSubmit(e: FormEvent) {
@@ -280,8 +307,8 @@ export function Deposit({
       depositPreview !== undefined
     ) {
       setStartedWithApproval(!!needsApproval);
-      setFlowStatus(needsApproval ? "approving" : "deposit-ready");
-      depositMutation.mutate();
+      stakeAfterSwap.start();
+      mint(!!needsApproval);
       setIsDrawerOpen(true);
     }
   }
@@ -333,16 +360,21 @@ export function Deposit({
         }
       >
         <SubmitButton
-          actionText={t("pages.swap.form.swap")}
+          actionText={t(
+            stakeAfterSwap.enabled
+              ? "pages.swap.form.swap-and-stake"
+              : "pages.swap.form.swap",
+          )}
           inputError={inputError}
           isActive={tokenConfig?.depositActive}
           isActiveError={isTokenConfigError}
-          isAllowanceError={isNeedsApprovalError}
+          isAllowanceError={isAllowanceError()}
           isLoading={isLoading()}
           isPreviewError={isDepositPreviewError}
         />
       </Form>
       <FormSection show={amountBigInt !== 0n}>
+        <StakeSection {...stakeAfterSwap.toggle} peggedToken={toToken} />
         <FormSectionItem>
           <ApproveSection active={approve10x} onToggle={onToggleApprove10x} />
         </FormSectionItem>
@@ -356,6 +388,7 @@ export function Deposit({
             <OutputLabel
               fromToken={fromToken}
               oracleToken={fromToken.address}
+              stakeTarget={stakeAfterSwap.stakeTarget}
               toToken={toToken}
               unitPreview={unitDepositPreview}
             />
@@ -384,19 +417,17 @@ export function Deposit({
           outputValue={outputValue}
           protocolFee={protocolFeeQueryData}
           showApproveStep={startedWithApproval}
+          stake={stakeAfterSwap.drawerStake}
           toToken={toToken}
           totalFees={totalMintFeesQueryData}
           unitPreview={unitDepositPreview}
         />
       )}
-      {showToast && (
+      {toast && (
         <Toast
-          description={t(
-            "pages.swap.toast.swap-success-description",
-            toastData,
-          )}
-          onClose={() => setShowToast(false)}
-          title={t("pages.swap.toast.swap-success-title")}
+          description={toast.description}
+          onClose={() => setToast(null)}
+          title={toast.title}
         />
       )}
     </>

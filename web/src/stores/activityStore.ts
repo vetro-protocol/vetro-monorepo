@@ -43,14 +43,27 @@ function write(address: Address, activities: Activity[]) {
   notify();
 }
 
+export const upsertActivity = ({
+  activities,
+  activity,
+}: {
+  activities: Activity[];
+  activity: Activity;
+}) =>
+  activities.some((a) => a.txHash === activity.txHash)
+    ? activities.map((a) =>
+        a.txHash === activity.txHash ? { ...a, status: activity.status } : a,
+      )
+    : [activity, ...activities];
+
 export function addActivity(address: Address, activity: Activity) {
-  write(address, [activity, ...read(address)]);
+  write(address, upsertActivity({ activities: read(address), activity }));
 }
 
 export function updateActivity(
   address: Address,
   txHash: string,
-  updates: Partial<Omit<Activity, "txHash">>,
+  updates: Partial<Activity>,
 ) {
   write(
     address,
