@@ -91,7 +91,7 @@
       "net-revenue-kept-sublabel": "Retenido por el protocolo",
       "net-revenue-label": "Ingresos netos del protocolo",
       "net-revenue-paid-label": "Pagado a los stakers de {{shareSymbol}}",
-      "net-revenue-paid-sublabel": "{{apy}} sobre {{amount}} en stake",
+      "net-revenue-paid-sublabel": "{{apr}} TNA sobre {{amount}} en stake",
       "net-revenue-per-month": "{{amount}} por mes",
       "net-revenue-per-year": "/ año",
       "net-revenue-share-of-backend": "{{percentage}} del yield del backend",

@@ -194,7 +194,7 @@ Compares the yield that the treasury earns with the yield that the staking vault
 - **Backend yield earned**: the projected yield of the Yield allocation total (the sum of `balance × APY` of each strategy; the reserve buffer has a 0% APY).
 - **Treasury balance**: the balance of the Yield allocation total (the strategies plus the reserve buffer).
 - **Backend APY**: the APY of the Yield allocation total, weighted by balance.
-- **Paid to stakers**: the current APY of the staking vault × the staked amount (its `totalAssets`).
+- **Paid to stakers**: the current APR of the staking vault × the staked amount (its `totalAssets`).
 - **Net protocol revenue**: backend yield − staker payouts. The card also shows it per month (÷ 12).
 - **Coverage ratio**: backend yield ÷ staker payouts.
 

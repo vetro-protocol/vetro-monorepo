@@ -120,7 +120,7 @@ type NetRevenueValues = {
   backendYield: number | null;
   netRevenue: number | null;
   staked: number;
-  stakerApy: number | null;
+  stakerApr: number | null;
   stakerPayouts: number | null;
 };
 
@@ -168,9 +168,9 @@ const toItems = function ({
       subLabel: joinParts([
         t("pages.analytics.net-revenue-paid-sublabel", {
           amount: formatUsd(values.staked),
-          apy: formatOrDash({
+          apr: formatOrDash({
             format: formatPercentage,
-            value: values.stakerApy,
+            value: values.stakerApr,
           }),
         }),
         status !== "negative" &&
@@ -297,7 +297,7 @@ export const NetRevenueCard = function ({
       backendYield: toUsdOrNull(data.backendYield),
       netRevenue: toUsdOrNull(data.netRevenue),
       staked: toUsd(data.staked),
-      stakerApy: data.stakerApy,
+      stakerApr: data.stakerApr,
       stakerPayouts: toUsdOrNull(data.stakerPayouts),
     };
   };

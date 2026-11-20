@@ -13,8 +13,8 @@ type Story = StoryObj<typeof meta>;
 
 const stakerValues = {
   staked: 115_850,
-  stakerApy: 10.51,
-  stakerPayouts: 12_175.84,
+  stakerApr: 10,
+  stakerPayouts: 11_585,
 };
 
 export const NetPositive: Story = {
@@ -27,7 +27,7 @@ export const NetPositive: Story = {
       backendApy: 4.87,
       backendBalance: 665_790,
       backendYield: 32_434.27,
-      netRevenue: 20_258.43,
+      netRevenue: 20_849.27,
     },
   },
 };
@@ -40,7 +40,7 @@ export const NetNegative: Story = {
       backendApy: 4.87,
       backendBalance: 166_740,
       backendYield: 8_120.24,
-      netRevenue: -4_055.6,
+      netRevenue: -3_464.76,
     },
   },
 };
@@ -51,8 +51,8 @@ export const Breakeven: Story = {
     values: {
       ...stakerValues,
       backendApy: 4.87,
-      backendBalance: 250_100,
-      backendYield: 12_175.84,
+      backendBalance: 237_885,
+      backendYield: 11_585,
       netRevenue: 0,
     },
   },

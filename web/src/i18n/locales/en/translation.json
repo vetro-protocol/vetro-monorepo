@@ -91,7 +91,7 @@
       "net-revenue-kept-sublabel": "Kept by the protocol",
       "net-revenue-label": "Net protocol revenue",
       "net-revenue-paid-label": "Paid to {{shareSymbol}} stakers",
-      "net-revenue-paid-sublabel": "{{apy}} on {{amount}} staked",
+      "net-revenue-paid-sublabel": "{{apr}} APR on {{amount}} staked",
       "net-revenue-per-month": "{{amount}} per month",
       "net-revenue-per-year": "/ year",
       "net-revenue-share-of-backend": "{{percentage}} of backend yield",

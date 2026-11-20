@@ -154,7 +154,7 @@ Amounts are raw strings in the pegged token's base units. Each balance uses the 
 Get the Net protocol revenue of a gateway. Cached for 1 minute.
 `:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway. Returns `500` in the same cases as `GET /analytics/yield`, and if no staking vault holds the gateway's pegged token.
 
-Amounts are raw strings in the pegged token's base units, and APYs are percentages. `backendApy`, `backendBalance` and `backendYield` are the `total` of `GET /analytics/yield`. `netRevenue` can be negative. `backendApy`, `backendYield`, `netRevenue`, `stakerApy` and `stakerPayouts` are nullable.
+Amounts are raw strings in the pegged token's base units, and APYs and APRs are percentages. `backendApy`, `backendBalance` and `backendYield` are the `total` of `GET /analytics/yield`. `stakerApr` is the APR of `GET /variable-stake/apy` for the staking vault. `stakerPayouts` is `stakerApr` × `staked`. `netRevenue` can be negative. `backendApy`, `backendYield`, `netRevenue`, `stakerApr` and `stakerPayouts` are nullable.
 
 #### Sample response
 
@@ -163,10 +163,10 @@ Amounts are raw strings in the pegged token's base units, and APYs are percentag
   "backendApy": 4.87,
   "backendBalance": "665790000000000000000000",
   "backendYield": "32430000000000000000000",
-  "netRevenue": "20254165000000000000000",
+  "netRevenue": "20845000000000000000000",
   "staked": "115850000000000000000000",
-  "stakerApy": 10.51,
-  "stakerPayouts": "12175835000000000000000",
+  "stakerApr": 10,
+  "stakerPayouts": "11585000000000000000000",
   "stakingVaultAddress": "0xC8317A10385BE07901A4c9ee3d06E1D83AE378c9"
 }
 ```

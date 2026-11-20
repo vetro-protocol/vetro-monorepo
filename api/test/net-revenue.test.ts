@@ -8,18 +8,20 @@ const backendTotal = {
   projectedYield: 32_430_000_000_000_000_000_000n,
 };
 const staked = 115_850_000_000_000_000_000_000n;
-// 115,850 × 10.51%
-const stakerPayouts = 12_175_835_000_000_000_000_000n;
+// The continuous-compounding APY of a 10% APR
+const stakerApy = Math.expm1(0.1) * 100;
+// 115,850 × 10%
+const stakerPayouts = 11_585_000_000_000_000_000_000n;
 
 describe("toNetRevenue", function () {
-  it("returns a positive net revenue when the backend yield covers the payouts", function () {
-    expect(toNetRevenue({ backendTotal, staked, stakerApy: 10.51 })).toEqual({
+  it("pays the stakers the APR of the staking APY", function () {
+    expect(toNetRevenue({ backendTotal, staked, stakerApy })).toEqual({
       backendApy: 4.87,
       backendBalance: backendTotal.balance,
       backendYield: backendTotal.projectedYield,
-      netRevenue: 20_254_165_000_000_000_000_000n,
+      netRevenue: 20_845_000_000_000_000_000_000n,
       staked,
-      stakerApy: 10.51,
+      stakerApr: expect.closeTo(10, 10),
       stakerPayouts,
     });
   });
@@ -28,18 +30,18 @@ describe("toNetRevenue", function () {
     const result = toNetRevenue({
       backendTotal: { ...backendTotal, projectedYield: 1_000n * 10n ** 18n },
       staked,
-      stakerApy: 10.51,
+      stakerApy,
     });
 
     expect(result.stakerPayouts).toBe(stakerPayouts);
-    expect(result.netRevenue).toBe(-11_175_835_000_000_000_000_000n);
+    expect(result.netRevenue).toBe(-10_585_000_000_000_000_000_000n);
   });
 
   it("returns null values when the backend yield is unknown", function () {
     const result = toNetRevenue({
       backendTotal: { ...backendTotal, apy: null, projectedYield: null },
       staked,
-      stakerApy: 10.51,
+      stakerApy,
     });
 
     expect(result).toEqual(
@@ -58,7 +60,7 @@ describe("toNetRevenue", function () {
     expect(result).toEqual(
       expect.objectContaining({
         netRevenue: null,
-        stakerApy: null,
+        stakerApr: null,
         stakerPayouts: null,
       }),
     );
@@ -70,7 +72,7 @@ describe("toNetRevenue", function () {
     expect(result).toEqual(
       expect.objectContaining({
         netRevenue: null,
-        stakerApy: null,
+        stakerApr: null,
         stakerPayouts: null,
       }),
     );

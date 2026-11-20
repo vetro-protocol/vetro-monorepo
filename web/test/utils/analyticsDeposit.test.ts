@@ -45,7 +45,7 @@ const netRevenueData = {
   backendYield: 40n,
   netRevenue: 10n,
   staked: 300n,
-  stakerApy: 10,
+  stakerApr: 10,
   stakerPayouts: 30n,
   stakingVaultAddress: strategy,
 };

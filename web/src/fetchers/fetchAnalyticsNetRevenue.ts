@@ -9,7 +9,7 @@ type NetRevenueResponse = {
   backendYield: string | null;
   netRevenue: string | null;
   staked: string;
-  stakerApy: number | null;
+  stakerApr: number | null;
   stakerPayouts: string | null;
   stakingVaultAddress: Address;
 };
@@ -29,7 +29,7 @@ export const fetchAnalyticsNetRevenue = async function (
     backendYield: toBigIntOrNull(data.backendYield),
     netRevenue: toBigIntOrNull(data.netRevenue),
     staked: BigInt(data.staked),
-    stakerApy: data.stakerApy,
+    stakerApr: data.stakerApr,
     stakerPayouts: toBigIntOrNull(data.stakerPayouts),
     stakingVaultAddress: data.stakingVaultAddress,
   };

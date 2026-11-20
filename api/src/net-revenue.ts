@@ -21,9 +21,12 @@ export function toNetRevenue({
   staked: bigint;
   stakerApy: number | null;
 }) {
-  const apy =
-    stakerApy !== null && Number.isFinite(stakerApy) ? stakerApy : null;
-  const stakerPayouts = apy === null ? null : applyApy({ amount: staked, apy });
+  const stakerApr =
+    stakerApy !== null && Number.isFinite(stakerApy)
+      ? Math.log1p(stakerApy / 100) * 100
+      : null;
+  const stakerPayouts =
+    stakerApr === null ? null : applyApy({ amount: staked, apy: stakerApr });
   return {
     backendApy: backendTotal.apy,
     backendBalance: backendTotal.balance,
@@ -33,7 +36,7 @@ export function toNetRevenue({
         ? null
         : backendTotal.projectedYield - stakerPayouts,
     staked,
-    stakerApy: apy,
+    stakerApr,
     stakerPayouts,
   };
 }
