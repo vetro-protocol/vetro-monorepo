@@ -1,8 +1,9 @@
 import type { StrategySource, Token } from "@vetro-protocol/core";
+import type { fetchAnalyticsYield } from "fetchers/fetchAnalyticsYield";
 import type { TreasuryToken, TvlHistoryEntry } from "types";
 import { formatUsd, tokenAmountToUsd } from "utils/currency";
 import { formatNumber, formatPercentage } from "utils/format";
-import { getTokenPrice } from "utils/token";
+import { isUsdPriceMissing } from "utils/token";
 import { getStakeDaoStrategyUrl } from "utils/url";
 import { formatUnits, isAddressEqual, type Address } from "viem";
 
@@ -125,42 +126,64 @@ const getStrategyUrl = function (source: StrategySource) {
   return undefined;
 };
 
-// Transforms /analytics/treasury response into yield allocation items,
-// one item per active strategy across all tokens, sorted by USD amount (largest first).
-export const toYieldItems = ({
+type YieldSummary = Awaited<ReturnType<typeof fetchAnalyticsYield>>;
+
+// The API gives one reserve item per token, but the card shows one row for all
+export const toYieldView = function ({
   prices,
-  treasuryTokens,
-  whitelistedTokens,
+  reserveBufferLabel,
+  summary: { items, total },
+  token,
 }: {
   prices: Prices;
-  treasuryTokens: TreasuryToken[];
-  whitelistedTokens: Token[];
-}) =>
-  treasuryTokens
-    .flatMap(function ({ activeStrategies, tokenAddress }) {
-      const token = findToken(tokenAddress, whitelistedTokens);
-      if (!token) {
-        return [];
-      }
-      return activeStrategies.map(({ apy, name, source, totalDebt }) => ({
-        amount: tokenAmountToUsd({
-          amount: BigInt(totalDebt),
-          prices,
-          token,
-        }),
-        apy,
-        href: source ? getStrategyUrl(source) : undefined,
-        label: name,
-      }));
-    })
-    .sort((a, b) => b.amount - a.amount)
-    .map(({ amount, apy, href, label }, index) => ({
-      amount,
-      apy,
-      color: assignColor(index),
-      href,
-      label,
-    }));
+  reserveBufferLabel: string;
+  summary: YieldSummary;
+  token: Token;
+}) {
+  const toUsd = (amount: bigint) => tokenAmountToUsd({ amount, prices, token });
+  const strategyRows = items.flatMap((item) =>
+    item.type === "strategy"
+      ? [
+          {
+            amount: toUsd(item.balance),
+            apy: item.apy,
+            href: item.source ? getStrategyUrl(item.source) : undefined,
+            label: item.name,
+            projectedYield:
+              item.projectedYield === undefined
+                ? undefined
+                : toUsd(item.projectedYield),
+          },
+        ]
+      : [],
+  );
+  const reserveBuffer = items
+    .filter((item) => item.type === "reserve")
+    .reduce((sum, item) => sum + item.balance, 0n);
+  const rows =
+    reserveBuffer > 0n
+      ? [
+          ...strategyRows,
+          {
+            amount: toUsd(reserveBuffer),
+            apy: 0,
+            href: undefined,
+            label: reserveBufferLabel,
+            projectedYield: 0,
+          },
+        ]
+      : strategyRows;
+  return {
+    rows: rows.map((row, index) => ({ ...row, color: assignColor(index) })),
+    strategyCount: strategyRows.length,
+    total: {
+      amount: toUsd(total.balance),
+      apy: total.apy ?? undefined,
+      projectedYield:
+        total.projectedYield === null ? undefined : toUsd(total.projectedYield),
+    },
+  };
+};
 
 // Formats a raw pegged token amount in USD, or "-" when the pegged token has
 // no price, because its USD value is unknown.
@@ -173,7 +196,7 @@ export const formatPeggedAmountUsd = ({
   prices: Prices;
   token: Token;
 }) =>
-  Number(getTokenPrice(token, prices)) > 0
+  !isUsdPriceMissing({ prices, token })
     ? formatUsd(tokenAmountToUsd({ amount, prices, token }))
     : "-";
 
@@ -199,7 +222,7 @@ export const toCollateralizationItems = function ({
   const surplus = BigInt(data.surplus);
   const isDeficit = surplus < 0n;
   const absoluteSurplus = isDeficit ? -surplus : surplus;
-  const hasPrice = Number(getTokenPrice(token, prices)) > 0;
+  const hasPrice = !isUsdPriceMissing({ prices, token });
   const percentage =
     supply > 0n ? formatPercentage(Math.abs(data.ratio - 100)) : "-";
 
@@ -249,48 +272,4 @@ export const toCollateralizationItems = function ({
         : labels.surplus(percentage),
     },
   ];
-};
-
-// Returns the reserve buffer amount in USD (idle funds not deployed to any strategy).
-// Returns 0 when there is no buffer. Color is intentionally omitted — callers assign it.
-export const toReserveBufferAmount = function ({
-  prices,
-  treasuryTokens,
-  whitelistedTokens,
-}: {
-  prices: Prices;
-  treasuryTokens: TreasuryToken[];
-  whitelistedTokens: Token[];
-}) {
-  let amount = 0;
-
-  for (const { tokenAddress, totalDebt, withdrawable } of treasuryTokens) {
-    const token = findToken(tokenAddress, whitelistedTokens);
-    if (!token) continue;
-
-    amount += tokenAmountToUsd({
-      amount: BigInt(withdrawable) - BigInt(totalDebt),
-      prices,
-      token,
-    });
-  }
-
-  return Math.max(0, amount);
-};
-
-/** Weighted average of the APYs by amount */
-export const toYieldTotal = function (
-  items: { amount: number; apy: number | undefined }[],
-) {
-  const amount = items.reduce((sum, item) => sum + item.amount, 0);
-  const withApy = items.filter(({ apy }) => apy !== undefined);
-  const amountWithApy = withApy.reduce((sum, item) => sum + item.amount, 0);
-  if (amountWithApy <= 0) {
-    return { amount, amountWithApy, apy: undefined };
-  }
-  const weightedApy = withApy.reduce(
-    (sum, item) => sum + item.amount * (item.apy ?? 0),
-    0,
-  );
-  return { amount, amountWithApy, apy: weightedApy / amountWithApy };
 };

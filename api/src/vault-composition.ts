@@ -6,6 +6,7 @@ import { type Address, isAddressEqual } from "viem";
 import { decimals } from "viem-erc20/actions";
 import { asset, totalAssets } from "viem-erc4626/actions";
 
+import { toPeggedValue } from "./treasury-value.ts";
 import { readWarmedTask } from "./warm-cache.ts";
 import { treasuryTask } from "./warm-tasks.ts";
 
@@ -135,15 +136,8 @@ export async function getVaultComposition({
       throw new Error(`Stale oracle price for ${treasuryToken.tokenAddress}`);
     }
 
-    // Values the amount like Treasury.reserve() does: the oracle price is
-    // capped at par, and the result is in pegged token units. Not like
-    // Treasury.getPrice, which reverts when a token is off par beyond the
-    // price tolerance.
-    const unitPrice = 10n ** BigInt(treasuryToken.priceDecimals);
-    const cappedPrice = price < unitPrice ? price : unitPrice;
-    const toPeggedValue = (amount: bigint) =>
-      (amount * cappedPrice * 10n ** BigInt(peggedDecimals)) /
-      (unitPrice * 10n ** BigInt(treasuryToken.tokenDecimals));
+    const toValue = (amount: bigint) =>
+      toPeggedValue({ amount, peggedDecimals, ...treasuryToken });
 
     const totalDebt = BigInt(treasuryToken.totalDebt);
     const withdrawable = BigInt(treasuryToken.withdrawable);
@@ -152,12 +146,12 @@ export async function getVaultComposition({
         name: strategy.name,
         token: treasuryToken.tokenAddress,
         type: "strategy" as const,
-        value: toPeggedValue(BigInt(strategy.totalDebt)),
+        value: toValue(BigInt(strategy.totalDebt)),
       })),
       {
         token: treasuryToken.tokenAddress,
         type: "reserve" as const,
-        value: toPeggedValue(
+        value: toValue(
           withdrawable > totalDebt ? withdrawable - totalDebt : 0n,
         ),
       },

@@ -18,6 +18,7 @@ export const initializeI18n = function () {
   return i18n.use(initReactI18next).init({
     debug: import.meta.env.MODE === "development",
     fallbackLng,
+    interpolation: { escapeValue: false },
     lng,
     resources,
     supportedLngs,

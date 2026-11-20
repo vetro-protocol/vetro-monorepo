@@ -49,7 +49,6 @@ export function CooldownCell({ ticket }: Props) {
       <Tooltip
         content={t("pages.earn.exit-tickets.cooldown-ends", {
           date: formatDate(ticket.claimableAt, i18n.language),
-          interpolation: { escapeValue: false },
         })}
       >
         <span className="text-xsm font-medium text-gray-900">{text}</span>

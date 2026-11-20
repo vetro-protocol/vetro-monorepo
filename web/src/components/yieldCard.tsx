@@ -1,18 +1,13 @@
 import { AllocationCard } from "components/allocationCard";
 import { PieChartIcon } from "components/icons/pieChartIcon";
-import { useAnalyticsTreasury } from "hooks/useAnalyticsTreasury";
+import { useAnalyticsYield } from "hooks/useAnalyticsYield";
 import { usePrices } from "hooks/usePrices";
-import { useWhitelistedTokensByGateway } from "hooks/useWhitelistedTokensByGateway";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
-import {
-  assignColor,
-  toReserveBufferAmount,
-  toYieldItems,
-  toYieldTotal,
-} from "utils/allocations";
+import { toYieldView } from "utils/allocations";
 import { formatUsd } from "utils/currency";
 import { formatPercentage } from "utils/format";
+import { isUsdPriceMissing } from "utils/token";
 
 type Props = {
   peggedToken: TokenWithGateway | undefined;
@@ -36,16 +31,16 @@ export const YieldHeader = function () {
 };
 
 export const YieldDetails = function ({
-  amount,
   apy,
+  projectedYield,
 }: {
-  amount: number;
   apy: number | undefined;
+  projectedYield: number | undefined;
 }) {
   const { t } = useTranslation();
   const formattedApy = apy === undefined ? "-" : formatPercentage(apy);
-  const projectedYield =
-    apy === undefined ? "-" : formatUsd((amount * apy) / 100);
+  const formattedYield =
+    projectedYield === undefined ? "-" : formatUsd(projectedYield);
   return (
     <>
       <span className="text-b-medium hidden w-24 text-right text-gray-900 @md:block">
@@ -56,52 +51,30 @@ export const YieldDetails = function ({
         <span className="sr-only">
           {t("common.charts.projected-yield-column")}{" "}
         </span>
-        {projectedYield}
+        {formattedYield}
       </span>
       <div className="text-caption flex basis-full justify-between gap-3 pl-4.5 text-gray-500 @md:hidden">
         <span>
           {t("common.charts.apy-column")} {formattedApy}
         </span>
         <span>
-          {t("common.charts.projected-yield-column")} {projectedYield}
+          {t("common.charts.projected-yield-column")} {formattedYield}
         </span>
       </div>
     </>
   );
 };
 
-const withReserveBuffer = ({
-  bufferAmount,
-  label,
-  yieldItems,
-}: {
-  bufferAmount: number;
-  label: string;
-  yieldItems: ReturnType<typeof toYieldItems>;
-}) =>
-  bufferAmount > 0
-    ? [
-        ...yieldItems,
-        {
-          amount: bufferAmount,
-          apy: 0,
-          color: assignColor(yieldItems.length),
-          href: undefined,
-          label,
-        },
-      ]
-    : yieldItems;
-
 export const YieldTotal = function ({
-  items,
+  amount,
+  apy,
+  projectedYield,
 }: {
-  items: { amount: number; apy: number | undefined }[];
+  amount: number;
+  apy: number | undefined;
+  projectedYield: number | undefined;
 }) {
   const { t } = useTranslation();
-  if (!items.length) {
-    return null;
-  }
-  const { amount, amountWithApy, apy } = toYieldTotal(items);
   return (
     <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 py-3">
       <div className="flex min-w-0 flex-1 items-center gap-3">
@@ -114,7 +87,7 @@ export const YieldTotal = function ({
         <span className="sr-only">{t("common.charts.balance-column")} </span>
         {formatUsd(amount)}
       </span>
-      <YieldDetails amount={amountWithApy} apy={apy} />
+      <YieldDetails apy={apy} projectedYield={projectedYield} />
     </div>
   );
 };
@@ -124,71 +97,56 @@ export const YieldCard = function ({
   peggedTokenError = false,
 }: Props) {
   const { t } = useTranslation();
-  const { data: whitelistedTokens, isError: isWhitelistedTokensError } =
-    useWhitelistedTokensByGateway(peggedToken?.gatewayAddress);
   const {
-    data: treasury,
-    isError: isTreasuryError,
-    isLoading: isTreasuryLoading,
-  } = useAnalyticsTreasury(peggedToken?.gatewayAddress);
+    data: yieldSummary,
+    isError: isYieldError,
+    isLoading: isYieldLoading,
+  } = useAnalyticsYield(peggedToken?.gatewayAddress);
   const { data: prices, isError: isPricesError } = usePrices();
 
   const isError = [
     peggedTokenError,
-    isWhitelistedTokensError,
-    isTreasuryError,
-    isPricesError,
+    isYieldError && !yieldSummary,
+    isPricesError && !prices,
+    isUsdPriceMissing({ prices, token: peggedToken }),
   ].some(Boolean);
   const isLoading =
-    !isError &&
-    [!peggedToken, isTreasuryLoading, !whitelistedTokens, !prices].some(
-      Boolean,
-    );
+    !isError && [!peggedToken, isYieldLoading, !prices].some(Boolean);
 
-  const ready = prices && treasury && whitelistedTokens;
-  const yieldItems = ready
-    ? toYieldItems({ prices, treasuryTokens: treasury, whitelistedTokens })
-    : undefined;
-  const bufferAmount = ready
-    ? toReserveBufferAmount({
-        prices,
-        treasuryTokens: treasury,
-        whitelistedTokens,
-      })
-    : 0;
-
-  const rows =
-    yieldItems &&
-    withReserveBuffer({
-      bufferAmount,
-      label: t("common.charts.reserve-buffer-label"),
-      yieldItems,
-    });
-  const items = rows?.map(({ amount, apy, color, href, label }) => ({
-    amount,
-    color,
-    details: <YieldDetails amount={amount} apy={apy} />,
-    href,
-    label,
-  }));
-
-  const value =
-    yieldItems && treasury
-      ? t("common.charts.yield-value", { count: yieldItems.length })
-      : "";
+  const view =
+    peggedToken && prices && yieldSummary
+      ? toYieldView({
+          prices,
+          reserveBufferLabel: t("common.charts.reserve-buffer-label"),
+          summary: yieldSummary,
+          token: peggedToken,
+        })
+      : undefined;
 
   return (
     <AllocationCard
       amountLabel={t("common.charts.balance-column")}
-      footer={rows && <YieldTotal items={rows} />}
+      footer={view?.rows.length ? <YieldTotal {...view.total} /> : undefined}
       footnote={t("common.charts.projection-footnote")}
       header={<YieldHeader />}
       icon={<PieChartIcon className="text-blue-500" />}
       isError={isError}
       isLoading={isLoading}
-      items={items}
+      items={view?.rows.map(
+        ({ amount, apy, color, href, label, projectedYield }) => ({
+          amount,
+          color,
+          details: <YieldDetails apy={apy} projectedYield={projectedYield} />,
+          href,
+          label,
+        }),
+      )}
       label={t("common.charts.yield-label")}
-      value={value}
+      value={
+        view
+          ? t("common.charts.yield-value", { count: view.strategyCount })
+          : ""
+      }
     />
   );
 };
