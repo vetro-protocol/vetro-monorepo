@@ -105,7 +105,7 @@ describe("strategy-source/getStrategySource", function () {
         kv,
         name: "Morpho SkyMoney USDT Savings",
         receiptToken: undefined,
-        stakeDaoStrategies: null,
+        stakeDaoStrategies: [stakeDaoStrategy],
       }),
     ).toEqual(cachedSource);
   });
