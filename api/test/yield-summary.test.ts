@@ -52,18 +52,18 @@ const dai = {
 };
 
 describe("toYieldSummary", function () {
-  it("values each item with its oracle price and adds up the totals", function () {
+  it("values each item with its oracle price capped at par and adds up the totals", function () {
     const { items, total } = toYieldSummary({
       peggedDecimals: 18,
       treasuryTokens: [usdc, dai],
     });
 
-    // 1000 USDC × 0.9999, 200 USDC × 0.9999 and 500 DAI × 1.02
+    // 1000 USDC × 0.9999, 200 USDC × 0.9999 and 500 DAI × 1, as 1.02 is capped
     const strategy1Balance = 999_900_000_000_000_000_000n;
     const usdcReserve = 199_980_000_000_000_000_000n;
-    const strategy2Balance = 510_000_000_000_000_000_000n;
+    const strategy2Balance = 500_000_000_000_000_000_000n;
     const strategy1Yield = 49_995_000_000_000_000_000n;
-    const strategy2Yield = 12_750_000_000_000_000_000n;
+    const strategy2Yield = 12_500_000_000_000_000_000n;
 
     expect(items).toEqual([
       {
@@ -101,9 +101,9 @@ describe("toYieldSummary", function () {
         type: "reserve",
       },
     ]);
-    expect(total.balance).toBe(1_709_880_000_000_000_000_000n);
-    expect(total.projectedYield).toBe(62_745_000_000_000_000_000n);
-    expect(total.apy).toBeCloseTo((62.745 / 1709.88) * 100, 10);
+    expect(total.balance).toBe(1_699_880_000_000_000_000_000n);
+    expect(total.projectedYield).toBe(62_495_000_000_000_000_000n);
+    expect(total.apy).toBeCloseTo((62.495 / 1699.88) * 100, 10);
   });
 
   it("values the amounts in the pegged token decimals", function () {
@@ -112,8 +112,8 @@ describe("toYieldSummary", function () {
       treasuryTokens: [usdc, dai],
     });
 
-    expect(total.balance).toBe(170_988_000_000n);
-    expect(total.projectedYield).toBe(6_274_500_000n);
+    expect(total.balance).toBe(169_988_000_000n);
+    expect(total.projectedYield).toBe(6_249_500_000n);
   });
 
   it("gives a zero reserve when the debt exceeds the withdrawable amount", function () {
@@ -123,7 +123,7 @@ describe("toYieldSummary", function () {
     });
 
     expect(items.find((item) => item.type === "reserve")?.balance).toBe(0n);
-    expect(total.balance).toBe(510_000_000_000_000_000_000n);
+    expect(total.balance).toBe(500_000_000_000_000_000_000n);
   });
 
   it("returns null totals when a strategy with a balance has no APY", function () {
@@ -149,7 +149,7 @@ describe("toYieldSummary", function () {
     );
     expect(total).toEqual({
       apy: null,
-      balance: 1_710_879_900_000_000_000_000n,
+      balance: 1_700_879_900_000_000_000_000n,
       projectedYield: null,
     });
   });
@@ -179,6 +179,25 @@ describe("toYieldSummary", function () {
     ).toThrow(`Invalid oracle price for ${daiAddress}`);
   });
 
+  it("ignores the oracle price of a token with no holdings", function () {
+    const { total } = toYieldSummary({
+      peggedDecimals: 18,
+      treasuryTokens: [
+        usdc,
+        {
+          ...dai,
+          activeStrategies: [{ ...dai.activeStrategies[0]!, totalDebt: "0" }],
+          latestPrice: "0",
+          totalDebt: "0",
+          withdrawable: "0",
+        },
+      ],
+    });
+
+    expect(total.balance).toBe(1_199_880_000_000_000_000_000n);
+    expect(total.projectedYield).toBe(49_995_000_000_000_000_000n);
+  });
+
   it("keeps the totals when the strategy without an APY has no balance", function () {
     const { total } = toYieldSummary({
       peggedDecimals: 18,
@@ -194,7 +213,7 @@ describe("toYieldSummary", function () {
       ],
     });
 
-    expect(total.projectedYield).toBe(62_745_000_000_000_000_000n);
+    expect(total.projectedYield).toBe(62_495_000_000_000_000_000n);
   });
 
   it("returns a null APY when the Treasury is empty", function () {

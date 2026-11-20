@@ -4,6 +4,7 @@ import type { Context } from "hono";
 import { type Address, checksumAddress } from "viem";
 import { decimals } from "viem-erc20/actions";
 
+import { toPeggedValue } from "./treasury-value.ts";
 import { readWarmedTask } from "./warm-cache.ts";
 import { treasuryTask } from "./warm-tasks.ts";
 
@@ -23,23 +24,26 @@ export function toYieldSummary({
 }) {
   const items = treasuryTokens.flatMap(function (treasuryToken) {
     const token = checksumAddress(treasuryToken.tokenAddress);
-    const price = BigInt(treasuryToken.latestPrice);
-    if (price <= 0n) {
-      throw new Error(`Invalid oracle price for ${token}`);
-    }
-    const toPeggedValue = (amount: bigint) =>
-      (amount * price * 10n ** BigInt(peggedDecimals)) /
-      (10n ** BigInt(treasuryToken.priceDecimals) *
-        10n ** BigInt(treasuryToken.tokenDecimals));
-
     const totalDebt = BigInt(treasuryToken.totalDebt);
     const withdrawable = BigInt(treasuryToken.withdrawable);
-    const reserveBalance = toPeggedValue(
+    const hasHoldings =
+      withdrawable > 0n ||
+      treasuryToken.activeStrategies.some(
+        (strategy) => BigInt(strategy.totalDebt) > 0n,
+      );
+    // Treasury.reserve() reads the oracle only for a token it holds
+    if (hasHoldings && BigInt(treasuryToken.latestPrice) <= 0n) {
+      throw new Error(`Invalid oracle price for ${token}`);
+    }
+    const toValue = (amount: bigint) =>
+      toPeggedValue({ amount, peggedDecimals, ...treasuryToken });
+
+    const reserveBalance = toValue(
       withdrawable > totalDebt ? withdrawable - totalDebt : 0n,
     );
     return [
       ...treasuryToken.activeStrategies.map(function (strategy) {
-        const balance = toPeggedValue(BigInt(strategy.totalDebt));
+        const balance = toValue(BigInt(strategy.totalDebt));
         const apy = Number.isFinite(strategy.apy) ? strategy.apy : undefined;
         return {
           address: checksumAddress(strategy.address),

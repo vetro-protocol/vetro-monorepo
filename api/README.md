@@ -110,9 +110,9 @@ Get the composition of the treasury by whitelisted token for a given gateway. Ea
 ### `GET /analytics/yield/:gatewayAddress`
 
 Get the Yield allocation of a gateway's Treasury: one item per active strategy and one reserve buffer item per whitelisted token, sorted by `balance`, largest first. Cached for 1 minute.
-`:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway. Fails if an oracle price is not positive.
+`:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway. Returns `500` if the oracle price of a token that the Treasury holds is not positive.
 
-Amounts are raw strings in the pegged token's base units. APYs are percentages (`4.87` means 4.87%). A strategy item has no `apy` and no `projectedYield` when its APY is unknown. `total.apy` and `total.projectedYield` are nullable.
+Amounts are raw strings in the pegged token's base units. Each balance uses the Treasury oracle price of its token, capped at par, as `Treasury.reserve()` does. APYs are percentages (`4.87` means 4.87%). A strategy item has no `apy` and no `projectedYield` when its APY is unknown. `total.apy` and `total.projectedYield` are nullable.
 
 #### Sample response
 
@@ -152,7 +152,7 @@ Amounts are raw strings in the pegged token's base units. APYs are percentages (
 ### `GET /analytics/net-revenue/:gatewayAddress`
 
 Get the Net protocol revenue of a gateway. Cached for 1 minute.
-`:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway. Fails in the same cases as `GET /analytics/yield`.
+`:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway. Returns `500` in the same cases as `GET /analytics/yield`, and if no staking vault holds the gateway's pegged token.
 
 Amounts are raw strings in the pegged token's base units, and APYs are percentages. `backendApy`, `backendBalance` and `backendYield` are the `total` of `GET /analytics/yield`. `netRevenue` can be negative. `backendApy`, `backendYield`, `netRevenue`, `stakerApy` and `stakerPayouts` are nullable.
 
