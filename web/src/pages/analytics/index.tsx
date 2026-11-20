@@ -104,10 +104,13 @@ export const Analytics = function () {
         <div className="shadow-bs rounded-full bg-gray-100 p-0.75">
           <SegmentedControl
             onChange={setSelectedTab}
-            options={tabs.map((tab) => ({
-              label: t(`pages.analytics.${tab}-tab`),
-              value: tab,
-            }))}
+            options={[
+              { label: t("pages.analytics.overview-tab"), value: "overview" },
+              {
+                label: t("pages.analytics.accounting-tab"),
+                value: "accounting",
+              },
+            ]}
             size="xs"
             value={selectedTab}
             variant="pill"
