@@ -137,20 +137,26 @@ export async function getTreasuryComposition({
       ({ activeStrategies }) => activeStrategies,
     ),
   });
-  return treasuryTokens.map((treasuryToken) => ({
-    ...treasuryToken,
-    activeStrategies: treasuryToken.activeStrategies.map(
-      ({ receiptToken, ...strategy }) => ({
-        ...strategy,
-        apy: strategyApy[strategy.address],
-        source: getStrategySource({
-          name: strategy.name,
-          receiptToken,
-          stakeDaoStrategies,
-        }),
-      }),
-    ),
-  }));
+  return await Promise.all(
+    treasuryTokens.map(async (treasuryToken) => ({
+      ...treasuryToken,
+      activeStrategies: await Promise.all(
+        treasuryToken.activeStrategies.map(
+          async ({ receiptToken, ...strategy }) => ({
+            ...strategy,
+            apy: strategyApy[strategy.address],
+            source: await getStrategySource({
+              address: strategy.address,
+              kv,
+              name: strategy.name,
+              receiptToken,
+              stakeDaoStrategies,
+            }),
+          }),
+        ),
+      ),
+    })),
+  );
 }
 
 async function getStrategicReserves({
