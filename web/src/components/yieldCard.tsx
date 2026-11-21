@@ -29,6 +29,9 @@ export const YieldHeader = function () {
         {t("common.charts.projected-yield-column")}
         <Tooltip content={t("common.charts.projected-yield-tooltip")}>
           <InfoIcon />
+          <span className="sr-only">
+            {t("common.charts.projected-yield-tooltip")}
+          </span>
         </Tooltip>
       </span>
     </div>
