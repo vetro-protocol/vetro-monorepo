@@ -192,7 +192,7 @@ const NetRevenueLabel = function ({
   const { t } = useTranslation();
   return (
     <span className="inline-flex items-center gap-2">
-      {t("pages.analytics.net-revenue-label")}
+      {t("pages.analytics.net-revenue-title")}
       {status && (
         <Badge variant={statusStyles[status].variant}>
           {t(statusStyles[status].labelKey)}
@@ -241,7 +241,7 @@ export const NetRevenueContent = function ({
       description={joinParts([
         t("pages.analytics.net-revenue-per-month", {
           amount: formatOrDash({
-            format: formatSignedUsd,
+            format: (value) => `≈ ${formatSignedUsd(value)}`,
             value: view.perMonth,
           }),
         }),
