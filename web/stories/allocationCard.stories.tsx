@@ -136,16 +136,16 @@ export const YieldAllocationWithTotalApy: Story = {
 
 export const WithSuffixAndDescription: Story = {
   args: {
-    description: "+$1.69K per month · backend yield covers staker payouts 2.7×",
+    description: "≈ +$1.69K / month · reserve yield covers staker yield 2.7×",
     icon: <PieChartIcon />,
     isError: false,
     isLoading: false,
     items: [
-      { amount: 12_180, color: "bg-blue-500", label: "Paid to stakers" },
-      { amount: 20_250, color: "bg-emerald-400", label: "Kept" },
+      { amount: 12_180, color: "bg-blue-500", label: "Projected staker yield" },
+      { amount: 20_250, color: "bg-emerald-400", label: "Retained" },
     ],
-    label: "Net protocol revenue",
-    suffix: "/ year",
+    label: "Projected protocol revenue",
+    suffix: "/ yr (projected)",
     value: "+$20.25K",
   },
 };
