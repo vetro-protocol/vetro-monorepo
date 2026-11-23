@@ -29,9 +29,7 @@ export const YieldHeader = function () {
         {t("common.charts.projected-yield-column")}
         <Tooltip
           content={t("common.charts.projected-yield-tooltip")}
-          label={t("common.more-info-about", {
-            topic: t("common.charts.projected-yield-column"),
-          })}
+          topic={t("common.charts.projected-yield-column")}
         >
           <InfoIcon />
         </Tooltip>

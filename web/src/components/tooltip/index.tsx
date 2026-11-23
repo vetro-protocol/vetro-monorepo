@@ -10,14 +10,15 @@ import {
   useRef,
   useState,
 } from "react";
+import { useTranslation } from "react-i18next";
 
 import "./tooltip.css";
 
 type Props = {
   children: ReactNode;
   content: ReactNode;
-  label?: string;
   stretch?: boolean;
+  topic?: string;
   useParentContainer?: boolean;
   visible?: boolean;
 };
@@ -41,11 +42,12 @@ const motion = { motionDeadline: 200, motionName: "vetro-tooltip" };
 export const Tooltip = function ({
   children,
   content,
-  label,
   stretch = false,
+  topic,
   useParentContainer = false,
   visible,
 }: Props) {
+  const { t } = useTranslation();
   const [hasFocusableChild, setHasFocusableChild] = useState(false);
   const [open, setOpen] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -55,7 +57,7 @@ export const Tooltip = function ({
   const canOpen = visible !== false;
   const isOpen = visible ?? open;
   const isFocusTarget = canOpen && !hasFocusableChild;
-  const isNamedTrigger = isFocusTarget && Boolean(label);
+  const isNamedTrigger = isFocusTarget && Boolean(topic);
 
   useLayoutEffect(function () {
     setHasFocusableChild(
@@ -180,7 +182,9 @@ export const Tooltip = function ({
       visible={isOpen}
     >
       <div
-        aria-label={isNamedTrigger ? label : undefined}
+        aria-label={
+          isNamedTrigger ? t("common.more-info-about", { topic }) : undefined
+        }
         className={`vetro-tooltip-trigger flex cursor-pointer ${stretch ? "size-full" : "w-fit"}`}
         onBlur={closeOnFocusLeave}
         onClick={onClick}

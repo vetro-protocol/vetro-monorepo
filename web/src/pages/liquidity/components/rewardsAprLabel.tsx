@@ -47,9 +47,7 @@ export function RewardsAprLabel() {
             </p>
           </div>
         }
-        label={t("common.more-info-about", {
-          topic: t("pages.liquidity.rewards-apr"),
-        })}
+        topic={t("pages.liquidity.rewards-apr")}
       >
         <div className="*:size-3">
           <InfoIcon />

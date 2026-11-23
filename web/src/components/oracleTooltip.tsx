@@ -84,7 +84,7 @@ export function OracleTooltip({
           <ExternalLinkIcon />
         </ExternalLink>
       }
-      label={t("common.more-info-about", { topic })}
+      topic={topic}
       useParentContainer={useParentContainer}
     >
       <InfoIcon />

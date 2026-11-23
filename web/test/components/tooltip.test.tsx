@@ -61,23 +61,27 @@ describe("Tooltip", function () {
     await expect.element(screen.getByText("Tooltip text")).toBeVisible();
   });
 
-  it("names the focused trigger with the label", async function () {
+  it("names the focused trigger after the topic", async function () {
     const screen = await render(
-      <Tooltip content="Tooltip text" label="Trigger label">
+      <Tooltip content="Tooltip text" topic="Approvals">
         <svg aria-hidden="true" />
       </Tooltip>,
     );
 
     await userEvent.tab();
 
-    const trigger = screen.getByRole("button", { name: "Trigger label" });
+    const trigger = screen.getByRole("button", {
+      name: "More info about Approvals",
+    });
     await expect.element(trigger).toHaveFocus();
-    await expect.element(trigger).toHaveAccessibleName("Trigger label");
+    await expect
+      .element(trigger)
+      .toHaveAccessibleName("More info about Approvals");
   });
 
   it("opens on Enter after Escape closes it", async function () {
     const screen = await render(
-      <Tooltip content="Tooltip text" label="Trigger label">
+      <Tooltip content="Tooltip text" topic="Approvals">
         <svg aria-hidden="true" />
       </Tooltip>,
     );
@@ -109,22 +113,24 @@ describe("Tooltip", function () {
 
   it("does not name the trigger when it cannot open", async function () {
     const screen = await render(
-      <Tooltip content="Tooltip text" label="Trigger label" visible={false}>
+      <Tooltip content="Tooltip text" topic="Approvals" visible={false}>
         <svg aria-hidden="true" />
       </Tooltip>,
     );
 
     await expect
-      .element(screen.getByRole("button", { name: "Trigger label" }))
+      .element(
+        screen.getByRole("button", { name: "More info about Approvals" }),
+      )
       .not.toBeInTheDocument();
     await expect
-      .element(screen.getByLabelText("Trigger label"))
+      .element(screen.getByLabelText("More info about Approvals"))
       .not.toBeInTheDocument();
   });
 
   it("keeps the name of a focusable child", async function () {
     const screen = await render(
-      <Tooltip content="Tooltip text" label="Trigger label">
+      <Tooltip content="Tooltip text" topic="Approvals">
         <button>Claim</button>
       </Tooltip>,
     );
@@ -135,7 +141,7 @@ describe("Tooltip", function () {
       .element(screen.getByRole("button", { name: "Claim" }))
       .toHaveFocus();
     await expect
-      .element(screen.getByLabelText("Trigger label"))
+      .element(screen.getByLabelText("More info about Approvals"))
       .not.toBeInTheDocument();
   });
 

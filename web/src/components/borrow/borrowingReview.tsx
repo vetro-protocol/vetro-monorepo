@@ -19,7 +19,7 @@ type Props = {
   morphoMarket: Market | undefined;
 };
 
-const ReviewRow = function ({
+const ReviewRow = ({
   children,
   label,
   tooltip,
@@ -27,23 +27,17 @@ const ReviewRow = function ({
   children: React.ReactNode;
   label: string;
   tooltip: string;
-}) {
-  const { t } = useTranslation();
-  return (
-    <div className="text-b-medium flex items-center justify-between border-t border-gray-200 py-3.5 text-gray-900">
-      <div className="flex h-5.5 items-center gap-1.5">
-        <Tooltip
-          content={tooltip}
-          label={t("common.more-info-about", { topic: label })}
-        >
-          <QuestionIcon />
-        </Tooltip>
-        <span>{label}</span>
-      </div>
-      <>{children}</>
+}) => (
+  <div className="text-b-medium flex items-center justify-between border-t border-gray-200 py-3.5 text-gray-900">
+    <div className="flex h-5.5 items-center gap-1.5">
+      <Tooltip content={tooltip} topic={label}>
+        <QuestionIcon />
+      </Tooltip>
+      <span>{label}</span>
     </div>
-  );
-};
+    <>{children}</>
+  </div>
+);
 
 export function BorrowingReview({
   borrowApy,

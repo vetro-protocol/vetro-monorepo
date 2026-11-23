@@ -42,7 +42,7 @@ export const StakeSection = function ({
                 })}
               </span>
             }
-            label={t("common.more-info-about", { topic: label })}
+            topic={label}
           >
             <InfoIcon />
           </Tooltip>
