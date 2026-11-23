@@ -1,11 +1,17 @@
 import type { DexPool } from "@vetro-protocol/core";
 import type { Hash } from "viem";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   addIncentives,
+  getMerklRewards,
   type IncentiveSources,
 } from "../../src/liquidity/incentives.ts";
+import { getLiveOpportunities } from "../../src/merkl.ts";
+
+vi.mock("../../src/merkl.ts", () => ({
+  getLiveOpportunities: vi.fn(),
+}));
 
 const nowSeconds = 1_000_000;
 const crv = "0xD533a949740bb3306d119CC777fa900bA034cd52";
@@ -72,6 +78,65 @@ const noSources: IncentiveSources = {
   merklRewards: [],
   strategies: [],
 };
+
+describe("liquidity/getMerklRewards", function () {
+  beforeEach(function () {
+    vi.mocked(getLiveOpportunities).mockReset();
+  });
+
+  it("ignores missing APR on a campaign outside its active window", async function () {
+    vi.mocked(getLiveOpportunities).mockResolvedValue([
+      {
+        campaigns: [
+          {
+            apr: Number.NaN,
+            campaignId: campaignId("1"),
+            endTimestamp: nowSeconds - 1,
+            rewardToken: { address: usdc, chainId: 1 },
+            startTimestamp: nowSeconds - 100,
+          },
+          {
+            apr: 3,
+            campaignId: campaignId("2"),
+            endTimestamp: nowSeconds + 100,
+            rewardToken: { address: usdc, chainId: 1 },
+            startTimestamp: nowSeconds - 100,
+          },
+        ],
+        chainId: 1,
+        id: "opportunity",
+        identifier: poolAddress,
+      },
+    ] as never);
+
+    await expect(
+      getMerklRewards({ nowSeconds, pools: [curvePool] }),
+    ).resolves.toHaveLength(1);
+  });
+
+  it("rejects a missing APR on an active campaign", async function () {
+    vi.mocked(getLiveOpportunities).mockResolvedValue([
+      {
+        campaigns: [
+          {
+            apr: Number.NaN,
+            campaignId: campaignId("1"),
+            endTimestamp: nowSeconds + 100,
+            rewardToken: { address: usdc, chainId: 1 },
+            startTimestamp: nowSeconds - 100,
+          },
+        ],
+        chainId: 1,
+        id: "opportunity",
+        identifier: poolAddress,
+      },
+    ] as never);
+
+    await expect(
+      getMerklRewards({ nowSeconds, pools: [curvePool] }),
+    ).rejects.toThrow("Merkl returned a missing or non-finite APR");
+  });
+});
 
 describe("liquidity/addIncentives", function () {
   it("keeps the pool and the venue rewards when there is nothing to add", function () {

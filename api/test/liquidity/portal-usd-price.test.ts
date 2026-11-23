@@ -42,6 +42,18 @@ describe("liquidity/portalUsdPrice", function () {
     ).toBeUndefined();
   });
 
+  it("returns undefined for a missing or non-numeric portal price", function () {
+    expect(
+      [null, "not-a-price"].map((price) =>
+        portalUsdPrice({
+          address: usdt,
+          chainId: mainnet.id,
+          prices: { USDT: price as unknown as string },
+        }),
+      ),
+    ).toEqual([undefined, undefined]);
+  });
+
   it("returns undefined for a token with no portal price", function () {
     expect(
       portalUsdPrice({

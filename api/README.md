@@ -587,7 +587,7 @@ Returns the user's cost basis (in the vault asset's native smallest unit; decima
 
 ### `GET /variable-stake/apy`
 
-Returns the APY for each supported staking vault, indexed by staking vault address. This is a forward-looking figure computed from each vault's `rewardRate` (read from its `YieldDistributor` contract), annualized over the vault's `totalAssets()` and expressed as a continuous-compounding APY. A vault whose drip has ended (or whose rate or total assets are zero) returns a genuine `{ "apy": 0 }`. A vault whose on-chain reads fail (e.g. RPC error or an unconfigured distributor) is **omitted** from the response rather than returned as `0`, so clients can render "-" for it — distinct from a real 0% APY. If every vault's reads fail, the response is `{}`.
+Returns the APY for each supported staking vault, indexed by staking vault address. This is a forward-looking figure computed from each vault's `rewardRate` (read from its `YieldDistributor` contract), annualized over the vault's `totalAssets()` and expressed as a continuous-compounding APY. A vault whose drip has ended (or whose rate or total assets are zero) returns a genuine `{ "apy": 0 }`. A vault whose on-chain reads fail (e.g. RPC error or an unconfigured distributor) is **omitted** from the response rather than returned as `0`, so clients can render "-" for it — distinct from a real 0% APY. If every vault's reads fail, the endpoint keeps serving the last good response for up to 15 minutes, then returns `500`.
 
 #### Sample Response
 

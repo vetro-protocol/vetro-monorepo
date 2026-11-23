@@ -54,25 +54,27 @@ export const getMerklRewards = async function ({
     chainIds: [mainnet.id, hemi.id],
     identifiers,
   });
-  return opportunities.flatMap((opportunity) =>
-    opportunity.campaigns
-      .filter(
-        (campaign) =>
-          Number(campaign.startTimestamp) <= nowSeconds &&
-          Number(campaign.endTimestamp) > nowSeconds,
-      )
-      .map((campaign): MerklReward => ({
-        apr: campaign.apr,
-        campaignId: campaign.campaignId,
-        chainId: opportunity.chainId,
-        identifier: checksumAddress(opportunity.identifier),
-        opportunityId: opportunity.id,
-        token: {
-          address: checksumAddress(campaign.rewardToken.address),
-          chainId: campaign.rewardToken.chainId,
-        },
-      })),
-  );
+  return opportunities.flatMap(function (opportunity) {
+    const activeCampaigns = opportunity.campaigns.filter(
+      (campaign) =>
+        Number(campaign.startTimestamp) <= nowSeconds &&
+        Number(campaign.endTimestamp) > nowSeconds,
+    );
+    if (activeCampaigns.some((campaign) => !Number.isFinite(campaign.apr))) {
+      throw new Error("Merkl returned a missing or non-finite APR");
+    }
+    return activeCampaigns.map((campaign): MerklReward => ({
+      apr: campaign.apr,
+      campaignId: campaign.campaignId,
+      chainId: opportunity.chainId,
+      identifier: checksumAddress(opportunity.identifier),
+      opportunityId: opportunity.id,
+      token: {
+        address: checksumAddress(campaign.rewardToken.address),
+        chainId: campaign.rewardToken.chainId,
+      },
+    }));
+  });
 };
 
 export const gaugedStrategiesKey = "liquidity:strategies";
