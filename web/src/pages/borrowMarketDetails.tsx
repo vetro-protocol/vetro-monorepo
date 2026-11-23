@@ -1,3 +1,4 @@
+import { marketIds } from "@vetro-protocol/morpho-blue-market";
 import { Breadcrumb } from "components/base/breadcrumb";
 import { BreadcrumbSelector } from "components/base/breadcrumb/breadcrumbSelector";
 import { ButtonLink } from "components/base/button";
@@ -10,7 +11,6 @@ import { MarketInfoCards } from "components/borrow/marketInfoCards";
 import { BorrowIcon } from "components/navbar/borrowIcon";
 import { StripedDivider } from "components/stripedDivider";
 import { TokenLogo } from "components/tokenLogo";
-import { marketIds } from "constants/borrow";
 import { type MarketData, useMarketData } from "hooks/borrow/useMarketData";
 import { useMarketsData } from "hooks/borrow/useMarketsData";
 import { usePositionInfo } from "hooks/borrow/usePositionInfo";

@@ -235,7 +235,7 @@ Sources of truth for which instances exist (read these; don't hardcode symbols):
 - Gateways → pegged tokens, read on-chain via `getPeggedToken`: `gatewayAddresses` (`packages/gateway`)
 - Staking vaults → share tokens: `stakingVaultAddresses` (`packages/earn`)
 - Bridge page whitelist (the one static set): `web/src/utils/bridgeableTokens.ts`
-- Borrow markets: [`web/src/constants/borrow.ts`](../web/src/constants/borrow.ts) (Morpho Blue, `packages/morpho-blue-market`)
+- Borrow markets (Morpho Blue): `marketIds` (`packages/morpho-blue-market`)
 
 For display only — **not** enablement: `web/src/utils/tokenList.ts` (`knownTokens`) is a hardcoded cache of ERC-20 metadata (symbol, decimals, logo) for fast loading.
 

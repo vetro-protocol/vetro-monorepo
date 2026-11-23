@@ -1,10 +1,10 @@
 import { startAnvilFork } from "@hemilabs/anvil-fork-setup";
 import { TEST_ADDRESS } from "@hemilabs/anvil-fork-setup/utils";
+import { marketIds } from "@vetro-protocol/morpho-blue-market";
 import { mainnet } from "viem/chains";
 
 import { fundAccount } from "../scripts/fundAccount.ts";
 import { supplyMarketLiquidity } from "../scripts/supplyMarketLiquidity.ts";
-import { marketIds } from "../src/constants/borrow.ts";
 
 import { ANVIL_PORT } from "./anvil.ts";
 

@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { marketIds } from "@vetro-protocol/morpho-blue-market";
 
 const notFoundTitle = "Page not found";
 const notFoundDescription = "The page you're trying to access does not exist.";
@@ -42,8 +43,7 @@ test("renders the requested page when the path has no language prefix", async fu
 test("preserves a deep link when the path has no language prefix", async function ({
   page,
 }) {
-  const marketId =
-    "0x7d1306d23f9f1e419697b8275001db9ea74b3c75190a7db8f5d81fed2fb94561";
+  const marketId = marketIds[1];
 
   await page.goto(`/borrow/${marketId}`);
 

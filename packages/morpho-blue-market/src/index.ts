@@ -26,6 +26,8 @@ export { morphoBlueAbi } from "./abi/morphoBlueAbi.ts";
 
 export { getMarketParams } from "./actions/public/getMarketParams.ts";
 
+export { marketIds, morphoBlueAddress } from "./markets.ts";
+
 export {
   type BorrowAssetsEvents,
   type MarketParams,
