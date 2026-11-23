@@ -21,7 +21,7 @@ import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import { Navigate, useLocation, useParams } from "react-router";
 import { hasActivePosition } from "utils/borrowPosition";
-import { type Hash, isHash } from "viem";
+import type { Hash } from "viem";
 
 const renderMarketItem = (item: MarketData) => (
   <>
@@ -146,11 +146,10 @@ const BorrowMarketDetailsContent = function ({ marketId }: { marketId: Hash }) {
 };
 
 export const BorrowMarketDetails = function () {
-  const { lang, marketId } = useParams<{ lang: string; marketId: Hash }>();
+  const { lang, marketId } = useParams<{ lang: string; marketId: string }>();
   const { hash, search } = useLocation();
   const canonicalMarketId =
     marketId &&
-    isHash(marketId) &&
     marketIds.find((id) => id.toLowerCase() === marketId.toLowerCase());
 
   if (!canonicalMarketId) {

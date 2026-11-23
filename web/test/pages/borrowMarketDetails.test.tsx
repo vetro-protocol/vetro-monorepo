@@ -51,7 +51,7 @@ const renderBorrowMarketDetails = async (initialEntry: string) =>
 
 it("canonicalizes uppercase market IDs and preserves the query and hash", async function () {
   const [marketId] = marketIds;
-  const uppercaseMarketId = `0x${marketId.slice(2).toUpperCase()}`;
+  const uppercaseMarketId = marketId.toUpperCase();
   const screen = await renderBorrowMarketDetails(
     `/en/borrow/${uppercaseMarketId}?source=deep-link#details`,
   );
