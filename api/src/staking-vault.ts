@@ -1,5 +1,5 @@
 import { stakingVaultAddresses } from "@vetro-protocol/earn";
-import { type Address, type PublicClient } from "viem";
+import { type Address, isAddressEqual, type PublicClient } from "viem";
 import { asset } from "viem-erc4626/actions";
 
 /**
@@ -16,9 +16,8 @@ export async function findStakingVaultForPeggedToken({
   const assets = await Promise.all(
     stakingVaultAddresses.map((address) => asset(client, { address })),
   );
-  const stakingVaultAddress = stakingVaultAddresses.find(
-    (_, index) =>
-      assets[index].toLowerCase() === peggedTokenAddress.toLowerCase(),
+  const stakingVaultAddress = stakingVaultAddresses.find((_, index) =>
+    isAddressEqual(assets[index], peggedTokenAddress),
   );
   if (!stakingVaultAddress) {
     throw new Error(

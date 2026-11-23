@@ -6,7 +6,7 @@ import { useCallback, useReducer } from "react";
 import type { TokenWithGateway } from "types";
 import { DEFAULT_SLIPPAGE } from "utils/slippage";
 import { parseTokenUnits } from "utils/token";
-import type { Address } from "viem";
+import { type Address, isAddressEqual } from "viem";
 
 import { Deposit } from "./deposit";
 import { Redeem } from "./redeem";
@@ -122,8 +122,8 @@ function SwapFormContent({
       {...state}
       onFromTokenChange={function (peggedToken) {
         dispatch({ payload: peggedToken, type: "SET_FROM_TOKEN" });
-        const firstWhitelistedForGateway = whitelistedTokens.find(
-          (t) => t.gatewayAddress === peggedToken.gatewayAddress,
+        const firstWhitelistedForGateway = whitelistedTokens.find((t) =>
+          isAddressEqual(t.gatewayAddress, peggedToken.gatewayAddress),
         )!;
         dispatch({
           payload: firstWhitelistedForGateway,

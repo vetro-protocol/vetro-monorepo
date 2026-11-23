@@ -14,6 +14,7 @@ import { parseAsStringLiteral, useQueryState } from "nuqs";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
+import { isAddressEqual } from "viem";
 
 import { BalanceSheetCard } from "./components/balanceSheetCard";
 import { TokenFilter } from "./components/tokenFilter";
@@ -76,8 +77,8 @@ export const Analytics = function () {
         .filter(Boolean)
     : undefined;
 
-  const selectedToken = tokens?.find(
-    (token) => token.gatewayAddress === selectedGatewayAddress,
+  const selectedToken = tokens?.find((token) =>
+    isAddressEqual(token.gatewayAddress, selectedGatewayAddress),
   );
 
   // only show the filter if there are 2 or more tokens to filter from
