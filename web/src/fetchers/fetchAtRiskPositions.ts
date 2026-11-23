@@ -1,5 +1,5 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { marketIds } from "constants/borrow";
+import { marketIds } from "@vetro-protocol/morpho-blue-market";
 import { marketDataOptions } from "hooks/borrow/useMarketData";
 import { positionInfoOptions } from "hooks/borrow/usePositionInfo";
 import { hasActivePosition, isPositionAtRisk } from "utils/borrowPosition";

@@ -2,12 +2,12 @@ import { TEST_ADDRESS } from "@hemilabs/anvil-fork-setup/utils";
 import type { MarketId } from "@morpho-org/blue-sdk";
 import { fetchPosition } from "@morpho-org/blue-sdk-viem";
 import { type Page, expect } from "@playwright/test";
+import { marketIds } from "@vetro-protocol/morpho-blue-market";
 import { type PublicClient, formatUnits, parseUnits } from "viem";
 import { getBlock } from "viem/actions";
 import { balanceOf } from "viem-erc20/actions";
 
 import { openBorrowPosition } from "../scripts/openBorrowPosition.ts";
-import { marketIds } from "../src/constants/borrow.ts";
 import { formatNumber } from "../src/utils/format.ts";
 
 import { ANVIL_URL, createEthereumClient } from "./anvil";

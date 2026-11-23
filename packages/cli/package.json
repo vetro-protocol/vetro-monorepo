@@ -55,6 +55,7 @@
     "@tsconfig/node24": "24.0.4",
     "@types/node": "24.1.0",
     "@vetro-protocol/core": "workspace:*",
+    "@vetro-protocol/morpho-blue-market": "workspace:*",
     "@vitest/coverage-v8": "5.0.5",
     "esbuild": "0.28.2",
     "typescript": "5.9.3",

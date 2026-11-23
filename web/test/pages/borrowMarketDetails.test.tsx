@@ -1,8 +1,8 @@
+import { marketIds } from "@vetro-protocol/morpho-blue-market";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router";
 import { expect, it, vi } from "vitest";
 import { render } from "vitest-browser-react";
 
-import { marketIds } from "../../src/constants/borrow";
 import { BorrowMarketDetails } from "../../src/pages/borrowMarketDetails";
 
 vi.mock("../../src/hooks/borrow/useMarketData", () => ({

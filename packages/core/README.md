@@ -81,6 +81,10 @@ URLs of pages hosted by Vetro.
 
 `sVusdAddress`, `sVetBtcAddress` and the `stakingVaultAddresses` array.
 
+### `marketIds`
+
+The `marketIds` array of the enabled Morpho Blue markets, and `morphoBlueAddress`.
+
 ### `gateways`
 
 `Gateway[]`, plus the derived `gatewayAddresses` array. Both live in `src/protocolGraph.ts`.
