@@ -182,18 +182,18 @@ The APY of the staking vault, over time.
 
 #### Accounting
 
-##### Net protocol revenue
+##### Projected protocol revenue
 
-Compares the yield that the treasury earns with the yield that the staking vault pays to its stakers. All values are projections for one year, for one gateway:
+Compares the yield that the treasury earns with the yield that the staking vault pays to its stakers. All values are annualized projections for one gateway. They are not historical earnings:
 
-- **Backend yield earned**: the projected yield of the Yield allocation total (the sum of `balance × APY` of each strategy; the reserve buffer has a 0% APY).
-- **Treasury balance**: the balance of the Yield allocation total (the strategies plus the reserve buffer).
-- **Backend APY**: the APY of the Yield allocation total, weighted by balance.
-- **Paid to stakers**: the current APR of the staking vault × the staked amount (its `totalAssets`).
-- **Net protocol revenue**: backend yield − staker payouts. The card also shows it per month (÷ 12).
-- **Coverage ratio**: backend yield ÷ staker payouts.
+- **Projected reserve yield**: the projected yield of the Yield allocation total (the sum of `balance × APY` of each strategy; the reserve buffer has a 0% APY).
+- **Reserves**: the balance of the Yield allocation total (the strategies plus the reserve buffer).
+- **Blended APY**: the APY of the Yield allocation total, weighted by balance.
+- **Projected staker yield**: the current APR of the staking vault × the staked amount (its `totalAssets`).
+- **Projected net revenue**: reserve yield − staker yield. The card also shows it per month (÷ 12).
+- **Coverage ratio**: reserve yield ÷ staker yield.
 
-The status is "Net positive" when the net is above zero, "Net negative" when it is below zero, and "Breakeven" when it shows as "$0". When a strategy with a balance has no APY, the backend yield is unknown, and the card shows "-" for it and for the values that depend on it.
+The status is "Net positive" when the net is above zero, "Net negative" when it is below zero, and "Breakeven" when it shows as "$0". When a strategy with a balance has no APY, the reserve yield is unknown, and the card shows "-" for it and for the values that depend on it.
 
 ##### Collateralization ratio
 

@@ -151,7 +151,7 @@ Amounts are raw strings in the pegged token's base units. Each balance uses the 
 
 ### `GET /analytics/net-revenue/:gatewayAddress`
 
-Get the Net protocol revenue of a gateway. Cached for 1 minute.
+Get the projected protocol revenue of a gateway: an annualized projection from the current reserve balances, strategy APYs and staking vault APR. Cached for 1 minute.
 `:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway. Returns `500` in the same cases as `GET /analytics/yield`, if no staking vault holds the gateway's pegged token, and if the APYs of the staking vaults are not available.
 
 Amounts are raw strings in the pegged token's base units, and APYs and APRs are percentages. `backendApy`, `backendBalance` and `backendYield` are the `total` of `GET /analytics/yield`. `stakerApr` is the APR of `GET /variable-stake/apy` for the staking vault. `stakerPayouts` is `stakerApr` × `staked`. `netRevenue` can be negative. `backendApy`, `backendYield`, `netRevenue`, `stakerApr` and `stakerPayouts` are nullable.

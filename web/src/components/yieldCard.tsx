@@ -1,5 +1,7 @@
 import { AllocationCard } from "components/allocationCard";
+import { InfoIcon } from "components/icons/infoIcon";
 import { PieChartIcon } from "components/icons/pieChartIcon";
+import { Tooltip } from "components/tooltip";
 import { useAnalyticsYield } from "hooks/useAnalyticsYield";
 import { usePrices } from "hooks/usePrices";
 import { useTranslation } from "react-i18next";
@@ -23,8 +25,14 @@ export const YieldHeader = function () {
         {t("common.charts.balance-column")}
       </span>
       <span className="w-24 text-right">{t("common.charts.apy-column")}</span>
-      <span className="w-32 text-right">
+      <span className="flex w-40 items-center justify-end gap-1">
         {t("common.charts.projected-yield-column")}
+        <Tooltip content={t("common.charts.projected-yield-tooltip")}>
+          <InfoIcon />
+          <span className="sr-only">
+            {t("common.charts.projected-yield-tooltip")}
+          </span>
+        </Tooltip>
       </span>
     </div>
   );
@@ -47,7 +55,7 @@ export const YieldDetails = function ({
         <span className="sr-only">{t("common.charts.apy-column")} </span>
         {formattedApy}
       </span>
-      <span className="text-b-medium hidden w-32 text-right text-gray-900 @md:block">
+      <span className="text-b-medium hidden w-40 text-right text-gray-900 @md:block">
         <span className="sr-only">
           {t("common.charts.projected-yield-column")}{" "}
         </span>

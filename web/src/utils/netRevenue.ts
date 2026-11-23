@@ -70,7 +70,7 @@ const getSegments = function ({
 };
 
 /**
- * Derives what the Net protocol revenue card shows from the USD values of
+ * Derives what the Projected protocol revenue card shows from the USD values of
  * `GET /analytics/net-revenue`. Percentages are numbers (`38` means 38%).
  * The bar spans the backend yield when the net is positive, and the staker
  * payouts when it is negative.
