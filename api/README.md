@@ -4,9 +4,9 @@ Service that provides data to the Vetro web application.
 
 ## Data endpoints
 
-### `GET /analytics/collateralization-ratio/:gatewayAddress`
+### `GET /analytics/balance-sheet/:gatewayAddress`
 
-Get the collateralization ratio for a given gateway's pegged token: the total backing value divided by the circulating supply. The backing (`total`) is the sum of the strategic reserves and the liquid Treasury reserves (`treasuryTotal`, whitelisted holdings valued in the pegged token). `surplus` is the backing minus the supply. It is negative when the pegged token is under-collateralized. Cached for 5 minutes.
+Get the balance sheet for a given gateway's pegged token. `ratio` is the total backing value divided by the circulating supply. The backing (`total`) is the sum of the strategic reserves and the liquid Treasury reserves (`treasuryTotal`, whitelisted holdings valued in the pegged token). `surplus` is the backing minus the supply. It is negative when the pegged token is under-collateralized. Cached for 5 minutes.
 `:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway.
 The monetary fields (`strategicReserves`, `supply`, `total`, `treasuryTotal`) are raw `uint256` amounts in the pegged token's base units (not pre-scaled); format them with the token's decimals on the client. `surplus` is a signed integer in the same base units. `ratio` is a number: the percentage `(total / supply) * 100` (e.g. `100.04`), or `0` when supply is `0`.
 
@@ -22,6 +22,10 @@ The monetary fields (`strategicReserves`, `supply`, `total`, `treasuryTotal`) ar
   "treasuryTotal": "11429987580000000000000000"
 }
 ```
+
+### `GET /analytics/collateralization-ratio/:gatewayAddress`
+
+**Deprecated.** Use [`GET /analytics/balance-sheet/:gatewayAddress`](#get-analyticsbalance-sheetgatewayaddress). This route returns the same response.
 
 ### `GET /analytics/tvl/:gatewayAddress`
 

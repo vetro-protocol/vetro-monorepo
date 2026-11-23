@@ -77,8 +77,10 @@
   "pages": {
     "analytics": {
       "accounting-tab": "Contabilidad",
-      "backing-reserves-label": "Reservas de respaldo",
-      "collateralization-ratio-label": "Ratio de colateralización",
+      "balance-sheet-label": "Balance general",
+      "collateral-status-full": "Totalmente colateralizado",
+      "collateral-status-over": "Sobrecolateralizado",
+      "collateral-status-under": "Subcolateralizado",
       "deficit-label": "Déficit (subcolateralizado {{percentage}})",
       "historic-tvl-label": "TVL histórico",
       "liquid-reserves-label": "Reservas líquidas",
@@ -108,7 +110,9 @@
       "supply-label": "Suministro de {{symbol}} (canjeable 1:1)",
       "surplus-label": "Excedente (sobrecolateralizado {{percentage}})",
       "title": "Monitorear analíticas del protocolo",
-      "tvl-label": "Valor Total Bloqueado (TVL)"
+      "total-reserves-label": "Reservas totales",
+      "tvl-label": "Valor Total Bloqueado (TVL)",
+      "zero-surplus-label": "Excedente"
     },
     "borrow": {
       "activity": {

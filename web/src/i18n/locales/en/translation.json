@@ -77,8 +77,10 @@
   "pages": {
     "analytics": {
       "accounting-tab": "Accounting",
-      "backing-reserves-label": "Backing reserves",
-      "collateralization-ratio-label": "Collateralization ratio",
+      "balance-sheet-label": "Balance Sheet",
+      "collateral-status-full": "Fully collateralized",
+      "collateral-status-over": "Overcollateralized",
+      "collateral-status-under": "Undercollateralized",
       "deficit-label": "Deficit (undercollateralized {{percentage}})",
       "historic-tvl-label": "Historic TVL",
       "liquid-reserves-label": "Liquid reserves",
@@ -108,7 +110,9 @@
       "supply-label": "{{symbol}} supply (redeemable 1:1)",
       "surplus-label": "Surplus (overcollateralized {{percentage}})",
       "title": "Monitor protocol analytics",
-      "tvl-label": "Total Value Locked (TVL)"
+      "total-reserves-label": "Total reserves",
+      "tvl-label": "Total Value Locked (TVL)",
+      "zero-surplus-label": "Surplus"
     },
     "borrow": {
       "activity": {

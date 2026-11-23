@@ -15,7 +15,7 @@ import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 
-import { CollateralizationCard } from "./components/collateralizationCard";
+import { BalanceSheetCard } from "./components/balanceSheetCard";
 import { TokenFilter } from "./components/tokenFilter";
 import { TvlCard } from "./components/tvlCard";
 
@@ -173,7 +173,7 @@ export const Analytics = function () {
             />
           </AllocationRow>
           <AllocationRow>
-            <CollateralizationCard
+            <BalanceSheetCard
               peggedToken={selectedToken}
               peggedTokenError={isPeggedTokensError}
             />

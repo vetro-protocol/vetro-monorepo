@@ -200,10 +200,27 @@ export const formatPeggedAmountUsd = ({
     ? formatUsd(tokenAmountToUsd({ amount, prices, token }))
     : "-";
 
-// Transforms /analytics/collateralization-ratio response into the supply and
+export const getCollateralStatus = function ({
+  supply,
+  surplus,
+}: {
+  supply: string;
+  surplus: string;
+}) {
+  if (BigInt(supply) === 0n) {
+    return undefined;
+  }
+  const surplusAmount = BigInt(surplus);
+  if (surplusAmount > 0n) {
+    return "over";
+  }
+  return surplusAmount < 0n ? "under" : "full";
+};
+
+// Transforms /analytics/balance-sheet response into the supply and
 // surplus (or deficit) items. The bar has no segment for a deficit, because a
 // bar cannot show a negative value.
-export const toCollateralizationItems = function ({
+export const toBalanceSheetItems = function ({
   data,
   labels,
   prices,
@@ -214,6 +231,7 @@ export const toCollateralizationItems = function ({
     deficit: (percentage: string) => string;
     supply: string;
     surplus: (percentage: string) => string;
+    zeroSurplus: string;
   };
   prices: Prices;
   token: Token;
@@ -248,8 +266,15 @@ export const toCollateralizationItems = function ({
       : formatUsd(surplusUsd);
   };
 
+  const getSurplusLabel = function () {
+    if (isDeficit) {
+      return labels.deficit(percentage);
+    }
+    return surplus === 0n ? labels.zeroSurplus : labels.surplus(percentage);
+  };
+
   const getSurplusClassName = function () {
-    if (!hasPrice) {
+    if (!hasPrice || surplus === 0n) {
       return undefined;
     }
     return isDeficit ? "text-rose-500" : "text-emerald-500";
@@ -267,9 +292,7 @@ export const toCollateralizationItems = function ({
       amountClassName: getSurplusClassName(),
       color: isDeficit ? "bg-rose-500" : "bg-emerald-400",
       formattedAmount: getSurplusText(),
-      label: isDeficit
-        ? labels.deficit(percentage)
-        : labels.surplus(percentage),
+      label: getSurplusLabel(),
     },
   ];
 };

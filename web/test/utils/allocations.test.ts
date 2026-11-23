@@ -6,8 +6,9 @@ import type { TreasuryToken, TvlHistoryEntry } from "../../src/types";
 import {
   assignColor,
   formatPeggedAmountUsd,
+  getCollateralStatus,
   getHistoryOnlyTokenAddresses,
-  toCollateralizationItems,
+  toBalanceSheetItems,
   toTvlHistorySeries,
   toTvlItems,
   toYieldView,
@@ -80,19 +81,45 @@ describe("pages/analytics/utils", function () {
     });
   });
 
-  describe("toCollateralizationItems", function () {
+  describe("getCollateralStatus", function () {
+    const supply = parseUnits("1000", 18).toString();
+
+    it("returns no status when supply is zero", function () {
+      expect(
+        getCollateralStatus({
+          supply: "0",
+          surplus: parseUnits("50", 18).toString(),
+        }),
+      ).toBeUndefined();
+    });
+
+    it("returns over when the surplus is positive", function () {
+      expect(getCollateralStatus({ supply, surplus: "1" })).toBe("over");
+    });
+
+    it("returns full when the surplus is zero", function () {
+      expect(getCollateralStatus({ supply, surplus: "0" })).toBe("full");
+    });
+
+    it("returns under when the surplus is negative", function () {
+      expect(getCollateralStatus({ supply, surplus: "-1" })).toBe("under");
+    });
+  });
+
+  describe("toBalanceSheetItems", function () {
     const labels = {
       deficit: (percentage: string) => `Deficit ${percentage}`,
       supply: "VUSD supply",
       surplus: (percentage: string) => `Surplus ${percentage}`,
+      zeroSurplus: "Surplus",
     };
-    const collateralizationPrices = { VUSD: "2" };
+    const balanceSheetPrices = { VUSD: "2" };
 
     const run = (data: { ratio: number; supply: string; surplus: string }) =>
-      toCollateralizationItems({
+      toBalanceSheetItems({
         data,
         labels,
-        prices: collateralizationPrices,
+        prices: balanceSheetPrices,
         token: vusdToken,
       });
 
@@ -148,6 +175,22 @@ describe("pages/analytics/utils", function () {
       expect(surplus?.label).toBe("Surplus -");
     });
 
+    it("shows the surplus with no percentage and no color when it is zero", function () {
+      const [, surplus] = run({
+        ratio: 100,
+        supply: parseUnits("1000", 18).toString(),
+        surplus: "0",
+      });
+
+      expect(surplus).toStrictEqual({
+        amount: 0,
+        amountClassName: undefined,
+        color: "bg-emerald-400",
+        formattedAmount: "$0",
+        label: "Surplus",
+      });
+    });
+
     it("returns empty bar amounts when supply and surplus are zero", function () {
       const items = run({ ratio: 0, supply: "0", surplus: "0" });
 
@@ -155,7 +198,7 @@ describe("pages/analytics/utils", function () {
     });
 
     it("shows dashes with no amount color when the pegged token has no price", function () {
-      const [supply, surplus] = toCollateralizationItems({
+      const [supply, surplus] = toBalanceSheetItems({
         data: {
           ratio: 90,
           supply: parseUnits("100", 18).toString(),

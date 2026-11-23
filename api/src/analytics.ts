@@ -226,8 +226,8 @@ async function getTreasuryTotal({
 }
 
 /**
- * The collateralization ratio is the total backing value of a gateway's pegged
- * token divided by its circulating supply, expressed as a percentage. The
+ * The balance sheet of a gateway's pegged token. Its `ratio` is the total
+ * backing value divided by the circulating supply, as a percentage. The
  * backing is the sum of the strategic reserves and the liquid Treasury
  * reserves (whitelisted holdings valued in the pegged token). The surplus is
  * the backing minus the supply, and is negative when under-collateralized.
@@ -236,7 +236,7 @@ async function getTreasuryTotal({
  * only `ratio` is a number (a percentage). This moves the calculation
  * previously done on the frontend into the API so it can be cached and shared.
  */
-export async function getCollateralizationRatio({
+export async function getBalanceSheet({
   gatewayAddress,
   url,
 }: {
