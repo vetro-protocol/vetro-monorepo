@@ -7,6 +7,7 @@ import {
 } from "viem";
 import { waitForTransactionReceipt } from "viem/actions";
 import { sepolia } from "viem/chains";
+import { balanceOf } from "viem-erc20/actions";
 import {
   allowance,
   approve,
@@ -15,10 +16,18 @@ import {
 } from "viem-erc7540/actions";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { getIsPaused } from "../../src/actions/public/getIsPaused.ts";
+import { getIsShutdown } from "../../src/actions/public/getIsShutdown.ts";
+import { getMaxRequestDeposit } from "../../src/actions/public/getMaxRequestDeposit.ts";
 import { requestDeposit } from "../../src/actions/wallet/requestDeposit.ts";
+import { getIsAccountOrOperator } from "../../src/utils/getIsAccountOrOperator.ts";
 
 vi.mock("viem/actions", () => ({
   waitForTransactionReceipt: vi.fn(),
+}));
+
+vi.mock("viem-erc20/actions", () => ({
+  balanceOf: vi.fn(),
 }));
 
 vi.mock("viem-erc7540/actions", () => ({
@@ -26,6 +35,22 @@ vi.mock("viem-erc7540/actions", () => ({
   approve: vi.fn(),
   asset: vi.fn(),
   requestDeposit: vi.fn(),
+}));
+
+vi.mock("../../src/actions/public/getIsPaused.ts", () => ({
+  getIsPaused: vi.fn(),
+}));
+
+vi.mock("../../src/actions/public/getIsShutdown.ts", () => ({
+  getIsShutdown: vi.fn(),
+}));
+
+vi.mock("../../src/actions/public/getMaxRequestDeposit.ts", () => ({
+  getMaxRequestDeposit: vi.fn(),
+}));
+
+vi.mock("../../src/utils/getIsAccountOrOperator.ts", () => ({
+  getIsAccountOrOperator: vi.fn(),
 }));
 
 const mockWalletClient = {
@@ -46,9 +71,16 @@ const validParameters = {
 
 const successReceipt = { status: "success" } as TransactionReceipt;
 
+const rpcError = new Error("RPC error");
+
 describe("requestDeposit", function () {
   beforeEach(function () {
     vi.mocked(asset).mockResolvedValue(token);
+    vi.mocked(balanceOf).mockResolvedValue(validParameters.assets);
+    vi.mocked(getIsAccountOrOperator).mockResolvedValue(true);
+    vi.mocked(getIsPaused).mockResolvedValue(false);
+    vi.mocked(getIsShutdown).mockResolvedValue(false);
+    vi.mocked(getMaxRequestDeposit).mockResolvedValue(validParameters.assets);
   });
 
   it.each([
@@ -87,6 +119,134 @@ describe("requestDeposit", function () {
       expect(onSettled).toHaveBeenCalledOnce();
     },
   );
+
+  it.each([
+    {
+      name: "the vault is paused",
+      reason: "Vault is paused",
+      state: "paused",
+    },
+    {
+      name: "the vault is shut down",
+      reason: "Vault is shut down",
+      state: "shutdown",
+    },
+    {
+      name: "assets exceed the max deposit request",
+      reason: "Assets exceed the max deposit request",
+      state: "max",
+    },
+  ])(
+    "should emit validation and skip sending when $name",
+    async function ({ reason, state }) {
+      if (state === "paused") {
+        vi.mocked(getIsPaused).mockResolvedValue(true);
+      }
+      if (state === "shutdown") {
+        vi.mocked(getIsShutdown).mockResolvedValue(true);
+      }
+      if (state === "max") {
+        vi.mocked(getMaxRequestDeposit).mockResolvedValue(
+          validParameters.assets - 1n,
+        );
+      }
+      const { emitter, promise } = requestDeposit(
+        mockWalletClient,
+        validParameters,
+      );
+
+      const onFailedValidation = vi.fn();
+      emitter.on("request-deposit-failed-validation", onFailedValidation);
+
+      await promise;
+
+      expect(onFailedValidation).toHaveBeenCalledExactlyOnceWith(reason);
+      expect(approve).not.toHaveBeenCalled();
+      expect(erc7540RequestDeposit).not.toHaveBeenCalled();
+    },
+  );
+
+  it("should validate the owner's asset balance", async function () {
+    const owner = "0x2222222222222222222222222222222222222222" as Address;
+
+    vi.mocked(balanceOf).mockResolvedValue(validParameters.assets - 1n);
+
+    const { emitter, promise } = requestDeposit(mockWalletClient, {
+      ...validParameters,
+      owner,
+    });
+
+    const onFailedValidation = vi.fn();
+    emitter.on("request-deposit-failed-validation", onFailedValidation);
+
+    await promise;
+
+    expect(balanceOf).toHaveBeenCalledExactlyOnceWith(mockWalletClient, {
+      account: owner,
+      address: token,
+    });
+    expect(onFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "Owner balance is lower than assets",
+    );
+    expect(approve).not.toHaveBeenCalled();
+    expect(erc7540RequestDeposit).not.toHaveBeenCalled();
+  });
+
+  it("should require owner or operator authorization even when allowance covers the assets", async function () {
+    const owner = "0x2222222222222222222222222222222222222222" as Address;
+
+    vi.mocked(getIsAccountOrOperator).mockResolvedValue(false);
+    vi.mocked(allowance).mockResolvedValue(validParameters.assets);
+
+    const { emitter, promise } = requestDeposit(mockWalletClient, {
+      ...validParameters,
+      owner,
+    });
+
+    const onFailedValidation = vi.fn();
+    emitter.on("request-deposit-failed-validation", onFailedValidation);
+
+    await promise;
+
+    expect(getIsAccountOrOperator).toHaveBeenCalledExactlyOnceWith({
+      account: mockWalletClient.account!.address,
+      address: validParameters.address,
+      client: mockWalletClient,
+      owner,
+    });
+    expect(onFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "Account is not the owner or its operator",
+    );
+    expect(allowance).not.toHaveBeenCalled();
+    expect(erc7540RequestDeposit).not.toHaveBeenCalled();
+  });
+
+  it("should check the max deposit request for the given controller and owner", async function () {
+    const controller = "0x3333333333333333333333333333333333333333" as Address;
+    const owner = "0x2222222222222222222222222222222222222222" as Address;
+
+    vi.mocked(allowance).mockResolvedValue(validParameters.assets);
+    vi.mocked(erc7540RequestDeposit).mockResolvedValue(zeroHash);
+    vi.mocked(waitForTransactionReceipt).mockResolvedValue(successReceipt);
+
+    const { promise } = requestDeposit(mockWalletClient, {
+      ...validParameters,
+      controller,
+      owner,
+    });
+
+    await promise;
+
+    expect(getMaxRequestDeposit).toHaveBeenCalledExactlyOnceWith(
+      mockWalletClient,
+      {
+        address: validParameters.address,
+        controller,
+        owner,
+      },
+    );
+    expect(erc7540RequestDeposit).toHaveBeenCalledOnce();
+  });
 
   it.each([
     {
@@ -399,6 +559,62 @@ describe("requestDeposit", function () {
     expect(onTransactionSucceeded).not.toHaveBeenCalled();
     expect(onSettled).toHaveBeenCalledOnce();
   });
+
+  it.each([
+    {
+      mockRead() {
+        vi.mocked(getIsPaused).mockRejectedValueOnce(rpcError);
+      },
+      name: "getIsPaused",
+    },
+    {
+      mockRead() {
+        vi.mocked(getIsShutdown).mockRejectedValueOnce(rpcError);
+      },
+      name: "getIsShutdown",
+    },
+    {
+      mockRead() {
+        vi.mocked(getIsAccountOrOperator).mockRejectedValueOnce(rpcError);
+      },
+      name: "getIsAccountOrOperator",
+    },
+    {
+      mockRead() {
+        vi.mocked(getMaxRequestDeposit).mockRejectedValueOnce(rpcError);
+      },
+      name: "getMaxRequestDeposit",
+    },
+    {
+      mockRead() {
+        vi.mocked(balanceOf).mockRejectedValueOnce(rpcError);
+      },
+      name: "balanceOf",
+    },
+  ])(
+    "should emit 'unexpected-error' when the $name read fails",
+    async function ({ mockRead }) {
+      mockRead();
+
+      const { emitter, promise } = requestDeposit(
+        mockWalletClient,
+        validParameters,
+      );
+
+      const onUnexpectedError = vi.fn();
+      const onSettled = vi.fn();
+
+      emitter.on("unexpected-error", onUnexpectedError);
+      emitter.on("request-deposit-settled", onSettled);
+
+      await promise;
+
+      expect(onUnexpectedError).toHaveBeenCalledExactlyOnceWith(rpcError);
+      expect(approve).not.toHaveBeenCalled();
+      expect(erc7540RequestDeposit).not.toHaveBeenCalled();
+      expect(onSettled).toHaveBeenCalledOnce();
+    },
+  );
 
   it("should emit 'unexpected-error' when reading the vault asset fails", async function () {
     vi.mocked(asset).mockRejectedValue(new Error("RPC error"));
