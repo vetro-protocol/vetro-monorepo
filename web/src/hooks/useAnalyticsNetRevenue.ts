@@ -1,10 +1,12 @@
-import { queryOptions, useQuery } from "@tanstack/react-query";
+import { queryOptions } from "@tanstack/react-query";
 import { fetchAnalyticsNetRevenue } from "fetchers/fetchAnalyticsNetRevenue";
 import type { Address } from "viem";
 
 const apiUrl = import.meta.env.VITE_VETRO_API_URL;
 
-const analyticsNetRevenueOptions = (gatewayAddress: Address | undefined) =>
+export const analyticsNetRevenueOptions = (
+  gatewayAddress: Address | undefined,
+) =>
   queryOptions({
     enabled:
       apiUrl !== undefined &&
@@ -15,6 +17,3 @@ const analyticsNetRevenueOptions = (gatewayAddress: Address | undefined) =>
     refetchInterval: 60 * 1000,
     staleTime: 60 * 1000,
   });
-
-export const useAnalyticsNetRevenue = (gatewayAddress: Address | undefined) =>
-  useQuery(analyticsNetRevenueOptions(gatewayAddress));

@@ -104,3 +104,33 @@ export const toNetRevenueView = function ({
     status: getStatus(net),
   };
 };
+
+/**
+ * The spread is the remainder of the net, so the two parts add up to the net
+ * that the Projected protocol revenue card shows, also when `backendApy` is
+ * not the exact ratio of the backend yield. The parts are in cents, so float
+ * noise does not show as a small amount.
+ */
+export const toRevenueSources = function ({
+  backendApy,
+  backendBalance,
+  netRevenue,
+  staked,
+}: {
+  backendApy: number | null;
+  backendBalance: number;
+  netRevenue: number | null;
+  staked: number;
+}) {
+  const net = netRevenue === null ? null : roundToCents(netRevenue);
+  const lazyYield =
+    backendApy === null
+      ? null
+      : roundToCents(((backendBalance - staked) * backendApy) / 100);
+  return {
+    lazyYield,
+    netRevenue: net,
+    stakingSpread:
+      lazyYield === null || net === null ? null : roundToCents(net - lazyYield),
+  };
+};

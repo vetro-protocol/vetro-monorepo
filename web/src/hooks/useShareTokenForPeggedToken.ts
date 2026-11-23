@@ -6,7 +6,7 @@ import type { TokenWithGateway } from "types";
 import { graphShareToken } from "utils/protocolGraph";
 import type { Client } from "viem";
 
-const shareTokenForPeggedTokenOptions = ({
+export const shareTokenForPeggedTokenOptions = ({
   client,
   peggedToken,
 }: {

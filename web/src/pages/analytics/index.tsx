@@ -3,7 +3,7 @@ import { ApyHistoryCard } from "components/apyHistoryCard";
 import { PageTitle } from "components/base/pageTitle";
 import { SegmentedControl } from "components/base/segmentedControl";
 import { ExitCooldownCard } from "components/exitCooldownCard";
-import { NetRevenueCard } from "components/netRevenueCard";
+import { NetRevenueCard, RevenueSourcesCard } from "components/netRevenueCard";
 import { ShareRatioCard } from "components/shareRatioCard";
 import { StakedCard } from "components/stakedCard";
 import { StripedDivider } from "components/stripedDivider";
@@ -168,6 +168,12 @@ export const Analytics = function () {
         <>
           <AllocationRow>
             <NetRevenueCard
+              peggedToken={selectedToken}
+              peggedTokenError={isPeggedTokensError}
+            />
+          </AllocationRow>
+          <AllocationRow>
+            <RevenueSourcesCard
               peggedToken={selectedToken}
               peggedTokenError={isPeggedTokensError}
             />
