@@ -1,6 +1,12 @@
 import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { InvalidArgumentError } from "commander";
-import { getAddress, isAddressEqual, parseUnits, zeroAddress } from "viem";
+import {
+  getAddress,
+  isAddressEqual,
+  isHash,
+  parseUnits,
+  zeroAddress,
+} from "viem";
 
 import { MAX_SLIPPAGE } from "./slippage.ts";
 
@@ -52,6 +58,23 @@ export function parseGateway(value: string) {
   }
   return address;
 }
+
+export function parseMarket(value: string) {
+  const trimmed = value.trim();
+  if (isHash(trimmed)) {
+    return { marketId: trimmed, value };
+  }
+  const sides = value.split("/").map((side) => side.trim());
+  if (sides.length !== 2 || sides.some((side) => side === "")) {
+    throw new InvalidArgumentError(
+      `Invalid market: "${value}": expected <collateral>/<loan> or a 32-byte market id`,
+    );
+  }
+  const [collateral, loan] = sides;
+  return { collateral, loan, value };
+}
+
+export type MarketSelector = ReturnType<typeof parseMarket>;
 
 export function parseReceiver(value: string) {
   const address = parseAddress(value);

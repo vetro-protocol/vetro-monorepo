@@ -1,8 +1,9 @@
 import { type Command } from "commander";
 
+import { register as market } from "./commands/market.ts";
 import { register as markets } from "./commands/markets.ts";
 
-const borrowCommands = [markets];
+const borrowCommands = [market, markets];
 
 export function register(program: Command) {
   const borrow = program

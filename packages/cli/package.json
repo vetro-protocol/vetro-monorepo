@@ -42,6 +42,9 @@
     "test:e2e": "vitest run --project e2e"
   },
   "dependencies": {
+    "@morpho-org/blue-sdk": "8.0.1",
+    "@morpho-org/blue-sdk-viem": "7.0.0",
+    "@morpho-org/morpho-ts": "4.0.1",
     "@vetro-protocol/earn": "workspace:*",
     "@vetro-protocol/gateway": "workspace:*",
     "@vetro-protocol/treasury": "workspace:*",
