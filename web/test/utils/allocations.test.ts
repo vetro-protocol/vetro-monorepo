@@ -6,6 +6,7 @@ import type { TreasuryToken, TvlHistoryEntry } from "../../src/types";
 import {
   assignColor,
   formatPeggedAmountUsd,
+  getCollateralStatus,
   getHistoryOnlyTokenAddresses,
   toBalanceSheetItems,
   toTvlHistorySeries,
@@ -77,6 +78,31 @@ describe("pages/analytics/utils", function () {
           token: vusdToken,
         }),
       ).toBe("-");
+    });
+  });
+
+  describe("getCollateralStatus", function () {
+    const supply = parseUnits("1000", 18).toString();
+
+    it("returns no status when supply is zero", function () {
+      expect(
+        getCollateralStatus({
+          supply: "0",
+          surplus: parseUnits("50", 18).toString(),
+        }),
+      ).toBeUndefined();
+    });
+
+    it("returns over when the surplus is positive", function () {
+      expect(getCollateralStatus({ supply, surplus: "1" })).toBe("over");
+    });
+
+    it("returns full when the surplus is zero", function () {
+      expect(getCollateralStatus({ supply, surplus: "0" })).toBe("full");
+    });
+
+    it("returns under when the surplus is negative", function () {
+      expect(getCollateralStatus({ supply, surplus: "-1" })).toBe("under");
     });
   });
 

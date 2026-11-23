@@ -200,6 +200,23 @@ export const formatPeggedAmountUsd = ({
     ? formatUsd(tokenAmountToUsd({ amount, prices, token }))
     : "-";
 
+export const getCollateralStatus = function ({
+  supply,
+  surplus,
+}: {
+  supply: string;
+  surplus: string;
+}) {
+  if (BigInt(supply) === 0n) {
+    return undefined;
+  }
+  const surplusAmount = BigInt(surplus);
+  if (surplusAmount > 0n) {
+    return "over";
+  }
+  return surplusAmount < 0n ? "under" : "full";
+};
+
 // Transforms /analytics/balance-sheet response into the supply and
 // surplus (or deficit) items. The bar has no segment for a deficit, because a
 // bar cannot show a negative value.

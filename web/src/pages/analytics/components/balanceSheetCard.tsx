@@ -4,7 +4,11 @@ import { useBalanceSheet } from "hooks/useBalanceSheet";
 import { usePrices } from "hooks/usePrices";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
-import { formatPeggedAmountUsd, toBalanceSheetItems } from "utils/allocations";
+import {
+  formatPeggedAmountUsd,
+  getCollateralStatus,
+  toBalanceSheetItems,
+} from "utils/allocations";
 import { formatPercentage } from "utils/format";
 
 import { ShieldIcon } from "../icons/shieldIcon";
@@ -44,32 +48,16 @@ const collateralStatuses = {
   },
 } as const;
 
-const getCollateralStatus = function ({
-  supply,
-  surplus,
-}: {
-  supply: string;
-  surplus: string;
-}) {
-  if (BigInt(supply) === 0n) {
-    return undefined;
-  }
-  const surplusAmount = BigInt(surplus);
-  if (surplusAmount > 0n) {
-    return collateralStatuses.over;
-  }
-  return surplusAmount < 0n
-    ? collateralStatuses.under
-    : collateralStatuses.full;
-};
-
 const BalanceSheetLabel = function ({
   balanceSheet,
 }: {
   balanceSheet?: { supply: string; surplus: string };
 }) {
   const { t } = useTranslation();
-  const status = balanceSheet ? getCollateralStatus(balanceSheet) : undefined;
+  const statusName = balanceSheet
+    ? getCollateralStatus(balanceSheet)
+    : undefined;
+  const status = statusName ? collateralStatuses[statusName] : undefined;
   return (
     <span className="inline-flex items-center gap-2">
       {t("pages.analytics.balance-sheet-label")}
