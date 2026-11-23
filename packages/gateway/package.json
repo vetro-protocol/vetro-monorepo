@@ -27,6 +27,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@vetro-protocol/treasury": "workspace:*",
     "to-promise-event": "1.0.0",
     "viem-erc20": "2.2.1"
   },

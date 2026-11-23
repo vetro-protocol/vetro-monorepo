@@ -1,3 +1,4 @@
+import { getTokenConfig } from "@vetro-protocol/treasury/actions";
 import { EventEmitter } from "events";
 import { toPromiseEvent } from "to-promise-event";
 import {
@@ -14,6 +15,7 @@ import { allowance, approve } from "viem-erc20/actions";
 
 import { gatewayAbi } from "../../abi/gatewayAbi.ts";
 import type { DepositEvents } from "../../types.ts";
+import { getTreasury } from "../public/getTreasury.ts";
 
 export type DepositParams = {
   amountIn: bigint;
@@ -169,6 +171,22 @@ const runDeposit = (
 
       if (!canDepositFlag) {
         emitter.emit("deposit-failed-validation", reason!);
+        return;
+      }
+
+      const treasury = await getTreasury(walletClient, {
+        address: gatewayAddress,
+      });
+      const [, , , depositActive] = await getTokenConfig(walletClient, {
+        address: treasury,
+        token: tokenIn,
+      });
+
+      if (!depositActive) {
+        emitter.emit(
+          "deposit-failed-validation",
+          "Deposits are not active for this token",
+        );
         return;
       }
 
