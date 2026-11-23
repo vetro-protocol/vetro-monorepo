@@ -35,7 +35,12 @@ const EarnedThisTermCard = function ({ stakingVaultAddress }: CardProps) {
       label={
         <span className="flex items-center gap-x-1">
           {t("pages.earn.fixed-term.earned-this-term")}
-          <Tooltip content={t("pages.earn.fixed-term.earned-this-term-info")}>
+          <Tooltip
+            content={t("pages.earn.fixed-term.earned-this-term-info")}
+            label={t("common.more-info-about", {
+              topic: t("pages.earn.fixed-term.earned-this-term"),
+            })}
+          >
             <div className="*:size-3">
               <InfoIcon />
             </div>

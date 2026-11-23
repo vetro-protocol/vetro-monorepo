@@ -44,7 +44,7 @@ const formatLtvValue = (value: number | null) =>
 const formatPrice = (value: number | null) =>
   value !== null ? `$${formatFiatNumber(value)}` : "-";
 
-const PositionReviewRow = ({
+const PositionReviewRow = function ({
   children,
   hasChanges,
   label,
@@ -56,25 +56,31 @@ const PositionReviewRow = ({
   label: string;
   tooltip: string;
   updatedChildren: React.ReactNode;
-}) => (
-  <div className="flex items-center justify-between border-b border-gray-200 py-3.5 text-gray-900 last:border-b-0">
-    <div className="flex h-5.5 items-center gap-1.5">
-      <Tooltip content={tooltip}>
-        <QuestionIcon />
-      </Tooltip>
-      <span className="text-b-medium">{label}</span>
+}) {
+  const { t } = useTranslation();
+  return (
+    <div className="flex items-center justify-between border-b border-gray-200 py-3.5 text-gray-900 last:border-b-0">
+      <div className="flex h-5.5 items-center gap-1.5">
+        <Tooltip
+          content={tooltip}
+          label={t("common.more-info-about", { topic: label })}
+        >
+          <QuestionIcon />
+        </Tooltip>
+        <span className="text-b-medium">{label}</span>
+      </div>
+      <div className="flex items-center gap-3">
+        <span className={`text-h4 w-26 ${hasChanges ? "opacity-50" : ""}`}>
+          {children}
+        </span>
+        <ArrowIcon />
+        <span className="text-h4 w-26 text-right">
+          {hasChanges ? updatedChildren : "-"}
+        </span>
+      </div>
     </div>
-    <div className="flex items-center gap-3">
-      <span className={`text-h4 w-26 ${hasChanges ? "opacity-50" : ""}`}>
-        {children}
-      </span>
-      <ArrowIcon />
-      <span className="text-h4 w-26 text-right">
-        {hasChanges ? updatedChildren : "-"}
-      </span>
-    </div>
-  </div>
-);
+  );
+};
 
 export function PositionReview({
   borrowApy,

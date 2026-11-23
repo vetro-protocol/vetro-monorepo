@@ -5,6 +5,7 @@
     "approve-10x": "Approve 10x",
     "approve-10x-tooltip": "Approves up to 10× your transaction amount, reducing future approval steps. You can revoke it anytime.",
     "balance": "Balance",
+    "chainlink-oracle": "Chainlink oracle",
     "charts": {
       "apy-column": "APY",
       "apy-label": "{{shareSymbol}} APY",
@@ -39,6 +40,7 @@
     "insufficient-gas": "Insufficient ETH for gas",
     "insufficient-liquidity": "Insufficient liquidity",
     "insufficient-treasury": "Not enough balance in treasury",
+    "more-info-about": "More info about {{topic}}",
     "network-fee": "Network Fee",
     "no-results-found": "No tokens found",
     "oracle": "Oracle",

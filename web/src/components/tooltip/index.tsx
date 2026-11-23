@@ -2,6 +2,7 @@ import { isCoveredByOverlay } from "hooks/useOverlay";
 import RcTooltip from "rc-tooltip";
 import {
   type FocusEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent,
   type ReactNode,
   useEffect,
@@ -15,6 +16,7 @@ import "./tooltip.css";
 type Props = {
   children: ReactNode;
   content: ReactNode;
+  label?: string;
   stretch?: boolean;
   useParentContainer?: boolean;
   visible?: boolean;
@@ -39,6 +41,7 @@ const motion = { motionDeadline: 200, motionName: "vetro-tooltip" };
 export const Tooltip = function ({
   children,
   content,
+  label,
   stretch = false,
   useParentContainer = false,
   visible,
@@ -51,6 +54,8 @@ export const Tooltip = function ({
   const triggerRef = useRef<HTMLDivElement>(null);
   const canOpen = visible !== false;
   const isOpen = visible ?? open;
+  const isFocusTarget = canOpen && !hasFocusableChild;
+  const isNamedTrigger = isFocusTarget && Boolean(label);
 
   useLayoutEffect(function () {
     setHasFocusableChild(
@@ -139,6 +144,13 @@ export const Tooltip = function ({
     }
   }
 
+  function onKeyDown(event: ReactKeyboardEvent) {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      setOpen(true);
+    }
+  }
+
   function onFocus(event: FocusEvent) {
     if (canOpen && (event.target as Element).matches(":focus-visible")) {
       setOpen(true);
@@ -168,15 +180,18 @@ export const Tooltip = function ({
       visible={isOpen}
     >
       <div
+        aria-label={isNamedTrigger ? label : undefined}
         className={`vetro-tooltip-trigger flex cursor-pointer ${stretch ? "size-full" : "w-fit"}`}
         onBlur={closeOnFocusLeave}
         onClick={onClick}
         onFocus={onFocus}
+        onKeyDown={isNamedTrigger ? onKeyDown : undefined}
         onPointerDown={function (event) {
           pointerTypeRef.current = event.pointerType;
         }}
         ref={triggerRef}
-        tabIndex={canOpen && !hasFocusableChild ? 0 : -1}
+        role={isNamedTrigger ? "button" : undefined}
+        tabIndex={isFocusTarget ? 0 : -1}
       >
         {children}
       </div>

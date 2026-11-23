@@ -27,11 +27,13 @@ export const YieldHeader = function () {
       <span className="w-24 text-right">{t("common.charts.apy-column")}</span>
       <span className="flex w-40 items-center justify-end gap-1">
         {t("common.charts.projected-yield-column")}
-        <Tooltip content={t("common.charts.projected-yield-tooltip")}>
+        <Tooltip
+          content={t("common.charts.projected-yield-tooltip")}
+          label={t("common.more-info-about", {
+            topic: t("common.charts.projected-yield-column"),
+          })}
+        >
           <InfoIcon />
-          <span className="sr-only">
-            {t("common.charts.projected-yield-tooltip")}
-          </span>
         </Tooltip>
       </span>
     </div>

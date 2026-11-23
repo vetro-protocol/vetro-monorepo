@@ -79,6 +79,9 @@ export const ExitClaimCard = function ({
                 peggedSymbol: peggedToken.symbol,
                 shareSymbol: shareToken.symbol,
               })}
+              label={t("common.more-info-about", {
+                topic: t("pages.earn.fixed-term.exit-claim"),
+              })}
               visible={data ? undefined : false}
             >
               <div className="*:size-3">
