@@ -195,6 +195,13 @@ Compares the yield that the treasury earns with the yield that the staking vault
 
 The status is "Net positive" when the net is above zero, "Net negative" when it is below zero, and "Breakeven" when it shows as "$0". When a strategy with a balance has no APY, the reserve yield is unknown, and the card shows "-" for it and for the values that depend on it.
 
+##### Projected revenue sources
+
+Divides the projected net revenue into two parts:
+
+- **Projected lazy yield**: (reserves − staked) × blended APY.
+- **Projected staking spread**: net revenue − lazy yield, which is staked × (blended APY − staker APR). It is usually negative.
+
 ##### Balance sheet
 
 The backing, the circulating supply and the surplus of the pegged token. The **backing** is the sum of two parts. The card shows it in the "Total reserves" row:

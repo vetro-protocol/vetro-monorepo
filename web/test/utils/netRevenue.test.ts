@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { formatSignedUsd, toNetRevenueView } from "../../src/utils/netRevenue";
+import {
+  formatSignedUsd,
+  toNetRevenueView,
+  toRevenueSources,
+} from "../../src/utils/netRevenue";
 
 describe("utils/netRevenue", function () {
   describe("formatSignedUsd", function () {
@@ -175,6 +179,84 @@ describe("utils/netRevenue", function () {
       expect(view.coverageRatio).toBeNull();
       expect(view.payoutsOfBackend).toBeNull();
       expect(view.shortfallOfPayouts).toBeNull();
+    });
+  });
+
+  describe("toRevenueSources", function () {
+    it("returns the lazy yield on the unstaked reserves and the spread as the remainder", function () {
+      const sources = toRevenueSources({
+        backendApy: 4.87,
+        backendBalance: 665_790,
+        netRevenue: 20_849.27,
+        staked: 115_850,
+      });
+
+      expect(sources.lazyYield).toBe(26_782.08);
+      expect(sources.stakingSpread).toBe(-5_932.81);
+      expect(sources.netRevenue).toBe(20_849.27);
+    });
+
+    it("has a zero spread when nothing is staked and the lazy yield differs from the net by less than a cent", function () {
+      const sources = toRevenueSources({
+        backendApy: 4.87,
+        backendBalance: 665_790,
+        netRevenue: 32_423.97,
+        staked: 0,
+      });
+
+      expect(sources.lazyYield).toBe(32_423.97);
+      expect(sources.stakingSpread).toBe(0);
+    });
+
+    it("uses the net revenue rounded to cents, as the Projected protocol revenue card does", function () {
+      const sources = toRevenueSources({
+        backendApy: 5,
+        backendBalance: 1_000,
+        netRevenue: 20.004,
+        staked: 600,
+      });
+
+      expect(sources.netRevenue).toBe(20);
+      expect(sources.lazyYield).toBe(20);
+      expect(sources.stakingSpread).toBe(0);
+    });
+
+    it("returns a negative lazy yield when the staked amount exceeds the reserves", function () {
+      const sources = toRevenueSources({
+        backendApy: 5,
+        backendBalance: 1_000,
+        netRevenue: -50,
+        staked: 1_200,
+      });
+
+      expect(sources.lazyYield).toBe(-10);
+      expect(sources.stakingSpread).toBe(-40);
+    });
+
+    it("has no values when the blended APY is unknown", function () {
+      expect(
+        toRevenueSources({
+          backendApy: null,
+          backendBalance: 665_790,
+          netRevenue: null,
+          staked: 115_850,
+        }),
+      ).toEqual({ lazyYield: null, netRevenue: null, stakingSpread: null });
+    });
+
+    it("keeps the lazy yield but has no spread when the net revenue is unknown", function () {
+      const sources = toRevenueSources({
+        backendApy: 5,
+        backendBalance: 1_000,
+        netRevenue: null,
+        staked: 600,
+      });
+
+      expect(sources).toEqual({
+        lazyYield: 20,
+        netRevenue: null,
+        stakingSpread: null,
+      });
     });
   });
 });

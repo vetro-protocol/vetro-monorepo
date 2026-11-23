@@ -1,9 +1,11 @@
+import { useQueries } from "@tanstack/react-query";
 import { AllocationCard } from "components/allocationCard";
 import { Badge } from "components/base/badge";
 import { TrendingUpIcon } from "components/icons/trendingUpIcon";
-import { useAnalyticsNetRevenue } from "hooks/useAnalyticsNetRevenue";
-import { usePrices } from "hooks/usePrices";
-import { useShareTokenForPeggedToken } from "hooks/useShareTokenForPeggedToken";
+import { analyticsNetRevenueOptions } from "hooks/useAnalyticsNetRevenue";
+import { useEthereumClient } from "hooks/useEthereumClient";
+import { pricesOptions } from "hooks/usePrices";
+import { shareTokenForPeggedTokenOptions } from "hooks/useShareTokenForPeggedToken";
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
@@ -13,6 +15,7 @@ import {
   formatSignedUsd,
   type NetRevenueStatus,
   toNetRevenueView,
+  toRevenueSources,
 } from "utils/netRevenue";
 import { isUsdPriceMissing } from "utils/token";
 
@@ -202,17 +205,19 @@ const NetRevenueLabel = function ({
   );
 };
 
+type ContentProps = {
+  isError: boolean;
+  isLoading: boolean;
+  shareSymbol: string | undefined;
+  values: NetRevenueValues | undefined;
+};
+
 export const NetRevenueContent = function ({
   isError,
   isLoading,
   shareSymbol,
   values,
-}: {
-  isError: boolean;
-  isLoading: boolean;
-  shareSymbol: string | undefined;
-  values: NetRevenueValues | undefined;
-}) {
+}: ContentProps) {
   const { t } = useTranslation();
   const cardProps = {
     footnote: shareSymbol
@@ -259,55 +264,168 @@ export const NetRevenueContent = function ({
   );
 };
 
-export const NetRevenueCard = function ({
+const useNetRevenueValues = function ({
   peggedToken,
   peggedTokenError = false,
 }: Props) {
-  const {
-    data,
-    isError: isNetRevenueError,
-    isLoading: isNetRevenueLoading,
-  } = useAnalyticsNetRevenue(peggedToken?.gatewayAddress);
-  const { data: prices, isError: isPricesError } = usePrices();
-  const { data: shareToken, isError: isShareTokenError } =
-    useShareTokenForPeggedToken({ peggedToken });
+  const client = useEthereumClient();
 
-  const isError = [
-    peggedTokenError,
-    isNetRevenueError && !data,
-    isPricesError && !prices,
-    isShareTokenError && !shareToken,
-    isUsdPriceMissing({ prices, token: peggedToken }),
-  ].some(Boolean);
-  const isLoading =
-    !isError &&
-    [!peggedToken, isNetRevenueLoading, !prices, !shareToken].some(Boolean);
+  return useQueries({
+    combine([netRevenueQuery, pricesQuery, shareTokenQuery]) {
+      const { data } = netRevenueQuery;
+      const { data: prices } = pricesQuery;
+      const { data: shareToken } = shareTokenQuery;
 
-  const getValues = function () {
-    if (!peggedToken || !prices || !data) {
-      return undefined;
-    }
-    const toUsd = (amount: bigint) =>
-      tokenAmountToUsd({ amount, prices, token: peggedToken });
-    const toUsdOrNull = (amount: bigint | null) =>
-      amount === null ? null : toUsd(amount);
-    return {
-      backendApy: data.backendApy,
-      backendBalance: toUsd(data.backendBalance),
-      backendYield: toUsdOrNull(data.backendYield),
-      netRevenue: toUsdOrNull(data.netRevenue),
-      staked: toUsd(data.staked),
-      stakerApr: data.stakerApr,
-      stakerPayouts: toUsdOrNull(data.stakerPayouts),
-    };
+      const isError = [
+        peggedTokenError,
+        netRevenueQuery.isError && !data,
+        pricesQuery.isError && !prices,
+        shareTokenQuery.isError && !shareToken,
+        isUsdPriceMissing({ prices, token: peggedToken }),
+      ].some(Boolean);
+      const isLoading =
+        !isError &&
+        [!peggedToken, netRevenueQuery.isLoading, !prices, !shareToken].some(
+          Boolean,
+        );
+
+      const getValues = function () {
+        if (!peggedToken || !prices || !data) {
+          return undefined;
+        }
+        const toUsd = (amount: bigint) =>
+          tokenAmountToUsd({ amount, prices, token: peggedToken });
+        const toUsdOrNull = (amount: bigint | null) =>
+          amount === null ? null : toUsd(amount);
+        return {
+          backendApy: data.backendApy,
+          backendBalance: toUsd(data.backendBalance),
+          backendYield: toUsdOrNull(data.backendYield),
+          netRevenue: toUsdOrNull(data.netRevenue),
+          staked: toUsd(data.staked),
+          stakerApr: data.stakerApr,
+          stakerPayouts: toUsdOrNull(data.stakerPayouts),
+        };
+      };
+
+      return {
+        isError,
+        isLoading,
+        shareSymbol: shareToken?.symbol,
+        values: getValues(),
+      };
+    },
+    queries: [
+      analyticsNetRevenueOptions(peggedToken?.gatewayAddress),
+      pricesOptions({ client }),
+      shareTokenForPeggedTokenOptions({ client, peggedToken }),
+    ],
+  });
+};
+
+export const NetRevenueCard = (props: Props) => (
+  <NetRevenueContent {...useNetRevenueValues(props)} />
+);
+
+const getSourceColor = function ({
+  positiveColor,
+  value,
+}: {
+  positiveColor: string;
+  value: number | null;
+}) {
+  if (value === null || value === 0) {
+    return "";
+  }
+  return value > 0 ? positiveColor : "bg-rose-500";
+};
+
+const toSourceItem = ({
+  label,
+  positiveColor,
+  subLabel,
+  value,
+}: {
+  label: string;
+  positiveColor: string;
+  subLabel: string;
+  value: number | null;
+}) => ({
+  amount: Math.abs(value ?? 0),
+  amountClassName: value !== null && value < 0 ? "text-rose-700" : undefined,
+  color: getSourceColor({ positiveColor, value }),
+  formattedAmount: formatOrDash({ format: formatSignedUsd, value }),
+  label,
+  subLabel,
+});
+
+const RevenueSourcesContent = function ({
+  isError,
+  isLoading,
+  shareSymbol,
+  values,
+}: ContentProps) {
+  const { t } = useTranslation();
+  const cardProps = {
+    footnote: shareSymbol
+      ? t("pages.analytics.net-revenue-footnote", { shareSymbol })
+      : undefined,
+    icon: <TrendingUpIcon className="text-blue-500" />,
+    isError,
+    isLoading,
+    label: t("pages.analytics.revenue-sources-label"),
   };
 
+  if (isError || !values || !shareSymbol) {
+    return <AllocationCard {...cardProps} items={[]} value="" />;
+  }
+
+  const sources = toRevenueSources(values);
+  const apy = formatOrDash({
+    format: formatPercentage,
+    value: values.backendApy,
+  });
   return (
-    <NetRevenueContent
-      isError={isError}
-      isLoading={isLoading}
-      shareSymbol={shareToken?.symbol}
-      values={getValues()}
+    <AllocationCard
+      {...cardProps}
+      items={[
+        toSourceItem({
+          label: t("pages.analytics.revenue-sources-lazy-label"),
+          positiveColor: "bg-blue-500",
+          subLabel: t("pages.analytics.revenue-sources-lazy-sublabel", {
+            amount: formatUsd(values.backendBalance - values.staked),
+            apy,
+          }),
+          value: sources.lazyYield,
+        }),
+        toSourceItem({
+          label: t("pages.analytics.revenue-sources-spread-label"),
+          positiveColor: "bg-emerald-400",
+          subLabel: t("pages.analytics.revenue-sources-spread-sublabel", {
+            amount: formatUsd(values.staked),
+            apr: formatOrDash({
+              format: formatPercentage,
+              value: values.stakerApr,
+            }),
+            apy,
+            shareSymbol,
+          }),
+          value: sources.stakingSpread,
+        }),
+      ]}
+      suffix={
+        sources.netRevenue === null
+          ? undefined
+          : t("pages.analytics.revenue-sources-per-year")
+      }
+      value={formatOrDash({
+        format: formatSignedUsd,
+        value: sources.netRevenue,
+      })}
     />
   );
 };
+
+export const RevenueSourcesCard = (props: Props) => (
+  <RevenueSourcesContent {...useNetRevenueValues(props)} />
+);
