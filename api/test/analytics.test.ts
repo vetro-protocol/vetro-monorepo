@@ -17,11 +17,7 @@ import {
 } from "viem-erc4626/actions";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  getCollateralizationRatio,
-  getStaked,
-  getTvl,
-} from "../src/analytics.ts";
+import { getBalanceSheet, getStaked, getTvl } from "../src/analytics.ts";
 import { findStakingVaultForPeggedToken } from "../src/staking-vault.ts";
 
 vi.mock("../src/staking-vault.ts", () => ({
@@ -73,7 +69,7 @@ let strategicReserves: bigint;
 let withdrawables: Partial<Record<Address, bigint>>;
 let gatewayRates: Partial<Record<Address, bigint>>;
 
-const run = () => getCollateralizationRatio({ gatewayAddress, url });
+const run = () => getBalanceSheet({ gatewayAddress, url });
 
 beforeEach(function () {
   strategicReserves = 0n;
@@ -107,7 +103,7 @@ beforeEach(function () {
   );
 });
 
-describe("analytics/getCollateralizationRatio", function () {
+describe("analytics/getBalanceSheet", function () {
   it("returns zero amounts and a zero ratio when everything is empty", async function () {
     const result = await run();
 

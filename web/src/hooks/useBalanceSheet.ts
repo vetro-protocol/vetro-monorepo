@@ -4,7 +4,7 @@ import type { Address } from "viem";
 
 const apiUrl = import.meta.env.VITE_VETRO_API_URL;
 
-type CollateralizationRatio = {
+type BalanceSheet = {
   ratio: number;
   strategicReserves: string;
   supply: string;
@@ -13,7 +13,7 @@ type CollateralizationRatio = {
   treasuryTotal: string;
 };
 
-const collateralizationRatioOptions = (gatewayAddress: Address | undefined) =>
+const balanceSheetOptions = (gatewayAddress: Address | undefined) =>
   queryOptions({
     enabled:
       apiUrl !== undefined &&
@@ -21,13 +21,12 @@ const collateralizationRatioOptions = (gatewayAddress: Address | undefined) =>
       gatewayAddress !== undefined,
     queryFn: () =>
       fetch(
-        `${apiUrl}/analytics/collateralization-ratio/${gatewayAddress}`,
-      ) as Promise<CollateralizationRatio>,
-    queryKey: ["collateralization-ratio", gatewayAddress],
+        `${apiUrl}/analytics/balance-sheet/${gatewayAddress}`,
+      ) as Promise<BalanceSheet>,
+    queryKey: ["balance-sheet", gatewayAddress],
     refetchInterval: 5 * 60 * 1000, // 5 minutes
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-export const useCollateralizationRatio = (
-  gatewayAddress: Address | undefined,
-) => useQuery(collateralizationRatioOptions(gatewayAddress));
+export const useBalanceSheet = (gatewayAddress: Address | undefined) =>
+  useQuery(balanceSheetOptions(gatewayAddress));

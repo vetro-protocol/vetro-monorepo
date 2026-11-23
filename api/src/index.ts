@@ -60,7 +60,7 @@ import { getVeVetro } from "./ve-vetro.ts";
 import { readWarmedTask, warmScheduled } from "./warm-cache.ts";
 import {
   apyTask,
-  collateralizationRatioTask,
+  balanceSheetTask,
   liquidityCampaignGaugesTask,
   liquidityMerklRewardsTask,
   liquidityStrategiesTask,
@@ -82,8 +82,13 @@ app.use("*", async function (c, next) {
 
 app.use("*", securityHeaders);
 
-app.get(
-  "/analytics/collateralization-ratio/:gatewayAddress",
+app.on(
+  "GET",
+  [
+    "/analytics/balance-sheet/:gatewayAddress",
+    // Deprecated: the VETRO landing site still reads this route.
+    "/analytics/collateralization-ratio/:gatewayAddress",
+  ],
   validateGatewayAddress,
   cache({
     cacheControl: "max-age=60",
@@ -95,13 +100,11 @@ app.get(
       const data = await readWarmedTask({
         c,
         item: gatewayAddress,
-        task: collateralizationRatioTask,
+        task: balanceSheetTask,
       });
       return c.json(data);
     } catch (error) {
-      throw new Error(
-        `Failed to get collateralization ratio: ${error.message}`,
-      );
+      throw new Error(`Failed to get balance sheet: ${error.message}`);
     }
   },
 );

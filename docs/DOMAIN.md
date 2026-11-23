@@ -195,14 +195,14 @@ Compares the yield that the treasury earns with the yield that the staking vault
 
 The status is "Net positive" when the net is above zero, "Net negative" when it is below zero, and "Breakeven" when it shows as "$0". When a strategy with a balance has no APY, the backend yield is unknown, and the card shows "-" for it and for the values that depend on it.
 
-##### Collateralization ratio
+##### Balance sheet
 
-The backing divided by the circulating supply. The backing is the sum of two parts:
+The backing, the circulating supply and the surplus of the pegged token. The **backing** is the sum of two parts. The card shows it in the "Total reserves" row:
 
 - **Strategic reserves**: VUSD-meta vault shares that the treasury, the UMM role and the Vetro multisig hold, valued at their redeem value. Only the VUSD gateway has them.
 - **Liquid reserves**: the treasury `withdrawable` of each whitelisted token, converted to the pegged token at the gateway redeem rate.
 
-The **surplus** is the backing minus the supply. When it is negative, the card shows it as a **deficit**.
+The **collateralization ratio** (`ratio`) is the backing divided by the circulating supply. The **surplus** is the backing minus the supply. When it is negative, the card shows it as a **deficit**.
 
 ##### Yield allocation
 

@@ -2,7 +2,7 @@ import type { DexPool } from "@vetro-protocol/core";
 import { gatewayAddresses } from "@vetro-protocol/gateway";
 
 import {
-  getCollateralizationRatio,
+  getBalanceSheet,
   getStaked,
   getTreasuryComposition,
   getTvl,
@@ -32,14 +32,13 @@ export const treasuryTask = keyedWarmTask({
     }).then(convertBigIntsToString),
 });
 
-// Warms `GET /analytics/collateralization-ratio/:gatewayAddress`
-export const collateralizationRatioTask = keyedWarmTask({
+// Warms `GET /analytics/balance-sheet/:gatewayAddress`
+export const balanceSheetTask = keyedWarmTask({
   cron: "*/5 * * * *",
   items: gatewayAddresses,
-  key: (gatewayAddress) =>
-    `analytics:collateralization-ratio:${gatewayAddress}`,
+  key: (gatewayAddress) => `analytics:balance-sheet:${gatewayAddress}`,
   produce: (env, gatewayAddress) =>
-    getCollateralizationRatio({
+    getBalanceSheet({
       gatewayAddress,
       url: env.CUSTOM_RPC_URL_MAINNET,
     }).then(convertBigIntsToString),
@@ -131,7 +130,7 @@ export const liquidityStrategiesTask = globalWarmTask({
 
 export const warmTasks = [
   treasuryTask,
-  collateralizationRatioTask,
+  balanceSheetTask,
   tvlTask,
   stakedTask,
   apyTask,

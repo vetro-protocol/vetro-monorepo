@@ -7,7 +7,7 @@ import {
   assignColor,
   formatPeggedAmountUsd,
   getHistoryOnlyTokenAddresses,
-  toCollateralizationItems,
+  toBalanceSheetItems,
   toTvlHistorySeries,
   toTvlItems,
   toYieldView,
@@ -80,19 +80,19 @@ describe("pages/analytics/utils", function () {
     });
   });
 
-  describe("toCollateralizationItems", function () {
+  describe("toBalanceSheetItems", function () {
     const labels = {
       deficit: (percentage: string) => `Deficit ${percentage}`,
       supply: "VUSD supply",
       surplus: (percentage: string) => `Surplus ${percentage}`,
     };
-    const collateralizationPrices = { VUSD: "2" };
+    const balanceSheetPrices = { VUSD: "2" };
 
     const run = (data: { ratio: number; supply: string; surplus: string }) =>
-      toCollateralizationItems({
+      toBalanceSheetItems({
         data,
         labels,
-        prices: collateralizationPrices,
+        prices: balanceSheetPrices,
         token: vusdToken,
       });
 
@@ -155,7 +155,7 @@ describe("pages/analytics/utils", function () {
     });
 
     it("shows dashes with no amount color when the pegged token has no price", function () {
-      const [supply, surplus] = toCollateralizationItems({
+      const [supply, surplus] = toBalanceSheetItems({
         data: {
           ratio: 90,
           supply: parseUnits("100", 18).toString(),

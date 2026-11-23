@@ -200,10 +200,10 @@ export const formatPeggedAmountUsd = ({
     ? formatUsd(tokenAmountToUsd({ amount, prices, token }))
     : "-";
 
-// Transforms /analytics/collateralization-ratio response into the supply and
+// Transforms /analytics/balance-sheet response into the supply and
 // surplus (or deficit) items. The bar has no segment for a deficit, because a
 // bar cannot show a negative value.
-export const toCollateralizationItems = function ({
+export const toBalanceSheetItems = function ({
   data,
   labels,
   prices,
