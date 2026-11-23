@@ -13,6 +13,11 @@ const isKnownOnMainnet = (address: Address) =>
   );
 
 describe("gateways", function () {
+  // Analytics and Borrow rely on the first gateway being the USD gateway.
+  it("should list the VUSD gateway first", function () {
+    expect(gateways[0].pegBaseSymbol).toBe("USD");
+  });
+
   it.for(gateways)(
     "$address should hold checksummed addresses",
     function (gateway) {
