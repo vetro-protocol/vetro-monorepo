@@ -2,6 +2,7 @@ import { isCoveredByOverlay } from "hooks/useOverlay";
 import RcTooltip from "rc-tooltip";
 import {
   type FocusEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent,
   type ReactNode,
   useEffect,
@@ -9,6 +10,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useTranslation } from "react-i18next";
 
 import "./tooltip.css";
 
@@ -16,6 +18,7 @@ type Props = {
   children: ReactNode;
   content: ReactNode;
   stretch?: boolean;
+  topic?: string;
   useParentContainer?: boolean;
   visible?: boolean;
 };
@@ -40,9 +43,11 @@ export const Tooltip = function ({
   children,
   content,
   stretch = false,
+  topic,
   useParentContainer = false,
   visible,
 }: Props) {
+  const { t } = useTranslation();
   const [hasFocusableChild, setHasFocusableChild] = useState(false);
   const [open, setOpen] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -51,6 +56,8 @@ export const Tooltip = function ({
   const triggerRef = useRef<HTMLDivElement>(null);
   const canOpen = visible !== false;
   const isOpen = visible ?? open;
+  const isFocusTarget = canOpen && !hasFocusableChild;
+  const isNamedTrigger = isFocusTarget && Boolean(topic);
 
   useLayoutEffect(function () {
     setHasFocusableChild(
@@ -139,6 +146,13 @@ export const Tooltip = function ({
     }
   }
 
+  function onKeyDown(event: ReactKeyboardEvent) {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      setOpen(true);
+    }
+  }
+
   function onFocus(event: FocusEvent) {
     if (canOpen && (event.target as Element).matches(":focus-visible")) {
       setOpen(true);
@@ -168,15 +182,20 @@ export const Tooltip = function ({
       visible={isOpen}
     >
       <div
+        aria-label={
+          isNamedTrigger ? t("common.more-info-about", { topic }) : undefined
+        }
         className={`vetro-tooltip-trigger flex cursor-pointer ${stretch ? "size-full" : "w-fit"}`}
         onBlur={closeOnFocusLeave}
         onClick={onClick}
         onFocus={onFocus}
+        onKeyDown={isFocusTarget ? onKeyDown : undefined}
         onPointerDown={function (event) {
           pointerTypeRef.current = event.pointerType;
         }}
         ref={triggerRef}
-        tabIndex={canOpen && !hasFocusableChild ? 0 : -1}
+        role={isNamedTrigger ? "button" : undefined}
+        tabIndex={isFocusTarget ? 0 : -1}
       >
         {children}
       </div>

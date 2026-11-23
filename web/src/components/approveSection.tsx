@@ -23,6 +23,7 @@ export const ApproveSection = function ({ active, onToggle }: Props) {
             {t("common.approve-10x-tooltip")}
           </span>
         }
+        topic={t("common.approve-10x")}
       >
         <InfoIcon />
       </Tooltip>

@@ -42,6 +42,7 @@ export const StakeSection = function ({
                 })}
               </span>
             }
+            topic={label}
           >
             <InfoIcon />
           </Tooltip>
