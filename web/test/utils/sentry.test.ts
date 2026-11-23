@@ -9,6 +9,21 @@ describe("isWalletExtensionError", function () {
     ).toBe(true);
   });
 
+  it("should match wallet rejections for missing accounts by message", function () {
+    expect(
+      isWalletExtensionError({
+        code: 4001,
+        message: "wallet must has at least one account",
+      }),
+    ).toBe(true);
+    expect(
+      isWalletExtensionError({
+        code: 4001,
+        message: "User rejected the request",
+      }),
+    ).toBe(false);
+  });
+
   it("should match an invalidated extension context", function () {
     expect(
       isWalletExtensionError({

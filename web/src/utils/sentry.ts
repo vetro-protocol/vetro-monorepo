@@ -2,6 +2,7 @@
 const disconnectedErrorCode = 4900;
 
 const extensionContextInvalidated = "Extension context invalidated";
+const walletMustHaveAtLeastOneAccount = "wallet must has at least one account";
 
 // Wallet extensions reject promises with plain objects or strings we can't act
 // on. Generic RPC codes like -32603 are not matched because real errors use
@@ -17,6 +18,7 @@ export function isWalletExtensionError(exception: unknown) {
   return (
     code === disconnectedErrorCode ||
     (typeof message === "string" &&
-      message.includes(extensionContextInvalidated))
+      (message.includes(extensionContextInvalidated) ||
+        message.includes(walletMustHaveAtLeastOneAccount)))
   );
 }
