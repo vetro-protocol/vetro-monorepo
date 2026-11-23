@@ -11,6 +11,7 @@ export const useCanonicalRoute = function <T extends string>({
 }) {
   const { lang } = useParams<{ lang: string }>();
   const { hash, search } = useLocation();
+  // URL values can have a 0X prefix or be invalid, so isAddressEqual may throw.
   const canonicalValue =
     value &&
     values.find((candidate) => candidate.toLowerCase() === value.toLowerCase());

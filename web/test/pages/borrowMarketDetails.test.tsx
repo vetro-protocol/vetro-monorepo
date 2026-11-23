@@ -1,5 +1,11 @@
 import { marketIds } from "@vetro-protocol/morpho-blue-market";
-import { MemoryRouter, Route, Routes, useLocation } from "react-router";
+import {
+  MemoryRouter,
+  Route,
+  Routes,
+  useLocation,
+  useNavigationType,
+} from "react-router";
 import { expect, it, vi } from "vitest";
 import { render } from "vitest-browser-react";
 
@@ -17,9 +23,13 @@ vi.mock("../../src/hooks/borrow/useMarketData", () => ({
 
 const CurrentLocation = function () {
   const { hash, pathname, search } = useLocation();
+  const navigationType = useNavigationType();
 
   return (
-    <output aria-label="Current location">{`${pathname}${search}${hash}`}</output>
+    <>
+      <output aria-label="Current location">{`${pathname}${search}${hash}`}</output>
+      <output aria-label="Navigation type">{navigationType}</output>
+    </>
   );
 };
 
@@ -59,6 +69,9 @@ it("canonicalizes uppercase market IDs and preserves the query and hash", async 
   await expect
     .element(screen.getByLabelText("Current location"))
     .toHaveTextContent(`/en/borrow/${marketId}?source=deep-link#details`);
+  await expect
+    .element(screen.getByLabelText("Navigation type"))
+    .toHaveTextContent("REPLACE");
 });
 
 it("redirects valid but unsupported market IDs to not-found", async function () {
@@ -73,4 +86,7 @@ it("redirects valid but unsupported market IDs to not-found", async function () 
   await expect
     .element(screen.getByLabelText("Current location"))
     .toHaveTextContent("/en/not-found");
+  await expect
+    .element(screen.getByLabelText("Navigation type"))
+    .toHaveTextContent("REPLACE");
 });

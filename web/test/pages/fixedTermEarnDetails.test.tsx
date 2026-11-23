@@ -33,7 +33,7 @@ const LocationProbe = function () {
 };
 
 it.each(["lowercase", "uppercase"])(
-  "redirects a %s fixed-term address to the checksummed URL",
+  "redirects a fixed-term address in %s to the checksummed URL",
   async function (letterCase) {
     const stakingVaultAddress = targetYieldVaultAddresses[0];
     const address =
