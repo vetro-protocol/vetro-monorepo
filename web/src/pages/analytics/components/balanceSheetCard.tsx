@@ -97,7 +97,9 @@ export const BalanceSheetCard = function ({
   } = useBalanceSheet(peggedToken?.gatewayAddress);
   const { data: prices, isError: isPricesError } = usePrices();
 
-  const isError = peggedTokenError || isBalanceSheetError;
+  const isError = [peggedTokenError, isBalanceSheetError && !balanceSheet].some(
+    Boolean,
+  );
   const isLoading =
     !isError &&
     (!peggedToken || isBalanceSheetLoading || (!prices && !isPricesError));
