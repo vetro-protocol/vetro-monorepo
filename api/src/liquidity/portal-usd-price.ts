@@ -13,7 +13,11 @@ export const pegUsdPrice = function ({
     return 1;
   }
   const price = prices[pegBaseSymbol];
-  return price === undefined ? undefined : Number(price);
+  if (typeof price !== "string") {
+    return undefined;
+  }
+  const numberPrice = Number(price);
+  return Number.isFinite(numberPrice) ? numberPrice : undefined;
 };
 
 const findToken = ({
@@ -56,5 +60,9 @@ export const portalUsdPrice = function ({
   }
   const price =
     prices[(token.extensions?.priceSymbol ?? token.symbol).toUpperCase()];
-  return price === undefined ? undefined : Number(price);
+  if (typeof price !== "string") {
+    return undefined;
+  }
+  const numberPrice = Number(price);
+  return Number.isFinite(numberPrice) ? numberPrice : undefined;
 };

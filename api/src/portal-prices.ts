@@ -33,10 +33,16 @@ async function getPricesByDay({
     `${portalApiUrl}/price-history/${pegBaseSymbol}/${period}`,
   )) as PriceHistory;
   return new Map(
-    history.map(({ date, priceUsd }) => [
-      toUtcDay(Date.parse(date)),
-      Number(priceUsd),
-    ]),
+    history.map(function ({ date, priceUsd }) {
+      if (typeof priceUsd !== "string") {
+        throw new Error(`Invalid ${pegBaseSymbol} daily price: ${priceUsd}`);
+      }
+      const price = Number(priceUsd);
+      if (!Number.isFinite(price)) {
+        throw new Error(`Invalid ${pegBaseSymbol} daily price: ${priceUsd}`);
+      }
+      return [toUtcDay(Date.parse(date)), price];
+    }),
   );
 }
 
@@ -54,7 +60,11 @@ async function getCurrentPrice({
 }) {
   const prices = await getUsdPrices(portalApiUrl);
   const price = prices[pegBaseSymbol];
-  return price === undefined ? null : Number(price);
+  if (typeof price !== "string") {
+    return null;
+  }
+  const numberPrice = Number(price);
+  return Number.isFinite(numberPrice) ? numberPrice : null;
 }
 
 export async function getPegBaseUsdRates({

@@ -68,9 +68,6 @@ export async function getNetRevenue({
     readWarmedTask({ c, item: gatewayAddress, task: stakedTask }),
     readWarmedTask({ c, task: apyTask }),
   ]);
-  if (apys === null) {
-    throw new Error("Staking vault APYs are not available");
-  }
   const { total } = toYieldSummary({
     peggedDecimals: peggedToken.decimals,
     treasuryTokens,

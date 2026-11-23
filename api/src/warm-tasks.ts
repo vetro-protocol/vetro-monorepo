@@ -73,12 +73,15 @@ export const apyTask = globalWarmTask({
   cron: "* * * * *",
   key: () => "variable-stake:apy",
   // getApy omits vaults whose reads fail and returns `{}` only on a total outage.
-  // Mapping that to null makes `warmScheduled` treat it as a failure: it reports to
-  // Sentry and keeps the last-known-good KV value rather than clobbering it with `{}`.
+  // Throw instead so warmScheduled reports the failure and keeps the last-known-good
+  // KV value rather than clobbering it with `{}`.
   produce: (env) =>
-    getApy({ rpcUrl: env.CUSTOM_RPC_URL_MAINNET }).then((data) =>
-      Object.keys(data).length > 0 ? data : null,
-    ),
+    getApy({ rpcUrl: env.CUSTOM_RPC_URL_MAINNET }).then(function (data) {
+      if (Object.keys(data).length === 0) {
+        throw new Error("Staking vault APYs are not available");
+      }
+      return data;
+    }),
 });
 
 const nowSeconds = () => Math.floor(Date.now() / 1000);

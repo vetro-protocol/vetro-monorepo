@@ -444,7 +444,7 @@ app.get(
   async function (c) {
     try {
       const data = await readWarmedTask({ c, task: apyTask });
-      return c.json(data ?? {});
+      return c.json(data);
     } catch (error) {
       throw new Error(`Failed to get APY: ${error.message}`);
     }
