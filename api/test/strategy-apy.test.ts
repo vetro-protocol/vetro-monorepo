@@ -12,6 +12,8 @@ import {
   merklApr,
 } from "../src/strategy-apy.ts";
 
+import { createFakeKv } from "./utils/fake-kv.ts";
+
 vi.mock("../src/merkl.ts", () => ({
   getLiveOpportunities: vi.fn(),
 }));
@@ -60,37 +62,6 @@ const stakeDaoStrategy: StakeDaoStrategy = {
 const strategyAddress = findToken("VUSD").address;
 const strategyReceiptToken = findToken("sVUSD").address;
 const strategyApyKey = `analytics:treasury:apy:${strategyAddress.toLowerCase()}`;
-
-function createFakeKv({
-  cachedApy,
-  getError,
-  putError,
-}: {
-  cachedApy?: number;
-  getError?: Error;
-  putError?: Error;
-}) {
-  const values = new Map<string, number>();
-  if (cachedApy !== undefined) {
-    values.set(strategyApyKey, cachedApy);
-  }
-  const get = vi.fn(async function (key: string) {
-    if (getError) {
-      throw getError;
-    }
-    return values.get(key) ?? null;
-  });
-  const put = vi.fn(async function (key: string, serializedApy: string) {
-    if (putError) {
-      throw putError;
-    }
-    values.set(key, JSON.parse(serializedApy) as number);
-  });
-  return {
-    kv: { get, put } as unknown as KVNamespace,
-    put,
-  };
-}
 
 const getStrategyApys = ({
   kv,
@@ -213,7 +184,7 @@ describe("strategy-apy/getStrategyApy", function () {
   });
 
   it("prefers a fresh APY over the cached one and overwrites it", async function () {
-    const { kv, put } = createFakeKv({ cachedApy: 8 });
+    const { kv, put } = createFakeKv({ store: { [strategyApyKey]: 8 } });
 
     const result = await getStrategyApys({ kv });
 
@@ -224,7 +195,7 @@ describe("strategy-apy/getStrategyApy", function () {
   });
 
   it("uses the cached APY when Merkl fails, even if a native APY is available", async function () {
-    const { kv, put } = createFakeKv({ cachedApy: 8 });
+    const { kv, put } = createFakeKv({ store: { [strategyApyKey]: 8 } });
     vi.mocked(getLiveOpportunities).mockRejectedValue(new Error("Merkl down"));
 
     const result = await getStrategyApys({ kv });
@@ -236,7 +207,7 @@ describe("strategy-apy/getStrategyApy", function () {
   it.each(["Morpho", "Lagoon"])(
     "uses the cached APY when the %s source fails",
     async function (source) {
-      const { kv } = createFakeKv({ cachedApy: 8 });
+      const { kv } = createFakeKv({ store: { [strategyApyKey]: 8 } });
       if (source === "Morpho") {
         vi.mocked(getMorphoApys).mockRejectedValue(new Error("Morpho down"));
       } else {
@@ -251,7 +222,7 @@ describe("strategy-apy/getStrategyApy", function () {
   );
 
   it("uses the cached APY when the StakeDAO strategies are unavailable", async function () {
-    const { kv } = createFakeKv({ cachedApy: 8 });
+    const { kv } = createFakeKv({ store: { [strategyApyKey]: 8 } });
     vi.mocked(getMorphoApys).mockResolvedValue([]);
 
     const result = await getStrategyApys({ kv, stakeDaoStrategies: null });
@@ -260,7 +231,7 @@ describe("strategy-apy/getStrategyApy", function () {
   });
 
   it("omits APY when all sources respond but none reports one", async function () {
-    const { kv } = createFakeKv({ cachedApy: 8 });
+    const { kv } = createFakeKv({ store: { [strategyApyKey]: 8 } });
     vi.mocked(getMorphoApys).mockResolvedValue([]);
 
     const result = await getStrategyApys({ kv });
@@ -280,7 +251,7 @@ describe("strategy-apy/getStrategyApy", function () {
   });
 
   it("uses the cached APY when the receipt-token read fails", async function () {
-    const { kv } = createFakeKv({ cachedApy: 8 });
+    const { kv } = createFakeKv({ store: { [strategyApyKey]: 8 } });
 
     const result = await getStrategyApys({ kv, receiptTokenOverride: null });
 
@@ -288,7 +259,7 @@ describe("strategy-apy/getStrategyApy", function () {
   });
 
   it("uses the cached APY when Merkl returns malformed campaigns", async function () {
-    const { kv, put } = createFakeKv({ cachedApy: 8 });
+    const { kv, put } = createFakeKv({ store: { [strategyApyKey]: 8 } });
     vi.mocked(getLiveOpportunities).mockResolvedValue([
       {
         // @ts-expect-error Deliberately malformed upstream campaigns exercise the cache fallback.
@@ -306,7 +277,7 @@ describe("strategy-apy/getStrategyApy", function () {
   });
 
   it("uses the cached APY without writing when a live Merkl campaign has no APR", async function () {
-    const { kv, put } = createFakeKv({ cachedApy: 8 });
+    const { kv, put } = createFakeKv({ store: { [strategyApyKey]: 8 } });
     const now = Math.floor(Date.now() / 1000);
     vi.mocked(getLiveOpportunities).mockResolvedValue([
       {
