@@ -11,14 +11,15 @@ import { ShareRatioCard } from "components/shareRatioCard";
 import { StripedDivider } from "components/stripedDivider";
 import { TokenLogo } from "components/tokenLogo";
 import { YieldCard } from "components/yieldCard";
+import { useCanonicalRoute } from "hooks/useCanonicalRoute";
 import { useShareToken } from "hooks/useShareToken";
 import { useVaultPeggedToken } from "hooks/useVaultPeggedToken";
 import { StakeForm } from "pages/earn/components/stakeForm";
 import { ErrorPage } from "pages/errorPage";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
-import { Navigate, useLocation, useParams } from "react-router";
-import { type Address, isAddress, isAddressEqual } from "viem";
+import { useParams } from "react-router";
+import { type Address, isAddressEqual } from "viem";
 
 const chartCardContainer =
   "border-b border-gray-200 px-3 *:px-1 md:*:px-3 lg:px-0 xl:px-14";
@@ -146,25 +147,15 @@ const VariableYieldEarnDetailsContent = function ({
 };
 
 export const VariableYieldEarnDetails = function () {
-  const { address, lang } = useParams<{ address: string; lang: string }>();
-  const { hash, search } = useLocation();
+  const { address } = useParams<{ address: string }>();
+  const { canonicalValue: stakingVaultAddress, redirect } = useCanonicalRoute({
+    basePath: "earn/variable-yield",
+    value: address,
+    values: stakingVaultAddresses,
+  });
 
-  const stakingVaultAddress =
-    address && isAddress(address, { strict: false })
-      ? stakingVaultAddresses.find((vault) => isAddressEqual(vault, address))
-      : undefined;
-
-  if (!stakingVaultAddress) {
-    return <Navigate replace to={`/${lang}/not-found`} />;
-  }
-
-  if (address !== stakingVaultAddress) {
-    return (
-      <Navigate
-        replace
-        to={`/${lang}/earn/variable-yield/${stakingVaultAddress}${search}${hash}`}
-      />
-    );
+  if (redirect) {
+    return redirect;
   }
 
   return (

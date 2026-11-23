@@ -8,14 +8,15 @@ import { VaultHeader } from "components/earn/vaultHeader";
 import { EarnIcon } from "components/navbar/earnIcon";
 import { StripedDivider } from "components/stripedDivider";
 import { TokenLogo } from "components/tokenLogo";
+import { useCanonicalRoute } from "hooks/useCanonicalRoute";
 import { useShareToken } from "hooks/useShareToken";
 import { useVaultPeggedToken } from "hooks/useVaultPeggedToken";
 import { TargetYieldForm } from "pages/earn/components/targetYieldForm";
 import { ErrorPage } from "pages/errorPage";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
-import { Navigate, useLocation, useParams } from "react-router";
-import { type Address, isAddress, isAddressEqual } from "viem";
+import { useParams } from "react-router";
+import { type Address, isAddressEqual } from "viem";
 
 const VaultDropdownItem = function ({
   stakingVaultAddress,
@@ -131,27 +132,15 @@ const FixedTermEarnDetailsContent = function ({
 };
 
 export const FixedTermEarnDetails = function () {
-  const { address, lang } = useParams<{ address: string; lang: string }>();
-  const { hash, search } = useLocation();
+  const { address } = useParams<{ address: string }>();
+  const { canonicalValue: stakingVaultAddress, redirect } = useCanonicalRoute({
+    basePath: "earn/fixed-term",
+    value: address,
+    values: targetYieldVaultAddresses,
+  });
 
-  const stakingVaultAddress =
-    address && isAddress(address, { strict: false })
-      ? targetYieldVaultAddresses.find((vault) =>
-          isAddressEqual(vault, address),
-        )
-      : undefined;
-
-  if (!stakingVaultAddress) {
-    return <Navigate replace to={`/${lang}/not-found`} />;
-  }
-
-  if (address !== stakingVaultAddress) {
-    return (
-      <Navigate
-        replace
-        to={`/${lang}/earn/fixed-term/${stakingVaultAddress}${search}${hash}`}
-      />
-    );
+  if (redirect) {
+    return redirect;
   }
 
   return (
