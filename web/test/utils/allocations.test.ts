@@ -85,6 +85,7 @@ describe("pages/analytics/utils", function () {
       deficit: (percentage: string) => `Deficit ${percentage}`,
       supply: "VUSD supply",
       surplus: (percentage: string) => `Surplus ${percentage}`,
+      zeroSurplus: "Surplus",
     };
     const balanceSheetPrices = { VUSD: "2" };
 
@@ -146,6 +147,22 @@ describe("pages/analytics/utils", function () {
       expect(surplus?.amount).toBe(100);
       expect(surplus?.formattedAmount).toBe("+$100");
       expect(surplus?.label).toBe("Surplus -");
+    });
+
+    it("shows the surplus with no percentage and no color when it is zero", function () {
+      const [, surplus] = run({
+        ratio: 100,
+        supply: parseUnits("1000", 18).toString(),
+        surplus: "0",
+      });
+
+      expect(surplus).toStrictEqual({
+        amount: 0,
+        amountClassName: undefined,
+        color: "bg-emerald-400",
+        formattedAmount: "$0",
+        label: "Surplus",
+      });
     });
 
     it("returns empty bar amounts when supply and surplus are zero", function () {

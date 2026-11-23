@@ -158,6 +158,7 @@ export const BalanceSheetCard = function ({
           }),
           surplus: (percentage) =>
             t("pages.analytics.surplus-label", { percentage }),
+          zeroSurplus: t("pages.analytics.zero-surplus-label"),
         },
         prices: knownPrices,
         token: peggedToken,

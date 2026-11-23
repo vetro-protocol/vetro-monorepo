@@ -214,6 +214,7 @@ export const toBalanceSheetItems = function ({
     deficit: (percentage: string) => string;
     supply: string;
     surplus: (percentage: string) => string;
+    zeroSurplus: string;
   };
   prices: Prices;
   token: Token;
@@ -248,8 +249,15 @@ export const toBalanceSheetItems = function ({
       : formatUsd(surplusUsd);
   };
 
+  const getSurplusLabel = function () {
+    if (isDeficit) {
+      return labels.deficit(percentage);
+    }
+    return surplus === 0n ? labels.zeroSurplus : labels.surplus(percentage);
+  };
+
   const getSurplusClassName = function () {
-    if (!hasPrice) {
+    if (!hasPrice || surplus === 0n) {
       return undefined;
     }
     return isDeficit ? "text-rose-500" : "text-emerald-500";
@@ -267,9 +275,7 @@ export const toBalanceSheetItems = function ({
       amountClassName: getSurplusClassName(),
       color: isDeficit ? "bg-rose-500" : "bg-emerald-400",
       formattedAmount: getSurplusText(),
-      label: isDeficit
-        ? labels.deficit(percentage)
-        : labels.surplus(percentage),
+      label: getSurplusLabel(),
     },
   ];
 };

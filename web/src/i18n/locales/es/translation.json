@@ -109,7 +109,8 @@
       "surplus-label": "Excedente (sobrecolateralizado {{percentage}})",
       "title": "Monitorear analíticas del protocolo",
       "total-reserves-label": "Reservas totales",
-      "tvl-label": "Valor Total Bloqueado (TVL)"
+      "tvl-label": "Valor Total Bloqueado (TVL)",
+      "zero-surplus-label": "Excedente"
     },
     "borrow": {
       "activity": {

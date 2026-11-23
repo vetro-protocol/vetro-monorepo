@@ -109,7 +109,8 @@
       "surplus-label": "Surplus (overcollateralized {{percentage}})",
       "title": "Monitor protocol analytics",
       "total-reserves-label": "Total reserves",
-      "tvl-label": "Total Value Locked (TVL)"
+      "tvl-label": "Total Value Locked (TVL)",
+      "zero-surplus-label": "Surplus"
     },
     "borrow": {
       "activity": {
