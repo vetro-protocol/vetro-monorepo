@@ -19,9 +19,9 @@ import { ErrorPage } from "pages/errorPage";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
-import { Navigate, useParams } from "react-router";
+import { Navigate, useLocation, useParams } from "react-router";
 import { hasActivePosition } from "utils/borrowPosition";
-import { type Hash, isHash } from "viem";
+import type { Hash } from "viem";
 
 const renderMarketItem = (item: MarketData) => (
   <>
@@ -146,11 +146,24 @@ const BorrowMarketDetailsContent = function ({ marketId }: { marketId: Hash }) {
 };
 
 export const BorrowMarketDetails = function () {
-  const { lang, marketId } = useParams<{ lang: string; marketId: Hash }>();
+  const { lang, marketId } = useParams<{ lang: string; marketId: string }>();
+  const { hash, search } = useLocation();
+  const canonicalMarketId =
+    marketId &&
+    marketIds.find((id) => id.toLowerCase() === marketId.toLowerCase());
 
-  if (!marketId || !isHash(marketId) || !marketIds.includes(marketId)) {
+  if (!canonicalMarketId) {
     return <Navigate replace to={`/${lang}/not-found`} />;
   }
 
-  return <BorrowMarketDetailsContent marketId={marketId} />;
+  if (marketId !== canonicalMarketId) {
+    return (
+      <Navigate
+        replace
+        to={`/${lang}/borrow/${canonicalMarketId}${search}${hash}`}
+      />
+    );
+  }
+
+  return <BorrowMarketDetailsContent marketId={canonicalMarketId} />;
 };
