@@ -278,6 +278,9 @@ importers:
       '@vetro-protocol/core':
         specifier: workspace:*
         version: link:../core
+      '@vetro-protocol/morpho-blue-market':
+        specifier: workspace:*
+        version: link:../morpho-blue-market
       '@vitest/coverage-v8':
         specifier: 5.0.5
         version: 5.0.5(@vitest/browser@5.0.5)(vitest@5.0.5)

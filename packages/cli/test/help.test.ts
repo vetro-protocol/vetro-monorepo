@@ -6,6 +6,8 @@ import { runCliRaw } from "./e2e/helpers.ts";
 
 describe("help", function () {
   it.for([
+    ["borrow"],
+    ["borrow", "markets"],
     ["gateways"],
     ["swap"],
     ["swap", "mint"],
