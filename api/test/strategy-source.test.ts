@@ -59,7 +59,11 @@ describe("strategy-source/getStrategySource", function () {
         stakeDaoStrategies: [stakeDaoStrategy],
       }),
     ).toEqual({ protocol: "morpho", vaultAddress: receiptToken });
-    expect(put).toHaveBeenCalled();
+    expect(put).toHaveBeenCalledWith(
+      strategySourceKey,
+      JSON.stringify({ protocol: "morpho", vaultAddress: receiptToken }),
+      { expirationTtl: 24 * 60 * 60 },
+    );
   });
 
   it("returns the vault of a Lagoon strategy", async function () {
