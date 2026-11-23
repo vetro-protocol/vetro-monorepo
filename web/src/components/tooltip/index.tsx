@@ -185,7 +185,7 @@ export const Tooltip = function ({
         onBlur={closeOnFocusLeave}
         onClick={onClick}
         onFocus={onFocus}
-        onKeyDown={isNamedTrigger ? onKeyDown : undefined}
+        onKeyDown={isFocusTarget ? onKeyDown : undefined}
         onPointerDown={function (event) {
           pointerTypeRef.current = event.pointerType;
         }}

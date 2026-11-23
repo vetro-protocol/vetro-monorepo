@@ -91,6 +91,22 @@ describe("Tooltip", function () {
     await expect.element(screen.getByText("Tooltip text")).toBeVisible();
   });
 
+  it("opens an unlabeled trigger on Enter after Escape", async function () {
+    const screen = await render(
+      <Tooltip content="Tooltip text">
+        <svg aria-hidden="true" />
+      </Tooltip>,
+    );
+
+    await userEvent.tab();
+    await userEvent.keyboard("{Escape}");
+    await expect.element(screen.getByText("Tooltip text")).not.toBeVisible();
+
+    await userEvent.keyboard("{Enter}");
+
+    await expect.element(screen.getByText("Tooltip text")).toBeVisible();
+  });
+
   it("does not name the trigger when it cannot open", async function () {
     const screen = await render(
       <Tooltip content="Tooltip text" label="Trigger label" visible={false}>
