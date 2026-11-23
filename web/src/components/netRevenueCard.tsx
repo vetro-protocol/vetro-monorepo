@@ -368,7 +368,7 @@ const RevenueSourcesContent = function ({
   const { t } = useTranslation();
   const cardProps = {
     footnote: shareSymbol
-      ? t("pages.analytics.revenue-sources-footnote", { shareSymbol })
+      ? t("pages.analytics.net-revenue-footnote", { shareSymbol })
       : undefined,
     icon: <TrendingUpIcon className="text-blue-500" />,
     isError,

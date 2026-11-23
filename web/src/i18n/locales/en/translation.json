@@ -106,7 +106,6 @@
       "net-revenue-status-positive": "Net positive",
       "net-revenue-title": "Projected protocol revenue",
       "overview-tab": "Overview",
-      "revenue-sources-footnote": "Annualized projection based on current reserve balances, strategy APYs and the current {{shareSymbol}} APR. These are not historical earnings. Actual results will vary as rates, allocations and staked amounts change.",
       "revenue-sources-label": "Projected revenue sources",
       "revenue-sources-lazy-label": "Projected lazy yield",
       "revenue-sources-lazy-sublabel": "{{apy}} blended APY on {{amount}} unstaked reserves",
