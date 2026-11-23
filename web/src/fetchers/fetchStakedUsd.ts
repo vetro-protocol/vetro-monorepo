@@ -13,7 +13,7 @@ export const fetchStakedUsd = async function ({
   client: Client;
   queryClient: QueryClient;
   stakingVaultAddress: Address;
-}): Promise<number> {
+}) {
   const { peggedToken, prices, stakedAssets } = await fetchVaultStakePosition({
     account,
     client,

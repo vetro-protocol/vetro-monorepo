@@ -8,7 +8,7 @@
  */
 import { type EvmOnEventContext, indexer, type Request } from "envio";
 
-const lc = (address: string): string => address.toLowerCase();
+const lc = (address: string) => address.toLowerCase();
 
 const zeroAddress = "0x0000000000000000000000000000000000000000";
 const routerAddresses = new Set(indexer.chains[43111].Router.addresses.map(lc));
@@ -90,7 +90,7 @@ const upsertRequest = async function ({
   context: EvmOnEventContext;
   patch: (existing: Request) => Partial<Request>;
   requestId: bigint;
-}): Promise<void> {
+}) {
   const id = requestId.toString();
   const existing =
     (await context.Request.get(id)) ?? baseRequest({ id, requestId });
@@ -115,7 +115,7 @@ const recordRate = async function ({
   numerator: bigint;
   requestId: bigint;
   timestamp: bigint;
-}): Promise<void> {
+}) {
   const request = await context.Request.get(requestId.toString());
   if (!request?.asset || denominator <= 0n) return;
   context.RateSnapshot.set({

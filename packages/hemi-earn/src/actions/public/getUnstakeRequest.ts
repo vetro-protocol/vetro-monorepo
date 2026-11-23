@@ -24,7 +24,7 @@ export const getUnstakeRequest = async function (
     address: Address;
     requestId: bigint;
   },
-): Promise<UnstakeRequest> {
+) {
   if (!client) {
     throw new Error("Client is not defined");
   }

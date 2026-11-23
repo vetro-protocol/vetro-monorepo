@@ -15,7 +15,7 @@ export const quoteDepositFulfillment = async function (
     address: Address;
     remoteShare: Address;
   },
-): Promise<bigint> {
+) {
   if (!client) {
     throw new Error("Client is not defined");
   }

@@ -9,7 +9,7 @@ import { hemiEarnRouterAddress } from "../../constants.ts";
 export const getAgentAddress = async function (
   client: Client,
   { address = hemiEarnRouterAddress }: { address?: Address } = {},
-): Promise<Address> {
+) {
   if (!client) {
     throw new Error("Client is not defined");
   }

@@ -36,7 +36,7 @@ export const fetchRedeemRequest = async function ({
   controller: Address;
   queryClient: QueryClient;
   stakingVaultAddress: Address;
-}): Promise<RedeemRequest> {
+}) {
   const ownerParams = { address: stakingVaultAddress, owner: controller };
   const params = { address: stakingVaultAddress, controller };
   const [

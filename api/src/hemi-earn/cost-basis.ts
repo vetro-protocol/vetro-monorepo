@@ -6,7 +6,6 @@ import { paginateHasuraQuery } from "../paginate-hasura-query.ts";
 
 import {
   type CostBasisEvent,
-  type RatePoint,
   replayCostBasis,
   WAD_DECIMALS,
 } from "./replay.ts";
@@ -176,7 +175,7 @@ async function fetchRateBound({
   return RateSnapshot[0] ?? null;
 }
 
-const toRatePoint = (row: RateSnapshotRow): RatePoint => ({
+const toRatePoint = (row: RateSnapshotRow) => ({
   denominator: row.rateDenominator,
   numerator: row.rateNumerator,
 });

@@ -108,7 +108,7 @@ export async function paginateSubgraphQuery<R>({
   query: string;
   url: string;
   variables?: Record<string, unknown>;
-}): Promise<R[]> {
+}) {
   const all: R[] = [];
   const getId = cursor
     ? (cursor.getId ?? ((row: R) => String(cursor.getValue(row))))

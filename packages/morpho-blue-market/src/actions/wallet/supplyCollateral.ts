@@ -116,7 +116,7 @@ export const runSupplyCollateralCore = async function (
     onBehalf,
   }: SupplyCollateralParams,
   emitter: EventEmitter<SupplyCollateralEvents>,
-): Promise<boolean> {
+) {
   const { canSupplyCollateral: canSupplyCollateralFlag, reason } =
     canSupplyCollateral({
       address,

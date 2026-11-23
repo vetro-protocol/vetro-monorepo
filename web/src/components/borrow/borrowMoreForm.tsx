@@ -48,7 +48,7 @@ type BorrowMoreFlowStatus =
 
 const getBorrowStepStatus = function (
   status: Exclude<BorrowMoreFlowStatus, "idle">,
-): Step["status"] {
+) {
   const exceptions: Partial<
     Record<Exclude<BorrowMoreFlowStatus, "idle">, Step["status"]>
   > = {

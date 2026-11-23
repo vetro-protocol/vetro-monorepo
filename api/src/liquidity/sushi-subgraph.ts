@@ -5,7 +5,6 @@ import { runQuery } from "../graphql.ts";
 import { paginateSubgraphQuery } from "../paginate-subgraph-query.ts";
 
 import { lastFullDay } from "./pool-metrics.ts";
-import type { V3SubgraphPool } from "./v3-subgraph.ts";
 
 const poolsQuery = `
   query SushiPools($ids: [Bytes!]!) {
@@ -150,7 +149,7 @@ export async function fetchSushiSubgraphPools({
       variables: { pools: ids, start: String(since), until: String(until) },
     }),
   ]);
-  return liquidityPools.flatMap(function (pool): V3SubgraphPool[] {
+  return liquidityPools.flatMap(function (pool) {
     const poolFeeTier = feeTier(pool.fees);
     if (poolFeeTier === undefined) {
       console.warn(`No trading fee for Sushi pool ${pool.id} in the subgraph`);

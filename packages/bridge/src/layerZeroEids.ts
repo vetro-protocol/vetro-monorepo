@@ -9,7 +9,7 @@ export const layerZeroEids: Record<number, number> = {
   [optimism.id]: 30111,
 };
 
-export const getLayerZeroEid = function (chainId: number): number {
+export const getLayerZeroEid = function (chainId: number) {
   const eid = layerZeroEids[chainId];
   if (eid === undefined) {
     throw new Error(`No LayerZero EID registered for chainId ${chainId}`);

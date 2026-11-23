@@ -17,7 +17,7 @@ export async function runQuery<R>({
   query: string;
   url: string;
   variables?: Record<string, unknown>;
-}): Promise<R> {
+}) {
   const response = (await postJson(
     url,
     {

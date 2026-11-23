@@ -8,7 +8,7 @@ export function getCanonicalUrl(url: string) {
   return `${origin}${pathname}${search}`;
 }
 
-export function getUrlOrigin(url: string | undefined): string | null {
+export function getUrlOrigin(url: string | undefined) {
   try {
     return url ? new URL(url).origin : null;
   } catch {

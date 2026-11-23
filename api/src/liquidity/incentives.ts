@@ -61,7 +61,7 @@ export const getMerklRewards = async function ({
           Number(campaign.startTimestamp) <= nowSeconds &&
           Number(campaign.endTimestamp) > nowSeconds,
       )
-      .map((campaign): MerklReward => ({
+      .map((campaign) => ({
         apr: campaign.apr,
         campaignId: campaign.campaignId,
         chainId: opportunity.chainId,
@@ -171,7 +171,7 @@ export function addIncentives({
   nowSeconds: number;
   pool: DexPool;
   sources: IncentiveSources;
-}): DexPool {
+}) {
   const gaugeAddress = curveGaugeAddress(pool);
   return {
     ...pool,

@@ -76,7 +76,7 @@ function subscribe(cb: () => void) {
   return () => subscribers.delete(cb);
 }
 
-export const useActivities = (address: Address | undefined): Activity[] =>
+export const useActivities = (address: Address | undefined) =>
   useSyncExternalStore(
     subscribe,
     () => (address ? read(address) : empty),

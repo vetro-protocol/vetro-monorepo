@@ -3,11 +3,7 @@ import { hemi, mainnet } from "viem/chains";
 import { describe, expect, it } from "vitest";
 
 import { computeDistributions } from "../src/lib/distribution.ts";
-import {
-  type PoolCoin,
-  type TrackedPool,
-  type TrackedToken,
-} from "../src/lib/types.ts";
+import { type PoolCoin, type TrackedPool } from "../src/lib/types.ts";
 
 const tokenA: Address = "0x1111111111111111111111111111111111111111";
 const tokenB: Address = "0x2222222222222222222222222222222222222222";
@@ -22,7 +18,7 @@ const makeToken = ({
 }: {
   address: Address;
   symbol: string;
-}): TrackedToken => ({ address, decimals: 18, symbol });
+}) => ({ address, decimals: 18, symbol });
 
 const symbolByAddress: Record<string, string> = {
   [tokenA]: "A",
@@ -38,7 +34,7 @@ const makeCoin = ({
   address: Address;
   balance: bigint;
   symbol?: string;
-}): PoolCoin => ({ address, balance, decimals: 18, symbol, usdPrice: 1 });
+}) => ({ address, balance, decimals: 18, symbol, usdPrice: 1 });
 
 const makePool = ({
   address,

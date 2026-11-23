@@ -184,7 +184,7 @@ const fetchStakeDao = (upstream: string) =>
     },
   });
 
-const servedCampaign = (campaign: StakeDaoCampaign): StakeDaoCampaign => ({
+const servedCampaign = (campaign: StakeDaoCampaign) => ({
   currentPeriod: {
     rewardPerPeriod: campaign.currentPeriod.rewardPerPeriod,
     rewardPerVote: campaign.currentPeriod.rewardPerVote,
@@ -216,9 +216,7 @@ type GaugedUpstreamStakeDaoStrategy = UpstreamStakeDaoStrategy & {
   gaugeAddress: StakeDaoStrategy["gaugeAddress"];
 };
 
-const servedStrategy = (
-  strategy: GaugedUpstreamStakeDaoStrategy,
-): StakeDaoStrategy => ({
+const servedStrategy = (strategy: GaugedUpstreamStakeDaoStrategy) => ({
   ...(strategy.apr
     ? { apr: { current: { total: strategy.apr.current.total } } }
     : {}),

@@ -86,7 +86,7 @@ export function PositionsTable({ marketIds }: Props) {
       : undefined;
 
   const data = useMemo(
-    (): PositionRow[] =>
+    () =>
       positionsData.reduce<PositionRow[]>(function (acc, position) {
         const market = marketsData.find(
           (m) => m.marketId === position.marketId,

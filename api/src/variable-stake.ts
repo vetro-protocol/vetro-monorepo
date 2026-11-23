@@ -247,7 +247,7 @@ export async function getUserExitTickets({
 }: {
   address: string;
   subgraph: Subgraph;
-}): Promise<ExitTicket[]> {
+}) {
   const query = `
     query ($first: Int!, $owner: Bytes!, $skip: Int!) {
       exitTickets(

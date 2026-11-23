@@ -2,7 +2,6 @@ import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { describe, expect, it } from "vitest";
 
 import { swapFormReducer } from "../../../src/components/swapForm/swapFormReducer";
-import type { SwapFormState } from "../../../src/components/swapForm/types";
 
 const mockToken1 = {
   address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" as const,
@@ -24,7 +23,7 @@ const mockToken2 = {
   symbol: "USDT",
 };
 
-const createInitialState = (): SwapFormState => ({
+const createInitialState = () => ({
   approve10x: false,
   fromInputValue: "0",
   fromToken: mockToken1,

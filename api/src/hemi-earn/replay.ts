@@ -1,6 +1,6 @@
 import { type Address } from "viem";
 
-export type RatePoint = { denominator: string; numerator: string };
+type RatePoint = { denominator: string; numerator: string };
 
 export type CostBasisEvent =
   | {
@@ -37,18 +37,12 @@ const acquire = ({
   cost: bigint;
   position: Position;
   shares: bigint;
-}): Position => ({
+}) => ({
   costBasis: position.costBasis + cost,
   shares: position.shares + shares,
 });
 
-function dispose({
-  position,
-  shares,
-}: {
-  position: Position;
-  shares: bigint;
-}): Position {
+function dispose({ position, shares }: { position: Position; shares: bigint }) {
   if (shares >= position.shares) {
     return emptyPosition;
   }

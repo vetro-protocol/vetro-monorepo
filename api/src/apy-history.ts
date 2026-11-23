@@ -65,7 +65,7 @@ export async function getApyHistory({
   period: string;
   stakingVaultAddress: Address;
   subgraph: Subgraph;
-}): Promise<{ apy: number; timestamp: number }[]> {
+}) {
   const stakingVault = stakingVaultAddress.toLowerCase();
   const start = getPeriodStart(period);
   const query = `

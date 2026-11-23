@@ -12,7 +12,7 @@ const coin = ({
   balance: string;
   decimals: number;
   usdPrice: number | undefined;
-}): PoolCoin => ({
+}) => ({
   address: `0x${"1".repeat(40)}` as Address,
   balance: parseUnits(balance, decimals),
   decimals,

@@ -46,7 +46,7 @@ type WithdrawCollateralFlowStatus =
 
 const getWithdrawStepStatus = function (
   status: Exclude<WithdrawCollateralFlowStatus, "idle">,
-): Step["status"] {
+) {
   const exceptions: Partial<
     Record<Exclude<WithdrawCollateralFlowStatus, "idle">, Step["status"]>
   > = {

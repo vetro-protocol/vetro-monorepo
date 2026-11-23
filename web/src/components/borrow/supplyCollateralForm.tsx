@@ -55,7 +55,7 @@ type SupplyCollateralFlowStatus =
 
 const getApproveStepStatus = function (
   status: Exclude<SupplyCollateralFlowStatus, "idle">,
-): Step["status"] {
+) {
   const exceptions: Partial<
     Record<Exclude<SupplyCollateralFlowStatus, "idle">, Step["status"]>
   > = {
@@ -67,7 +67,7 @@ const getApproveStepStatus = function (
 
 const getSupplyStepStatus = function (
   status: Exclude<SupplyCollateralFlowStatus, "idle">,
-): Step["status"] {
+) {
   const exceptions: Partial<
     Record<Exclude<SupplyCollateralFlowStatus, "idle">, Step["status"]>
   > = {

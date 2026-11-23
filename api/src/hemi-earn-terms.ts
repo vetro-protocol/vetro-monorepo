@@ -57,7 +57,7 @@ export type Terms = {
  * version by changing the variables alone. Throws if they are not configured
  * properly, which surfaces as a 500 rather than serving unusable Terms.
  */
-export function getCurrentTerms(env: Env): Terms {
+export function getCurrentTerms(env: Env) {
   const termsHash = env.HEMI_EARN_TERMS_HASH;
   const termsUrl = env.HEMI_EARN_TERMS_URL;
   const termsVersion = env.HEMI_EARN_TERMS_VERSION;
@@ -101,9 +101,7 @@ const isEoaSignature = (value: unknown): value is Hex =>
  * Validates the body of a terms acceptance request. Only the four fields the
  * frontends send are read; any other field is ignored.
  */
-export function parseAcceptanceRequest(
-  body: unknown,
-): TermsAcceptanceRequest | undefined {
+export function parseAcceptanceRequest(body: unknown) {
   if (typeof body !== "object" || body === null) {
     return undefined;
   }

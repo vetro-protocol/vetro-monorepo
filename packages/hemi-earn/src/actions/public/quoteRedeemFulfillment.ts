@@ -15,7 +15,7 @@ export const quoteRedeemFulfillment = async function (
     address: Address;
     remoteAsset: Address;
   },
-): Promise<bigint> {
+) {
   if (!client) {
     throw new Error("Client is not defined");
   }

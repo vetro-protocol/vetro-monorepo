@@ -28,7 +28,7 @@ export const computeDistributions = ({
 }: {
   pools: TrackedPool[];
   tokens: TrackedToken[];
-}): TokenDistribution[] =>
+}) =>
   tokens.map(function (token) {
     const addresses = [
       token.address,

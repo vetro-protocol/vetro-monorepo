@@ -18,7 +18,7 @@ export const quoteDeposit = async function (
     assets: bigint;
     callbackFee: bigint;
   },
-): Promise<bigint> {
+) {
   if (!client) {
     throw new Error("Client is not defined");
   }

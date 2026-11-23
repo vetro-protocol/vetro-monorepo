@@ -12,7 +12,6 @@ import { Deposit } from "./deposit";
 import { Redeem } from "./redeem";
 import { swapFormReducer } from "./swapFormReducer";
 import { SwapFormSkeleton } from "./swapFormSkeleton";
-import type { SwapFormState } from "./types";
 
 type SwapFormContentProps = {
   mode: "deposit" | "redeem";
@@ -29,7 +28,7 @@ function getInitialState({
   mode: "deposit" | "redeem";
   peggedTokensByGateway: Record<Address, TokenWithGateway>;
   whitelistedTokens: TokenWithGateway[];
-}): SwapFormState {
+}) {
   const firstStablecoin = whitelistedTokens[0];
   const firstPeggedToken =
     peggedTokensByGateway[firstStablecoin.gatewayAddress];

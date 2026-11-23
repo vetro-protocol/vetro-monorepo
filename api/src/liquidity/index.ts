@@ -43,5 +43,4 @@ export const venues = Object.keys(venuePools) as (keyof typeof venuePools)[];
 export const getVenuePools = ({
   venue,
   ...args
-}: VenueArgs & { venue: keyof typeof venuePools }): Promise<DexPool[]> =>
-  venuePools[venue](args);
+}: VenueArgs & { venue: keyof typeof venuePools }) => venuePools[venue](args);

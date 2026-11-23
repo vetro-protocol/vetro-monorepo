@@ -29,7 +29,7 @@ export const getRequest = async function (
     address?: Address;
     requestId: bigint;
   },
-): Promise<Request> {
+) {
   if (!client) {
     throw new Error("Client is not defined");
   }
