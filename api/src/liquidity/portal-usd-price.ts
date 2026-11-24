@@ -2,6 +2,8 @@ import { gateways, knownTokens } from "@vetro-protocol/core";
 import { type Address, isAddressEqual } from "viem";
 import { mainnet } from "viem/chains";
 
+import { parseUsdPrice } from "../portal-prices.ts";
+
 export const pegUsdPrice = function ({
   pegBaseSymbol,
   prices,
@@ -12,12 +14,7 @@ export const pegUsdPrice = function ({
   if (pegBaseSymbol === "USD") {
     return 1;
   }
-  const price = prices[pegBaseSymbol];
-  if (typeof price !== "string") {
-    return undefined;
-  }
-  const numberPrice = Number(price);
-  return Number.isFinite(numberPrice) ? numberPrice : undefined;
+  return parseUsdPrice(prices[pegBaseSymbol]);
 };
 
 const findToken = ({
@@ -58,11 +55,7 @@ export const portalUsdPrice = function ({
   if (peggedToken) {
     return pegUsdPrice({ pegBaseSymbol: peggedToken.pegBaseSymbol, prices });
   }
-  const price =
-    prices[(token.extensions?.priceSymbol ?? token.symbol).toUpperCase()];
-  if (typeof price !== "string") {
-    return undefined;
-  }
-  const numberPrice = Number(price);
-  return Number.isFinite(numberPrice) ? numberPrice : undefined;
+  return parseUsdPrice(
+    prices[(token.extensions?.priceSymbol ?? token.symbol).toUpperCase()],
+  );
 };

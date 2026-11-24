@@ -4,6 +4,14 @@ type PriceHistory = { date: string; priceUsd: string }[];
 
 type Prices = { prices: Record<string, string> };
 
+export const parseUsdPrice = function (value: unknown) {
+  if (typeof value !== "string" || value.trim() === "") {
+    return undefined;
+  }
+  const price = Number(value);
+  return Number.isFinite(price) ? price : undefined;
+};
+
 const dayMs = 86_400_000;
 // The portal keeps a year of daily prices, ending yesterday.
 const historyDays = 365;
@@ -34,11 +42,8 @@ async function getPricesByDay({
   )) as PriceHistory;
   return new Map(
     history.map(function ({ date, priceUsd }) {
-      if (typeof priceUsd !== "string") {
-        throw new Error(`Invalid ${pegBaseSymbol} daily price: ${priceUsd}`);
-      }
-      const price = Number(priceUsd);
-      if (!Number.isFinite(price)) {
+      const price = parseUsdPrice(priceUsd);
+      if (price === undefined) {
         throw new Error(`Invalid ${pegBaseSymbol} daily price: ${priceUsd}`);
       }
       return [toUtcDay(Date.parse(date)), price];
@@ -59,12 +64,7 @@ async function getCurrentPrice({
   portalApiUrl: string;
 }) {
   const prices = await getUsdPrices(portalApiUrl);
-  const price = prices[pegBaseSymbol];
-  if (typeof price !== "string") {
-    return null;
-  }
-  const numberPrice = Number(price);
-  return Number.isFinite(numberPrice) ? numberPrice : null;
+  return parseUsdPrice(prices[pegBaseSymbol]) ?? null;
 }
 
 export async function getPegBaseUsdRates({
