@@ -20,7 +20,7 @@ type Props = {
 
 export function CooldownCell({ ticket }: Props) {
   const { i18n, t } = useTranslation();
-  const now = useNowTickingPast([ticket], () =>
+  useNowTickingPast([ticket], () =>
     getNextChangeTime({
       claimableAt: ticket.claimableAt,
       now: unixNowTimestamp(),
@@ -29,7 +29,7 @@ export function CooldownCell({ ticket }: Props) {
   const status = getTicketStatus(ticket);
   const { count, unit } = getCooldownValues({
     claimableAt: ticket.claimableAt,
-    now,
+    now: unixNowTimestamp(),
   });
   const text = t(unitKeys[unit], { count });
 
