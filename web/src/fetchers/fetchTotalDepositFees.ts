@@ -34,7 +34,6 @@ export const fetchTotalDepositFees = async function ({
       chainId: chain.id,
       client,
       owner,
-      queryClient,
       stakingVaultAddress,
       token,
     }),

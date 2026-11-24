@@ -1,7 +1,11 @@
 import * as Sentry from "@sentry/react";
 import { reactRouterBrowserTracingIntegration } from "@sentry/react/react-router";
 
+import { isWalletExtensionError } from "./utils/sentry";
+
 Sentry.init({
+  beforeSend: (event, hint) =>
+    isWalletExtensionError(hint.originalException) ? null : event,
   dataCollection: {
     cookies: false,
     httpHeaders: {

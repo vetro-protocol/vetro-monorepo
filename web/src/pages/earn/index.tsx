@@ -2,9 +2,10 @@ import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { PageTitle } from "components/base/pageTitle";
 import { SectionHeader } from "components/base/sectionHeader";
 import { StripedDivider } from "components/stripedDivider";
-import { Suspense, lazy } from "react";
+import { Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { featureFlags } from "utils/featureFlags";
+import { lazyWithReload } from "utils/lazyWithReload";
 
 import { EarnStats } from "./components/earnStats";
 import { ExitTickets } from "./components/exitTickets";
@@ -12,7 +13,7 @@ import { ExitTicketsSkeleton } from "./components/exitTickets/skeleton";
 import { PoolInfoBar } from "./components/poolInfoBar";
 import { useShowExitTickets } from "./hooks/useShowExitTickets";
 
-const FixedTermEarn = lazy(() =>
+const FixedTermEarn = lazyWithReload(() =>
   import("./components/fixedTermEarn").then((m) => ({
     default: m.FixedTermEarn,
   })),

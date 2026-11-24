@@ -5,7 +5,10 @@ import { AppViewport } from "components/base/appViewport";
 import { ErrorBoundary } from "components/base/errorBoundary";
 import { GeoRestrictionRibbon } from "components/geoRestrictionRibbon";
 import { Header } from "components/header";
+import { ReloadOnNewVersion } from "components/reloadOnNewVersion";
 import { I18nInitializer, useUnsupportedLanguageRedirect } from "i18n/config";
+import { detectLanguage } from "i18n/language";
+import { normalizePath } from "i18n/path";
 import { NuqsAdapter } from "nuqs/adapters/react-router/v8";
 import { Analytics } from "pages/analytics";
 import { Borrow } from "pages/borrow";
@@ -20,7 +23,7 @@ import { NotFound } from "pages/notFound";
 import { Swap } from "pages/swap";
 import { VeVetro } from "pages/veVetro";
 import { VeVetroClaim } from "pages/veVetroClaim";
-import { Suspense, lazy } from "react";
+import { Suspense } from "react";
 import {
   BrowserRouter,
   Navigate,
@@ -31,6 +34,7 @@ import {
 } from "react-router";
 import { featureFlags } from "utils/featureFlags";
 import { isGeoRestricted } from "utils/geoRestriction";
+import { lazyWithReload } from "utils/lazyWithReload";
 
 const SentryRoutes = wrapReactRouterRouting(Routes);
 
@@ -38,19 +42,19 @@ const analyticsEnabled =
   !!import.meta.env.VITE_ANALYTICS_URL &&
   !!import.meta.env.VITE_ANALYTICS_WEBSITE_ID;
 
-const AppNotifications = lazy(() =>
+const AppNotifications = lazyWithReload(() =>
   import("components/appNotifications").then((m) => ({
     default: m.AppNotifications,
   })),
 );
 
-const FixedTermEarnDetails = lazy(() =>
+const FixedTermEarnDetails = lazyWithReload(() =>
   import("pages/fixedTermEarnDetails").then((m) => ({
     default: m.FixedTermEarnDetails,
   })),
 );
 
-const VariableYieldEarnDetails = lazy(() =>
+const VariableYieldEarnDetails = lazyWithReload(() =>
   import("pages/variableYieldEarnDetails").then((m) => ({
     default: m.VariableYieldEarnDetails,
   })),
@@ -61,8 +65,8 @@ const VariableYieldEarnDetails = lazy(() =>
  * - Outer: catches errors before translations load (Header, I18nInitializer) — ErrorPage renders without i18n
  * - Inner: catches page-level errors after translations are available — ErrorPage can use translated strings
  *
- * The inner ErrorBoundary is keyed by pathname so it resets on navigation,
- * allowing recovery from page-level errors without a full reload.
+ * The inner ErrorBoundary is keyed by the language-independent path so
+ * changing languages preserves the current page state.
  */
 function LanguageRoutes() {
   const { pathname } = useLocation();
@@ -89,7 +93,7 @@ function LanguageRoutes() {
             <ErrorPage />
           </MainContent>
         }
-        key={pathname}
+        key={normalizePath(pathname)}
       >
         <Routes>
           <Route element={<Navigate replace to="swap" />} index />
@@ -151,20 +155,25 @@ function LanguageRoutes() {
   );
 }
 
+function PreferredLanguageRedirect() {
+  const { hash, search } = useLocation();
+
+  return <Navigate replace to={`/${detectLanguage()}${search}${hash}`} />;
+}
+
 export const App = () => (
   <BrowserRouter>
     <NuqsAdapter>
       {analyticsEnabled && <AnalyticsTracker />}
+      <ReloadOnNewVersion />
       <AppViewport>
         <SentryRoutes>
-          {/* Redirect root to English */}
-          <Route element={<Navigate replace to="/en" />} path="/" />
+          <Route element={<PreferredLanguageRedirect />} path="/" />
 
           {/* Language-prefixed routes */}
           <Route element={<LanguageRoutes />} path="/:lang/*" />
 
-          {/* Catch-all: redirect unknown paths to English */}
-          <Route element={<Navigate replace to="/en" />} path="*" />
+          <Route element={<PreferredLanguageRedirect />} path="*" />
         </SentryRoutes>
       </AppViewport>
     </NuqsAdapter>

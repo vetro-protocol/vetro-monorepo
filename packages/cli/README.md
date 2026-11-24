@@ -257,3 +257,13 @@ vetro-cli variable-yield instant-withdraw --token VUSD --shares 100 --account 0x
 ```
 
 `--amount` is in the pegged token, and `--shares` is in the share token, also when `--token` names the other token. To withdraw the full position, use `--shares` with the value from `position` formatted with the token's decimals. With `--amount`, yield accrues before the transaction is mined, so some shares stay. Sign the transaction with `--account`, the owner of the shares. `instant-withdraw` fails when `is-instant-withdraw` returns `false`. Use `unstake` then.
+
+### `borrow` — borrow a pegged token against collateral
+
+Borrow runs on pre-existing Morpho Blue markets. Every market lends a pegged token against a collateral token.
+
+#### Read operations
+
+| Command                    | Reads                                   | Returns                                                                                                                                                                                                      |
+| -------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `vetro-cli borrow markets` | `getMarketParams`, `symbol`, `decimals` | Every enabled market: `pair` (`<collateral>/<loan>`, e.g. `"hemiBTC/VUSD"`), `marketId`, `collateralToken` and `loanToken` (each `{ address, decimals, symbol }`), `irm`, `lltv` (1e18-scaled) and `oracle`. |

@@ -29,7 +29,6 @@ export const fetchTotalBorrowFees = async function ({
       client,
       marketId,
       owner,
-      queryClient,
     }),
   );
 

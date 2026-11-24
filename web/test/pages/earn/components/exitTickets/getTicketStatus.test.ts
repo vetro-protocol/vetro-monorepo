@@ -7,7 +7,9 @@ const now = 1735689600;
 
 const buildTicket = (overrides: Partial<ExitTicket> = {}): ExitTicket => ({
   assets: "1000",
+  cancelTxHash: null,
   claimableAt: String(now),
+  claimTxHash: null,
   owner: "0x0000000000000000000000000000000000000001",
   requestId: "1",
   requestTxHash: "0xrequest",

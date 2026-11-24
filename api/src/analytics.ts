@@ -1,5 +1,4 @@
 import { createMainnetClient } from "@vetro-protocol/core";
-import { getYieldDistributor } from "@vetro-protocol/earn/actions";
 import { gatewayAddresses } from "@vetro-protocol/gateway";
 import {
   getPeggedToken,
@@ -19,7 +18,7 @@ import { getLatestPrice } from "./chainlink.ts";
 import { gaugedStrategiesKey } from "./liquidity/incentives.ts";
 import type { StakeDaoStrategy } from "./liquidity/stake-dao.ts";
 import { findStakingVaultForPeggedToken } from "./staking-vault.ts";
-import { getStrategyApy, type StrategyApy } from "./strategy-apy.ts";
+import { getStrategyApy } from "./strategy-apy.ts";
 import { getStrategySource } from "./strategy-source.ts";
 import {
   getReceiptToken,
@@ -132,28 +131,32 @@ export async function getTreasuryComposition({
   );
 
   const strategyApy = await getStrategyApy({
-    stakeDaoStrategies: stakeDaoStrategies ?? [],
+    kv,
+    stakeDaoStrategies,
     strategies: treasuryTokens.flatMap(
       ({ activeStrategies }) => activeStrategies,
     ),
-  }).catch(function (error) {
-    console.warn(`Failed to get the strategy APY: ${error.message}`);
-    return {} as StrategyApy;
   });
-  return treasuryTokens.map((treasuryToken) => ({
-    ...treasuryToken,
-    activeStrategies: treasuryToken.activeStrategies.map(
-      ({ receiptToken, ...strategy }) => ({
-        ...strategy,
-        apy: strategyApy[strategy.address],
-        source: getStrategySource({
-          name: strategy.name,
-          receiptToken,
-          stakeDaoStrategies,
-        }),
-      }),
-    ),
-  }));
+  return await Promise.all(
+    treasuryTokens.map(async (treasuryToken) => ({
+      ...treasuryToken,
+      activeStrategies: await Promise.all(
+        treasuryToken.activeStrategies.map(
+          async ({ receiptToken, ...strategy }) => ({
+            ...strategy,
+            apy: strategyApy[strategy.address],
+            source: await getStrategySource({
+              address: strategy.address,
+              kv,
+              name: strategy.name,
+              receiptToken,
+              stakeDaoStrategies,
+            }),
+          }),
+        ),
+      ),
+    })),
+  );
 }
 
 async function getStrategicReserves({
@@ -186,68 +189,6 @@ async function getStrategicReserves({
     address: vusdMetaAddress,
     shares: totalMetaBalance,
   });
-}
-
-async function getSurplus({
-  client,
-  peggedTokenAddress,
-  treasuryAddress,
-  yieldDistributorAddress,
-}: {
-  client: PublicClient;
-  peggedTokenAddress: Address;
-  treasuryAddress: Address;
-  yieldDistributorAddress: Address;
-}) {
-  const surplusAddresses = [
-    treasuryAddress,
-    ummRoleAddress,
-    yieldDistributorAddress,
-  ] as Address[];
-
-  const surplusBalances = await Promise.all(
-    surplusAddresses.map((account) =>
-      balanceOf(client, { account, address: peggedTokenAddress }),
-    ),
-  );
-  return surplusBalances.reduce((acc, balance) => acc + balance, 0n);
-}
-
-async function getBacking({
-  client,
-  gatewayAddress,
-  peggedTokenAddress,
-  treasuryAddress,
-}: {
-  client: PublicClient;
-  gatewayAddress: Address;
-  peggedTokenAddress: Address;
-  treasuryAddress: Address;
-}) {
-  const [strategicReserves, surplus] = await Promise.all([
-    getStrategicReserves({ client, gatewayAddress, treasuryAddress }),
-    findStakingVaultForPeggedToken({
-      client,
-      peggedTokenAddress,
-    })
-      .then((stakingVaultAddress) =>
-        getYieldDistributor(client, {
-          address: stakingVaultAddress,
-        }),
-      )
-      .then((yieldDistributorAddress) =>
-        getSurplus({
-          client,
-          peggedTokenAddress,
-          treasuryAddress,
-          yieldDistributorAddress,
-        }),
-      ),
-  ]);
-  return {
-    strategicReserves,
-    surplus,
-  };
 }
 
 // Converts the Treasury's whitelisted-token holdings into their pegged-token
@@ -285,16 +226,17 @@ async function getTreasuryTotal({
 }
 
 /**
- * The collateralization ratio is the total backing value of a gateway's pegged
- * token divided by its circulating supply, expressed as a percentage. The
- * backing is the sum of the strategic reserves, the protocol surplus and the
- * liquid Treasury reserves (whitelisted holdings valued in the pegged token).
+ * The balance sheet of a gateway's pegged token. Its `ratio` is the total
+ * backing value divided by the circulating supply, as a percentage. The
+ * backing is the sum of the strategic reserves and the liquid Treasury
+ * reserves (whitelisted holdings valued in the pegged token). The surplus is
+ * the backing minus the supply, and is negative when under-collateralized.
  *
  * Monetary fields are returned as raw bigints in the pegged token's base units;
  * only `ratio` is a number (a percentage). This moves the calculation
  * previously done on the frontend into the API so it can be cached and shared.
  */
-export async function getCollateralizationRatio({
+export async function getBalanceSheet({
   gatewayAddress,
   url,
 }: {
@@ -311,19 +253,14 @@ export async function getCollateralizationRatio({
   });
   const oneUnit = 10n ** BigInt(peggedTokenDecimals);
 
-  const [{ strategicReserves, surplus }, supply, treasuryTotal] =
-    await Promise.all([
-      getBacking({
-        client,
-        gatewayAddress,
-        peggedTokenAddress,
-        treasuryAddress,
-      }),
-      totalSupply(client, { address: peggedTokenAddress }),
-      getTreasuryTotal({ client, gatewayAddress, oneUnit, treasuryAddress }),
-    ]);
+  const [strategicReserves, supply, treasuryTotal] = await Promise.all([
+    getStrategicReserves({ client, gatewayAddress, treasuryAddress }),
+    totalSupply(client, { address: peggedTokenAddress }),
+    getTreasuryTotal({ client, gatewayAddress, oneUnit, treasuryAddress }),
+  ]);
 
-  const total = strategicReserves + surplus + treasuryTotal;
+  const total = strategicReserves + treasuryTotal;
+  const surplus = total - supply;
   const ratio =
     supply > 0n
       ? (Number(formatUnits(total, peggedTokenDecimals)) /

@@ -50,6 +50,7 @@ export const AllocationChart = ({
                       </div>
                     }
                     stretch
+                    topic={label}
                   >
                     {bar}
                   </Tooltip>

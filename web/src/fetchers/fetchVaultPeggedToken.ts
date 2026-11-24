@@ -26,9 +26,7 @@ export const fetchVaultPeggedToken = async function ({
         client,
       }),
     ),
-    queryClient.ensureQueryData(
-      peggedTokensByGatewayQueryOptions({ client, queryClient }),
-    ),
+    queryClient.ensureQueryData(peggedTokensByGatewayQueryOptions({ client })),
   ]);
 
   const match = Object.values(peggedTokensByGateway).find((t) =>

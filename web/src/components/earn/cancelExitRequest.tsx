@@ -17,12 +17,13 @@ import { useCancelExitRequestFees } from "pages/earn/hooks/targetYieldPool/useCa
 import { epochOptions } from "pages/earn/hooks/targetYieldPool/useEpoch";
 import { useEpochId } from "pages/earn/hooks/targetYieldPool/useEpochId";
 import { useRedeemRequest } from "pages/earn/hooks/targetYieldPool/useRedeemRequest";
-import { Suspense, lazy, useCallback, useState } from "react";
+import { Suspense, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { lazyWithReload } from "utils/lazyWithReload";
 import { formatAmount } from "utils/token";
 import type { Address } from "viem";
 
-const CancelExitProgressDrawer = lazy(() =>
+const CancelExitProgressDrawer = lazyWithReload(() =>
   import("components/earn/cancelExitProgressDrawer").then((m) => ({
     default: m.CancelExitProgressDrawer,
   })),

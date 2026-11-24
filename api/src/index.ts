@@ -34,6 +34,7 @@ import {
 import { addIncentives } from "./liquidity/incentives.ts";
 import { venues } from "./liquidity/index.ts";
 import { excludeLowTvlPools } from "./liquidity/low-tvl.ts";
+import { getNetRevenue } from "./net-revenue.ts";
 import {
   validateAddress,
   validateGatewayAddress,
@@ -59,7 +60,7 @@ import { getVeVetro } from "./ve-vetro.ts";
 import { readWarmedTask, warmScheduled } from "./warm-cache.ts";
 import {
   apyTask,
-  collateralizationRatioTask,
+  balanceSheetTask,
   liquidityCampaignGaugesTask,
   liquidityMerklRewardsTask,
   liquidityStrategiesTask,
@@ -69,6 +70,7 @@ import {
   tvlTask,
   warmTasks,
 } from "./warm-tasks.ts";
+import { getYieldSummary } from "./yield-summary.ts";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -80,8 +82,13 @@ app.use("*", async function (c, next) {
 
 app.use("*", securityHeaders);
 
-app.get(
-  "/analytics/collateralization-ratio/:gatewayAddress",
+app.on(
+  "GET",
+  [
+    "/analytics/balance-sheet/:gatewayAddress",
+    // Deprecated: the VETRO landing site still reads this route.
+    "/analytics/collateralization-ratio/:gatewayAddress",
+  ],
   validateGatewayAddress,
   cache({
     cacheControl: "max-age=60",
@@ -93,13 +100,11 @@ app.get(
       const data = await readWarmedTask({
         c,
         item: gatewayAddress,
-        task: collateralizationRatioTask,
+        task: balanceSheetTask,
       });
       return c.json(data);
     } catch (error) {
-      throw new Error(
-        `Failed to get collateralization ratio: ${error.message}`,
-      );
+      throw new Error(`Failed to get balance sheet: ${error.message}`);
     }
   },
 );
@@ -166,6 +171,46 @@ app.get(
       return c.json(data);
     } catch (error) {
       throw new Error(`Failed to get treasury composition: ${error.message}`);
+    }
+  },
+);
+
+app.get(
+  "/analytics/yield/:gatewayAddress",
+  validateGatewayAddress,
+  cache({
+    cacheControl: "max-age=60",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const data = await getYieldSummary({
+        c,
+        gatewayAddress: c.get("gatewayAddress"),
+      });
+      return c.json(convertBigIntsToString(data));
+    } catch (error) {
+      throw new Error(`Failed to get yield summary: ${error.message}`);
+    }
+  },
+);
+
+app.get(
+  "/analytics/net-revenue/:gatewayAddress",
+  validateGatewayAddress,
+  cache({
+    cacheControl: "max-age=60",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const data = await getNetRevenue({
+        c,
+        gatewayAddress: c.get("gatewayAddress"),
+      });
+      return c.json(convertBigIntsToString(data));
+    } catch (error) {
+      throw new Error(`Failed to get net revenue: ${error.message}`);
     }
   },
 );

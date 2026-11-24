@@ -42,7 +42,6 @@ export const fetchWithdrawGasUnits = async function ({
         account,
         chainId,
         client,
-        queryClient,
         stakingVaultAddress,
       }),
     ),

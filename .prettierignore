@@ -2,3 +2,5 @@
 node_modules
 pnpm-lock.yaml
 **/worker-configuration.d.ts
+# Cloudflare custom error pages must be under 2 KB, and Prettier formatting makes this page larger than that
+geo-block/index.html

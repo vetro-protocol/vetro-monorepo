@@ -1,6 +1,7 @@
 import { tokenBalanceQueryKey } from "@hemilabs/react-hooks/useTokenBalance";
 import type { Token } from "@vetro-protocol/core";
 import { stakingVaultAddresses } from "@vetro-protocol/earn";
+import { createErc20SpendStateOverride } from "utils/erc20StateOverride";
 import { type Client, zeroAddress } from "viem";
 import { estimateGas } from "viem/actions";
 import { describe, expect, it, vi } from "vitest";
@@ -19,6 +20,7 @@ vi.mock("viem/actions", () => ({
 
 vi.mock("utils/erc20StateOverride", () => ({
   createErc20AllowanceStateOverride: vi.fn(),
+  createErc20SpendStateOverride: vi.fn(),
 }));
 
 const chainId = 1;
@@ -82,21 +84,35 @@ describe("fetchDepositGasUnits", function () {
     expect(result).toBe(depositGas);
   });
 
-  it("throws when amount exceeds token balance", async function () {
+  it("estimates with the balance overridden when the amount exceeds the balance", async function () {
+    const operationGas = 120000n;
     const queryClient = createPrepopulatedQueryClient(50n);
+    const stateOverride = [{ address: zeroAddress, stateDiff: [] }];
 
-    await expect(
-      fetchDepositGasUnits({
-        amount: 100n,
-        approveAmount: 100n,
-        client: mockClient,
-        owner: mockOwner,
-        queryClient,
-        stakingVaultAddress: stakingVaultAddresses[0],
-        token: mockToken,
-      }),
-    ).rejects.toThrow("Insufficient token balance");
+    vi.mocked(estimateApprovalGasUnits).mockResolvedValue(0n);
+    vi.mocked(estimateGas).mockResolvedValue(operationGas);
+    vi.mocked(createErc20SpendStateOverride).mockReturnValue(stateOverride);
 
-    expect(estimateGas).not.toHaveBeenCalled();
+    const result = await fetchDepositGasUnits({
+      amount: 100n,
+      approveAmount: 100n,
+      client: mockClient,
+      owner: mockOwner,
+      queryClient,
+      stakingVaultAddress: stakingVaultAddresses[0],
+      token: mockToken,
+    });
+
+    expect(result).toBe(operationGas);
+    expect(createErc20SpendStateOverride).toHaveBeenCalledWith({
+      amount: 100n,
+      balance: 50n,
+      owner: mockOwner,
+      spender: stakingVaultAddresses[0],
+      token: mockToken,
+    });
+    expect(vi.mocked(estimateGas).mock.lastCall?.[1].stateOverride).toBe(
+      stateOverride,
+    );
   });
 });

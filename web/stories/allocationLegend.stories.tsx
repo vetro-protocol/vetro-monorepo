@@ -61,28 +61,62 @@ export const YieldAllocation: Story = {
       {
         amount: 147,
         color: "bg-emerald-400",
-        details: <YieldDetails amount={147} apy={6.13} />,
+        details: <YieldDetails apy={6.13} projectedYield={9.0111} />,
         href: "https://app.morpho.org/ethereum/vault/0x23f5E9c35820f4baB695Ac1F19c203cC3f8e1e11",
         label: "Morpho",
       },
       {
         amount: 100,
         color: "bg-rose-400",
-        details: <YieldDetails amount={100} apy={3.62} />,
+        details: <YieldDetails apy={3.62} projectedYield={3.62} />,
         href: "https://app.lagoon.finance/vault/1/0x08D97f1B434d9e164218ee1DD9611290dA238b79",
         label: "Summer.fi",
       },
       {
         amount: 80,
         color: "bg-blue-400",
-        details: <YieldDetails amount={80} apy={4.24} />,
+        details: <YieldDetails apy={4.24} projectedYield={3.392} />,
         label: "Aave",
       },
       {
         amount: 64,
         color: "bg-amber-400",
-        details: <YieldDetails amount={64} apy={undefined} />,
+        details: <YieldDetails apy={undefined} projectedYield={undefined} />,
         label: "Compound",
+      },
+    ],
+    onHover: () => undefined,
+  },
+};
+
+export const WithSubLabels: Story = {
+  args: {
+    hoveredLabel: null,
+    isError: false,
+    isLoading: false,
+    items: [
+      {
+        amount: 0,
+        color: "",
+        formattedAmount: "$32.43K",
+        label: "Projected reserve yield",
+        subLabel: "4.87% blended APY on $665.79K reserves",
+      },
+      {
+        amount: 12_180,
+        color: "bg-blue-500",
+        formattedAmount: "−$12.18K",
+        label: "Projected sVUSD staker yield",
+        subLabel: "10.51% on $115.85K staked · 37.56% of reserve yield",
+      },
+      {
+        amount: 20_250,
+        amountClassName: "text-emerald-700",
+        color: "bg-emerald-400",
+        formattedAmount: "+$20.25K",
+        label: "Projected net revenue",
+        labelClassName: "text-xsm font-semibold",
+        subLabel: "Retained by the protocol · 62.44% of reserve yield",
       },
     ],
     onHover: () => undefined,

@@ -1,11 +1,14 @@
 import { useOnClickOutside } from "@hemilabs/react-hooks/useOnClickOutside";
+import { useOnKeyUp } from "@hemilabs/react-hooks/useOnKeyUp";
 import { ButtonIcon } from "components/base/button";
 import { ToggleButton } from "components/base/toggleButton";
 import { ExclamationTriangleIcon } from "components/icons/exclamationTriangleIcon";
 import { GearIcon } from "components/icons/gearIcon";
 import { useFadeMount } from "hooks/useFadeMount";
+import { useOverlayLayer } from "hooks/useOverlay";
 import {
   type KeyboardEvent,
+  type RefObject,
   type TransitionEvent,
   useRef,
   useState,
@@ -28,10 +31,11 @@ type Props = {
 
 type TriggerProps = {
   onClick: VoidFunction;
+  ref: RefObject<HTMLButtonElement | null>;
   slippage: number;
 };
 
-function SlippageTrigger({ onClick, slippage }: TriggerProps) {
+function SlippageTrigger({ onClick, ref, slippage }: TriggerProps) {
   const { t } = useTranslation();
   const high = isHighSlippage(slippage);
   return (
@@ -48,6 +52,7 @@ function SlippageTrigger({ onClick, slippage }: TriggerProps) {
       <ButtonIcon
         aria-label={t("pages.swap.slippage.title")}
         onClick={onClick}
+        ref={ref}
         type="button"
         variant={high ? "danger" : "tertiary"}
       >
@@ -106,7 +111,11 @@ function SlippagePanel({
           <span className={isAuto ? "text-gray-900" : "text-gray-400"}>
             {t("pages.swap.slippage.auto")}
           </span>
-          <ToggleButton active={isAuto} onClick={handleToggleAuto} />
+          <ToggleButton
+            active={isAuto}
+            label={t("pages.swap.slippage.auto")}
+            onClick={handleToggleAuto}
+          />
           <span className="h-4 w-px bg-gray-200" />
           <div
             className={`text-caption flex items-center rounded-full px-3 py-1 shadow-sm ${
@@ -148,6 +157,7 @@ export function SlippageSettings({ onChange, slippage }: Props) {
     slippage === DEFAULT_SLIPPAGE ? "" : String(slippage),
   );
   const [pendingHigh, setPendingHigh] = useState<number | null>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   const draftValue = isAuto || draft === "" ? DEFAULT_SLIPPAGE : Number(draft);
 
@@ -205,10 +215,25 @@ export function SlippageSettings({ onChange, slippage }: Props) {
       commitAndClose();
     }
   });
+  const isTopmost = useOverlayLayer({ isActive: isMounted, ref });
+
+  useOnKeyUp(function (event) {
+    if (event.key !== "Escape" || !isVisible || !isTopmost()) {
+      return;
+    }
+    if (ref.current?.contains(document.activeElement)) {
+      triggerRef.current?.focus();
+    }
+    commitAndClose();
+  });
 
   return (
     <div className="relative" ref={ref}>
-      <SlippageTrigger onClick={handleTriggerClick} slippage={slippage} />
+      <SlippageTrigger
+        onClick={handleTriggerClick}
+        ref={triggerRef}
+        slippage={slippage}
+      />
       {isMounted ? (
         <SlippagePanel
           draft={draft}

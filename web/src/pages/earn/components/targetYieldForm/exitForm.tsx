@@ -28,9 +28,11 @@ import {
   useRequestExit,
 } from "pages/earn/hooks/targetYieldPool/useRequestExit";
 import { useRequestExitFees } from "pages/earn/hooks/targetYieldPool/useRequestExitFees";
-import { type FormEvent, Suspense, lazy, useCallback, useState } from "react";
+import { type FormEvent, Suspense, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
+import { formatFiatNumberRoundDown } from "utils/format";
+import { lazyWithReload } from "utils/lazyWithReload";
 import { combineQueryResults } from "utils/queries";
 import { parseTokenUnits } from "utils/token";
 import type { Address } from "viem";
@@ -42,7 +44,7 @@ import { getInputError } from "./getInputError";
 import { LockNote } from "./lockNote";
 import { Review, ReviewRow } from "./review";
 
-const RequestExitProgressDrawer = lazy(() =>
+const RequestExitProgressDrawer = lazyWithReload(() =>
   import("./requestExitProgressDrawer").then((m) => ({
     default: m.RequestExitProgressDrawer,
   })),
@@ -279,6 +281,7 @@ export function ExitForm({
     }
     return (
       <RenderFiatValue
+        customFormatter={formatFiatNumberRoundDown}
         queryStatus={assetsStatus}
         token={peggedToken}
         value={assets}

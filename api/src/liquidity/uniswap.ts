@@ -4,9 +4,9 @@ import { readContract } from "viem/actions";
 import { mainnet } from "viem/chains";
 import { balanceOf, decimals } from "viem-erc20/actions";
 
-import { getUsdPrices } from "../portal-prices.ts";
 import { fulfilledValues } from "../utils/promises.ts";
 
+import { getLiquidityUsdPrices } from "./oracle-usd-prices.ts";
 import { feeApr, poolTvlUsd } from "./pool-metrics.ts";
 import { findV3Pools, type V3Pool } from "./v3-factory.ts";
 import { poolAbi } from "./v3-pool-state.ts";
@@ -110,10 +110,7 @@ export async function getUniswapPools({
 }) {
   const [pools, portalPrices] = await Promise.all([
     findV3Pools({ client, factoryAddress }),
-    getUsdPrices(portalApiUrl).catch(function (error) {
-      console.warn(`Failed to get USD prices: ${error.message}`);
-      return {};
-    }),
+    getLiquidityUsdPrices({ client, portalApiUrl }),
   ]);
   const subgraphPools = await fetchV3SubgraphPools({
     addresses: pools.map((pool) => pool.address),

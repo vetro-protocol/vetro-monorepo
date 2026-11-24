@@ -1,9 +1,4 @@
-import {
-  type QueryClient,
-  queryOptions,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { fetchVaultPeggedToken } from "fetchers/fetchVaultPeggedToken";
 import { graphVaultPeggedToken } from "utils/protocolGraph";
 import type { Address, Client } from "viem";
@@ -20,17 +15,15 @@ const vaultPeggedTokenQueryKey = ({
 
 export const vaultPeggedTokenQueryOptions = ({
   client,
-  queryClient,
   stakingVaultAddress,
 }: {
   client: Client | undefined;
-  queryClient: QueryClient;
   stakingVaultAddress: Address;
 }) =>
   queryOptions({
     enabled: !!client,
     placeholderData: graphVaultPeggedToken(stakingVaultAddress),
-    queryFn: () =>
+    queryFn: ({ client: queryClient }) =>
       fetchVaultPeggedToken({
         client: client!,
         queryClient,
@@ -44,11 +37,9 @@ export const vaultPeggedTokenQueryOptions = ({
 
 export const useVaultPeggedToken = function (stakingVaultAddress: Address) {
   const client = useEthereumClient();
-  const queryClient = useQueryClient();
   return useQuery(
     vaultPeggedTokenQueryOptions({
       client,
-      queryClient,
       stakingVaultAddress,
     }),
   );

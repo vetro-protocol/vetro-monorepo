@@ -227,9 +227,9 @@ export async function getUserRewards({
 
 type ExitTicket = {
   assets: string;
-  cancelTxHash?: Hash | null;
-  claimableAt: number;
-  claimTxHash?: Hash | null;
+  cancelTxHash: Hash | null;
+  claimableAt: string;
+  claimTxHash: Hash | null;
   owner: Address;
   requestId: string;
   requestTxHash: Hash;

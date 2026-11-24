@@ -9,6 +9,7 @@ import { useClaimWithdraw } from "hooks/useClaimWithdraw";
 import { useVaultPeggedToken } from "hooks/useVaultPeggedToken";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import type { TokenWithGateway } from "types";
 import { isGeoRestricted } from "utils/geoRestriction";
 import { formatAmount } from "utils/token";
 
@@ -16,6 +17,17 @@ import type { ExitTicket } from "../../types";
 
 import { DeleteTicketModal } from "./deleteTicketModal";
 import { getTicketStatus } from "./getTicketStatus";
+
+type ActivityTextParams = {
+  peggedToken: TokenWithGateway | undefined;
+  t: ReturnType<typeof useTranslation>["t"];
+  ticket: ExitTicket;
+};
+
+type ActionDisabledParams = {
+  disabled: boolean;
+  peggedToken: TokenWithGateway | undefined;
+};
 
 type Props = {
   disabled?: boolean;
@@ -29,6 +41,21 @@ type WithdrawButtonProps = {
   isWithdrawing: boolean;
   onWithdraw: VoidFunction;
 };
+
+const isActionDisabled = ({ disabled, peggedToken }: ActionDisabledParams) =>
+  disabled || !peggedToken;
+
+const getActivityText = ({ peggedToken, t, ticket }: ActivityTextParams) =>
+  peggedToken
+    ? t("pages.earn.activity.claim-withdraw-text", {
+        amount: formatAmount({
+          amount: BigInt(ticket.assets),
+          decimals: peggedToken.decimals,
+          isError: false,
+        }),
+        symbol: peggedToken.symbol,
+      })
+    : "";
 
 function WithdrawButton({
   disabled,
@@ -73,19 +100,12 @@ export function ActionsCell({
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [showWithdrawToast, setShowWithdrawToast] = useState(false);
 
-  const formattedAmount = formatAmount({
-    amount: BigInt(ticket.assets),
-    decimals: peggedToken?.decimals ?? 18,
-    isError: false,
-  });
+  const activityText = getActivityText({ peggedToken, t, ticket });
 
   const { onCompleted, onFailed, onPending, onTransactionHash } =
     useActivityTracking({
       page: "earn",
-      text: t("pages.earn.activity.claim-withdraw-text", {
-        amount: formattedAmount,
-        symbol: peggedToken?.symbol,
-      }),
+      text: activityText,
       title: `${t("nav.earn")} · ${t("pages.earn.exit-tickets.withdraw")}`,
     });
 
@@ -124,7 +144,10 @@ export function ActionsCell({
         <div className="flex items-center gap-3">
           {status === "ready" && (
             <WithdrawButton
-              disabled={disabled}
+              disabled={isActionDisabled({
+                disabled,
+                peggedToken,
+              })}
               isWithdrawing={isWithdrawing}
               onWithdraw={handleWithdraw}
             />
@@ -138,7 +161,11 @@ export function ActionsCell({
           >
             <ButtonIcon
               aria-label={t("pages.earn.exit-tickets.delete-tooltip")}
-              disabled={disabled || isWithdrawing || geoRestricted}
+              disabled={
+                isActionDisabled({ disabled, peggedToken }) ||
+                isWithdrawing ||
+                geoRestricted
+              }
               onClick={() => setIsModalOpen(true)}
               size="xSmall"
               variant="secondary"

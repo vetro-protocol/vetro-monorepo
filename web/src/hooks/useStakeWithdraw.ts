@@ -88,6 +88,18 @@ export const useStakeWithdraw = function ({
         onStatusChange?.("request-failed");
       });
 
+      emitter.on("request-withdraw-failed", function () {
+        onStatusChange?.("request-failed");
+      });
+
+      emitter.on("request-withdraw-failed-validation", function () {
+        onStatusChange?.("request-failed");
+      });
+
+      emitter.on("unexpected-error", function () {
+        onStatusChange?.("request-failed");
+      });
+
       emitter.on(
         "request-withdraw-transaction-reverted",
         function (receipt: TransactionReceipt) {
@@ -137,7 +149,9 @@ export const useStakeWithdraw = function ({
             const { args } = logs[0];
             const ticket: ExitTicket = {
               assets: args.assets.toString(),
+              cancelTxHash: null,
               claimableAt: args.claimableAt.toString(),
+              claimTxHash: null,
               owner: args.owner,
               requestId: args.requestId.toString(),
               requestTxHash: receipt.transactionHash,
@@ -154,6 +168,9 @@ export const useStakeWithdraw = function ({
       );
 
       return promise;
+    },
+    onError() {
+      onStatusChange?.("request-failed");
     },
     async onSettled() {
       queryClient.invalidateQueries({

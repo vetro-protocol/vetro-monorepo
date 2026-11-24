@@ -1,9 +1,9 @@
 import { gatewayAddresses } from "@vetro-protocol/gateway";
+import { marketIds } from "@vetro-protocol/morpho-blue-market";
 import { PageTitle } from "components/base/pageTitle";
 import { MarketsTable } from "components/borrow/marketsTable";
 import { PositionsTable } from "components/borrow/positionsTable";
 import { StripedDivider } from "components/stripedDivider";
-import { marketIds } from "constants/borrow";
 import { usePeggedToken } from "hooks/usePeggedToken";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";

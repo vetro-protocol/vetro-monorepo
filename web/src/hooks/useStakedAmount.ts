@@ -1,8 +1,4 @@
-import {
-  type UseQueryResult,
-  useQueries,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { type UseQueryResult, useQueries } from "@tanstack/react-query";
 import { useEthereumClient } from "hooks/useEthereumClient";
 import { stakedBalanceQueryOptions } from "hooks/useStakedBalance";
 import { vaultPeggedTokenQueryOptions } from "hooks/useVaultPeggedToken";
@@ -23,21 +19,18 @@ const combineStakedAmount = (
 export function useStakedAmount(stakingVaultAddress: Address) {
   const { address: account } = useAccount();
   const client = useEthereumClient();
-  const queryClient = useQueryClient();
 
   return useQueries({
     combine: combineStakedAmount,
     queries: [
       vaultPeggedTokenQueryOptions({
         client,
-        queryClient,
         stakingVaultAddress,
       }),
       stakedBalanceQueryOptions({
         account,
         chainId: mainnet.id,
         client,
-        queryClient,
         stakingVaultAddress,
       }),
     ],

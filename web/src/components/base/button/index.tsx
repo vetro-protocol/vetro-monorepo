@@ -7,7 +7,7 @@ import { I18nLink } from "../i18nLink";
 import "./button.css";
 
 /* eslint-disable sort-keys */
-const variants = {
+const variantClasses = {
   primary: "button-primary",
   secondary: "button-secondary",
   tertiary: "button-tertiary",
@@ -18,7 +18,7 @@ const variants = {
 type ButtonSize = "xSmall" | "small" | "xLarge";
 
 /* eslint-disable sort-keys */
-const buttonSizePresets = {
+const buttonSizeClasses = {
   xSmall: {
     icon: "button-x-small button-icon",
     regular: "button-x-small button-regular",
@@ -35,7 +35,7 @@ const buttonSizePresets = {
 /* eslint-enable sort-keys */
 
 type ButtonStyleProps = {
-  variant?: keyof typeof variants;
+  variant?: keyof typeof variantClasses;
   size?: ButtonSize;
 };
 
@@ -45,7 +45,7 @@ type ButtonProps = Omit<ComponentProps<"button">, "className"> &
 type ButtonLinkProps = Omit<ComponentProps<"a">, "href" | "ref" | "className"> &
   Required<{ href: ComponentProps<typeof I18nLink>["to"] }> & {
     size?: ButtonSize;
-    variant?: keyof typeof variants;
+    variant?: keyof typeof variantClasses;
   };
 
 export const Button = ({
@@ -54,7 +54,7 @@ export const Button = ({
   ...props
 }: ButtonProps) => (
   <button
-    className={`button--base ${buttonSizePresets[size].regular} ${variants[variant]}`}
+    className={`button--base ${buttonSizeClasses[size].regular} ${variantClasses[variant]}`}
     {...props}
   />
 );
@@ -65,7 +65,7 @@ export const ButtonIcon = ({
   ...props
 }: ButtonProps) => (
   <button
-    className={`button--base ${buttonSizePresets[size].icon} ${variants[variant]} group`}
+    className={`button--base ${buttonSizeClasses[size].icon} ${variantClasses[variant]} group`}
     {...props}
   />
 );
@@ -75,7 +75,7 @@ export const ButtonLink = function ({
   variant,
   ...props
 }: ButtonLinkProps) {
-  const sizeClass = buttonSizePresets[size].regular;
+  const sizeClass = buttonSizeClasses[size].regular;
 
   if (
     !props.href ||
@@ -83,7 +83,7 @@ export const ButtonLink = function ({
   ) {
     return (
       <ExternalLink
-        className={`button--base ${variant ? variants[variant] : "button-nav-secondary"} ${sizeClass}`}
+        className={`button--base ${variant ? variantClasses[variant] : "button-nav-secondary"} ${sizeClass}`}
         {...props}
         href={props.href}
       />
@@ -93,7 +93,7 @@ export const ButtonLink = function ({
   // If variant is not provided, use primary/secondary styles mixed
   // This was designed for links in the navbar.
   const className = variant
-    ? `button--base ${variants[variant]} ${sizeClass}`
+    ? `button--base ${variantClasses[variant]} ${sizeClass}`
     : ({ isActive }: { isActive: boolean }) =>
         `button--base ${isActive ? "button-nav-primary" : "button-nav-secondary"} ${sizeClass}`;
 

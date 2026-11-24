@@ -4,11 +4,11 @@ Service that provides data to the Vetro web application.
 
 ## Data endpoints
 
-### `GET /analytics/collateralization-ratio/:gatewayAddress`
+### `GET /analytics/balance-sheet/:gatewayAddress`
 
-Get the collateralization ratio for a given gateway's pegged token: the total backing value divided by the circulating supply. The backing is the sum of the strategic reserves, the protocol surplus and the liquid Treasury reserves (whitelisted holdings valued in the pegged token). Cached for 5 minutes.
+Get the balance sheet for a given gateway's pegged token. `ratio` is the total backing value divided by the circulating supply. The backing (`total`) is the sum of the strategic reserves and the liquid Treasury reserves (`treasuryTotal`, whitelisted holdings valued in the pegged token). `surplus` is the backing minus the supply. It is negative when the pegged token is under-collateralized. Cached for 5 minutes.
 `:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway.
-The monetary fields (`strategicReserves`, `supply`, `surplus`, `total`, `treasuryTotal`) are raw `uint256` amounts in the pegged token's base units (not pre-scaled); format them with the token's decimals on the client. `ratio` is a number: the percentage `(total / supply) * 100` (e.g. `100.04`), or `0` when supply is `0`.
+The monetary fields (`strategicReserves`, `supply`, `total`, `treasuryTotal`) are raw `uint256` amounts in the pegged token's base units (not pre-scaled); format them with the token's decimals on the client. `surplus` is a signed integer in the same base units. `ratio` is a number: the percentage `(total / supply) * 100` (e.g. `100.04`), or `0` when supply is `0`.
 
 #### Sample response
 
@@ -17,11 +17,15 @@ The monetary fields (`strategicReserves`, `supply`, `surplus`, `total`, `treasur
   "ratio": 100.04,
   "strategicReserves": "10000000000000000000",
   "supply": "11425000000000000000000000",
-  "surplus": "1424707358963452827",
-  "total": "11430000004707358963452827",
-  "treasuryTotal": "11429988580000000000000000"
+  "surplus": "4997580000000000000000",
+  "total": "11429997580000000000000000",
+  "treasuryTotal": "11429987580000000000000000"
 }
 ```
+
+### `GET /analytics/collateralization-ratio/:gatewayAddress`
+
+**Deprecated.** Use [`GET /analytics/balance-sheet/:gatewayAddress`](#get-analyticsbalance-sheetgatewayaddress). This route returns the same response.
 
 ### `GET /analytics/tvl/:gatewayAddress`
 
@@ -53,7 +57,7 @@ Get the staked total for a given gateway's pegged token: the amount deposited in
 
 ### `GET /analytics/treasury/:gatewayAddress`
 
-Get the composition of the treasury by whitelisted token for a given gateway. Each item of `activeStrategies` has the strategy `address`, its `name`, its `totalDebt`, its `apy` (a percentage), and its `source` (the protocol position that it holds). The `apy` is the current native APY that the protocol of the strategy reports, plus the live APR of its incentives (Merkl campaigns and StakeDAO rewards). The `apy` is omitted when one of its sources fails, and the `source` is omitted when it is not known. Each token also has the oracle price data: `latestPrice` (with its `priceDecimals`) and `updatedAt`, the timestamp in seconds of its last update, plus `stalePeriod`, the seconds after which the Treasury considers the price stale. The price is returned as is: this endpoint does not check whether it is stale, not positive or off par. `tokenDecimals` are the decimals of the token. Cached for 5 minutes.
+Get the composition of the treasury by whitelisted token for a given gateway. Each item of `activeStrategies` has the strategy `address`, its `name`, its `totalDebt`, its `apy` (a percentage), and its `source` (the protocol position that it holds). The `apy` is the current native APY that the protocol of the strategy reports, plus the live APR of its incentives (Merkl campaigns and StakeDAO rewards). When a source fails (Merkl, Morpho, Lagoon, the StakeDAO strategies or the receipt-token read) or the combined APY is not a finite number, the strategy's last good `apy` is used, so it can be up to about an hour old. In those cases, `apy` is omitted when no good value from the last hour is stored. It is also omitted when every source responds but none reports an APY for the strategy. The `source` is kept for up to a day when the StakeDAO strategies or the receipt-token read fails. It is omitted when no good value from the last day is stored or when every input is available and no protocol matches the strategy. Each token also has the oracle price data: `latestPrice` (with its `priceDecimals`) and `updatedAt`, the timestamp in seconds of its last update, plus `stalePeriod`, the seconds after which the Treasury considers the price stale. The price is returned as is: this endpoint does not check whether it is stale, not positive or off par. `tokenDecimals` are the decimals of the token. Cached for 5 minutes.
 `:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway.
 
 #### Sample Response
@@ -105,6 +109,70 @@ Get the composition of the treasury by whitelisted token for a given gateway. Ea
     "withdrawable": "260862058"
   }
 ]
+```
+
+### `GET /analytics/yield/:gatewayAddress`
+
+Get the Yield allocation of a gateway's Treasury: one item per active strategy and one reserve buffer item per whitelisted token, sorted by `balance`, largest first. Cached for 1 minute.
+`:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway. Returns `500` if the oracle price of a token that the Treasury holds is not positive.
+
+Amounts are raw strings in the pegged token's base units. Each balance uses the Treasury oracle price of its token, capped at par, as `Treasury.reserve()` does. APYs are percentages (`4.87` means 4.87%). A strategy item has no `apy` and no `projectedYield` when its APY is unknown. `total.apy` and `total.projectedYield` are nullable.
+
+#### Sample response
+
+```jsonc
+{
+  "items": [
+    {
+      "address": "0xe53c583767923E3e209ce6FD91f6C5D12AE9A308",
+      "apy": 3.269585328484523,
+      "balance": "4021006335000000000000",
+      "name": "Morpho SkyMoney USDT Savings",
+      "projectedYield": "131470233167110528800",
+      "source": {
+        "protocol": "morpho",
+        "vaultAddress": "0x23f5E9c35820f4baB695Ac1F19c203cC3f8e1e11",
+      },
+      "token": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+      "type": "strategy",
+    },
+    {
+      "apy": 0,
+      "balance": "10937583900000000000",
+      "projectedYield": "0",
+      "token": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+      "type": "reserve",
+    },
+    // ...
+  ],
+  "total": {
+    "apy": 3.2607158187601577,
+    "balance": "4031943918900000000000",
+    "projectedYield": "131470233167110528800",
+  },
+}
+```
+
+### `GET /analytics/net-revenue/:gatewayAddress`
+
+Get the projected protocol revenue of a gateway: an annualized projection from the current reserve balances, strategy APYs and staking vault APR. Cached for 1 minute.
+`:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway. Returns `500` in the same cases as `GET /analytics/yield`, if no staking vault holds the gateway's pegged token, and if the APYs of the staking vaults are not available.
+
+Amounts are raw strings in the pegged token's base units, and APYs and APRs are percentages. `backendApy`, `backendBalance` and `backendYield` are the `total` of `GET /analytics/yield`. `stakerApr` is the APR of `GET /variable-stake/apy` for the staking vault. `stakerPayouts` is `stakerApr` × `staked`. `netRevenue` can be negative. `backendApy`, `backendYield`, `netRevenue`, `stakerApr` and `stakerPayouts` are nullable.
+
+#### Sample response
+
+```json
+{
+  "backendApy": 4.87,
+  "backendBalance": "665790000000000000000000",
+  "backendYield": "32430000000000000000000",
+  "netRevenue": "20845000000000000000000",
+  "staked": "115850000000000000000000",
+  "stakerApr": 10,
+  "stakerPayouts": "11585000000000000000000",
+  "stakingVaultAddress": "0x476310E34D2810f7d79C43A74E4D79405bd7a925"
+}
 ```
 
 ### `GET /analytics/tvl-history/:gatewayAddress/:period`
@@ -373,6 +441,7 @@ Returns the DEX pools that hold a VETRO token (a pegged token or its share token
 - `apr` is the pool APR from trading fees, as a percentage number (e.g. `1.8` means 1.8%). It is `null` when `tvlUsd` is `null`, or when `volumeUsd24h` is `null`.
 - `coins` lists each coin of the pool, with its `amount` in the pool in token units (not in raw units). On a range row, `amount` is the part of the pool's liquidity inside the range.
 - `tvlUsd` is `null` when a coin of the pool has no USD price.
+- Each coin takes its USD price from the venue first (the Curve API, or the subgraph of Uniswap, Sushi or BrownFi; on Uniswap and Sushi, also the pool ratio). A coin with no venue price takes the USD price of its peg if it is a pegged token. A whitelisted token takes its Treasury oracle price, and the portal price (see `PORTAL_API_URL`) when the oracle read fails. Other coins take the portal price.
 - `volumeUsd24h` is the trading volume in USD. On Uniswap, Sushi and BrownFi, it covers the last 24 full hours. On a Sushi range row, it is the part of the volume that occurred inside the range. It is `null` when the pool has no USD price for its coins. On Uniswap and Sushi, it is also `null` when the subgraph has no data for the pool (the query failed, or the subgraph has not indexed the pool yet).
 - `dexMetadata` is only on the Curve and BrownFi pools. On Curve, it has the `poolId`, the `gaugeAddress` (when the pool has a gauge) and the `lpTokenAddress`. Reward campaigns can target the pool, its gauge or its LP token. On BrownFi, it has `fee` and `overrideFee` as the subgraph gives them, in hundredths of a basis point (`3000` is 0.3%). An `overrideFee` of `0` means that the pool uses `fee`.
 - `rewards` includes rewards from Curve gauges, StakeDAO strategies and Merkl campaigns.
@@ -552,7 +621,7 @@ Valid periods are: `"1w"`, `"1m"`, `"3m"` and `"1y"`.
 
 ### `GET /variable-stake/composition/:stakingVaultAddress`
 
-Returns the composition of a staking vault's deposits, ready to display. The vault holds only the pegged token, which is a claim on the pooled Treasury (collateral isn't earmarked per holder), so its composition is the Treasury's, pro rata. Each item is one active strategy (its `totalDebt`) or the idle reserve of one whitelisted token (`withdrawable − totalDebt`). Items are valued like `Treasury.reserve()` does (oracle price capped at par, in pegged-token units). `share = value ÷ Σ item values` and `amount = share × total`; the rounding remainder goes to the largest item. The strategic reserves and the surplus are excluded, as they are the pegged token itself. Items with a zero amount are omitted, and the rest are sorted by `amount`, descending. The Treasury data is the one `GET /analytics/treasury` serves, warmed by a cron job and shared with it, so this endpoint does not read each strategy or oracle itself. Only `total` (the vault's `totalAssets`) is read live. Prices are checked when the request arrives, not when the data was warmed: the request fails with an error if the price of any whitelisted token is not positive, or if it was last updated more than its `stalePeriod` ago. A price that is off par does not fail it; it is valued at its price, capped at par. Cached for 1 minute.
+Returns the composition of a staking vault's deposits, ready to display. The vault holds only the pegged token, which is a claim on the pooled Treasury (collateral isn't earmarked per holder), so its composition is the Treasury's, pro rata. Each item is one active strategy (its `totalDebt`) or the idle reserve of one whitelisted token (`withdrawable − totalDebt`). Items are valued like `Treasury.reserve()` does (oracle price capped at par, in pegged-token units). `share = value ÷ Σ item values` and `amount = share × total`; the rounding remainder goes to the largest item. The strategic reserves and the protocol-held pegged token are excluded, as they are the pegged token itself. Items with a zero amount are omitted, and the rest are sorted by `amount`, descending. The Treasury data is the one `GET /analytics/treasury` serves, warmed by a cron job and shared with it, so this endpoint does not read each strategy or oracle itself. Only `total` (the vault's `totalAssets`) is read live. Prices are checked when the request arrives, not when the data was warmed: the request fails with an error if the price of any whitelisted token is not positive, or if it was last updated more than its `stalePeriod` ago. A price that is off par does not fail it; it is valued at its price, capped at par. Cached for 1 minute.
 `:stakingVaultAddress` must be a known staking vault. Returns `400` if malformed and `404` if the address is not a known staking vault. Fails with an error when a price is stale or not positive, as described above.
 `total` is the vault's ERC4626 `totalAssets`, and the `amount` of the items add up exactly to it. Both are raw `uint256` amounts in the pegged token's base units (not pre-scaled). `share` is a fraction of `total` (e.g. `0.31` means 31%). `token` is the checksummed address of the whitelisted token the item comes from. `type` is `"strategy"` or `"reserve"`; `name` is only present on `strategy` items, so clients translate the label of `reserve` items. Clients can group by summing `amount` and `share`, either by `token` or by merging the `reserve` items with the strategies.
 
@@ -617,6 +686,8 @@ Valid periods are: `"1w"`, `"1m"`, `"3m"` and `"1y"`.
 ### `GET /variable-stake/rewards/:address`
 
 Returns all user's rewards from the Merkl campaigns related to Vetro, indexed by staking vault address. Each supported staking vault has an entry in the response, with an empty array if the user has no rewards for that vault.
+`:address` must be a well-formed Ethereum address. Returns `404` if malformed.
+Returns `500` if Merkl fails.
 
 #### Sample Response
 
@@ -667,9 +738,13 @@ Returns all user's variable stake exit tickets to i.e. allow claiming the withdr
 
 The `owner` and `stakingVaultAddress` fields are returned in the checksummed format.
 
-The `cancelTxHash` and `claimTxHash` fields are optional and mutually exclusive: a
-ticket in cooldown or ready to claim has neither, a cancelled ticket has
-`cancelTxHash` and a claimed ticket has `claimTxHash`.
+`:address` must be a well-formed Ethereum address. Returns `404` if malformed.
+Returns `500` if the subgraph fails.
+
+`claimableAt` is a string containing the timestamp in seconds.
+`cancelTxHash` and `claimTxHash` are always present and are `null` when unset. At
+most one is non-null: a cancelled ticket has `cancelTxHash`, and a claimed
+ticket has `claimTxHash`.
 
 #### Sample Response
 
@@ -682,7 +757,8 @@ ticket in cooldown or ready to claim has neither, a cancelled ticket has
     "owner": "0x0000000000000000000000000000000000000001",
     "assets": "1050000000000000000",
     "shares": "1000000000000000000",
-    "claimableAt": 1700000000,
+    "claimableAt": "1700000000",
+    "cancelTxHash": null,
     "claimTxHash": "0x0000000000000000000000000000000000000000000000000000000000000004",
   },
 ]
@@ -791,7 +867,7 @@ Secrets are set separately using the Wrangler CLI.
 | MERKL_OPPORTUNITY_SVETBTC   | Merkl opportunity id for the sVetBTC staking vault. Optional; if unset, that vault yields no rewards.                                                                                                                                                                                |                           |
 | MERKL_OPPORTUNITY_SVUSD     | Merkl opportunity id for the sVUSD staking vault. Optional; if unset, that vault yields no rewards.                                                                                                                                                                                  |                           |
 | ORIGINS                     | Comma-separated list of allowed origins. (1)                                                                                                                                                                                                                                         | `http://localhost:5173`   |
-| PORTAL_API_URL              | Base URL of the portal API. `GET /analytics/tvl-history` reads the daily and current USD price of a non-USD peg unit (BTC) from it. `GET /liquidity/pools` uses its USD price for a coin of a Uniswap or Sushi pool when the DEX subgraph has no price for that coin.                | `http://localhost:3006`   |
+| PORTAL_API_URL              | Base URL of the portal API. `GET /analytics/tvl-history` reads the daily and current USD price of a non-USD peg unit (BTC) from it. `GET /liquidity/pools` reads from it the USD price of a pool coin when other sources have no price.                                              | `http://localhost:3006`   |
 | SENTRY_DSN                  | Sentry DSN. When unset, Sentry is disabled.                                                                                                                                                                                                                                          |                           |
 | SUBGRAPH_API_KEY            | The Graph API key. Also used for the veVETRO subgraph and for the BrownFi, Sushi and Uniswap subgraphs of `GET /liquidity/pools`.                                                                                                                                                    |                           |
 | TURNSTILE_ALLOWED_HOSTNAMES | Optional comma-separated hostname allowlist. When set, a Turnstile token whose siteverify `hostname` is not listed is rejected (`403`). Unset (local/staging) skips this check.                                                                                                      |                           |

@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { render } from "vitest-browser-react";
 
 import { Stack } from "../../src/components/base/stack";
 
+import { moveMouseAway } from "./mouse";
 import { endTransition } from "./transitions";
 
 const autoCloseMs = 100;
@@ -31,6 +32,8 @@ function finishExit(link: HTMLElement) {
 }
 
 describe("Stack", function () {
+  beforeEach(moveMouseAway);
+
   it("keeps the toast while focus is inside and removes it after focus leaves", async function () {
     const screen = await render(
       <>

@@ -1,4 +1,4 @@
-import { useQueries, useQueryClient } from "@tanstack/react-query";
+import { useQueries } from "@tanstack/react-query";
 import { DollarSign } from "components/base/dollarSign";
 import { DrawerRetryFooter } from "components/base/drawer/drawerRetryFooter";
 import { RenderFiatValue } from "components/base/fiatValue";
@@ -19,6 +19,7 @@ import {
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import type { TokenWithGateway } from "types";
+import { formatFiatNumberRoundDown } from "utils/format";
 import { formatAmount } from "utils/token";
 import type { Address } from "viem";
 
@@ -88,7 +89,11 @@ const Row = ({ amount, peggedToken, status }: RowProps) => (
       detail={
         <>
           <DollarSign />
-          <RenderFiatValue token={peggedToken} value={amount} />
+          <RenderFiatValue
+            customFormatter={formatFiatNumberRoundDown}
+            token={peggedToken}
+            value={amount}
+          />
         </>
       }
       token={peggedToken}
@@ -153,13 +158,11 @@ function VaultStepper({
 }: Pick<Props, "statuses" | "vaults">) {
   const client = useEthereumClient();
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
 
   const peggedTokenQueries = useQueries({
     queries: vaults.map((vault) =>
       vaultPeggedTokenQueryOptions({
         client,
-        queryClient,
         stakingVaultAddress: vault.stakingVaultAddress,
       }),
     ),

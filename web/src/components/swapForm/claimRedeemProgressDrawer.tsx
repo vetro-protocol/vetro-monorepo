@@ -1,3 +1,4 @@
+import { RenderCryptoValue } from "components/base/cryptoValue";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { MaxButton } from "components/base/maxButton";
 import { Spinner } from "components/base/spinner";
@@ -14,7 +15,7 @@ import { useTokenConfig } from "hooks/useTokenConfig";
 import type { ComponentProps, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
-import { formatAmount } from "utils/token";
+import { formatFiatNumberRoundDown } from "utils/format";
 import type { Address } from "viem";
 
 import { OutputLabel, type UnitPreview } from "./outputLabel";
@@ -142,11 +143,9 @@ export function ClaimRedeemProgressDrawer({
           balance={
             <Balance
               label={t("pages.swap.redeem-queue.available-to-redeem")}
-              value={formatAmount({
-                amount: amountLocked,
-                decimals: fromToken.decimals,
-                isError: false,
-              })}
+              value={
+                <RenderCryptoValue token={fromToken} value={amountLocked} />
+              }
             />
           }
           fiatValue={<RenderFiatValue token={fromToken} value={amountBigInt} />}
@@ -160,7 +159,13 @@ export function ClaimRedeemProgressDrawer({
         <TokenInput
           balance={<TokenBalance token={toToken} />}
           disabled
-          fiatValue={<RenderFiatValue token={toToken} value={outputBigInt} />}
+          fiatValue={
+            <RenderFiatValue
+              customFormatter={formatFiatNumberRoundDown}
+              token={toToken}
+              value={outputBigInt}
+            />
+          }
           label={t("pages.swap.form.you-will-receive-estimated")}
           tokenSelector={
             <TokenDropdown
@@ -207,7 +212,7 @@ export function ClaimRedeemProgressDrawer({
       </DrawerFeesContainer>
       {steps.length > 0 && (
         <div className="mt-auto flex flex-col gap-2 px-6 pb-6">
-          <p className="text-[11px] leading-4 font-medium tracking-wide text-gray-500">
+          <p className="text-xss leading-4 font-medium tracking-wide text-gray-500">
             {t("pages.swap.progress.swap-progress")}
           </p>
           <div className="border-t border-gray-200">

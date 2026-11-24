@@ -15,6 +15,7 @@ import type { ComponentProps } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import type { TokenWithGateway } from "types";
+import { formatFiatNumberRoundDown } from "utils/format";
 import type { Address } from "viem";
 
 type SummaryProps = {
@@ -115,6 +116,17 @@ function InstantWithdrawSummary({
     </>
   );
 
+  const receivedFiatDetail = (
+    <>
+      <DollarSign />
+      <RenderFiatValue
+        customFormatter={formatFiatNumberRoundDown}
+        token={peggedToken}
+        value={assets}
+      />
+    </>
+  );
+
   return (
     <>
       <TokenInteraction
@@ -131,7 +143,7 @@ function InstantWithdrawSummary({
       />
       <TokenInteraction
         amount={amount}
-        detail={fiatDetail}
+        detail={receivedFiatDetail}
         label={t("pages.earn.stake.you-will-receive")}
         token={peggedToken}
       />

@@ -82,7 +82,9 @@ export function FeesContainer({
         className={`grid transition-[grid-template-rows] duration-200 ease-out ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
         id="fees-list"
       >
-        <div className="overflow-hidden">{children}</div>
+        <div aria-hidden={!isOpen} className="overflow-hidden" inert={!isOpen}>
+          {children}
+        </div>
       </div>
     </>
   );

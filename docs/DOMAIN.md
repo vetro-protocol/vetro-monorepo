@@ -14,6 +14,14 @@ VETRO lets users mint a **pegged token** — a token fully backed by reserves an
 
 > **Don't hardcode symbols.** The active instances are read **on-chain**, not from a static list — `tokenList.ts` is only an ERC-20 metadata cache for display. Write against the role (`peggedToken`, `shareToken`, `whitelistedToken`) and read instances from their gateway/vault; `VUSD` is just today's most prominent instance, not a special case to branch on. See [Where things live](#where-things-live) for the exact files.
 
+**USD values.** These values are for display only. The app uses these rules:
+
+- A pegged token is valued at its peg (1 VUSD = 1 USD, 1 vetBTC = 1 BTC).
+- A share token is valued through its pegged token.
+- Other tokens take their Treasury oracle price first, then the Portal prices API price.
+- An oracle price is in the peg unit, and the Portal prices API converts that unit (e.g. BTC) to USD.
+- The Liquidity page is the exception. There, a market price from the pools comes before these rules.
+
 So there are two reasons to hold a pegged token — keep it as a settlement asset (Swap) or stake it for yield (Earn) — plus a path for crypto holders who want liquidity without selling (Borrow).
 
 ## How the contracts fit together
@@ -65,7 +73,7 @@ graph TD
 
 "Swap your tokens with Vetro assets." The form is generic over gateways: it lists every configured gateway's pegged token (read on-chain via `getPeggedToken`) and that gateway's whitelisted collateral (read from the gateway's Treasury via `getWhitelistedTokens`). The user picks a pegged token and one of its whitelisted tokens. Two directions:
 
-- **Mint (swap in):** deposit a whitelisted token (e.g. USDC/USDT for the VUSD gateway) → receive that gateway's pegged token ~1:1, minus the on-chain **mint fee**. Single transaction.
+- **Mint (swap in):** deposit a whitelisted token (e.g. USDC/USDT for the VUSD gateway) → receive that gateway's pegged token ~1:1, minus the on-chain **mint fee**. Single transaction. Optionally, the user can opt in to automatically **stake** the minted pegged token on Earn.
 - **Redeem (swap out):** return a pegged token → receive a whitelisted token, minus the on-chain **redeem fee**. Which path the form shows is computed by `fetchRedeemDelay` from **two** conditions: whether the gateway has its **withdrawal delay enabled** (`getWithdrawalDelayEnabled`) and whether the connected **address is whitelisted** for instant redeem (`isInstantRedeemWhitelisted`). When the delay is enabled _and_ the address is not whitelisted — the common case for most users — the form renders the **two-step Redeem Queue** (`twoStepRedeem`): _Send to Queue_ → a short **security cooldown** (seconds, anti-flashloan/MEV) → _Redeem_ to the whitelisted token of choice; a queued redeem can be cancelled. Otherwise (delay disabled, or the address is whitelisted) the form renders **one-step redeem** (`oneStepRedeem`) — instant, single transaction. Entry point: `web/src/components/swapForm/redeem.tsx`, which dispatches to `twoStepRedeem.tsx` or `oneStepRedeem.tsx`.
 
 **Pause switches.** Each whitelisted token's Treasury config (`getTokenConfig`, `packages/treasury`) carries two independent flags the app must respect — they are **per whitelisted token**, not per gateway:
@@ -144,41 +152,66 @@ Key terms: **health factor** (above 1.0 safe; at/below 1.0 liquidatable), **LTV*
 
 ### Analytics
 
-"Monitor protocol analytics." A read-only dashboard of protocol health, per pegged token. The data comes from `api/`, and the page shows amounts in USD. The cards:
+"Monitor protocol analytics." A read-only dashboard of protocol health, per pegged token. The data comes from `api/`, and the page shows amounts in USD. Under the gateway filter, two tabs split the cards: **Overview** (the default) and **Accounting**. The URL keeps the selected tab (`?tab=`), and the tab stays the same when the user selects a different gateway.
 
-#### TVL
+#### Overview
+
+##### TVL
 
 The circulating supply of the pegged token. The breakdown shows the whitelisted tokens that back it: the treasury `withdrawable` of each token (idle funds plus funds in strategies), in USD.
 
-#### Collateralization ratio
-
-The backing divided by the circulating supply. The backing is the sum of three parts:
-
-- **Strategic reserves**: VUSD-meta vault shares that the treasury, the UMM role and the Vetro multisig hold, valued at their redeem value. Only the VUSD gateway has them.
-- **Liquid reserves**: the treasury `withdrawable` of each whitelisted token, converted to the pegged token at the gateway redeem rate.
-- **Surplus**: the pegged token that the treasury, the UMM role and the yield distributor hold.
-
-#### Historic TVL
+##### Historic TVL
 
 The TVL breakdown over time, with one point per UTC day.
 
-#### Staked
+##### Staked
 
 The pegged token in the staking vault (its `totalAssets`).
 
-#### Exit cooldown
+##### Exit cooldown
 
 The value of the open exit tickets, in the pegged token.
 
-#### Share ratio
+##### Share ratio
 
 The value of one share token in the pegged token, over time.
 
-#### APY history
+##### APY history
 
 The APY of the staking vault, over time.
 
-#### Yield allocation
+#### Accounting
+
+##### Projected protocol revenue
+
+Compares the yield that the treasury earns with the yield that the staking vault pays to its stakers. All values are annualized projections for one gateway. They are not historical earnings:
+
+- **Projected reserve yield**: the projected yield of the Yield allocation total (the sum of `balance × APY` of each strategy; the reserve buffer has a 0% APY).
+- **Reserves**: the balance of the Yield allocation total (the strategies plus the reserve buffer).
+- **Blended APY**: the APY of the Yield allocation total, weighted by balance.
+- **Projected staker yield**: the current APR of the staking vault × the staked amount (its `totalAssets`).
+- **Projected net revenue**: reserve yield − staker yield. The card also shows it per month (÷ 12).
+- **Coverage ratio**: reserve yield ÷ staker yield.
+
+The status is "Net positive" when the net is above zero, "Net negative" when it is below zero, and "Breakeven" when it shows as "$0". When a strategy with a balance has no APY, the reserve yield is unknown, and the card shows "-" for it and for the values that depend on it.
+
+##### Projected revenue sources
+
+Divides the projected net revenue into two parts:
+
+- **Projected lazy yield**: (reserves − staked) × blended APY.
+- **Projected staking spread**: net revenue − lazy yield, which is staked × (blended APY − staker APR). It is usually negative.
+
+##### Balance sheet
+
+The backing, the circulating supply and the surplus of the pegged token. The **backing** is the sum of two parts. The card shows it in the "Total reserves" row:
+
+- **Strategic reserves**: VUSD-meta vault shares that the treasury, the UMM role and the Vetro multisig hold, valued at their redeem value. Only the VUSD gateway has them.
+- **Liquid reserves**: the treasury `withdrawable` of each whitelisted token, converted to the pegged token at the gateway redeem rate.
+
+The **collateralization ratio** (`ratio`) is the backing divided by the circulating supply. The **surplus** is the backing minus the supply. When it is negative, the card shows it as a **deficit**.
+
+##### Yield allocation
 
 The active strategies, with the balance that each one has (its debt in the treasury vault). The **reserve buffer** is the part not in a strategy: the treasury `withdrawable` minus the total debt of the vault.
 
@@ -187,7 +220,7 @@ Each strategy also shows its APY and its projected yield per year (balance × AP
 - **Native APY**: the current net APY that the protocol of the strategy reports. For a Morpho vault, it is the current rate after fees. For a Lagoon vault, it is the realized rate between settlements over the last month, after fees and without rewards, compounded to one year. For a young Lagoon vault, it is the rate since inception. For a Curve pool, it is the base APY of the pool.
 - **Incentive APR**: only the incentives paid on the position that the strategy holds, for example Merkl campaigns or StakeDAO rewards.
 
-The reserve buffer has a 0% APY. When the API cannot calculate the APY of a strategy, the page shows "-".
+The reserve buffer has a 0% APY. When the API cannot calculate the APY of a strategy, the page shows "-". If that strategy has a balance, the Total row also shows "-" for the APY and the projected yield.
 
 ### Liquidity
 
@@ -209,7 +242,7 @@ Sources of truth for which instances exist (read these; don't hardcode symbols):
 - Gateways → pegged tokens, read on-chain via `getPeggedToken`: `gatewayAddresses` (`packages/gateway`)
 - Staking vaults → share tokens: `stakingVaultAddresses` (`packages/earn`)
 - Bridge page whitelist (the one static set): `web/src/utils/bridgeableTokens.ts`
-- Borrow markets: [`web/src/constants/borrow.ts`](../web/src/constants/borrow.ts) (Morpho Blue, `packages/morpho-blue-market`)
+- Borrow markets (Morpho Blue): `marketIds` (`packages/morpho-blue-market`)
 
 For display only — **not** enablement: `web/src/utils/tokenList.ts` (`knownTokens`) is a hardcoded cache of ERC-20 metadata (symbol, decimals, logo) for fast loading.
 

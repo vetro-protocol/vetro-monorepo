@@ -29,7 +29,7 @@ export const defaultSetupSymbols = [
 
 type FundableToken = {
   address: Address;
-  balanceSlot: number;
+  balanceSlot: bigint;
   decimals: number;
   symbol: string;
 };

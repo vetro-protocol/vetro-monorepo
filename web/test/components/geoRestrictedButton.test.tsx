@@ -77,7 +77,7 @@ describe("GeoRestrictedButton", function () {
       <GeoRestrictedButton tooltip="Redeems paused">Claim</GeoRestrictedButton>,
     );
 
-    await screen.getByRole("button", { name: "Claim" }).hover();
+    await screen.getByRole("button", { name: "Claim" }).hover({ force: true });
 
     await expect
       .element(screen.getByText("Vetro isn't available in your country"))

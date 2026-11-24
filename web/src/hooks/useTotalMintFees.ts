@@ -5,17 +5,20 @@ import type { TokenWithGateway } from "types";
 import { useAccount } from "wagmi";
 
 import { useEthereumClient } from "./useEthereumClient";
+import type { StakeGasParams } from "./useSwapMintFees";
 
 export const useTotalMintFees = function ({
   amount,
   approveAmount,
   fromToken,
   minPeggedTokenOut,
+  stake,
 }: {
   amount: bigint;
   approveAmount: bigint | undefined;
   fromToken: TokenWithGateway;
   minPeggedTokenOut: bigint | undefined;
+  stake: StakeGasParams | undefined;
 }) {
   const { address: owner } = useAccount();
   const client = useEthereumClient();
@@ -38,6 +41,7 @@ export const useTotalMintFees = function ({
         minPeggedTokenOut: minPeggedTokenOut!,
         owner: owner!,
         queryClient,
+        stake,
       }),
     queryKey: [
       "total-mint-fees",
@@ -47,6 +51,9 @@ export const useTotalMintFees = function ({
       owner,
       amount.toString(),
       minPeggedTokenOut?.toString(),
+      stake?.stakingVaultAddress,
+      stake?.amount.toString(),
+      stake?.approveAmount?.toString(),
     ],
   });
 };

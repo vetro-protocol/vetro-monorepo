@@ -11,10 +11,10 @@ import { mainnet } from "viem/chains";
 import { theGraphSubgraph } from "../env.ts";
 import { runQuery } from "../graphql.ts";
 import { paginateSubgraphQuery } from "../paginate-subgraph-query.ts";
-import { getUsdPrices } from "../portal-prices.ts";
 import { fulfilledValues } from "../utils/promises.ts";
 
 import { bandActivity } from "./band-activity.ts";
+import { getLiquidityUsdPrices } from "./oracle-usd-prices.ts";
 import { feeApr, lastFullDay, poolTvlUsd } from "./pool-metrics.ts";
 import { fetchSushiSubgraphPools } from "./sushi-subgraph.ts";
 import { findV3Pools } from "./v3-factory.ts";
@@ -400,10 +400,7 @@ export async function getSushiPools({
       console.warn(`Failed to get the Sushi subgraph pools: ${error.message}`);
       return [];
     }),
-    getUsdPrices(portalApiUrl).catch(function (error) {
-      console.warn(`Failed to get USD prices: ${error.message}`);
-      return {};
-    }),
+    getLiquidityUsdPrices({ client, portalApiUrl }),
   ]);
   const results = await Promise.allSettled(
     addresses.map((address) =>

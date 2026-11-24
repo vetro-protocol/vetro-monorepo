@@ -17,7 +17,6 @@ export const fetchRedeemableTokens = async function ({
     whitelistedTokensByGatewayOptions({
       client,
       gatewayAddress,
-      queryClient,
     }),
   );
 
@@ -28,7 +27,6 @@ export const fetchRedeemableTokens = async function ({
           chainId: client.chain!.id,
           client,
           gatewayAddress,
-          queryClient,
           token: token.address,
         }),
       ),

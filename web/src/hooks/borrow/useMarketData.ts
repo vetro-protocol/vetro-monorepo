@@ -1,9 +1,4 @@
-import {
-  queryOptions,
-  useQuery,
-  useQueryClient,
-  type QueryClient,
-} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import type { Token } from "@vetro-protocol/core";
 import { fetchMarketData } from "fetchers/fetchMarketData";
 import { mainnet } from "networks/mainnet";
@@ -35,30 +30,26 @@ export const marketDataOptions = ({
   chainId,
   client,
   marketId,
-  queryClient,
 }: {
   chainId: Chain["id"];
   client: Client | undefined;
   marketId: Hash;
-  queryClient: QueryClient;
 }) =>
   queryOptions({
     enabled: !!client,
-    queryFn: () =>
+    queryFn: ({ client: queryClient }) =>
       fetchMarketData({ chainId, client: client!, marketId, queryClient }),
     queryKey: marketDataQueryKey({ chainId, marketId }),
   });
 
 export const useMarketData = function (marketId: Hash) {
   const client = useEthereumClient();
-  const queryClient = useQueryClient();
 
   return useQuery(
     marketDataOptions({
       chainId: mainnet.id,
       client: client!,
       marketId,
-      queryClient,
     }),
   );
 };
