@@ -13,8 +13,8 @@ export type TokenConfig = {
 
 /**
  * Reads a whitelisted token's treasury config as named fields. The action
- * returns the contract's positional tuple, so this is the only place that
- * depends on the order of its fields.
+ * returns the contract's positional tuple, so this helper maps it to named
+ * fields.
  */
 export async function readTokenConfig({
   client,

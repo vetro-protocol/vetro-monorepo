@@ -1,3 +1,4 @@
+import { getTokenConfig } from "@vetro-protocol/treasury/actions";
 import { EventEmitter } from "events";
 import { toPromiseEvent } from "to-promise-event";
 import {
@@ -14,6 +15,7 @@ import { allowance, approve } from "viem-erc20/actions";
 
 import { gatewayAbi } from "../../abi/gatewayAbi.ts";
 import type { DepositEvents } from "../../types.ts";
+import { getTreasury } from "../public/getTreasury.ts";
 
 export type DepositParams = {
   amountIn: bigint;
@@ -172,13 +174,26 @@ const runDeposit = (
         return;
       }
 
-      // Check current allowance
-      const currentAllowance = await allowance(walletClient, {
-        address: tokenIn,
-        // account is already validated
-        owner: walletClient.account!.address,
-        spender: gatewayAddress,
-      });
+      const [[, , , depositActive], currentAllowance] = await Promise.all([
+        getTreasury(walletClient, { address: gatewayAddress }).then(
+          (treasury) =>
+            getTokenConfig(walletClient, { address: treasury, token: tokenIn }),
+        ),
+        allowance(walletClient, {
+          address: tokenIn,
+          // account is already validated
+          owner: walletClient.account!.address,
+          spender: gatewayAddress,
+        }),
+      ]);
+
+      if (!depositActive) {
+        emitter.emit(
+          "deposit-failed-validation",
+          "Deposits are not active for this token",
+        );
+        return;
+      }
 
       // If allowance is insufficient, approve first
       if (currentAllowance < amountIn) {
