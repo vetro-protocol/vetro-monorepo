@@ -1,6 +1,6 @@
 import type { Address, Hash } from "viem";
 
-type PoolCoin = { address: Address; amount: number };
+type PoolCoin = { address: Address; amount: number; usdPrice: number | null };
 
 export type DexPoolRange = { lowerPrice: number; upperPrice: number };
 

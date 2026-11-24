@@ -26,7 +26,7 @@ const usdt = findTokenAddress({ chainId: mainnet.id, symbol: "USDT" });
 const vusd = findTokenAddress({ chainId: mainnet.id, symbol: "VUSD" });
 
 const toCoins = (addresses: `0x${string}`[]) =>
-  addresses.map((address) => ({ address, amount: 0 }));
+  addresses.map((address) => ({ address, amount: 0, usdPrice: null }));
 
 const buildPool = (overrides: Partial<DexPool> = {}) =>
   ({

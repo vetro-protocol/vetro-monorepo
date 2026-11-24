@@ -129,7 +129,11 @@ const buildPool = function ({
       tvlUsd,
     }),
     chainId: hemi.id,
-    coins: coins.map(({ address, amount }) => ({ address, amount })),
+    coins: coins.map(({ address, amount, usdPrice }) => ({
+      address,
+      amount,
+      usdPrice: usdPrice ?? null,
+    })),
     dex: "brownfi",
     dexMetadata: {
       fee: Number(pool.fee),

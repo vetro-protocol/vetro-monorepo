@@ -57,6 +57,20 @@ const hasUnpricedCoin = (pool: CurveApiPool) =>
     (coin) => coin.usdPrice === null && BigInt(coin.poolBalance) > 0n,
   );
 
+const coinUsdPrice = ({
+  coin,
+  prices,
+}: {
+  coin: CurveCoin;
+  prices: Record<string, string>;
+}) =>
+  coin.usdPrice ??
+  portalUsdPrice({
+    address: coin.address,
+    chainId: mainnet.id,
+    prices,
+  });
+
 const getPoolTvlUsd = function ({
   pool,
   prices,
@@ -73,12 +87,7 @@ const getPoolTvlUsd = function ({
     pool.coins.map((coin) => ({
       amount: coinAmount(coin),
       usdPrice:
-        coin.usdPrice ??
-        portalUsdPrice({
-          address: coin.address,
-          chainId: mainnet.id,
-          prices,
-        }) ??
+        coinUsdPrice({ coin, prices }) ??
         (BigInt(coin.poolBalance) > 0n ? undefined : 0),
     })),
   );
@@ -104,6 +113,7 @@ const buildPool = function ({
     coins: pool.coins.map((coin) => ({
       address: checksumAddress(coin.address),
       amount: coinAmount(coin),
+      usdPrice: coinUsdPrice({ coin, prices }) ?? null,
     })),
     dex: "curve",
     dexMetadata: {
