@@ -7,6 +7,7 @@ import { handleRequestDepositFailures } from "../../../../../src/pages/earn/comp
 
 const error = new Error("RPC error");
 const receipt = { status: "success" } as TransactionReceipt;
+const revertedReceipt = { status: "reverted" } as TransactionReceipt;
 
 describe("handleRequestDepositFailures", function () {
   it("reports a validation failure as a deposit failure", function () {
@@ -85,6 +86,54 @@ describe("handleRequestDepositFailures", function () {
       "approve-failed",
     );
   });
+
+  it.each([
+    {
+      emitFailure(emitter: RequestDepositEmitter) {
+        emitter.emit("user-signing-approval-error", error);
+      },
+      expected: "approve-failed",
+      name: "approval signature rejection",
+      phase: "pre-approve",
+    },
+    {
+      emitFailure(emitter: RequestDepositEmitter) {
+        emitter.emit("approve-transaction-reverted", revertedReceipt);
+      },
+      expected: "approve-failed",
+      name: "approval transaction revert",
+      phase: "pre-approve",
+    },
+    {
+      emitFailure(emitter: RequestDepositEmitter) {
+        emitter.emit("user-signing-request-deposit-error", error);
+      },
+      expected: "deposit-failed",
+      name: "deposit signature rejection",
+      phase: "pre-request-deposit",
+    },
+    {
+      emitFailure(emitter: RequestDepositEmitter) {
+        emitter.emit("request-deposit-transaction-reverted", revertedReceipt);
+      },
+      expected: "deposit-failed",
+      name: "deposit transaction revert",
+      phase: "pre-request-deposit",
+    },
+  ] as const)(
+    "reports $name at the correct step",
+    function ({ emitFailure, expected, phase }) {
+      const emitter: RequestDepositEmitter = new EventEmitter();
+      const onDepositStepChange = vi.fn();
+      handleRequestDepositFailures({ emitter, onDepositStepChange });
+
+      emitter.emit("pre-approve");
+      emitter.emit(phase);
+      emitFailure(emitter);
+
+      expect(onDepositStepChange).toHaveBeenCalledExactlyOnceWith(expected);
+    },
+  );
 
   it("reports a request receipt failure after approval as a deposit failure", function () {
     const emitter: RequestDepositEmitter = new EventEmitter();

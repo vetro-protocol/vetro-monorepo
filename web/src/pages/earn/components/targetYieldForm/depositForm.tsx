@@ -210,10 +210,6 @@ export function DepositForm({
     });
   }
 
-  const initialFailedStep: DepositStep = needsApproval
-    ? "approve-failed"
-    : "deposit-failed";
-
   function handleRequestDepositEmitter(emitter: RequestDepositEmitter) {
     handleRequestDepositFailures({
       emitter,
@@ -264,7 +260,7 @@ export function DepositForm({
 
   function requestDeposit() {
     requestDepositMutation.mutate(undefined, {
-      onError: () => handleDepositStepChange(initialFailedStep),
+      onError: () => handleDepositStepChange("deposit-failed"),
     });
   }
 
