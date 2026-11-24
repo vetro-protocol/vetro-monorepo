@@ -81,27 +81,12 @@ export const getMerklRewards = async function ({
 export const gaugedStrategiesKey = "liquidity:strategies";
 
 // Curve pools are only on Ethereum today.
-export const getGaugedStrategies = ({ pools }: { pools: DexPool[] }) =>
-  getStrategies(mainnet.id).then(function (strategies) {
-    const gaugedStrategies = strategies.filter(
-      function (strategy): strategy is GaugedStrategy {
-        const gaugeAddress = strategy.gaugeAddress;
-        return (
-          gaugeAddress !== null &&
-          pools.some(function (pool) {
-            const gauge = curveGaugeAddress(pool);
-            return (
-              pool.chainId === strategy.chainId &&
-              gauge !== undefined &&
-              isAddressEqual(gauge, gaugeAddress)
-            );
-          })
-        );
-      },
-    );
-    gaugedStrategies.forEach(strategyRewardsApr);
-    return gaugedStrategies;
-  });
+export const getGaugedStrategies = () =>
+  getStrategies(mainnet.id).then((strategies) =>
+    strategies.filter(
+      (strategy): strategy is GaugedStrategy => strategy.gaugeAddress !== null,
+    ),
+  );
 
 const stakeDaoReward = function ({
   chainId,
@@ -126,7 +111,15 @@ const stakeDaoReward = function ({
   if (!hasCampaign || !strategy) {
     return [];
   }
-  const apr = strategyRewardsApr(strategy);
+  let apr: number;
+  try {
+    apr = strategyRewardsApr(strategy);
+  } catch (error) {
+    console.warn(
+      `Failed to get StakeDAO rewards for strategy ${strategy.key}: ${error.message}`,
+    );
+    return [];
+  }
   if (apr <= 0) {
     return [];
   }

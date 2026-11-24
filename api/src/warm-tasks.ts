@@ -1,6 +1,7 @@
 import type { DexPool } from "@vetro-protocol/core";
 import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { gatewayAddresses } from "@vetro-protocol/gateway";
+import { isAddressEqual } from "viem";
 
 import {
   getBalanceSheet,
@@ -15,7 +16,10 @@ import {
   getMerklRewards,
 } from "./liquidity/incentives.ts";
 import { getVenuePools, venues } from "./liquidity/index.ts";
-import { getCampaignGauges } from "./liquidity/stake-dao.ts";
+import {
+  getCampaignGauges,
+  strategyRewardsApr,
+} from "./liquidity/stake-dao.ts";
 import { withTimeout } from "./utils/promises.ts";
 import { getApyForVault } from "./variable-stake.ts";
 import { globalWarmTask, keyedWarmTask } from "./warm-cache.ts";
@@ -128,14 +132,23 @@ export const liquidityStrategiesTask = globalWarmTask({
   cron: "*/5 * * * *",
   key: () => gaugedStrategiesKey,
   async produce(env) {
-    const pools = await env.CACHE_KV.get<DexPool[]>(
-      liquidityVenuePoolsTask.key("curve"),
-      "json",
-    );
-    if (pools === null) {
-      throw new Error("No cached Curve pools to read StakeDAO strategies for");
+    const [pools, strategies] = await Promise.all([
+      env.CACHE_KV.get<DexPool[]>(liquidityVenuePoolsTask.key("curve"), "json"),
+      withTimeout(getGaugedStrategies()),
+    ]);
+    for (const strategy of strategies) {
+      const matchesPool = pools?.some(
+        (pool) =>
+          pool.chainId === strategy.chainId &&
+          pool.dex === "curve" &&
+          pool.dexMetadata.gaugeAddress !== undefined &&
+          isAddressEqual(pool.dexMetadata.gaugeAddress, strategy.gaugeAddress),
+      );
+      if (matchesPool) {
+        strategyRewardsApr(strategy);
+      }
     }
-    return withTimeout(getGaugedStrategies({ pools }));
+    return strategies;
   },
 });
 

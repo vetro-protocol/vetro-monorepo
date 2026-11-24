@@ -65,7 +65,7 @@ describe("liquidity/strategyRewardsApr", function () {
     expect(await kv.get(key)).toEqual([strategy]);
   });
 
-  it("warms only matching strategies without failing on another pool's invalid APR", async function () {
+  it("stores the full list without failing on another pool's invalid APR", async function () {
     const unrelatedStrategy: StakeDaoStrategy = {
       ...strategy,
       apr: { current: { total: null } },
@@ -83,20 +83,26 @@ describe("liquidity/strategyRewardsApr", function () {
       kv: kv.kv,
       tasks: [liquidityStrategiesTask],
     });
-    expect(kv.puts).toEqual([{ key, value: JSON.stringify([strategy]) }]);
-    expect(await kv.get(key)).toEqual([strategy]);
+    expect(kv.puts).toEqual([
+      { key, value: JSON.stringify([strategy, unrelatedStrategy]) },
+    ]);
+    expect(await kv.get(key)).toEqual([strategy, unrelatedStrategy]);
   });
 
-  it("keeps cached strategies when the Curve pool cache is missing", async function () {
+  it("stores the full list without APR validation when the Curve pool cache is missing", async function () {
     const key = liquidityStrategiesTask.key();
     const kv = createFakeKv({ store: { [key]: [strategy] } });
+    const invalidStrategy = { ...strategy, apr: { current: { total: null } } };
+    vi.mocked(fetchJson).mockResolvedValue([strategy, invalidStrategy]);
     await warmScheduled({
       cron: liquidityStrategiesTask.cron,
       env: { CACHE_KV: kv.kv } as Env,
       kv: kv.kv,
       tasks: [liquidityStrategiesTask],
     });
-    expect(kv.put).not.toHaveBeenCalled();
-    expect(await kv.get(key)).toEqual([strategy]);
+    expect(kv.puts).toEqual([
+      { key, value: JSON.stringify([strategy, invalidStrategy]) },
+    ]);
+    expect(await kv.get(key)).toEqual([strategy, invalidStrategy]);
   });
 });

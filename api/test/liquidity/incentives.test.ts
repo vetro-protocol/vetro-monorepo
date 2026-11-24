@@ -243,6 +243,36 @@ describe("liquidity/addIncentives", function () {
     expect(pool.rewards.map((reward) => reward.source)).toEqual(["curveGauge"]);
   });
 
+  it("omits an invalid StakeDAO reward without throwing or dropping other rewards", function () {
+    const reward = merklReward({ apr: 3, id: campaignId("1") });
+    const pool = addIncentives({
+      nowSeconds,
+      pool: curvePool,
+      sources: {
+        ...noSources,
+        campaignGauges: [{ chainId: 1, gauge: gaugeAddress }],
+        merklRewards: [reward],
+        strategies: [{ ...strategy, apr: { current: { total: null } } }],
+      },
+    });
+
+    expect(pool).toEqual({
+      ...curvePool,
+      rewards: [
+        curveGaugeReward,
+        {
+          apr: 3,
+          source: "merkl",
+          sourceMetadata: {
+            campaignId: reward.campaignId,
+            opportunityId: reward.opportunityId,
+          },
+          tokens: [reward.token],
+        },
+      ],
+    });
+  });
+
   it("puts the Merkl campaigns last, by APR, and matches them by the gauge or LP token too", function () {
     const pool = addIncentives({
       nowSeconds,
