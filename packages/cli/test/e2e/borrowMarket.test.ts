@@ -8,7 +8,13 @@ import {
   marketIds,
   morphoBlueAddress,
 } from "@vetro-protocol/morpho-blue-market";
-import { type Hash, formatEther, keccak256, parseEther } from "viem";
+import {
+  type Address,
+  type Hash,
+  formatEther,
+  keccak256,
+  parseEther,
+} from "viem";
 import {
   getBlock,
   readContract,
@@ -17,7 +23,7 @@ import {
   setNextBlockTimestamp,
   writeContract,
 } from "viem/actions";
-import { symbol } from "viem-erc20/actions";
+import { decimals, symbol } from "viem-erc20/actions";
 import { describe, expect, inject, it } from "vitest";
 
 import {
@@ -29,10 +35,18 @@ import {
   withSnapshot,
 } from "./helpers.ts";
 
+type MarketToken = {
+  address: Address;
+  decimals: number;
+  symbol: string;
+};
+
 type Market = {
   borrowApy: number;
+  collateralToken: MarketToken;
   liquidity: string;
   lltv: string;
+  loanToken: MarketToken;
   marketId: Hash;
   pair: string;
   price: string | null;
@@ -66,6 +80,12 @@ describe("borrow market", function () {
     );
     return { collateralToken, irm, lltv, loanToken, oracle };
   };
+
+  const readTokenOnChain = async (address: Address) => ({
+    address,
+    decimals: await decimals(publicClient, { address }),
+    symbol: await symbol(publicClient, { address }),
+  });
 
   const readMarketState = async function (marketId: Hash) {
     const [
@@ -123,6 +143,10 @@ describe("borrow market", function () {
           );
 
           const params = await readMarketParams(marketId);
+          const [collateralToken, loanToken] = await Promise.all([
+            readTokenOnChain(params.collateralToken),
+            readTokenOnChain(params.loanToken),
+          ]);
           const latest = await getBlock(publicClient);
           await setBalance(testClient, {
             address: TEST_ADDRESS,
@@ -163,10 +187,12 @@ describe("borrow market", function () {
             borrowApy: Math.expm1(
               Number(formatEther(borrowRate * 31_536_000n)),
             ),
+            collateralToken,
             liquidity: (
               after.totalSupplyAssets - after.totalBorrowAssets
             ).toString(),
             lltv: params.lltv.toString(),
+            loanToken,
             marketId,
             pair: `${collateral}/${loan}`,
             price: price.toString(),
