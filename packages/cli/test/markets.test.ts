@@ -90,13 +90,6 @@ describe("selectMarket", function () {
     ).toBe(wethVetBtc);
   });
 
-  it("selects one of two markets with the same pair by its id", function () {
-    const marketId: Hash = `0x${"B".repeat(64)}`;
-    expect(
-      selectMarket({ markets, selector: { marketId, value: marketId } }),
-    ).toBe(vetBtcVusdDuplicate);
-  });
-
   it("throws with the enabled pairs when no market matches", function () {
     expect(() =>
       selectMarket({

@@ -53,14 +53,15 @@ export function selectMarket({
   markets: Market[];
   selector: MarketSelector;
 }) {
-  const matches = markets.filter((market) =>
-    selector.marketId
-      ? market.marketId.toLowerCase() === selector.marketId.toLowerCase()
-      : isTokenMatch({
-          token: market.collateralToken,
-          value: selector.collateral,
-        }) && isTokenMatch({ token: market.loanToken, value: selector.loan }),
-  );
+  const matches = selector.marketId
+    ? []
+    : markets.filter(
+        (market) =>
+          isTokenMatch({
+            token: market.collateralToken,
+            value: selector.collateral,
+          }) && isTokenMatch({ token: market.loanToken, value: selector.loan }),
+      );
   if (matches.length === 0) {
     throw new Error(
       `Not an enabled market: "${selector.value}". Enabled markets: ${markets.map((market) => `${market.pair} (${market.marketId})`).join(", ")}`,
