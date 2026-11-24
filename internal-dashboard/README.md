@@ -20,10 +20,16 @@ Set these in `internal-dashboard/.env` (or a `.env.local` override) before you r
 
 | Variable               | Required | Description                                                                                                                                                          |
 | ---------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `VITE_PORTAL_API_URL`  | Yes      | Hemi Portal API base URL (used for token prices).                                                                                                                    |
+| `VITE_VETRO_API_URL`   | Yes      | Vetro API base URL (used for the DEX pools).                                                                                                                         |
 | `VITE_RPC_URL_MAINNET` | Yes      | RPC URL(s) for Ethereum mainnet. Several URLs joined by `+` become a fallback transport. Baked into the client bundle at build time, thus readable by every visitor. |
 
 The Worker builds its `connect-src` CSP directive from the same two variables (see `src/index.ts`), so an override is allowed by the CSP without more changes.
+
+The deployed APIs do not allow `localhost` origins in CORS. The `dev` server proxies `/vetro-api` to the staging API. To use the proxy, set this in `.env.local`:
+
+```sh
+VITE_VETRO_API_URL="http://localhost:5175/vetro-api"
+```
 
 For the deployed dashboard, set the production values as Cloudflare Workers Builds variables in the Cloudflare dashboard. Vite gives these priority over the committed `.env` at build time. Thus the paid RPC URL stays out of the repository.
 
