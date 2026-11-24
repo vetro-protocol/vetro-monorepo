@@ -1,3 +1,7 @@
+import {
+  getChainAddresses,
+  registerCustomAddresses,
+} from "@morpho-org/blue-sdk";
 import { createChainClient } from "@vetro-protocol/core";
 import { defineChain } from "viem";
 import { getChainId } from "viem/actions";
@@ -23,6 +27,11 @@ export async function createVetroClient({ rpcUrl }: GlobalOptions) {
     throw new Error(
       `The RPC endpoint is on chain ${chainId}, but Vetro is only deployed on Ethereum mainnet (${mainnet.id}); a local fork of it (${localChainId}) is also accepted`,
     );
+  }
+  if (chainId === localChainId) {
+    registerCustomAddresses({
+      addresses: { [localChainId]: getChainAddresses(mainnet.id) },
+    });
   }
 
   return { chainId, client };

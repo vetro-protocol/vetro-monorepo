@@ -5,6 +5,7 @@ import {
   parseAddress,
   parseAmount,
   parseGateway,
+  parseMarket,
   parseNonNegativeAmount,
   parseReceiver,
   parseRequestId,
@@ -137,6 +138,52 @@ describe("parseGateway", function () {
 
   it("throws for a malformed address", function () {
     expect(() => parseGateway("nope")).toThrow('Invalid address: "nope"');
+  });
+});
+
+describe("parseMarket", function () {
+  it("splits a pair into its collateral and loan sides", function () {
+    expect(parseMarket("hemiBTC/VUSD")).toEqual({
+      collateral: "hemiBTC",
+      loan: "VUSD",
+      value: "hemiBTC/VUSD",
+    });
+  });
+
+  it("trims the spaces around each side of a pair", function () {
+    expect(parseMarket(" hemiBTC / VUSD ")).toEqual({
+      collateral: "hemiBTC",
+      loan: "VUSD",
+      value: " hemiBTC / VUSD ",
+    });
+  });
+
+  it("trims the spaces around a market id", function () {
+    const marketId =
+      "0x55609be6e9fab4b1ad7e2f47e5a6b3a2f2bb7c1e3d6ef4a9b0c1d2e3f4a5f2e5";
+    expect(parseMarket(` ${marketId} `)).toEqual({
+      marketId,
+      value: ` ${marketId} `,
+    });
+  });
+
+  it("returns a 32-byte hex value as a market id", function () {
+    const marketId =
+      "0x55609be6e9fab4b1ad7e2f47e5a6b3a2f2bb7c1e3d6ef4a9b0c1d2e3f4a5f2e5";
+    expect(parseMarket(marketId)).toEqual({ marketId, value: marketId });
+  });
+
+  it.for([
+    "hemiBTC",
+    "a/b/c",
+    "/VUSD",
+    "hemiBTC/",
+    " / VUSD",
+    "0xdad503f8b9d42bb7af3afc588358d30163e4416f",
+  ])("throws for %s", function (value) {
+    expect(() => parseMarket(value)).toThrow(
+      `Invalid market: "${value}": expected <collateral>/<loan> or a 32-byte market id`,
+    );
   });
 });
 

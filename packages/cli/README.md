@@ -53,6 +53,7 @@ Successful output is JSON on stdout, so it's directly consumable by an agent.
 
 - Addresses and other strings are emitted as JSON strings; booleans as JSON booleans.
 - `uint256` on-chain values are serialized as decimal strings, since `bigint` can't be represented in JSON.
+- Values that are not integers, such as `borrowApy`, are JSON numbers.
 - Amounts are in human units on input and in the token's decimals on output.
 
 Failures always exit non-zero, but come in two shapes:
@@ -79,6 +80,16 @@ Because a token belongs to exactly one gateway, the gateway is inferred from the
 `--amount` is in human units of the token the operation spends. Its decimals come from `--from` or `--token` when the command takes one. On `preview-redeem` and `redeem` the spent token is the pegged token of the gateway inferred from `--to`, so the decimals come from that pegged token, not from `--to`. On `variable-yield unstake` the spent token is the pegged token for `--amount` and the share token for `--shares`, whichever of the two `--token` names. `variable-yield instant-withdraw` uses the same rule. An amount with more decimals than that token has fails instead of being rounded.
 
 To discover the symbols a gateway takes, run `swap whitelisted-tokens --gateway <addr>` — a gateway-level read, so it takes the gateway explicitly instead of inferring it from a token.
+
+## Market arguments
+
+`--market` accepts a market as `<collateral>/<loan>` (e.g. `hemiBTC/VUSD`). Each side is a symbol (case-insensitive) or an address, as for `--token`. It also accepts a market id (a 32-byte `0x…` value). Use the id when two enabled markets have the same pair. `borrow markets` lists the `pair` and the `marketId` of each enabled market.
+
+The command fails when:
+
+- The value is not a pair or a market id (e.g. `hemiBTC`).
+- The value matches no enabled market. The error lists each enabled pair with its market id.
+- The pair matches more than one enabled market. The error lists the market id of each match.
 
 ## Commands
 
@@ -264,6 +275,7 @@ Borrow runs on pre-existing Morpho Blue markets. Every market lends a pegged tok
 
 #### Read operations
 
-| Command                    | Reads                                   | Returns                                                                                                                                                                                                      |
-| -------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `vetro-cli borrow markets` | `getMarketParams`, `symbol`, `decimals` | Every enabled market: `pair` (`<collateral>/<loan>`, e.g. `"hemiBTC/VUSD"`), `marketId`, `collateralToken` and `loanToken` (each `{ address, decimals, symbol }`), `irm`, `lltv` (1e18-scaled) and `oracle`. |
+| Command                                | Reads                                                              | Returns                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| -------------------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `vetro-cli borrow market --market <m>` | `getMarketParams`, `symbol`, `decimals`, `fetchMarket`, `getBlock` | State of the market, with interest accrued to the timestamp of the latest block: `borrowApy` (a fraction, e.g. `0.05` for 5%), `collateralToken` and `loanToken` (each `{ address, decimals, symbol }`), `liquidity`, `lltv` (1e18-scaled), `marketId`, `pair`, `price` (oracle price of the collateral token in the loan token, scaled by 1e(36 + loan token decimals − collateral token decimals), or `null` when the market has no oracle or the oracle reverts), `totalBorrowAssets`, `totalSupplyAssets` and `utilization` (1e18-scaled). `liquidity`, `totalBorrowAssets` and `totalSupplyAssets` are in the loan token's decimals. |
+| `vetro-cli borrow markets`             | `getMarketParams`, `symbol`, `decimals`                            | Every enabled market: `pair` (`<collateral>/<loan>`, e.g. `"hemiBTC/VUSD"`), `marketId`, `collateralToken` and `loanToken` (each `{ address, decimals, symbol }`), `irm`, `lltv` (1e18-scaled) and `oracle`.                                                                                                                                                                                                                                                                                                                                                                                                                              |
