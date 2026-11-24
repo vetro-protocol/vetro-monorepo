@@ -767,7 +767,7 @@ ticket has `claimTxHash`.
 ### `GET /ve-vetro/:address`
 
 Returns the veVETRO claims that the address made and the veVETRO positions that it owns, newest first. Cached for 10 seconds.
-`:address` must be a well-formed Ethereum address. Returns `404` if malformed.
+`:address` must be a well-formed Ethereum address. Returns `404` if malformed and `500` if any claims, veVETRO positions, or a claim's veHEMI positions reach the subgraph limit of 1000, rather than return a truncated list.
 
 - `indexedBlock` is the last block that the subgraph indexed. After a claim, wait until it reaches the block of the claim transaction, then read again.
 - `claimant` and `recipient` are in the checksummed format. `recipient` receives the position, so it can differ from `claimant`.
