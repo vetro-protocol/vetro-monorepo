@@ -6,6 +6,9 @@ import {
   zeroHash,
 } from "viem";
 import {
+  estimateContractGas,
+  estimateFeesPerGas,
+  getBalance,
   readContract,
   simulateContract,
   waitForTransactionReceipt,
@@ -13,11 +16,14 @@ import {
 } from "viem/actions";
 import { bsc, hemi } from "viem/chains";
 import { allowance, approve } from "viem-erc20/actions";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { send } from "../../src/actions/wallet/send.ts";
 
 vi.mock("viem/actions", () => ({
+  estimateContractGas: vi.fn(),
+  estimateFeesPerGas: vi.fn(),
+  getBalance: vi.fn(),
   readContract: vi.fn(),
   simulateContract: vi.fn(),
   waitForTransactionReceipt: vi.fn(),
@@ -48,7 +54,9 @@ const fee = { lzTokenFee: 0n, nativeFee: 1_000_000_000n };
 
 const mockReadContractFor = function ({
   approvalRequired = false,
-}: { approvalRequired?: boolean } = {}) {
+  quoteFees = [fee],
+}: { approvalRequired?: boolean; quoteFees?: (typeof fee)[] } = {}) {
+  let quoteIndex = 0;
   vi.mocked(readContract).mockImplementation(async function (
     _client: unknown,
     params: { functionName: string },
@@ -58,13 +66,26 @@ const mockReadContractFor = function ({
         return approvalRequired;
       case "token":
         return tokenAddress;
-      case "quoteSend":
-        return fee;
+      case "quoteSend": {
+        const quoteFee = quoteFees[quoteIndex] ?? quoteFees.at(-1);
+        quoteIndex += 1;
+        return quoteFee;
+      }
       default:
         throw new Error(`unexpected functionName: ${params.functionName}`);
     }
   });
 };
+
+beforeEach(function () {
+  vi.resetAllMocks();
+  vi.mocked(estimateContractGas).mockResolvedValue(100_000n);
+  vi.mocked(estimateFeesPerGas).mockResolvedValue({
+    maxFeePerGas: 10n,
+    maxPriorityFeePerGas: 1n,
+  });
+  vi.mocked(getBalance).mockResolvedValue(1_000_000_000_000n);
+});
 
 describe("send", function () {
   it("should emit 'send-failed-validation' if client is not defined", async function () {
@@ -297,6 +318,83 @@ describe("send", function () {
     );
   });
 
+  it("should stop before approval when native balance cannot cover fee and approval gas", async function () {
+    mockReadContractFor({ approvalRequired: true });
+    vi.mocked(allowance).mockResolvedValue(validParameters.amount - 1n);
+    vi.mocked(getBalance).mockResolvedValue(fee.nativeFee + 999_999n);
+
+    const { emitter, promise } = send(mockWalletClient, validParameters);
+    const onSendFailedValidation = vi.fn();
+    emitter.on("send-failed-validation", onSendFailedValidation);
+
+    await promise;
+
+    expect(onSendFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "insufficient balance for fee",
+    );
+    expect(approve).not.toHaveBeenCalled();
+  });
+
+  it("should stop before send when native balance cannot cover the native fee", async function () {
+    mockReadContractFor({ approvalRequired: false });
+    vi.mocked(getBalance).mockResolvedValue(fee.nativeFee - 1n);
+
+    const { emitter, promise } = send(mockWalletClient, validParameters);
+    const onSendFailedValidation = vi.fn();
+    emitter.on("send-failed-validation", onSendFailedValidation);
+
+    await promise;
+
+    expect(onSendFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "insufficient balance for fee",
+    );
+    expect(estimateContractGas).not.toHaveBeenCalled();
+    expect(simulateContract).not.toHaveBeenCalled();
+    expect(writeContract).not.toHaveBeenCalled();
+  });
+
+  it("should stop before send when native balance cannot cover fee and send gas", async function () {
+    mockReadContractFor({ approvalRequired: false });
+    vi.mocked(getBalance).mockResolvedValue(fee.nativeFee + 999_999n);
+
+    const { emitter, promise } = send(mockWalletClient, validParameters);
+    const onSendFailedValidation = vi.fn();
+    emitter.on("send-failed-validation", onSendFailedValidation);
+
+    await promise;
+
+    expect(onSendFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "insufficient balance for fee",
+    );
+    expect(simulateContract).not.toHaveBeenCalled();
+    expect(writeContract).not.toHaveBeenCalled();
+  });
+
+  it("should stop after approval when the second quote exceeds the native balance", async function () {
+    const secondFee = { lzTokenFee: 0n, nativeFee: fee.nativeFee * 2n };
+    mockReadContractFor({
+      approvalRequired: true,
+      quoteFees: [fee, secondFee],
+    });
+    vi.mocked(allowance).mockResolvedValue(validParameters.amount - 1n);
+    vi.mocked(approve).mockResolvedValue(zeroHash);
+    vi.mocked(waitForTransactionReceipt).mockResolvedValue({
+      status: "success",
+    } as TransactionReceipt);
+    vi.mocked(getBalance).mockResolvedValue(fee.nativeFee + 100_000n * 10n);
+
+    const { emitter, promise } = send(mockWalletClient, validParameters);
+    const onSendFailedValidation = vi.fn();
+    emitter.on("send-failed-validation", onSendFailedValidation);
+
+    await promise;
+
+    expect(onSendFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "insufficient balance for fee",
+    );
+    expect(simulateContract).not.toHaveBeenCalled();
+  });
+
   it("should skip approval entirely when approvalRequired is false", async function () {
     mockReadContractFor({ approvalRequired: false });
     vi.mocked(simulateContract).mockResolvedValue({ request: {} } as never);
@@ -360,7 +458,11 @@ describe("send", function () {
   });
 
   it("should run full approval lifecycle when approvalRequired and allowance is insufficient", async function () {
-    mockReadContractFor({ approvalRequired: true });
+    const secondFee = { lzTokenFee: 0n, nativeFee: fee.nativeFee * 2n };
+    mockReadContractFor({
+      approvalRequired: true,
+      quoteFees: [fee, secondFee],
+    });
     vi.mocked(allowance).mockResolvedValue(validParameters.amount - 1n);
     vi.mocked(approve).mockResolvedValue(zeroHash);
     vi.mocked(simulateContract).mockResolvedValue({ request: {} } as never);
@@ -395,6 +497,13 @@ describe("send", function () {
     expect(onPreSend).toHaveBeenCalledOnce();
     expect(onUserSignedSend).toHaveBeenCalledExactlyOnceWith(zeroHash);
     expect(onSendTransactionSucceeded).toHaveBeenCalledOnce();
+    expect(simulateContract).toHaveBeenCalledWith(
+      mockWalletClient,
+      expect.objectContaining({
+        args: [expect.anything(), secondFee, account],
+        value: secondFee.nativeFee,
+      }),
+    );
     expect(onSettled).toHaveBeenCalledOnce();
   });
 

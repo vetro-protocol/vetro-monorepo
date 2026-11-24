@@ -86,7 +86,7 @@ The `send` wallet action emits the following events through the `EventEmitter`:
 | `send-transaction-succeeded`    | `[TransactionReceipt]` | Send transaction confirmed successfully                                                                               |
 | `send-transaction-reverted`     | `[TransactionReceipt]` | Send transaction reverted on-chain                                                                                    |
 | `send-failed`                   | `[Error]`              | A transaction-receipt fetch failed                                                                                    |
-| `send-failed-validation`        | `[string]`             | Input validation failed; payload is a human-readable reason                                                           |
+| `send-failed-validation`        | `[string]`             | Input or native-balance validation failed; payload is a human-readable reason                                         |
 | `unexpected-error`              | `[Error]`              | An unhandled error escaped the action                                                                                 |
 | `send-settled`                  | `[]`                   | Always emitted in the `finally` block                                                                                 |
 

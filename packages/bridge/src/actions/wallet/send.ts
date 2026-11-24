@@ -6,9 +6,12 @@ import {
   type TransactionReceipt,
   type WalletClient,
   encodeFunctionData,
+  erc20Abi,
 } from "viem";
 import {
-  readContract,
+  estimateContractGas,
+  estimateFeesPerGas,
+  getBalance,
   simulateContract,
   waitForTransactionReceipt,
   writeContract,
@@ -20,6 +23,7 @@ import { getLayerZeroEid, layerZeroEids } from "../../layerZeroEids.ts";
 import type { MessagingFee, SendEvents, SendParams } from "../../types.ts";
 import { addressToBytes32 } from "../../utils/addressToBytes32.ts";
 import { approvalRequired } from "../public/approvalRequired.ts";
+import { quoteSend } from "../public/quoteSend.ts";
 import { token } from "../public/token.ts";
 
 const canSend = function ({
@@ -122,7 +126,8 @@ const runSend = (walletClient: WalletClient, params: SendParams) =>
         return;
       }
 
-      const refundAddress = walletClient.account!.address;
+      const account = walletClient.account!;
+      const refundAddress = account.address;
 
       const sendParam = {
         amountLD: amount,
@@ -138,16 +143,50 @@ const runSend = (walletClient: WalletClient, params: SendParams) =>
         oftAddress,
       });
 
+      let fee: MessagingFee | undefined;
+      const quote = () =>
+        quoteSend(walletClient, {
+          amount,
+          destinationChainId,
+          minAmount,
+          oftAddress,
+          recipient,
+        });
+
       if (needsApproval) {
         const tokenAddress = await token(walletClient, { oftAddress });
 
         const currentAllowance = await allowance(walletClient, {
           address: tokenAddress,
-          owner: walletClient.account!.address,
+          owner: account.address,
           spender: oftAddress,
         });
 
         if (currentAllowance < amount) {
+          fee = await quote();
+
+          const [approvalGas, feeEstimate, nativeBalance] = await Promise.all([
+            estimateContractGas(walletClient, {
+              abi: erc20Abi,
+              account,
+              address: tokenAddress,
+              args: [oftAddress, approveAmount],
+              functionName: "approve",
+            }),
+            estimateFeesPerGas(walletClient),
+            getBalance(walletClient, { address: account.address }),
+          ]);
+          const maxFeePerGas = feeEstimate.maxFeePerGas;
+          const approvalGasCost = approvalGas * maxFeePerGas;
+
+          if (nativeBalance < fee.nativeFee + approvalGasCost) {
+            emitter.emit(
+              "send-failed-validation",
+              "insufficient balance for fee",
+            );
+            return;
+          }
+
           emitter.emit("pre-approve");
 
           const approvalHash = await approve(walletClient, {
@@ -183,21 +222,48 @@ const runSend = (walletClient: WalletClient, params: SendParams) =>
           }
 
           emitter.emit("approve-transaction-succeeded", approvalReceipt);
+
+          fee = await quote();
         }
       }
 
-      const fee = await readContract(walletClient, {
-        abi: oftAbi,
-        address: oftAddress,
-        args: [sendParam, false],
-        functionName: "quoteSend",
+      if (!fee) {
+        fee = await quote();
+      }
+
+      const nativeBalance = await getBalance(walletClient, {
+        address: account.address,
       });
+
+      // eth_estimateGas throws when value exceeds the balance, so check the fee first.
+      if (nativeBalance < fee.nativeFee) {
+        emitter.emit("send-failed-validation", "insufficient balance for fee");
+        return;
+      }
+
+      const [sendGas, feeEstimate] = await Promise.all([
+        estimateContractGas(walletClient, {
+          abi: oftAbi,
+          account,
+          address: oftAddress,
+          args: [sendParam, fee, refundAddress],
+          functionName: "send",
+          value: fee.nativeFee,
+        }),
+        estimateFeesPerGas(walletClient),
+      ]);
+      const maxFeePerGas = feeEstimate.maxFeePerGas;
+
+      if (nativeBalance < fee.nativeFee + sendGas * maxFeePerGas) {
+        emitter.emit("send-failed-validation", "insufficient balance for fee");
+        return;
+      }
 
       emitter.emit("pre-send");
 
       const { request } = await simulateContract(walletClient, {
         abi: oftAbi,
-        account: walletClient.account!,
+        account,
         address: oftAddress,
         args: [sendParam, fee, refundAddress],
         chain: walletClient.chain,
