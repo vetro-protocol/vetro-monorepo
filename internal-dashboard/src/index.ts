@@ -121,12 +121,9 @@ const htmlHeaders = {
 const merklOpportunitiesPath = "/api/merkl/opportunities";
 const merklOpportunitiesUpstream = "https://api.merkl.xyz/v4/opportunities";
 
-// StakeDAO answers with every campaign ever created (several MB) and offers no
-// server-side filter, so the worker trims the list to the requested gauges. The
-// upstream response is cached because of this.
 const stakeDaoCampaignsPath = "/api/stakedao/campaigns";
 const stakeDaoCampaignsUpstream =
-  "https://hub.stakedao.org/v1/votemarket/curve/campaigns";
+  "https://hub.stakedao.org/v1/votemarket/curve/campaigns?active=true&fields=currentPeriod,endTimestamp,gauge,gaugeChainId,id,isCanceled,isClosed,key,rewardToken,totalRewardAmount";
 const stakeDaoCacheSeconds = 3 * 60;
 
 const jsonResponse = ({
