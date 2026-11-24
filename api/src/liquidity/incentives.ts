@@ -80,7 +80,7 @@ export const getMerklRewards = async function ({
     if (activeCampaigns.some((campaign) => !Number.isFinite(campaign.apr))) {
       throw new Error("Merkl returned a missing or non-finite APR");
     }
-    return activeCampaigns.map((campaign): MerklReward => ({
+    return activeCampaigns.map((campaign) => ({
       apr: campaign.apr,
       campaignId: campaign.campaignId,
       chainId: opportunity.chainId,
