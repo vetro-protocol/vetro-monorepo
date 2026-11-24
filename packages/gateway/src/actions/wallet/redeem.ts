@@ -146,13 +146,12 @@ const canRedeem = async function ({
     };
   }
 
-  const treasury = await getTreasury(client, {
-    address: gatewayAddress,
-  });
-  const [, , , , withdrawActive] = await getTokenConfig(client, {
-    address: treasury,
-    token: tokenOut,
-  });
+  const [[, , , , withdrawActive], maxWithdrawable] = await Promise.all([
+    getTreasury(client, { address: gatewayAddress }).then((treasury) =>
+      getTokenConfig(client, { address: treasury, token: tokenOut }),
+    ),
+    getMaxWithdraw(client, { address: gatewayAddress, tokenOut }),
+  ]);
 
   if (!withdrawActive) {
     return {
@@ -160,12 +159,6 @@ const canRedeem = async function ({
       reason: "Withdrawals are not active for this token",
     };
   }
-
-  // Check treasury has enough balance for the requested token
-  const maxWithdrawable = await getMaxWithdraw(client, {
-    address: gatewayAddress,
-    tokenOut,
-  });
 
   if (minAmountOut > maxWithdrawable) {
     return {

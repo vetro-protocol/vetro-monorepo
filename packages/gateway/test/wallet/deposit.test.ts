@@ -463,7 +463,6 @@ describe("deposit", function () {
       address: mockTreasuryAddress,
       token: validParameters.tokenIn,
     });
-    expect(allowance).not.toHaveBeenCalled();
     expect(approve).not.toHaveBeenCalled();
     expect(writeContract).not.toHaveBeenCalled();
   });
@@ -484,7 +483,6 @@ describe("deposit", function () {
       expect.any(Error),
     );
     expect(getTokenConfig).not.toHaveBeenCalled();
-    expect(allowance).not.toHaveBeenCalled();
     expect(approve).not.toHaveBeenCalled();
     expect(writeContract).not.toHaveBeenCalled();
   });
@@ -507,7 +505,6 @@ describe("deposit", function () {
     expect(getTreasury).toHaveBeenCalledExactlyOnceWith(mockWalletClient, {
       address: mockGatewayAddress,
     });
-    expect(allowance).not.toHaveBeenCalled();
     expect(approve).not.toHaveBeenCalled();
     expect(writeContract).not.toHaveBeenCalled();
   });

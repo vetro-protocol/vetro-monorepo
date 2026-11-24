@@ -174,13 +174,18 @@ const runDeposit = (
         return;
       }
 
-      const treasury = await getTreasury(walletClient, {
-        address: gatewayAddress,
-      });
-      const [, , , depositActive] = await getTokenConfig(walletClient, {
-        address: treasury,
-        token: tokenIn,
-      });
+      const [[, , , depositActive], currentAllowance] = await Promise.all([
+        getTreasury(walletClient, { address: gatewayAddress }).then(
+          (treasury) =>
+            getTokenConfig(walletClient, { address: treasury, token: tokenIn }),
+        ),
+        allowance(walletClient, {
+          address: tokenIn,
+          // account is already validated
+          owner: walletClient.account!.address,
+          spender: gatewayAddress,
+        }),
+      ]);
 
       if (!depositActive) {
         emitter.emit(
@@ -189,14 +194,6 @@ const runDeposit = (
         );
         return;
       }
-
-      // Check current allowance
-      const currentAllowance = await allowance(walletClient, {
-        address: tokenIn,
-        // account is already validated
-        owner: walletClient.account!.address,
-        spender: gatewayAddress,
-      });
 
       // If allowance is insufficient, approve first
       if (currentAllowance < amountIn) {
