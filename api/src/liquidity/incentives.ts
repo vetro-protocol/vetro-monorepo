@@ -81,10 +81,23 @@ export const getMerklRewards = async function ({
 export const gaugedStrategiesKey = "liquidity:strategies";
 
 // Curve pools are only on Ethereum today.
-export const getGaugedStrategies = () =>
+export const getGaugedStrategies = ({ pools }: { pools: DexPool[] }) =>
   getStrategies(mainnet.id).then(function (strategies) {
     const gaugedStrategies = strategies.filter(
-      (strategy): strategy is GaugedStrategy => strategy.gaugeAddress !== null,
+      function (strategy): strategy is GaugedStrategy {
+        const gaugeAddress = strategy.gaugeAddress;
+        return (
+          gaugeAddress !== null &&
+          pools.some(function (pool) {
+            const gauge = curveGaugeAddress(pool);
+            return (
+              pool.chainId === strategy.chainId &&
+              gauge !== undefined &&
+              isAddressEqual(gauge, gaugeAddress)
+            );
+          })
+        );
+      },
     );
     gaugedStrategies.forEach(strategyRewardsApr);
     return gaugedStrategies;

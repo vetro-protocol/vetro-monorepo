@@ -128,7 +128,16 @@ export const liquidityMerklRewardsTask = globalWarmTask({
 export const liquidityStrategiesTask = globalWarmTask({
   cron: "*/5 * * * *",
   key: () => gaugedStrategiesKey,
-  produce: () => withTimeout(getGaugedStrategies()),
+  async produce(env) {
+    const pools = await env.CACHE_KV.get<DexPool[]>(
+      liquidityVenuePoolsTask.key("curve"),
+      "json",
+    );
+    if (pools === null) {
+      throw new Error("No cached Curve pools to read StakeDAO strategies for");
+    }
+    return withTimeout(getGaugedStrategies({ pools }));
+  },
 });
 
 export const warmTasks = [
