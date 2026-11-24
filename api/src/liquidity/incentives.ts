@@ -171,7 +171,7 @@ export function addIncentives({
   nowSeconds: number;
   pool: DexPool;
   sources: IncentiveSources;
-}) {
+}): DexPool {
   const gaugeAddress = curveGaugeAddress(pool);
   return {
     ...pool,
