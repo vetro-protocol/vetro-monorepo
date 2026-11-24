@@ -1,7 +1,6 @@
 import type { DexPool } from "@vetro-protocol/core";
 import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { gatewayAddresses } from "@vetro-protocol/gateway";
-import { isAddressEqual } from "viem";
 
 import {
   getBalanceSheet,
@@ -14,6 +13,7 @@ import {
   gaugedStrategiesKey,
   getGaugedStrategies,
   getMerklRewards,
+  strategyMatchesPool,
 } from "./liquidity/incentives.ts";
 import { getVenuePools, venues } from "./liquidity/index.ts";
 import {
@@ -137,12 +137,8 @@ export const liquidityStrategiesTask = globalWarmTask({
       withTimeout(getGaugedStrategies()),
     ]);
     for (const strategy of strategies) {
-      const matchesPool = pools?.some(
-        (pool) =>
-          pool.chainId === strategy.chainId &&
-          pool.dex === "curve" &&
-          pool.dexMetadata.gaugeAddress !== undefined &&
-          isAddressEqual(pool.dexMetadata.gaugeAddress, strategy.gaugeAddress),
+      const matchesPool = pools?.some((pool) =>
+        strategyMatchesPool({ pool, strategy }),
       );
       if (matchesPool) {
         strategyRewardsApr(strategy);

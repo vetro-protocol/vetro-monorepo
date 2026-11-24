@@ -35,6 +35,22 @@ export type IncentiveSources = {
 const curveGaugeAddress = (pool: DexPool) =>
   pool.dex === "curve" ? pool.dexMetadata.gaugeAddress : undefined;
 
+export const strategyMatchesPool = function ({
+  pool,
+  strategy,
+}: {
+  pool: DexPool;
+  strategy: StakeDaoStrategy;
+}) {
+  const gauge = curveGaugeAddress(pool);
+  return (
+    pool.chainId === strategy.chainId &&
+    gauge !== undefined &&
+    strategy.gaugeAddress !== null &&
+    isAddressEqual(gauge, strategy.gaugeAddress)
+  );
+};
+
 const poolAddresses = (pool: DexPool) =>
   [
     pool.address,
@@ -89,24 +105,25 @@ export const getGaugedStrategies = () =>
   );
 
 const stakeDaoReward = function ({
-  chainId,
-  gauge,
   nowSeconds,
+  pool,
   sources,
 }: {
-  chainId: number;
-  gauge: Address;
   nowSeconds: number;
+  pool: DexPool;
   sources: IncentiveSources;
 }): DexPoolReward[] {
+  const gauge = curveGaugeAddress(pool);
+  if (gauge === undefined) {
+    return [];
+  }
   const hasCampaign = sources.campaignGauges.some(
     (campaign) =>
-      campaign.chainId === chainId && isAddressEqual(campaign.gauge, gauge),
+      campaign.chainId === pool.chainId &&
+      isAddressEqual(campaign.gauge, gauge),
   );
-  const strategy = sources.strategies.find(
-    (candidate) =>
-      candidate.chainId === chainId &&
-      isAddressEqual(candidate.gaugeAddress, gauge),
+  const strategy = sources.strategies.find((candidate) =>
+    strategyMatchesPool({ pool, strategy: candidate }),
   );
   if (!hasCampaign || !strategy) {
     return [];
@@ -138,7 +155,7 @@ const stakeDaoReward = function ({
       sourceMetadata: { strategyKey: strategy.key },
       tokens: [...new Set(tokenAddresses)].map((address) => ({
         address,
-        chainId,
+        chainId: pool.chainId,
       })),
     },
   ];
@@ -174,7 +191,7 @@ const merklRewards = function ({
  * Adds the StakeDAO strategy and then the Merkl campaigns by APR, after the
  * rewards that the venue gives (the Curve gauge).
  */
-export function addIncentives({
+export const addIncentives = ({
   nowSeconds,
   pool,
   sources,
@@ -182,21 +199,11 @@ export function addIncentives({
   nowSeconds: number;
   pool: DexPool;
   sources: IncentiveSources;
-}): DexPool {
-  const gaugeAddress = curveGaugeAddress(pool);
-  return {
-    ...pool,
-    rewards: [
-      ...pool.rewards,
-      ...(gaugeAddress
-        ? stakeDaoReward({
-            chainId: pool.chainId,
-            gauge: gaugeAddress,
-            nowSeconds,
-            sources,
-          })
-        : []),
-      ...merklRewards({ pool, sources }),
-    ],
-  };
-}
+}): DexPool => ({
+  ...pool,
+  rewards: [
+    ...pool.rewards,
+    ...stakeDaoReward({ nowSeconds, pool, sources }),
+    ...merklRewards({ pool, sources }),
+  ],
+});
