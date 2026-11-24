@@ -35,9 +35,7 @@ const runningCampaigns = ({
       }),
     }));
 
-export const fetchMerklCampaigns = async function (
-  identifiers: string[],
-): Promise<Record<string, PoolCampaign[]>> {
+export const fetchMerklCampaigns = async function (identifiers: string[]) {
   const opportunities = await fetchLiveOpportunities(identifiers);
   const nowSeconds = Date.now() / 1000;
 

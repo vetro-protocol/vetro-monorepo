@@ -35,9 +35,9 @@ import {
 } from "./bridgeSubmitDrawer";
 import { BridgeTokenFiatValue } from "./bridgeTokenFiatValue";
 import { Form } from "./form";
-import { bridgeFormReducer, type BridgeFormState } from "./reducer";
+import { bridgeFormReducer } from "./reducer";
 
-function getInitialState(tokens: BridgeableToken[]): BridgeFormState {
+function getInitialState(tokens: BridgeableToken[]) {
   const fromToken = tokens[0];
   return {
     approve10x: false,

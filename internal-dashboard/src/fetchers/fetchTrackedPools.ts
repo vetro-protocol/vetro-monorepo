@@ -8,9 +8,7 @@ import { fetchCurvePools } from "./fetchCurvePools";
 import { fetchSushiPools } from "./fetchSushiPools";
 import { fetchUniswapPools } from "./fetchUniswapPools";
 
-export const fetchTrackedPools = async function (
-  queryClient: QueryClient,
-): Promise<TrackedPool[]> {
+export const fetchTrackedPools = async function (queryClient: QueryClient) {
   const tokens = await queryClient.ensureQueryData(trackedTokensOptions());
   const trackedAddresses = new Set(
     tokens.map((token) => token.address.toLowerCase()),

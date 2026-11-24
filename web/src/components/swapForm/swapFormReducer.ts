@@ -13,10 +13,7 @@ type SwapFormAction =
   | { type: "TOGGLE_APPROVE_10X" }
   | { type: "TOGGLE_TOKENS" };
 
-export function swapFormReducer(
-  state: SwapFormState,
-  action: SwapFormAction,
-): SwapFormState {
+export function swapFormReducer(state: SwapFormState, action: SwapFormAction) {
   switch (action.type) {
     case "SET_FROM_INPUT_VALUE": {
       const result = sanitizeAmount(action.payload);

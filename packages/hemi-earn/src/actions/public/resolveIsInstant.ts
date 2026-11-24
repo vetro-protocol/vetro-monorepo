@@ -14,7 +14,7 @@ export const resolveIsInstant = async function (
     address: Address;
     caller: Address;
   },
-): Promise<boolean> {
+) {
   const [cooldownEnabled, whitelisted] = await Promise.all([
     getCooldownEnabled(client, { address }),
     getInstantWithdrawWhitelist(client, { account: caller, address }),

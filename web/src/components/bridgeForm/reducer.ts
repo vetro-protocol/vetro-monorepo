@@ -2,7 +2,7 @@ import type { BridgeableToken } from "types";
 import { pickCounterpartToken } from "utils/bridge";
 import { sanitizeAmount } from "utils/sanitizeAmount";
 
-export type BridgeFormState = {
+type BridgeFormState = {
   approve10x: boolean;
   fromInputValue: string;
   fromToken: BridgeableToken;
@@ -24,7 +24,7 @@ type BridgeFormAction =
 export function bridgeFormReducer(
   state: BridgeFormState,
   action: BridgeFormAction,
-): BridgeFormState {
+) {
   switch (action.type) {
     case "SET_FROM_INPUT_VALUE": {
       const result = sanitizeAmount(action.payload);

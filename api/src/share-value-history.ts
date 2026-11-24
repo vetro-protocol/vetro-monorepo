@@ -80,7 +80,7 @@ export async function getShareValueHistory({
   rpcUrl: string | undefined;
   stakingVaultAddress: Address;
   subgraph: Subgraph;
-}): Promise<{ shareValue: number; timestamp: number }[]> {
+}) {
   const stakingVault = stakingVaultAddress.toLowerCase();
   const start = getPeriodStart(period);
   const query = `

@@ -55,7 +55,7 @@ type RepayFlowStatus =
 
 const getApproveStepStatus = function (
   status: Exclude<RepayFlowStatus, "idle">,
-): Step["status"] {
+) {
   const exceptions: Partial<
     Record<Exclude<RepayFlowStatus, "idle">, Step["status"]>
   > = {
@@ -65,9 +65,7 @@ const getApproveStepStatus = function (
   return exceptions[status] ?? stepStatus.completed;
 };
 
-const getRepayStepStatus = function (
-  status: Exclude<RepayFlowStatus, "idle">,
-): Step["status"] {
+const getRepayStepStatus = function (status: Exclude<RepayFlowStatus, "idle">) {
   const exceptions: Partial<
     Record<Exclude<RepayFlowStatus, "idle">, Step["status"]>
   > = {

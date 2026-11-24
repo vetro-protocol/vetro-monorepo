@@ -1,5 +1,3 @@
-import type { InputError } from "components/tokenInput/utils";
-
 const exceedsLimit = ({
   limit,
   preview,
@@ -24,7 +22,7 @@ export function getInputError({
   nativeBalance: bigint | undefined;
   redeemPreview?: bigint;
   tokenBalance: bigint | undefined;
-}): InputError | undefined {
+}) {
   if (amount === 0n) {
     return "enter-amount";
   }

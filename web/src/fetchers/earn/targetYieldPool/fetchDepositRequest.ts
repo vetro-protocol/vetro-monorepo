@@ -31,7 +31,7 @@ export const fetchDepositRequest = async function ({
   client: Client;
   controller: Address;
   stakingVaultAddress: Address;
-}): Promise<DepositRequest> {
+}) {
   const params = { address: stakingVaultAddress, controller };
   const [
     cancelableAssets,

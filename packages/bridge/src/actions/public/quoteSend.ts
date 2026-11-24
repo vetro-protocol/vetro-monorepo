@@ -4,13 +4,10 @@ import { readContract } from "viem/actions";
 
 import { oftAbi } from "../../abi/oftAbi.ts";
 import { getLayerZeroEid } from "../../layerZeroEids.ts";
-import type { MessagingFee, QuoteSendParams } from "../../types.ts";
+import type { QuoteSendParams } from "../../types.ts";
 import { addressToBytes32 } from "../../utils/addressToBytes32.ts";
 
-export async function quoteSend(
-  client: Client,
-  parameters: QuoteSendParams,
-): Promise<MessagingFee> {
+export async function quoteSend(client: Client, parameters: QuoteSendParams) {
   if (!client) {
     throw new Error("Client is not defined");
   }

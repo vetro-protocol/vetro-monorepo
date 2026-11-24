@@ -64,7 +64,7 @@ export const fetchTokenPrices = async function ({
   queryClient,
 }: {
   queryClient: QueryClient;
-}): Promise<Record<string, number>> {
+}) {
   const [portal, tokens] = await Promise.all([
     fetchPortalPrices(),
     queryClient.ensureQueryData(trackedTokensOptions()),

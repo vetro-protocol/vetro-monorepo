@@ -7,11 +7,7 @@ const morphoApiUrl = "https://api.morpho.org/graphql";
 
 const chainId = mainnet.id;
 
-export async function getLoanAssetAddress({
-  marketId,
-}: {
-  marketId: string;
-}): Promise<Address> {
+export async function getLoanAssetAddress({ marketId }: { marketId: string }) {
   const query = `
     query ($chainId: Int!, $marketId: String!) {
       marketById(marketId: $marketId, chainId: $chainId) {
@@ -42,12 +38,7 @@ export async function getHistoricalBorrowApy({
   interval: string;
   marketId: string;
   startTimestamp: number;
-}): Promise<
-  {
-    x: number;
-    y: number;
-  }[]
-> {
+}) {
   const query = `
     query ($chainId: Int!, $marketId: String!, $options: TimeseriesOptions) {
       marketById(marketId: $marketId, chainId: $chainId) {
@@ -80,11 +71,7 @@ export async function getHistoricalBorrowApy({
   return marketById.historicalState.borrowApy;
 }
 
-export async function getCollateralAssets({
-  marketId,
-}: {
-  marketId: string;
-}): Promise<number> {
+export async function getCollateralAssets({ marketId }: { marketId: string }) {
   const query = `
     query ($chainId: Int!, $marketId: String!) {
       marketById(marketId: $marketId, chainId: $chainId) {

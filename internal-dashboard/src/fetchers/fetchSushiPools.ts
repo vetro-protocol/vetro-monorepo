@@ -17,7 +17,7 @@ const buildCoins = ({
   balances: bigint[];
   tokens: SushiToken[];
   usdPrices: number[];
-}): PoolCoin[] =>
+}) =>
   tokens.map((token, index) => ({
     address: token.address,
     balance: balances[index],

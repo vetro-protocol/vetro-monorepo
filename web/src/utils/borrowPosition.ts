@@ -8,7 +8,7 @@ export const hasActivePosition = (
   position !== undefined &&
   (position.collateral > 0n || position.borrowAssets > 0n);
 
-export const isPositionAtRisk = (healthFactor: bigint | undefined): boolean =>
+export const isPositionAtRisk = (healthFactor: bigint | undefined) =>
   healthFactor !== undefined &&
   healthFactor !== maxUint256 &&
   healthFactor <= LIQUIDATION_WARNING_THRESHOLD;

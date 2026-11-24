@@ -1,7 +1,7 @@
 import { type Address } from "viem";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { fetchCurveCampaigns, type StakeDaoCampaign } from "../lib/stakeDaoApi";
+import { fetchCurveCampaigns } from "../lib/stakeDaoApi";
 import { type PoolCampaign } from "../lib/types";
 
 import { fetchStakeDaoCampaigns } from "./fetchStakeDaoCampaigns";
@@ -29,7 +29,7 @@ const campaign = ({
   id: number;
   isCanceled?: boolean;
   isClosed?: boolean;
-}): StakeDaoCampaign => ({
+}) => ({
   currentPeriod: { rewardPerPeriod: "100", rewardPerVote: "0.0001" },
   endTimestamp,
   gauge,

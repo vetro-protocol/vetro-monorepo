@@ -8,7 +8,7 @@ import { DisplayAmount } from "../../src/components/base/displayAmount";
 const createToken = ({
   decimals,
   symbol,
-}: Pick<Token, "decimals" | "symbol">): Token => ({
+}: Pick<Token, "decimals" | "symbol">) => ({
   address: zeroAddress,
   chainId: 1,
   decimals,

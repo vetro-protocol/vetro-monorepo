@@ -83,7 +83,7 @@ export async function fetchV3SubgraphPools({
     },
   });
   const ethPriceUsd = Number(bundle?.ethPriceUSD ?? 0);
-  return pools.map((pool): V3SubgraphPool => ({
+  return pools.map((pool) => ({
     feeTier: Number(pool.feeTier),
     id: pool.id,
     subgraphPrices: [pool.token0, pool.token1].map((token) =>

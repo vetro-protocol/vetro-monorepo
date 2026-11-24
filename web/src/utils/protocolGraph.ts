@@ -1,5 +1,4 @@
 import { gateways, knownTokens } from "@vetro-protocol/core";
-import type { TokenWithGateway } from "types";
 import { type Address, isAddressEqual } from "viem";
 import { mainnet } from "viem/chains";
 
@@ -18,7 +17,7 @@ const withGateway = function ({
 }: {
   address: Address;
   gatewayAddress: Address;
-}): TokenWithGateway | undefined {
+}) {
   const token = knownToken(address);
   return token ? { ...token, gatewayAddress } : undefined;
 };

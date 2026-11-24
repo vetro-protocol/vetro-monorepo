@@ -20,7 +20,7 @@ export const getFailedRequest = async function (
     address: Address;
     requestId: bigint;
   },
-): Promise<FailedRequest> {
+) {
   if (!client) {
     throw new Error("Client is not defined");
   }

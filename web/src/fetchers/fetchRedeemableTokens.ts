@@ -1,7 +1,6 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { tokenConfigOptions } from "hooks/useTokenConfig";
 import { whitelistedTokensByGatewayOptions } from "hooks/useWhitelistedTokensByGateway";
-import type { TokenWithGateway } from "types";
 import type { Address, Client } from "viem";
 
 export const fetchRedeemableTokens = async function ({
@@ -12,7 +11,7 @@ export const fetchRedeemableTokens = async function ({
   client: Client;
   gatewayAddress: Address;
   queryClient: QueryClient;
-}): Promise<TokenWithGateway[]> {
+}) {
   const whitelistedTokens = await queryClient.ensureQueryData(
     whitelistedTokensByGatewayOptions({
       client,

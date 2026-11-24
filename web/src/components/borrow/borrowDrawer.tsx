@@ -27,7 +27,7 @@ export type BorrowFlowStatus =
 
 const getApproveStepStatus = function (
   status: Exclude<BorrowFlowStatus, "idle">,
-): Step["status"] {
+) {
   const exceptions: Partial<
     Record<Exclude<BorrowFlowStatus, "idle">, Step["status"]>
   > = {
@@ -39,7 +39,7 @@ const getApproveStepStatus = function (
 
 const getSupplyCollateralStepStatus = function (
   status: Exclude<BorrowFlowStatus, "idle">,
-): Step["status"] {
+) {
   const exceptions: Partial<
     Record<Exclude<BorrowFlowStatus, "idle">, Step["status"]>
   > = {
@@ -55,7 +55,7 @@ const getSupplyCollateralStepStatus = function (
 
 const getBorrowStepStatus = function (
   status: Exclude<BorrowFlowStatus, "idle">,
-): Step["status"] {
+) {
   const exceptions: Partial<
     Record<Exclude<BorrowFlowStatus, "idle">, Step["status"]>
   > = {

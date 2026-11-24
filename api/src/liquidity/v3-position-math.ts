@@ -109,7 +109,7 @@ export const computeBandAmounts = function ({
   lowerPrice: number;
   sqrtPriceX96: bigint;
   upperPrice: number;
-}): { amount0: bigint; amount1: bigint } {
+}) {
   const lowerTick = priceToTick({ decimals0, decimals1, price: lowerPrice });
   const upperTick = priceToTick({ decimals0, decimals1, price: upperPrice });
 

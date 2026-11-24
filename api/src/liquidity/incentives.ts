@@ -61,7 +61,7 @@ export const getMerklRewards = async function ({
           Number(campaign.startTimestamp) <= nowSeconds &&
           Number(campaign.endTimestamp) > nowSeconds,
       )
-      .map((campaign): MerklReward => ({
+      .map((campaign) => ({
         apr: campaign.apr,
         campaignId: campaign.campaignId,
         chainId: opportunity.chainId,

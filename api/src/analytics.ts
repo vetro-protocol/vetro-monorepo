@@ -10,7 +10,12 @@ import {
   getWhitelistedTokens,
   getWithdrawable,
 } from "@vetro-protocol/treasury/actions";
-import { type Address, formatUnits, type PublicClient } from "viem";
+import {
+  type Address,
+  formatUnits,
+  isAddressEqual,
+  type PublicClient,
+} from "viem";
 import { decimals, totalSupply } from "viem-erc20/actions";
 import { balanceOf, previewRedeem, totalAssets } from "viem-erc4626/actions";
 
@@ -168,7 +173,7 @@ async function getStrategicReserves({
   gatewayAddress: Address;
   treasuryAddress: Address;
 }) {
-  if (gatewayAddress !== gatewayAddresses[0]) {
+  if (!isAddressEqual(gatewayAddress, gatewayAddresses[0])) {
     return 0n;
   }
   const strategicReserveAddresses = [

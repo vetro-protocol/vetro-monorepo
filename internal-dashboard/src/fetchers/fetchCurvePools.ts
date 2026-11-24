@@ -14,9 +14,7 @@ import { type PoolCoin, type TrackedPool } from "../lib/types";
 // every pool and filter by tracked token client-side. Unfortunate, but it's the
 // only way to reliably catch every pool holding a tracked token (size-bucket
 // filtering would silently drop low-TVL pools).
-export const fetchCurvePools = async function (
-  trackedAddresses: Set<string>,
-): Promise<TrackedPool[]> {
+export const fetchCurvePools = async function (trackedAddresses: Set<string>) {
   const [pools, volumes] = await Promise.all([fetchAllPools(), fetchVolumes()]);
 
   const volumeByAddress = new Map(
