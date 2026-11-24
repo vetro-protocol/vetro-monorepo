@@ -156,9 +156,9 @@ Amounts are raw strings in the pegged token's base units. Each balance uses the 
 ### `GET /analytics/net-revenue/:gatewayAddress`
 
 Get the projected protocol revenue of a gateway: an annualized projection from the current reserve balances, strategy APYs and staking vault APR. Cached for 1 minute.
-`:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway. Returns `500` in the same cases as `GET /analytics/yield`, if no staking vault holds the gateway's pegged token, and if the APYs of the staking vaults are not available.
+`:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway. Returns `500` in the same cases as `GET /analytics/yield`, or if no staking vault holds the gateway's pegged token.
 
-Amounts are raw strings in the pegged token's base units, and APYs and APRs are percentages. `backendApy`, `backendBalance` and `backendYield` are the `total` of `GET /analytics/yield`. `stakerApr` is the APR of `GET /variable-stake/apy` for the staking vault. `stakerPayouts` is `stakerApr` × `staked`. `netRevenue` can be negative. `backendApy`, `backendYield`, `netRevenue`, `stakerApr` and `stakerPayouts` are nullable.
+Amounts are raw strings in the pegged token's base units, and APYs and APRs are percentages. `backendApy`, `backendBalance` and `backendYield` are the `total` of `GET /analytics/yield`. `stakerApr` is the APR of `GET /variable-stake/apy` for the staking vault. It is `null` when the staking vault's APY is not available. `stakerPayouts` is `stakerApr` × `staked`. `netRevenue` can be negative. `backendApy`, `backendYield`, `netRevenue`, `stakerApr` and `stakerPayouts` are nullable.
 
 #### Sample response
 
@@ -587,7 +587,7 @@ Returns the user's cost basis (in the vault asset's native smallest unit; decima
 
 ### `GET /variable-stake/apy`
 
-Returns the APY for each supported staking vault, indexed by staking vault address. This is a forward-looking figure computed from each vault's `rewardRate` (read from its `YieldDistributor` contract), annualized over the vault's `totalAssets()` and expressed as a continuous-compounding APY. A vault whose drip has ended (or whose rate or total assets are zero) returns a genuine `{ "apy": 0 }`. A vault whose on-chain reads fail (e.g. RPC error or an unconfigured distributor) is **omitted** from the response rather than returned as `0`, so clients can render "-" for it — distinct from a real 0% APY. If every vault's reads fail, the endpoint keeps serving the last good response for up to 15 minutes, then returns `500`.
+Returns the APY for each supported staking vault, indexed by staking vault address. This is a forward-looking figure computed from each vault's `rewardRate` (read from its `YieldDistributor` contract), annualized over the vault's `totalAssets()` and expressed as a continuous-compounding APY. A vault whose drip has ended (or whose rate or total assets are zero) returns a genuine `{ "apy": 0 }`. Each vault has its own warmed cache entry. When a vault's reads fail, the endpoint keeps serving its last good value for up to 15 minutes. A vault with no cached or live value is **omitted** from the response rather than returned as `0`, so clients can render "-" for it — distinct from a real 0% APY. If no vault has a cached or live value, the endpoint returns `500`.
 
 #### Sample Response
 

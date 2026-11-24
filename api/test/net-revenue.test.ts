@@ -1,6 +1,13 @@
-import { describe, expect, it } from "vitest";
+import { sVusdAddress } from "@vetro-protocol/earn";
+import { vusdGatewayAddress } from "@vetro-protocol/gateway";
+import type { Context } from "hono";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { toNetRevenue } from "../src/net-revenue.ts";
+import { getNetRevenue, toNetRevenue } from "../src/net-revenue.ts";
+import * as stakingVault from "../src/staking-vault.ts";
+import * as warmCache from "../src/warm-cache.ts";
+import { apyTask, stakedTask, treasuryTask } from "../src/warm-tasks.ts";
+import * as yieldSummary from "../src/yield-summary.ts";
 
 const backendTotal = {
   apy: 4.87,
@@ -12,6 +19,94 @@ const staked = 115_850_000_000_000_000_000_000n;
 const stakerApy = Math.expm1(0.1) * 100;
 // 115,850 × 10%
 const stakerPayouts = 11_585_000_000_000_000_000_000n;
+
+describe("getNetRevenue", function () {
+  afterEach(function () {
+    vi.restoreAllMocks();
+  });
+
+  it("handles the dependent APY rejection when the pegged-token lookup fails", async function () {
+    const error = new Error("Pegged-token RPC read failed");
+    vi.spyOn(yieldSummary, "readPeggedToken").mockRejectedValue(error);
+    vi.spyOn(warmCache, "readWarmedTask").mockResolvedValue([]);
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const c = { env: {} } as Context<{ Bindings: Env }>;
+
+    await expect(
+      getNetRevenue({ c, gatewayAddress: vusdGatewayAddress }),
+    ).rejects.toBe(error);
+    // Let unhandled rejections surface to the runner before the test finishes.
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it("keeps backend values and returns null staking-dependent values when the APY read fails", async function () {
+    vi.spyOn(yieldSummary, "readPeggedToken").mockResolvedValue({
+      address: "0x0000000000000000000000000000000000000001",
+      decimals: 18,
+    });
+    vi.spyOn(stakingVault, "findStakingVaultForPeggedToken").mockResolvedValue(
+      sVusdAddress,
+    );
+    const read = vi
+      .spyOn(warmCache, "readWarmedTask")
+      .mockImplementation(async function ({ task }) {
+        if (task === apyTask) {
+          throw new Error("APY RPC read failed");
+        }
+        if (task === stakedTask) {
+          return { staked: staked.toString() };
+        }
+        if (task === treasuryTask) {
+          return [
+            {
+              activeStrategies: [
+                {
+                  address: "0x0000000000000000000000000000000000000002",
+                  apy: 5,
+                  name: "Strategy",
+                  totalDebt: "1000000000",
+                },
+              ],
+              latestPrice: "100000000",
+              priceDecimals: 8,
+              stalePeriod: "90000",
+              tokenAddress: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+              tokenDecimals: 6,
+              totalDebt: "1000000000",
+              updatedAt: String(Math.floor(Date.now() / 1000)),
+              withdrawable: "1200000000",
+            },
+          ];
+        }
+        throw new Error("Unexpected warm task");
+      });
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const c = { env: {} } as Context<{ Bindings: Env }>;
+
+    expect(
+      await getNetRevenue({ c, gatewayAddress: vusdGatewayAddress }),
+    ).toEqual({
+      backendApy: (50 / 1200) * 100,
+      backendBalance: 1_200n * 10n ** 18n,
+      backendYield: 50n * 10n ** 18n,
+      netRevenue: null,
+      staked,
+      stakerApr: null,
+      stakerPayouts: null,
+      stakingVaultAddress: sVusdAddress,
+    });
+    expect(read).toHaveBeenCalledWith({
+      c,
+      item: sVusdAddress,
+      task: apyTask,
+    });
+    expect(warn).toHaveBeenCalledWith(
+      "Failed to read staking vault APY: APY RPC read failed",
+    );
+  });
+});
 
 describe("toNetRevenue", function () {
   it("pays the stakers the APR of the staking APY", function () {

@@ -443,7 +443,14 @@ app.get(
   }),
   async function (c) {
     try {
-      const data = await readWarmedTask({ c, task: apyTask });
+      const data = await variableStake.getApyByVault({
+        readApy: (stakingVaultAddress) =>
+          readWarmedTask({
+            c,
+            item: stakingVaultAddress,
+            task: apyTask,
+          }),
+      });
       return c.json(data);
     } catch (error) {
       throw new Error(`Failed to get APY: ${error.message}`);

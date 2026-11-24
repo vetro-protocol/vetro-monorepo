@@ -15,7 +15,8 @@ import { describe, expect, it, vi } from "vitest";
 import * as graphql from "../src/graphql.ts";
 import * as merkl from "../src/merkl.ts";
 import {
-  getApy,
+  getApyByVault,
+  getApyForVault,
   getCostBasis,
   getUserExitTickets,
   getUserRewards,
@@ -45,7 +46,7 @@ vi.mock("viem-erc4626/actions", () => ({
   totalAssets: vi.fn(),
 }));
 
-describe("variable-stake/getApy", function () {
+describe("variable-stake/getApyForVault", function () {
   const rpcUrl = "https://rpc.example";
   const vaultA = sVusdAddress;
   const vaultB = sVetBtcAddress;
@@ -90,21 +91,21 @@ describe("variable-stake/getApy", function () {
     );
   }
 
-  it("returns { apy: 0 } for every configured vault when the reward rate is zero", async function () {
+  it("returns { apy: 0 } when the reward rate is zero", async function () {
     setVaultState({
       [vaultA]: { rewardRate: 0n, totalAssets: 10n ** 18n },
       [vaultB]: { rewardRate: 0n, totalAssets: 10n ** 18n },
     });
 
-    const result = await getApy({ rpcUrl });
-
-    expect(result).toEqual({
-      [vaultA]: { apy: 0 },
-      [vaultB]: { apy: 0 },
+    const result = await getApyForVault({
+      rpcUrl,
+      vaultAddress: vaultA,
     });
+
+    expect(result).toEqual({ apy: 0 });
   });
 
-  it("zeroes a vault whose drip has ended without affecting an active vault", async function () {
+  it("returns 0 when the vault's drip has ended", async function () {
     const past = BigInt(Math.floor(Date.now() / 1000)) - 86_400n;
     setVaultState({
       [vaultA]: {
@@ -112,16 +113,14 @@ describe("variable-stake/getApy", function () {
         rewardRate: 132275132275132275132275132275132n,
         totalAssets: 43983990448825662118175n,
       },
-      [vaultB]: {
-        rewardRate: 132275132275132275132275132275132n,
-        totalAssets: 43983990448825662118175n,
-      },
     });
 
-    const result = await getApy({ rpcUrl });
+    const result = await getApyForVault({
+      rpcUrl,
+      vaultAddress: vaultA,
+    });
 
-    expect(result[vaultA].apy).toBe(0);
-    expect(result[vaultB].apy).toBeCloseTo(9.95, 1);
+    expect(result.apy).toBe(0);
   });
 
   it("computes a forward continuous-compounding APY from the reward rate", async function () {
@@ -134,33 +133,15 @@ describe("variable-stake/getApy", function () {
       [vaultB]: { rewardRate: 0n, totalAssets: 0n },
     });
 
-    const result = await getApy({ rpcUrl });
-
-    expect(result[vaultA].apy).toBeCloseTo(9.95, 1);
-    expect(result[vaultB].apy).toBe(0);
-  });
-
-  it("computes APY independently for each vault", async function () {
-    setVaultState({
-      [vaultA]: {
-        rewardRate: 132275132275132275132275132275132n,
-        totalAssets: 43983990448825662118175n,
-      },
-      [vaultB]: {
-        rewardRate: 132275132275132275132275132275132n,
-        totalAssets: 2n * 43983990448825662118175n,
-      },
+    const result = await getApyForVault({
+      rpcUrl,
+      vaultAddress: vaultA,
     });
 
-    const result = await getApy({ rpcUrl });
-
-    // Vault B has twice the assets for the same reward rate, so ~half the APR.
-    expect(result[vaultA].apy).toBeCloseTo(9.95, 1);
-    expect(result[vaultB].apy).toBeCloseTo(4.86, 1);
+    expect(result.apy).toBeCloseTo(9.95, 1);
   });
 
-  it("omits a vault whose on-chain reads fail without breaking others", async function () {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+  it("throws when the vault's on-chain reads fail", async function () {
     setVaultState({
       [vaultA]: {
         rewardRate: 132275132275132275132275132275132n,
@@ -178,16 +159,12 @@ describe("variable-stake/getApy", function () {
       return distributorByVault[address];
     });
 
-    const result = await getApy({ rpcUrl });
-
-    expect(result[vaultA].apy).toBeCloseTo(9.95, 1);
-    // The failed vault is omitted entirely (frontend renders "-"), not zeroed.
-    expect(result).not.toHaveProperty(vaultB);
-    warn.mockRestore();
+    await expect(
+      getApyForVault({ rpcUrl, vaultAddress: vaultB }),
+    ).rejects.toThrow("execution reverted");
   });
 
-  it("omits a vault whose reward-rate read fails (not just the distributor lookup)", async function () {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+  it("throws when the vault's reward-rate read fails", async function () {
     setVaultState({
       [vaultA]: {
         rewardRate: 132275132275132275132275132275132n,
@@ -198,7 +175,6 @@ describe("variable-stake/getApy", function () {
         totalAssets: 43983990448825662118175n,
       },
     });
-    // Vault B's distributor resolves, but reading its reward rate reverts.
     vi.mocked(getRewardRate).mockImplementation(async function (
       _client,
       { address },
@@ -209,24 +185,36 @@ describe("variable-stake/getApy", function () {
       return 132275132275132275132275132275132n;
     });
 
-    const result = await getApy({ rpcUrl });
+    await expect(
+      getApyForVault({ rpcUrl, vaultAddress: vaultB }),
+    ).rejects.toThrow("execution reverted");
+  });
+});
 
-    expect(result[vaultA].apy).toBeCloseTo(9.95, 1);
-    expect(result).not.toHaveProperty(vaultB);
-    warn.mockRestore();
+describe("variable-stake/getApyByVault", function () {
+  it("omits a rejected vault and keeps healthy vault values", async function () {
+    const result = await getApyByVault({
+      async readApy(vaultAddress) {
+        if (vaultAddress === sVetBtcAddress) {
+          throw new Error("execution reverted");
+        }
+        return { apy: 9.95 };
+      },
+    });
+
+    expect(result).toEqual({
+      [sVusdAddress]: { apy: 9.95 },
+    });
   });
 
-  it("returns {} when every vault's reads fail (e.g. a bad RPC url)", async function () {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
-    // Simulate an unreachable RPC: every distributor lookup rejects.
-    vi.mocked(getYieldDistributor).mockRejectedValue(
-      new Error("HTTP request failed"),
-    );
-
-    const result = await getApy({ rpcUrl });
-
-    expect(result).toEqual({});
-    warn.mockRestore();
+  it("throws when every vault read fails", async function () {
+    await expect(
+      getApyByVault({
+        async readApy() {
+          throw new Error("execution reverted");
+        },
+      }),
+    ).rejects.toThrow("Staking vault APYs are not available");
   });
 });
 
