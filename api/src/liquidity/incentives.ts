@@ -6,7 +6,7 @@ import type {
 import { type Address, checksumAddress, type Hash, isAddressEqual } from "viem";
 import { hemi, mainnet } from "viem/chains";
 
-import { getLiveOpportunities } from "../merkl.ts";
+import { getLiveOpportunities, validateCampaignWindow } from "../merkl.ts";
 
 import { crvAddress } from "./curve.ts";
 import {
@@ -55,6 +55,7 @@ export const getMerklRewards = async function ({
     identifiers,
   });
   return opportunities.flatMap(function (opportunity) {
+    opportunity.campaigns.forEach(validateCampaignWindow);
     const activeCampaigns = opportunity.campaigns.filter(
       (campaign) =>
         Number(campaign.startTimestamp) <= nowSeconds &&
@@ -81,11 +82,13 @@ export const gaugedStrategiesKey = "liquidity:strategies";
 
 // Curve pools are only on Ethereum today.
 export const getGaugedStrategies = () =>
-  getStrategies(mainnet.id).then((strategies) =>
-    strategies.filter(
+  getStrategies(mainnet.id).then(function (strategies) {
+    const gaugedStrategies = strategies.filter(
       (strategy): strategy is GaugedStrategy => strategy.gaugeAddress !== null,
-    ),
-  );
+    );
+    gaugedStrategies.forEach(strategyRewardsApr);
+    return gaugedStrategies;
+  });
 
 const stakeDaoReward = function ({
   chainId,

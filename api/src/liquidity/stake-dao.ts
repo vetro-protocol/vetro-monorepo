@@ -14,7 +14,7 @@ type Campaign = {
 };
 
 export type StakeDaoStrategy = {
-  apr?: { current: { total: number } };
+  apr?: { current: { total: number | null } };
   chainId: number;
   gaugeAddress: Address | null;
   key: string;
@@ -70,5 +70,13 @@ export const findStrategyByLpToken = ({
     isAddressEqual(strategy.lpToken.address, lpToken),
   );
 
-export const strategyRewardsApr = (strategy: StakeDaoStrategy) =>
-  strategy.apr ? strategy.apr.current.total - strategy.tradingApy : 0;
+export const strategyRewardsApr = function (strategy: StakeDaoStrategy) {
+  if (!strategy.apr) {
+    return 0;
+  }
+  const total = strategy.apr.current.total;
+  if (typeof total !== "number" || !Number.isFinite(total)) {
+    throw new Error("StakeDAO returned a missing or non-finite total APR");
+  }
+  return total - strategy.tradingApy;
+};

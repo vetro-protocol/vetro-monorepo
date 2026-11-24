@@ -89,6 +89,21 @@ const fetchMerkl = function <R>(
   return fetchJson(url);
 };
 
+export const validateCampaignWindow = function (
+  campaign: Pick<MerklLiveCampaign, "endTimestamp" | "startTimestamp">,
+) {
+  const isFiniteTimestamp = (value: number | string) =>
+    (typeof value === "number" ||
+      (typeof value === "string" && value.trim() !== "")) &&
+    Number.isFinite(Number(value));
+  if (
+    !isFiniteTimestamp(campaign.startTimestamp) ||
+    !isFiniteTimestamp(campaign.endTimestamp)
+  ) {
+    throw new Error("Merkl returned a missing or non-finite campaign window");
+  }
+};
+
 /**
  * Fetches user rewards from the Merkl API for a specific address and chain.
  *

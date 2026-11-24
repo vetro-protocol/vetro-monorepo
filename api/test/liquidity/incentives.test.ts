@@ -9,7 +9,8 @@ import {
 } from "../../src/liquidity/incentives.ts";
 import { getLiveOpportunities } from "../../src/merkl.ts";
 
-vi.mock("../../src/merkl.ts", () => ({
+vi.mock("../../src/merkl.ts", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../../src/merkl.ts")>()),
   getLiveOpportunities: vi.fn(),
 }));
 
@@ -82,6 +83,28 @@ const noSources: IncentiveSources = {
 describe("liquidity/getMerklRewards", function () {
   beforeEach(function () {
     vi.mocked(getLiveOpportunities).mockReset();
+  });
+
+  it("rejects a campaign without its end timestamp instead of dropping it", async function () {
+    vi.mocked(getLiveOpportunities).mockResolvedValue([
+      {
+        campaigns: [
+          // @ts-expect-error Deliberately missing upstream timestamp.
+          {
+            apr: 3,
+            campaignId: campaignId("1"),
+            rewardToken: { address: usdc, chainId: 1 },
+            startTimestamp: nowSeconds - 100,
+          },
+        ],
+        chainId: 1,
+        id: "missing-window",
+        identifier: poolAddress,
+      },
+    ]);
+    await expect(
+      getMerklRewards({ nowSeconds, pools: [curvePool] }),
+    ).rejects.toThrow("Merkl returned a missing or non-finite campaign window");
   });
 
   it("ignores missing APR on a campaign outside its active window", async function () {
