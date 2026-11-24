@@ -17,6 +17,26 @@ describe("CooldownCell", function () {
     vi.useRealTimers();
   });
 
+  it("shows 59 Minutes when the cell timer fires on its own", async function () {
+    const ticket = {
+      assets: "1000",
+      cancelTxHash: null,
+      claimableAt: String(now + 3600),
+      claimTxHash: null,
+      owner: zeroAddress,
+      requestId: "1",
+      requestTxHash: zeroHash,
+      shares: "1000",
+      stakingVaultAddress: zeroAddress,
+    } satisfies ExitTicket;
+    const screen = await render(<CooldownCell ticket={ticket} />);
+    expect(screen.container.textContent).toBe("1 Hour");
+
+    await vi.advanceTimersByTimeAsync(1000);
+
+    await expect.element(screen.getByText("59 Minutes")).toBeInTheDocument();
+  });
+
   it.each([
     { elapsed: 1, initial: "1 Day", remaining: 86400, updated: "23 Hours" },
     { elapsed: 1, initial: "1 Hour", remaining: 3600, updated: "59 Minutes" },
