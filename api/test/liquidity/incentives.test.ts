@@ -107,6 +107,33 @@ describe("liquidity/getMerklRewards", function () {
     ).rejects.toThrow("Merkl returned a missing or non-finite campaign window");
   });
 
+  it.each(["", "  "])(
+    "rejects a blank campaign end timestamp (%j)",
+    async function (endTimestamp) {
+      vi.mocked(getLiveOpportunities).mockResolvedValue([
+        {
+          campaigns: [
+            {
+              apr: 3,
+              campaignId: campaignId("1"),
+              endTimestamp,
+              rewardToken: { address: usdc, chainId: 1 },
+              startTimestamp: nowSeconds - 100,
+            },
+          ],
+          chainId: 1,
+          id: "blank-window",
+          identifier: poolAddress,
+        },
+      ]);
+      await expect(
+        getMerklRewards({ nowSeconds, pools: [curvePool] }),
+      ).rejects.toThrow(
+        "Merkl returned a missing or non-finite campaign window",
+      );
+    },
+  );
+
   it("ignores missing APR on a campaign outside its active window", async function () {
     vi.mocked(getLiveOpportunities).mockResolvedValue([
       {
