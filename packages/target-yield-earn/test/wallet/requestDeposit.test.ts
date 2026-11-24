@@ -75,12 +75,16 @@ const rpcError = new Error("RPC error");
 
 describe("requestDeposit", function () {
   beforeEach(function () {
+    vi.mocked(allowance).mockReset();
+    vi.mocked(approve).mockReset();
     vi.mocked(asset).mockResolvedValue(token);
     vi.mocked(balanceOf).mockResolvedValue(validParameters.assets);
+    vi.mocked(erc7540RequestDeposit).mockReset();
     vi.mocked(getIsAccountOrOperator).mockResolvedValue(true);
     vi.mocked(getIsPaused).mockResolvedValue(false);
     vi.mocked(getIsShutdown).mockResolvedValue(false);
     vi.mocked(getMaxRequestDeposit).mockResolvedValue(validParameters.assets);
+    vi.mocked(waitForTransactionReceipt).mockReset();
   });
 
   it.each([

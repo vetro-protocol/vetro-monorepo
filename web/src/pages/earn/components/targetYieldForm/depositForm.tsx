@@ -36,6 +36,7 @@ import { useAccount } from "wagmi";
 import { EpochEndDateValue } from "./epochEndDateValue";
 import { EstimatedYieldValue } from "./estimatedYieldValue";
 import { getInputError } from "./getInputError";
+import { handleRequestDepositFailures } from "./handleRequestDepositFailures";
 import { LockNote } from "./lockNote";
 import { Review, ReviewRow } from "./review";
 import { SharesToReceiveValue } from "./sharesToReceiveValue";
@@ -214,35 +215,20 @@ export function DepositForm({
     : "deposit-failed";
 
   function handleRequestDepositEmitter(emitter: RequestDepositEmitter) {
-    let failedStep = initialFailedStep;
-
-    function handleFailed() {
-      handleDepositStepChange(failedStep);
-    }
-
-    emitter.on("pre-approve", function () {
-      failedStep = "approve-failed";
+    handleRequestDepositFailures({
+      emitter,
+      onDepositStepChange: handleDepositStepChange,
     });
     emitter.on("user-signed-approval", () =>
       handleDepositStepChange("approving"),
     );
-    emitter.on("user-signing-approval-error", handleFailed);
-    emitter.on("approve-transaction-reverted", handleFailed);
     emitter.on("approve-transaction-succeeded", () =>
       handleDepositStepChange("approved"),
     );
-    emitter.on("pre-request-deposit", function () {
-      failedStep = "deposit-failed";
-    });
     emitter.on("user-signed-request-deposit", function (hash) {
       onTransactionHash(hash);
       handleDepositStepChange("depositing");
     });
-    emitter.on("user-signing-request-deposit-error", handleFailed);
-    emitter.on("request-deposit-failed", handleFailed);
-    emitter.on("request-deposit-failed-validation", handleFailed);
-    emitter.on("unexpected-error", handleFailed);
-    emitter.on("request-deposit-transaction-reverted", handleFailed);
     emitter.on("request-deposit-transaction-succeeded", function () {
       handleDepositStepChange("completed");
       handleRequestDepositSuccess();
