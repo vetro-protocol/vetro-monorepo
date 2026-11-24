@@ -2,6 +2,8 @@ import {
   type Address,
   type TransactionReceipt,
   type WalletClient,
+  decodeFunctionData,
+  padHex,
   zeroAddress,
   zeroHash,
 } from "viem";
@@ -18,7 +20,8 @@ import { bsc, hemi } from "viem/chains";
 import { allowance, approve } from "viem-erc20/actions";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { send } from "../../src/actions/wallet/send.ts";
+import { oftAbi } from "../../src/abi/oftAbi.ts";
+import { encodeSend, send } from "../../src/actions/wallet/send.ts";
 
 vi.mock("viem/actions", () => ({
   estimateContractGas: vi.fn(),
@@ -330,7 +333,7 @@ describe("send", function () {
     await promise;
 
     expect(onSendFailedValidation).toHaveBeenCalledExactlyOnceWith(
-      "insufficient balance for fee",
+      "insufficient balance for fee and gas",
     );
     expect(approve).not.toHaveBeenCalled();
   });
@@ -364,7 +367,7 @@ describe("send", function () {
     await promise;
 
     expect(onSendFailedValidation).toHaveBeenCalledExactlyOnceWith(
-      "insufficient balance for fee",
+      "insufficient balance for fee and gas",
     );
     expect(simulateContract).not.toHaveBeenCalled();
     expect(writeContract).not.toHaveBeenCalled();
@@ -535,37 +538,57 @@ describe("send", function () {
     expect(onSettled).toHaveBeenCalledOnce();
   });
 
-  it("should pass minAmount through to simulateContract args", async function () {
-    mockReadContractFor({ approvalRequired: false });
-    vi.mocked(simulateContract).mockResolvedValue({ request: {} } as never);
-    vi.mocked(writeContract).mockResolvedValue(zeroHash);
-    vi.mocked(waitForTransactionReceipt).mockResolvedValue({
-      status: "success",
-    } as TransactionReceipt);
+  it.each([undefined, 990n])(
+    "should use the same send parameters for quoting, sending and encoding with minAmount %s",
+    async function (minAmount) {
+      mockReadContractFor({ approvalRequired: false });
+      vi.mocked(simulateContract).mockResolvedValue({ request: {} } as never);
+      vi.mocked(writeContract).mockResolvedValue(zeroHash);
+      vi.mocked(waitForTransactionReceipt).mockResolvedValue({
+        status: "success",
+      } as TransactionReceipt);
 
-    const minAmount = validParameters.amount - 10n;
-    const { emitter, promise } = send(mockWalletClient, {
-      ...validParameters,
-      minAmount,
-    });
+      const { promise } = send(mockWalletClient, {
+        ...validParameters,
+        minAmount,
+      });
+      await promise;
 
-    const onSettled = vi.fn();
-    emitter.on("send-settled", onSettled);
-
-    await promise;
-
-    expect(simulateContract).toHaveBeenCalledWith(
-      mockWalletClient,
-      expect.objectContaining({
-        args: [
-          expect.objectContaining({ minAmountLD: minAmount }),
-          fee,
-          account,
-        ],
-        value: fee.nativeFee,
-      }),
-    );
-  });
+      const sendParam = {
+        amountLD: validParameters.amount,
+        composeMsg: "0x",
+        dstEid: 30329,
+        extraOptions: "0x",
+        minAmountLD: minAmount ?? validParameters.amount,
+        oftCmd: "0x",
+        to: padHex(validParameters.recipient, { size: 32 }),
+      };
+      expect(readContract).toHaveBeenCalledWith(
+        mockWalletClient,
+        expect.objectContaining({
+          args: [sendParam, false],
+          functionName: "quoteSend",
+        }),
+      );
+      expect(simulateContract).toHaveBeenCalledWith(
+        mockWalletClient,
+        expect.objectContaining({
+          args: [sendParam, fee, account],
+          value: fee.nativeFee,
+        }),
+      );
+      const data = encodeSend({
+        ...validParameters,
+        fee,
+        minAmount,
+        refundAddress: account,
+      });
+      expect(decodeFunctionData({ abi: oftAbi, data })).toEqual({
+        args: [sendParam, fee, account],
+        functionName: "send",
+      });
+    },
+  );
 
   it("should use walletClient.account.address as refundAddress", async function () {
     mockReadContractFor({ approvalRequired: false });

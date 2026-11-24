@@ -19,9 +19,9 @@ import {
 import { allowance, approve } from "viem-erc20/actions";
 
 import { oftAbi } from "../../abi/oftAbi.ts";
-import { getLayerZeroEid, layerZeroEids } from "../../layerZeroEids.ts";
+import { layerZeroEids } from "../../layerZeroEids.ts";
 import type { MessagingFee, SendEvents, SendParams } from "../../types.ts";
-import { addressToBytes32 } from "../../utils/addressToBytes32.ts";
+import { buildSendParam } from "../../utils/buildSendParam.ts";
 import { approvalRequired } from "../public/approvalRequired.ts";
 import { quoteSend } from "../public/quoteSend.ts";
 import { token } from "../public/token.ts";
@@ -129,15 +129,12 @@ const runSend = (walletClient: WalletClient, params: SendParams) =>
       const account = walletClient.account!;
       const refundAddress = account.address;
 
-      const sendParam = {
-        amountLD: amount,
-        composeMsg: "0x" as const,
-        dstEid: getLayerZeroEid(destinationChainId),
-        extraOptions: "0x" as const,
-        minAmountLD: minAmount,
-        oftCmd: "0x" as const,
-        to: addressToBytes32(recipient),
-      };
+      const sendParam = buildSendParam({
+        amount,
+        destinationChainId,
+        minAmount,
+        recipient,
+      });
 
       const needsApproval = await approvalRequired(walletClient, {
         oftAddress,
@@ -182,7 +179,7 @@ const runSend = (walletClient: WalletClient, params: SendParams) =>
           if (nativeBalance < fee.nativeFee + approvalGasCost) {
             emitter.emit(
               "send-failed-validation",
-              "insufficient balance for fee",
+              "insufficient balance for fee and gas",
             );
             return;
           }
@@ -255,7 +252,10 @@ const runSend = (walletClient: WalletClient, params: SendParams) =>
       const maxFeePerGas = feeEstimate.maxFeePerGas;
 
       if (nativeBalance < fee.nativeFee + sendGas * maxFeePerGas) {
-        emitter.emit("send-failed-validation", "insufficient balance for fee");
+        emitter.emit(
+          "send-failed-validation",
+          "insufficient balance for fee and gas",
+        );
         return;
       }
 
@@ -332,15 +332,7 @@ export const encodeSend = ({
   encodeFunctionData({
     abi: oftAbi,
     args: [
-      {
-        amountLD: amount,
-        composeMsg: "0x" as const,
-        dstEid: getLayerZeroEid(destinationChainId),
-        extraOptions: "0x" as const,
-        minAmountLD: minAmount ?? amount,
-        oftCmd: "0x" as const,
-        to: addressToBytes32(recipient),
-      },
+      buildSendParam({ amount, destinationChainId, minAmount, recipient }),
       fee,
       refundAddress,
     ],

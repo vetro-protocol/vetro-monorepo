@@ -90,6 +90,10 @@ The `send` wallet action emits the following events through the `EventEmitter`:
 | `unexpected-error`              | `[Error]`              | An unhandled error escaped the action                                                                                 |
 | `send-settled`                  | `[]`                   | Always emitted in the `finally` block                                                                                 |
 
+For insufficient native balance, `send-failed-validation` reports
+`"insufficient balance for fee"` when the send fee alone is unaffordable, or
+`"insufficient balance for fee and gas"` when the fee plus estimated gas is unaffordable.
+
 ## API
 
 - `quoteSend(client, params)` — public action; reads the LayerZero messaging fee for a send.

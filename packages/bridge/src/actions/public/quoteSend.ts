@@ -3,9 +3,8 @@ import { type Client } from "viem";
 import { readContract } from "viem/actions";
 
 import { oftAbi } from "../../abi/oftAbi.ts";
-import { getLayerZeroEid } from "../../layerZeroEids.ts";
 import type { QuoteSendParams } from "../../types.ts";
-import { addressToBytes32 } from "../../utils/addressToBytes32.ts";
+import { buildSendParam } from "../../utils/buildSendParam.ts";
 
 export async function quoteSend(client: Client, parameters: QuoteSendParams) {
   if (!client) {
@@ -47,15 +46,12 @@ export async function quoteSend(client: Client, parameters: QuoteSendParams) {
     }
   }
 
-  const sendParam = {
-    amountLD: amount,
-    composeMsg: "0x" as const,
-    dstEid: getLayerZeroEid(destinationChainId),
-    extraOptions: "0x" as const,
-    minAmountLD: minAmount ?? amount,
-    oftCmd: "0x" as const,
-    to: addressToBytes32(recipient),
-  };
+  const sendParam = buildSendParam({
+    amount,
+    destinationChainId,
+    minAmount,
+    recipient,
+  });
 
   return readContract(client, {
     abi: oftAbi,
