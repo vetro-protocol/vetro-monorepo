@@ -1,7 +1,8 @@
 import fetchJson from "tiny-fetch-json";
 import { type Address, checksumAddress, isAddressEqual } from "viem";
 
-const campaignsUrl = "https://api-v3.stakedao.org/votemarket/curve";
+const campaignsUrl =
+  "https://hub.stakedao.org/v1/votemarket/curve/campaigns?active=true&fields=endTimestamp,gauge,gaugeChainId,isCanceled,isClosed";
 const strategiesUrl = (chainId: number) =>
   `https://api.stakedao.org/api/strategies/v2/curve/${chainId}.json`;
 
