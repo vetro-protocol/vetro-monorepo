@@ -1,55 +1,39 @@
-import { type Token } from "@vetro-protocol/core";
+import { type DexPoolReward, type Token } from "@vetro-protocol/core";
 import { type Address } from "viem";
 
 import { type Dex } from "../config/dexes";
 
-// Normalized, venue-agnostic shapes the UI consumes. Each DEX source (Curve
-// today) maps its own API onto these, so the rest of the app stays venue-neutral.
-
 export type PoolCoin = {
   address: Address;
-  // Raw on-chain balance in the token's smallest unit. Convert for display with
-  // formatUnits(balance, decimals); USD value is balance * usdPrice, derived
-  // where needed rather than stored.
-  balance: bigint;
-  decimals: number;
+  amount: number; // in token units
   symbol: string;
   usdPrice: number | undefined;
 };
+
+export type PoolReward = DexPoolReward & { tokenSymbols: string };
 
 export type TrackedPool = {
   address: Address;
   baseApy: number | undefined; // % from trading fees, undefined when the TVL is unknown
   chainId: number;
   coins: PoolCoin[];
-  dex: Dex; // venue this pool belongs to
-  // APR % from the venue's own emissions to LPs (Curve gauge CRV), unboosted /
-  // max boost. 0 for venues without emissions. Shown as a Rewards APR line, not
-  // as part of Pool APY.
-  emissionApr: number;
-  emissionAprMax: number;
-  // Rolling-24h trading fees in USD, when the venue's API hands them to us
-  // directly (Sushi). Undefined for venues whose fees are fetched on demand
-  // instead (Curve), so the details page knows to fetch per-pool.
-  feesUsd24h?: number;
-  // Contract distributing incentives (a Curve gauge). Venue-specific and
-  // optional — not every DEX exposes one.
+  dex: Dex;
+  // Undefined on Curve, whose fees the details page reads per pool.
+  feesUsd24h: number | undefined;
   gaugeAddress: Address | undefined;
-  // Unique key for routing/list keys. Usually the address, but a pool can appear
-  // more than once (e.g. a Sushi pool listed both full-range and for a price band),
-  // so the id disambiguates those entries while `address` stays the real pool.
+  // A pool can appear more than once (full range and each price band), so the
+  // id tells those entries apart while `address` stays the real pool.
   id: string;
-  // A derived sub-range view of another entry (e.g. liquidity within a price band).
-  // Excluded from token-distribution stats so its liquidity isn't double-counted.
-  isRangeView?: boolean;
+  // Excluded from TVL and distribution stats so its liquidity isn't counted twice.
+  isRangeView: boolean;
   lpTokenAddress: Address | undefined;
   name: string;
-  poolType: string; // venue's own classification (e.g. Curve registry id)
-  rangeLabel?: string; // short label for the view (e.g. "Full range", "$0.96–$1.04")
+  poolType: string | undefined;
+  rangeLabel: string | undefined;
+  rewards: PoolReward[];
   tvlUsd: number | undefined;
-  url: string; // the pool's page on its DEX
-  virtualPrice: number;
-  volumeUsd24h: number;
+  url: string;
+  volumeUsd24h: number | undefined;
 };
 
 export type TrackedToken = Pick<

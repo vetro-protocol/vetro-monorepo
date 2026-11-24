@@ -4,7 +4,7 @@ import { fetchTrackedPools } from "../fetchers/fetchTrackedPools";
 
 export const trackedPoolsOptions = () =>
   queryOptions({
-    queryFn: ({ client: queryClient }) => fetchTrackedPools(queryClient),
+    queryFn: fetchTrackedPools,
     queryKey: ["tracked-pools"],
     staleTime: 2 * 60 * 1000,
   });

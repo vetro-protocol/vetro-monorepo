@@ -5,8 +5,11 @@ import {
   campaignSourceLabels,
 } from "../../config/campaignSources";
 import { usePoolCampaigns } from "../../hooks/usePoolCampaigns";
-import { useStakeDaoStrategy } from "../../hooks/useStakeDaoStrategy";
-import { endingSoonTooltip, endsSoon } from "../../lib/campaigns";
+import {
+  endingSoonTooltip,
+  endsSoon,
+  stakeDaoStrategyKey,
+} from "../../lib/campaigns";
 import {
   formatDuration,
   formatPercent,
@@ -18,6 +21,7 @@ import {
   type MerklPoolCampaign,
   type PoolCampaign,
   type StakeDaoPoolCampaign,
+  type TrackedPool,
 } from "../../lib/types";
 import { CircleWarningIcon } from "../icons/circleWarningIcon";
 import { Tooltip } from "../tooltip";
@@ -131,62 +135,52 @@ const MerklCampaignCard = ({
   </div>
 );
 
-const StakeDaoCampaignCard = function ({
+const StakeDaoCampaignCard = ({
   campaign,
   nowSeconds,
-  poolId,
+  strategyKey,
 }: {
   campaign: StakeDaoPoolCampaign;
   nowSeconds: number;
-  poolId: string;
-}) {
-  const { data: strategy } = useStakeDaoStrategy(poolId);
-  const strategyKey = strategy?.key;
-
-  return (
-    <div className="rounded-lg border border-neutral-200 p-4">
-      <CampaignHeader
-        link={
-          strategyKey
-            ? {
-                label: `Deposit LP on ${campaignSourceLabels[campaign.source]}`,
-                url: strategyUrl(strategyKey),
-              }
-            : undefined
-        }
-        source={campaign.source}
-        subtitle={`Votemarket campaign ${campaign.campaignNumber} · paid to veCRV voters`}
-        title={`${campaign.rewardTokenSymbol} vote incentives`}
+  strategyKey: string | undefined;
+}) => (
+  <div className="rounded-lg border border-neutral-200 p-4">
+    <CampaignHeader
+      link={
+        strategyKey
+          ? {
+              label: `Deposit LP on ${campaignSourceLabels[campaign.source]}`,
+              url: strategyUrl(strategyKey),
+            }
+          : undefined
+      }
+      source={campaign.source}
+      subtitle={`Votemarket campaign ${campaign.campaignNumber} · paid to veCRV voters`}
+      title={`${campaign.rewardTokenSymbol} vote incentives`}
+    />
+    <dl className="mt-3 grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
+      <Metric label="Total budget" value={formatUsd(campaign.totalRewardUsd)} />
+      <Metric
+        label="Weekly rewards"
+        value={formatPrice(campaign.weeklyRewardUsd)}
       />
-      <dl className="mt-3 grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
-        <Metric
-          label="Total budget"
-          value={formatUsd(campaign.totalRewardUsd)}
-        />
-        <Metric
-          label="Weekly rewards"
-          value={formatPrice(campaign.weeklyRewardUsd)}
-        />
-        <Metric
-          label="Per vote"
-          value={
-            campaign.usdPerVote > 0 ? formatPrice(campaign.usdPerVote) : "—"
-          }
-        />
-        <TimeLeftMetric secondsLeft={campaign.endTimestamp - nowSeconds} />
-      </dl>
-    </div>
-  );
-};
+      <Metric
+        label="Per vote"
+        value={campaign.usdPerVote > 0 ? formatPrice(campaign.usdPerVote) : "—"}
+      />
+      <TimeLeftMetric secondsLeft={campaign.endTimestamp - nowSeconds} />
+    </dl>
+  </div>
+);
 
 const CampaignCard = ({
   campaign,
   nowSeconds,
-  poolId,
+  strategyKey,
 }: {
   campaign: PoolCampaign;
   nowSeconds: number;
-  poolId: string;
+  strategyKey: string | undefined;
 }) =>
   campaign.source === "merkl" ? (
     <MerklCampaignCard campaign={campaign} nowSeconds={nowSeconds} />
@@ -194,16 +188,16 @@ const CampaignCard = ({
     <StakeDaoCampaignCard
       campaign={campaign}
       nowSeconds={nowSeconds}
-      poolId={poolId}
+      strategyKey={strategyKey}
     />
   );
 
-export const CampaignsList = function ({ poolId }: { poolId: string }) {
+export const CampaignsList = function ({ pool }: { pool: TrackedPool }) {
   const {
     data: campaigns,
     dataUpdatedAt,
     isError,
-  } = usePoolCampaigns({ poolId });
+  } = usePoolCampaigns({ poolId: pool.id });
 
   if (campaigns) {
     return campaigns.length === 0 ? (
@@ -217,7 +211,7 @@ export const CampaignsList = function ({ poolId }: { poolId: string }) {
             campaign={campaign}
             key={`${campaign.source}-${campaign.id}`}
             nowSeconds={dataUpdatedAt / 1000}
-            poolId={poolId}
+            strategyKey={stakeDaoStrategyKey(pool)}
           />
         ))}
       </div>

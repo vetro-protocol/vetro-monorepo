@@ -5,7 +5,9 @@ lives on its own tab, mapped to a URL.
 
 - **DEX** (`/dex`) — liquidity of the tracked Vetro pools on Curve, Sushi and
   Uniswap (Ethereum) and BrownFi (Hemi). Each pool also has a detail view at
-  `/dex/:poolId` and the page shows the total TVL in USD.
+  `/dex/:poolId` and the page shows the total TVL in USD. The pools come from
+  `GET /liquidity/pools` of the Vetro API, with `includeLowTvl=true` and
+  `includeRanges=true`, so the list also has the pools that web leaves out.
 - **Hemi Earn** (`/hemi-earn`) — status of the Hemi Earn agent: keepers,
   ownership, proxy implementation and its pending vault cooldowns.
 
@@ -32,17 +34,6 @@ VITE_VETRO_API_URL="http://localhost:5175/vetro-api"
 ```
 
 For the deployed dashboard, set the production values as Cloudflare Workers Builds variables in the Cloudflare dashboard. Vite gives these priority over the committed `.env` at build time. Thus the paid RPC URL stays out of the repository.
-
-### Worker secrets
-
-`THEGRAPH_API_KEY` is a The Graph gateway key, used to read the BrownFi and Sushi subgraphs.
-For development, put it in `internal-dashboard/.dev.vars` (gitignored):
-
-```ini
-THEGRAPH_API_KEY = "your-key"
-```
-
-For the deployed dashboard, add it as a Cloudflare secret (Workers → Settings → Variables and Secrets).
 
 ## Development
 

@@ -1,10 +1,6 @@
 import { Link, useNavigate } from "react-router";
 
-import {
-  formatOptionalPercent,
-  formatOptionalUsd,
-  formatUsd,
-} from "../../lib/format";
+import { formatOptionalPercent, formatOptionalUsd } from "../../lib/format";
 import { type TrackedPool } from "../../lib/types";
 
 import { CampaignsBadge } from "./campaignsBadge";
@@ -53,7 +49,7 @@ export const PoolsTable = function ({ pools }: Props) {
                 <div>
                   <dt className="text-xs text-neutral-500">24h Volume</dt>
                   <dd className="font-semibold text-neutral-950">
-                    {formatUsd(pool.volumeUsd24h)}
+                    {formatOptionalUsd(pool.volumeUsd24h)}
                   </dd>
                 </div>
                 <div>
@@ -116,7 +112,7 @@ export const PoolsTable = function ({ pools }: Props) {
                   {formatOptionalUsd(pool.tvlUsd)}
                 </td>
                 <td className="py-3 pr-4 text-right font-medium text-neutral-950">
-                  {formatUsd(pool.volumeUsd24h)}
+                  {formatOptionalUsd(pool.volumeUsd24h)}
                 </td>
                 <td className="py-3 pr-4 text-right font-medium text-neutral-950">
                   {formatOptionalPercent(pool.baseApy)}

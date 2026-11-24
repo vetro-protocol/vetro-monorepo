@@ -1,37 +1,84 @@
-import { type QueryClient } from "@tanstack/react-query";
+import {
+  type DexPool,
+  type DexRewardToken,
+  knownTokens,
+} from "@vetro-protocol/core";
+import { isAddressEqual } from "viem";
+import { hemi, mainnet } from "viem/chains";
+import { symbol } from "viem-erc20/actions";
 
-import { trackedTokensOptions } from "../hooks/useTrackedTokens";
-import { type TrackedPool } from "../lib/types";
+import { client, hemiClient } from "../lib/client";
+import { shortenAddress } from "../lib/format";
+import { toTrackedPool } from "../lib/trackedPool";
 
-import { fetchBrownfiPools } from "./fetchBrownfiPools";
-import { fetchCurvePools } from "./fetchCurvePools";
-import { fetchSushiPools } from "./fetchSushiPools";
-import { fetchUniswapPools } from "./fetchUniswapPools";
+const clients = { [hemi.id]: hemiClient, [mainnet.id]: client };
 
-export const fetchTrackedPools = async function (queryClient: QueryClient) {
-  const tokens = await queryClient.ensureQueryData(trackedTokensOptions());
-  const trackedAddresses = new Set(
-    tokens.map((token) => token.address.toLowerCase()),
+const tokenKey = ({ address, chainId }: DexRewardToken) =>
+  `${chainId}-${address.toLowerCase()}`;
+
+const fetchSymbol = async function (token: DexRewardToken) {
+  const known = knownTokens.find(
+    (candidate) =>
+      candidate.chainId === token.chainId &&
+      isAddressEqual(candidate.address, token.address),
   );
-  const trackedSymbols = new Set(tokens.map((token) => token.symbol));
-
-  // Keep the rest of the list alive when a single source fails. Only surface an
-  // error when every source fails, so a real outage isn't silently shown as an
-  // empty pool list.
-  const results = await Promise.allSettled([
-    fetchBrownfiPools(trackedSymbols),
-    fetchCurvePools(trackedAddresses),
-    fetchSushiPools(trackedAddresses),
-    fetchUniswapPools(queryClient),
-  ]);
-
-  const fulfilled = results.filter(
-    (result): result is PromiseFulfilledResult<TrackedPool[]> =>
-      result.status === "fulfilled",
-  );
-  if (fulfilled.length === 0) {
-    throw (results[0] as PromiseRejectedResult).reason;
+  if (known) {
+    return known.symbol;
   }
+  const chainClient = clients[token.chainId as keyof typeof clients];
+  return chainClient
+    ? symbol(chainClient, { address: token.address }).catch(() =>
+        shortenAddress(token.address),
+      )
+    : shortenAddress(token.address);
+};
 
-  return fulfilled.flatMap((result) => result.value);
+const poolTokens = (pool: DexPool) => [
+  ...pool.coins.map((coin) => ({
+    address: coin.address,
+    chainId: pool.chainId,
+  })),
+  ...pool.rewards.flatMap((reward) => reward.tokens),
+];
+
+export const fetchTrackedPools = async function () {
+  // fetch-plus-plus needs Node's http.Agent for http:// URLs, such as the dev
+  // proxy, so this uses the native fetch.
+  const response = await fetch(
+    `${import.meta.env.VITE_VETRO_API_URL}/liquidity/pools?includeLowTvl=true&includeRanges=true`,
+  );
+  if (!response.ok) {
+    throw new Error(`Failed to get the DEX pools: ${response.status}`);
+  }
+  const pools: DexPool[] = await response.json();
+
+  const tokens = [
+    ...new Map(
+      pools.flatMap(poolTokens).map((token) => [tokenKey(token), token]),
+    ).values(),
+  ];
+  const symbols = new Map(
+    await Promise.all(
+      tokens.map(
+        async (token) => [tokenKey(token), await fetchSymbol(token)] as const,
+      ),
+    ),
+  );
+  const symbolOf = (token: DexRewardToken) => symbols.get(tokenKey(token))!;
+
+  const rangedAddresses = pools
+    .filter((pool) => pool.range !== undefined)
+    .map((pool) => pool.address);
+
+  return pools.map((pool) =>
+    toTrackedPool({
+      hasRangeRows:
+        pool.range === undefined &&
+        rangedAddresses.some((address) =>
+          isAddressEqual(address, pool.address),
+        ),
+      pool,
+      symbolOf,
+    }),
+  );
 };
