@@ -11,8 +11,8 @@ vi.mock("../src/graphql.ts", () => ({
   runQuery: vi.fn(),
 }));
 
-// The live APY point is read from the warmed `variable-stake:apy` cache via
-// readWarmedTask, so mock it to control the live value per test; the underlying
+// The live APY point is read from the vault-specific warmed `variable-stake:apy`
+// cache entry via readWarmedTask, so mock it to control the live value per test; the underlying
 // on-chain computation is covered by variable-stake's tests. The task-factory
 // helpers are re-exported as identities so warm-tasks.ts still loads.
 vi.mock("../src/warm-cache.ts", () => ({
@@ -48,9 +48,7 @@ describe("apy-history/getApyHistory", function () {
     vi.useFakeTimers();
     vi.setSystemTime(now);
     // Default: the vault is present in the warmed cache with an active APY.
-    vi.mocked(readWarmedTask).mockResolvedValue({
-      [sVusdAddress]: { apy: liveApy },
-    });
+    vi.mocked(readWarmedTask).mockResolvedValue({ apy: liveApy });
   });
 
   afterEach(function () {
@@ -84,9 +82,7 @@ describe("apy-history/getApyHistory", function () {
     // A subgraph point on today's UTC day whose APY equals the live value.
     const sameDayApr = "50000000000000000";
     const sameDayApy = aprWadToApy(BigInt(sameDayApr));
-    vi.mocked(readWarmedTask).mockResolvedValue({
-      [sVusdAddress]: { apy: sameDayApy },
-    });
+    vi.mocked(readWarmedTask).mockResolvedValue({ apy: sameDayApy });
     vi.mocked(graphql.runQuery).mockResolvedValue({
       vaultAprHistories: [
         { apr: "100000000000000000", timestamp: "1707782400" },
@@ -137,26 +133,10 @@ describe("apy-history/getApyHistory", function () {
   });
 
   it("appends a live point of 0 as a genuine reading", async function () {
-    vi.mocked(readWarmedTask).mockResolvedValue({
-      [sVusdAddress]: { apy: 0 },
-    });
+    vi.mocked(readWarmedTask).mockResolvedValue({ apy: 0 });
     vi.mocked(graphql.runQuery).mockResolvedValue({ vaultAprHistories: [] });
 
     expect(await fetchHistory()).toEqual([{ apy: 0, timestamp: now }]);
-  });
-
-  it("returns only the subgraph series when the vault is absent from the warmed cache", async function () {
-    // The vault's warm-time reads failed, so it is omitted from the cached record.
-    vi.mocked(readWarmedTask).mockResolvedValue({});
-    vi.mocked(graphql.runQuery).mockResolvedValue({
-      vaultAprHistories: [
-        { apr: "100000000000000000", timestamp: "1707782400" },
-      ],
-    });
-
-    expect(await fetchHistory()).toEqual([
-      { apy: aprWadToApy(100000000000000000n), timestamp: 1_707_782_400_000 },
-    ]);
   });
 
   it("returns only the subgraph series when the warmed read fails", async function () {
@@ -172,6 +152,9 @@ describe("apy-history/getApyHistory", function () {
     expect(await fetchHistory()).toEqual([
       { apy: aprWadToApy(100000000000000000n), timestamp: 1_707_782_400_000 },
     ]);
+    expect(readWarmedTask).toHaveBeenCalledWith(
+      expect.objectContaining({ item: sVusdAddress }),
+    );
     warn.mockRestore();
   });
 
