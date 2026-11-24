@@ -89,8 +89,8 @@ export const fetchSushiPoolData = async function (address: Address) {
     liquidityUsd: pool.liquidityUSD, // whole-pool TVL, as Sushi values it
     name: pool.name,
     reserve0: BigInt(pool.reserve0), // raw balance of token0 held by the pool
-    reserve1: BigInt(pool.reserve1), // raw balance of token1 held by the pool
-    swapFee: pool.swapFee, // fraction (0.0005 = 0.05%)
+    reserve1: BigInt(pool.reserve1),
+    swapFee: pool.swapFee, // fee tier as a fraction (0.0005 = 0.05%)
     token0: { ...pool.token0, address: getAddress(pool.token0.address) },
     token0Price: pool.token0Price, // token0 per token1
     token1: { ...pool.token1, address: getAddress(pool.token1.address) },

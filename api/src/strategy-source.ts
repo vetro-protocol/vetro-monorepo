@@ -122,7 +122,7 @@ export const getStrategySource = async function ({
   name: string;
   receiptToken: Address | undefined;
   stakeDaoStrategies: StakeDaoStrategy[] | null;
-}) {
+}): Promise<StrategySource | undefined> {
   const source = getFreshStrategySource({
     name,
     receiptToken,

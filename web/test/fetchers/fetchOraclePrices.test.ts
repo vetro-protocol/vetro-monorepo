@@ -1,3 +1,4 @@
+import type { Token } from "@vetro-protocol/core";
 import { tokenConfigOptions } from "hooks/useTokenConfig";
 import { whitelistedTokensByGatewayOptions } from "hooks/useWhitelistedTokensByGateway";
 import { type Address, type Client, zeroAddress } from "viem";
@@ -31,7 +32,7 @@ const createMockToken = (
   symbol: string,
   address: Address,
   priceSymbol?: string,
-) => ({
+): Token => ({
   address,
   chainId: 1,
   decimals: 18,
