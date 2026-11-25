@@ -57,7 +57,7 @@ The same actions are also available via `.extend()` factories (`earnPublicAction
 
 - Public actions (reads), exported from `/actions`. `address` is the staking vault, except in `getPeriodFinish` and `getRewardRate`, where it is the vault's yield distributor:
   - `getActiveRequestIds(client, { account, address })` — open withdraw request IDs for `account`.
-  - `getClaimableRequests(client, { account, address })` — request IDs of `account` whose cooldown has elapsed.
+  - `getClaimableRequests(client, { account, address })` — the claimable requests of `account`, as the tuple `[requestIds, assets]` of two parallel arrays.
   - `getCooldownDuration(client, { address })` — cooldown length in seconds.
   - `getCooldownEnabled(client, { address })` — whether the cooldown is enforced.
   - `getInstantWithdrawWhitelist(client, { account, address })` — whether `account` is allowed to bypass the cooldown.

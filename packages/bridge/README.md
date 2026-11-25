@@ -13,7 +13,7 @@ pnpm add @vetro-protocol/bridge viem viem-erc20
 - Works with both pure OFT contracts and OFTAdapter contracts.
 - Approval is auto-detected via on-chain `approvalRequired()`. When required, the underlying ERC20 is read from `token()` and the standard allowance/approve flow runs before the send.
 - Caller owns chain/contract addressing; the package only knows the `chainId → LayerZero EID` mapping (see the table below).
-- Slippage defaults to zero (`minAmountLD === amount`); pass `minAmount` to opt in to a tolerance. The OFT drops the dust below its shared decimals before it compares with `minAmountLD`, so when `amount` has dust and no `minAmount` is set, the quote fails with `SlippageExceeded` and no transaction is sent. Round `amount` down to the shared decimals, or pass a `minAmount` at or below the amount without the dust.
+- Slippage defaults to zero (`minAmountLD === amount`); pass `minAmount` to opt in to a tolerance. The OFT drops the dust below its shared decimals before it compares with `minAmountLD`, so when `amount` has dust and no `minAmount` is set, the quote fails with `SlippageExceeded` and no transaction is sent. `amount` must be at least one shared-decimal unit. Round `amount` down to the shared decimals, or pass a positive `minAmount` at or below the amount without the dust.
 
 Supported chains (chainId → LayerZero EID):
 

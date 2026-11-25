@@ -3,7 +3,6 @@ export * from "./public/getMarketParams.ts";
 // directly
 export { borrowAssets, encodeBorrowAssets } from "./wallet/borrowAssets.ts";
 export * from "./wallet/repayAssets.ts";
-// Keep runSupplyCollateralCore internal, as with runBorrowAssetsCore above.
 export {
   encodeSupplyCollateral,
   supplyCollateral,
