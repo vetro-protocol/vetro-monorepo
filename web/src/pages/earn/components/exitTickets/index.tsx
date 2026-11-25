@@ -34,11 +34,13 @@ const statusLabels = {
 
 export const getColumns = ({
   isWithdrawingAll,
+  now,
   onDeleteSuccess,
   onWithdrawingChange,
   t,
 }: {
   isWithdrawingAll: boolean;
+  now: number;
   onDeleteSuccess: VoidFunction;
   onWithdrawingChange: (isWithdrawing: boolean) => void;
   t: ReturnType<typeof useTranslation>["t"];
@@ -67,7 +69,7 @@ export const getColumns = ({
   },
   {
     cell({ row }) {
-      const status = getTicketStatus(row.original);
+      const status = getTicketStatus({ now, ticket: row.original });
       if (status === "cancelled") {
         return null;
       }
@@ -172,7 +174,10 @@ export function ExitTickets() {
   const [withdrawingSingleCount, setWithdrawingSingleCount] = useState(0);
 
   const readyTickets = useMemo(
-    () => (data ?? []).filter((ticket) => getTicketStatus(ticket) === "ready"),
+    () =>
+      (data ?? []).filter(
+        (ticket) => getTicketStatus({ now, ticket }) === "ready",
+      ),
     [data, now],
   );
 
@@ -194,6 +199,7 @@ export function ExitTickets() {
     () =>
       getColumns({
         isWithdrawingAll: isWithdrawAllDrawerOpen,
+        now,
         onDeleteSuccess() {
           setShowDeleteToast(true);
         },
@@ -202,7 +208,7 @@ export function ExitTickets() {
         },
         t,
       }),
-    [isWithdrawAllDrawerOpen, t],
+    [isWithdrawAllDrawerOpen, now, t],
   );
 
   // Filter and sort data based on selected filters and ticket status
@@ -213,7 +219,7 @@ export function ExitTickets() {
       }
       return data
         .filter(function (ticket) {
-          const status = getTicketStatus(ticket);
+          const status = getTicketStatus({ now, ticket });
           if (
             selectedFilters.includes("pending") &&
             (status === "cooldown" || status === "ready")
@@ -227,8 +233,10 @@ export function ExitTickets() {
         })
         .sort(function (a, b) {
           // Ready tickets first, then most recent first
-          const aReady = getTicketStatus(a) === "ready" ? 0 : 1;
-          const bReady = getTicketStatus(b) === "ready" ? 0 : 1;
+          const aReady =
+            getTicketStatus({ now, ticket: a }) === "ready" ? 0 : 1;
+          const bReady =
+            getTicketStatus({ now, ticket: b }) === "ready" ? 0 : 1;
           if (aReady !== bReady) {
             return aReady - bReady;
           }

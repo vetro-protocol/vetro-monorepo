@@ -1,6 +1,7 @@
 import { SectionHeader } from "components/base/sectionHeader";
 import { Table } from "components/base/table";
 import { useTranslation } from "react-i18next";
+import { unixNowTimestamp } from "utils/date";
 
 import { getColumns } from ".";
 
@@ -11,6 +12,7 @@ export function ExitTicketsSkeleton() {
   const { t } = useTranslation();
   const columns = getColumns({
     isWithdrawingAll: false,
+    now: unixNowTimestamp(),
     onDeleteSuccess() {},
     onWithdrawingChange() {},
     t,

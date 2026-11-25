@@ -115,15 +115,17 @@ describe("ContactForm", function () {
     await expect.element(topic).toHaveFocus();
     await userEvent.tab();
 
+    const topicError = screen.getByText("Please select a topic.").element();
+
+    await expect.element(topicError).toHaveAttribute("role", "alert");
     await expect
-      .element(screen.getByText("Please select a topic."))
-      .toBeInTheDocument();
+      .element(topic)
+      .toHaveAttribute("aria-describedby", topicError.id);
 
     await selectEarnTopic(topic);
 
-    await expect
-      .element(screen.getByText("Please select a topic."))
-      .not.toBeInTheDocument();
+    await expect.element(topicError).not.toBeInTheDocument();
+    await expect.element(topic).not.toHaveAttribute("aria-describedby");
   });
 
   it("rejects a message with only whitespace", async function () {

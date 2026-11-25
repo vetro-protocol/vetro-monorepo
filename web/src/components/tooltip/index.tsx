@@ -59,11 +59,14 @@ export const Tooltip = function ({
   const isFocusTarget = canOpen && !hasFocusableChild;
   const isNamedTrigger = isFocusTarget && Boolean(topic);
 
-  useLayoutEffect(function () {
-    setHasFocusableChild(
-      Boolean(triggerRef.current?.querySelector(focusableSelector)),
-    );
-  });
+  useLayoutEffect(
+    function () {
+      setHasFocusableChild(
+        Boolean(triggerRef.current?.querySelector(focusableSelector)),
+      );
+    },
+    [children],
+  );
 
   useEffect(
     function () {
