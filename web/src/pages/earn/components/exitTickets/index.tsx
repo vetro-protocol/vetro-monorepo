@@ -32,15 +32,28 @@ const statusLabels = {
   withdrawn: "pages.earn.exit-tickets.withdrawn",
 } as const;
 
+function StatusCell({ ticket }: { ticket: ExitTicket }) {
+  const { t } = useTranslation();
+  const now = useNowTickingPast([ticket], () =>
+    ticket.cancelTxHash || ticket.claimTxHash
+      ? undefined
+      : Number(ticket.claimableAt),
+  );
+  const status = getTicketStatus({ now, ticket });
+
+  if (status === "cancelled") {
+    return null;
+  }
+  return <StatusBadge variant={status}>{t(statusLabels[status])}</StatusBadge>;
+}
+
 export const getColumns = ({
   isWithdrawingAll,
-  now,
   onDeleteSuccess,
   onWithdrawingChange,
   t,
 }: {
   isWithdrawingAll: boolean;
-  now: number;
   onDeleteSuccess: VoidFunction;
   onWithdrawingChange: (isWithdrawing: boolean) => void;
   t: ReturnType<typeof useTranslation>["t"];
@@ -68,15 +81,7 @@ export const getColumns = ({
     meta: { width: "136px" },
   },
   {
-    cell({ row }) {
-      const status = getTicketStatus({ now, ticket: row.original });
-      if (status === "cancelled") {
-        return null;
-      }
-      return (
-        <StatusBadge variant={status}>{t(statusLabels[status])}</StatusBadge>
-      );
-    },
+    cell: ({ row }) => <StatusCell ticket={row.original} />,
     header: () => <Header text={t("pages.earn.exit-tickets.col-status")} />,
     id: "status",
     meta: { width: "190px" },
@@ -199,7 +204,6 @@ export function ExitTickets() {
     () =>
       getColumns({
         isWithdrawingAll: isWithdrawAllDrawerOpen,
-        now,
         onDeleteSuccess() {
           setShowDeleteToast(true);
         },
@@ -208,7 +212,7 @@ export function ExitTickets() {
         },
         t,
       }),
-    [isWithdrawAllDrawerOpen, now, t],
+    [isWithdrawAllDrawerOpen, t],
   );
 
   // Filter and sort data based on selected filters and ticket status
