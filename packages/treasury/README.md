@@ -19,7 +19,10 @@ pnpm add @vetro-protocol/treasury viem
 ## Usage
 
 ```ts
-import { getPrice, getWhitelistedTokens } from "@vetro-protocol/treasury";
+import {
+  getPrice,
+  getWhitelistedTokens,
+} from "@vetro-protocol/treasury/actions";
 import { createPublicClient, http } from "viem";
 import { hemi } from "viem/chains";
 
@@ -41,12 +44,12 @@ The same actions are also available via the `.extend()` factory (`treasuryPublic
 
 ## API
 
-- Public actions (reads):
-  - `getKeeperRole(client, params)` — the `bytes32` hash of the treasury's keeper role.
-  - `getPrice(client, params)` — oracle price for a whitelisted token, in the treasury's peg unit.
-  - `getReserve(client, params)` — the total value of all whitelisted tokens the treasury holds (its balance plus each token's vault position), in the pegged token (18 decimals). Params: `address` (the treasury).
-  - `getTokenConfig(client, params)` — per-token configuration as named fields: `decimals`, `depositActive`, `oracle`, `stalePeriod`, `vault` and `withdrawActive`.
-  - `getWhitelistedTokens(client, params)` — full list of accepted underlying tokens.
-  - `getWithdrawable(client, params)` — current withdrawable amount for a token.
+- Public actions (reads), exported from `/actions`. In every one, `address` is the treasury:
+  - `getKeeperRole(client, { address })` — the `bytes32` hash of the treasury's keeper role.
+  - `getPrice(client, { address, token })` — oracle price for a whitelisted token, as the tuple `[latestPrice, unitPrice]`, in the treasury's peg unit.
+  - `getReserve(client, { address })` — the total value of all whitelisted tokens the treasury holds (its balance plus each token's vault position), in the pegged token (18 decimals).
+  - `getTokenConfig(client, { address, token })` — per-token configuration, as the tuple `[vault, oracle, stalePeriod, depositActive, withdrawActive, decimals]`.
+  - `getWhitelistedTokens(client, { address })` — full list of accepted underlying tokens.
+  - `getWithdrawable(client, { address, token })` — current withdrawable amount for `token`.
 - `treasuryPublicActions()` — viem extension factory that wires the same actions onto a client via `.extend()`.
 - `treasuryAbi` — the minimal ABI subset used by the package.

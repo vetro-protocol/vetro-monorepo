@@ -96,11 +96,12 @@ For insufficient native balance, `send-failed-validation` reports
 
 ## API
 
-- `quoteSend(client, params)` — public action; reads the LayerZero messaging fee for a send.
-- `approvalRequired(client, params)` — public action; reads `approvalRequired()` on the OFT/OFTAdapter.
-- `token(client, params)` — public action; reads the underlying ERC20 wrapped by an OFTAdapter.
-- `send(walletClient, params)` — wallet action; runs the full bridge flow (auto-approval + send) and returns `{ emitter, promise }`.
-- `encodeSend(params)` — synchronous helper that returns the encoded `send` calldata. The caller must pre-quote the LayerZero fee (e.g. with `quoteSend`) and pass it in.
+- Public actions (reads), exported from `/actions`:
+  - `quoteSend(client, { amount, destinationChainId, minAmount?, oftAddress, recipient })` — the LayerZero messaging fee for a send, as `{ lzTokenFee, nativeFee }`.
+  - `approvalRequired(client, { oftAddress })` — reads `approvalRequired()` on the OFT/OFTAdapter.
+  - `token(client, { oftAddress })` — the underlying ERC20 wrapped by an OFTAdapter.
+- Wallet action (write), exported from `/actions`: `send(walletClient, { amount, approveAmount?, destinationChainId, minAmount?, oftAddress, recipient })` — runs the full bridge flow (auto-approval + send) and returns `{ emitter, promise }`. `approveAmount` defaults to `amount`. The action quotes the LayerZero fee itself, and any refund goes to the wallet account.
+- `encodeSend({ amount, destinationChainId, fee, minAmount?, recipient, refundAddress })` — synchronous helper that returns the encoded `send` calldata. The caller must pre-quote the LayerZero fee (e.g. with `quoteSend`) and pass it in as `fee`.
 - `bridgePublicActions()` / `bridgeWalletActions()` — viem extension factories that wire the same actions onto a client via `.extend()`.
 - `oftAbi` — the minimal ABI subset used by the package (`send`, `quoteSend`, `approvalRequired`, `token`).
 - Types: `SendEvents`.

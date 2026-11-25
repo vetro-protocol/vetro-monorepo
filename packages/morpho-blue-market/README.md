@@ -72,8 +72,17 @@ From `@vetro-protocol/morpho-blue-market/actions`:
 
 - Public actions (reads):
   - `getMarketParams({ address, client, marketId })` — the market's `MarketParams`: `collateralToken`, `irm`, `lltv`, `loanToken` and `oracle`.
-- Wallet actions (writes): `borrowAssets`, `repayAssets`, `supplyCollateral`, `supplyCollateralAndBorrow`, `withdrawCollateral`. Each is called as `action(walletClient, params)` and returns `{ emitter, promise }`.
-- Calldata encoders: `encodeBorrowAssets`, `encodeRepayAssets`, `encodeSupplyCollateral`, `encodeWithdrawCollateral`.
+- Wallet actions (writes): each returns `{ emitter, promise }`. Every one takes the Morpho Blue contract `address` and the `marketId`. `approveAmount` is optional and defaults to the amount being supplied or repaid.
+  - `borrowAssets(walletClient, { address, amount, marketId, onBehalf, receiver })` — borrows `amount` of the loan token against `onBehalf`'s collateral and sends it to `receiver`.
+  - `repayAssets(walletClient, { address, amount, approveAmount?, marketId, onBehalf })` — repays `amount` of the loan token for `onBehalf`, approving it first if needed.
+  - `supplyCollateral(walletClient, { address, amount, approveAmount?, marketId, onBehalf })` — supplies `amount` of the collateral token for `onBehalf`, approving it first if needed.
+  - `supplyCollateralAndBorrow(walletClient, { address, approveAmount?, borrowAmount, collateralAmount, marketId, onBehalf, receiver })` — supplies `collateralAmount`, then borrows `borrowAmount` and sends it to `receiver`. `approveAmount` defaults to `collateralAmount`.
+  - `withdrawCollateral(walletClient, { address, amount, marketId, onBehalf, receiver })` — withdraws `amount` of `onBehalf`'s collateral to `receiver`.
+- Calldata encoders: each returns the calldata of one write without sending anything. They take `marketParams` instead of `address` and `marketId`.
+  - `encodeBorrowAssets({ amount, marketParams, onBehalf, receiver })` — `borrow`.
+  - `encodeRepayAssets({ amount, marketParams, onBehalf })` — `repay`.
+  - `encodeSupplyCollateral({ amount, marketParams, onBehalf })` — `supplyCollateral`.
+  - `encodeWithdrawCollateral({ amount, marketParams, onBehalf, receiver })` — `withdrawCollateral`.
 
 From `@vetro-protocol/morpho-blue-market`:
 
