@@ -296,12 +296,6 @@
       }
     },
     {
-      "files": ["api/src/contact.ts", "api/src/param-validators.ts"],
-      "rules": {
-        "@typescript-eslint/consistent-type-definitions": "off"
-      }
-    },
-    {
       "excludedFiles": ["web/src/utils/date.ts", "web/src/utils/format.ts"],
       "files": ["web/src/**/*.{ts,tsx}"],
       "rules": {

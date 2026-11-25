@@ -4,6 +4,7 @@ import type { Context, Next } from "hono";
 import { type Address, checksumAddress, isAddress } from "viem";
 
 declare module "hono" {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions -- Declaration merging needs an interface.
   interface ContextVariableMap {
     gatewayAddress: Address;
     stakingVaultAddress: Address;

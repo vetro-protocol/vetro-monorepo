@@ -8,6 +8,7 @@ type ContactForm = {
 };
 
 declare module "hono" {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions -- Declaration merging needs an interface.
   interface ContextVariableMap {
     contactForm: ContactForm;
     // Unknown because it comes straight off the multipart
