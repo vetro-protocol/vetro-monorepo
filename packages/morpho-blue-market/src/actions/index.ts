@@ -1,6 +1,4 @@
 export * from "./public/getMarketParams.ts";
-// The run*Core helpers are internal: supplyCollateralAndBorrow imports them
-// directly
 export { borrowAssets, encodeBorrowAssets } from "./wallet/borrowAssets.ts";
 export * from "./wallet/repayAssets.ts";
 export {
