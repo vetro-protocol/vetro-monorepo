@@ -71,7 +71,12 @@ export async function getTreasuryComposition({
   const treasuryTokens = await Promise.all(
     whitelistedTokens.map(async function (tokenAddress) {
       const [
-        [vaultAddress, oracleAddress, stalePeriod, , , tokenDecimals],
+        {
+          decimals: tokenDecimals,
+          oracle: oracleAddress,
+          stalePeriod,
+          vault: vaultAddress,
+        },
         withdrawable,
       ] = await Promise.all([
         getTokenConfig(client, {

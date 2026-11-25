@@ -17,7 +17,7 @@ const oraclePegPrice = async function ({
   token: Address;
   treasury: Address;
 }) {
-  const [, oracle] = await getTokenConfig(client, { address: treasury, token });
+  const { oracle } = await getTokenConfig(client, { address: treasury, token });
   const { decimals, price } = await getLatestPrice({ address: oracle, client });
   return price > 0n ? Number(formatUnits(price, decimals)) : undefined;
 };
