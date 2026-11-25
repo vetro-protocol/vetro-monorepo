@@ -82,14 +82,14 @@ describe("redeem", function () {
     // Default: treasury has enough balance for all tests
     vi.mocked(getMaxWithdraw).mockResolvedValue(BigInt(1_000_000));
     vi.mocked(getTreasury).mockResolvedValue(mockTreasuryAddress);
-    vi.mocked(getTokenConfig).mockResolvedValue([
-      zeroAddress,
-      zeroAddress,
-      0n,
-      true,
-      true,
-      18,
-    ]);
+    vi.mocked(getTokenConfig).mockResolvedValue({
+      decimals: 18,
+      depositActive: true,
+      oracle: zeroAddress,
+      stalePeriod: 0n,
+      vault: zeroAddress,
+      withdrawActive: true,
+    });
   });
 
   it("should emit 'redeem-failed-validation' if client is not defined", async function () {
@@ -446,14 +446,14 @@ describe("redeem", function () {
   });
 
   it("should reject redemptions when the Treasury token config disables withdrawals", async function () {
-    vi.mocked(getTokenConfig).mockResolvedValueOnce([
-      zeroAddress,
-      zeroAddress,
-      0n,
-      true,
-      false,
-      18,
-    ]);
+    vi.mocked(getTokenConfig).mockResolvedValueOnce({
+      decimals: 18,
+      depositActive: true,
+      oracle: zeroAddress,
+      stalePeriod: 0n,
+      vault: zeroAddress,
+      withdrawActive: false,
+    });
 
     const { emitter, promise } = redeem(mockWalletClient, validParameters);
     const onRedeemFailedValidation = vi.fn();

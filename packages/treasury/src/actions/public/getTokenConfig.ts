@@ -31,10 +31,20 @@ export async function getTokenConfig(
     throw new Error("Token is invalid");
   }
 
-  return readContract(client, {
-    abi: treasuryAbi,
-    address: parameters.address,
-    args: [parameters.token],
-    functionName: "tokenConfig",
-  });
+  const [vault, oracle, stalePeriod, depositActive, withdrawActive, decimals] =
+    await readContract(client, {
+      abi: treasuryAbi,
+      address: parameters.address,
+      args: [parameters.token],
+      functionName: "tokenConfig",
+    });
+
+  return {
+    decimals,
+    depositActive,
+    oracle,
+    stalePeriod,
+    vault,
+    withdrawActive,
+  };
 }

@@ -2,21 +2,7 @@ import { getTreasury } from "@vetro-protocol/gateway/actions";
 import { getTokenConfig } from "@vetro-protocol/treasury/actions";
 import { type Address, type Client } from "viem";
 
-export type TokenConfig = {
-  decimals: number;
-  depositActive: boolean;
-  oracle: Address;
-  stalePeriod: bigint;
-  vault: Address;
-  withdrawActive: boolean;
-};
-
-/**
- * Reads a whitelisted token's treasury config as named fields. The action
- * returns the contract's positional tuple, so this helper maps it to named
- * fields.
- */
-export async function readTokenConfig({
+export const readTokenConfig = ({
   client,
   token,
   treasury,
@@ -24,18 +10,7 @@ export async function readTokenConfig({
   client: Client;
   token: Address;
   treasury: Address;
-}) {
-  const [vault, oracle, stalePeriod, depositActive, withdrawActive, decimals] =
-    await getTokenConfig(client, { address: treasury, token });
-  return {
-    decimals,
-    depositActive,
-    oracle,
-    stalePeriod,
-    vault,
-    withdrawActive,
-  } satisfies TokenConfig;
-}
+}) => getTokenConfig(client, { address: treasury, token });
 
 export async function readGatewayTokenConfig({
   client,

@@ -23,22 +23,7 @@ export const tokenConfigOptions = ({
       const treasuryAddress = await queryClient.ensureQueryData(
         treasuryAddressOptions({ chainId, client, gatewayAddress }),
       );
-      const [
-        vault,
-        oracle,
-        stalePeriod,
-        depositActive,
-        withdrawActive,
-        decimals,
-      ] = await getTokenConfig(client!, { address: treasuryAddress, token });
-      return {
-        decimals,
-        depositActive,
-        oracle,
-        stalePeriod,
-        vault,
-        withdrawActive,
-      };
+      return getTokenConfig(client!, { address: treasuryAddress, token });
     },
     queryKey: ["token-config", chainId, gatewayAddress, token],
   });

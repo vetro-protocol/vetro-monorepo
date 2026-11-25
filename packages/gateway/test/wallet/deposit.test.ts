@@ -56,14 +56,14 @@ const validParameters = {
 describe("deposit", function () {
   beforeEach(function () {
     vi.mocked(getTreasury).mockResolvedValue(mockTreasuryAddress);
-    vi.mocked(getTokenConfig).mockResolvedValue([
-      zeroAddress,
-      zeroAddress,
-      0n,
-      true,
-      true,
-      18,
-    ]);
+    vi.mocked(getTokenConfig).mockResolvedValue({
+      decimals: 18,
+      depositActive: true,
+      oracle: zeroAddress,
+      stalePeriod: 0n,
+      vault: zeroAddress,
+      withdrawActive: true,
+    });
   });
 
   it("should emit 'deposit-failed-validation' if client is not defined", async function () {
@@ -437,14 +437,14 @@ describe("deposit", function () {
   });
 
   it("should reject deposits when the Treasury token config disables deposits", async function () {
-    vi.mocked(getTokenConfig).mockResolvedValueOnce([
-      zeroAddress,
-      zeroAddress,
-      0n,
-      false,
-      true,
-      18,
-    ]);
+    vi.mocked(getTokenConfig).mockResolvedValueOnce({
+      decimals: 18,
+      depositActive: false,
+      oracle: zeroAddress,
+      stalePeriod: 0n,
+      vault: zeroAddress,
+      withdrawActive: true,
+    });
 
     const { emitter, promise } = deposit(mockWalletClient, validParameters);
     const onDepositFailedValidation = vi.fn();
