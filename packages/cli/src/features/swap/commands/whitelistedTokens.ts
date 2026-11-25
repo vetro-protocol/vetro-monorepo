@@ -1,12 +1,14 @@
 import { getTreasury } from "@vetro-protocol/gateway/actions";
-import { getWhitelistedTokens } from "@vetro-protocol/treasury/actions";
+import {
+  getTokenConfig,
+  getWhitelistedTokens,
+} from "@vetro-protocol/treasury/actions";
 import { type Command } from "commander";
 import { type Address } from "viem";
 
 import { parseGateway } from "../../../lib/args.ts";
 import { type GlobalOptions, createVetroClient } from "../../../lib/client.ts";
 import { printResult } from "../../../lib/output.ts";
-import { readTokenConfig } from "../../../lib/tokenConfig.ts";
 import { readToken } from "../../../lib/tokens.ts";
 
 export function register(swap: Command) {
@@ -26,7 +28,7 @@ export function register(swap: Command) {
           const [{ decimals, symbol }, { depositActive, withdrawActive }] =
             await Promise.all([
               readToken({ address, client }),
-              readTokenConfig({ client, token: address, treasury }),
+              getTokenConfig(client, { address: treasury, token: address }),
             ]);
           return { address, decimals, depositActive, symbol, withdrawActive };
         }),
