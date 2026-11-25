@@ -67,8 +67,8 @@ The same actions are also available via `.extend()` factories (`earnPublicAction
   - `getRewardRate(client, { address })` — WAD-scaled amount of yield dripped per second into the vault.
   - `getTotalAssetsInCooldown(client, { address })` — assets locked across all pending requests.
   - `getYieldDistributor(client, { address })` — address of the vault's yield distributor.
-- Wallet actions (writes), exported from `/actions`. Each returns `{ emitter, promise }`. `approveAmount` is optional and defaults to `assets`:
-  - `deposit(walletClient, { approveAmount?, assets, receiver, token, vaultAddress })` — `token` is the underlying token that gets approved.
+- Wallet actions (writes), exported from `/actions`. Each returns `{ emitter, promise }`:
+  - `deposit(walletClient, { approveAmount?, assets, receiver, token, vaultAddress })` — `token` is the underlying token that gets approved. `approveAmount` is optional and defaults to `assets`.
   - `requestRedeem(walletClient, { owner, shares, vaultAddress })`.
   - `requestWithdraw(walletClient, { assets, owner, vaultAddress })`.
   - `claimWithdraw(walletClient, { receiver, requestId, vaultAddress })`.
