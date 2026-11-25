@@ -5,7 +5,7 @@ import { hemi } from "viem/chains";
 import { brownfiPoolUrl } from "../config/brownfi";
 import { type BrownfiPool, fetchVetroPools } from "../lib/brownfiApi";
 import { poolTvlUsd } from "../lib/poolMetrics";
-import { type PoolCoin, type TrackedPool } from "../lib/types";
+import { type TrackedPool } from "../lib/types";
 
 const hour = 60 * 60;
 
@@ -21,7 +21,7 @@ const buildCoin = function ({
   balance: string;
   nativeUsdPrice: number | undefined;
   token: BrownfiPool["token0"];
-}): PoolCoin {
+}) {
   const decimals = Number(token.decimals);
   const derived = Number(token.derivedMatic);
   return {
@@ -98,9 +98,7 @@ const buildPool = function ({
   };
 };
 
-export const fetchBrownfiPools = async function (
-  trackedSymbols: Set<string>,
-): Promise<TrackedPool[]> {
+export const fetchBrownfiPools = async function (trackedSymbols: Set<string>) {
   const tokenAddresses = knownTokens
     .filter(
       (token) => token.chainId === hemi.id && trackedSymbols.has(token.symbol),

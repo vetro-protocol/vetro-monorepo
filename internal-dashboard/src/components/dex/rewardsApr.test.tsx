@@ -30,19 +30,19 @@ type QueryState<T> = {
 const nowSeconds = 1_000_000;
 const day = 24 * 60 * 60;
 
-const pending = <T,>(): QueryState<T> => ({
+const pending = () => ({
   data: undefined,
   dataUpdatedAt: 0,
   error: null,
 });
 
-const settled = <T,>(data: T): QueryState<T> => ({
+const settled = <T,>(data: T) => ({
   data,
   dataUpdatedAt: nowSeconds * 1000,
   error: null,
 });
 
-const failed = <T,>(message: string): QueryState<T> => ({
+const failed = (message: string) => ({
   data: undefined,
   dataUpdatedAt: 0,
   error: new Error(message),

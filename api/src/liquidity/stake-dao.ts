@@ -1,7 +1,8 @@
 import fetchJson from "tiny-fetch-json";
 import { type Address, checksumAddress, isAddressEqual } from "viem";
 
-const campaignsUrl = "https://api-v3.stakedao.org/votemarket/curve";
+const campaignsUrl =
+  "https://hub.stakedao.org/v1/votemarket/curve/campaigns?active=true&fields=endTimestamp,gauge,gaugeChainId,isCanceled,isClosed";
 const strategiesUrl = (chainId: number) =>
   `https://api.stakedao.org/api/strategies/v2/curve/${chainId}.json`;
 
@@ -14,7 +15,7 @@ type Campaign = {
 };
 
 export type StakeDaoStrategy = {
-  apr?: { current: { total: number } };
+  apr?: { current: { total: number | null } };
   chainId: number;
   gaugeAddress: Address | null;
   key: string;
@@ -70,5 +71,13 @@ export const findStrategyByLpToken = ({
     isAddressEqual(strategy.lpToken.address, lpToken),
   );
 
-export const strategyRewardsApr = (strategy: StakeDaoStrategy) =>
-  strategy.apr ? strategy.apr.current.total - strategy.tradingApy : 0;
+export const strategyRewardsApr = function (strategy: StakeDaoStrategy) {
+  if (!strategy.apr) {
+    return 0;
+  }
+  const total = strategy.apr.current.total;
+  if (typeof total !== "number" || !Number.isFinite(total)) {
+    throw new Error("StakeDAO returned a missing or non-finite total APR");
+  }
+  return total - strategy.tradingApy;
+};

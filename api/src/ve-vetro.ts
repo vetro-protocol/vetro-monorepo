@@ -21,7 +21,9 @@ type PositionRow = {
   unlockTime: string;
 };
 
-// graph-node's maximum for `first`. An address is not expected to get close.
+// graph-node's maximum for `first`. Do not paginate until this limit is
+// reached: paging would need extra queries pinned to `indexedBlock` to stay
+// consistent.
 const maxResults = 1000;
 
 const byTokenId = (a: string, b: string) =>
@@ -114,10 +116,22 @@ export async function getVeVetro({
   if (!Array.isArray(claims) || !Array.isArray(veVetroPositions)) {
     throw new Error(`Invalid subgraph response for veVETRO of ${address}`);
   }
-  if (claims.length === maxResults || veVetroPositions.length === maxResults) {
-    console.warn(
-      `Got ${maxResults} veVETRO claims or positions for ${address}. Implement pagination!`,
+  if (claims.length === maxResults) {
+    throw new Error(
+      `Got ${maxResults} veVETRO claims for ${address}; refusing to return a truncated list`,
     );
+  }
+  if (veVetroPositions.length === maxResults) {
+    throw new Error(
+      `Got ${maxResults} veVETRO positions for ${address}; refusing to return a truncated list`,
+    );
+  }
+  for (const claim of claims) {
+    if (claim.veHemiPositions.length === maxResults) {
+      throw new Error(
+        `Got ${maxResults} veHEMI positions for a veVETRO claim of ${address}; refusing to return a truncated list`,
+      );
+    }
   }
   const nowSeconds = Math.floor(Date.now() / 1000);
   return {

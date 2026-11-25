@@ -199,7 +199,7 @@ const htmlHeaders = {
 
 const restrictedCountrySet = new Set(restrictedCountries);
 
-function isGeoRestricted(request: Request): boolean {
+function isGeoRestricted(request: Request) {
   const cf = request.cf;
   if (!cf) {
     return false;

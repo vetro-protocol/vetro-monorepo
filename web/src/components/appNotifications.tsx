@@ -1,7 +1,7 @@
 import { Badge } from "components/base/badge";
 import { Button } from "components/base/button";
 import { ChevronIcon } from "components/base/chevronIcon";
-import { type StackItem, Stack } from "components/base/stack";
+import { Stack } from "components/base/stack";
 import { useAtRiskPositions } from "hooks/borrow/useAtRiskPositions";
 import { useGetRedeemRequests } from "hooks/useGetRedeemRequests";
 import { useI18nNavigate } from "hooks/useI18nNavigate";
@@ -13,7 +13,7 @@ import type { TokenWithGateway } from "types";
 import { formatNumber } from "utils/format";
 import { formatUnits } from "viem";
 
-function useLiquidationItems(): StackItem[] {
+function useLiquidationItems() {
   const { data: positions = [] } = useAtRiskPositions();
   const navigate = useI18nNavigate();
   const { t } = useTranslation();
@@ -87,7 +87,7 @@ function RedeemNotification({
   );
 }
 
-function useRedeemItems(): StackItem[] {
+function useRedeemItems() {
   const { data: requests } = useGetRedeemRequests();
   const now = useNowTickingPast(requests, (r) => Number(r.claimableAt));
 
@@ -141,7 +141,7 @@ function EarnExitTicketsNotification({ count }: { count: number }) {
   );
 }
 
-function useEarnExitTicketItems(): StackItem[] {
+function useEarnExitTicketItems() {
   const { data: tickets } = useExitTickets();
   useNowTickingPast(tickets, (ticket) =>
     ticket.cancelTxHash || ticket.claimTxHash

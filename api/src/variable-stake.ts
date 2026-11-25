@@ -110,36 +110,40 @@ async function computeVaultApy({
   return 0;
 }
 
-/**
- * Compute a forward-looking APY for each configured staking vault via
- * `computeVaultApy`. Returns a record keyed by checksummed vault address. A vault is
- * included with `{ apy: 0 }` when its reads succeed but no drip is active; a vault
- * whose on-chain reads fail is omitted entirely so the frontend can render "-" for
- * it, distinct from a genuine 0% APY.
- */
-export async function getApy({ rpcUrl }: { rpcUrl: string | undefined }) {
+export async function getApyForVault({
+  rpcUrl,
+  vaultAddress,
+}: {
+  rpcUrl: string | undefined;
+  vaultAddress: Address;
+}) {
   const client = createMainnetClient(rpcUrl);
+  const apy = await computeVaultApy({ client, vaultAddress });
+  return { apy };
+}
 
-  const entries = await Promise.all(
-    stakingVaultAddresses.map(async function (vaultAddress) {
-      try {
-        const apy = await computeVaultApy({ client, vaultAddress });
-        return [vaultAddress, { apy }] as const;
-      } catch (error) {
-        // Omit this vault from the response so the frontend shows "-" rather
-        // than a misleading 0%. A single vault's failed on-chain reads (e.g.
-        // an unconfigured distributor or RPC error) must not affect the rest.
-        console.warn(
-          `Failed to compute APY for vault ${vaultAddress}: ${error.message}`,
-        );
-        return null;
-      }
+export async function getApyByVault({
+  readApy,
+}: {
+  readApy: (vaultAddress: Address) => Promise<{ apy: number }>;
+}) {
+  const results = await Promise.allSettled(
+    stakingVaultAddresses.map(async function (stakingVaultAddress) {
+      const data = await readApy(stakingVaultAddress);
+      return { data, stakingVaultAddress };
     }),
   );
-
-  return Object.fromEntries(
-    entries.filter((entry) => entry !== null),
+  const data = Object.fromEntries(
+    results.flatMap((result) =>
+      result.status === "fulfilled"
+        ? [[result.value.stakingVaultAddress, result.value.data] as const]
+        : [],
+    ),
   ) as Record<Address, { apy: number }>;
+  if (Object.keys(data).length === 0) {
+    throw new Error("Staking vault APYs are not available");
+  }
+  return data;
 }
 
 /**
@@ -247,7 +251,7 @@ export async function getUserExitTickets({
 }: {
   address: string;
   subgraph: Subgraph;
-}): Promise<ExitTicket[]> {
+}) {
   const query = `
     query ($first: Int!, $owner: Bytes!, $skip: Int!) {
       exitTickets(

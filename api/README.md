@@ -156,9 +156,9 @@ Amounts are raw strings in the pegged token's base units. Each balance uses the 
 ### `GET /analytics/net-revenue/:gatewayAddress`
 
 Get the projected protocol revenue of a gateway: an annualized projection from the current reserve balances, strategy APYs and staking vault APR. Cached for 1 minute.
-`:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway. Returns `500` in the same cases as `GET /analytics/yield`, if no staking vault holds the gateway's pegged token, and if the APYs of the staking vaults are not available.
+`:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway. Returns `500` in the same cases as `GET /analytics/yield`, or if no staking vault holds the gateway's pegged token.
 
-Amounts are raw strings in the pegged token's base units, and APYs and APRs are percentages. `backendApy`, `backendBalance` and `backendYield` are the `total` of `GET /analytics/yield`. `stakerApr` is the APR of `GET /variable-stake/apy` for the staking vault. `stakerPayouts` is `stakerApr` × `staked`. `netRevenue` can be negative. `backendApy`, `backendYield`, `netRevenue`, `stakerApr` and `stakerPayouts` are nullable.
+Amounts are raw strings in the pegged token's base units, and APYs and APRs are percentages. `backendApy`, `backendBalance` and `backendYield` are the `total` of `GET /analytics/yield`. `stakerApr` is the APR of `GET /variable-stake/apy` for the staking vault. It is `null` when the staking vault's APY is not available. `stakerPayouts` is `stakerApr` × `staked`. `netRevenue` can be negative. `backendApy`, `backendYield`, `netRevenue`, `stakerApr` and `stakerPayouts` are nullable.
 
 #### Sample response
 
@@ -440,11 +440,11 @@ Returns the DEX pools that hold a VETRO token (a pegged token or its share token
 
 - `apr` is the pool APR from trading fees, as a percentage number (e.g. `1.8` means 1.8%). It is `null` when `tvlUsd` is `null`, or when `volumeUsd24h` is `null`.
 - `coins` lists each coin of the pool, with its `amount` in the pool in token units (not in raw units). On a range row, `amount` is the part of the pool's liquidity inside the range.
-- `tvlUsd` is `null` when a coin of the pool has no USD price.
+- `tvlUsd` is `null` when a coin of the pool has no USD price, or when the Curve API gives no finite total.
 - Each coin takes its USD price from the venue first (the Curve API, or the subgraph of Uniswap, Sushi or BrownFi; on Uniswap and Sushi, also the pool ratio). A coin with no venue price takes the USD price of its peg if it is a pegged token. A whitelisted token takes its Treasury oracle price, and the portal price (see `PORTAL_API_URL`) when the oracle read fails. Other coins take the portal price.
 - `volumeUsd24h` is the trading volume in USD. On Uniswap, Sushi and BrownFi, it covers the last 24 full hours. On a Sushi range row, it is the part of the volume that occurred inside the range. It is `null` when the pool has no USD price for its coins. On Uniswap and Sushi, it is also `null` when the subgraph has no data for the pool (the query failed, or the subgraph has not indexed the pool yet).
 - `dexMetadata` is only on the Curve and BrownFi pools. On Curve, it has the `poolId`, the `gaugeAddress` (when the pool has a gauge) and the `lpTokenAddress`. Reward campaigns can target the pool, its gauge or its LP token. On BrownFi, it has `fee` and `overrideFee` as the subgraph gives them, in hundredths of a basis point (`3000` is 0.3%). An `overrideFee` of `0` means that the pool uses `fee`.
-- `rewards` includes rewards from Curve gauges, StakeDAO strategies and Merkl campaigns.
+- `rewards` includes rewards from Curve gauges, StakeDAO strategies and Merkl campaigns. The full list of gauged StakeDAO strategies is cached; APRs are checked only for strategies whose gauges match the cached Curve pools. If the Curve pool cache is missing, the list is still cached without that check. A strategy with an invalid APR adds no StakeDAO reward to its pool.
 
 By default, the response leaves out each pool with no `rewards` and a `tvlUsd` below 500 or `null`. A pool with any reward (Curve gauge, StakeDAO or Merkl) is always returned. With `includeRanges=true`, the range rows of a pool are returned only if its full-range row is.
 
@@ -587,7 +587,7 @@ Returns the user's cost basis (in the vault asset's native smallest unit; decima
 
 ### `GET /variable-stake/apy`
 
-Returns the APY for each supported staking vault, indexed by staking vault address. This is a forward-looking figure computed from each vault's `rewardRate` (read from its `YieldDistributor` contract), annualized over the vault's `totalAssets()` and expressed as a continuous-compounding APY. A vault whose drip has ended (or whose rate or total assets are zero) returns a genuine `{ "apy": 0 }`. A vault whose on-chain reads fail (e.g. RPC error or an unconfigured distributor) is **omitted** from the response rather than returned as `0`, so clients can render "-" for it — distinct from a real 0% APY. If every vault's reads fail, the response is `{}`.
+Returns the APY for each supported staking vault, indexed by staking vault address. This is a forward-looking figure computed from each vault's `rewardRate` (read from its `YieldDistributor` contract), annualized over the vault's `totalAssets()` and expressed as a continuous-compounding APY. A vault whose drip has ended (or whose rate or total assets are zero) returns a genuine `{ "apy": 0 }`. Each vault has its own warmed cache entry. When a vault's reads fail, the endpoint keeps serving its last good value for up to 15 minutes. A vault with no cached or live value is **omitted** from the response rather than returned as `0`, so clients can render "-" for it — distinct from a real 0% APY. If no vault has a cached or live value, the endpoint returns `500`.
 
 #### Sample Response
 
@@ -767,7 +767,7 @@ ticket has `claimTxHash`.
 ### `GET /ve-vetro/:address`
 
 Returns the veVETRO claims that the address made and the veVETRO positions that it owns, newest first. Cached for 10 seconds.
-`:address` must be a well-formed Ethereum address. Returns `404` if malformed.
+`:address` must be a well-formed Ethereum address. Returns `404` if malformed and `500` if any claims, veVETRO positions, or a claim's veHEMI positions reach the subgraph limit of 1000, rather than return a truncated list.
 
 - `indexedBlock` is the last block that the subgraph indexed. After a claim, wait until it reaches the block of the claim transaction, then read again.
 - `claimant` and `recipient` are in the checksummed format. `recipient` receives the position, so it can differ from `claimant`.

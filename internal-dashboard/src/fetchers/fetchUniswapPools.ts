@@ -5,7 +5,7 @@ import { mainnet } from "viem/chains";
 import { trackedTokensOptions } from "../hooks/useTrackedTokens";
 import { whitelistedTokensOptions } from "../hooks/useWhitelistedTokens";
 import { poolTvlUsd } from "../lib/poolMetrics";
-import { type PoolCoin, type TrackedPool } from "../lib/types";
+import { type TrackedPool } from "../lib/types";
 import { fetchUniswapPoolData } from "../lib/uniswapApi";
 import { buildPoolQueries, findPools, type PoolQuery } from "../lib/uniswapV3";
 
@@ -14,7 +14,7 @@ const fetchUniswapPool = async function (
 ): Promise<TrackedPool> {
   const data = await fetchUniswapPoolData(pool.address);
 
-  const coins = [pool.token0, pool.token1].map((token, index): PoolCoin => ({
+  const coins = [pool.token0, pool.token1].map((token, index) => ({
     address: token.address,
     balance: parseUnits(
       data.supplies[index].toFixed(token.decimals),

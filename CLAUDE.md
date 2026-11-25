@@ -40,7 +40,7 @@ The `web/` app exposes the Swap, Earn, Borrow, Bridge, Liquidity, and Analytics 
 - **Array syntax**: Prefer `T[]` over `Array<T>`
 - **Avoid `as any`**: Only use as a last resort when alternatives are significantly more complex
 - **Expected errors**: Use `@ts-expect-error [explanation]` instead of `as any` for known type issues
-- **Return types**: Omit explicit return types when the compiler can infer them
+- **Return types**: Omit explicit return types when the compiler can infer them. Keep type predicates, recursive function annotations, and annotations that check a served JSON shape against the type its clients use. Skip `subgraphs/vetro-app-subgraph` and `subgraphs/ve-vetro-subgraph`, where AssemblyScript requires annotations.
 - **Type vs Interface**: Prefer `type` over `interface`, except for module augmentation
 - **Running TypeScript files**: Use `node <path/to/file>.ts` directly — Node natively supports TypeScript execution
 - **Component Props naming**: When creating a type for component props, use generic name `Props` if they're the only props defined in the file. Otherwise, use `<ComponentName>Props`
@@ -76,7 +76,7 @@ Endpoints:
 
 - **Requests**: Enforce body size limits while reading the body, not after buffering it, and don't trust `Content-Length`. Return 400 for malformed input before any check that returns 401 or 403. Expose the headers clients must read, such as `Retry-After`, through CORS.
 - **Caching**: Don't cache a response, with `cache()` or `Cache-Control`, when the server checks its values against live config or env vars. Clients would read stale values after a deploy.
-- **Upstream failures**: When an upstream fetch fails, keep the last good cached value. Never write partial data to the cache, and never return 200 with missing values replaced by zero. A missing value may be `null` only when `api/README.md` documents the field as nullable and clients show it as unknown (e.g. `apr` and `volumeUsd24h` on `/liquidity/pools`).
+- **Upstream failures**: When an upstream fetch fails, keep the last good cached value. Never write partial data to the cache, and never return 200 with missing values replaced by zero. A response with a missing or non-finite value (`NaN`, a missing field, or `null` coerced to `0`) counts as a failure, unless the field is documented as nullable. A missing value may be `null` only when `api/README.md` documents the field as nullable and clients show it as unknown (e.g. `apr` and `volumeUsd24h` on `/liquidity/pools`).
 
 When changing the API in `api/src/` in a way that affects external behavior — adding, removing, or modifying an endpoint's URL, params, response shape (field names, types, and nullability), sample data, or error semantics — review and update `api/README.md` in the same change. Code is the source of truth; the README must reflect it.
 

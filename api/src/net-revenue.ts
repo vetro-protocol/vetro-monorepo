@@ -57,20 +57,32 @@ export async function getNetRevenue({
     });
     return { peggedToken, stakingVaultAddress };
   };
+  const peggedTokenAndVault = readPeggedTokenAndVault();
+  const apy = peggedTokenAndVault.then(async function ({
+    stakingVaultAddress,
+  }) {
+    try {
+      return await readWarmedTask({
+        c,
+        item: stakingVaultAddress,
+        task: apyTask,
+      });
+    } catch (error) {
+      console.warn(`Failed to read staking vault APY: ${error.message}`);
+      return null;
+    }
+  });
   const [
     { peggedToken, stakingVaultAddress },
     treasuryTokens,
     { staked },
-    apys,
+    stakerApy,
   ] = await Promise.all([
-    readPeggedTokenAndVault(),
+    peggedTokenAndVault,
     readWarmedTask({ c, item: gatewayAddress, task: treasuryTask }),
     readWarmedTask({ c, item: gatewayAddress, task: stakedTask }),
-    readWarmedTask({ c, task: apyTask }),
+    apy,
   ]);
-  if (apys === null) {
-    throw new Error("Staking vault APYs are not available");
-  }
   const { total } = toYieldSummary({
     peggedDecimals: peggedToken.decimals,
     treasuryTokens,
@@ -79,7 +91,7 @@ export async function getNetRevenue({
     ...toNetRevenue({
       backendTotal: total,
       staked: BigInt(staked),
-      stakerApy: apys[stakingVaultAddress]?.apy ?? null,
+      stakerApy: stakerApy?.apy ?? null,
     }),
     stakingVaultAddress,
   };

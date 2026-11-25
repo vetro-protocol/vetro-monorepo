@@ -1,3 +1,4 @@
+import { getTokenConfig } from "@vetro-protocol/treasury/actions";
 import {
   type Address,
   type TransactionReceipt,
@@ -8,9 +9,18 @@ import {
 import { waitForTransactionReceipt, writeContract } from "viem/actions";
 import { sepolia } from "viem/chains";
 import { allowance, approve } from "viem-erc20/actions";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { getTreasury } from "../../src/actions/public/getTreasury.ts";
 import { deposit } from "../../src/actions/wallet/deposit.ts";
+
+vi.mock("@vetro-protocol/treasury/actions", () => ({
+  getTokenConfig: vi.fn(),
+}));
+
+vi.mock("../../src/actions/public/getTreasury", () => ({
+  getTreasury: vi.fn(),
+}));
 
 vi.mock("viem/actions", () => ({
   waitForTransactionReceipt: vi.fn(),
@@ -32,6 +42,9 @@ const mockWalletClient = {
 const mockGatewayAddress =
   "0x3333333333333333333333333333333333333333" as Address;
 
+const mockTreasuryAddress =
+  "0x4444444444444444444444444444444444444444" as Address;
+
 const validParameters = {
   amountIn: BigInt(1000),
   gatewayAddress: mockGatewayAddress,
@@ -41,6 +54,18 @@ const validParameters = {
 };
 
 describe("deposit", function () {
+  beforeEach(function () {
+    vi.mocked(getTreasury).mockResolvedValue(mockTreasuryAddress);
+    vi.mocked(getTokenConfig).mockResolvedValue([
+      zeroAddress,
+      zeroAddress,
+      0n,
+      true,
+      true,
+      18,
+    ]);
+  });
+
   it("should emit 'deposit-failed-validation' if client is not defined", async function () {
     const { emitter, promise } = deposit(
       // @ts-expect-error - Testing invalid input
@@ -409,6 +434,79 @@ describe("deposit", function () {
       "Minimum output cannot be negative",
     );
     expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("should reject deposits when the Treasury token config disables deposits", async function () {
+    vi.mocked(getTokenConfig).mockResolvedValueOnce([
+      zeroAddress,
+      zeroAddress,
+      0n,
+      false,
+      true,
+      18,
+    ]);
+
+    const { emitter, promise } = deposit(mockWalletClient, validParameters);
+    const onDepositFailedValidation = vi.fn();
+
+    emitter.on("deposit-failed-validation", onDepositFailedValidation);
+
+    await promise;
+
+    expect(onDepositFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "Deposits are not active for this token",
+    );
+    expect(getTreasury).toHaveBeenCalledExactlyOnceWith(mockWalletClient, {
+      address: mockGatewayAddress,
+    });
+    expect(getTokenConfig).toHaveBeenCalledExactlyOnceWith(mockWalletClient, {
+      address: mockTreasuryAddress,
+      token: validParameters.tokenIn,
+    });
+    expect(approve).not.toHaveBeenCalled();
+    expect(writeContract).not.toHaveBeenCalled();
+  });
+
+  it("should emit 'unexpected-error' when getting the Treasury fails", async function () {
+    vi.mocked(getTreasury).mockRejectedValue(
+      new Error("Failed to get Treasury"),
+    );
+
+    const { emitter, promise } = deposit(mockWalletClient, validParameters);
+    const onUnexpectedError = vi.fn();
+
+    emitter.on("unexpected-error", onUnexpectedError);
+
+    await promise;
+
+    expect(onUnexpectedError).toHaveBeenCalledExactlyOnceWith(
+      expect.any(Error),
+    );
+    expect(getTokenConfig).not.toHaveBeenCalled();
+    expect(approve).not.toHaveBeenCalled();
+    expect(writeContract).not.toHaveBeenCalled();
+  });
+
+  it("should emit 'unexpected-error' when getting the Treasury token config fails", async function () {
+    vi.mocked(getTokenConfig).mockRejectedValue(
+      new Error("Failed to get token config"),
+    );
+
+    const { emitter, promise } = deposit(mockWalletClient, validParameters);
+    const onUnexpectedError = vi.fn();
+
+    emitter.on("unexpected-error", onUnexpectedError);
+
+    await promise;
+
+    expect(onUnexpectedError).toHaveBeenCalledExactlyOnceWith(
+      expect.any(Error),
+    );
+    expect(getTreasury).toHaveBeenCalledExactlyOnceWith(mockWalletClient, {
+      address: mockGatewayAddress,
+    });
+    expect(approve).not.toHaveBeenCalled();
+    expect(writeContract).not.toHaveBeenCalled();
   });
 
   it("should skip approval if allowance is sufficient and proceed to deposit", async function () {

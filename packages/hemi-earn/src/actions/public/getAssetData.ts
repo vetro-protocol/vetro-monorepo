@@ -23,7 +23,7 @@ export const getAssetData = async function (
     address?: Address;
     asset: Address;
   },
-): Promise<AssetData> {
+) {
   if (!client) {
     throw new Error("Client is not defined");
   }

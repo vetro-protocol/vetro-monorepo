@@ -8,6 +8,7 @@ import { Header } from "components/base/table/header";
 import { Toast } from "components/base/toast";
 import { GeoRestrictedButton } from "components/geoRestrictedButton";
 import { RequireWalletConnected } from "components/requireWalletConnected";
+import { useNowTickingPast } from "hooks/useNowTickingPast";
 import { TableCellsIcon } from "pages/earn/icons/tableCellsIcon";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -156,6 +157,11 @@ function groupByVault(readyTickets: ExitTicket[]) {
 export function ExitTickets() {
   const { data, isLoading } = useExitTickets();
   const { t } = useTranslation();
+  const now = useNowTickingPast(data, (ticket) =>
+    ticket.cancelTxHash || ticket.claimTxHash
+      ? undefined
+      : Number(ticket.claimableAt),
+  );
   const [selectedFilters, setSelectedFilters] = useState([
     "completed",
     "pending",
@@ -167,7 +173,7 @@ export function ExitTickets() {
 
   const readyTickets = useMemo(
     () => (data ?? []).filter((ticket) => getTicketStatus(ticket) === "ready"),
-    [data],
+    [data, now],
   );
 
   const filterOptions = useMemo(
@@ -229,7 +235,7 @@ export function ExitTickets() {
           return Number(b.claimableAt) - Number(a.claimableAt);
         });
     },
-    [data, selectedFilters],
+    [data, now, selectedFilters],
   );
 
   return (

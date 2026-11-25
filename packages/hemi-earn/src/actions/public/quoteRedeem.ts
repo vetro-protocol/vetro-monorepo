@@ -21,7 +21,7 @@ export const quoteRedeem = async function (
     isInstant: boolean;
     shares: bigint;
   },
-): Promise<bigint> {
+) {
   if (!client) {
     throw new Error("Client is not defined");
   }

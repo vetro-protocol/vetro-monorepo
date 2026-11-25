@@ -49,7 +49,7 @@ const buildMetrics = function ({
   loanUsdPrice: number;
   morphoMarket: Market;
   position: Position;
-}): PositionMetrics {
+}) {
   const borrowAssets = morphoMarket.toBorrowAssets(position.borrowShares);
   const borrowAmount = Number(formatUnits(borrowAssets, loanTokenDecimals));
   return {
@@ -88,7 +88,7 @@ export const usePositionReview = function ({
   inputToken,
   loanToken,
   position,
-}: Params): { current: PositionMetrics; updated: PositionMetrics | null } {
+}: Params) {
   const { data: prices } = usePrices();
   const resultRef = useRef<{
     current: PositionMetrics;

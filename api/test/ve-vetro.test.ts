@@ -13,6 +13,28 @@ const claimant = "0x70997970c51812dc3a010c7d01b50e0d17dc79c8";
 const recipient = "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc";
 const now = 1801353600;
 
+const buildClaim = (
+  overrides: Partial<{
+    amount: string;
+    blockTimestamp: string;
+    claimant: string;
+    position: { id: string };
+    recipient: string;
+    transactionHash: string;
+    veHemiPositions: { id: string }[];
+  }> = {},
+) => ({
+  amount: "1250000000000000000000",
+  blockTimestamp: "1801353500",
+  claimant,
+  position: { id: "42" },
+  recipient,
+  transactionHash:
+    "0x1111111111111111111111111111111111111111111111111111111111111111",
+  veHemiPositions: [{ id: "1388" }, { id: "203" }],
+  ...overrides,
+});
+
 const buildPosition = (
   overrides: Partial<{ status: string; transferableAfter: string }>,
 ) => ({
@@ -32,6 +54,14 @@ const buildResponse = (
   veVetroPositions: [],
   ...overrides,
 });
+
+const buildRows = ({
+  buildRow,
+  count,
+}: {
+  buildRow: () => unknown;
+  count: number;
+}) => Array.from({ length: count }, buildRow);
 
 describe("ve-vetro/getVeVetro", function () {
   beforeEach(function () {
@@ -69,17 +99,7 @@ describe("ve-vetro/getVeVetro", function () {
       "0x1111111111111111111111111111111111111111111111111111111111111111";
     vi.mocked(graphql.runQuery).mockResolvedValue(
       buildResponse({
-        claims: [
-          {
-            amount: "1250000000000000000000",
-            blockTimestamp: "1801353500",
-            claimant,
-            position: { id: "42" },
-            recipient,
-            transactionHash,
-            veHemiPositions: [{ id: "1388" }, { id: "203" }],
-          },
-        ],
+        claims: [buildClaim({ transactionHash })],
       }),
     );
 
@@ -143,6 +163,55 @@ describe("ve-vetro/getVeVetro", function () {
 
     await expect(getVeVetro({ address: claimant, subgraph })).rejects.toThrow(
       `Invalid subgraph response for veVETRO of ${claimant}`,
+    );
+  });
+
+  it("throws when claims reach the subgraph limit", async function () {
+    vi.mocked(graphql.runQuery).mockResolvedValue(
+      buildResponse({
+        claims: buildRows({
+          buildRow: () => buildClaim({ veHemiPositions: [] }),
+          count: 1000,
+        }),
+      }),
+    );
+
+    await expect(getVeVetro({ address: claimant, subgraph })).rejects.toThrow(
+      `Got 1000 veVETRO claims for ${claimant}; refusing to return a truncated list`,
+    );
+  });
+
+  it("throws when positions reach the subgraph limit", async function () {
+    vi.mocked(graphql.runQuery).mockResolvedValue(
+      buildResponse({
+        veVetroPositions: buildRows({
+          buildRow: () => buildPosition({}),
+          count: 1000,
+        }),
+      }),
+    );
+
+    await expect(getVeVetro({ address: claimant, subgraph })).rejects.toThrow(
+      `Got 1000 veVETRO positions for ${claimant}; refusing to return a truncated list`,
+    );
+  });
+
+  it("throws when claim veHEMI positions reach the subgraph limit", async function () {
+    vi.mocked(graphql.runQuery).mockResolvedValue(
+      buildResponse({
+        claims: [
+          buildClaim({
+            veHemiPositions: buildRows({
+              buildRow: () => ({ id: "42" }),
+              count: 1000,
+            }),
+          }),
+        ],
+      }),
+    );
+
+    await expect(getVeVetro({ address: claimant, subgraph })).rejects.toThrow(
+      `Got 1000 veHEMI positions for a veVETRO claim of ${claimant}; refusing to return a truncated list`,
     );
   });
 });

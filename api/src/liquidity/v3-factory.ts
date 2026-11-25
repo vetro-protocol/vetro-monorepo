@@ -41,7 +41,7 @@ const buildPoolQueries = (whitelistedTokenAddresses: readonly Address[]) =>
     [
       ...trackedTokenAddresses.slice(index + 1),
       ...whitelistedTokenAddresses,
-    ].flatMap(function (other): PoolQuery[] {
+    ].flatMap(function (other) {
       const [token0, token1] =
         tracked.toLowerCase() < other.toLowerCase()
           ? [tracked, other]
@@ -56,7 +56,7 @@ export async function findV3Pools({
 }: {
   client: Client;
   factoryAddress: Address;
-}): Promise<V3Pool[]> {
+}) {
   const queries = buildPoolQueries(await getWhitelistedTokenAddresses(client));
   const addresses = await multicall(client, {
     allowFailure: false,

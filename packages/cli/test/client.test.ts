@@ -1,3 +1,4 @@
+import { getChainAddresses } from "@morpho-org/blue-sdk";
 import { numberToHex } from "viem";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -41,6 +42,12 @@ describe("createVetroClient", function () {
     stubEndpointOnChain(31337);
     const { chainId } = await createVetroClient({ rpcUrl });
     expect(chainId).toBe(31337);
+  });
+
+  it("gives a local fork the Morpho addresses of Ethereum mainnet", async function () {
+    stubEndpointOnChain(31337);
+    await createVetroClient({ rpcUrl });
+    expect(getChainAddresses(31337)).toEqual(getChainAddresses(1));
   });
 
   it("reads from the endpoint as given, keeping a + in the path", async function () {

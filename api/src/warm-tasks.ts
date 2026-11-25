@@ -1,4 +1,5 @@
 import type { DexPool } from "@vetro-protocol/core";
+import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { gatewayAddresses } from "@vetro-protocol/gateway";
 
 import {
@@ -12,11 +13,15 @@ import {
   gaugedStrategiesKey,
   getGaugedStrategies,
   getMerklRewards,
+  strategyMatchesPool,
 } from "./liquidity/incentives.ts";
 import { getVenuePools, venues } from "./liquidity/index.ts";
-import { getCampaignGauges } from "./liquidity/stake-dao.ts";
+import {
+  getCampaignGauges,
+  strategyRewardsApr,
+} from "./liquidity/stake-dao.ts";
 import { withTimeout } from "./utils/promises.ts";
-import { getApy } from "./variable-stake.ts";
+import { getApyForVault } from "./variable-stake.ts";
 import { globalWarmTask, keyedWarmTask } from "./warm-cache.ts";
 
 // Warms `GET /analytics/treasury/:gatewayAddress`
@@ -68,17 +73,18 @@ export const stakedTask = keyedWarmTask({
     }).then(convertBigIntsToString),
 });
 
-// Warms `GET /variable-stake/apy` — a single global key, so no `items`.
-export const apyTask = globalWarmTask({
+// Warms one value per staking vault for GET /variable-stake/apy,
+// /analytics/net-revenue/:gatewayAddress and the APY history live point.
+export const apyTask = keyedWarmTask({
   cron: "* * * * *",
-  key: () => "variable-stake:apy",
-  // getApy omits vaults whose reads fail and returns `{}` only on a total outage.
-  // Mapping that to null makes `warmScheduled` treat it as a failure: it reports to
-  // Sentry and keeps the last-known-good KV value rather than clobbering it with `{}`.
-  produce: (env) =>
-    getApy({ rpcUrl: env.CUSTOM_RPC_URL_MAINNET }).then((data) =>
-      Object.keys(data).length > 0 ? data : null,
-    ),
+  items: stakingVaultAddresses,
+  key: (stakingVaultAddress) =>
+    `variable-stake:apy:${stakingVaultAddress.toLowerCase()}`,
+  produce: (env, stakingVaultAddress) =>
+    getApyForVault({
+      rpcUrl: env.CUSTOM_RPC_URL_MAINNET,
+      vaultAddress: stakingVaultAddress,
+    }),
 });
 
 const nowSeconds = () => Math.floor(Date.now() / 1000);
@@ -125,7 +131,21 @@ export const liquidityMerklRewardsTask = globalWarmTask({
 export const liquidityStrategiesTask = globalWarmTask({
   cron: "*/5 * * * *",
   key: () => gaugedStrategiesKey,
-  produce: () => withTimeout(getGaugedStrategies()),
+  async produce(env) {
+    const [pools, strategies] = await Promise.all([
+      env.CACHE_KV.get<DexPool[]>(liquidityVenuePoolsTask.key("curve"), "json"),
+      withTimeout(getGaugedStrategies()),
+    ]);
+    for (const strategy of strategies) {
+      const matchesPool = pools?.some((pool) =>
+        strategyMatchesPool({ pool, strategy }),
+      );
+      if (matchesPool) {
+        strategyRewardsApr(strategy);
+      }
+    }
+    return strategies;
+  },
 });
 
 export const warmTasks = [

@@ -2,8 +2,6 @@ import { type Address } from "viem";
 import { getBlockNumber, multicall } from "viem/actions";
 
 import { client } from "./client";
-import { type TickLiquidity } from "./v3PositionMath";
-
 // The Uniswap-v3 pool surface the band views need (SushiSwap V3 is a fork of it):
 // the current price and liquidity, plus the liquidity deltas of the initialized
 // ticks the band spans. No data API publishes the per-tick distribution, so this
@@ -157,7 +155,7 @@ export const fetchV3PoolState = async function ({
 
   return {
     currentTick,
-    initializedTicks: ticks.map((tick, index): TickLiquidity => ({
+    initializedTicks: ticks.map((tick, index) => ({
       liquidityNet: tickData[index][1],
       tick,
     })),

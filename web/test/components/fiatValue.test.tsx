@@ -20,7 +20,7 @@ vi.mock("hooks/usePrices", () => ({
 const createToken = ({
   decimals,
   symbol,
-}: Pick<Token, "decimals" | "symbol">): Token => ({
+}: Pick<Token, "decimals" | "symbol">) => ({
   address: zeroAddress,
   chainId: 1,
   decimals,

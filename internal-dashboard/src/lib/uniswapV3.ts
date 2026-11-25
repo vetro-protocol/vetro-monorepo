@@ -31,7 +31,7 @@ export const buildPoolQueries = function ({
 }: {
   candidates: PoolToken[];
   trackedAddresses: Set<string>;
-}): PoolQuery[] {
+}) {
   const pairs = new Map(
     candidates
       .filter((candidate) =>

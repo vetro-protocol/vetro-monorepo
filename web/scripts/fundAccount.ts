@@ -34,7 +34,7 @@ type FundableToken = {
   symbol: string;
 };
 
-const getDefaultTokens = (): FundableToken[] =>
+const getDefaultTokens = () =>
   knownTokens
     .filter(
       (t) => t.chainId === mainnet.id && defaultSetupSymbols.includes(t.symbol),

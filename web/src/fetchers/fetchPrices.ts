@@ -59,7 +59,7 @@ export const fetchPrices = async function ({
   client: Client;
   gateways: readonly Gateway[];
   queryClient: QueryClient;
-}): Promise<Record<string, string>> {
+}) {
   const [portal, gatewaysWithPrices] = await Promise.all([
     queryClient.ensureQueryData(tokenPricesOptions()),
     Promise.all(

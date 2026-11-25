@@ -35,7 +35,7 @@ type CurveApiPool = {
   gaugeCrvApy: (number | null)[] | null;
   id: string;
   lpTokenAddress?: Address;
-  usdTotal: number;
+  usdTotal: number | undefined;
 };
 
 type CurveVolume = {
@@ -57,6 +57,33 @@ const hasUnpricedCoin = (pool: CurveApiPool) =>
     (coin) => coin.usdPrice === null && BigInt(coin.poolBalance) > 0n,
   );
 
+const getPoolTvlUsd = function ({
+  pool,
+  prices,
+}: {
+  pool: CurveApiPool;
+  prices: Record<string, string>;
+}) {
+  if (!hasUnpricedCoin(pool)) {
+    return typeof pool.usdTotal === "number" && Number.isFinite(pool.usdTotal)
+      ? pool.usdTotal
+      : null;
+  }
+  return poolTvlUsd(
+    pool.coins.map((coin) => ({
+      amount: coinAmount(coin),
+      usdPrice:
+        coin.usdPrice ??
+        portalUsdPrice({
+          address: coin.address,
+          chainId: mainnet.id,
+          prices,
+        }) ??
+        (BigInt(coin.poolBalance) > 0n ? undefined : 0),
+    })),
+  );
+};
+
 const buildPool = function ({
   pool,
   prices,
@@ -66,21 +93,7 @@ const buildPool = function ({
   prices: Record<string, string>;
   volume: CurveVolume | undefined;
 }): DexPool {
-  const tvlUsd = hasUnpricedCoin(pool)
-    ? poolTvlUsd(
-        pool.coins.map((coin) => ({
-          amount: coinAmount(coin),
-          usdPrice:
-            coin.usdPrice ??
-            portalUsdPrice({
-              address: coin.address,
-              chainId: mainnet.id,
-              prices,
-            }) ??
-            (BigInt(coin.poolBalance) > 0n ? undefined : 0),
-        })),
-      )
-    : pool.usdTotal;
+  const tvlUsd = getPoolTvlUsd({ pool, prices });
   const gaugeAddress = toGaugeAddress(pool.gaugeAddress);
   const gaugeApr = pool.gaugeCrvApy?.[0] ?? 0;
   const hasGaugeReward = gaugeAddress !== undefined && gaugeApr > 0;
