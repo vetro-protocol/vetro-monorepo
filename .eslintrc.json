@@ -91,7 +91,11 @@
           },
           {
             "message": "Use an object parameter for functions that take 3 or more parameters.",
-            "selector": "VariableDeclarator > ArrowFunctionExpression > ArrowFunctionExpression[params.length>=3]"
+            "selector": "VariableDeclarator > :function > :function[params.length>=3]"
+          },
+          {
+            "message": "Use an object parameter for functions that take 3 or more parameters.",
+            "selector": "VariableDeclarator > :function > BlockStatement > ReturnStatement > :function[params.length>=3]"
           },
           {
             "message": "Use an object parameter for functions that take 3 or more parameters.",
@@ -227,7 +231,11 @@
           },
           {
             "message": "Use an object parameter for functions that take 3 or more parameters.",
-            "selector": "VariableDeclarator > ArrowFunctionExpression > ArrowFunctionExpression[params.length>=3]"
+            "selector": "VariableDeclarator > :function > :function[params.length>=3]"
+          },
+          {
+            "message": "Use an object parameter for functions that take 3 or more parameters.",
+            "selector": "VariableDeclarator > :function > BlockStatement > ReturnStatement > :function[params.length>=3]"
           },
           {
             "message": "Use an object parameter for functions that take 3 or more parameters.",
@@ -256,7 +264,11 @@
           },
           {
             "message": "Use an object parameter for functions that take 3 or more parameters.",
-            "selector": "VariableDeclarator > ArrowFunctionExpression > ArrowFunctionExpression[params.length>=3]"
+            "selector": "VariableDeclarator > :function > :function[params.length>=3]"
+          },
+          {
+            "message": "Use an object parameter for functions that take 3 or more parameters.",
+            "selector": "VariableDeclarator > :function > BlockStatement > ReturnStatement > :function[params.length>=3]"
           },
           {
             "message": "Use an object parameter for functions that take 3 or more parameters.",
@@ -309,7 +321,11 @@
           },
           {
             "message": "Use an object parameter for functions that take 3 or more parameters.",
-            "selector": "VariableDeclarator > ArrowFunctionExpression > ArrowFunctionExpression[params.length>=3]"
+            "selector": "VariableDeclarator > :function > :function[params.length>=3]"
+          },
+          {
+            "message": "Use an object parameter for functions that take 3 or more parameters.",
+            "selector": "VariableDeclarator > :function > BlockStatement > ReturnStatement > :function[params.length>=3]"
           },
           {
             "message": "Use an object parameter for functions that take 3 or more parameters.",
