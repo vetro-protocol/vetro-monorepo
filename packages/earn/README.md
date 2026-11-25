@@ -61,7 +61,7 @@ The same actions are also available via `.extend()` factories (`earnPublicAction
   - `getCooldownDuration(client, { address })` — cooldown length in seconds.
   - `getCooldownEnabled(client, { address })` — whether the cooldown is enforced.
   - `getInstantWithdrawWhitelist(client, { account, address })` — whether `account` is allowed to bypass the cooldown.
-  - `getPendingRequests(client, { account, address })` — full pending-request structs for `account`.
+  - `getPendingRequests(client, { account, address })` — the pending requests of `account`, as the tuple `[requestIds, assets, claimableAt]` of three parallel arrays.
   - `getPeriodFinish(client, { address })` — timestamp, in seconds, at which the current yield drip ends.
   - `getRequestDetails(client, { address, requestId })` — details for a specific request ID.
   - `getRewardRate(client, { address })` — WAD-scaled amount of yield dripped per second into the vault.

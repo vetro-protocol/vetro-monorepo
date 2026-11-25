@@ -65,7 +65,7 @@ The same actions are also available via `.extend()` factories (`gatewayPublicAct
   - `getMaxWithdraw(client, { address, tokenOut })` — maximum amount of `tokenOut` that can be withdrawn.
   - `getMintFee(client, { address, token })` / `getRedeemFee(client, { address, token })` — current fee for `token`.
   - `getPeggedToken(client, { address })` — pegged-token address minted by the gateway.
-  - `getRedeemRequest(client, { address, user })` — `user`'s open redeem request, as `amountLocked` and `claimableAt`.
+  - `getRedeemRequest(client, { address, user })` — `user`'s open redeem request, as the tuple `[amountLocked, claimableAt]`.
   - `getTreasury(client, { address })` — treasury address backing the gateway.
   - `getWithdrawalDelay(client, { address })` / `getWithdrawalDelayEnabled(client, { address })` — delay configuration.
   - `isInstantRedeemWhitelisted(client, { account, address })` — whether `account` can bypass the delay.
