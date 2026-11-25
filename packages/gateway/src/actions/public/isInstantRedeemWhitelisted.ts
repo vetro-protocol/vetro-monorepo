@@ -7,8 +7,8 @@ import { gatewayAbi } from "../../abi/gatewayAbi.ts";
 export async function isInstantRedeemWhitelisted(
   client: Client,
   parameters: {
-    address: Address;
     account: Address;
+    address: Address;
   },
 ) {
   // Validate client

@@ -35,8 +35,8 @@ const buttonSizeClasses = {
 /* eslint-enable sort-keys */
 
 type ButtonStyleProps = {
-  variant?: keyof typeof variantClasses;
   size?: ButtonSize;
+  variant?: keyof typeof variantClasses;
 };
 
 type ButtonProps = Omit<ComponentProps<"button">, "className"> &

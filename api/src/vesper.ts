@@ -152,10 +152,10 @@ export const getStrategyConfig = (
     functionName: "getStrategyConfig",
   }) as Promise<{
     active: boolean;
+    debtRatio: bigint;
     totalDebt: bigint;
     totalLoss: bigint;
     totalProfit: bigint;
-    debtRatio: bigint;
   }>;
 
 export const getTotalDebt = (

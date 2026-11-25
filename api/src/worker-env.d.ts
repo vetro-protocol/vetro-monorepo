@@ -3,6 +3,7 @@
 // update this interface to match.
 interface Env {
   CACHE_KV: KVNamespace;
+  CF_VERSION_METADATA?: WorkerVersionMetadata;
   CONTACT_FORM_RECIPIENT?: string;
   CONTACT_FORM_SENDER?: string;
   CUSTOM_RPC_URL_HEMI?: string;
@@ -18,14 +19,13 @@ interface Env {
   ORIGINS: string;
   PORTAL_API_URL: string;
   SEND_EMAIL: SendEmail;
-  CF_VERSION_METADATA?: WorkerVersionMetadata;
   SENTRY_DSN?: string;
   SUBGRAPH_API_KEY?: string;
   TURNSTILE_ALLOWED_HOSTNAMES?: string;
   TURNSTILE_SECRET_KEY?: string;
-  VETRO_APP_SUBGRAPH_ID?: string;
-  VETRO_APP_SUBGRAPH_URL?: string;
   VE_VETRO_SUBGRAPH_ID?: string;
   VE_VETRO_SUBGRAPH_URL?: string;
+  VETRO_APP_SUBGRAPH_ID?: string;
+  VETRO_APP_SUBGRAPH_URL?: string;
   WEBSITE_URL: string;
 }

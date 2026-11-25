@@ -17,6 +17,7 @@ const Q96 = 2n ** 96n;
 const TICK_BASE = 1.0001;
 
 // SqrtPriceMath.getAmount0Delta (roundUp = false), verbatim.
+// eslint-disable-next-line no-restricted-syntax -- Port of Uniswap's fixed signature.
 const getAmount0Delta = function (
   sqrtRatioAX96: bigint,
   sqrtRatioBX96: bigint,
@@ -32,6 +33,7 @@ const getAmount0Delta = function (
 };
 
 // SqrtPriceMath.getAmount1Delta (roundUp = false), verbatim.
+// eslint-disable-next-line no-restricted-syntax -- Port of Uniswap's fixed signature.
 const getAmount1Delta = function (
   sqrtRatioAX96: bigint,
   sqrtRatioBX96: bigint,

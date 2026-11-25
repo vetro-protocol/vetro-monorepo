@@ -60,11 +60,15 @@ export function addActivity(address: Address, activity: Activity) {
   write(address, upsertActivity({ activities: read(address), activity }));
 }
 
-export function updateActivity(
-  address: Address,
-  txHash: string,
-  updates: Partial<Activity>,
-) {
+export function updateActivity({
+  address,
+  txHash,
+  updates,
+}: {
+  address: Address;
+  txHash: string;
+  updates: Partial<Activity>;
+}) {
   write(
     address,
     read(address).map((a) => (a.txHash === txHash ? { ...a, ...updates } : a)),

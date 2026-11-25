@@ -96,8 +96,8 @@ export const calculateLiquidationPrice = function ({
   position,
 }: {
   collateralTokenDecimals: number;
-  loanUsdPrice: number;
   loanTokenDecimals: number;
+  loanUsdPrice: number;
   morphoMarket: Market;
   position: Position;
 }) {

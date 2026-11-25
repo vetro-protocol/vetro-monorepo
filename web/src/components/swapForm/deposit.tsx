@@ -53,8 +53,8 @@ type Props = {
   onReset: VoidFunction;
   onSlippageChange: (slippage: number) => void;
   onToggle: VoidFunction;
-  onTokenChange: (token: TokenWithGateway) => void;
   onToggleApprove10x: VoidFunction;
+  onTokenChange: (token: TokenWithGateway) => void;
   slippage: number;
   toToken: TokenWithGateway;
   whitelistedTokens: TokenWithGateway[];

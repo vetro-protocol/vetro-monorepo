@@ -34,8 +34,8 @@ const StakeDepositProgressDrawer = lazyWithReload(() =>
 );
 
 type Props = {
-  approve10x: boolean;
   approvalCompleted: boolean;
+  approve10x: boolean;
   depositStep: DepositStep;
   inputValue: string;
   isDrawerOpen: boolean;

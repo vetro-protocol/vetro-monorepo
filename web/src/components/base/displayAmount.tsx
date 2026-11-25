@@ -21,9 +21,9 @@ type Props = {
   amount: bigint;
   amountContainer?: CustomContainer;
   container?: CustomContainer;
-  symbolContainer?: CustomContainer;
   showSymbol?: boolean;
   showTokenLogo?: boolean;
+  symbolContainer?: CustomContainer;
   token: Token;
 };
 
