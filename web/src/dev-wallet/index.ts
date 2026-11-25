@@ -3,7 +3,7 @@ import {
   MOCK_WALLET_INFO,
   announceEip6963Provider,
   createMockWalletProvider,
-} from "@vetro-protocol/mock-wallet";
+} from "@hemilabs/mock-wallet";
 import { http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
