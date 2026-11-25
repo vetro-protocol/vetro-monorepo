@@ -2,6 +2,7 @@ import {
   TEST_ADDRESS,
   TEST_PRIVATE_KEY,
 } from "@hemilabs/anvil-fork-setup/utils";
+import { blueAbi, blueOracleAbi } from "@morpho-org/blue-sdk-viem";
 import { stakingVaultAbi } from "@vetro-protocol/earn";
 import { gatewayAbi as vetroGatewayAbi } from "@vetro-protocol/gateway";
 import {
@@ -10,19 +11,24 @@ import {
   getWithdrawalDelayEnabled,
   isInstantRedeemWhitelisted,
 } from "@vetro-protocol/gateway/actions";
+import { morphoBlueAddress } from "@vetro-protocol/morpho-blue-market";
 import { getKeeperRole } from "@vetro-protocol/treasury/actions";
 import { type Command, CommanderError } from "commander";
 import {
   type Address,
   type Client,
+  type Hash,
   type Hex,
   createPublicClient,
   createTestClient,
   createWalletClient,
   encodePacked,
+  formatUnits,
   hexToBigInt,
   http,
+  isAddressEqual,
   keccak256,
+  maxUint256,
   pad,
   parseAbi,
   parseEther,
@@ -32,6 +38,7 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import {
+  getBlock,
   impersonateAccount,
   increaseTime,
   mine,
@@ -39,6 +46,7 @@ import {
   revert,
   sendTransaction,
   setBalance,
+  setNextBlockTimestamp,
   setStorageAt,
   snapshot,
   stopImpersonatingAccount,
@@ -57,6 +65,13 @@ import {
 import { type GlobalOptions } from "../../src/lib/client.ts";
 import { printError } from "../../src/lib/output.ts";
 import { createProgram } from "../../src/program.ts";
+
+export const hemiBtc = {
+  address: "0x06ea695B91700071B161A434fED42D1DcbAD9f00",
+  balanceSlot: 5,
+  decimals: 8,
+  symbol: "hemiBTC",
+} as const;
 
 export const usdc = {
   address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
@@ -78,6 +93,13 @@ export const vusd = {
   balanceSlot: 0,
   decimals: 18,
   symbol: "VUSD",
+} as const;
+
+export const weth = {
+  address: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+  balanceSlot: 3,
+  decimals: 18,
+  symbol: "WETH",
 } as const;
 
 export type TransactionRequest = {
@@ -761,4 +783,275 @@ export const requestWithdraw = async function ({
     logs,
   });
   return args;
+};
+
+export const readMarketParams = async function ({
+  client,
+  marketId,
+}: {
+  client: Client;
+  marketId: Hash;
+}) {
+  const [loanToken, collateralToken, oracle, irm, lltv] = await readContract(
+    client,
+    {
+      abi: blueAbi,
+      address: morphoBlueAddress,
+      args: [marketId],
+      functionName: "idToMarketParams",
+    },
+  );
+  return { collateralToken, irm, lltv, loanToken, oracle };
+};
+
+/** The collateral must already be in TEST_ADDRESS. */
+export const openBorrowPosition = async function ({
+  borrowAssets,
+  collateral,
+  liquidity,
+  marketId,
+  rpcUrl,
+}: {
+  borrowAssets: bigint;
+  collateral: bigint;
+  liquidity: bigint;
+  marketId: Hash;
+  rpcUrl: string;
+}) {
+  const { publicClient, walletClient } = createClients(rpcUrl);
+  const marketParams = await readMarketParams({
+    client: publicClient,
+    marketId,
+  });
+  if (liquidity > 0n) {
+    const loanToken = [vetBtc, vusd].find((candidate) =>
+      isAddressEqual(candidate.address, marketParams.loanToken),
+    );
+    if (!loanToken) {
+      throw new Error(`Unknown loan token ${marketParams.loanToken}`);
+    }
+    await fundTestAccount({
+      amount: formatUnits(liquidity, loanToken.decimals),
+      rpcUrl,
+      token: loanToken,
+    });
+    await confirmWrite({
+      client: publicClient,
+      hash: await approve(walletClient, {
+        address: marketParams.loanToken,
+        amount: liquidity,
+        spender: morphoBlueAddress,
+      }),
+    });
+    // Without a clock step, the gas estimate skips interest accrual and the supply and borrow run out of gas.
+    await fastForward({ rpcUrl, seconds: 60n });
+    await confirmWrite({
+      client: publicClient,
+      hash: await writeContract(walletClient, {
+        abi: blueAbi,
+        address: morphoBlueAddress,
+        args: [marketParams, liquidity, 0n, TEST_ADDRESS, "0x"],
+        functionName: "supply",
+      }),
+    });
+  }
+  if (collateral > 0n) {
+    await confirmWrite({
+      client: publicClient,
+      hash: await approve(walletClient, {
+        address: marketParams.collateralToken,
+        amount: collateral,
+        spender: morphoBlueAddress,
+      }),
+    });
+    await confirmWrite({
+      client: publicClient,
+      hash: await writeContract(walletClient, {
+        abi: blueAbi,
+        address: morphoBlueAddress,
+        args: [marketParams, collateral, TEST_ADDRESS, "0x"],
+        functionName: "supplyCollateral",
+      }),
+    });
+  }
+  if (borrowAssets > 0n) {
+    await fastForward({ rpcUrl, seconds: 60n });
+    await confirmWrite({
+      client: publicClient,
+      hash: await writeContract(walletClient, {
+        abi: blueAbi,
+        address: morphoBlueAddress,
+        args: [marketParams, borrowAssets, 0n, TEST_ADDRESS, TEST_ADDRESS],
+        functionName: "borrow",
+      }),
+    });
+  }
+};
+
+/** Mines at the timestamp of the latest block, so the on-chain state matches what the CLI computed for that block. */
+export const accrueInterestAtLatestBlock = async function ({
+  marketParams,
+  rpcUrl,
+}: {
+  marketParams: Awaited<ReturnType<typeof readMarketParams>>;
+  rpcUrl: string;
+}) {
+  const { publicClient, testClient, walletClient } = createClients(rpcUrl);
+  const latest = await getBlock(publicClient);
+  await setBalance(testClient, {
+    address: TEST_ADDRESS,
+    value: parseEther("1"),
+  });
+  await setNextBlockTimestamp(testClient, { timestamp: latest.timestamp });
+  await confirmWrite({
+    client: publicClient,
+    hash: await writeContract(walletClient, {
+      abi: blueAbi,
+      address: morphoBlueAddress,
+      args: [marketParams],
+      functionName: "accrueInterest",
+    }),
+  });
+};
+
+export type BorrowPosition = {
+  borrowAssets: string;
+  borrowShares: string;
+  collateral: string;
+  healthFactor: string | null;
+  liquidationPrice: string | null;
+  ltv: string | null;
+  marketId: Hash;
+  maxBorrow: string | null;
+  withdrawableCollateral: string | null;
+};
+
+type MulDivParams = { denominator: bigint; x: bigint; y: bigint };
+
+const mulDivDown = ({ denominator, x, y }: MulDivParams) =>
+  (x * y) / denominator;
+const mulDivUp = ({ denominator, x, y }: MulDivParams) =>
+  (x * y + denominator - 1n) / denominator;
+const wad = 10n ** 18n;
+const oraclePriceScale = 10n ** 36n;
+
+/** Copies the @morpho-org/blue-sdk formulas, so the expected values do not come from the code under test. */
+export const readExpectedPosition = async function ({
+  marketId,
+  rpcUrl,
+}: {
+  marketId: Hash;
+  rpcUrl: string;
+}) {
+  const { publicClient } = createClients(rpcUrl);
+  const params = await readMarketParams({ client: publicClient, marketId });
+  await accrueInterestAtLatestBlock({ marketParams: params, rpcUrl });
+
+  const [
+    [, borrowShares, collateral],
+    [totalSupplyAssets, , totalBorrowAssets, totalBorrowShares],
+    price,
+  ] = await Promise.all([
+    readContract(publicClient, {
+      abi: blueAbi,
+      address: morphoBlueAddress,
+      args: [marketId, TEST_ADDRESS],
+      functionName: "position",
+    }),
+    readContract(publicClient, {
+      abi: blueAbi,
+      address: morphoBlueAddress,
+      args: [marketId],
+      functionName: "market",
+    }),
+    readContract(publicClient, {
+      abi: blueOracleAbi,
+      address: params.oracle,
+      functionName: "price",
+    }).catch(() => null),
+  ]);
+
+  const borrowAssets = mulDivUp({
+    denominator: totalBorrowShares + 1_000_000n,
+    x: borrowShares,
+    y: totalBorrowAssets + 1n,
+  });
+  const hasDebt = borrowShares > 0n;
+  const liquidity = totalSupplyAssets - totalBorrowAssets;
+  const collateralPower = mulDivDown({
+    denominator: wad,
+    x: collateral,
+    y: params.lltv,
+  });
+  const liquidationPrice = !hasDebt
+    ? null
+    : collateralPower === 0n
+      ? maxUint256
+      : mulDivUp({
+          denominator: collateralPower,
+          x: borrowAssets,
+          y: oraclePriceScale,
+        });
+
+  const withPrice = function (oraclePrice: bigint) {
+    const collateralValue = mulDivDown({
+      denominator: oraclePriceScale,
+      x: collateral,
+      y: oraclePrice,
+    });
+    const maxBorrowAssets = mulDivDown({
+      denominator: wad,
+      x: collateralValue,
+      y: params.lltv,
+    });
+    const maxBorrowable =
+      maxBorrowAssets > borrowAssets ? maxBorrowAssets - borrowAssets : 0n;
+    const required =
+      oraclePrice === 0n
+        ? collateral
+        : mulDivUp({
+            denominator: params.lltv,
+            x: mulDivUp({
+              denominator: oraclePrice,
+              x: borrowAssets,
+              y: oraclePriceScale,
+            }),
+            y: wad,
+          });
+    return {
+      healthFactor: hasDebt
+        ? mulDivDown({ denominator: borrowAssets, x: maxBorrowAssets, y: wad })
+        : null,
+      ltv: !hasDebt
+        ? null
+        : collateralValue === 0n
+          ? maxUint256
+          : mulDivUp({ denominator: collateralValue, x: borrowAssets, y: wad }),
+      maxBorrow: maxBorrowable < liquidity ? maxBorrowable : liquidity,
+      maxBorrowAssets,
+      withdrawableCollateral:
+        collateral > required ? collateral - required : 0n,
+    };
+  };
+  const priced = price === null ? null : withPrice(price);
+  const toNullableString = (value: bigint | null | undefined) =>
+    value?.toString() ?? null;
+
+  return {
+    liquidity,
+    maxBorrowAssets: priced?.maxBorrowAssets ?? null,
+    position: {
+      borrowAssets: borrowAssets.toString(),
+      borrowShares: borrowShares.toString(),
+      collateral: collateral.toString(),
+      healthFactor: toNullableString(priced?.healthFactor),
+      liquidationPrice: toNullableString(liquidationPrice),
+      ltv: toNullableString(priced?.ltv),
+      marketId,
+      maxBorrow: toNullableString(priced?.maxBorrow),
+      withdrawableCollateral: hasDebt
+        ? toNullableString(priced?.withdrawableCollateral)
+        : collateral.toString(),
+    } satisfies BorrowPosition,
+  };
 };

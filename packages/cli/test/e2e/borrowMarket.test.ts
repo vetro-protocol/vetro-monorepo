@@ -1,4 +1,3 @@
-import { TEST_ADDRESS } from "@hemilabs/anvil-fork-setup/utils";
 import {
   adaptiveCurveIrmAbi,
   blueAbi,
@@ -15,21 +14,15 @@ import {
   keccak256,
   parseEther,
 } from "viem";
-import {
-  getBlock,
-  readContract,
-  setBalance,
-  setCode,
-  setNextBlockTimestamp,
-  writeContract,
-} from "viem/actions";
+import { readContract, setCode } from "viem/actions";
 import { decimals, symbol } from "viem-erc20/actions";
 import { describe, expect, inject, it } from "vitest";
 
 import {
-  confirmWrite,
+  accrueInterestAtLatestBlock,
   createClients,
   fastForward,
+  readMarketParams,
   runCli,
   runCliRaw,
   withSnapshot,
@@ -57,7 +50,7 @@ type Market = {
 
 describe("borrow market", function () {
   const rpcUrl = inject("anvilUrl");
-  const { publicClient, testClient, walletClient } = createClients(rpcUrl);
+  const { publicClient, testClient } = createClients(rpcUrl);
 
   const marketOnFork = (market: string) => [
     "borrow",
@@ -67,19 +60,6 @@ describe("borrow market", function () {
     "--rpc-url",
     rpcUrl,
   ];
-
-  const readMarketParams = async function (marketId: Hash) {
-    const [loanToken, collateralToken, oracle, irm, lltv] = await readContract(
-      publicClient,
-      {
-        abi: blueAbi,
-        address: morphoBlueAddress,
-        args: [marketId],
-        functionName: "idToMarketParams",
-      },
-    );
-    return { collateralToken, irm, lltv, loanToken, oracle };
-  };
 
   const readTokenOnChain = async (address: Address) => ({
     address,
@@ -112,7 +92,10 @@ describe("borrow market", function () {
   };
 
   const readPair = async function (marketId: Hash) {
-    const { collateralToken, loanToken } = await readMarketParams(marketId);
+    const { collateralToken, loanToken } = await readMarketParams({
+      client: publicClient,
+      marketId,
+    });
     const [collateral, loan] = await Promise.all([
       symbol(publicClient, { address: collateralToken }),
       symbol(publicClient, { address: loanToken }),
@@ -142,28 +125,15 @@ describe("borrow market", function () {
             marketOnFork(`${collateral}/${loan}`),
           );
 
-          const params = await readMarketParams(marketId);
+          const params = await readMarketParams({
+            client: publicClient,
+            marketId,
+          });
           const [collateralToken, loanToken] = await Promise.all([
             readTokenOnChain(params.collateralToken),
             readTokenOnChain(params.loanToken),
           ]);
-          const latest = await getBlock(publicClient);
-          await setBalance(testClient, {
-            address: TEST_ADDRESS,
-            value: parseEther("1"),
-          });
-          await setNextBlockTimestamp(testClient, {
-            timestamp: latest.timestamp,
-          });
-          await confirmWrite({
-            client: publicClient,
-            hash: await writeContract(walletClient, {
-              abi: blueAbi,
-              address: morphoBlueAddress,
-              args: [params],
-              functionName: "accrueInterest",
-            }),
-          });
+          await accrueInterestAtLatestBlock({ marketParams: params, rpcUrl });
 
           const after = await readMarketState(marketId);
           const [price, borrowRate] = await Promise.all([
@@ -245,7 +215,10 @@ describe("borrow market", function () {
     await withSnapshot({
       rpcUrl,
       async run() {
-        const { oracle } = await readMarketParams(marketId);
+        const { oracle } = await readMarketParams({
+          client: publicClient,
+          marketId,
+        });
         await setCode(testClient, {
           address: oracle,
           bytecode: "0x60006000fd",
@@ -263,7 +236,10 @@ describe("borrow market", function () {
       rpcUrl,
       async run() {
         const { collateral, loan } = await readPair(marketId);
-        const { collateralToken } = await readMarketParams(otherMarketId);
+        const { collateralToken } = await readMarketParams({
+          client: publicClient,
+          marketId: otherMarketId,
+        });
         await setCode(testClient, {
           address: collateralToken,
           bytecode: "0x60006000fd",

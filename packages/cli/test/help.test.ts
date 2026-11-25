@@ -9,6 +9,8 @@ describe("help", function () {
     ["borrow"],
     ["borrow", "market"],
     ["borrow", "markets"],
+    ["borrow", "position"],
+    ["borrow", "positions"],
     ["gateways"],
     ["swap"],
     ["swap", "mint"],
