@@ -32,7 +32,11 @@ const statusLabels = {
   withdrawn: "pages.earn.exit-tickets.withdrawn",
 } as const;
 
-function StatusCell({ ticket }: { ticket: ExitTicket }) {
+type StatusCellProps = {
+  ticket: ExitTicket;
+};
+
+function StatusCell({ ticket }: StatusCellProps) {
   const { t } = useTranslation();
   const now = useNowTickingPast([ticket], () =>
     ticket.cancelTxHash || ticket.claimTxHash
