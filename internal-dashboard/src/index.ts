@@ -157,7 +157,7 @@ const merklOpportunitiesUpstream = "https://api.merkl.xyz/v4/opportunities";
 // responses are cached because of this.
 const stakeDaoCampaignsPath = "/api/stakedao/campaigns";
 const stakeDaoCampaignsUpstream =
-  "https://api-v3.stakedao.org/votemarket/curve";
+  "https://hub.stakedao.org/v1/votemarket/curve/campaigns";
 const stakeDaoCacheSeconds = 3 * 60;
 
 const stakeDaoStrategiesPath = "/api/stakedao/strategies";
