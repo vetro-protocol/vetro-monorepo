@@ -46,9 +46,11 @@ export const computeDistributions = ({
           ? {
               amount: coin.amount,
               amountUsd:
-                coin.usdPrice === undefined
-                  ? undefined
-                  : coin.amount * coin.usdPrice,
+                coin.amount === 0
+                  ? 0
+                  : coin.usdPrice === undefined
+                    ? undefined
+                    : coin.amount * coin.usdPrice,
               pool,
             }
           : undefined;

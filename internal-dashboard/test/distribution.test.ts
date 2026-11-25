@@ -313,4 +313,31 @@ describe("distribution/computeDistributions", function () {
     ]);
     expect(distribution.totalUsd).toBeUndefined();
   });
+
+  it("values an empty slice with no price at zero", function () {
+    const pools = [
+      makePool({
+        address: poolOne,
+        coins: [makeCoin({ address: tokenA, amount: 10, usdPrice: 2 })],
+      }),
+      makePool({
+        address: poolTwo,
+        coins: [
+          {
+            ...makeCoin({ address: tokenA, amount: 0 }),
+            usdPrice: undefined,
+          },
+        ],
+      }),
+    ];
+    const [distribution] = computeDistributions({
+      pools,
+      tokens: [makeToken({ address: tokenA, symbol: "A" })],
+    });
+
+    expect(distribution.slices.map((slice) => slice.amountUsd)).toEqual([
+      20, 0,
+    ]);
+    expect(distribution.totalUsd).toBe(20);
+  });
 });
