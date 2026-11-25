@@ -7,7 +7,7 @@ import {
   type StakeDaoStrategy,
   strategyRewardsApr,
 } from "./liquidity/stake-dao.ts";
-import { getLiveOpportunities } from "./merkl.ts";
+import { getLiveOpportunities, validateCampaignWindow } from "./merkl.ts";
 import { getVaultNetApys as getMorphoApys } from "./morpho.ts";
 import { withTimeout } from "./utils/promises.ts";
 
@@ -31,7 +31,7 @@ const findVaultApy = ({
   vaultApys.find((vaultApy) => isAddressEqual(vaultApy.address, receiptToken))
     ?.apy;
 
-export const merklApr = ({
+export const merklApr = function ({
   nowSeconds,
   opportunities,
   receiptToken,
@@ -39,18 +39,21 @@ export const merklApr = ({
   nowSeconds: number;
   opportunities: LiveOpportunity[];
   receiptToken: Address;
-}) =>
-  opportunities
+}) {
+  const campaigns = opportunities
     .filter((opportunity) =>
       isAddressEqual(opportunity.identifier, receiptToken),
     )
-    .flatMap((opportunity) => opportunity.campaigns)
+    .flatMap((opportunity) => opportunity.campaigns);
+  campaigns.forEach(validateCampaignWindow);
+  return campaigns
     .filter(
       (campaign) =>
         Number(campaign.startTimestamp) <= nowSeconds &&
         Number(campaign.endTimestamp) > nowSeconds,
     )
     .reduce((sum, campaign) => sum + campaign.apr, 0);
+};
 
 export const combineStrategyApy = ({
   nowSeconds,
@@ -80,14 +83,22 @@ export const combineStrategyApy = ({
         );
         return [];
       }
-      return [
-        [
-          strategy,
-          apy +
-            merklApr({ nowSeconds, opportunities, receiptToken }) +
-            (stakeDaoStrategy ? strategyRewardsApr(stakeDaoStrategy) : 0),
-        ],
-      ];
+      try {
+        return [
+          [
+            strategy,
+            apy +
+              merklApr({ nowSeconds, opportunities, receiptToken }) +
+              (stakeDaoStrategy ? strategyRewardsApr(stakeDaoStrategy) : 0),
+          ],
+        ];
+      } catch (error) {
+        console.warn(
+          `Failed to combine the APY of strategy ${strategy}: ${error.message}`,
+        );
+        // Keep this strategy eligible for its cached APY without failing siblings.
+        return [[strategy, Number.NaN]];
+      }
     }),
   ) as StrategyApy;
 

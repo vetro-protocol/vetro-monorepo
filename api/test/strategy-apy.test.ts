@@ -14,7 +14,8 @@ import {
 
 import { createFakeKv } from "./utils/fake-kv.ts";
 
-vi.mock("../src/merkl.ts", () => ({
+vi.mock("../src/merkl.ts", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../src/merkl.ts")>()),
   getLiveOpportunities: vi.fn(),
 }));
 
@@ -172,6 +173,45 @@ describe("strategy-apy/combineStrategyApy", function () {
 });
 
 describe("strategy-apy/getStrategyApy", function () {
+  it("keeps only the affected strategy's cached APY when a campaign has no end timestamp", async function () {
+    const { kv, put } = createFakeKv({ store: { [strategyApyKey]: 8 } });
+    vi.mocked(getMorphoApys).mockResolvedValue([
+      { address: strategyReceiptToken, apy: 4 },
+      { address: otherToken, apy: 2 },
+    ]);
+    vi.mocked(getLiveOpportunities).mockResolvedValue([
+      {
+        campaigns: [
+          // @ts-expect-error Deliberately missing upstream timestamp.
+          {
+            apr: 3,
+            campaignId: `0x${"1".repeat(64)}`,
+            rewardToken: { address: otherToken, chainId: 1 },
+            startTimestamp: Math.floor(Date.now() / 1000) - 100,
+          },
+        ],
+        chainId: 1,
+        id: "missing-window",
+        identifier: strategyReceiptToken,
+      },
+    ]);
+    const result = await getStrategyApy({
+      kv,
+      stakeDaoStrategies: [],
+      strategies: [
+        { address: strategyAddress, receiptToken: strategyReceiptToken },
+        { address: otherToken, receiptToken: otherToken },
+      ],
+    });
+    expect(result).toEqual({ [otherToken]: 2, [strategyAddress]: 8 });
+    expect(put).toHaveBeenCalledTimes(1);
+    expect(put).toHaveBeenCalledWith(
+      `analytics:treasury:apy:${otherToken.toLowerCase()}`,
+      "2",
+      { expirationTtl: 60 * 60 },
+    );
+  });
+
   it("returns and caches a fresh APY for one hour", async function () {
     const { kv, put } = createFakeKv({});
 
