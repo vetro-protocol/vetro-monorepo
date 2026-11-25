@@ -70,6 +70,7 @@ function ModalContent<T extends Token>({
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const isDesktop = width >= screenBreakpoints.md;
+  const [focusOnOpen] = useState(isDesktop);
   const lowerQuery = query.trim().toLowerCase();
   const hasQuery = lowerQuery.length > 0;
   const visibleTokens = hasQuery
@@ -80,11 +81,11 @@ function ModalContent<T extends Token>({
 
   useEffect(
     function focusSearchInputOnDesktop() {
-      if (isDesktop) {
+      if (focusOnOpen) {
         searchInputRef.current?.focus();
       }
     },
-    [isDesktop],
+    [focusOnOpen],
   );
 
   function handleSearchKeyDown(event: KeyboardEvent<HTMLInputElement>) {

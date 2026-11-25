@@ -26,7 +26,7 @@ async function renderModal() {
   }
 
   const queryClient = new QueryClient();
-  const screen = await render(
+  const tree = () => (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         <TokenSelectorModal
@@ -36,11 +36,12 @@ async function renderModal() {
           value={value}
         />
       </QueryClientProvider>
-    </WagmiProvider>,
+    </WagmiProvider>
   );
+  const screen = await render(tree());
   const trigger = screen.getByRole("button", { name: "Select token" });
 
-  return { screen, trigger };
+  return { screen, tree, trigger };
 }
 
 describe("TokenSelectorModal", function () {
@@ -68,5 +69,25 @@ describe("TokenSelectorModal", function () {
       .element(screen.getByRole("textbox", { name: "Search" }))
       .not.toHaveFocus();
     await expect.element(trigger).toHaveFocus();
+  });
+
+  it("does not focus search when a mobile modal resizes to desktop", async function () {
+    viewportSize.width = 375;
+    const { screen, tree, trigger } = await renderModal();
+
+    await trigger.click();
+    const search = screen.getByRole("textbox", { name: "Search" });
+    await expect.element(search).not.toHaveFocus();
+
+    viewportSize.width = 1024;
+    (
+      screen.getByRole("button", { name: "Close" }).element() as HTMLElement
+    ).focus();
+    await screen.rerender(tree());
+
+    await expect.element(search).not.toHaveFocus();
+    await expect
+      .element(screen.getByRole("button", { name: "Close" }))
+      .toHaveFocus();
   });
 });
