@@ -164,7 +164,11 @@ export async function getCurvePools({
   const pools = poolsResponse.data.poolData.filter((pool) =>
     pool.coins.some((coin) => isTrackedToken(coin.address)),
   );
-  const prices = pools.some(hasUnpricedCoin) ? await liquidityUsdPrices : {};
+  const prices = pools.some((pool) =>
+    pool.coins.some((coin) => coin.usdPrice === null),
+  )
+    ? await liquidityUsdPrices
+    : {};
   return pools.map((pool) =>
     buildPool({
       pool,

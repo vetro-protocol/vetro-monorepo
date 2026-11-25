@@ -48,4 +48,51 @@ describe("liquidity/getCurvePools", function () {
     expect(pools).toHaveLength(1);
     expect(pools[0]).toMatchObject({ apr: null, tvlUsd: null });
   });
+
+  it("prices an empty coin that Curve does not price", async function () {
+    const address = "0x2222222222222222222222222222222222222222";
+    const findToken = (symbol: string) =>
+      knownTokens.find(
+        (token) => token.chainId === 1 && token.symbol === symbol,
+      )!;
+    const usdc = findToken("USDC");
+    vi.mocked(getLiquidityUsdPrices).mockResolvedValue({ USDC: "0.9998" });
+    vi.mocked(fetchJson)
+      .mockResolvedValueOnce({
+        data: {
+          poolData: [
+            {
+              address,
+              coins: [
+                {
+                  address: findToken("VUSD").address,
+                  decimals: "18",
+                  poolBalance: "1000000000000000000",
+                  usdPrice: 1,
+                },
+                {
+                  address: usdc.address,
+                  decimals: "6",
+                  poolBalance: "0",
+                  usdPrice: null,
+                },
+              ],
+              gaugeCrvApy: null,
+              id: "empty-unpriced",
+              usdTotal: 1,
+            },
+          ],
+        },
+      })
+      .mockResolvedValueOnce({ data: { pools: [] } });
+    const pools = await getCurvePools({
+      client: {} as Client,
+      portalApiUrl: "https://portal.example",
+    });
+    expect(pools[0].coins[1]).toEqual({
+      address: usdc.address,
+      amount: 0,
+      usdPrice: 0.9998,
+    });
+  });
 });
