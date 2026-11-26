@@ -48,7 +48,7 @@ const ToastCard = function ({
   const { t } = useTranslation();
 
   return (
-    <div className="group flex items-start gap-3 rounded-lg bg-gray-950 p-3 pr-4">
+    <div className="flex items-start gap-3 rounded-lg bg-gray-950 p-3 pr-4">
       <div className="flex h-5 shrink-0 items-center">
         {variant === "error" ? (
           <ErrorCircleIcon className="size-4 text-rose-500" />
@@ -65,7 +65,7 @@ const ToastCard = function ({
       </div>
       <button
         aria-label={t("common.close-notification")}
-        className="flex h-5 shrink-0 cursor-pointer items-center text-gray-400 opacity-0 transition-all group-hover:opacity-100 hover:text-white focus-visible:opacity-100"
+        className="flex h-5 shrink-0 cursor-pointer items-center text-gray-400 transition-colors hover:text-white"
         onClick={onClose}
         type="button"
       >
