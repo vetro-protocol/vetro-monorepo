@@ -166,6 +166,8 @@ export function Stack({
 
   if (items.length === 0) return null;
 
+  const expanded = hovered || focused;
+
   function handleFocus() {
     setFocused(true);
   }
@@ -202,7 +204,7 @@ export function Stack({
           const expandedOffset = getExpandedOffset(index);
           const isFirst = index === 0;
 
-          const transform = hovered
+          const transform = expanded
             ? `translateY(-${expandedOffset}px)`
             : isFirst
               ? undefined
@@ -225,7 +227,7 @@ export function Stack({
                 autoCloseMs={autoCloseMs}
                 onHeightChange={(h) => handleHeightChange(item.id, h)}
                 onRemove={onRemove ? () => onRemove(item.id) : undefined}
-                paused={hovered || focused}
+                paused={expanded}
               >
                 {item.content}
               </ItemAnimation>
