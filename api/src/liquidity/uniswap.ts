@@ -89,6 +89,7 @@ const buildPool = async function ({
     coins: [pool.token0, pool.token1].map((address, index) => ({
       address,
       amount: amounts[index],
+      usdPrice: usdPrices[index] ?? null,
     })),
     dex: "uniswap",
     rewards: [],

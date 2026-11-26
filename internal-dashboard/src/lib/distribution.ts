@@ -3,12 +3,9 @@ import { isAddressEqual } from "viem";
 
 import { type TrackedPool, type TrackedToken } from "./types";
 
-// Fixed-point scale for the bigint share ratio: 6 decimals of share precision,
-// well beyond the 2 decimals of percentage the UI renders.
-const SHARE_SCALE = 1_000_000n;
-
 type DistributionSlice = {
-  balance: bigint; // raw on-chain units
+  amount: number; // token units
+  amountUsd: number | undefined;
   pool: TrackedPool;
   share: number; // 0..1 of the token's total tracked liquidity
 };
@@ -16,7 +13,8 @@ type DistributionSlice = {
 export type TokenDistribution = {
   slices: DistributionSlice[];
   token: TrackedToken;
-  totalBalance: bigint; // raw on-chain units
+  totalAmount: number; // token units
+  totalUsd: number | undefined; // undefined when a slice has no price
 };
 
 // For each token, how its tracked-pool liquidity is split across the pools that
@@ -44,30 +42,32 @@ export const computeDistributions = ({
             isAddressEqual(address, candidate.address),
           ),
         );
-        return coin ? { balance: coin.balance, pool } : undefined;
+        return coin
+          ? {
+              amount: coin.amount,
+              amountUsd:
+                coin.amount === 0
+                  ? 0
+                  : coin.usdPrice === undefined
+                    ? undefined
+                    : coin.amount * coin.usdPrice,
+              pool,
+            }
+          : undefined;
       })
       .filter(Boolean);
 
-    const totalBalance = entries.reduce(
-      (sum, entry) => sum + entry.balance,
-      0n,
-    );
+    const totalAmount = entries.reduce((sum, entry) => sum + entry.amount, 0);
+    const totalUsd = entries.every((entry) => entry.amountUsd !== undefined)
+      ? entries.reduce((sum, entry) => sum + entry.amountUsd!, 0)
+      : undefined;
 
-    // Same token across pools shares decimals, so the raw-unit ratio is the
-    // share. The ratio is computed in fixed-point bigint to stay exact for raw
-    // balances above 2^53, then converted to a number only for display.
     const slices = entries
       .map((entry) => ({
         ...entry,
-        share:
-          totalBalance > 0n
-            ? Number((entry.balance * SHARE_SCALE) / totalBalance) /
-              Number(SHARE_SCALE)
-            : 0,
+        share: totalAmount > 0 ? entry.amount / totalAmount : 0,
       }))
-      .sort((a, b) =>
-        a.balance < b.balance ? 1 : a.balance > b.balance ? -1 : 0,
-      );
+      .sort((a, b) => b.amount - a.amount);
 
-    return { slices, token, totalBalance };
+    return { slices, token, totalAmount, totalUsd };
   });

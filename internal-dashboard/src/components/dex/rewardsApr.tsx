@@ -1,13 +1,6 @@
-import { isCurvePoolWithGauge } from "../../fetchers/fetchStakeDaoStrategies";
-import { usePoolCampaigns } from "../../hooks/usePoolCampaigns";
-import { useStakeDaoStrategy } from "../../hooks/useStakeDaoStrategy";
-import {
-  hasActiveStakeDaoCampaign,
-  type RewardAprRow,
-  rewardAprRows,
-} from "../../lib/campaigns";
+import { sortRewards } from "../../lib/campaigns";
 import { formatAprRange } from "../../lib/format";
-import { type PoolCampaign, type TrackedPool } from "../../lib/types";
+import { type PoolReward, type TrackedPool } from "../../lib/types";
 import { Tooltip } from "../tooltip";
 
 import { CampaignSourceIcon } from "./campaignSourceIcon";
@@ -26,140 +19,85 @@ const alignClasses: Record<Align, { column: string; line: string }> = {
   start: { column: "items-start", line: "justify-start" },
 };
 
-// CRV on Ethereum; only mainnet Curve pools are tracked.
-const crvAddress = "0xD533a949740bb3306d119CC777fa900bA034cd52";
-
-const tooltips: Partial<Record<RewardAprRow["source"], string>> = {
+const tooltips: Partial<Record<PoolReward["source"], string>> = {
   curveGauge:
     "Curve gauge CRV emissions for LPs staked in the gauge: unboosted → max veCRV boost (2.5x).",
   stakeDao:
     "StakeDAO strategy: boosted CRV plus extra rewards, excl. fees. An alternative to the Curve gauge, not added to it.",
 };
 
-const RewardSourceIcon = ({ source }: { source: RewardAprRow["source"] }) =>
-  source === "curveGauge" ? (
-    <TokenIcon address={crvAddress} dex="curve" size={14} symbol="CRV" />
+const RewardSourceIcon = ({ reward }: { reward: PoolReward }) =>
+  reward.source === "curveGauge" ? (
+    <TokenIcon
+      address={reward.tokens[0].address}
+      dex="curve"
+      size={14}
+      symbol={reward.tokenSymbols}
+    />
   ) : (
-    <CampaignSourceIcon size={14} source={source} />
+    <CampaignSourceIcon size={14} source={reward.source} />
   );
 
-const RewardLine = ({ align, row }: { align: Align; row: RewardAprRow }) => (
+const RewardLine = ({
+  align,
+  reward,
+}: {
+  align: Align;
+  reward: PoolReward;
+}) => (
   <span
     className={`flex flex-wrap items-center gap-x-1 ${alignClasses[align].line}`}
   >
-    <RewardSourceIcon source={row.source} />
+    <RewardSourceIcon reward={reward} />
     <span>
-      {formatAprRange({
-        max: row.aprPercentMax ?? row.aprPercent,
-        min: row.aprPercent,
-      })}
+      {formatAprRange({ max: reward.aprMax ?? reward.apr, min: reward.apr })}
     </span>
-    <span className="text-neutral-500">{row.tokenSymbols}</span>
+    <span className="text-neutral-500">{reward.tokenSymbols}</span>
   </span>
 );
 
-const isPending = (query: { data: unknown; error: Error | null }) =>
-  query.data === undefined && !query.error;
-
-// The strategy row needs a gauged Curve pool and an active StakeDAO campaign;
-// once campaigns settle without one, the strategy can't add a row, so the
-// cell doesn't wait on (or report errors from) that query.
-const canShowStrategy = ({
-  campaignsQuery,
-  pool,
-}: {
-  campaignsQuery: { data: PoolCampaign[] | undefined; error: Error | null };
-  pool: TrackedPool;
-}) =>
-  isCurvePoolWithGauge(pool) &&
-  (isPending(campaignsQuery) ||
-    hasActiveStakeDaoCampaign(campaignsQuery.data ?? []));
-
 const RewardLineWithTooltip = function ({
   align,
-  row,
+  reward,
 }: {
   align: Align;
-  row: RewardAprRow;
+  reward: PoolReward;
 }) {
-  const tooltip = tooltips[row.source];
+  const tooltip = tooltips[reward.source];
   return tooltip ? (
     <Tooltip label={tooltip} multiline>
-      <RewardLine align={align} row={row} />
+      <RewardLine align={align} reward={reward} />
     </Tooltip>
   ) : (
-    <RewardLine align={align} row={row} />
+    <RewardLine align={align} reward={reward} />
   );
 };
 
+const rewardKey = (reward: PoolReward) =>
+  reward.source === "merkl"
+    ? reward.sourceMetadata.campaignId
+    : reward.source === "stakeDao"
+      ? reward.sourceMetadata.strategyKey
+      : reward.sourceMetadata.gaugeAddress;
+
 export const RewardsApr = function ({ align, pool }: RewardsAprProps) {
   const { column } = alignClasses[align];
-  const campaignsQuery = usePoolCampaigns({ poolId: pool.id });
-  const strategyQuery = useStakeDaoStrategy(pool.id);
 
-  const strategyApplies = canShowStrategy({ campaignsQuery, pool });
-
-  if (
-    isPending(campaignsQuery) ||
-    (strategyApplies && isPending(strategyQuery))
-  ) {
-    // The gauge emission comes with the pool, so show it right away. It is
-    // always the first row, so later rows append below it without reordering.
-    const emissionRows = rewardAprRows({
-      campaigns: [],
-      emission: pool,
-      // Only read for strategy rewards, and there's no strategy here.
-      nowSeconds: 0,
-      stakeDaoStrategy: null,
-    });
-    return (
-      <span className={`flex flex-col gap-y-0.5 ${column}`}>
-        {emissionRows.map((row) => (
-          <RewardLineWithTooltip
-            align={align}
-            key={`${row.source}-${row.id}`}
-            row={row}
-          />
-        ))}
-        <span className="h-5 w-16 animate-pulse rounded bg-neutral-100" />
-      </span>
-    );
-  }
-
-  // Once the sources that apply settle, a failed one falls back to empty so the
-  // remaining rows still render. The StakeDAO strategy row also needs an
-  // active Votemarket campaign, so it hides without campaigns data.
-  const rows = rewardAprRows({
-    campaigns: campaignsQuery.data ?? [],
-    emission: pool,
-    // When the feed was read, so expired rewards match the data shown.
-    nowSeconds: strategyQuery.dataUpdatedAt / 1000,
-    stakeDaoStrategy: strategyQuery.data ?? null,
-  });
-
-  if (rows.length === 0) {
-    const error =
-      campaignsQuery.error ?? (strategyApplies ? strategyQuery.error : null);
+  if (pool.rewards.length === 0) {
     return (
       <span className={`flex flex-col ${column}`}>
-        {error ? (
-          <Tooltip label={error.message}>
-            <span className="text-neutral-400">—</span>
-          </Tooltip>
-        ) : (
-          <span className="text-neutral-400">—</span>
-        )}
+        <span className="text-neutral-400">—</span>
       </span>
     );
   }
 
   return (
     <span className={`flex flex-col gap-y-0.5 ${column}`}>
-      {rows.map((row) => (
+      {sortRewards(pool.rewards).map((reward) => (
         <RewardLineWithTooltip
           align={align}
-          key={`${row.source}-${row.id}`}
-          row={row}
+          key={`${reward.source}-${rewardKey(reward)}`}
+          reward={reward}
         />
       ))}
     </span>

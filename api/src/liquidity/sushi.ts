@@ -279,6 +279,7 @@ const getSushiPool = async function ({
     coins: tokens.map((token, index) => ({
       address: token.address,
       amount: amounts[index],
+      usdPrice: usdPrices[index] ?? null,
     })),
     dex: "sushi",
     range,

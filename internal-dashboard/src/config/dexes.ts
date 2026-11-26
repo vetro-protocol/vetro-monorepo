@@ -40,3 +40,15 @@ export const dexTokenIconUrl = ({
   address: Address;
   dex: Dex;
 }) => iconUrlByDex[dex](address);
+
+const poolUrlByDex: Record<Dex, (address: Address) => string> = {
+  brownfi: (address) =>
+    `https://app.brownfi.io/clamm/analytics/pools/${address.toLowerCase()}`,
+  curve: (address) => `https://www.curve.finance/dex/ethereum/pools/${address}`,
+  sushi: (address) => `https://www.sushi.com/ethereum/pool/v3/${address}`,
+  uniswap: (address) =>
+    `https://app.uniswap.org/explore/pools/ethereum/${address}`,
+};
+
+export const poolUrl = ({ address, dex }: { address: Address; dex: Dex }) =>
+  poolUrlByDex[dex](address);
