@@ -26,15 +26,18 @@ export function register(borrow: Command) {
       const { client } = await createVetroClient(
         command.optsWithGlobals<GlobalOptions>(),
       );
-      const { collateralToken, loanToken, marketId, pair } =
-        await resolveMarket({
-          client,
-          selector: options.market,
-        });
-      const [{ timestamp }, market] = await Promise.all([
-        getBlock(client),
-        fetchMarket(marketId as MarketId, client),
-      ]);
+      const [{ collateralToken, loanToken, marketId, pair }, block] =
+        await Promise.all([
+          resolveMarket({
+            client,
+            selector: options.market,
+          }),
+          getBlock(client),
+        ]);
+      const { timestamp } = block;
+      const market = await fetchMarket(marketId as MarketId, client, {
+        blockNumber: block.number,
+      });
       const accrued = market.accrueInterest(timestamp);
       printResult({
         // The borrowApy getter projects the rate to the wall clock, not to the block.
