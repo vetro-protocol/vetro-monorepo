@@ -1,6 +1,9 @@
+import { gatewayAddresses } from "@vetro-protocol/gateway";
+import { getTreasury } from "@vetro-protocol/gateway/actions";
+import { getPrice } from "@vetro-protocol/treasury/actions";
 import { describe, expect, inject, it } from "vitest";
 
-import { runCli, runCliRaw, usdc, vusd } from "./helpers.ts";
+import { createClients, runCli, runCliRaw, usdc, vusd } from "./helpers.ts";
 
 type Price = {
   latestPrice: string;
@@ -19,18 +22,31 @@ describe("swap price", function () {
   ];
 
   it("reads the price by symbol", async function () {
+    const { publicClient } = createClients(rpcUrl);
+    const treasury = await getTreasury(publicClient, {
+      address: gatewayAddresses[0],
+    });
+    const [expectedLatestPrice, expectedUnitPrice] = await getPrice(
+      publicClient,
+      { address: treasury, token: usdc.address },
+    );
     const price = await runCli<Price>(priceOnFork(["--token", usdc.symbol]));
-
-    expect(price.latestPrice).toMatch(/^\d+$/);
-    expect(price.unitPrice).toMatch(/^\d+$/);
-    expect(BigInt(price.latestPrice)).toBeGreaterThan(0n);
-    expect(BigInt(price.unitPrice)).toBeGreaterThan(0n);
+    expect(price.latestPrice).toBe(expectedLatestPrice.toString());
+    expect(price.unitPrice).toBe(expectedUnitPrice.toString());
   });
 
   it("reads the price by address", async function () {
+    const { publicClient } = createClients(rpcUrl);
+    const treasury = await getTreasury(publicClient, {
+      address: gatewayAddresses[0],
+    });
+    const [expectedLatestPrice, expectedUnitPrice] = await getPrice(
+      publicClient,
+      { address: treasury, token: usdc.address },
+    );
     const price = await runCli<Price>(priceOnFork(["--token", usdc.address]));
-
-    expect(BigInt(price.latestPrice)).toBeGreaterThan(0n);
+    expect(price.latestPrice).toBe(expectedLatestPrice.toString());
+    expect(price.unitPrice).toBe(expectedUnitPrice.toString());
   });
 
   it("rejects a pegged token", async function () {

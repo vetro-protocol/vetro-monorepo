@@ -142,7 +142,7 @@ describe("apy-history/getApyHistory", function () {
   it("returns only the subgraph series when the warmed read fails", async function () {
     // A KV read error must degrade to subgraph-only, not fail the whole request.
     vi.mocked(readWarmedTask).mockRejectedValue(new Error("kv down"));
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    vi.spyOn(console, "warn").mockImplementation(() => undefined);
     vi.mocked(graphql.runQuery).mockResolvedValue({
       vaultAprHistories: [
         { apr: "100000000000000000", timestamp: "1707782400" },
@@ -155,7 +155,6 @@ describe("apy-history/getApyHistory", function () {
     expect(readWarmedTask).toHaveBeenCalledWith(
       expect.objectContaining({ item: sVusdAddress }),
     );
-    warn.mockRestore();
   });
 
   it("queries the subgraph with the staking vault address lowercased", async function () {

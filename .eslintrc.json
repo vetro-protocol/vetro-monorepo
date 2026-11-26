@@ -139,7 +139,20 @@
     },
     {
       "extends": ["bloq/typescript", "bloq/vitest"],
-      "files": ["*.{spec,test}.{js,ts,tsx}"]
+      "files": ["*.{spec,test}.{js,ts,tsx}"],
+      "rules": {
+        "no-restricted-syntax": [
+          "error",
+          {
+            "message": "Name maps of Tailwind classes *Class, *Classes or *ClassName so better-tailwindcss lints them.",
+            "selector": "JSXAttribute[name.name=/^(class|className)$/] MemberExpression[computed=true] > Identifier.object:not([name=/(Class|Classes|ClassName)$/])"
+          },
+          {
+            "message": "Use exact assertions instead of digits-only toMatch regexes.",
+            "selector": "CallExpression[callee.property.name='toMatch'] > Literal.arguments[regex.pattern=/^\\^(-\\?)?(\\\\d|\\[0-9\\])[*+]\\$$/]"
+          }
+        ]
+      }
     },
     {
       "files": ["web/stories/**/*.{js,ts,tsx}"],

@@ -7,6 +7,7 @@ import { stakingVaultAbi } from "@vetro-protocol/earn";
 import { gatewayAbi as vetroGatewayAbi } from "@vetro-protocol/gateway";
 import {
   getMaxMint,
+  getMintFee,
   getTreasury,
   getWithdrawalDelayEnabled,
   isInstantRedeemWhitelisted,
@@ -367,6 +368,52 @@ export const setMaxMint = async function ({
   const maxMintAfter = await getMaxMint(publicClient, { address: gateway });
 
   return { maxMintAfter, maxMintBefore };
+};
+
+export const setMintFee = async function ({
+  gateway,
+  mintFee,
+  rpcUrl,
+  token,
+}: {
+  gateway: Address;
+  mintFee: bigint;
+  rpcUrl: string;
+  token: Address;
+}) {
+  const { publicClient, testClient } = createClients(rpcUrl);
+
+  const [mintFeeBefore, owner] = await Promise.all([
+    getMintFee(publicClient, { address: gateway, token }),
+    readContract(publicClient, {
+      abi: vetroGatewayAbi,
+      address: gateway,
+      functionName: "owner",
+    }),
+  ]);
+
+  await impersonateAccount(testClient, { address: owner });
+  await setBalance(testClient, { address: owner, value: parseEther("1") });
+
+  try {
+    const hash = await writeContract(testClient, {
+      abi: vetroGatewayAbi,
+      account: owner,
+      address: gateway,
+      args: [token, mintFee],
+      functionName: "updateMintFee",
+    });
+    await waitForTransactionReceipt(publicClient, { hash });
+  } finally {
+    await stopImpersonatingAccount(testClient, { address: owner });
+  }
+
+  const mintFeeAfter = await getMintFee(publicClient, {
+    address: gateway,
+    token,
+  });
+
+  return { mintFeeAfter, mintFeeBefore };
 };
 
 export const confirmWrite = async function ({
