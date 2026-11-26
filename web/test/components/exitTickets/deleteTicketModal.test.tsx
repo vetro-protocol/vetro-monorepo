@@ -106,6 +106,16 @@ describe("DeleteTicketModal", function () {
     expect(mocked.mutate).toHaveBeenCalledOnce();
   });
 
+  it("passes the ticket's assets, request id and vault to the cancel", async function () {
+    await renderModal();
+
+    expect(vi.mocked(useCancelWithdraw).mock.lastCall![0]).toMatchObject({
+      assets: 1230000n,
+      requestId: 7n,
+      stakingVaultAddress,
+    });
+  });
+
   it("enables both buttons again and does not close when the cancel fails", async function () {
     const onSuccess = vi.fn();
     const { cancelButton, deleteButton, onClose } = await renderModal({
