@@ -6,7 +6,7 @@
     "build": "tsc --noEmit",
     "postbuild": "pnpm bundle",
     "bundle": "node ../../scripts/bundle-package.js",
-    "clean": "rm -rf ./_esm ./_types",
+    "clean": "rm -rf ./_esm",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage"
   },
