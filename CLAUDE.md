@@ -15,10 +15,10 @@ The `web/` app exposes the Swap, Earn, Borrow, Bridge, Liquidity, and Analytics 
 
 ### JavaScript/TypeScript
 
-- **Alphabetical sorting**: Sort object properties, function parameters, imports and types properties alphabetically
+- **Alphabetical sorting**: Sort named import members alphabetically
 - **Function declarations**: Use full function expressions, not arrow functions. Exception: single-expression arrow functions with implicit returns are allowed (e.g., `const foo = () => 0;` or `array.filter(element => element > 45)`)
 - **Variable naming**: Use camelCase for variables
-- **Function parameters**: Use an object for functions requiring 2+ parameters. Exception: facade/adapter functions may maintain their original signature
+- **Function parameters**: Use an object for functions requiring 3+ parameters. Exception: facade/adapter functions may maintain their original signature
 - **Comparing addresses**: When comparing `Address` values (the type from `viem`), prefer `isAddressEqual` imported from `viem` over direct equality checks
 - **Actions over client extension**: Call actions in the standalone `actionFn(client, params)` form instead of decorating the client via `.extend()`. This applies to both viem's native actions (e.g. `readContract(client, params)`) and our `@vetro-protocol/*` package actions (import from the package's `/actions` subpath). Keep the client plain. This yields simpler types — the `Client` type stays lean instead of accumulating every extended action — and lets bundlers tree-shake the actions you don't call.
 - **Comments**: Explain only the non-obvious "why", not what the code does. Update comments or docstrings that your change makes stale.
@@ -37,11 +37,9 @@ The `web/` app exposes the Swap, Earn, Borrow, Bridge, Liquidity, and Analytics 
 
 ### TypeScript
 
-- **Array syntax**: Prefer `T[]` over `Array<T>`
 - **Avoid `as any`**: Only use as a last resort when alternatives are significantly more complex
 - **Expected errors**: Use `@ts-expect-error [explanation]` instead of `as any` for known type issues
 - **Return types**: Omit explicit return types when the compiler can infer them. Keep type predicates, recursive function annotations, and annotations that check a served JSON shape against the type its clients use. Skip `subgraphs/vetro-app-subgraph` and `subgraphs/ve-vetro-subgraph`, where AssemblyScript requires annotations.
-- **Type vs Interface**: Prefer `type` over `interface`, except for module augmentation
 - **Running TypeScript files**: Use `node <path/to/file>.ts` directly — Node natively supports TypeScript execution
 - **Component Props naming**: When creating a type for component props, use generic name `Props` if they're the only props defined in the file. Otherwise, use `<ComponentName>Props`
 

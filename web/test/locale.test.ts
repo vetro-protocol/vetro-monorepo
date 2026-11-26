@@ -6,9 +6,9 @@ import { describe, expect, it } from "vitest";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-interface LocaleObject {
+type LocaleObject = {
   [key: string]: string | LocaleObject;
-}
+};
 
 const getFullKeys = function (
   obj: string | LocaleObject,

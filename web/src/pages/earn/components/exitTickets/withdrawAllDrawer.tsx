@@ -81,10 +81,18 @@ export function WithdrawAllDrawer({ onClose, onSuccess, withdrawals }: Props) {
           txHash,
         });
       } else if (status === "completed") {
-        updateActivity(account, txHash, { status: "completed" });
+        updateActivity({
+          address: account,
+          txHash,
+          updates: { status: "completed" },
+        });
         delete txHashes.current[stakingVaultAddress];
       } else if (status === "failed") {
-        updateActivity(account, txHash, { status: "failed" });
+        updateActivity({
+          address: account,
+          txHash,
+          updates: { status: "failed" },
+        });
         delete txHashes.current[stakingVaultAddress];
       }
     },

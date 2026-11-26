@@ -24,7 +24,25 @@
         "packages/**/*.{js,ts,tsx}",
         "subgraphs/**/*.ts",
         "web/**/*.{js,ts,tsx}"
-      ]
+      ],
+      "rules": {
+        "@typescript-eslint/array-type": ["error", { "default": "array" }],
+        "@typescript-eslint/consistent-type-definitions": ["error", "type"],
+        "@typescript-eslint/member-ordering": [
+          "error",
+          {
+            "default": "never",
+            "interfaces": {
+              "memberTypes": "never",
+              "order": "natural-case-insensitive"
+            },
+            "typeLiterals": {
+              "memberTypes": "never",
+              "order": "natural-case-insensitive"
+            }
+          }
+        ]
+      }
     },
     {
       "extends": ["bloq/react"],
@@ -60,6 +78,30 @@
         "no-restricted-syntax": [
           "error",
           {
+            "message": "Use an object parameter for functions that take 3 or more parameters.",
+            "selector": "FunctionDeclaration[params.length>=3]"
+          },
+          {
+            "message": "Use an object parameter for functions that take 3 or more parameters.",
+            "selector": "VariableDeclarator > ArrowFunctionExpression[params.length>=3]"
+          },
+          {
+            "message": "Use an object parameter for functions that take 3 or more parameters.",
+            "selector": "VariableDeclarator > FunctionExpression[params.length>=3]"
+          },
+          {
+            "message": "Use an object parameter for functions that take 3 or more parameters.",
+            "selector": "VariableDeclarator > :function > :function[params.length>=3]"
+          },
+          {
+            "message": "Use an object parameter for functions that take 3 or more parameters.",
+            "selector": "VariableDeclarator > :function > BlockStatement > ReturnStatement > :function[params.length>=3]"
+          },
+          {
+            "message": "Use an object parameter for functions that take 3 or more parameters.",
+            "selector": "CallExpression[callee.name='useCallback'] > :function[params.length>=3]"
+          },
+          {
             "message": "Name maps of Tailwind classes *Class, *Classes or *ClassName so better-tailwindcss lints them.",
             "selector": "JSXAttribute[name.name=/^(class|className)$/] MemberExpression[computed=true] > Identifier.object:not([name=/(Class|Classes|ClassName)$/])"
           }
@@ -86,6 +128,13 @@
       "files": ["web/**/*.{js,ts,tsx}"],
       "plugins": ["better-tailwindcss"],
       "rules": {
+        "no-restricted-syntax": [
+          "error",
+          {
+            "message": "Name maps of Tailwind classes *Class, *Classes or *ClassName so better-tailwindcss lints them.",
+            "selector": "JSXAttribute[name.name=/^(class|className)$/] MemberExpression[computed=true] > Identifier.object:not([name=/(Class|Classes|ClassName)$/])"
+          }
+        ],
         "better-tailwindcss/enforce-shorthand-classes": "error",
         "better-tailwindcss/no-concatenated-classes": "error",
         "better-tailwindcss/no-conflicting-classes": "error",
@@ -135,7 +184,10 @@
     },
     {
       "extends": ["bloq/typescript", "prettier"],
-      "files": ["*.d.ts"]
+      "files": ["*.d.ts"],
+      "rules": {
+        "@typescript-eslint/consistent-type-definitions": "off"
+      }
     },
     {
       "extends": ["bloq/typescript", "bloq/vitest"],
@@ -175,13 +227,67 @@
     {
       "files": ["packages/**/*.{js,ts,tsx}"],
       "rules": {
-        "complexity": ["warn", { "max": 20 }]
+        "complexity": ["warn", { "max": 20 }],
+        "no-restricted-syntax": [
+          "error",
+          {
+            "message": "Use an object parameter for functions that take 3 or more parameters.",
+            "selector": "FunctionDeclaration[params.length>=3]"
+          },
+          {
+            "message": "Use an object parameter for functions that take 3 or more parameters.",
+            "selector": "VariableDeclarator > ArrowFunctionExpression[params.length>=3]"
+          },
+          {
+            "message": "Use an object parameter for functions that take 3 or more parameters.",
+            "selector": "VariableDeclarator > FunctionExpression[params.length>=3]"
+          },
+          {
+            "message": "Use an object parameter for functions that take 3 or more parameters.",
+            "selector": "VariableDeclarator > :function > :function[params.length>=3]"
+          },
+          {
+            "message": "Use an object parameter for functions that take 3 or more parameters.",
+            "selector": "VariableDeclarator > :function > BlockStatement > ReturnStatement > :function[params.length>=3]"
+          },
+          {
+            "message": "Use an object parameter for functions that take 3 or more parameters.",
+            "selector": "CallExpression[callee.name='useCallback'] > :function[params.length>=3]"
+          }
+        ]
       }
     },
     {
       "files": ["api/**/*.ts", "web/scripts/**/*.ts"],
       "rules": {
-        "no-console": "off"
+        "no-console": "off",
+        "no-restricted-syntax": [
+          "error",
+          {
+            "message": "Use an object parameter for functions that take 3 or more parameters.",
+            "selector": "FunctionDeclaration[params.length>=3]"
+          },
+          {
+            "message": "Use an object parameter for functions that take 3 or more parameters.",
+            "selector": "VariableDeclarator > ArrowFunctionExpression[params.length>=3]"
+          },
+          {
+            "message": "Use an object parameter for functions that take 3 or more parameters.",
+            "selector": "VariableDeclarator > FunctionExpression[params.length>=3]"
+          },
+          {
+            "message": "Use an object parameter for functions that take 3 or more parameters.",
+            "selector": "VariableDeclarator > :function > :function[params.length>=3]"
+          },
+          {
+            "message": "Use an object parameter for functions that take 3 or more parameters.",
+            "selector": "VariableDeclarator > :function > BlockStatement > ReturnStatement > :function[params.length>=3]"
+          },
+          {
+            "message": "Use an object parameter for functions that take 3 or more parameters.",
+            "selector": "CallExpression[callee.name='useCallback'] > :function[params.length>=3]"
+          }
+        ]
       }
     },
     {
@@ -208,6 +314,30 @@
       "rules": {
         "no-restricted-syntax": [
           "error",
+          {
+            "message": "Use an object parameter for functions that take 3 or more parameters.",
+            "selector": "FunctionDeclaration[params.length>=3]"
+          },
+          {
+            "message": "Use an object parameter for functions that take 3 or more parameters.",
+            "selector": "VariableDeclarator > ArrowFunctionExpression[params.length>=3]"
+          },
+          {
+            "message": "Use an object parameter for functions that take 3 or more parameters.",
+            "selector": "VariableDeclarator > FunctionExpression[params.length>=3]"
+          },
+          {
+            "message": "Use an object parameter for functions that take 3 or more parameters.",
+            "selector": "VariableDeclarator > :function > :function[params.length>=3]"
+          },
+          {
+            "message": "Use an object parameter for functions that take 3 or more parameters.",
+            "selector": "VariableDeclarator > :function > BlockStatement > ReturnStatement > :function[params.length>=3]"
+          },
+          {
+            "message": "Use an object parameter for functions that take 3 or more parameters.",
+            "selector": "CallExpression[callee.name='useCallback'] > :function[params.length>=3]"
+          },
           {
             "message": "Use a formatting helper from utils/format or utils/date instead.",
             "selector": "MemberExpression[object.name='Intl'][property.name=/Format$/]"

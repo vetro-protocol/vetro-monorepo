@@ -99,11 +99,16 @@ const canBorrowAssets = function ({
   return { canBorrowAssets: true };
 };
 
-export const runBorrowAssetsCore = async function (
-  walletClient: WalletClient,
-  { address, amount, marketId, onBehalf, receiver }: BorrowAssetsParams,
-  emitter: EventEmitter<BorrowAssetsEvents>,
-) {
+export const runBorrowAssetsCore = async function ({
+  emitter,
+  params,
+  walletClient,
+}: {
+  emitter: EventEmitter<BorrowAssetsEvents>;
+  params: BorrowAssetsParams;
+  walletClient: WalletClient;
+}) {
+  const { address, amount, marketId, onBehalf, receiver } = params;
   const { canBorrowAssets: canBorrowAssetsFlag, reason } = canBorrowAssets({
     address,
     amount,
@@ -170,7 +175,7 @@ const runBorrowAssets = (
 ) =>
   async function (emitter: EventEmitter<BorrowAssetsEvents>) {
     try {
-      await runBorrowAssetsCore(walletClient, params, emitter);
+      await runBorrowAssetsCore({ emitter, params, walletClient });
     } catch (error) {
       emitter.emit("unexpected-error", error as Error);
     } finally {

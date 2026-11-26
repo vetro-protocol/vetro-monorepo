@@ -37,8 +37,10 @@ export function useActivityTracking({ page, text, title }: Params) {
       if (!txHashRef.current || !account) {
         return;
       }
-      updateActivity(account, txHashRef.current, {
-        status: "completed",
+      updateActivity({
+        address: account,
+        txHash: txHashRef.current,
+        updates: { status: "completed" },
       });
       txHashRef.current = undefined;
     },
@@ -50,8 +52,10 @@ export function useActivityTracking({ page, text, title }: Params) {
       if (!txHashRef.current || !account) {
         return;
       }
-      updateActivity(account, txHashRef.current, {
-        status: "failed",
+      updateActivity({
+        address: account,
+        txHash: txHashRef.current,
+        updates: { status: "failed" },
       });
       txHashRef.current = undefined;
     },
@@ -61,7 +65,11 @@ export function useActivityTracking({ page, text, title }: Params) {
   const onReplaced = useCallback(
     function onReplaced(hash: string) {
       if (account && txHashRef.current) {
-        updateActivity(account, txHashRef.current, { txHash: hash });
+        updateActivity({
+          address: account,
+          txHash: txHashRef.current,
+          updates: { txHash: hash },
+        });
       }
       txHashRef.current = hash;
     },

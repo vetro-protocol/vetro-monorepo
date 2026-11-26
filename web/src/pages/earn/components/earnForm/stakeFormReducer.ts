@@ -18,8 +18,8 @@ export type WithdrawStep =
   | "withdrawing";
 
 type StakeFormState = {
-  approve10x: boolean;
   approvalCompleted: boolean;
+  approve10x: boolean;
   depositStep: DepositStep;
   inputValue: string;
   withdrawStep: WithdrawStep;
