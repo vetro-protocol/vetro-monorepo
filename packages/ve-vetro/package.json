@@ -17,11 +17,11 @@
   },
   "scripts": {
     "build": "tsc --noEmit",
-    "postbuild": "pnpm bundle && pnpm build:types",
+    "postbuild": "pnpm bundle",
     "build:types": "tsc -p tsconfig.build.json --declarationDir ./_types --emitDeclarationOnly --declaration --declarationMap",
     "bundle": "node ../../scripts/bundle-package.js",
     "clean": "rm -rf ./_esm ./_types",
-    "prepack": "cp ../../LICENSE LICENSE",
+    "prepack": "cp ../../LICENSE LICENSE && pnpm build:types",
     "prepublishOnly": "pnpm clean && pnpm build",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage"
