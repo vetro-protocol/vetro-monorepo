@@ -6,6 +6,7 @@ import { RequireWalletConnected } from "components/requireWalletConnected";
 import { Tooltip } from "components/tooltip";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useClaimWithdraw } from "hooks/useClaimWithdraw";
+import { useNowTickingPast } from "hooks/useNowTickingPast";
 import { useVaultPeggedToken } from "hooks/useVaultPeggedToken";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -95,7 +96,12 @@ export function ActionsCell({
   const geoRestricted = isGeoRestricted();
 
   const { data: peggedToken } = useVaultPeggedToken(ticket.stakingVaultAddress);
-  const status = getTicketStatus(ticket);
+  const now = useNowTickingPast([ticket], () =>
+    ticket.cancelTxHash || ticket.claimTxHash
+      ? undefined
+      : Number(ticket.claimableAt),
+  );
+  const status = getTicketStatus({ now, ticket });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [showWithdrawToast, setShowWithdrawToast] = useState(false);

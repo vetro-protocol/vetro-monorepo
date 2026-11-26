@@ -418,8 +418,8 @@ export function Deposit({
           protocolFee={protocolFeeQueryData}
           showApproveStep={startedWithApproval}
           stake={stakeAfterSwap.drawerStake}
-          toToken={toToken}
           totalFees={totalMintFeesQueryData}
+          toToken={toToken}
           unitPreview={unitDepositPreview}
         />
       )}

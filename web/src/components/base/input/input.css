@@ -4,7 +4,10 @@
   @apply text-b-regular h-7 w-full rounded-full bg-white pr-1.5 pl-3 text-gray-900 shadow-sm transition-shadow outline-none placeholder:text-gray-500;
 }
 
-.input--base:hover:not(:focus, [aria-invalid="true"]) {
+.input--base:hover:not(
+    :focus,
+    :is([aria-invalid="true"], [data-invalid="true"])
+  ) {
   box-shadow:
     0 0 0 1px rgba(0, 0, 0, 0.1),
     0 1px 2px 0 rgba(0, 0, 0, 0.08),
@@ -17,14 +20,14 @@
     0 0 0 4px rgba(0, 0, 0, 0.12);
 }
 
-.input--base[aria-invalid="true"] {
+.input--base:is([aria-invalid="true"], [data-invalid="true"]) {
   box-shadow:
     var(--shadow-sm),
     0 0 0 1px rgba(255, 32, 86, 0.53),
     0 0 1px 0 rgba(255, 32, 86, 0.48);
 }
 
-.input--base[aria-invalid="true"]:focus {
+.input--base:is([aria-invalid="true"], [data-invalid="true"]):focus {
   box-shadow:
     0 0 0 4px rgba(255, 32, 86, 0.16),
     0 0 1px 0 rgba(255, 32, 86, 0.48),

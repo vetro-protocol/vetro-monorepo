@@ -67,8 +67,10 @@ function ModalContent<T extends Token>({
   const { height: viewportHeight } = useVisualViewportSize();
   const [query, setQuery] = useState("");
   const [isScrolled, setIsScrolled] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const isDesktop = width >= screenBreakpoints.md;
+  const [focusOnOpen] = useState(isDesktop);
   const lowerQuery = query.trim().toLowerCase();
   const hasQuery = lowerQuery.length > 0;
   const visibleTokens = hasQuery
@@ -76,6 +78,15 @@ function ModalContent<T extends Token>({
     : tokens;
   const pinnedTokens = !hasQuery && tokens.length > 3 ? tokens.slice(0, 3) : [];
   const showEmpty = hasQuery && visibleTokens.length === 0;
+
+  useEffect(
+    function focusSearchInputOnDesktop() {
+      if (focusOnOpen) {
+        searchInputRef.current?.focus();
+      }
+    },
+    [focusOnOpen],
+  );
 
   function handleSearchKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === "Enter" && visibleTokens.length === 1) {
@@ -105,10 +116,10 @@ function ModalContent<T extends Token>({
       </div>
       <SearchInput
         ariaLabel={t("common.search")}
-        autoFocus={isDesktop}
         onChange={setQuery}
         onKeyDown={handleSearchKeyDown}
         placeholder={t("common.search-token-placeholder")}
+        ref={searchInputRef}
         value={query}
       />
       {pinnedTokens.length > 0 && (

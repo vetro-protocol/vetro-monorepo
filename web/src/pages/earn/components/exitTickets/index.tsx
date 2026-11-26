@@ -32,6 +32,25 @@ const statusLabels = {
   withdrawn: "pages.earn.exit-tickets.withdrawn",
 } as const;
 
+type StatusCellProps = {
+  ticket: ExitTicket;
+};
+
+function StatusCell({ ticket }: StatusCellProps) {
+  const { t } = useTranslation();
+  const now = useNowTickingPast([ticket], () =>
+    ticket.cancelTxHash || ticket.claimTxHash
+      ? undefined
+      : Number(ticket.claimableAt),
+  );
+  const status = getTicketStatus({ now, ticket });
+
+  if (status === "cancelled") {
+    return null;
+  }
+  return <StatusBadge variant={status}>{t(statusLabels[status])}</StatusBadge>;
+}
+
 export const getColumns = ({
   isWithdrawingAll,
   onDeleteSuccess,
@@ -66,15 +85,7 @@ export const getColumns = ({
     meta: { width: "136px" },
   },
   {
-    cell({ row }) {
-      const status = getTicketStatus(row.original);
-      if (status === "cancelled") {
-        return null;
-      }
-      return (
-        <StatusBadge variant={status}>{t(statusLabels[status])}</StatusBadge>
-      );
-    },
+    cell: ({ row }) => <StatusCell ticket={row.original} />,
     header: () => <Header text={t("pages.earn.exit-tickets.col-status")} />,
     id: "status",
     meta: { width: "190px" },
@@ -172,7 +183,10 @@ export function ExitTickets() {
   const [withdrawingSingleCount, setWithdrawingSingleCount] = useState(0);
 
   const readyTickets = useMemo(
-    () => (data ?? []).filter((ticket) => getTicketStatus(ticket) === "ready"),
+    () =>
+      (data ?? []).filter(
+        (ticket) => getTicketStatus({ now, ticket }) === "ready",
+      ),
     [data, now],
   );
 
@@ -213,7 +227,7 @@ export function ExitTickets() {
       }
       return data
         .filter(function (ticket) {
-          const status = getTicketStatus(ticket);
+          const status = getTicketStatus({ now, ticket });
           if (
             selectedFilters.includes("pending") &&
             (status === "cooldown" || status === "ready")
@@ -227,8 +241,10 @@ export function ExitTickets() {
         })
         .sort(function (a, b) {
           // Ready tickets first, then most recent first
-          const aReady = getTicketStatus(a) === "ready" ? 0 : 1;
-          const bReady = getTicketStatus(b) === "ready" ? 0 : 1;
+          const aReady =
+            getTicketStatus({ now, ticket: a }) === "ready" ? 0 : 1;
+          const bReady =
+            getTicketStatus({ now, ticket: b }) === "ready" ? 0 : 1;
           if (aReady !== bReady) {
             return aReady - bReady;
           }

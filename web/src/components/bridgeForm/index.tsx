@@ -368,8 +368,8 @@ export function BridgeForm() {
           onRetry={handleRetry}
           showApproveStep={startedWithApproval}
           toAmount={toAmountDisplay}
-          toToken={toToken}
           total={total}
+          toToken={toToken}
         />
       )}
       {showToast && (

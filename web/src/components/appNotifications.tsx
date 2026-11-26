@@ -143,7 +143,7 @@ function EarnExitTicketsNotification({ count }: { count: number }) {
 
 function useEarnExitTicketItems() {
   const { data: tickets } = useExitTickets();
-  useNowTickingPast(tickets, (ticket) =>
+  const now = useNowTickingPast(tickets, (ticket) =>
     ticket.cancelTxHash || ticket.claimTxHash
       ? undefined
       : Number(ticket.claimableAt),
@@ -154,7 +154,7 @@ function useEarnExitTicketItems() {
   }
 
   const readyCount = tickets.filter(
-    (ticket) => getTicketStatus(ticket) === "ready",
+    (ticket) => getTicketStatus({ now, ticket }) === "ready",
   ).length;
 
   if (readyCount === 0) {
