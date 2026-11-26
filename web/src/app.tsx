@@ -1,4 +1,4 @@
-import { wrapReactRouterRouting } from "@sentry/react/react-router";
+import { defaultPage, LanguageRouting } from "appRouting";
 import { AnalyticsTracker } from "components/analyticsTracker";
 import { AppLayout, MainContent } from "components/base/appLayout";
 import { AppViewport } from "components/base/appViewport";
@@ -6,8 +6,7 @@ import { ErrorBoundary } from "components/base/errorBoundary";
 import { GeoRestrictionRibbon } from "components/geoRestrictionRibbon";
 import { Header } from "components/header";
 import { ReloadOnNewVersion } from "components/reloadOnNewVersion";
-import { I18nInitializer, useUnsupportedLanguageRedirect } from "i18n/config";
-import { detectLanguage } from "i18n/language";
+import { I18nInitializer } from "i18n/config";
 import { normalizePath } from "i18n/path";
 import { NuqsAdapter } from "nuqs/adapters/react-router/v8";
 import { Analytics } from "pages/analytics";
@@ -35,8 +34,6 @@ import {
 import { featureFlags } from "utils/featureFlags";
 import { isGeoRestricted } from "utils/geoRestriction";
 import { lazyWithReload } from "utils/lazyWithReload";
-
-const SentryRoutes = wrapReactRouterRouting(Routes);
 
 const analyticsEnabled =
   !!import.meta.env.VITE_ANALYTICS_URL &&
@@ -70,11 +67,6 @@ const VariableYieldEarnDetails = lazyWithReload(() =>
  */
 function LanguageRoutes() {
   const { pathname } = useLocation();
-  const unsupportedLanguageRedirect = useUnsupportedLanguageRedirect();
-
-  if (unsupportedLanguageRedirect) {
-    return <Navigate replace to={unsupportedLanguageRedirect} />;
-  }
 
   return (
     <ErrorBoundary
@@ -96,7 +88,7 @@ function LanguageRoutes() {
         key={normalizePath(pathname)}
       >
         <Routes>
-          <Route element={<Navigate replace to="swap" />} index />
+          <Route element={<Navigate replace to={defaultPage} />} index />
           <Route
             element={
               <AppLayout>
@@ -155,26 +147,13 @@ function LanguageRoutes() {
   );
 }
 
-function PreferredLanguageRedirect() {
-  const { hash, search } = useLocation();
-
-  return <Navigate replace to={`/${detectLanguage()}${search}${hash}`} />;
-}
-
 export const App = () => (
   <BrowserRouter>
     <NuqsAdapter>
       {analyticsEnabled && <AnalyticsTracker />}
       <ReloadOnNewVersion />
       <AppViewport>
-        <SentryRoutes>
-          <Route element={<PreferredLanguageRedirect />} path="/" />
-
-          {/* Language-prefixed routes */}
-          <Route element={<LanguageRoutes />} path="/:lang/*" />
-
-          <Route element={<PreferredLanguageRedirect />} path="*" />
-        </SentryRoutes>
+        <LanguageRouting languageRoutes={<LanguageRoutes />} />
       </AppViewport>
     </NuqsAdapter>
   </BrowserRouter>

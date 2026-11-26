@@ -252,36 +252,6 @@ async function expectSwapAndStakeCompleted({
   expect(after.usdc).toBe(before.usdc - SWAP_AMOUNT);
 }
 
-test("swap USDC → VUSD and stake it, with the stake approval", async function ({
-  page,
-  walletTxHashes,
-  walletWatchedAssets,
-}) {
-  const before = await getSwapAndStakeBalances();
-
-  await startSwapAndStake({ page });
-
-  await expect(page.getByText("Approve VUSD for staking")).toBeVisible();
-  await expect(page.getByText("Stake VUSD", { exact: true })).toBeVisible();
-
-  await expect(page.getByText("Stake deposit confirmed")).toBeVisible({
-    timeout: 40_000,
-  });
-
-  // USDC approve, mint, VUSD approve, stake.
-  expect(walletTxHashes).toHaveLength(4);
-  // Like on Earn, only the share token is offered to the wallet, after the stake.
-  await expect
-    .poll(() => walletWatchedAssets.map((address) => address.toLowerCase()))
-    .toEqual([sVusdAddress.toLowerCase()]);
-  await expectSwapAndStakeCompleted({
-    before,
-    mintTxHash: walletTxHashes[1],
-    page,
-    stakeTxHash: walletTxHashes[3],
-  });
-});
-
 test("swap USDC → VUSD and stake it, skipping the stake approval when the allowance is enough", async function ({
   page,
   walletTxHashes,
@@ -319,6 +289,7 @@ test("a failed stake after the swap keeps the minted VUSD, and Retry stakes it",
   failTxAt,
   page,
   walletTxHashes,
+  walletWatchedAssets,
 }) {
   failTxAt.add(2);
   const before = await getSwapAndStakeBalances();
@@ -335,6 +306,8 @@ test("a failed stake after the swap keeps the minted VUSD, and Retry stakes it",
   await expect(
     page.getByRole("heading", { name: "Swap in progress" }),
   ).toBeVisible();
+  await expect(page.getByText("Approve VUSD for staking")).toBeVisible();
+  await expect(page.getByText("Stake VUSD", { exact: true })).toBeVisible();
 
   expect(walletTxHashes).toHaveLength(2);
   const minted = await getMintedVusd(walletTxHashes[1]);
@@ -349,6 +322,10 @@ test("a failed stake after the swap keeps the minted VUSD, and Retry stakes it",
   });
 
   expect(walletTxHashes).toHaveLength(4);
+  // Like on Earn, only the share token is offered to the wallet, after the stake.
+  await expect
+    .poll(() => walletWatchedAssets.map((address) => address.toLowerCase()))
+    .toEqual([sVusdAddress.toLowerCase()]);
   await expectSwapAndStakeCompleted({
     before,
     mintTxHash: walletTxHashes[1],
