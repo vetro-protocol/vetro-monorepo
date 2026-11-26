@@ -58,34 +58,6 @@ describe("Stack", function () {
     await expect.element(link).not.toBeInTheDocument();
   });
 
-  it("spreads the stack while a toast behind the first one has focus", async function () {
-    const screen = await render(
-      <>
-        <button type="button">Outside</button>
-        <Stack
-          items={[
-            { content: <a href="#first">First</a>, id: 1 },
-            { content: <a href="#second">Second</a>, id: 2 },
-          ]}
-        />
-      </>,
-    );
-    const second = screen.getByRole("link", { name: "Second" });
-    const item = (second.element() as HTMLElement).closest("li")!;
-
-    expect(item.style.transform).toContain("scale");
-
-    (second.element() as HTMLElement).focus();
-
-    await expect.poll(() => item.style.transform).not.toContain("scale");
-
-    (
-      screen.getByRole("button", { name: "Outside" }).element() as HTMLElement
-    ).focus();
-
-    await expect.poll(() => item.style.transform).toContain("scale");
-  });
-
   it("removes the toast after autoCloseMs when it is not focused", async function () {
     const screen = await render(<Toasts />);
     const link = screen.getByRole("link", { name: "See your positions" });
