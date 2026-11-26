@@ -80,9 +80,12 @@ export async function setTokenActive({
   const treasury = await getTreasury(publicClient, { address: gateway });
 
   const readActive = async function () {
-    const [, , , depositActive, withdrawActive] = await getTokenConfig(
+    const { depositActive, withdrawActive } = await getTokenConfig(
       publicClient,
-      { address: treasury, token },
+      {
+        address: treasury,
+        token,
+      },
     );
     return flag === "deposit" ? depositActive : withdrawActive;
   };

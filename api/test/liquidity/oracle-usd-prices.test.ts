@@ -34,16 +34,16 @@ const portalWithout = (symbol: string) =>
 const mockHemiBtcOracle = function (answer: bigint) {
   vi.mocked(getTokenConfig).mockImplementation(
     async (_client, { token }) =>
-      [
-        "0x0000000000000000000000000000000000000001",
-        isAddressEqual(token, hemiBtc)
+      ({
+        decimals: 8,
+        depositActive: true,
+        oracle: isAddressEqual(token, hemiBtc)
           ? hemiBtcOracle
           : "0x0000000000000000000000000000000000000002",
-        86400n,
-        true,
-        true,
-        8,
-      ] as Awaited<ReturnType<typeof getTokenConfig>>,
+        stalePeriod: 86400n,
+        vault: "0x0000000000000000000000000000000000000001",
+        withdrawActive: true,
+      }) satisfies Awaited<ReturnType<typeof getTokenConfig>>,
   );
   vi.mocked(getLatestPrice).mockImplementation(async function ({ address }) {
     if (!isAddressEqual(address, hemiBtcOracle)) {

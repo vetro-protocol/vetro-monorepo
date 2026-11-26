@@ -174,7 +174,7 @@ const runDeposit = (
         return;
       }
 
-      const [[, , , depositActive], currentAllowance] = await Promise.all([
+      const [{ depositActive }, currentAllowance] = await Promise.all([
         getTreasury(walletClient, { address: gatewayAddress }).then(
           (treasury) =>
             getTokenConfig(walletClient, { address: treasury, token: tokenIn }),

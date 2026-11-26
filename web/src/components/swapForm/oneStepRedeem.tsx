@@ -382,8 +382,8 @@ export function OneStepRedeem({
           outputValue={outputValue}
           protocolFee={protocolFeeQueryData}
           showApproveStep={startedWithApproval}
-          toToken={toToken}
           totalFees={totalRedeemFeesQueryData}
+          toToken={toToken}
           unitPreview={unitRedeemPreview}
         />
       )}

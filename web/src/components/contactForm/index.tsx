@@ -213,8 +213,8 @@ export function ContactForm() {
               <button
                 {...triggerProps}
                 aria-describedby={showTopicError ? topicErrorId : undefined}
-                aria-invalid={showTopicError || undefined}
                 className="input--base flex items-center justify-between gap-2"
+                data-invalid={showTopicError || undefined}
                 onBlur={() => setTopicTouched(true)}
                 type="button"
               >

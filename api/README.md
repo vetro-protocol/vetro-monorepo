@@ -439,7 +439,7 @@ The API does not rate limit requests: configure a Cloudflare rate limiting rule 
 Returns the DEX pools that hold a VETRO token (a pegged token or its share token), on Curve, Uniswap and Sushi (Ethereum) and BrownFi (Hemi).
 
 - `apr` is the pool APR from trading fees, as a percentage number (e.g. `1.8` means 1.8%). It is `null` when `tvlUsd` is `null`, or when `volumeUsd24h` is `null`.
-- `coins` lists each coin of the pool, with its `amount` in the pool in token units (not in raw units). On a range row, `amount` is the part of the pool's liquidity inside the range.
+- `coins` lists each coin of the pool, with its `amount` in the pool in token units (not in raw units) and its `usdPrice` (`null` when the coin has no USD price). On a range row, `amount` is the part of the pool's liquidity inside the range.
 - `tvlUsd` is `null` when a coin of the pool has no USD price, or when the Curve API gives no finite total.
 - Each coin takes its USD price from the venue first (the Curve API, or the subgraph of Uniswap, Sushi or BrownFi; on Uniswap and Sushi, also the pool ratio). A coin with no venue price takes the USD price of its peg if it is a pegged token. A whitelisted token takes its Treasury oracle price, and the portal price (see `PORTAL_API_URL`) when the oracle read fails. Other coins take the portal price.
 - `volumeUsd24h` is the trading volume in USD. On Uniswap, Sushi and BrownFi, it covers the last 24 full hours. On a Sushi range row, it is the part of the volume that occurred inside the range. It is `null` when the pool has no USD price for its coins. On Uniswap and Sushi, it is also `null` when the subgraph has no data for the pool (the query failed, or the subgraph has not indexed the pool yet).
@@ -467,10 +467,12 @@ Query params:
       {
         "address": "0x476310E34D2810f7d79C43A74E4D79405bd7a925", // sVUSD
         "amount": 36894.62,
+        "usdPrice": 1.0412,
       },
       {
         "address": "0xCa83DDE9c22254f58e771bE5E157773212AcBAc3", // VUSD
         "amount": 38189.11,
+        "usdPrice": 0.9996,
       },
     ],
     "dex": "curve",
@@ -519,10 +521,12 @@ Query params:
       {
         "address": "0xCa83DDE9c22254f58e771bE5E157773212AcBAc3", // VUSD
         "amount": 62755.39,
+        "usdPrice": 0.9996,
       },
       {
         "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7", // USDT
         "amount": 40883.95,
+        "usdPrice": 1.0001,
       },
     ],
     "dex": "sushi",
@@ -554,10 +558,12 @@ Query params:
       {
         "address": "0xCa83DDE9c22254f58e771bE5E157773212AcBAc3",
         "amount": 35104.2,
+        "usdPrice": 0.9996,
       },
       {
         "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
         "amount": 35106.2,
+        "usdPrice": 1.0001,
       },
     ],
     "dex": "sushi",

@@ -146,7 +146,7 @@ const canRedeem = async function ({
     };
   }
 
-  const [[, , , , withdrawActive], maxWithdrawable] = await Promise.all([
+  const [{ withdrawActive }, maxWithdrawable] = await Promise.all([
     getTreasury(client, { address: gatewayAddress }).then((treasury) =>
       getTokenConfig(client, { address: treasury, token: tokenOut }),
     ),

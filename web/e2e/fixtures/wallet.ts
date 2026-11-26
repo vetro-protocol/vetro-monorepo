@@ -1,6 +1,6 @@
 import { TEST_PRIVATE_KEY } from "@hemilabs/anvil-fork-setup/utils";
+import { installMockWallet } from "@hemilabs/mock-wallet";
 import { test as base } from "@playwright/test";
-import { installMockWallet } from "@vetro-protocol/mock-wallet";
 import {
   type Address,
   type EIP1193RequestFn,

@@ -27,6 +27,29 @@
       ]
     },
     {
+      "extends": ["bloq/react"],
+      "files": ["internal-dashboard/**/*.{js,ts,tsx}"],
+      "rules": {
+        "react/jsx-sort-props": ["warn", { "ignoreCase": true }]
+      }
+    },
+    {
+      "excludedFiles": ["web/e2e/**"],
+      "extends": ["bloq/react"],
+      "files": ["web/**/*.{js,ts,tsx}"],
+      "rules": {
+        "react/jsx-sort-props": ["warn", { "ignoreCase": true }]
+      }
+    },
+    {
+      "files": ["web/test/**"],
+      "rules": {
+        "jsx-a11y/anchor-is-valid": "off",
+        "jsx-a11y/click-events-have-key-events": "off",
+        "jsx-a11y/no-static-element-interactions": "off"
+      }
+    },
+    {
       "files": ["internal-dashboard/**/*.{js,ts,tsx}"],
       "plugins": ["better-tailwindcss"],
       "rules": {
@@ -134,12 +157,6 @@
       "files": ["subgraphs/*/tests/**/*.ts"],
       "rules": {
         "@vitest/require-hook": "off"
-      }
-    },
-    {
-      "files": ["packages/mock-wallet/**/*.ts"],
-      "rules": {
-        "camelcase": ["warn", { "allow": ["^eth_", "^personal_", "^wallet_"] }]
       }
     },
     {
