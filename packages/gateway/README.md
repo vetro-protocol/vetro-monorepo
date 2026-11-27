@@ -18,7 +18,8 @@ pnpm add @vetro-protocol/gateway @vetro-protocol/treasury viem viem-erc20
 ## Usage
 
 ```ts
-import { deposit, gateways, previewDeposit } from "@vetro-protocol/gateway";
+import { gateways } from "@vetro-protocol/gateway";
+import { deposit, previewDeposit } from "@vetro-protocol/gateway/actions";
 import { createPublicClient, createWalletClient, custom, http } from "viem";
 import { hemi } from "viem/chains";
 
@@ -58,18 +59,29 @@ The same actions are also available via `.extend()` factories (`gatewayPublicAct
 
 ## API
 
-- Public actions (reads):
-  - `previewDeposit(client, params)` — expected pegged-token output for a deposit.
-  - `previewRedeem(client, params)` — expected underlying output for a redeem.
-  - `previewWithdraw(client, params)` — pegged-token input required to withdraw an exact `amountOut` of the underlying (inverse of `previewRedeem`, with `redeemFee` applied on-chain).
-  - `getMintFee(client, params)` / `getRedeemFee(client, params)` — current fees.
-  - `getMaxWithdraw(client, params)` — maximum withdrawable amount.
-  - `getPeggedToken(client, params)` — pegged-token address minted by the gateway.
-  - `getTreasury(client, params)` — treasury address backing the gateway.
-  - `getRedeemRequest(client, params)` — details for a specific redeem request.
-  - `getWithdrawalDelay(client, params)` / `getWithdrawalDelayEnabled(client, params)` — delay configuration.
-  - `isInstantRedeemWhitelisted(client, params)` — whether an account can bypass the delay.
-- Wallet actions (writes): `deposit`, `requestRedeem`, `redeem`, `cancelRedeemRequest`. Each returns `{ emitter, promise }`.
+- Public actions (reads), exported from `/actions`. In every one, `address` is the gateway, except in `getGateway`:
+  - `getGateway(client, { address })` — the gateway set on a pegged token. `address` is the pegged token.
+  - `getMaxMint(client, { address })` — maximum amount of pegged token that can still be minted.
+  - `getMaxWithdraw(client, { address, tokenOut })` — maximum amount of `tokenOut` that can be withdrawn.
+  - `getMintFee(client, { address, token })` / `getRedeemFee(client, { address, token })` — current fee for `token`.
+  - `getPeggedToken(client, { address })` — pegged-token address minted by the gateway.
+  - `getRedeemRequest(client, { address, user })` — `user`'s open redeem request, as the tuple `[amountLocked, claimableAt]`.
+  - `getTreasury(client, { address })` — treasury address backing the gateway.
+  - `getWithdrawalDelay(client, { address })` / `getWithdrawalDelayEnabled(client, { address })` — delay configuration.
+  - `isInstantRedeemWhitelisted(client, { account, address })` — whether `account` can bypass the delay.
+  - `previewDeposit(client, { address, amountIn, tokenIn })` — expected pegged-token output for a deposit.
+  - `previewRedeem(client, { address, peggedTokenIn, tokenOut })` — expected underlying output for a redeem.
+  - `previewWithdraw(client, { address, amountOut, tokenOut })` — pegged-token input required to withdraw an exact `amountOut` of the underlying (inverse of `previewRedeem`, with `redeemFee` applied on-chain).
+- Wallet actions (writes), exported from `/actions`. Each returns `{ emitter, promise }`. `approveAmount` is optional and defaults to the amount of pegged token or `tokenIn` being spent:
+  - `deposit(walletClient, { amountIn, approveAmount?, gatewayAddress, minPeggedTokenOut, receiver, tokenIn })`.
+  - `requestRedeem(walletClient, { approveAmount?, gatewayAddress, peggedTokenAmount })`.
+  - `redeem(walletClient, { approveAmount?, gatewayAddress, minAmountOut, peggedTokenIn, receiver, tokenOut })`.
+  - `cancelRedeemRequest(walletClient, { gatewayAddress })`.
+- Calldata encoders, exported from `/actions`: each returns the calldata of one write without sending anything, so a caller can sign and broadcast it elsewhere, or batch it into a multicall. They do not approve anything.
+  - `encodeCancelRedeemRequest()` — `cancelRedeemRequest()`.
+  - `encodeDeposit({ amountIn, minPeggedTokenOut, receiver, tokenIn })` — `deposit(tokenIn, amountIn, minPeggedTokenOut, receiver)`.
+  - `encodeRedeem({ minAmountOut, peggedTokenIn, receiver, tokenOut })` — `redeem(tokenOut, peggedTokenIn, minAmountOut, receiver)`.
+  - `encodeRequestRedeem({ peggedTokenAmount })` — `requestRedeem(peggedTokenAmount)`.
 - `gatewayPublicActions()` / `gatewayWalletActions()` — viem extension factories that wire the same actions onto a client via `.extend()`.
 - `gatewayAbi` — the minimal ABI subset used by the package.
 - Constants: `gateways`, `gatewayAddresses`.

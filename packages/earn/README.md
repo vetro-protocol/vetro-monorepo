@@ -13,16 +13,13 @@ pnpm add @vetro-protocol/earn viem
 - Targets the two whitelisted staking vaults — `sVUSD` and `sVetBTC` — exported as `sVusdAddress`, `sVetBtcAddress`, and the combined `stakingVaultAddresses` list.
 - `deposit` runs the full ERC-4626 deposit: on-chain allowance check, approval if needed, then `deposit(assets, receiver)`. Each step emits through an `EventEmitter`.
 - Withdrawals follow the vault's cooldown protocol: `requestRedeem` / `requestWithdraw` opens a cooldown, `claimWithdraw` / `claimWithdrawBatch` finalises it once the cooldown elapses, and `cancelWithdraw` aborts an open request.
-- Read actions (`getCooldownDuration`, `getCooldownEnabled`, `getInstantWithdrawWhitelist`, `getPendingRequests`, `getActiveRequestIds`, `getClaimableRequests`, `getRequestDetails`, `getTotalAssetsInCooldown`, `getYieldDistributor`) cover the data needed to drive a UI around the flows above.
+- Read actions (`getCooldownDuration`, `getCooldownEnabled`, `getInstantWithdrawWhitelist`, `getPendingRequests`, `getActiveRequestIds`, `getClaimableRequests`, `getRequestDetails`, `getTotalAssetsInCooldown`, `getYieldDistributor`, `getPeriodFinish`, `getRewardRate`) cover the data needed to drive a UI around the flows above.
 
 ## Usage
 
 ```ts
-import {
-  deposit,
-  getPendingRequests,
-  sVusdAddress,
-} from "@vetro-protocol/earn";
+import { sVusdAddress } from "@vetro-protocol/earn";
+import { deposit, getPendingRequests } from "@vetro-protocol/earn/actions";
 import { createPublicClient, createWalletClient, custom, http } from "viem";
 import { hemi } from "viem/chains";
 
@@ -58,17 +55,25 @@ The same actions are also available via `.extend()` factories (`earnPublicAction
 
 ## API
 
-- Public actions (reads):
-  - `getActiveRequestIds(client, params)` — open withdraw request IDs for an account.
-  - `getClaimableRequests(client, params)` — request IDs whose cooldown has elapsed.
-  - `getCooldownDuration(client, params)` — cooldown length in seconds.
-  - `getCooldownEnabled(client, params)` — whether the cooldown is enforced.
-  - `getInstantWithdrawWhitelist(client, params)` — accounts allowed to bypass cooldown.
-  - `getPendingRequests(client, params)` — full pending-request structs for an account.
-  - `getRequestDetails(client, params)` — details for a specific request ID.
-  - `getTotalAssetsInCooldown(client, params)` — assets locked across all pending requests.
-  - `getYieldDistributor(client, params)` — address of the vault's yield distributor.
-- Wallet actions (writes): `deposit`, `requestRedeem`, `requestWithdraw`, `claimWithdraw`, `claimWithdrawBatch`, `cancelWithdraw`. Each returns `{ emitter, promise }`.
+- Public actions (reads), exported from `/actions`. `address` is the staking vault, except in `getPeriodFinish` and `getRewardRate`, where it is the vault's yield distributor:
+  - `getActiveRequestIds(client, { account, address })` — open withdraw request IDs for `account`.
+  - `getClaimableRequests(client, { account, address })` — the claimable requests of `account`, as the tuple `[requestIds, assets]` of two parallel arrays.
+  - `getCooldownDuration(client, { address })` — cooldown length in seconds.
+  - `getCooldownEnabled(client, { address })` — whether the cooldown is enforced.
+  - `getInstantWithdrawWhitelist(client, { account, address })` — whether `account` is allowed to bypass the cooldown.
+  - `getPendingRequests(client, { account, address })` — the pending requests of `account`, as the tuple `[requestIds, assets, claimableAt]` of three parallel arrays.
+  - `getPeriodFinish(client, { address })` — timestamp, in seconds, at which the current yield drip ends.
+  - `getRequestDetails(client, { address, requestId })` — details for a specific request ID.
+  - `getRewardRate(client, { address })` — WAD-scaled amount of yield dripped per second into the vault.
+  - `getTotalAssetsInCooldown(client, { address })` — assets locked across all pending requests.
+  - `getYieldDistributor(client, { address })` — address of the vault's yield distributor.
+- Wallet actions (writes), exported from `/actions`. Each returns `{ emitter, promise }`:
+  - `deposit(walletClient, { approveAmount?, assets, receiver, token, vaultAddress })` — `token` is the underlying token that gets approved. `approveAmount` is optional and defaults to `assets`.
+  - `requestRedeem(walletClient, { owner, shares, vaultAddress })`.
+  - `requestWithdraw(walletClient, { assets, owner, vaultAddress })`.
+  - `claimWithdraw(walletClient, { receiver, requestId, vaultAddress })`.
+  - `claimWithdrawBatch(walletClient, { receiver, requestIds, vaultAddress })`.
+  - `cancelWithdraw(walletClient, { requestId, vaultAddress })`.
 - Calldata encoders, exported from `/actions`: each returns the calldata of one write without sending anything, so a caller can sign and broadcast it elsewhere, or batch it into a multicall:
   - `encodeCancelWithdraw({ requestId })` — `cancelWithdraw(requestId)`.
   - `encodeClaimWithdraw({ receiver, requestId })` — `claimWithdraw(requestId, receiver)`.

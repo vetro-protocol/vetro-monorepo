@@ -13,7 +13,7 @@ pnpm add @vetro-protocol/bridge viem viem-erc20
 - Works with both pure OFT contracts and OFTAdapter contracts.
 - Approval is auto-detected via on-chain `approvalRequired()`. When required, the underlying ERC20 is read from `token()` and the standard allowance/approve flow runs before the send.
 - Caller owns chain/contract addressing; the package only knows the `chainId → LayerZero EID` mapping (see the table below).
-- Slippage defaults to zero (`minAmountLD === amount`); pass `minAmount` to opt in to a tolerance.
+- Slippage defaults to zero (`minAmountLD === amount`); pass `minAmount` to opt in to a tolerance. The OFT drops the dust below its shared decimals before it compares with `minAmountLD`, so when `amount` has dust and no `minAmount` is set, the quote fails with `SlippageExceeded` and no transaction is sent. `amount` must be at least one shared-decimal unit. Round `amount` down to the shared decimals, or pass a positive `minAmount` at or below the amount without the dust.
 
 Supported chains (chainId → LayerZero EID):
 
@@ -96,11 +96,13 @@ For insufficient native balance, `send-failed-validation` reports
 
 ## API
 
-- `quoteSend(client, params)` — public action; reads the LayerZero messaging fee for a send.
-- `approvalRequired(client, params)` — public action; reads `approvalRequired()` on the OFT/OFTAdapter.
-- `token(client, params)` — public action; reads the underlying ERC20 wrapped by an OFTAdapter.
-- `send(walletClient, params)` — wallet action; runs the full bridge flow (auto-approval + send) and returns `{ emitter, promise }`.
-- `encodeSend(params)` — synchronous helper that returns the encoded `send` calldata. The caller must pre-quote the LayerZero fee (e.g. with `quoteSend`) and pass it in.
+- Public actions (reads), exported from `/actions`:
+  - `quoteSend(client, { amount, destinationChainId, minAmount?, oftAddress, recipient })` — the LayerZero messaging fee for a send, as `{ lzTokenFee, nativeFee }`.
+  - `approvalRequired(client, { oftAddress })` — reads `approvalRequired()` on the OFT/OFTAdapter.
+  - `token(client, { oftAddress })` — the underlying ERC20 wrapped by an OFTAdapter.
+- Wallet action (write), exported from `/actions`: `send(walletClient, { amount, approveAmount?, destinationChainId, minAmount?, oftAddress, recipient })` — runs the full bridge flow (auto-approval + send) and returns `{ emitter, promise }`. `approveAmount` defaults to `amount`. The action quotes the LayerZero fee itself, and any refund goes to the wallet account.
+- `encodeSend({ amount, destinationChainId, fee, minAmount?, recipient, refundAddress })` — synchronous helper that returns the encoded `send` calldata. The caller must pre-quote the LayerZero fee (e.g. with `quoteSend`) and pass it in as `fee`.
+- `minAmount` defaults to `amount` in `quoteSend`, `send` and `encodeSend`. When `amount` has dust below the OFT's shared decimals, `quoteSend` throws `SlippageExceeded`, and `send` emits `unexpected-error` without sending a transaction. Round `amount` down or pass a lower `minAmount`.
 - `bridgePublicActions()` / `bridgeWalletActions()` — viem extension factories that wire the same actions onto a client via `.extend()`.
 - `oftAbi` — the minimal ABI subset used by the package (`send`, `quoteSend`, `approvalRequired`, `token`).
 - Types: `SendEvents`.
