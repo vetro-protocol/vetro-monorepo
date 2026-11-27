@@ -28,7 +28,7 @@ dependencies — the wrong direction here.)
   ```
 
   Packages are consumed as source (`exports` points at `src/`), so each
-  dependent's `build:types` recompiles the changed package's files under _its
+  dependent's `build` (`tsc --noEmit`) recompiles the changed package's files under _its
   own_ tsconfig, where a narrower `lib`/`types` set can reject code the package's
   own build accepts (e.g. an ambient global like `URL`). Selecting the apps too
   is deliberate: their `build` bundles with Vite, which catches what `tsc`
