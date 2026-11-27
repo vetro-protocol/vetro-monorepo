@@ -44,14 +44,21 @@ jobs:
       - run: pnpm --filter @vetro-protocol/web exec playwright install chromium --only-shell
         env:
           DEBUG: pw:install
-      - run: pnpm --filter @vetro-protocol/web exec playwright test
+      - run: pnpm --filter @vetro-protocol/web exec playwright test --shard=${{ matrix.shard }}/3
         env:
           DEBUG: pw:webserver
           VITE_RPC_URL_MAINNET: ${{ secrets.INFURA_API }} # zizmor: ignore[secrets-outside-env] -- TODO: move INFURA_API to an environment
       - if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.shard }}
           path: web/playwright-report/
           retention-days: 5
     timeout-minutes: 10
+    strategy:
+      matrix:
+        shard:
+          - 1
+          - 2
+          - 3
+      fail-fast: false
