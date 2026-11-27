@@ -48,7 +48,7 @@ The same actions are also available via the `.extend()` factory (`treasuryPublic
   - `getKeeperRole(client, { address })` — the `bytes32` hash of the treasury's keeper role.
   - `getPrice(client, { address, token })` — oracle price for a whitelisted token, as the tuple `[latestPrice, unitPrice]`, in the treasury's peg unit.
   - `getReserve(client, { address })` — the total value of all whitelisted tokens the treasury holds (its balance plus each token's vault position), in the pegged token (18 decimals).
-  - `getTokenConfig(client, { address, token })` — per-token configuration, as the tuple `[vault, oracle, stalePeriod, depositActive, withdrawActive, decimals]`.
+  - `getTokenConfig(client, { address, token })` — per-token configuration as named fields: `decimals`, `depositActive`, `oracle`, `stalePeriod`, `vault` and `withdrawActive`.
   - `getWhitelistedTokens(client, { address })` — full list of accepted underlying tokens.
   - `getWithdrawable(client, { address, token })` — current withdrawable amount for `token`.
 - `treasuryPublicActions()` — viem extension factory that wires the same actions onto a client via `.extend()`.
