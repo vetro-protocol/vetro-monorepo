@@ -9,7 +9,7 @@ const PORT = 5174;
 const BASE_URL = `http://localhost:${PORT}`;
 
 export default defineConfig({
-  fullyParallel: false,
+  fullyParallel: true,
   globalSetup: "./e2e/global-setup.ts",
   // Locally the HTML report auto-opens on failure; on CI it never opens
   // (failures are already printed to the console by the list reporter).
