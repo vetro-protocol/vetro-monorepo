@@ -35,30 +35,56 @@ afterEach(function () {
   vi.unstubAllGlobals();
 });
 
-it.each([
-  { entry: "/", expected: "/en/swap", page: "Swap page" },
-  { entry: "/en", expected: "/en/swap", page: "Swap page" },
-  { entry: "/contact", expected: "/en/contact", page: "Contact page" },
-  { entry: "/borrow/0", expected: "/en/borrow/0", page: "Borrow market page" },
-  {
-    entry: "/this-page-does-not-exist?foo=bar#section",
-    expected: "/en/this-page-does-not-exist?foo=bar#section",
-    page: "Not found page",
+it.each(
+  [
+    { entry: "/", expected: "/en/swap", page: "Swap page" },
+    {
+      entry: "/?foo=bar#section",
+      expected: "/en/swap?foo=bar#section",
+      page: "Swap page",
+    },
+    {
+      entry: "/",
+      expected: "/es/swap",
+      languages: ["es-AR"],
+      page: "Swap page",
+    },
+    { entry: "/en", expected: "/en/swap", page: "Swap page" },
+    { entry: "/contact", expected: "/en/contact", page: "Contact page" },
+    {
+      entry: "/contact",
+      expected: "/es/contact",
+      languages: ["es-AR"],
+      page: "Contact page",
+    },
+    {
+      entry: "/borrow/0",
+      expected: "/en/borrow/0",
+      page: "Borrow market page",
+    },
+    {
+      entry: "/this-page-does-not-exist?foo=bar#section",
+      expected: "/en/this-page-does-not-exist?foo=bar#section",
+      page: "Not found page",
+    },
+    { entry: "/fr", expected: "/en/fr", page: "Not found page" },
+    { entry: "/fr/swap", expected: "/en/fr/swap", page: "Not found page" },
+  ].map((testCase) => ({ languages: ["en-US"], ...testCase })),
+)(
+  "routes $entry to $expected",
+  async function ({ entry, expected, languages, page }) {
+    vi.stubGlobal("localStorage", { getItem: () => null });
+    vi.stubGlobal("navigator", { languages });
+
+    const screen = await render(
+      <MemoryRouter initialEntries={[entry]}>
+        <LanguageRouting languageRoutes={<StubLanguageRoutes />} />
+      </MemoryRouter>,
+    );
+
+    await expect
+      .element(screen.getByLabelText("Current location"))
+      .toHaveTextContent(expected);
+    await expect.element(screen.getByText(page, { exact: true })).toBeVisible();
   },
-  { entry: "/fr", expected: "/en/fr", page: "Not found page" },
-  { entry: "/fr/swap", expected: "/en/fr/swap", page: "Not found page" },
-])("routes $entry to $expected", async function ({ entry, expected, page }) {
-  vi.stubGlobal("localStorage", { getItem: () => null });
-  vi.stubGlobal("navigator", { languages: ["en-US"] });
-
-  const screen = await render(
-    <MemoryRouter initialEntries={[entry]}>
-      <LanguageRouting languageRoutes={<StubLanguageRoutes />} />
-    </MemoryRouter>,
-  );
-
-  await expect
-    .element(screen.getByLabelText("Current location"))
-    .toHaveTextContent(expected);
-  await expect.element(screen.getByText(page, { exact: true })).toBeVisible();
-});
+);
