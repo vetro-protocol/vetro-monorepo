@@ -2,7 +2,10 @@ import { SectionHeader } from "components/base/sectionHeader";
 import { Table, type TableColumnDef } from "components/base/table";
 import { Header } from "components/base/table/header";
 import { Toast, type ToastContent } from "components/base/toast";
-import { useBorrowAction } from "hooks/borrow/useBorrowAction";
+import {
+  type BorrowAction,
+  useBorrowAction,
+} from "hooks/borrow/useBorrowAction";
 import { type MarketData, useMarketsData } from "hooks/borrow/useMarketsData";
 import {
   type PositionData,
@@ -46,6 +49,12 @@ const SupplyCollateralDrawerForm = lazyWithReload(() =>
   })),
 );
 
+const SupplyCollateralAndBorrowDrawerForm = lazyWithReload(() =>
+  import("./supplyCollateralAndBorrowDrawerForm").then((m) => ({
+    default: m.SupplyCollateralAndBorrowDrawerForm,
+  })),
+);
+
 const RepayLoanDrawerForm = lazyWithReload(() =>
   import("./repayLoanDrawerForm").then((m) => ({
     default: m.RepayLoanDrawerForm,
@@ -57,6 +66,34 @@ const WithdrawCollateralDrawerForm = lazyWithReload(() =>
     default: m.WithdrawCollateralDrawerForm,
   })),
 );
+
+type SupplyCollateralAndBorrowActionDrawerProps = {
+  action: BorrowAction | null;
+  market: MarketData | undefined;
+  onClose: VoidFunction;
+  onSuccess: (toast: ToastContent) => void;
+};
+
+function SupplyCollateralAndBorrowActionDrawer({
+  action,
+  market,
+  onClose,
+  onSuccess,
+}: SupplyCollateralAndBorrowActionDrawerProps) {
+  if (action !== "supply-collateral-and-borrow" || !market) {
+    return null;
+  }
+
+  return (
+    <Suspense>
+      <SupplyCollateralAndBorrowDrawerForm
+        market={market}
+        onClose={onClose}
+        onSuccess={onSuccess}
+      />
+    </Suspense>
+  );
+}
 
 type PositionRow = MarketData & PositionData;
 
@@ -299,6 +336,12 @@ export function PositionsTable({ marketIds }: Props) {
           )}
         </>
       )}
+      <SupplyCollateralAndBorrowActionDrawer
+        action={borrowAction}
+        market={activeMarket}
+        onClose={clearBorrowAction}
+        onSuccess={setToast}
+      />
       {toast && (
         <Toast
           description={toast.description}
