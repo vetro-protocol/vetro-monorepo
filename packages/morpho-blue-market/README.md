@@ -20,7 +20,11 @@ pnpm add @vetro-protocol/morpho-blue-market viem
 ## Usage
 
 ```ts
-import { getMarketParams } from "@vetro-protocol/morpho-blue-market";
+import {
+  getMarketParams,
+  marketIds,
+  morphoBlueAddress,
+} from "@vetro-protocol/morpho-blue-market";
 import { supplyCollateralAndBorrow } from "@vetro-protocol/morpho-blue-market/actions";
 import { createPublicClient, createWalletClient, custom, http } from "viem";
 import { mainnet } from "viem/chains";
@@ -31,8 +35,8 @@ const walletClient = createWalletClient({
   transport: custom(window.ethereum),
 });
 
-const morphoAddress = "0x...";
-const marketId = "0x...";
+const morphoAddress = morphoBlueAddress;
+const [marketId] = marketIds;
 
 // Collateral token, loan token, oracle, IRM and LLTV of the market.
 const marketParams = await getMarketParams({
@@ -75,6 +79,8 @@ From `@vetro-protocol/morpho-blue-market/actions`:
 From `@vetro-protocol/morpho-blue-market`:
 
 - `getMarketParams` — the same read, also exported from the root.
+- `marketIds` — the ids of the markets that Vetro enables, on Ethereum mainnet.
+- `morphoBlueAddress` — the address of the Morpho Blue contract on Ethereum mainnet.
 - `morphoBluePublicActions()` / `morphoBlueWalletActions()` — viem extension factories that wire the same actions onto a client via `.extend()`.
 - `morphoBlueAbi` — the minimal ABI subset used by the package.
 - Types: `BorrowAssetsEvents`, `MarketParams`, `RepayAssetsEvents`, `SupplyCollateralAndBorrowEvents`, `SupplyCollateralEvents`, `WithdrawCollateralEvents`.

@@ -30,7 +30,7 @@ const ReviewRow = ({
 }) => (
   <div className="text-b-medium flex items-center justify-between border-t border-gray-200 py-3.5 text-gray-900">
     <div className="flex h-5.5 items-center gap-1.5">
-      <Tooltip content={tooltip}>
+      <Tooltip content={tooltip} topic={label}>
         <QuestionIcon />
       </Tooltip>
       <span>{label}</span>

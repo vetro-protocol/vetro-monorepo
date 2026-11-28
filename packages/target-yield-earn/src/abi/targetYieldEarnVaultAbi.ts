@@ -1,6 +1,20 @@
 export const targetYieldEarnVaultAbi = [
   {
     inputs: [{ name: "controller_", type: "address" }],
+    name: "cancelableDepositRequest",
+    outputs: [{ type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [{ name: "controller_", type: "address" }],
+    name: "cancelableRedeemRequest",
+    outputs: [{ type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [{ name: "controller_", type: "address" }],
     name: "cancelDepositRequest",
     outputs: [],
     stateMutability: "nonpayable",
@@ -11,6 +25,44 @@ export const targetYieldEarnVaultAbi = [
     name: "cancelRedeemRequest",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "requestId_", type: "uint256" },
+      { name: "controller_", type: "address" },
+    ],
+    name: "claimableDepositRequest",
+    outputs: [{ type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "requestId_", type: "uint256" },
+      { name: "controller_", type: "address" },
+    ],
+    name: "claimableRedeemRequest",
+    outputs: [{ type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "assets_", type: "uint256" },
+      { name: "receiver_", type: "address" },
+      { name: "controller_", type: "address" },
+    ],
+    name: "deposit",
+    outputs: [{ type: "uint256" }],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "entryGate",
+    outputs: [{ type: "address" }],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -42,6 +94,16 @@ export const targetYieldEarnVaultAbi = [
     type: "function",
   },
   {
+    inputs: [
+      { name: "owner_", type: "address" },
+      { name: "spender_", type: "address" },
+    ],
+    name: "isOperator",
+    outputs: [{ type: "bool" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "isShutdown",
     outputs: [{ type: "bool" }],
@@ -56,14 +118,27 @@ export const targetYieldEarnVaultAbi = [
     type: "function",
   },
   {
-    inputs: [{ name: "controller_", type: "address" }],
+    inputs: [{ name: "receiver_", type: "address" }],
+    name: "maxMint",
+    outputs: [{ type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "controller_", type: "address" },
+      { name: "owner_", type: "address" },
+    ],
     name: "maxRequestDeposit",
     outputs: [{ type: "uint256" }],
     stateMutability: "view",
     type: "function",
   },
   {
-    inputs: [{ name: "owner_", type: "address" }],
+    inputs: [
+      { name: "controller_", type: "address" },
+      { name: "owner_", type: "address" },
+    ],
     name: "maxRequestRedeem",
     outputs: [{ type: "uint256" }],
     stateMutability: "view",
@@ -77,10 +152,41 @@ export const targetYieldEarnVaultAbi = [
     type: "function",
   },
   {
+    inputs: [
+      { name: "requestId_", type: "uint256" },
+      { name: "controller_", type: "address" },
+    ],
+    name: "pendingDepositRequest",
+    outputs: [{ type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "requestId_", type: "uint256" },
+      { name: "controller_", type: "address" },
+    ],
+    name: "pendingRedeemRequest",
+    outputs: [{ type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [{ name: "epochId_", type: "uint256" }],
     name: "rate",
     outputs: [{ type: "uint256" }],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "shares_", type: "uint256" },
+      { name: "receiver_", type: "address" },
+      { name: "controller_", type: "address" },
+    ],
+    name: "redeem",
+    outputs: [{ type: "uint256" }],
+    stateMutability: "nonpayable",
     type: "function",
   },
 ] as const;

@@ -28,11 +28,15 @@ vi.mock("viem/actions", () => ({
 
 const oracleAddress = "0x1111111111111111111111111111111111111111" as Address;
 
-const createMockToken = (
-  symbol: string,
-  address: Address,
-  priceSymbol?: string,
-): Token => ({
+const createMockToken = ({
+  address,
+  priceSymbol,
+  symbol,
+}: {
+  address: Address;
+  priceSymbol?: string;
+  symbol: string;
+}): Token => ({
   address,
   chainId: 1,
   decimals: 18,
@@ -46,10 +50,10 @@ describe("fetchOraclePrices", function () {
   const mockClient = { chain: { id: 1 } } as unknown as Client;
 
   it("returns oracle prices for whitelisted tokens", async function () {
-    const usdc = createMockToken(
-      "USDC",
-      "0x2222222222222222222222222222222222222222",
-    );
+    const usdc = createMockToken({
+      address: "0x2222222222222222222222222222222222222222",
+      symbol: "USDC",
+    });
     const queryClient = createTestQueryClient();
 
     vi.mocked(whitelistedTokensByGatewayOptions).mockReturnValue({
@@ -76,11 +80,11 @@ describe("fetchOraclePrices", function () {
   });
 
   it("keys the oracle dict by token.symbol uppercased, ignoring priceSymbol", async function () {
-    const hemiBtc = createMockToken(
-      "hemiBTC",
-      "0x3333333333333333333333333333333333333333",
-      "BTC",
-    );
+    const hemiBtc = createMockToken({
+      address: "0x3333333333333333333333333333333333333333",
+      priceSymbol: "BTC",
+      symbol: "hemiBTC",
+    });
     const queryClient = createTestQueryClient();
 
     vi.mocked(whitelistedTokensByGatewayOptions).mockReturnValue({
@@ -106,14 +110,14 @@ describe("fetchOraclePrices", function () {
   });
 
   it("returns prices for multiple tokens", async function () {
-    const usdc = createMockToken(
-      "USDC",
-      "0x2222222222222222222222222222222222222222",
-    );
-    const wbtc = createMockToken(
-      "WBTC",
-      "0x3333333333333333333333333333333333333333",
-    );
+    const usdc = createMockToken({
+      address: "0x2222222222222222222222222222222222222222",
+      symbol: "USDC",
+    });
+    const wbtc = createMockToken({
+      address: "0x3333333333333333333333333333333333333333",
+      symbol: "WBTC",
+    });
     const queryClient = createTestQueryClient();
 
     vi.mocked(whitelistedTokensByGatewayOptions).mockReturnValue({

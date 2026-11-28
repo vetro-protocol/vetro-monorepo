@@ -37,7 +37,6 @@ export const fetchTotalRepayFees = async function ({
       client,
       marketId,
       owner,
-      queryClient,
       shares,
       token,
     }),

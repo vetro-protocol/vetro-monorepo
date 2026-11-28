@@ -26,7 +26,7 @@ export const formatOraclePrice = function ({
   collateralTokenDecimals: number;
   loanTokenDecimals: number;
   value: bigint;
-}): number {
+}) {
   const decimalScale =
     oraclePriceDecimals + loanTokenDecimals - collateralTokenDecimals;
   return Number(formatUnits(value, decimalScale));
@@ -42,14 +42,14 @@ export const calculateDailyInterestCost = ({
 }: {
   borrowAmount: number;
   borrowApy: number;
-}): number => (borrowAmount * borrowApy) / 365;
+}) => (borrowAmount * borrowApy) / 365;
 
 /**
  * Computes the liquidation penalty percentage from a market's LLTV.
  * Uses the SDK's liquidation incentive factor formula.
  * Returns a number like 4.38 for a 4.38% penalty.
  */
-export const formatLiquidationPenalty = function (lltv: bigint): number {
+export const formatLiquidationPenalty = function (lltv: bigint) {
   const lif = MarketUtils.getLiquidationIncentiveFactor({ lltv });
   return (Number(formatUnits(lif, wadDecimals)) - 1) * 100;
 };
@@ -58,9 +58,7 @@ export const formatLiquidationPenalty = function (lltv: bigint): number {
  * Converts a raw WAD-scaled bigint health factor to a number.
  * Returns `null` for undefined or MaxUint256 (no debt).
  */
-export const formatHealthFactor = function (
-  value: bigint | undefined,
-): number | null {
+export const formatHealthFactor = function (value: bigint | undefined) {
   if (value === undefined || value === maxUint256) {
     return null;
   }
@@ -78,7 +76,7 @@ export const calculateHealthFactor = function ({
 }: {
   morphoMarket: Market;
   position: Position;
-}): number | null {
+}) {
   const raw = morphoMarket.getHealthFactor(position);
   return formatHealthFactor(raw);
 };
@@ -98,11 +96,11 @@ export const calculateLiquidationPrice = function ({
   position,
 }: {
   collateralTokenDecimals: number;
-  loanUsdPrice: number;
   loanTokenDecimals: number;
+  loanUsdPrice: number;
   morphoMarket: Market;
   position: Position;
-}): number | null {
+}) {
   const raw = morphoMarket.getLiquidationPrice(position);
   if (raw === null || raw === maxUint256 || loanUsdPrice <= 0) {
     return null;
@@ -126,7 +124,7 @@ export const calculatePriceDropPercentage = function ({
 }: {
   collateralUsd: number;
   liquidationUsd: number;
-}): number | null {
+}) {
   if (collateralUsd <= 0) {
     return null;
   }
@@ -137,7 +135,7 @@ export const calculatePriceDropPercentage = function ({
  * Converts a raw WAD-scaled bigint LTV value to a percentage number
  * (e.g. 0.5 WAD → 50).
  */
-export const formatLtvAsPercentage = (value: bigint): number =>
+export const formatLtvAsPercentage = (value: bigint) =>
   Number(formatUnits(value * 100n, wadDecimals));
 
 /**
@@ -151,7 +149,7 @@ export const calculateLtv = function ({
 }: {
   morphoMarket: Market;
   position: Position;
-}): number | null {
+}) {
   const raw = morphoMarket.getLtv(position);
   if (raw === undefined || raw === null || raw === maxUint256) {
     return null;

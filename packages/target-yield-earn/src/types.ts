@@ -26,6 +26,28 @@ export type CancelRedeemRequestEvents = CommonEvents & {
   "user-signing-cancel-redeem-request-error": [Error];
 };
 
+export type ClaimDepositEvents = CommonEvents & {
+  "claim-deposit-failed": [Error];
+  "claim-deposit-failed-validation": [string];
+  "claim-deposit-settled": [];
+  "claim-deposit-transaction-reverted": [TransactionReceipt];
+  "claim-deposit-transaction-succeeded": [TransactionReceipt];
+  "pre-claim-deposit": [];
+  "user-signed-claim-deposit": [Hash];
+  "user-signing-claim-deposit-error": [Error];
+};
+
+export type ClaimRedeemEvents = CommonEvents & {
+  "claim-redeem-failed": [Error];
+  "claim-redeem-failed-validation": [string];
+  "claim-redeem-settled": [];
+  "claim-redeem-transaction-reverted": [TransactionReceipt];
+  "claim-redeem-transaction-succeeded": [TransactionReceipt];
+  "pre-claim-redeem": [];
+  "user-signed-claim-redeem": [Hash];
+  "user-signing-claim-redeem-error": [Error];
+};
+
 type ApprovalEvents = {
   "approve-transaction-reverted": [TransactionReceipt];
   "approve-transaction-succeeded": [TransactionReceipt];

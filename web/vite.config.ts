@@ -3,8 +3,16 @@ import { sentryVitePlugin } from "@sentry/vite-plugin";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { execFileSync } from "node:child_process";
-import { defineConfig, loadEnv, type Plugin, type UserConfig } from "vite";
+import {
+  defineConfig,
+  loadEnv,
+  type Plugin,
+  type ProxyOptions,
+  type UserConfig,
+} from "vite";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
+
+import { getApiPreviewUrl } from "./scripts/apiPreviewUrl.ts";
 
 function injectUmamiIfEnabled() {
   let env: Record<string, string> = {};
@@ -41,6 +49,19 @@ function injectUmamiIfEnabled() {
   } satisfies Plugin;
 }
 
+const emitVersionFile = (version: string) =>
+  ({
+    applyToEnvironment: (environment) => environment.name === "client",
+    generateBundle() {
+      this.emitFile({
+        fileName: "version.json",
+        source: JSON.stringify({ version }),
+        type: "asset",
+      });
+    },
+    name: "emit-version-file",
+  }) satisfies Plugin;
+
 function getLocalBuildInfo() {
   try {
     const branch = execFileSync("git", ["rev-parse", "--abbrev-ref", "HEAD"], {
@@ -74,13 +95,19 @@ function getBuildInfo(env: Record<string, string>) {
   };
 }
 
+const isProduction = process.env.VITE_DEPLOY_ENV === "production";
+
+// miniflare adds CF-Connecting-IP, and Cloudflare rejects proxied requests
+// that carry it (error 1000).
+const removeConnectingIp: NonNullable<ProxyOptions["configure"]> = (proxy) =>
+  proxy.on("proxyReq", (proxyReq) => proxyReq.removeHeader("cf-connecting-ip"));
+
 const config = {
   build: {
     // "hidden" generates source maps for Sentry but strips sourceMappingURL
     // from the output so browsers can't discover them. "true" also serves them
     // publicly.
-    sourcemap:
-      process.env.VITE_DEPLOY_ENV === "production" ? ("hidden" as const) : true,
+    sourcemap: isProduction ? ("hidden" as const) : true,
   },
   plugins: [
     react(),
@@ -94,9 +121,27 @@ const config = {
   resolve: {
     tsconfigPaths: true,
   },
+  // The remote APIs reject localhost origins in CORS. Point the API URLs in
+  // .env.local at these paths to call the APIs through the dev server.
+  server: {
+    proxy: {
+      "/portal-api": {
+        changeOrigin: true,
+        configure: removeConnectingIp,
+        rewrite: (path) => path.replace(/^\/portal-api/, ""),
+        target: "https://portal-api.hemi.xyz",
+      },
+      "/vetro-api": {
+        changeOrigin: true,
+        configure: removeConnectingIp,
+        rewrite: (path) => path.replace(/^\/vetro-api/, ""),
+        target: "https://vetro-api.letshamsterdance.xyz",
+      },
+    },
+  },
 } satisfies UserConfig;
 
-if (process.env.VITE_DEPLOY_ENV) {
+if (isProduction) {
   // Sentry plugin shall be last to ensure source maps are generated correctly
   // and tree-shaking doesn't remove Sentry's instrumentation.
   config.plugins.push(
@@ -106,7 +151,7 @@ if (process.env.VITE_DEPLOY_ENV) {
       project: "vetro-app",
       release: {
         deploy: {
-          env: process.env.VITE_DEPLOY_ENV,
+          env: "production",
         },
       },
       telemetry: false,
@@ -115,13 +160,24 @@ if (process.env.VITE_DEPLOY_ENV) {
 }
 
 export default defineConfig(function ({ mode }) {
-  const buildInfo = getBuildInfo(loadEnv(mode, process.cwd(), ""));
+  const env = loadEnv(mode, process.cwd(), "");
+  const buildInfo = getBuildInfo(env);
+  const apiPreviewUrl = getApiPreviewUrl({
+    apiPreviewHost: env.STAGING_API_PREVIEW_HOST,
+    branch: buildInfo.branch,
+    deployEnv: env.VITE_DEPLOY_ENV,
+  });
 
   return {
     ...config,
     define: {
       "import.meta.env.VITE_BUILD_BRANCH": JSON.stringify(buildInfo.branch),
       "import.meta.env.VITE_BUILD_VERSION": JSON.stringify(buildInfo.version),
+      ...(apiPreviewUrl && {
+        "import.meta.env.VITE_VETRO_API_URL": JSON.stringify(apiPreviewUrl),
+      }),
     },
+    // Prepended because the Sentry plugin must stay last.
+    plugins: [emitVersionFile(buildInfo.version), ...config.plugins],
   };
 });

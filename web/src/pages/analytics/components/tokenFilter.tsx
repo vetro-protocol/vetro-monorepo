@@ -1,6 +1,7 @@
 import { SegmentedControl } from "components/base/segmentedControl";
 import { TokenDisplay } from "components/tokenDisplay";
 import type { TokenWithGateway } from "types";
+import { isAddressEqual } from "viem";
 
 type Props = {
   onChange: (token: TokenWithGateway) => void;
@@ -11,7 +12,9 @@ type Props = {
 export const TokenFilter = ({ onChange, tokens, value }: Props) => (
   <SegmentedControl
     onChange={(gatewayAddress) =>
-      onChange(tokens.find((t) => t.gatewayAddress === gatewayAddress)!)
+      onChange(
+        tokens.find((t) => isAddressEqual(t.gatewayAddress, gatewayAddress))!,
+      )
     }
     options={tokens.map((token) => ({
       label: (

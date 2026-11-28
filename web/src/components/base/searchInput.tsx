@@ -1,5 +1,5 @@
 import { CloseIcon } from "components/icons/closeIcon";
-import { type KeyboardEvent, type SVGProps } from "react";
+import { type KeyboardEvent, type Ref, type SVGProps } from "react";
 import { useTranslation } from "react-i18next";
 
 const SearchIcon = (props: SVGProps<SVGSVGElement>) => (
@@ -23,19 +23,19 @@ const SearchIcon = (props: SVGProps<SVGSVGElement>) => (
 
 type Props = {
   ariaLabel?: string;
-  autoFocus?: boolean;
   onChange: (value: string) => void;
   onKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void;
   placeholder?: string;
+  ref?: Ref<HTMLInputElement>;
   value: string;
 };
 
 export const SearchInput = function ({
   ariaLabel,
-  autoFocus,
   onChange,
   onKeyDown,
   placeholder,
+  ref,
   value,
 }: Props) {
   const { t } = useTranslation();
@@ -45,11 +45,11 @@ export const SearchInput = function ({
       <SearchIcon className="shrink-0 text-gray-400" />
       <input
         aria-label={ariaLabel ?? t("common.search")}
-        autoFocus={autoFocus}
         className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-gray-500 group-hover:placeholder:text-gray-600"
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={onKeyDown}
         placeholder={placeholder}
+        ref={ref}
         type="text"
         value={value}
       />

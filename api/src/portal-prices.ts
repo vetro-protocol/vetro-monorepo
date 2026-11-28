@@ -4,6 +4,14 @@ type PriceHistory = { date: string; priceUsd: string }[];
 
 type Prices = { prices: Record<string, string> };
 
+export const parseUsdPrice = function (value: unknown) {
+  if (typeof value !== "string" || value.trim() === "") {
+    return undefined;
+  }
+  const price = Number(value);
+  return Number.isFinite(price) ? price : undefined;
+};
+
 const dayMs = 86_400_000;
 // The portal keeps a year of daily prices, ending yesterday.
 const historyDays = 365;
@@ -33,12 +41,20 @@ async function getPricesByDay({
     `${portalApiUrl}/price-history/${pegBaseSymbol}/${period}`,
   )) as PriceHistory;
   return new Map(
-    history.map(({ date, priceUsd }) => [
-      toUtcDay(Date.parse(date)),
-      Number(priceUsd),
-    ]),
+    history.map(function ({ date, priceUsd }) {
+      const price = parseUsdPrice(priceUsd);
+      if (price === undefined) {
+        throw new Error(`Invalid ${pegBaseSymbol} daily price: ${priceUsd}`);
+      }
+      return [toUtcDay(Date.parse(date)), price];
+    }),
   );
 }
+
+export const getUsdPrices = (portalApiUrl: string) =>
+  fetchJson(`${portalApiUrl}/prices`, {
+    signal: AbortSignal.timeout(5_000),
+  }).then((body) => (body as Prices).prices);
 
 async function getCurrentPrice({
   pegBaseSymbol,
@@ -47,9 +63,8 @@ async function getCurrentPrice({
   pegBaseSymbol: string;
   portalApiUrl: string;
 }) {
-  const { prices } = (await fetchJson(`${portalApiUrl}/prices`)) as Prices;
-  const price = prices[pegBaseSymbol];
-  return price === undefined ? null : Number(price);
+  const prices = await getUsdPrices(portalApiUrl);
+  return parseUsdPrice(prices[pegBaseSymbol]) ?? null;
 }
 
 export async function getPegBaseUsdRates({

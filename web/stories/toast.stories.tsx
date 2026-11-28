@@ -1,10 +1,16 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { useCallback, useRef, useState } from "react";
+import { MemoryRouter, Route, Routes } from "react-router";
+import { fn } from "storybook/test";
 
 import { Button } from "../src/components/base/button";
+import { I18nLink } from "../src/components/base/i18nLink";
 import { Toast, type ToastData, Toaster } from "../src/components/base/toast";
 
 const meta: Meta<typeof Toast> = {
+  args: {
+    onClose: fn(),
+  },
   component: Toast,
   parameters: {
     layout: "fullscreen",
@@ -28,19 +34,29 @@ export const TitleOnly: Story = {
   },
 };
 
-export const Closable: Story = {
+export const WithAction: Story = {
   args: {
-    closable: true,
-    title: "Stake deposit confirmed",
+    action: (
+      <I18nLink
+        className="text-sm leading-5 font-medium text-blue-400 hover:text-blue-300"
+        to="/vevetro"
+      >
+        See your positions
+      </I18nLink>
+    ),
+    autoCloseMs: 15_000,
+    description: "Your $V is now in a veVETRO position.",
+    title: "Claim confirmed",
   },
-};
-
-export const ClosableWithDescription: Story = {
-  args: {
-    closable: true,
-    description: "Your 7-day cooldown has started.",
-    title: "Withdrawal request confirmed",
-  },
+  decorators: [
+    (StoryComponent) => (
+      <MemoryRouter initialEntries={["/en/vevetro/claim"]}>
+        <Routes>
+          <Route element={<StoryComponent />} path="/:lang/*" />
+        </Routes>
+      </MemoryRouter>
+    ),
+  ],
 };
 
 export const Error: Story = {
@@ -63,14 +79,12 @@ function MultipleToastsDemo() {
       ...prev,
       isError
         ? {
-            closable: true,
             description: "Your request wasn't sent. Try again.",
             id: counterRef.current,
             title: "Something went wrong",
             variant: "error",
           }
         : {
-            closable: true,
             description: "Your funds are now staked and earning yield.",
             id: counterRef.current,
             title: "Stake deposit confirmed",

@@ -37,7 +37,11 @@ export function usePendingActivityReconciliation() {
         const status = await getPendingActivityStatus(activity);
 
         if (status) {
-          updateActivity(address!, activity.txHash, { status });
+          updateActivity({
+            address: address!,
+            txHash: activity.txHash,
+            updates: { status },
+          });
         }
 
         return status ?? null;

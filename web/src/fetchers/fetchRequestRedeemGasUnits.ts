@@ -2,7 +2,7 @@ import { tokenBalanceQueryOptions } from "@hemilabs/react-hooks/useTokenBalance"
 import type { QueryClient } from "@tanstack/react-query";
 import { encodeRequestRedeem } from "@vetro-protocol/gateway/actions";
 import type { TokenWithGateway } from "types";
-import { createErc20AllowanceStateOverride } from "utils/erc20StateOverride";
+import { createErc20SpendStateOverride } from "utils/erc20StateOverride";
 import type { Address, Client } from "viem";
 import { estimateGas } from "viem/actions";
 
@@ -13,7 +13,6 @@ import { estimateApprovalGasUnits } from "./estimateApprovalGasUnits";
  * in the vault, so an ERC-20 approval may be needed before the operation.
  * Returns the total gas units for the whole flow (1 or 2 transactions:
  * optional approval + requestRedeem).
- * Throws if the amount exceeds the user's token balance.
  */
 export const fetchRequestRedeemGasUnits = async function ({
   amount,
@@ -38,10 +37,6 @@ export const fetchRequestRedeemGasUnits = async function ({
     }),
   );
 
-  if (amount > balance) {
-    throw new Error("Insufficient token balance");
-  }
-
   const [approvalGas, operationGas] = await Promise.all([
     estimateApprovalGasUnits({
       amount,
@@ -57,7 +52,9 @@ export const fetchRequestRedeemGasUnits = async function ({
       data: encodeRequestRedeem({
         peggedTokenAmount: amount,
       }),
-      stateOverride: createErc20AllowanceStateOverride({
+      stateOverride: createErc20SpendStateOverride({
+        amount,
+        balance,
         owner,
         spender: token.gatewayAddress,
         token,

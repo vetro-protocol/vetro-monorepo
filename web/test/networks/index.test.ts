@@ -1,4 +1,4 @@
-import { hemi } from "viem/chains";
+import { hemi } from "hemi-viem";
 import { describe, expect, it } from "vitest";
 
 import { getChainById } from "../../src/networks";

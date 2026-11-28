@@ -21,6 +21,8 @@ Where the active instances come from:
 
 **Treasury** — Per-pegged-token contract that holds the whitelisted collateral and decides what to do with it (routing it into yield-bearing strategies). Redemptions are paid from it; backing is surfaced on Analytics.
 
+**Reserve yield** — The projected yearly yield of a Treasury's balance (its strategies plus the reserve buffer), at the blended APY of its strategies. Analytics compares it with the staker yield (the share token APR × the staked amount) to project the protocol's net revenue.
+
 **Collateralization ratio** — Backing value ÷ pegged tokens in circulation. Above 100% means over-collateralized.
 
 **Mint / swap in** — Deposit a whitelisted token, receive that gateway's pegged token (Swap page).
@@ -65,4 +67,4 @@ Where the active instances come from:
 
 **Bridge / OFT** — Move a token across chains via LayerZero's Omnichain Fungible Token standard; the same token is native on many chains, with no wrapping.
 
-**Pages** — Swap (mint/redeem) · Earn (stake for yield) · Borrow (CDP) · Bridge (cross-chain) · Analytics (proof-of-reserves dashboard).
+**Pages** — Swap (mint/redeem) · Earn (stake for yield) · Borrow (CDP) · Bridge (cross-chain) · Liquidity (DEX pools that hold VETRO tokens) · Analytics (proof-of-reserves dashboard).

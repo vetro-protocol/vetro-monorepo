@@ -1,11 +1,14 @@
+import { zeroAddress, zeroHash } from "viem";
 import { describe, expect, it } from "vitest";
 
 import {
   campaignLabel,
   endingSoonThresholdSeconds,
   endsSoon,
+  sortRewards,
+  stakeDaoStrategyKey,
 } from "./campaigns";
-import { type PoolCampaign } from "./types";
+import { type PoolCampaign, type PoolReward, type TrackedPool } from "./types";
 
 const day = 24 * 60 * 60;
 
@@ -44,8 +47,6 @@ const merklCampaign = {
 const stakeDaoCampaign = {
   campaignNumber: 1891,
   endTimestamp: nowSeconds + 30 * day,
-  gauge: "0x737e7700e03A8c451C9B72103554a40760F1B57A",
-  gaugeChainId: 1,
   id: "stake-dao-1",
   rewardTokenSymbol: "USDC",
   source: "stakeDao",
@@ -62,5 +63,67 @@ describe("campaignLabel", function () {
     expect(campaignLabel({ campaign: stakeDaoCampaign, nowSeconds })).toBe(
       "StakeDAO · USDC · 30d",
     );
+  });
+});
+
+const reward = (
+  overrides: Pick<PoolReward, "apr" | "source" | "sourceMetadata">,
+) =>
+  ({
+    tokens: [],
+    tokenSymbols: "TKN",
+    ...overrides,
+  }) as PoolReward;
+
+const gaugeReward = reward({
+  apr: 1,
+  source: "curveGauge",
+  sourceMetadata: { gaugeAddress: zeroAddress },
+});
+const stakeDaoReward = reward({
+  apr: 2,
+  source: "stakeDao",
+  sourceMetadata: { strategyKey: "1-0xstrategy" },
+});
+const merklReward = (apr: number) =>
+  reward({
+    apr,
+    source: "merkl",
+    sourceMetadata: { campaignId: zeroHash, opportunityId: `${apr}` },
+  });
+
+describe("sortRewards", function () {
+  it("orders gauge CRV, then StakeDAO, then Merkl regardless of APR", function () {
+    const merkl = merklReward(50);
+    expect(sortRewards([merkl, stakeDaoReward, gaugeReward])).toEqual([
+      gaugeReward,
+      stakeDaoReward,
+      merkl,
+    ]);
+  });
+
+  it("sorts Merkl rewards by APR, highest first", function () {
+    const low = merklReward(3);
+    const high = merklReward(8);
+    const mid = merklReward(5);
+    expect(sortRewards([low, high, mid])).toEqual([high, mid, low]);
+  });
+
+  it("leaves the input array unchanged", function () {
+    const rewards = [merklReward(1), gaugeReward];
+    sortRewards(rewards);
+    expect(rewards[1]).toBe(gaugeReward);
+  });
+});
+
+describe("stakeDaoStrategyKey", function () {
+  it("returns the key of the pool's StakeDAO reward", function () {
+    const pool = { rewards: [gaugeReward, stakeDaoReward] } as TrackedPool;
+    expect(stakeDaoStrategyKey(pool)).toBe("1-0xstrategy");
+  });
+
+  it("is undefined when the pool has no StakeDAO reward", function () {
+    const pool = { rewards: [gaugeReward, merklReward(4)] } as TrackedPool;
+    expect(stakeDaoStrategyKey(pool)).toBeUndefined();
   });
 });

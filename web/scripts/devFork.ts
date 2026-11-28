@@ -1,6 +1,6 @@
 import { startAnvilFork } from "@hemilabs/anvil-fork-setup";
 import { TEST_ADDRESS } from "@hemilabs/anvil-fork-setup/utils";
-import { type ChildProcess, spawn } from "node:child_process";
+import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
@@ -20,7 +20,7 @@ process.loadEnvFile(new URL("../.env", import.meta.url));
 
 // The app and the dev wallet both read VITE_RPC_URL_MAINNET; vars set here
 // win because Vite never overwrites env vars inherited from the process.
-const startViteServer = (forkUrl: string): ChildProcess =>
+const startViteServer = (forkUrl: string) =>
   spawn("pnpm", ["exec", "vite"], {
     cwd: webRoot,
     env: {

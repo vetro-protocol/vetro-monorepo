@@ -32,7 +32,6 @@ describe("fetchEarnedAmountUsd", function () {
     queryClient.setQueryData(
       vaultPeggedTokenQueryOptions({
         client,
-        queryClient,
         stakingVaultAddress: vault1,
       }).queryKey,
       vusd,
@@ -52,7 +51,6 @@ describe("fetchEarnedAmountUsd", function () {
         account,
         chainId: mainnet.id,
         client,
-        queryClient,
         stakingVaultAddress: vault1,
       }).queryKey,
       12n * 10n ** 18n,
@@ -62,8 +60,8 @@ describe("fetchEarnedAmountUsd", function () {
       costBasisQueryOptions({ address: account }).queryKey,
       { [vault1]: 10n * 10n ** 18n } as Record<Address, bigint>,
     );
-    queryClient.setQueryData(pricesOptions({ client, queryClient }).queryKey, {
-      USDT: "1",
+    queryClient.setQueryData(pricesOptions({ client }).queryKey, {
+      VUSD: "1",
     });
 
     const result = await fetchEarnedAmountUsd({
@@ -81,7 +79,6 @@ describe("fetchEarnedAmountUsd", function () {
     queryClient.setQueryData(
       vaultPeggedTokenQueryOptions({
         client,
-        queryClient,
         stakingVaultAddress: vault1,
       }).queryKey,
       vusd,
@@ -100,7 +97,6 @@ describe("fetchEarnedAmountUsd", function () {
         account,
         chainId: mainnet.id,
         client,
-        queryClient,
         stakingVaultAddress: vault1,
       }).queryKey,
       8n * 10n ** 18n,
@@ -109,8 +105,8 @@ describe("fetchEarnedAmountUsd", function () {
       costBasisQueryOptions({ address: account }).queryKey,
       { [vault1]: 10n * 10n ** 18n } as Record<Address, bigint>,
     );
-    queryClient.setQueryData(pricesOptions({ client, queryClient }).queryKey, {
-      USDT: "1",
+    queryClient.setQueryData(pricesOptions({ client }).queryKey, {
+      VUSD: "1",
     });
 
     const result = await fetchEarnedAmountUsd({
@@ -128,7 +124,6 @@ describe("fetchEarnedAmountUsd", function () {
     queryClient.setQueryData(
       vaultPeggedTokenQueryOptions({
         client,
-        queryClient,
         stakingVaultAddress: vault2,
       }).queryKey,
       vetBtc,
@@ -146,7 +141,6 @@ describe("fetchEarnedAmountUsd", function () {
         account,
         chainId: mainnet.id,
         client,
-        queryClient,
         stakingVaultAddress: vault2,
       }).queryKey,
       (21n * 10n ** 18n) / 10n,
@@ -155,8 +149,8 @@ describe("fetchEarnedAmountUsd", function () {
       costBasisQueryOptions({ address: account }).queryKey,
       { [vault2]: 2n * 10n ** 18n } as Record<Address, bigint>,
     );
-    queryClient.setQueryData(pricesOptions({ client, queryClient }).queryKey, {
-      WBTC: "60000",
+    queryClient.setQueryData(pricesOptions({ client }).queryKey, {
+      VETBTC: "60000",
     } as Record<string, string>);
 
     const result = await fetchEarnedAmountUsd({
@@ -175,7 +169,6 @@ describe("fetchEarnedAmountUsd", function () {
     queryClient.setQueryData(
       vaultPeggedTokenQueryOptions({
         client,
-        queryClient,
         stakingVaultAddress: vault1,
       }).queryKey,
       vusd,
@@ -193,7 +186,6 @@ describe("fetchEarnedAmountUsd", function () {
         account,
         chainId: mainnet.id,
         client,
-        queryClient,
         stakingVaultAddress: vault1,
       }).queryKey,
       0n,
@@ -202,8 +194,8 @@ describe("fetchEarnedAmountUsd", function () {
       costBasisQueryOptions({ address: account }).queryKey,
       { [vault1]: 0n } as Record<Address, bigint>,
     );
-    queryClient.setQueryData(pricesOptions({ client, queryClient }).queryKey, {
-      USDT: "1",
+    queryClient.setQueryData(pricesOptions({ client }).queryKey, {
+      VUSD: "1",
     });
 
     const result = await fetchEarnedAmountUsd({
@@ -221,7 +213,6 @@ describe("fetchEarnedAmountUsd", function () {
     queryClient.setQueryData(
       vaultPeggedTokenQueryOptions({
         client,
-        queryClient,
         stakingVaultAddress: vault1,
       }).queryKey,
       vusd,
@@ -239,7 +230,6 @@ describe("fetchEarnedAmountUsd", function () {
         account,
         chainId: mainnet.id,
         client,
-        queryClient,
         stakingVaultAddress: vault1,
       }).queryKey,
       12n * 10n ** 18n,
@@ -249,8 +239,8 @@ describe("fetchEarnedAmountUsd", function () {
       costBasisQueryOptions({ address: account }).queryKey,
       { [vault1]: 0n } as Record<Address, bigint>,
     );
-    queryClient.setQueryData(pricesOptions({ client, queryClient }).queryKey, {
-      USDT: "1",
+    queryClient.setQueryData(pricesOptions({ client }).queryKey, {
+      VUSD: "1",
     });
 
     const result = await fetchEarnedAmountUsd({

@@ -5,7 +5,7 @@ import type { Token } from "@vetro-protocol/core";
 import { encodeRepayAssets } from "@vetro-protocol/morpho-blue-market/actions";
 import { morphoMarketOptions } from "hooks/borrow/useMorphoMarket";
 import { positionInfoOptions } from "hooks/borrow/usePositionInfo";
-import { createErc20AllowanceStateOverride } from "utils/erc20StateOverride";
+import { createErc20SpendStateOverride } from "utils/erc20StateOverride";
 import { type Address, type Client, type Hash } from "viem";
 import { estimateGas } from "viem/actions";
 
@@ -14,8 +14,8 @@ import { estimateApprovalGasUnits } from "./estimateApprovalGasUnits";
 /**
  * Estimates gas units for a repay operation. Returns the total gas units
  * for the whole flow (approval + repay).
- * Throws if the amount exceeds the user's current debt or the required
- * approval amount exceeds the user's loan token balance.
+ * Throws if the amount exceeds the user's current debt or if a share-based
+ * repayment is missing its approval amount.
  */
 export const fetchRepayGasUnits = async function ({
   amount,
@@ -69,10 +69,6 @@ export const fetchRepayGasUnits = async function ({
 
   const amountForApproval = shares === undefined ? amount : approveAmount!;
 
-  if (amountForApproval > loanBalance) {
-    throw new Error("Insufficient loan token balance");
-  }
-
   const repayParams =
     shares === undefined
       ? { amount, marketParams: morphoMarket.params, onBehalf: owner }
@@ -91,7 +87,9 @@ export const fetchRepayGasUnits = async function ({
     estimateGas(client, {
       account: owner,
       data: encodeRepayAssets(repayParams),
-      stateOverride: createErc20AllowanceStateOverride({
+      stateOverride: createErc20SpendStateOverride({
+        amount: amountForApproval,
+        balance: loanBalance,
         owner,
         spender: morphoAddress,
         token,

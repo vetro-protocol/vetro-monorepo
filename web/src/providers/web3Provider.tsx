@@ -15,11 +15,14 @@ import {
   walletConnectWallet,
 } from "@rainbow-me/rainbowkit/wallets";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { createRpcTransport } from "@vetro-protocol/core";
+import { createRpcTransport, vetroLinks } from "@vetro-protocol/core";
 import { Trans } from "react-i18next";
 import { WagmiProvider } from "wagmi";
 
-import { ExternalLink } from "../components/base/externalLink";
+import {
+  ExternalLink,
+  inlineLinkClassName,
+} from "../components/base/externalLink";
 import { allChains } from "../networks";
 
 export const config = getDefaultConfig({
@@ -46,10 +49,9 @@ export const config = getDefaultConfig({
   ],
 });
 
-const queryClient = new QueryClient();
-
-const disclaimerLinkClassName =
-  "font-medium text-blue-500 transition-colors hover:text-blue-600";
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: 1 } },
+});
 
 const WalletDisclaimer: DisclaimerComponent = ({ Text }) => (
   <Text>
@@ -57,14 +59,14 @@ const WalletDisclaimer: DisclaimerComponent = ({ Text }) => (
       components={{
         privacy: (
           <ExternalLink
-            className={disclaimerLinkClassName}
-            href="https://vetro.org/privacy-policy"
+            className={inlineLinkClassName}
+            href={vetroLinks.privacyPolicyUrl}
           />
         ),
         terms: (
           <ExternalLink
-            className={disclaimerLinkClassName}
-            href="https://vetro.org/terms-of-use"
+            className={inlineLinkClassName}
+            href={vetroLinks.termsOfUseUrl}
           />
         ),
       }}

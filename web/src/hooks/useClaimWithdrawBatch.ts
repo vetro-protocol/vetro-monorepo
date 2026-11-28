@@ -72,7 +72,6 @@ export const useClaimWithdrawBatch = function ({
         const peggedToken = await queryClient.ensureQueryData(
           vaultPeggedTokenQueryOptions({
             client: walletClient,
-            queryClient,
             stakingVaultAddress,
           }),
         );

@@ -4,8 +4,9 @@ import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
 import { getChainAddresses } from "@morpho-org/blue-sdk";
 import { Button } from "components/base/button";
 import { RenderCryptoValue } from "components/base/cryptoValue";
+import { DrawerRetryFooter } from "components/base/drawer/drawerRetryFooter";
 import { RenderFiatValue } from "components/base/fiatValue";
-import { Toast } from "components/base/toast";
+import type { ToastContent } from "components/base/toast";
 import {
   type Step,
   VerticalStepper,
@@ -54,7 +55,7 @@ type SupplyCollateralFlowStatus =
 
 const getApproveStepStatus = function (
   status: Exclude<SupplyCollateralFlowStatus, "idle">,
-): Step["status"] {
+) {
   const exceptions: Partial<
     Record<Exclude<SupplyCollateralFlowStatus, "idle">, Step["status"]>
   > = {
@@ -66,7 +67,7 @@ const getApproveStepStatus = function (
 
 const getSupplyStepStatus = function (
   status: Exclude<SupplyCollateralFlowStatus, "idle">,
-): Step["status"] {
+) {
   const exceptions: Partial<
     Record<Exclude<SupplyCollateralFlowStatus, "idle">, Step["status"]>
   > = {
@@ -168,8 +169,6 @@ function StepperOverlay({
   steps,
 }: StepperOverlayProps) {
   const { t } = useTranslation();
-  const { render: renderRetry, show: showRetry } =
-    useAnimatedVisibility(isError);
 
   return (
     <>
@@ -193,21 +192,7 @@ function StepperOverlay({
             <VerticalStepper steps={steps} />
           </div>
         </div>
-        {renderRetry && (
-          <div
-            className={`grid transition-[grid-template-rows] duration-300 ease-out ${
-              showRetry ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-            }`}
-          >
-            <div className="overflow-hidden">
-              <div className="border-t border-gray-200 bg-gray-50 px-6 py-3 *:w-full">
-                <Button onClick={onRetry} size="small" variant="primary">
-                  {t("pages.borrow.supply-collateral-progress.retry")}
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
+        <DrawerRetryFooter onRetry={isError ? onRetry : undefined} />
       </div>
     </>
   );
@@ -216,15 +201,15 @@ function StepperOverlay({
 type Props = {
   market: MarketData;
   onClose: VoidFunction;
+  onSuccess: (toast: ToastContent) => void;
 };
 
-export function SupplyCollateralForm({ market, onClose }: Props) {
+export function SupplyCollateralForm({ market, onClose, onSuccess }: Props) {
   const { t } = useTranslation();
 
   const [collateralInput, onCollateralChange] = useAmount();
   const [flowStatus, setFlowStatus] =
     useState<SupplyCollateralFlowStatus>("idle");
-  const [showToast, setShowToast] = useState(false);
   const [startedWithApproval, setStartedWithApproval] = useState(false);
 
   const isActive = flowStatus !== "idle";
@@ -301,7 +286,16 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
       emitter.on("supply-collateral-transaction-succeeded", function () {
         onCompleted();
         setFlowStatus("supplied-collateral");
-        setShowToast(true);
+        onSuccess({
+          description: t(
+            "pages.borrow.supply-collateral-progress.toast-description",
+            {
+              amount: formatNumber(collateralInput),
+              symbol: collateralToken.symbol,
+            },
+          ),
+          title: t("pages.borrow.supply-collateral-progress.toast-title"),
+        });
       });
       emitter.on("supply-collateral-transaction-reverted", function () {
         onFailed();
@@ -450,20 +444,6 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
         showStepper={showStepper}
         steps={steps}
       />
-      {showToast && (
-        <Toast
-          closable
-          description={t(
-            "pages.borrow.supply-collateral-progress.toast-description",
-            {
-              amount: formatNumber(collateralInput),
-              symbol: collateralToken.symbol,
-            },
-          )}
-          onClose={() => setShowToast(false)}
-          title={t("pages.borrow.supply-collateral-progress.toast-title")}
-        />
-      )}
     </div>
   );
 }

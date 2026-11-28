@@ -1,9 +1,4 @@
-import {
-  type QueryClient,
-  queryOptions,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import type { Token } from "@vetro-protocol/core";
 import { fetchRepayGasUnits } from "fetchers/fetchRepayGasUnits";
 import { fetchTotalRepayFees } from "fetchers/fetchTotalRepayFees";
@@ -46,7 +41,6 @@ export const repayGasUnitsOptions = ({
   client,
   marketId,
   owner,
-  queryClient,
   shares,
   token,
 }: {
@@ -56,13 +50,12 @@ export const repayGasUnitsOptions = ({
   client: Client | undefined;
   marketId: Hash;
   owner: Address | undefined;
-  queryClient: QueryClient;
   shares: bigint | undefined;
   token: Token | undefined;
 }) =>
   queryOptions({
     enabled: !!client && !!owner && !!token && amount > 0n,
-    queryFn: () =>
+    queryFn: ({ client: queryClient }) =>
       fetchRepayGasUnits({
         amount,
         approveAmount,
@@ -118,7 +111,6 @@ const totalRepayFeesOptions = ({
   client,
   marketId,
   owner,
-  queryClient,
   shares,
   token,
 }: {
@@ -128,13 +120,12 @@ const totalRepayFeesOptions = ({
   client: Client | undefined;
   marketId: Hash;
   owner: Address | undefined;
-  queryClient: QueryClient;
   shares: bigint | undefined;
   token: Token | undefined;
 }) =>
   queryOptions({
     enabled: !!client && !!owner && !!token && amount > 0n,
-    queryFn: () =>
+    queryFn: ({ client: queryClient }) =>
       fetchTotalRepayFees({
         amount,
         approveAmount,
@@ -172,7 +163,6 @@ export const useTotalRepayFees = function ({
 }) {
   const { address: owner } = useAccount();
   const client = useEthereumClient();
-  const queryClient = useQueryClient();
 
   return useQuery(
     totalRepayFeesOptions({
@@ -182,7 +172,6 @@ export const useTotalRepayFees = function ({
       client,
       marketId,
       owner,
-      queryClient,
       shares,
       token,
     }),

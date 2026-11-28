@@ -1,11 +1,13 @@
-import * as Sentry from "@sentry/react";
+import { defaultPage, LanguageRouting } from "appRouting";
 import { AnalyticsTracker } from "components/analyticsTracker";
 import { AppLayout, MainContent } from "components/base/appLayout";
 import { AppViewport } from "components/base/appViewport";
 import { ErrorBoundary } from "components/base/errorBoundary";
 import { GeoRestrictionRibbon } from "components/geoRestrictionRibbon";
 import { Header } from "components/header";
-import { I18nInitializer, useUnsupportedLanguageRedirect } from "i18n/config";
+import { ReloadOnNewVersion } from "components/reloadOnNewVersion";
+import { I18nInitializer } from "i18n/config";
+import { normalizePath } from "i18n/path";
 import { NuqsAdapter } from "nuqs/adapters/react-router/v8";
 import { Analytics } from "pages/analytics";
 import { Borrow } from "pages/borrow";
@@ -15,9 +17,12 @@ import { Contact } from "pages/contact";
 import { Earn } from "pages/earn";
 import { ErrorPage } from "pages/errorPage";
 import { Faq } from "pages/faq";
+import { Liquidity } from "pages/liquidity";
 import { NotFound } from "pages/notFound";
 import { Swap } from "pages/swap";
-import { Suspense, lazy } from "react";
+import { VeVetro } from "pages/veVetro";
+import { VeVetroClaim } from "pages/veVetroClaim";
+import { Suspense } from "react";
 import {
   BrowserRouter,
   Navigate,
@@ -28,26 +33,25 @@ import {
 } from "react-router";
 import { featureFlags } from "utils/featureFlags";
 import { isGeoRestricted } from "utils/geoRestriction";
-
-const SentryRoutes = Sentry.withSentryReactRouterV7Routing(Routes);
+import { lazyWithReload } from "utils/lazyWithReload";
 
 const analyticsEnabled =
   !!import.meta.env.VITE_ANALYTICS_URL &&
   !!import.meta.env.VITE_ANALYTICS_WEBSITE_ID;
 
-const AppNotifications = lazy(() =>
+const AppNotifications = lazyWithReload(() =>
   import("components/appNotifications").then((m) => ({
     default: m.AppNotifications,
   })),
 );
 
-const FixedTermEarnDetails = lazy(() =>
+const FixedTermEarnDetails = lazyWithReload(() =>
   import("pages/fixedTermEarnDetails").then((m) => ({
     default: m.FixedTermEarnDetails,
   })),
 );
 
-const VariableYieldEarnDetails = lazy(() =>
+const VariableYieldEarnDetails = lazyWithReload(() =>
   import("pages/variableYieldEarnDetails").then((m) => ({
     default: m.VariableYieldEarnDetails,
   })),
@@ -58,16 +62,11 @@ const VariableYieldEarnDetails = lazy(() =>
  * - Outer: catches errors before translations load (Header, I18nInitializer) — ErrorPage renders without i18n
  * - Inner: catches page-level errors after translations are available — ErrorPage can use translated strings
  *
- * The inner ErrorBoundary is keyed by pathname so it resets on navigation,
- * allowing recovery from page-level errors without a full reload.
+ * The inner ErrorBoundary is keyed by the language-independent path so
+ * changing languages preserves the current page state.
  */
 function LanguageRoutes() {
   const { pathname } = useLocation();
-  const unsupportedLanguageRedirect = useUnsupportedLanguageRedirect();
-
-  if (unsupportedLanguageRedirect) {
-    return <Navigate replace to={unsupportedLanguageRedirect} />;
-  }
 
   return (
     <ErrorBoundary
@@ -86,10 +85,10 @@ function LanguageRoutes() {
             <ErrorPage />
           </MainContent>
         }
-        key={pathname}
+        key={normalizePath(pathname)}
       >
         <Routes>
-          <Route element={<Navigate replace to="swap" />} index />
+          <Route element={<Navigate replace to={defaultPage} />} index />
           <Route
             element={
               <AppLayout>
@@ -120,9 +119,16 @@ function LanguageRoutes() {
             <Route element={<Borrow />} path="borrow" />
             <Route element={<BorrowMarketDetails />} path="borrow/:marketId" />
             <Route element={<Bridge />} path="bridge" />
+            <Route element={<Liquidity />} path="liquidity" />
             <Route element={<Analytics />} path="analytics" />
             <Route element={<Faq />} path="faq" />
             <Route element={<Contact />} path="contact" />
+            {featureFlags.veVetro && (
+              <>
+                <Route element={<VeVetro />} path="vevetro" />
+                <Route element={<VeVetroClaim />} path="vevetro/claim" />
+              </>
+            )}
           </Route>
           <Route
             element={
@@ -145,17 +151,9 @@ export const App = () => (
   <BrowserRouter>
     <NuqsAdapter>
       {analyticsEnabled && <AnalyticsTracker />}
+      <ReloadOnNewVersion />
       <AppViewport>
-        <SentryRoutes>
-          {/* Redirect root to English */}
-          <Route element={<Navigate replace to="/en" />} path="/" />
-
-          {/* Language-prefixed routes */}
-          <Route element={<LanguageRoutes />} path="/:lang/*" />
-
-          {/* Catch-all: redirect unknown paths to English */}
-          <Route element={<Navigate replace to="/en" />} path="*" />
-        </SentryRoutes>
+        <LanguageRouting languageRoutes={<LanguageRoutes />} />
       </AppViewport>
     </NuqsAdapter>
   </BrowserRouter>

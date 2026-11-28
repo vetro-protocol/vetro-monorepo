@@ -1,3 +1,4 @@
+import { getChainAddresses } from "@morpho-org/blue-sdk";
 import { numberToHex } from "viem";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -9,8 +10,7 @@ const rpcUrl = "https://rpc.example";
 const stubEndpointOnChain = function (chainId: number) {
   const fetchMock = vi.fn(async function (_url: string, { body }: RequestInit) {
     const request = JSON.parse(String(body)) as
-      | { id: number }[]
-      | { id: number };
+      { id: number }[] | { id: number };
     const respond = ({ id }: { id: number }) => ({
       id,
       jsonrpc: "2.0",
@@ -42,6 +42,12 @@ describe("createVetroClient", function () {
     stubEndpointOnChain(31337);
     const { chainId } = await createVetroClient({ rpcUrl });
     expect(chainId).toBe(31337);
+  });
+
+  it("gives a local fork the Morpho addresses of Ethereum mainnet", async function () {
+    stubEndpointOnChain(31337);
+    await createVetroClient({ rpcUrl });
+    expect(getChainAddresses(31337)).toEqual(getChainAddresses(1));
   });
 
   it("reads from the endpoint as given, keeping a + in the path", async function () {

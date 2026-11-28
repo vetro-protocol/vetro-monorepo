@@ -1,7 +1,9 @@
 import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { ApyHistoryCard } from "components/apyHistoryCard";
 import { PageTitle } from "components/base/pageTitle";
+import { SegmentedControl } from "components/base/segmentedControl";
 import { ExitCooldownCard } from "components/exitCooldownCard";
+import { NetRevenueCard, RevenueSourcesCard } from "components/netRevenueCard";
 import { ShareRatioCard } from "components/shareRatioCard";
 import { StakedCard } from "components/stakedCard";
 import { StripedDivider } from "components/stripedDivider";
@@ -12,8 +14,9 @@ import { parseAsStringLiteral, useQueryState } from "nuqs";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
+import { isAddressEqual } from "viem";
 
-import { CollateralizationCard } from "./components/collateralizationCard";
+import { BalanceSheetCard } from "./components/balanceSheetCard";
 import { TokenFilter } from "./components/tokenFilter";
 import { TvlCard } from "./components/tvlCard";
 
@@ -40,6 +43,8 @@ const AllocationRow = ({
   </>
 );
 
+const tabs = ["overview", "accounting"] as const;
+
 const TokenFilterSkeleton = () => (
   <div className="flex gap-2">
     {gatewayAddresses.map((gatewayAddress) => (
@@ -61,6 +66,10 @@ export const Analytics = function () {
     "gateway",
     parseAsStringLiteral(gatewayAddresses).withDefault(gatewayAddresses[0]),
   );
+  const [selectedTab, setSelectedTab] = useQueryState(
+    "tab",
+    parseAsStringLiteral(tabs).withDefault("overview"),
+  );
 
   const tokens = peggedTokensByGateway
     ? gatewayAddresses
@@ -68,8 +77,8 @@ export const Analytics = function () {
         .filter(Boolean)
     : undefined;
 
-  const selectedToken = tokens?.find(
-    (token) => token.gatewayAddress === selectedGatewayAddress,
+  const selectedToken = tokens?.find((token) =>
+    isAddressEqual(token.gatewayAddress, selectedGatewayAddress),
   );
 
   // only show the filter if there are 2 or more tokens to filter from
@@ -77,82 +86,113 @@ export const Analytics = function () {
 
   return (
     <div className="flex flex-col">
-      <div className={showTokenFilter ? "border-b border-gray-200" : undefined}>
+      <div className="border-b border-gray-200">
         <PageTitle value={t("pages.analytics.title")} />
       </div>
-      {showTokenFilter && (
-        <div className="sticky top-0 z-10 border-b border-gray-200 bg-white px-3 py-4 md:px-6">
-          <div className="mx-auto w-fit">
-            {tokens && selectedToken ? (
-              <TokenFilter
-                onChange={(token) =>
-                  setSelectedGatewayAddress(token.gatewayAddress)
-                }
-                tokens={tokens}
-                value={selectedToken}
+      <div className="sticky top-0 z-10 flex flex-col items-center gap-3 border-b border-gray-200 bg-white px-3 py-4 md:px-6">
+        {showTokenFilter &&
+          (tokens && selectedToken ? (
+            <TokenFilter
+              onChange={(token) =>
+                setSelectedGatewayAddress(token.gatewayAddress)
+              }
+              tokens={tokens}
+              value={selectedToken}
+            />
+          ) : (
+            <TokenFilterSkeleton />
+          ))}
+        <div className="shadow-bs rounded-full bg-gray-100 p-0.75">
+          <SegmentedControl
+            onChange={setSelectedTab}
+            options={[
+              { label: t("pages.analytics.overview-tab"), value: "overview" },
+              {
+                label: t("pages.analytics.accounting-tab"),
+                value: "accounting",
+              },
+            ]}
+            size="xs"
+            value={selectedTab}
+            variant="pill"
+          />
+        </div>
+      </div>
+      {selectedTab === "overview" ? (
+        <>
+          <AllocationRow>
+            <TvlCard
+              peggedToken={selectedToken}
+              peggedTokenError={isPeggedTokensError}
+            />
+          </AllocationRow>
+          <AllocationRow>
+            <div className="flex-1 px-3 md:px-14">
+              <TvlHistoryCard
+                peggedToken={selectedToken}
+                peggedTokenError={isPeggedTokensError}
               />
-            ) : (
-              <TokenFilterSkeleton />
-            )}
-          </div>
-        </div>
+            </div>
+          </AllocationRow>
+          <AllocationRow className="md:divide-x md:divide-gray-200">
+            <div className="flex-1 px-3 *:border-0 md:px-11 lg:px-14">
+              <StakedCard
+                peggedToken={selectedToken}
+                peggedTokenError={isPeggedTokensError}
+              />
+            </div>
+            <div className="flex-1 px-3 *:border-0 md:px-11 lg:px-14">
+              <ExitCooldownCard
+                peggedToken={selectedToken}
+                peggedTokenError={isPeggedTokensError}
+              />
+            </div>
+          </AllocationRow>
+          <AllocationRow>
+            <div className="flex-1 px-3 md:px-14">
+              <ShareRatioCard
+                peggedToken={selectedToken}
+                peggedTokenError={isPeggedTokensError}
+              />
+            </div>
+          </AllocationRow>
+          <AllocationRow isLast>
+            <div className="flex-1 px-3 md:px-14">
+              <ApyHistoryCard
+                peggedToken={selectedToken}
+                peggedTokenError={isPeggedTokensError}
+              />
+            </div>
+          </AllocationRow>
+        </>
+      ) : (
+        <>
+          <AllocationRow>
+            <NetRevenueCard
+              peggedToken={selectedToken}
+              peggedTokenError={isPeggedTokensError}
+            />
+          </AllocationRow>
+          <AllocationRow>
+            <RevenueSourcesCard
+              peggedToken={selectedToken}
+              peggedTokenError={isPeggedTokensError}
+            />
+          </AllocationRow>
+          <AllocationRow>
+            <BalanceSheetCard
+              peggedToken={selectedToken}
+              peggedTokenError={isPeggedTokensError}
+            />
+          </AllocationRow>
+          <AllocationRow isLast>
+            <YieldCard
+              peggedToken={selectedToken}
+              peggedTokenError={isPeggedTokensError}
+            />
+          </AllocationRow>
+        </>
       )}
-      <AllocationRow className="md:divide-x md:divide-gray-200">
-        <TvlCard
-          peggedToken={selectedToken}
-          peggedTokenError={isPeggedTokensError}
-        />
-        <CollateralizationCard
-          peggedToken={selectedToken}
-          peggedTokenError={isPeggedTokensError}
-        />
-      </AllocationRow>
-      <AllocationRow>
-        <div className="flex-1 px-3 md:px-14">
-          <TvlHistoryCard
-            peggedToken={selectedToken}
-            peggedTokenError={isPeggedTokensError}
-          />
-        </div>
-      </AllocationRow>
-      <AllocationRow className="md:divide-x md:divide-gray-200">
-        <div className="flex-1 px-3 *:border-0 md:px-11 lg:px-14">
-          <StakedCard
-            peggedToken={selectedToken}
-            peggedTokenError={isPeggedTokensError}
-          />
-        </div>
-        <div className="flex-1 px-3 *:border-0 md:px-11 lg:px-14">
-          <ExitCooldownCard
-            peggedToken={selectedToken}
-            peggedTokenError={isPeggedTokensError}
-          />
-        </div>
-      </AllocationRow>
-      <AllocationRow>
-        <div className="flex-1 px-3 md:px-14">
-          <ShareRatioCard
-            peggedToken={selectedToken}
-            peggedTokenError={isPeggedTokensError}
-          />
-        </div>
-      </AllocationRow>
-      <AllocationRow>
-        <div className="flex-1 px-3 md:px-14">
-          <ApyHistoryCard
-            peggedToken={selectedToken}
-            peggedTokenError={isPeggedTokensError}
-          />
-        </div>
-      </AllocationRow>
-      <AllocationRow className="md:justify-center" isLast>
-        <div className="border-x border-gray-200 md:w-1/2">
-          <YieldCard
-            peggedToken={selectedToken}
-            peggedTokenError={isPeggedTokensError}
-          />
-        </div>
-      </AllocationRow>
     </div>
   );
 };

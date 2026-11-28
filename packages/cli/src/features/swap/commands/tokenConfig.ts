@@ -1,9 +1,8 @@
-import { getTreasury } from "@vetro-protocol/gateway/actions";
 import { type Command } from "commander";
 
 import { type GlobalOptions, createVetroClient } from "../../../lib/client.ts";
 import { printResult } from "../../../lib/output.ts";
-import { readTokenConfig } from "../../../lib/tokenConfig.ts";
+import { readGatewayTokenConfig } from "../../../lib/tokenConfig.ts";
 import { resolveWhitelistedToken } from "../../../lib/tokens.ts";
 
 export function register(swap: Command) {
@@ -22,13 +21,10 @@ export function register(swap: Command) {
         client,
         value: options.token,
       });
-      const treasury = await getTreasury(client, {
-        address: token.gatewayAddress,
-      });
-      const tokenConfig = await readTokenConfig({
+      const tokenConfig = await readGatewayTokenConfig({
         client,
+        gatewayAddress: token.gatewayAddress,
         token: token.address,
-        treasury,
       });
       printResult(tokenConfig);
     });

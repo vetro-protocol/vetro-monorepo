@@ -29,7 +29,6 @@ export const fetchTotalWithdrawCollateralFees = async function ({
       client,
       marketId,
       owner,
-      queryClient,
     }),
   );
 

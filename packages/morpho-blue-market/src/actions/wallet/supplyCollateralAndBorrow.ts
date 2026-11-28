@@ -51,11 +51,11 @@ const runSupplyCollateralAndBorrow = (
 
       // The combined emitter is a superset of both event maps, so these
       // casts are safe — the core functions only emit their own subset.
-      const supplyOk = await runSupplyCollateralCore(
+      const supplyOk = await runSupplyCollateralCore({
+        emitter: emitter as unknown as EventEmitter<SupplyCollateralEvents>,
+        params: supplyParams,
         walletClient,
-        supplyParams,
-        emitter as unknown as EventEmitter<SupplyCollateralEvents>,
-      );
+      });
 
       if (!supplyOk) {
         return;
@@ -69,11 +69,11 @@ const runSupplyCollateralAndBorrow = (
         receiver,
       };
 
-      await runBorrowAssetsCore(
+      await runBorrowAssetsCore({
+        emitter: emitter as unknown as EventEmitter<BorrowAssetsEvents>,
+        params: borrowParams,
         walletClient,
-        borrowParams,
-        emitter as unknown as EventEmitter<BorrowAssetsEvents>,
-      );
+      });
     } catch (error) {
       emitter.emit("unexpected-error", error as Error);
     } finally {

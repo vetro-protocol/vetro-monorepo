@@ -19,11 +19,6 @@ export type StakeDaoCampaign = {
   totalRewardAmount: string;
 };
 
-export type StakeDaoStrategy = {
-  gaugeAddress: Address | null;
-  key: string;
-};
-
 const stakeDaoProxyApiUrl = "/api/stakedao";
 
 export const fetchCurveCampaigns = (
@@ -31,17 +26,6 @@ export const fetchCurveCampaigns = (
 ): Promise<StakeDaoCampaign[]> =>
   fetch(`${stakeDaoProxyApiUrl}/campaigns`, {
     queryString: { gauges: gauges.join(",") },
-  });
-
-export const fetchStakeDaoStrategyKey = ({
-  chainId,
-  gauge,
-}: {
-  chainId: number;
-  gauge: Address;
-}): Promise<string | null> =>
-  fetch(`${stakeDaoProxyApiUrl}/strategy`, {
-    queryString: { chainId, gauge },
   });
 
 export const strategyUrl = (key: string) =>

@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  type CooldownRequest,
   keeperBehindThresholdSeconds,
   summarizeCooldown,
 } from "./cooldownSummary";
@@ -16,7 +15,7 @@ const request = ({
   assets?: bigint;
   claimableAt: number;
   requestId?: bigint;
-}): CooldownRequest => ({
+}) => ({
   assets,
   claimableAt: BigInt(claimableAt),
   requestId,

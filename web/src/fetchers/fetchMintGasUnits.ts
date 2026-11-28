@@ -2,7 +2,7 @@ import { tokenBalanceQueryOptions } from "@hemilabs/react-hooks/useTokenBalance"
 import type { QueryClient } from "@tanstack/react-query";
 import { encodeDeposit } from "@vetro-protocol/gateway/actions";
 import type { TokenWithGateway } from "types";
-import { createErc20AllowanceStateOverride } from "utils/erc20StateOverride";
+import { createErc20SpendStateOverride } from "utils/erc20StateOverride";
 import type { Address, Client } from "viem";
 import { estimateGas } from "viem/actions";
 
@@ -12,7 +12,6 @@ import { estimateApprovalGasUnits } from "./estimateApprovalGasUnits";
  * Estimates gas units for minting. Minting always requires approving the
  * tokens sent to the gateway. Returns the total gas units for the whole flow
  * (approval + deposit).
- * Throws if the amount exceeds the user's token balance.
  */
 export const fetchMintGasUnits = async function ({
   amount,
@@ -39,10 +38,6 @@ export const fetchMintGasUnits = async function ({
     }),
   );
 
-  if (amount > balance) {
-    throw new Error("Insufficient token balance");
-  }
-
   const [approvalGas, mintGas] = await Promise.all([
     estimateApprovalGasUnits({
       amount,
@@ -61,7 +56,9 @@ export const fetchMintGasUnits = async function ({
         receiver: owner,
         tokenIn: token.address,
       }),
-      stateOverride: createErc20AllowanceStateOverride({
+      stateOverride: createErc20SpendStateOverride({
+        amount,
+        balance,
         owner,
         spender: token.gatewayAddress,
         token,

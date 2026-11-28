@@ -6,7 +6,7 @@ import { previewBridgeQueryOptions } from "hooks/usePreviewBridge";
 import { tokenPricesOptions } from "hooks/useTokenPrices";
 import { config } from "providers/web3Provider";
 import type { BridgeableToken } from "types";
-import { createErc20AllowanceStateOverride } from "utils/erc20StateOverride";
+import { createErc20SpendStateOverride } from "utils/erc20StateOverride";
 import { weiToUsd } from "utils/fees";
 import { type Address, type Chain, type Client } from "viem";
 import { estimateGas } from "viem/actions";
@@ -16,7 +16,7 @@ import { estimateApprovalGasUnits } from "./estimateApprovalGasUnits";
 /**
  * Returns the on-chain network fee for a bridge send (approval gas if the
  * OFT requires it plus send gas), priced in USD using the source chain's
- * native currency price. Throws if the amount exceeds the user's balance.
+ * native currency price.
  */
 export const fetchBridgeNetworkFee = async function ({
   amount,
@@ -54,10 +54,6 @@ export const fetchBridgeNetworkFee = async function ({
     }),
   );
 
-  if (amount > balance) {
-    throw new Error("Insufficient token balance");
-  }
-
   const [fee, needsApproval] = await Promise.all([
     queryClient.ensureQueryData(
       previewBridgeQueryOptions({
@@ -93,13 +89,13 @@ export const fetchBridgeNetworkFee = async function ({
       recipient,
       refundAddress: owner,
     }),
-    stateOverride: needsApproval
-      ? createErc20AllowanceStateOverride({
-          owner,
-          spender: oftAddress,
-          token: sourceToken,
-        })
-      : undefined,
+    stateOverride: createErc20SpendStateOverride({
+      amount,
+      balance,
+      owner,
+      spender: oftAddress,
+      token: sourceToken,
+    }),
     to: oftAddress,
     value: fee.nativeFee,
   });

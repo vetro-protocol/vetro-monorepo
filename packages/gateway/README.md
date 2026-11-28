@@ -5,14 +5,14 @@ Vetro Protocol gateway actions for viem clients. Mints pegged tokens (VUSD, vetB
 ## Installation
 
 ```sh
-pnpm add @vetro-protocol/gateway viem viem-erc20
+pnpm add @vetro-protocol/gateway @vetro-protocol/treasury viem viem-erc20
 ```
 
 ## Overview
 
 - Two gateways ship by default — the VUSD gateway and the vetBTC gateway — exported as `gateways` (with `address` + `pegBaseSymbol`) and `gatewayAddresses` (just the addresses).
-- `deposit` mints the pegged token: checks `previewDeposit` for the expected output, runs an allowance + approval if needed, then calls `deposit(tokenIn, amountIn, minPeggedTokenOut, receiver)`.
-- Redemptions follow the gateway's two-step flow: `requestRedeem` opens a request, `redeem` finalises it once the optional withdrawal delay has elapsed (or immediately if the caller is on the instant-redeem whitelist), and `cancelRedeemRequest` aborts an open request.
+- `deposit` mints the pegged token: checks the Treasury's `depositActive` flag, runs an allowance + approval if needed, then calls `deposit(tokenIn, amountIn, minPeggedTokenOut, receiver)`.
+- Redemptions follow the gateway's two-step flow: `requestRedeem` opens a request, `redeem` checks the Treasury's `withdrawActive` flag and finalises the request once the optional withdrawal delay has elapsed (or immediately if the caller is on the instant-redeem whitelist), and `cancelRedeemRequest` aborts an open request.
 - Read actions cover everything a UI needs to drive these flows: previews, fee getters, request lookup, treasury / pegged-token addresses, and withdrawal-delay configuration.
 
 ## Usage

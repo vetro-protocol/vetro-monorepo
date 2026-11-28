@@ -1,3 +1,4 @@
+import { QueryResult } from "components/base/queryResult";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import { formatDate, SECONDS_PER_DAY } from "utils/date";
@@ -11,24 +12,21 @@ type Props = {
 
 export function DateCreatedCell({ ticket }: Props) {
   const { i18n } = useTranslation();
-  const { data, isError, isLoading } = useCooldownDuration(
-    ticket.stakingVaultAddress,
-  );
-
-  if (isLoading) {
-    return <Skeleton width={100} />;
-  }
-
-  if (isError || data === undefined) {
-    return <span className="text-xsm font-normal text-gray-500">-</span>;
-  }
+  const cooldownDurationQuery = useCooldownDuration(ticket.stakingVaultAddress);
 
   return (
-    <span className="text-xsm font-normal text-gray-500">
-      {formatDate(
-        Number(ticket.claimableAt) - data * SECONDS_PER_DAY,
-        i18n.language,
+    <QueryResult
+      data={(data) => (
+        <span className="text-xsm font-normal text-gray-500">
+          {formatDate(
+            Number(ticket.claimableAt) - data * SECONDS_PER_DAY,
+            i18n.language,
+          )}
+        </span>
       )}
-    </span>
+      error={<span className="text-xsm font-normal text-gray-500">-</span>}
+      loading={<Skeleton width={100} />}
+      query={cooldownDurationQuery}
+    />
   );
 }

@@ -1,11 +1,24 @@
 import { TEST_ADDRESS } from "@hemilabs/anvil-fork-setup/utils";
-import { expect } from "@playwright/test";
+import { type Page, expect } from "@playwright/test";
+import { sVusdAddress } from "@vetro-protocol/earn";
 import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { getRedeemRequest, getTreasury } from "@vetro-protocol/gateway/actions";
 import { getWhitelistedTokens } from "@vetro-protocol/treasury/actions";
-import { parseUnits } from "viem";
-import { getBlock } from "viem/actions";
-import { balanceOf, symbol } from "viem-erc20/actions";
+import {
+  type Hex,
+  erc20Abi,
+  isAddressEqual,
+  maxUint256,
+  parseAbiItem,
+  parseEventLogs,
+  parseUnits,
+} from "viem";
+import {
+  getBlock,
+  getTransactionReceipt,
+  waitForTransactionReceipt,
+} from "viem/actions";
+import { allowance, approve, balanceOf, symbol } from "viem-erc20/actions";
 
 import { fastForwardTime } from "../scripts/fastForwardTime.ts";
 import { setRedeemDelay } from "../scripts/redeemDelay.ts";
@@ -15,7 +28,11 @@ import { setMaxMint } from "../scripts/setMaxMint.ts";
 import { setWithdrawActive } from "../scripts/setWithdrawActive.ts";
 import { whitelistInstantRedeem } from "../scripts/whitelistInstantRedeem.ts";
 
-import { ANVIL_URL, createEthereumClient } from "./anvil";
+import {
+  ANVIL_URL,
+  createEthereumClient,
+  createTestWalletClient,
+} from "./anvil";
 import { test } from "./fixtures/wallet";
 import { getMainnetToken, waitForBalance } from "./helpers";
 
@@ -30,7 +47,10 @@ const SWAP_AMOUNT = parseUnits(SWAP_AMOUNT_DISPLAY, usdc.decimals);
 const REDEEM_AMOUNT_DISPLAY = "2";
 const REDEEM_AMOUNT = parseUnits(REDEEM_AMOUNT_DISPLAY, vusd.decimals);
 
-test("swap USDC → VUSD via the gateway", async function ({ page }) {
+test("swap USDC → VUSD via the gateway", async function ({
+  page,
+  walletWatchedAssets,
+}) {
   const publicClient = createEthereumClient();
 
   const [usdcBefore, vusdBefore] = await Promise.all([
@@ -110,6 +130,277 @@ test("swap USDC → VUSD via the gateway", async function ({ page }) {
     address: usdc.address,
   });
   expect(usdcAfter).toBe(usdcBefore - SWAP_AMOUNT);
+
+  // With stake off, the pegged token is offered to the wallet after the mint.
+  await expect
+    .poll(() => walletWatchedAssets.map((address) => address.toLowerCase()))
+    .toEqual([vusd.address.toLowerCase()]);
+});
+
+const depositEvent = parseAbiItem(
+  "event Deposit(address indexed sender, address indexed owner, uint256 assets, uint256 shares)",
+);
+
+async function fillUsdcSwap(page: Page) {
+  await page.goto("/swap");
+
+  await expect(
+    page.getByRole("button", { name: /^0x[a-f0-9]{4}/i }),
+  ).toBeVisible({ timeout: 30_000 });
+
+  const fromTokenSelector = page
+    .getByRole("button", { name: "Select token to swap" })
+    .first();
+  await fromTokenSelector.click();
+
+  const fromTokenDialog = page.getByRole("dialog", { name: "Select a token" });
+  await expect(fromTokenDialog).toBeVisible();
+  await fromTokenDialog
+    .getByRole("button", { name: usdcSymbol })
+    .first()
+    .click();
+
+  await expect(fromTokenSelector).toContainText(usdcSymbol);
+  await expect(fromTokenDialog).toBeHidden();
+
+  await page
+    .locator('input[type="text"]:not([disabled])')
+    .first()
+    .fill(SWAP_AMOUNT_DISPLAY);
+}
+
+async function getSwapAndStakeBalances() {
+  const publicClient = createEthereumClient();
+  const [svusd, usdcBalance, vusdBalance] = await Promise.all(
+    [sVusdAddress, usdc.address, vusd.address].map((address) =>
+      balanceOf(publicClient, { account: TEST_ADDRESS, address }),
+    ),
+  );
+  return { svusd, usdc: usdcBalance, vusd: vusdBalance };
+}
+
+async function getMintedVusd(hash: Hex) {
+  const receipt = await getTransactionReceipt(createEthereumClient(), { hash });
+  return parseEventLogs({
+    abi: erc20Abi,
+    args: { to: TEST_ADDRESS },
+    eventName: "Transfer",
+    logs: receipt.logs,
+  })
+    .filter((log) => isAddressEqual(log.address, vusd.address))
+    .reduce((sum, log) => sum + log.args.value, 0n);
+}
+
+async function getStakeDeposit(hash: Hex) {
+  const receipt = await getTransactionReceipt(createEthereumClient(), { hash });
+  const logs = parseEventLogs({
+    abi: [depositEvent],
+    args: { owner: TEST_ADDRESS },
+    eventName: "Deposit",
+    logs: receipt.logs,
+  });
+  expect(logs).toHaveLength(1);
+  return logs[0].args;
+}
+
+async function startSwapAndStake({
+  approve10x = false,
+  page,
+}: {
+  approve10x?: boolean;
+  page: Page;
+}) {
+  await fillUsdcSwap(page);
+  const stakeSwitch = page.getByRole("switch", { name: "Stake after swap" });
+  await expect(stakeSwitch).toBeVisible({ timeout: 20_000 });
+  await stakeSwitch.click();
+
+  if (approve10x) {
+    const approveSwitch = page.getByRole("switch", { name: "Approve 10x" });
+    await approveSwitch.click();
+  }
+
+  await page.getByRole("button", { name: /^swap and stake$/i }).click();
+}
+
+async function expectSwapAndStakeCompleted({
+  before,
+  mintTxHash,
+  page,
+  stakeTxHash,
+}: {
+  before: Awaited<ReturnType<typeof getSwapAndStakeBalances>>;
+  mintTxHash: Hex;
+  page: Page;
+  stakeTxHash: Hex;
+}) {
+  await expect(
+    page.getByRole("heading", { name: "Swap in progress" }),
+  ).toBeHidden({ timeout: 15_000 });
+  await expect(
+    page.locator('input[type="text"]:not([disabled])').first(),
+  ).toHaveValue("0", { timeout: 15_000 });
+
+  const minted = await getMintedVusd(mintTxHash);
+  expect(minted).toBeGreaterThan(0n);
+  const { assets, shares } = await getStakeDeposit(stakeTxHash);
+  expect(assets).toBe(minted);
+
+  const after = await getSwapAndStakeBalances();
+  expect(after.svusd - before.svusd).toBe(shares);
+  expect(after.vusd).toBe(before.vusd);
+  expect(after.usdc).toBe(before.usdc - SWAP_AMOUNT);
+}
+
+test("swap USDC → VUSD and stake it, skipping the stake approval when the allowance is enough", async function ({
+  page,
+  walletTxHashes,
+}) {
+  const walletClient = createTestWalletClient();
+  const approvalHash = await approve(walletClient, {
+    address: vusd.address,
+    amount: maxUint256,
+    spender: sVusdAddress,
+  });
+  await waitForTransactionReceipt(walletClient, { hash: approvalHash });
+
+  const before = await getSwapAndStakeBalances();
+
+  await startSwapAndStake({ page });
+
+  await expect(page.getByText("Stake VUSD", { exact: true })).toBeVisible();
+  await expect(page.getByText("Approve VUSD for staking")).toHaveCount(0);
+
+  await expect(page.getByText("Stake deposit confirmed")).toBeVisible({
+    timeout: 40_000,
+  });
+
+  // USDC approve, mint, stake.
+  expect(walletTxHashes).toHaveLength(3);
+  await expectSwapAndStakeCompleted({
+    before,
+    mintTxHash: walletTxHashes[1],
+    page,
+    stakeTxHash: walletTxHashes[2],
+  });
+});
+
+test("a failed stake after the swap keeps the minted VUSD, and Retry stakes it", async function ({
+  failTxAt,
+  page,
+  walletTxHashes,
+  walletWatchedAssets,
+}) {
+  failTxAt.add(2);
+  const before = await getSwapAndStakeBalances();
+
+  await startSwapAndStake({ page });
+
+  await expect(page.getByText(/The stake did not complete/)).toBeVisible({
+    timeout: 60_000,
+  });
+  // With stake on, the only toast is the one after the last step.
+  await expect(page.getByText("Swap successful")).toHaveCount(0);
+  const retryButton = page.getByRole("button", { name: "Retry" });
+  await expect(retryButton).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Swap in progress" }),
+  ).toBeVisible();
+  await expect(page.getByText("Approve VUSD for staking")).toBeVisible();
+  await expect(page.getByText("Stake VUSD", { exact: true })).toBeVisible();
+
+  expect(walletTxHashes).toHaveLength(2);
+  const minted = await getMintedVusd(walletTxHashes[1]);
+  const afterFailure = await getSwapAndStakeBalances();
+  expect(afterFailure.vusd).toBe(before.vusd + minted);
+  expect(afterFailure.svusd).toBe(before.svusd);
+
+  await retryButton.click();
+
+  await expect(page.getByText("Stake deposit confirmed")).toBeVisible({
+    timeout: 40_000,
+  });
+
+  expect(walletTxHashes).toHaveLength(4);
+  // Like on Earn, only the share token is offered to the wallet, after the stake.
+  await expect
+    .poll(() => walletWatchedAssets.map((address) => address.toLowerCase()))
+    .toEqual([sVusdAddress.toLowerCase()]);
+  await expectSwapAndStakeCompleted({
+    before,
+    mintTxHash: walletTxHashes[1],
+    page,
+    stakeTxHash: walletTxHashes[3],
+  });
+});
+
+test("a failed vault deposit after the stake approval keeps the minted VUSD, and Retry only sends the deposit", async function ({
+  failTxAt,
+  page,
+  walletTxHashes,
+}) {
+  // Fail the vault deposit, after USDC approve, mint and VUSD approve.
+  failTxAt.add(3);
+  const before = await getSwapAndStakeBalances();
+
+  await startSwapAndStake({ page });
+
+  await expect(page.getByText(/The stake did not complete/)).toBeVisible({
+    timeout: 60_000,
+  });
+  const retryButton = page.getByRole("button", { name: "Retry" });
+  await expect(retryButton).toBeVisible();
+
+  expect(walletTxHashes).toHaveLength(3);
+  const minted = await getMintedVusd(walletTxHashes[1]);
+  const afterFailure = await getSwapAndStakeBalances();
+  expect(afterFailure.vusd).toBe(before.vusd + minted);
+  expect(afterFailure.svusd).toBe(before.svusd);
+
+  await retryButton.click();
+
+  await expect(page.getByText("Stake deposit confirmed")).toBeVisible({
+    timeout: 40_000,
+  });
+
+  // The approval is already on-chain, so the Retry sends only the deposit.
+  expect(walletTxHashes).toHaveLength(4);
+  await expectSwapAndStakeCompleted({
+    before,
+    mintTxHash: walletTxHashes[1],
+    page,
+    stakeTxHash: walletTxHashes[3],
+  });
+});
+
+test("swap USDC → VUSD and stake it with Approve 10x", async function ({
+  page,
+  walletTxHashes,
+}) {
+  const before = await getSwapAndStakeBalances();
+
+  await startSwapAndStake({ approve10x: true, page });
+
+  await expect(page.getByText("Stake deposit confirmed")).toBeVisible({
+    timeout: 60_000,
+  });
+
+  expect(walletTxHashes).toHaveLength(4);
+  await expectSwapAndStakeCompleted({
+    before,
+    mintTxHash: walletTxHashes[1],
+    page,
+    stakeTxHash: walletTxHashes[3],
+  });
+
+  // The vault approval is 10x the minted amount, and the deposit spends 1x.
+  const minted = await getMintedVusd(walletTxHashes[1]);
+  const vaultAllowance = await allowance(createEthereumClient(), {
+    address: vusd.address,
+    owner: TEST_ADDRESS,
+    spender: sVusdAddress,
+  });
+  expect(vaultAllowance).toBe(minted * 10n - minted);
 });
 
 test("deposit CTA reads 'Swaps are paused' when the token's deposits are paused", async function ({
@@ -439,12 +730,9 @@ test("redeem VUSD via the gateway (two-step queue redeem)", async function ({
   await expect(queueRedeemButton).toBeEnabled();
   await queueRedeemButton.click();
 
-  // The claim drawer slides in ("Redeem your VUSD"). Scope to it by its title
-  // heading's container rather than brittle layout classes — the heading's
-  // parent holds the whole drawer body (amount input, token selector, buttons).
-  const drawerTitle = page.getByRole("heading", { name: /redeem your/i });
-  await expect(drawerTitle).toBeVisible();
-  const drawer = drawerTitle.locator("..");
+  // The claim drawer slides in ("Redeem your VUSD").
+  const drawer = page.getByRole("dialog", { name: /redeem your/i });
+  await expect(drawer).toBeVisible();
 
   // Redeem to the drawer's default output token. Switching it via the token
   // modal would dismiss the drawer — the modal renders in its own portal, so the
@@ -547,9 +835,8 @@ test("claim drawer CTA reads 'Redeems are paused for this token' when the output
   await expect(queueRedeemButton).toBeEnabled({ timeout: 30_000 });
   await queueRedeemButton.click();
 
-  const drawerTitle = page.getByRole("heading", { name: /redeem your/i });
-  await expect(drawerTitle).toBeVisible();
-  const drawer = drawerTitle.locator("..");
+  const drawer = page.getByRole("dialog", { name: /redeem your/i });
+  await expect(drawer).toBeVisible();
 
   await expect(
     drawer.getByRole("button", { name: "Select token to swap" }),

@@ -16,7 +16,7 @@ const earnedThisTermOptions = ({
   stakingVaultAddress: Address;
 }) =>
   queryOptions({
-    enabled: !!account && epochId !== undefined,
+    enabled: !!account && !!epochId,
     queryFn: () => fetchEarnedThisTerm(epochId!),
     queryKey: [
       "target-yield-pool-earned-this-term",

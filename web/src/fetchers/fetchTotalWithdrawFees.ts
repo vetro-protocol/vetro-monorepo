@@ -28,7 +28,6 @@ export const fetchTotalWithdrawFees = async function ({
       amount,
       chainId: chain.id,
       client,
-      queryClient,
       stakingVaultAddress,
     }),
   );

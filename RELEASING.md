@@ -1,10 +1,12 @@
 # Releasing packages
 
-This monorepo publishes four packages to npm under `@vetro-protocol/*`:
+This monorepo publishes six packages to npm under `@vetro-protocol/*`:
 
 - `@vetro-protocol/bridge`
+- `@vetro-protocol/cli`
 - `@vetro-protocol/earn`
 - `@vetro-protocol/gateway`
+- `@vetro-protocol/hemi-earn`
 - `@vetro-protocol/treasury`
 
 A package is publishable only if its `package.json` literally contains `"private": false`. Apps (`web`, `api`, `subgraph`) stay private and never publish.
@@ -20,9 +22,9 @@ When you do want to publish, bump the version in the PR that contains the change
 From `master`, after the package's `version` has been bumped in `package.json`, run the release script (`scripts/release.sh`) for that package. It:
 
 - Pulls the latest tags from origin so its checks aren't affected by local repo state.
-- Refuses to continue if a release for this package version already exists on the remote — prompting you to bump the version.
+- Stops if the tag for this package version already exists, prompting you to bump the version. Don't create or push the tag by hand first.
 - Composes release notes from the PRs that touched the package's directory since the previous release of the same package. The first GitHub release of a package falls back to a short "Initial release" placeholder instead of dumping the full history.
-- After your confirmation, creates the tag, pushes it, and opens a **draft** GitHub Release.
+- After your confirmation, opens a **draft** GitHub Release targeting the current `HEAD` commit. It doesn't create or push the tag: GitHub creates it when you publish the release, so abandoning the draft leaves no tag behind.
 
 Nothing has hit npm yet. Review the draft on GitHub and edit the notes if you want. When ready, click **"Publish release"** — that's the only thing that fires the npm publish.
 
@@ -30,9 +32,9 @@ Nothing has hit npm yet. Review the draft on GitHub and edit the notes if you wa
 
 `.github/workflows/publish.yml` fires on `release: published`. It:
 
-1. Allowlists tag prefixes `bridge@`, `earn@`, `gateway@`, `treasury@` at the job level — non-package releases (e.g. `web@<date>`, `vetro-app-subgraph@<version>`) are ignored here.
+1. Allowlists tag prefixes `bridge@`, `cli@`, `earn@`, `gateway@`, `hemi-earn@`, `treasury@` at the job level — non-package releases (e.g. `web@<date>`, `vetro-app-subgraph@<version>`) are ignored here.
 2. Extracts the package name from the tag (`bridge@1.0.1` → `bridge`).
-3. Runs `./scripts/publish-package.sh <pkg> <version>` (both derived from the tag), which fails fast if `<version>` doesn't match `packages/<pkg>/package.json`, then runs `pnpm publish` (with `prepublishOnly` chaining the clean + emit step).
+3. Runs `./scripts/publish-package.sh <pkg> <version>` (both derived from the tag), which fails fast if `<version>` doesn't match `packages/<pkg>/package.json`, then runs `pnpm publish`. The `prepublishOnly` script cleans and builds the package; `prepack` copies the license and generates declarations for packages other than the CLI.
 
 The publish script is **idempotent**: if `<name>@<version>` is already on npm, it logs a skip and exits 0. Re-running a workflow on the same release is a no-op.
 

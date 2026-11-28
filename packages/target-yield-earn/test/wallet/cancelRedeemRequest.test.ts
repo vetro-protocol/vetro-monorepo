@@ -7,13 +7,18 @@ import {
 } from "viem";
 import { waitForTransactionReceipt, writeContract } from "viem/actions";
 import { sepolia } from "viem/chains";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { getCancelableRedeemRequest } from "../../src/actions/public/getCancelableRedeemRequest.ts";
 import { cancelRedeemRequest } from "../../src/actions/wallet/cancelRedeemRequest.ts";
 
 vi.mock("viem/actions", () => ({
   waitForTransactionReceipt: vi.fn(),
   writeContract: vi.fn(),
+}));
+
+vi.mock("../../src/actions/public/getCancelableRedeemRequest.ts", () => ({
+  getCancelableRedeemRequest: vi.fn(),
 }));
 
 const mockWalletClient = {
@@ -29,6 +34,10 @@ const validParameters = {
 };
 
 describe("cancelRedeemRequest", function () {
+  beforeEach(function () {
+    vi.mocked(getCancelableRedeemRequest).mockResolvedValue(BigInt(1000));
+  });
+
   it("should emit 'cancel-redeem-request-failed-validation' if client is not defined", async function () {
     const { emitter, promise } = cancelRedeemRequest(
       // @ts-expect-error - Testing invalid input
@@ -272,6 +281,27 @@ describe("cancelRedeemRequest", function () {
 
     expect(onTransactionReverted).toHaveBeenCalledExactlyOnceWith(receipt);
     expect(onTransactionSucceeded).not.toHaveBeenCalled();
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("should emit 'unexpected-error' and settle when params is not defined", async function () {
+    const { emitter, promise } = cancelRedeemRequest(
+      mockWalletClient,
+      // @ts-expect-error testing a missing params object
+      undefined,
+    );
+
+    const onUnexpectedError = vi.fn();
+    const onSettled = vi.fn();
+
+    emitter.on("unexpected-error", onUnexpectedError);
+    emitter.on("cancel-redeem-request-settled", onSettled);
+
+    await promise;
+
+    expect(onUnexpectedError).toHaveBeenCalledExactlyOnceWith(
+      expect.any(TypeError),
+    );
     expect(onSettled).toHaveBeenCalledOnce();
   });
 });

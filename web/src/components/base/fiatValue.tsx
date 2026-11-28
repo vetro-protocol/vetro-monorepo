@@ -6,9 +6,25 @@ import Skeleton from "react-loading-skeleton";
 import type { NativeToken } from "types";
 import { formatFiatNumber } from "utils/format";
 import { getTokenPrice } from "utils/token";
-import { formatUnits } from "viem";
+import { formatUnits, parseUnits } from "viem";
 
 import { ErrorBoundary } from "./errorBoundary";
+
+const priceDecimals = 18;
+
+const tokenAmountToUsdString = ({
+  amount,
+  decimals,
+  price,
+}: {
+  amount: bigint;
+  decimals: number;
+  price: string;
+}) =>
+  formatUnits(
+    amount * parseUnits(price, priceDecimals),
+    decimals + priceDecimals,
+  );
 
 const RenderFiatValueUnsafe = function ({
   customFormatter = formatFiatNumber,
@@ -24,15 +40,14 @@ const RenderFiatValueUnsafe = function ({
   const { data: pricesData, status: pricesStatus } = usePrices();
 
   if (value !== undefined && pricesData !== undefined && token !== undefined) {
-    const stringBalance = formatUnits(value, token.decimals);
-    const price = getTokenPrice(token, pricesData);
-
     return (
       <>
         {customFormatter(
-          (parseFloat(stringBalance) * parseFloat(price)).toFixed(
-            token.decimals,
-          ),
+          tokenAmountToUsdString({
+            amount: value,
+            decimals: token.decimals,
+            price: getTokenPrice(token, pricesData),
+          }),
         )}
       </>
     );

@@ -90,6 +90,27 @@ describe("portal-prices/getPegBaseUsdRates", function () {
     expect((await getRates()).live).toBeNull();
   });
 
+  it("gives a null live rate when the portal returns a non-numeric price", async function () {
+    mockPortal({ current: { BTC: "not-a-price" }, daily: history });
+
+    expect((await getRates()).live).toBeNull();
+  });
+
+  it.each([null, undefined, "not-a-price", "", "  ", "Infinity"])(
+    "returns null for missing, non-numeric or blank prices (%s)",
+    async function (price) {
+      mockPortal({
+        current: { BTC: price as unknown as string },
+        daily: [{ date: "2025-09-13", priceUsd: price as unknown as string }],
+      });
+
+      const rates = await getRates();
+
+      expect(rates.live).toBeNull();
+      expect(rates.at(Date.UTC(2025, 8, 13))).toBeNull();
+    },
+  );
+
   it("keeps the live rate when the daily history fails", async function () {
     mockPortal({ current: { BTC: "94514.79" }, daily: new Error("400") });
 

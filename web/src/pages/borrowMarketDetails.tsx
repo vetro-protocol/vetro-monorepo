@@ -1,6 +1,9 @@
+import { marketIds } from "@vetro-protocol/morpho-blue-market";
 import { Breadcrumb } from "components/base/breadcrumb";
 import { BreadcrumbSelector } from "components/base/breadcrumb/breadcrumbSelector";
 import { ButtonLink } from "components/base/button";
+import { QueryResult } from "components/base/queryResult";
+import { Toast, type ToastContent } from "components/base/toast";
 import { BorrowForm } from "components/borrow/borrowForm";
 import { ExistingPositionNotice } from "components/borrow/existingPositionNotice";
 import { MarketHeader } from "components/borrow/marketHeader";
@@ -8,18 +11,18 @@ import { MarketInfoCards } from "components/borrow/marketInfoCards";
 import { BorrowIcon } from "components/navbar/borrowIcon";
 import { StripedDivider } from "components/stripedDivider";
 import { TokenLogo } from "components/tokenLogo";
-import { marketIds } from "constants/borrow";
 import { type MarketData, useMarketData } from "hooks/borrow/useMarketData";
 import { useMarketsData } from "hooks/borrow/useMarketsData";
 import { usePositionInfo } from "hooks/borrow/usePositionInfo";
 import { useAmount } from "hooks/useAmount";
+import { useCanonicalRoute } from "hooks/useCanonicalRoute";
 import { ErrorPage } from "pages/errorPage";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
-import { Navigate, useParams } from "react-router";
+import { useParams } from "react-router";
 import { hasActivePosition } from "utils/borrowPosition";
-import { type Hash, isHash } from "viem";
+import type { Hash } from "viem";
 
 const renderMarketItem = (item: MarketData) => (
   <>
@@ -48,6 +51,7 @@ const BorrowMarketDetailsLoaded = function ({
   const [borrowInput, onBorrowChange] = useAmount();
   const [collateralInput, onCollateralChange] = useAmount();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [toast, setToast] = useState<ToastContent | null>(null);
 
   const hasExistingPosition = hasActivePosition(position);
 
@@ -109,38 +113,50 @@ const BorrowMarketDetailsLoaded = function ({
               onBorrowChange={onBorrowChange}
               onCollateralChange={onCollateralChange}
               onDrawerOpenChange={setIsDrawerOpen}
+              onSuccess={setToast}
             />
           )}
         </div>
       </div>
+      {toast && (
+        <Toast
+          description={toast.description}
+          onClose={() => setToast(null)}
+          title={toast.title}
+        />
+      )}
     </div>
   );
 };
 
 const BorrowMarketDetailsContent = function ({ marketId }: { marketId: Hash }) {
-  const { data: market, isError } = useMarketData(marketId);
-
-  if (market) {
-    return <BorrowMarketDetailsLoaded market={market} />;
-  }
-
-  if (isError) {
-    return <ErrorPage />;
-  }
+  const marketQuery = useMarketData(marketId);
 
   return (
-    <div className="p-8">
-      <Skeleton count={3} height={40} />
-    </div>
+    <QueryResult
+      data={(market) => <BorrowMarketDetailsLoaded market={market} />}
+      error={<ErrorPage />}
+      loading={
+        <div className="p-8">
+          <Skeleton count={3} height={40} />
+        </div>
+      }
+      query={marketQuery}
+    />
   );
 };
 
 export const BorrowMarketDetails = function () {
-  const { lang, marketId } = useParams<{ lang: string; marketId: Hash }>();
+  const { marketId } = useParams<{ marketId: string }>();
+  const { canonicalValue: canonicalMarketId, redirect } = useCanonicalRoute({
+    basePath: "borrow",
+    value: marketId,
+    values: marketIds,
+  });
 
-  if (!marketId || !isHash(marketId) || !marketIds.includes(marketId)) {
-    return <Navigate replace to={`/${lang}/not-found`} />;
+  if (redirect) {
+    return redirect;
   }
 
-  return <BorrowMarketDetailsContent marketId={marketId} />;
+  return <BorrowMarketDetailsContent marketId={canonicalMarketId} />;
 };

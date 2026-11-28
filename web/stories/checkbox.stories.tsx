@@ -22,8 +22,11 @@ export const States: Story = {
 
 export const WithLabel: Story = {
   render: () => (
-    <label className="flex cursor-pointer items-center gap-2 text-gray-900">
-      <Checkbox defaultChecked />I understand and accept the risk
-    </label>
+    <div className="flex items-center gap-2 text-gray-900">
+      <Checkbox defaultChecked id="risk-acceptance" />
+      <label className="cursor-pointer" htmlFor="risk-acceptance">
+        I understand and accept the risk
+      </label>
+    </div>
   ),
 };

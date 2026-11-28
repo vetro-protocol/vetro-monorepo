@@ -3,6 +3,7 @@ import type { Context } from "hono";
 import { type Address, checksumAddress, isAddressEqual } from "viem";
 
 import { appendLivePoint } from "./append-live-point.ts";
+import { type Subgraph } from "./env.ts";
 import { paginateSubgraphQuery } from "./paginate-subgraph-query.ts";
 import {
   getPegBaseUsdRates,
@@ -52,13 +53,13 @@ export async function getTvlHistory({
   gatewayAddress,
   period,
   portalApiUrl,
-  url,
+  subgraph,
 }: {
   c: Context<{ Bindings: Env }>;
   gatewayAddress: Address;
   period: string;
   portalApiUrl: string;
-  url: string;
+  subgraph: Subgraph;
 }) {
   const gatewayConfig = gateways.find((candidate) =>
     isAddressEqual(candidate.address, gatewayAddress),
@@ -97,6 +98,7 @@ export async function getTvlHistory({
 
   const [all, rates, live] = await Promise.all([
     paginateSubgraphQuery<Row>({
+      ...subgraph,
       cursor: {
         getValue: (row) => row.timestamp,
         variable: "start",
@@ -105,7 +107,6 @@ export async function getTvlHistory({
       // A year of days fits in one page, the most graph-node serves.
       pageSize: 1000,
       query,
-      url,
       variables: { gateway, start },
     }),
     getPegBaseUsdRates({ pegBaseSymbol, period, portalApiUrl }),

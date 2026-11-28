@@ -14,6 +14,14 @@ VETRO lets users mint a **pegged token** — a token fully backed by reserves an
 
 > **Don't hardcode symbols.** The active instances are read **on-chain**, not from a static list — `tokenList.ts` is only an ERC-20 metadata cache for display. Write against the role (`peggedToken`, `shareToken`, `whitelistedToken`) and read instances from their gateway/vault; `VUSD` is just today's most prominent instance, not a special case to branch on. See [Where things live](#where-things-live) for the exact files.
 
+**USD values.** These values are for display only. The app uses these rules:
+
+- A pegged token is valued at its peg (1 VUSD = 1 USD, 1 vetBTC = 1 BTC).
+- A share token is valued through its pegged token.
+- Other tokens take their Treasury oracle price first, then the Portal prices API price.
+- An oracle price is in the peg unit, and the Portal prices API converts that unit (e.g. BTC) to USD.
+- The Liquidity page is the exception. There, a market price from the pools comes before these rules.
+
 So there are two reasons to hold a pegged token — keep it as a settlement asset (Swap) or stake it for yield (Earn) — plus a path for crypto holders who want liquidity without selling (Borrow).
 
 ## How the contracts fit together
@@ -65,7 +73,7 @@ graph TD
 
 "Swap your tokens with Vetro assets." The form is generic over gateways: it lists every configured gateway's pegged token (read on-chain via `getPeggedToken`) and that gateway's whitelisted collateral (read from the gateway's Treasury via `getWhitelistedTokens`). The user picks a pegged token and one of its whitelisted tokens. Two directions:
 
-- **Mint (swap in):** deposit a whitelisted token (e.g. USDC/USDT for the VUSD gateway) → receive that gateway's pegged token ~1:1, minus the on-chain **mint fee**. Single transaction.
+- **Mint (swap in):** deposit a whitelisted token (e.g. USDC/USDT for the VUSD gateway) → receive that gateway's pegged token ~1:1, minus the on-chain **mint fee**. Single transaction. Optionally, the user can opt in to automatically **stake** the minted pegged token on Earn.
 - **Redeem (swap out):** return a pegged token → receive a whitelisted token, minus the on-chain **redeem fee**. Which path the form shows is computed by `fetchRedeemDelay` from **two** conditions: whether the gateway has its **withdrawal delay enabled** (`getWithdrawalDelayEnabled`) and whether the connected **address is whitelisted** for instant redeem (`isInstantRedeemWhitelisted`). When the delay is enabled _and_ the address is not whitelisted — the common case for most users — the form renders the **two-step Redeem Queue** (`twoStepRedeem`): _Send to Queue_ → a short **security cooldown** (seconds, anti-flashloan/MEV) → _Redeem_ to the whitelisted token of choice; a queued redeem can be cancelled. Otherwise (delay disabled, or the address is whitelisted) the form renders **one-step redeem** (`oneStepRedeem`) — instant, single transaction. Entry point: `web/src/components/swapForm/redeem.tsx`, which dispatches to `twoStepRedeem.tsx` or `oneStepRedeem.tsx`.
 
 **Pause switches.** Each whitelisted token's Treasury config (`getTokenConfig`, `packages/treasury`) carries two independent flags the app must respect — they are **per whitelisted token**, not per gateway:
@@ -89,8 +97,8 @@ Deposit a pegged token into its staking vault → receive the corresponding shar
 
 Withdrawing has two paths:
 
-- **Instant withdraw:** addresses on the vault's instant-withdraw whitelist only (`getInstantWithdrawWhitelist`).
-- **Request withdrawal → cooldown → exit ticket:** the standard path. Requesting moves funds into a **cooldown** (multi-day, read on-chain via `getCooldownDuration`), during which they are locked and **earn no yield**. Each request becomes an **exit ticket** (cooldown → ready → withdrawn, or cancelled if deleted). A ticket can be **deleted** to cancel and put funds back to staked-and-earning. "Withdraw all" claims every ready ticket.
+- **Instant withdraw:** every address when the vault's cooldown is disabled, or an address on the vault's instant-withdraw whitelist (`getCooldownEnabled`, `getInstantWithdrawWhitelist`).
+- **Request withdrawal → cooldown → exit ticket:** the standard path while the vault's cooldown is enabled. Requesting moves funds into a **cooldown** (multi-day, read on-chain via `getCooldownDuration`), during which they are locked and **earn no yield**. Each request becomes an **exit ticket** (cooldown → ready → withdrawn, or cancelled if deleted). A ticket can be **deleted** to cancel and put funds back to staked-and-earning. "Withdraw all" claims every ready ticket.
 
 Why the cooldown: it prevents reward sniping and gives the treasury a predictable liquidity horizon. Exit tickets render in their own table, gated by `useShowExitTickets`.
 
@@ -118,7 +126,7 @@ The diagram shows one possible configuration. The windows can overlap, and each 
 
 Deposits are a 2-step process. First, users request a deposit of the pegged token during the entry window. A user can add more requests during this period. Each epoch has a deposit cap. A request above the remaining capacity (`maxRequestDeposit`) fails. Then, users must wait for the keeper to fulfill the requests. On fulfillment, the vault sets the share price, mints the shares, and makes them available for users to claim. The claim sends the shares to the users. A pending request earns no interest. Minted shares earn interest, even before the claim.
 
-Users can cancel a deposit request at any time before the keeper fulfills it. The vault then sends the deposited tokens back. After fulfillment, users cannot cancel.
+Users can cancel a deposit request only before the keeper fulfills it. A request from the current epoch can be cancelled only during the entry window. A request from an earlier epoch can be cancelled at any time. The vault then sends the deposited tokens back. After fulfillment, users cannot cancel.
 
 Minted shares stay in the vault from one epoch to the next. They earn the target rate of each epoch until the keeper fulfills a withdrawal. A withdrawal is also a 2-step process. During the exit window, the user requests a redeem of a number of shares. The vault merges multiple requests from the same user in this window into one request. The vault holds these shares in escrow, and the shares continue to earn interest. After maturity, the keeper fulfills the requests. The keeper cannot fulfill before maturity, and nothing happens automatically at maturity. On fulfillment, the vault sets the share price, burns the shares, and makes the assets available for users to claim. Then users can redeem the assets.
 
@@ -130,7 +138,7 @@ Additionally, the vault can reach the following states:
 
 - **Paused**: stops new deposit requests only.
 - **Shutdown**: stops all requests and all claims. Cancel still works.
-- **Terminated**: the vault closes after an epoch ends, or before the first epoch, and after all batches are fulfilled. The vault gets all assets back. No new epoch, no new deposits, no fulfillment. A withdrawal request is claimable immediately, at any time when the vault is not shut down. It uses the share price at termination. Claimable deposits stay claimable.
+- **Terminated**: the vault closes after an epoch ends, or before the first epoch, and after all batches are fulfilled. The vault gets all assets back. No new epoch, no new deposits, no fulfillment. A user can request a withdrawal at any time when the vault is not shut down, and the request is claimable immediately. It uses the share price at termination. Claimable deposits stay claimable.
 
 ### Borrow — CDP against crypto
 
@@ -144,7 +152,88 @@ Key terms: **health factor** (above 1.0 safe; at/below 1.0 liquidatable), **LTV*
 
 ### Analytics
 
-"Monitor protocol analytics." A read-only dashboard of protocol health, per pegged token: **TVL**, **collateralization ratio** (backing vs circulating, broken down into strategic reserves / liquid reserves / surplus), **peg stability**, total **staked**, **exit queue** (total on cooldown), and **yield allocation** (number of active strategies, plus the idle reserve buffer not yet deployed to a strategy).
+"Monitor protocol analytics." A read-only dashboard of protocol health, per pegged token. The data comes from `api/`, and the page shows amounts in USD. Under the gateway filter, two tabs split the cards: **Overview** (the default) and **Accounting**. The URL keeps the selected tab (`?tab=`), and the tab stays the same when the user selects a different gateway.
+
+#### Overview
+
+##### TVL
+
+The circulating supply of the pegged token. The breakdown shows the whitelisted tokens that back it: the treasury `withdrawable` of each token (idle funds plus funds in strategies), in USD.
+
+##### Historic TVL
+
+The TVL breakdown over time, with one point per UTC day.
+
+##### Staked
+
+The pegged token in the staking vault (its `totalAssets`).
+
+##### Exit cooldown
+
+The value of the open exit tickets, in the pegged token.
+
+##### Share ratio
+
+The value of one share token in the pegged token, over time.
+
+##### APY history
+
+The APY of the staking vault, over time.
+
+#### Accounting
+
+##### Projected protocol revenue
+
+Compares the yield that the treasury earns with the yield that the staking vault pays to its stakers. All values are annualized projections for one gateway. They are not historical earnings:
+
+- **Projected reserve yield**: the projected yield of the Yield allocation total (the sum of `balance × APY` of each strategy; the reserve buffer has a 0% APY).
+- **Reserves**: the balance of the Yield allocation total (the strategies plus the reserve buffer).
+- **Blended APY**: the APY of the Yield allocation total, weighted by balance.
+- **Projected staker yield**: the current APR of the staking vault × the staked amount (its `totalAssets`).
+- **Projected net revenue**: reserve yield − staker yield. The card also shows it per month (÷ 12).
+- **Coverage ratio**: reserve yield ÷ staker yield.
+
+The status is "Net positive" when the net is above zero, "Net negative" when it is below zero, and "Breakeven" when it shows as "$0". When a strategy with a balance has no APY, the reserve yield is unknown, and the card shows "-" for it and for the values that depend on it.
+
+##### Projected revenue sources
+
+Divides the projected net revenue into two parts:
+
+- **Projected lazy yield**: (reserves − staked) × blended APY.
+- **Projected staking spread**: net revenue − lazy yield, which is staked × (blended APY − staker APR). It is usually negative.
+
+##### Balance sheet
+
+The backing, the circulating supply and the surplus of the pegged token. The **backing** is the sum of two parts. The card shows it in the "Total reserves" row:
+
+- **Strategic reserves**: VUSD-meta vault shares that the treasury, the UMM role and the Vetro multisig hold, valued at their redeem value. Only the VUSD gateway has them.
+- **Liquid reserves**: the treasury `withdrawable` of each whitelisted token, converted to the pegged token at the gateway redeem rate.
+
+The **collateralization ratio** (`ratio`) is the backing divided by the circulating supply. The **surplus** is the backing minus the supply. When it is negative, the card shows it as a **deficit**.
+
+##### Yield allocation
+
+The active strategies, with the balance that each one has (its debt in the treasury vault). The **reserve buffer** is the part not in a strategy: the treasury `withdrawable` minus the total debt of the vault.
+
+Each strategy also shows its APY and its projected yield per year (balance × APY). The APY is the sum of two parts:
+
+- **Native APY**: the current net APY that the protocol of the strategy reports. For a Morpho vault, it is the current rate after fees. For a Lagoon vault, it is the realized rate between settlements over the last month, after fees and without rewards, compounded to one year. For a young Lagoon vault, it is the rate since inception. For a Curve pool, it is the base APY of the pool.
+- **Incentive APR**: only the incentives paid on the position that the strategy holds, for example Merkl campaigns or StakeDAO rewards.
+
+The reserve buffer has a 0% APY. When the API cannot calculate the APY of a strategy, the page shows "-". If that strategy has a balance, the Total row also shows "-" for the APY and the projected yield.
+
+### Liquidity
+
+A read-only list of the DEX pools that hold a pegged token or a share token, with their TVL, fee APR and rewards. The data comes from `GET /liquidity/pools` in `api/`. Each venue has its own sources:
+
+- **Curve** (Ethereum): the Curve API only, for the pools, TVL, volume, fee APR and the gauge APR.
+- **Uniswap v3** (Ethereum): on-chain factory calls find the pools; the Uniswap interface GraphQL API gives TVL, volume and prices.
+- **Sushi v3** (Ethereum): on-chain factory calls find the pools; the Sushi data API gives TVL, volume and fees.
+- **BrownFi** (Hemi): the BrownFi subgraph only.
+
+Rewards come from three other sources: the Curve gauge (in the Curve API data), the StakeDAO strategies (shown only while a Votemarket campaign runs on the gauge), and the live Merkl campaigns.
+
+The API leaves out each pool that has no rewards and a TVL below $500 or an unknown TVL, unless `includeLowTvl=true`. The page lists what the API returns.
 
 ## Where things live
 
@@ -153,7 +242,7 @@ Sources of truth for which instances exist (read these; don't hardcode symbols):
 - Gateways → pegged tokens, read on-chain via `getPeggedToken`: `gatewayAddresses` (`packages/gateway`)
 - Staking vaults → share tokens: `stakingVaultAddresses` (`packages/earn`)
 - Bridge page whitelist (the one static set): `web/src/utils/bridgeableTokens.ts`
-- Borrow markets: [`web/src/constants/borrow.ts`](../web/src/constants/borrow.ts) (Morpho Blue, `packages/morpho-blue-market`)
+- Borrow markets (Morpho Blue): `marketIds` (`packages/morpho-blue-market`)
 
 For display only — **not** enablement: `web/src/utils/tokenList.ts` (`knownTokens`) is a hardcoded cache of ERC-20 metadata (symbol, decimals, logo) for fast loading.
 
@@ -161,4 +250,4 @@ And where the UI lives:
 
 - Page roots: under `web/src/pages/` — one file or folder per page (check the folder; e.g. `earn/` and `analytics/` are folders, others are single files)
 - Forms/flows: `web/src/components/{swapForm,bridgeForm,borrow}` and `web/src/pages/earn/components`
-- Analytics/history data is backed by `api/` and the `subgraph/`
+- Analytics/history data is backed by `api/` and `subgraphs/vetro-app-subgraph/`

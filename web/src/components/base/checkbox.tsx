@@ -5,13 +5,13 @@ type Props = Omit<ComponentProps<"input">, "className" | "type">;
 export const Checkbox = (props: Props) => (
   <span className="relative inline-flex size-4 shrink-0">
     <input
-      className="peer size-4 cursor-pointer appearance-none rounded bg-white shadow-sm transition-colors checked:bg-blue-500 checked:shadow-none hover:bg-gray-50 checked:hover:bg-blue-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+      className="peer size-4 cursor-pointer appearance-none rounded bg-white shadow-sm inset-ring inset-ring-gray-500 transition-colors checked:bg-blue-500 checked:shadow-none checked:inset-ring-0 not-disabled:hover:bg-gray-50 checked:not-disabled:hover:bg-blue-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
       type="checkbox"
       {...props}
     />
     <svg
       aria-hidden="true"
-      className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 peer-checked:opacity-100 peer-checked:peer-disabled:opacity-50"
+      className="pointer-events-none absolute top-1/2 left-1/2 -translate-1/2 opacity-0 peer-checked:opacity-100 peer-checked:peer-disabled:opacity-50"
       fill="none"
       height="9"
       viewBox="0 0 10 9"

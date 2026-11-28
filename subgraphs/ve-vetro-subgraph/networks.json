@@ -1,0 +1,22 @@
+{
+  "hemi": {
+    "VeVetro": {
+      "address": "0x0000000000000000000000000000000000000000",
+      "startBlock": 0
+    },
+    "VeVetroDistributor": {
+      "address": "0x0000000000000000000000000000000000000000",
+      "startBlock": 0
+    }
+  },
+  "hemi-sepolia": {
+    "VeVetro": {
+      "address": "0x9dB844120404510d6E2b777CC72c19aC4ED12C07",
+      "startBlock": 7189479
+    },
+    "VeVetroDistributor": {
+      "address": "0xAEed58d42D0c1D1FE250D51ea1f1278bF77bD01D",
+      "startBlock": 7189481
+    }
+  }
+}

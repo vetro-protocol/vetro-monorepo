@@ -29,9 +29,7 @@ export const shouldStopPendingActivityPolling = ({
 }) => now - activity.date >= maxAge && (data !== undefined || error !== null);
 
 export const createPendingActivityStatus = (publicClient: Client) =>
-  async function getPendingActivityStatus(
-    activity: Activity,
-  ): Promise<"completed" | "failed" | null | undefined> {
+  async function getPendingActivityStatus(activity: Activity) {
     if (activity.status !== "pending" || activity.page === "bridge") {
       return undefined;
     }

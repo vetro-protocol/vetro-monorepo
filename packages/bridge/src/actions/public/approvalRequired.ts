@@ -14,7 +14,7 @@ export type ApprovalRequiredParams = {
 export async function approvalRequired(
   client: Client,
   parameters: ApprovalRequiredParams,
-): Promise<boolean> {
+) {
   if (!client) {
     throw new Error("Client is not defined");
   }

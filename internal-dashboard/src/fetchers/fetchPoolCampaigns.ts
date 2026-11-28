@@ -20,9 +20,7 @@ const poolKeys = (pool: TrackedPool) => [
   ),
 ];
 
-export const fetchPoolCampaigns = async function (
-  queryClient: QueryClient,
-): Promise<Record<string, PoolCampaign[]>> {
+export const fetchPoolCampaigns = async function (queryClient: QueryClient) {
   const pools = await queryClient.ensureQueryData(trackedPoolsOptions());
   const addresses = [
     ...new Set(

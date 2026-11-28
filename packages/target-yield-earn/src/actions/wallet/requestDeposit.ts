@@ -3,11 +3,14 @@ import { EventEmitter } from "events";
 import { toPromiseEvent } from "to-promise-event";
 import {
   type Address,
+  encodeFunctionData,
   isAddressEqual,
   type TransactionReceipt,
   type WalletClient,
 } from "viem";
 import { waitForTransactionReceipt } from "viem/actions";
+import { balanceOf } from "viem-erc20/actions";
+import { erc7540Abi } from "viem-erc7540";
 import {
   allowance,
   approve,
@@ -16,6 +19,10 @@ import {
 } from "viem-erc7540/actions";
 
 import type { RequestDepositEvents } from "../../types.ts";
+import { getIsAccountOrOperator } from "../../utils/getIsAccountOrOperator.ts";
+import { getIsPaused } from "../public/getIsPaused.ts";
+import { getIsShutdown } from "../public/getIsShutdown.ts";
+import { getMaxRequestDeposit } from "../public/getMaxRequestDeposit.ts";
 
 export type RequestDepositParams = {
   address: Address;
@@ -25,7 +32,7 @@ export type RequestDepositParams = {
   owner?: Address;
 };
 
-const canRequestDeposit = function ({
+const canRequestDeposit = async function ({
   address,
   approveAmount,
   assets,
@@ -39,10 +46,17 @@ const canRequestDeposit = function ({
   client: WalletClient;
   controller: Address;
   owner?: Address;
-}): {
-  canRequestDeposit: boolean;
-  reason?: string;
-} {
+}): Promise<
+  | {
+      canRequestDeposit: false;
+      reason: string;
+    }
+  | {
+      canRequestDeposit: true;
+      owner: Address;
+      token: Address;
+    }
+> {
   if (!client) {
     return {
       canRequestDeposit: false,
@@ -98,7 +112,63 @@ const canRequestDeposit = function ({
     };
   }
 
-  return { canRequestDeposit: true };
+  const account = client.account.address;
+  const resolvedOwner = owner ?? account;
+  const [isPaused, isShutdown, isAuthorized, maxRequestDeposit, token] =
+    await Promise.all([
+      getIsPaused(client, { address }),
+      getIsShutdown(client, { address }),
+      getIsAccountOrOperator({
+        account,
+        address,
+        client,
+        owner: resolvedOwner,
+      }),
+      getMaxRequestDeposit(client, {
+        address,
+        controller,
+        owner: resolvedOwner,
+      }),
+      asset(client, { address }),
+    ]);
+
+  if (isPaused) {
+    return {
+      canRequestDeposit: false,
+      reason: "Vault is paused",
+    };
+  }
+  if (isShutdown) {
+    return {
+      canRequestDeposit: false,
+      reason: "Vault is shut down",
+    };
+  }
+  if (!isAuthorized) {
+    return {
+      canRequestDeposit: false,
+      reason: "Account is not the owner or its operator",
+    };
+  }
+  if (assets > maxRequestDeposit) {
+    return {
+      canRequestDeposit: false,
+      reason: "Assets exceed the max deposit request",
+    };
+  }
+
+  const ownerBalance = await balanceOf(client, {
+    account: resolvedOwner,
+    address: token,
+  });
+  if (ownerBalance < assets) {
+    return {
+      canRequestDeposit: false,
+      reason: "Owner balance is lower than assets",
+    };
+  }
+
+  return { canRequestDeposit: true, owner: resolvedOwner, token };
 };
 
 const runRequestDeposit = (
@@ -106,29 +176,26 @@ const runRequestDeposit = (
   params: RequestDepositParams,
 ) =>
   async function (emitter: EventEmitter<RequestDepositEvents>) {
-    const { address, assets, controller } = params;
-    const approveAmount = params.approveAmount ?? assets;
-
     try {
-      const { canRequestDeposit: canRequestDepositFlag, reason } =
-        canRequestDeposit({
-          address,
-          approveAmount,
-          assets,
-          client: walletClient,
-          controller,
-          owner: params.owner,
-        });
+      const { address, assets, controller } = params;
+      const approveAmount = params.approveAmount ?? assets;
 
-      if (!canRequestDepositFlag) {
-        emitter.emit("request-deposit-failed-validation", reason!);
+      const validation = await canRequestDeposit({
+        address,
+        approveAmount,
+        assets,
+        client: walletClient,
+        controller,
+        owner: params.owner,
+      });
+
+      if (!validation.canRequestDeposit) {
+        emitter.emit("request-deposit-failed-validation", validation.reason);
         return;
       }
 
+      const { owner, token } = validation;
       const account = walletClient.account!.address;
-      const owner = params.owner ?? account;
-
-      const token = await asset(walletClient, { address });
 
       const currentAllowance = await allowance(walletClient, {
         address: token,
@@ -230,3 +297,18 @@ const runRequestDeposit = (
 
 export const requestDeposit = (...args: Parameters<typeof runRequestDeposit>) =>
   toPromiseEvent<RequestDepositEvents>(runRequestDeposit(...args));
+
+export const encodeRequestDeposit = ({
+  assets,
+  controller,
+  owner,
+}: {
+  assets: bigint;
+  controller: Address;
+  owner: Address;
+}) =>
+  encodeFunctionData({
+    abi: erc7540Abi,
+    args: [assets, controller, owner],
+    functionName: "requestDeposit",
+  });

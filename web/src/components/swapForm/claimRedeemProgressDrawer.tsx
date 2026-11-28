@@ -1,11 +1,10 @@
-import { Button } from "components/base/button";
-import { DrawerTitle } from "components/base/drawer/drawerTitle";
+import { RenderCryptoValue } from "components/base/cryptoValue";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { MaxButton } from "components/base/maxButton";
 import { Spinner } from "components/base/spinner";
 import { type Step, VerticalStepper } from "components/base/verticalStepper";
 import { DrawerFeesContainer } from "components/feesContainer";
-import { ExclamationTriangleIcon } from "components/icons/exclamationTriangleIcon";
+import { GeoRestrictedButton } from "components/geoRestrictedButton";
 import { TokenDropdown } from "components/tokenDropdown";
 import { TokenInput } from "components/tokenInput";
 import { Balance } from "components/tokenInput/balance";
@@ -16,8 +15,7 @@ import { useTokenConfig } from "hooks/useTokenConfig";
 import type { ComponentProps, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
-import { isGeoRestricted } from "utils/geoRestriction";
-import { formatAmount } from "utils/token";
+import { formatFiatNumberRoundDown } from "utils/format";
 import type { Address } from "viem";
 
 import { OutputLabel, type UnitPreview } from "./outputLabel";
@@ -57,7 +55,6 @@ const isFlowInProgress = (flowStatus: ClaimRedeemFlowStatus) =>
   flowStatus !== "redeem-error";
 
 function SubmitLabel({
-  geoRestricted,
   inputError,
   isActiveError,
   isLoading,
@@ -65,7 +62,6 @@ function SubmitLabel({
   isPreviewError,
   renderRetry,
 }: {
-  geoRestricted: boolean;
   inputError: InputError | undefined;
   isActiveError: boolean;
   isLoading: boolean;
@@ -75,14 +71,6 @@ function SubmitLabel({
 }) {
   const { t } = useTranslation();
 
-  if (geoRestricted) {
-    return (
-      <>
-        <ExclamationTriangleIcon />
-        {t("common.geo-restriction-title")}
-      </>
-    );
-  }
   if (isPaused) {
     return t("pages.swap.redeem-queue.redeems-paused-for-token");
   }
@@ -99,7 +87,7 @@ function SubmitLabel({
     return <Spinner />;
   }
   if (renderRetry) {
-    return t("pages.swap.progress.retry");
+    return t("common.retry");
   }
   return t("pages.swap.redeem-queue.redeem");
 }
@@ -137,13 +125,11 @@ export function ClaimRedeemProgressDrawer({
     token: toToken.address,
   });
 
-  const geoRestricted = isGeoRestricted();
   const isPaused = tokenConfig?.withdrawActive === false;
   const renderRetry = flowStatus === "redeem-error";
   const isDataLoaded =
     !isLoading && tokenConfig !== undefined && outputBigInt !== undefined;
   const isDisabled =
-    geoRestricted ||
     isPaused ||
     !isDataLoaded ||
     !!inputError ||
@@ -152,21 +138,14 @@ export function ClaimRedeemProgressDrawer({
 
   return (
     <div className="flex h-full flex-col">
-      <DrawerTitle>
-        {t("pages.swap.redeem-queue.drawer-title", {
-          symbol: fromToken.symbol,
-        })}
-      </DrawerTitle>
       <div className="flex flex-col gap-1 border-t border-gray-200 p-6">
         <TokenInput
           balance={
             <Balance
               label={t("pages.swap.redeem-queue.available-to-redeem")}
-              value={formatAmount({
-                amount: amountLocked,
-                decimals: fromToken.decimals,
-                isError: false,
-              })}
+              value={
+                <RenderCryptoValue token={fromToken} value={amountLocked} />
+              }
             />
           }
           fiatValue={<RenderFiatValue token={fromToken} value={amountBigInt} />}
@@ -180,7 +159,13 @@ export function ClaimRedeemProgressDrawer({
         <TokenInput
           balance={<TokenBalance token={toToken} />}
           disabled
-          fiatValue={<RenderFiatValue token={toToken} value={outputBigInt} />}
+          fiatValue={
+            <RenderFiatValue
+              customFormatter={formatFiatNumberRoundDown}
+              token={toToken}
+              value={outputBigInt}
+            />
+          }
           label={t("pages.swap.form.you-will-receive-estimated")}
           tokenSelector={
             <TokenDropdown
@@ -192,15 +177,14 @@ export function ClaimRedeemProgressDrawer({
           value={outputValue}
         />
       </div>
-      <div className="border-y border-gray-200 bg-gray-50 px-6 py-3 *:w-full">
-        <Button
+      <div className="border-y border-gray-200 bg-gray-50 px-6 py-3 *:w-full [&_button]:w-full">
+        <GeoRestrictedButton
           disabled={isDisabled}
           onClick={renderRetry ? onRetry : onSubmit}
           size="small"
           variant="primary"
         >
           <SubmitLabel
-            geoRestricted={geoRestricted}
             inputError={inputError}
             isActiveError={isTokenConfigError}
             isLoading={!isDataLoaded}
@@ -208,7 +192,7 @@ export function ClaimRedeemProgressDrawer({
             isPreviewError={isPreviewError}
             renderRetry={renderRetry}
           />
-        </Button>
+        </GeoRestrictedButton>
       </div>
       <DrawerFeesContainer>
         <SwapFees
@@ -228,7 +212,7 @@ export function ClaimRedeemProgressDrawer({
       </DrawerFeesContainer>
       {steps.length > 0 && (
         <div className="mt-auto flex flex-col gap-2 px-6 pb-6">
-          <p className="text-[11px] leading-4 font-medium tracking-wide text-gray-500">
+          <p className="text-xss leading-4 font-medium tracking-wide text-gray-500">
             {t("pages.swap.progress.swap-progress")}
           </p>
           <div className="border-t border-gray-200">

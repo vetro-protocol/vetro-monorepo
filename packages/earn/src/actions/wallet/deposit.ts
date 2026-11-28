@@ -5,7 +5,6 @@ import {
   type Address,
   type TransactionReceipt,
   type WalletClient,
-  encodeFunctionData,
   isAddress,
   isAddressEqual,
   zeroAddress,
@@ -223,10 +222,3 @@ const runDeposit = (walletClient: WalletClient, params: DepositParams) =>
 
 export const deposit = (...args: Parameters<typeof runDeposit>) =>
   toPromiseEvent<DepositEvents>(runDeposit(...args));
-
-export const encodeDeposit = ({ assets, receiver }: DepositParams) =>
-  encodeFunctionData({
-    abi: stakingVaultAbi,
-    args: [assets, receiver],
-    functionName: "deposit",
-  });

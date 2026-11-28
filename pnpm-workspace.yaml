@@ -20,8 +20,8 @@ onlyBuiltDependencies: []
 # Remove this once relay-auth ships a release that doesn't pin those:
 # https://github.com/WalletConnect/walletconnect-utils/pull/244
 overrides:
-  "@noble/curves@1.8.0": "1.8.1"
-  "@noble/hashes@1.7.0": "1.8.0"
+  "@walletconnect/relay-auth@1.1.0>@noble/curves": "1.8.1"
+  "@walletconnect/relay-auth@1.1.0>@noble/hashes": "1.8.0"
   "axios": "^1.18.0"
   "gluegun@5.2.0": "5.2.2"
 
@@ -29,10 +29,11 @@ packages:
   - "api"
   - "internal-dashboard"
   - "packages/*"
-  - "subgraph"
+  - "subgraphs/*"
   - "web"
 
 patchedDependencies:
+  "@graphprotocol/graph-cli@*": "patches/@graphprotocol__graph-cli.patch"
   "@hemilabs/wallet-watch-asset@1.0.2": "patches/@hemilabs__wallet-watch-asset@1.0.2.patch"
 
 # https://github.com/microsoft/vscode-eslint/issues/1986#issuecomment-2799868163
@@ -41,8 +42,8 @@ publicHoistPattern:
 
 trustPolicy: no-downgrade
 
-# semver@6.3.1 (pulled in transitively via @sentry/vite-plugin ->
-# @babel/core -> @babel/helper-compilation-targets) was published without
+# semver@6.3.1 (pulled in transitively via @babel/core, which
+# eslint-plugin-react-hooks and Storybook's react-docgen use) was published without
 # provenance attestation, while earlier 6.x releases had it, so our
 # `trustPolicy: no-downgrade` rejects it. It is a widely-used, long-published
 # version already present in the committed lockfile; allowlist it so installs

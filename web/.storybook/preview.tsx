@@ -9,6 +9,7 @@ import { initializeI18n } from "../src/i18n/config";
 initializeI18n();
 
 sb.mock(import("../src/fetchers/fetchPrices.ts"));
+sb.mock(import("../src/utils/geoRestriction.ts"), { spy: true });
 sb.mock(import("wagmi"), { spy: true });
 
 const preview: Preview = {

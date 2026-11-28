@@ -1,11 +1,12 @@
 import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
-import { DrawerTitle } from "components/base/drawer/drawerTitle";
+import type { ToastContent } from "components/base/toast";
 import type { MarketData } from "hooks/borrow/useMarketData";
-import { Suspense, lazy } from "react";
+import { Suspense } from "react";
 import { useTranslation } from "react-i18next";
+import { lazyWithReload } from "utils/lazyWithReload";
 
-const SupplyCollateralForm = lazy(() =>
+const SupplyCollateralForm = lazyWithReload(() =>
   import("./supplyCollateralForm").then((m) => ({
     default: m.SupplyCollateralForm,
   })),
@@ -14,16 +15,24 @@ const SupplyCollateralForm = lazy(() =>
 type Props = {
   market: MarketData;
   onClose: VoidFunction;
+  onSuccess: (toast: ToastContent) => void;
 };
 
-export function SupplyCollateralDrawerForm({ market, onClose }: Props) {
+export function SupplyCollateralDrawerForm({
+  market,
+  onClose,
+  onSuccess,
+}: Props) {
   const { t } = useTranslation();
   return (
-    <Drawer onClose={onClose}>
+    <Drawer onClose={onClose} title={t("pages.borrow.supply-more-collateral")}>
       <div className="flex h-full flex-col">
-        <DrawerTitle>{t("pages.borrow.supply-more-collateral")}</DrawerTitle>
         <Suspense fallback={<DrawerLoader />}>
-          <SupplyCollateralForm market={market} onClose={onClose} />
+          <SupplyCollateralForm
+            market={market}
+            onClose={onClose}
+            onSuccess={onSuccess}
+          />
         </Suspense>
       </div>
     </Drawer>

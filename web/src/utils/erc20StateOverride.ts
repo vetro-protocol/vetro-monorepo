@@ -7,6 +7,16 @@ import {
   toHex,
 } from "viem";
 
+import { mergeStateOverrides } from "./stateOverride";
+
+const getAddressMappingSlot = ({ key, slot }: { key: Address; slot: bigint }) =>
+  keccak256(
+    encodeAbiParameters(
+      [{ type: "address" }, { type: "uint256" }],
+      [key, slot],
+    ),
+  );
+
 // The operation requires the user to have enough allowance for gas estimation to succeed,
 // but if the user needs to approve some amount (because they currently have no allowance),
 // the estimation call will revert due to insufficient allowance.
@@ -24,13 +34,11 @@ export function createErc20AllowanceStateOverride({
   if (!owner) {
     return [];
   }
-  const ownerSlot = keccak256(
-    encodeAbiParameters(
-      [{ type: "address" }, { type: "uint256" }],
-      // 1n is the default allowance slot for ERC20 tokens using OpenZeppelin's implementation
-      [owner, token.extensions?.allowanceSlot ?? 1n],
-    ),
-  );
+  const ownerSlot = getAddressMappingSlot({
+    key: owner,
+    // 1n is the default allowance slot for ERC20 tokens using OpenZeppelin's implementation
+    slot: token.extensions?.allowanceSlot ?? 1n,
+  });
   const slot = keccak256(
     encodeAbiParameters(
       [{ type: "address" }, { type: "bytes32" }],
@@ -49,3 +57,47 @@ export function createErc20AllowanceStateOverride({
     },
   ];
 }
+
+const createErc20BalanceStateOverride = ({
+  balance,
+  owner,
+  token,
+}: {
+  balance: bigint;
+  owner: Address;
+  token: Token;
+}) => [
+  {
+    address: token.address,
+    stateDiff: [
+      {
+        slot: getAddressMappingSlot({
+          key: owner,
+          // 0 is the default balance slot for ERC20 tokens using OpenZeppelin's implementation
+          slot: token.extensions?.balanceSlot ?? 0n,
+        }),
+        value: toHex(balance, { size: 32 }),
+      },
+    ],
+  },
+];
+
+export const createErc20SpendStateOverride = ({
+  amount,
+  balance,
+  owner,
+  spender,
+  token,
+}: {
+  amount: bigint;
+  balance: bigint;
+  owner: Address;
+  spender: Address;
+  token: Token;
+}) =>
+  mergeStateOverrides(
+    createErc20AllowanceStateOverride({ owner, spender, token }),
+    amount > balance
+      ? createErc20BalanceStateOverride({ balance: amount, owner, token })
+      : [],
+  );

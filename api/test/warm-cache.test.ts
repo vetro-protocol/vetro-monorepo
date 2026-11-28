@@ -9,30 +9,11 @@ import {
   warmScheduled,
 } from "../src/warm-cache.ts";
 
+import { createFakeKv } from "./utils/fake-kv.ts";
+
 vi.mock("@sentry/cloudflare", () => ({
   captureException: vi.fn(),
 }));
-
-// A minimal in-memory KV that records writes and lets tests force put failures.
-function createFakeKv({
-  putError,
-  store = {},
-}: {
-  putError?: Error;
-  store?: Record<string, unknown>;
-} = {}) {
-  const puts: { key: string; value: string }[] = [];
-  return {
-    get: vi.fn(async (key: string) => (key in store ? store[key] : null)),
-    put: vi.fn(async function (key: string, value: string) {
-      if (putError) {
-        throw putError;
-      }
-      puts.push({ key, value });
-    }),
-    puts,
-  };
-}
 
 // A fake Hono context that runs `waitUntil` work so tests can await writes.
 function createFakeContext(kv: unknown) {
@@ -83,15 +64,25 @@ describe("warm-cache/readWarmedTask", function () {
     ]);
   });
 
-  it("returns empty data on a miss but does not cache it", async function () {
+  it("rejects empty data on a miss", async function () {
     const kv = createFakeKv();
     vi.mocked(task.produce).mockResolvedValue(undefined);
-    const { c, settled } = createFakeContext(kv);
+    const { c } = createFakeContext(kv);
 
-    const data = await readWarmedTask({ c, item: "a", task });
-    await settled();
+    await expect(readWarmedTask({ c, item: "a", task })).rejects.toThrow(
+      "Warm task produced no data for key:a",
+    );
+    expect(kv.put).not.toHaveBeenCalled();
+  });
 
-    expect(data).toBeUndefined();
+  it("does not cache non-finite data on a miss", async function () {
+    const kv = createFakeKv();
+    vi.mocked(task.produce).mockResolvedValue({ apr: Number.NaN });
+    const { c } = createFakeContext(kv);
+
+    await expect(readWarmedTask({ c, item: "a", task })).rejects.toThrow(
+      "Warm task produced no data for key:a",
+    );
     expect(kv.put).not.toHaveBeenCalled();
   });
 
@@ -143,7 +134,7 @@ describe("warm-cache/warmScheduled", function () {
     await warmScheduled({
       cron: "* * * * *",
       env: {} as Env,
-      kv: kv as unknown as KVNamespace,
+      kv: kv.kv,
       tasks: [task, other],
     });
 
@@ -163,7 +154,7 @@ describe("warm-cache/warmScheduled", function () {
     await warmScheduled({
       cron: "* * * * *",
       env: {} as Env,
-      kv: kv as unknown as KVNamespace,
+      kv: kv.kv,
       tasks: [task],
     });
 
@@ -186,7 +177,7 @@ describe("warm-cache/warmScheduled", function () {
     await warmScheduled({
       cron: "* * * * *",
       env: {} as Env,
-      kv: kv as unknown as KVNamespace,
+      kv: kv.kv,
       tasks: [globalTask],
     });
 
@@ -203,7 +194,24 @@ describe("warm-cache/warmScheduled", function () {
     await warmScheduled({
       cron: "* * * * *",
       env: {} as Env,
-      kv: kv as unknown as KVNamespace,
+      kv: kv.kv,
+      tasks: [{ ...task, items: ["a"] }],
+    });
+
+    expect(kv.put).not.toHaveBeenCalled();
+    expect(Sentry.captureException).toHaveBeenCalledTimes(1);
+  });
+
+  it("treats non-finite produced data as a failure and keeps the last good KV value", async function () {
+    const kv = createFakeKv({
+      store: { "key:a": { apr: 12.5 } },
+    });
+    vi.mocked(task.produce).mockResolvedValue({ apr: Number.NaN });
+
+    await warmScheduled({
+      cron: "* * * * *",
+      env: {} as Env,
+      kv: kv.kv,
       tasks: [{ ...task, items: ["a"] }],
     });
 

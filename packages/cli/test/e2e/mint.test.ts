@@ -67,12 +67,16 @@ describe("swap mint", function () {
       data: request.data,
     });
     const [tokenIn, amountIn, minPeggedTokenOut, receiver] = args;
+    const preview = await previewDeposit(publicClient, {
+      address: request.to,
+      amountIn,
+      tokenIn: usdc.address,
+    });
 
     expect(isAddressEqual(tokenIn, usdc.address)).toBe(true);
     expect(amountIn).toBe(parseUnits(swapAmount, usdc.decimals));
     expect(isAddressEqual(receiver, TEST_ADDRESS)).toBe(true);
-    // The gateway previews 100 USDC 1:1 into VUSD, so 0.5% off it is exactly 99.5.
-    expect(minPeggedTokenOut).toBe(parseUnits("99.5", vusd.decimals));
+    expect(minPeggedTokenOut).toBe((preview * 995n) / 1000n);
   });
 
   it("requires the full preview when --slippage is omitted", async function () {

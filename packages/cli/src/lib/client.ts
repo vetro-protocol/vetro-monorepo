@@ -1,3 +1,7 @@
+import {
+  getChainAddresses,
+  registerCustomAddresses,
+} from "@morpho-org/blue-sdk";
 import { createChainClient } from "@vetro-protocol/core";
 import { defineChain } from "viem";
 import { getChainId } from "viem/actions";
@@ -9,17 +13,25 @@ export type GlobalOptions = { rpcUrl?: string };
 const localChainId = 31337;
 const supportedChainIds = [mainnet.id, localChainId];
 
+// viem's default mainnet RPC (eth.merkle.io) heavily rate-limits the CLI's requests.
+export const defaultRpcUrl = "https://eth.drpc.org";
+
 const mainnetOn = (rpcUrl: string) =>
   defineChain({ ...mainnet, rpcUrls: { default: { http: [rpcUrl] } } });
 
 export async function createVetroClient({ rpcUrl }: GlobalOptions) {
-  const client = createChainClient(rpcUrl ? mainnetOn(rpcUrl) : mainnet);
+  const client = createChainClient(mainnetOn(rpcUrl ?? defaultRpcUrl));
 
   const chainId = await getChainId(client);
   if (!supportedChainIds.includes(chainId)) {
     throw new Error(
       `The RPC endpoint is on chain ${chainId}, but Vetro is only deployed on Ethereum mainnet (${mainnet.id}); a local fork of it (${localChainId}) is also accepted`,
     );
+  }
+  if (chainId === localChainId) {
+    registerCustomAddresses({
+      addresses: { [localChainId]: getChainAddresses(mainnet.id) },
+    });
   }
 
   return { chainId, client };

@@ -112,7 +112,6 @@ export const useRedeem = function ({
               chainId: mainnet.id,
               client: walletClient,
               gatewayAddress: peggedToken.gatewayAddress,
-              queryClient,
             }),
           )
           .then((redeemDelay) => redeemDelay > 0n),
@@ -156,7 +155,11 @@ export const useRedeem = function ({
         updateNativeBalanceAfterReceipt(receipt);
 
         const actualAmount =
-          getReceivedAmount({ account, logs: receipt.logs }) ?? preview;
+          getReceivedAmount({
+            account,
+            logs: receipt.logs,
+            token: tokenOut,
+          }) ?? preview;
 
         if (hasDelay) {
           // if there's a delay, the PeggedToken was burned from the Gateway vault
@@ -206,7 +209,6 @@ export const useRedeem = function ({
           chainId: mainnet.id,
           client: walletClient,
           gatewayAddress: peggedToken.gatewayAddress,
-          queryClient,
         }),
       );
       if (hasDelay) {

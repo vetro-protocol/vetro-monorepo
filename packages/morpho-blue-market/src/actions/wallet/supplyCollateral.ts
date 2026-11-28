@@ -106,17 +106,22 @@ const canSupplyCollateral = function ({
   return { canSupplyCollateral: true };
 };
 
-export const runSupplyCollateralCore = async function (
-  walletClient: WalletClient,
-  {
+export const runSupplyCollateralCore = async function ({
+  emitter,
+  params,
+  walletClient,
+}: {
+  emitter: EventEmitter<SupplyCollateralEvents>;
+  params: SupplyCollateralParams;
+  walletClient: WalletClient;
+}) {
+  const {
     address,
     amount,
     approveAmount = amount,
     marketId,
     onBehalf,
-  }: SupplyCollateralParams,
-  emitter: EventEmitter<SupplyCollateralEvents>,
-): Promise<boolean> {
+  } = params;
   const { canSupplyCollateral: canSupplyCollateralFlag, reason } =
     canSupplyCollateral({
       address,
@@ -233,7 +238,7 @@ const runSupplyCollateral = (
 ) =>
   async function (emitter: EventEmitter<SupplyCollateralEvents>) {
     try {
-      await runSupplyCollateralCore(walletClient, params, emitter);
+      await runSupplyCollateralCore({ emitter, params, walletClient });
     } catch (error) {
       emitter.emit("unexpected-error", error as Error);
     } finally {

@@ -8,8 +8,8 @@ export async function previewWithdraw(
   client: Client,
   parameters: {
     address: Address;
-    tokenOut: Address;
     amountOut: bigint;
+    tokenOut: Address;
   },
 ) {
   // Validate client

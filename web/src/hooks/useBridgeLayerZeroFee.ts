@@ -1,9 +1,4 @@
-import {
-  type QueryClient,
-  queryOptions,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { fetchBridgeLayerZeroFee } from "fetchers/fetchBridgeLayerZeroFee";
 import type { Address, Chain, Client } from "viem";
 import { useAccount, usePublicClient } from "wagmi";
@@ -13,7 +8,6 @@ export const bridgeLayerZeroFeeOptions = ({
   client,
   destinationChainId,
   oftAddress,
-  queryClient,
   recipient,
   sourceChainId,
 }: {
@@ -21,13 +15,12 @@ export const bridgeLayerZeroFeeOptions = ({
   client: Client | undefined;
   destinationChainId: Chain["id"];
   oftAddress: Address;
-  queryClient: QueryClient;
   recipient: Address | undefined;
   sourceChainId: Chain["id"];
 }) =>
   queryOptions({
     enabled: !!client && !!recipient && amount > 0n,
-    queryFn: () =>
+    queryFn: ({ client: queryClient }) =>
       fetchBridgeLayerZeroFee({
         amount,
         client: client!,
@@ -60,7 +53,6 @@ export const useBridgeLayerZeroFee = function ({
 }) {
   const { address: account } = useAccount();
   const client = usePublicClient({ chainId: sourceChainId });
-  const queryClient = useQueryClient();
 
   return useQuery(
     bridgeLayerZeroFeeOptions({
@@ -68,7 +60,6 @@ export const useBridgeLayerZeroFee = function ({
       client,
       destinationChainId,
       oftAddress,
-      queryClient,
       recipient: account,
       sourceChainId,
     }),

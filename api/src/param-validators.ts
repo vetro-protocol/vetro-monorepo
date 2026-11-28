@@ -4,6 +4,7 @@ import type { Context, Next } from "hono";
 import { type Address, checksumAddress, isAddress } from "viem";
 
 declare module "hono" {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions -- Declaration merging needs an interface.
   interface ContextVariableMap {
     gatewayAddress: Address;
     stakingVaultAddress: Address;
@@ -96,6 +97,27 @@ export const validateParam = (paramName: string, validOptions: string[]) =>
         { error: `Invalid ${paramName}. Use: ${validOptions.join(", ")}` },
         400,
       );
+    }
+    return next();
+  };
+
+/**
+ * Validates optional query string parameters against their lists of valid
+ * options. A missing parameter is valid. If a parameter is not valid, returns a
+ * 400 response with a message indicating its valid options.
+ *
+ * @param validOptions The valid string options of each query string parameter
+ */
+export const validateQueryParams = (validOptions: Record<string, string[]>) =>
+  function (c: Context, next: Next) {
+    for (const [paramName, options] of Object.entries(validOptions)) {
+      const paramValue = c.req.query(paramName);
+      if (paramValue !== undefined && !options.includes(paramValue)) {
+        return c.json(
+          { error: `Invalid ${paramName}. Use: ${options.join(", ")}` },
+          400,
+        );
+      }
     }
     return next();
   };

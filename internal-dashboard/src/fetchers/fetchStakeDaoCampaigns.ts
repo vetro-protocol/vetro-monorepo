@@ -26,8 +26,6 @@ const toPoolCampaign = function (
   return {
     campaignNumber: campaign.id,
     endTimestamp: voteDeadline(campaign),
-    gauge: campaign.gauge,
-    gaugeChainId: campaign.gaugeChainId,
     id: campaign.key,
     rewardTokenSymbol: symbol,
     source: "stakeDao",
@@ -37,9 +35,7 @@ const toPoolCampaign = function (
   };
 };
 
-export const fetchStakeDaoCampaigns = async function (
-  identifiers: string[],
-): Promise<Record<string, PoolCampaign[]>> {
+export const fetchStakeDaoCampaigns = async function (identifiers: string[]) {
   const allCampaigns = await fetchCurveCampaigns(identifiers);
   const nowSeconds = Date.now() / 1000;
 

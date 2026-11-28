@@ -26,11 +26,11 @@ const fetchHistory = (period = "1w") =>
     period,
     rpcUrl,
     stakingVaultAddress: sVusdAddress,
-    url,
+    subgraph: { url },
   });
 
 const lastCallVariables = <T>() =>
-  vi.mocked(graphql.runQuery).mock.calls.at(-1)?.[2] as T | undefined;
+  vi.mocked(graphql.runQuery).mock.calls.at(-1)?.[0].variables as T | undefined;
 
 describe("total-deposits-history/getTotalDepositsHistory", function () {
   beforeEach(function () {

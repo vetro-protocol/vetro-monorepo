@@ -1,9 +1,4 @@
-import {
-  type QueryClient,
-  queryOptions,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { fetchBridgeNetworkFee } from "fetchers/fetchBridgeNetworkFee";
 import type { BridgeableToken } from "types";
 import type { Address, Chain, Client } from "viem";
@@ -16,7 +11,6 @@ export const bridgeNetworkFeeOptions = ({
   destinationChainId,
   oftAddress,
   owner,
-  queryClient,
   recipient,
   sourceChainId,
   sourceToken,
@@ -27,14 +21,13 @@ export const bridgeNetworkFeeOptions = ({
   destinationChainId: Chain["id"];
   oftAddress: Address;
   owner: Address | undefined;
-  queryClient: QueryClient;
   recipient: Address | undefined;
   sourceChainId: Chain["id"];
   sourceToken: BridgeableToken;
 }) =>
   queryOptions({
     enabled: !!client && !!owner && !!recipient && amount > 0n,
-    queryFn: () =>
+    queryFn: ({ client: queryClient }) =>
       fetchBridgeNetworkFee({
         amount,
         approveAmount,
@@ -73,7 +66,6 @@ export const useBridgeNetworkFee = function ({
 }) {
   const { address: owner } = useAccount();
   const client = usePublicClient({ chainId: sourceToken.chainId });
-  const queryClient = useQueryClient();
 
   return useQuery(
     bridgeNetworkFeeOptions({
@@ -83,7 +75,6 @@ export const useBridgeNetworkFee = function ({
       destinationChainId,
       oftAddress: sourceToken.oftAdapterAddress ?? sourceToken.address,
       owner,
-      queryClient,
       recipient: owner,
       sourceChainId: sourceToken.chainId,
       sourceToken,
