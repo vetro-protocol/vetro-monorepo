@@ -9,9 +9,9 @@ import { FormSection, FormSectionItem } from "components/feesContainer";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenDropdown } from "components/tokenDropdown";
 import { TokenInput } from "components/tokenInput";
+import { TokenBalance } from "components/tokenInput/tokenBalance";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
 import { useActivityTracking } from "hooks/useActivityTracking";
-import { useMainnet } from "hooks/useMainnet";
 import { useMaxWithdraw } from "hooks/useMaxWithdraw";
 import { usePreviewRedeem } from "hooks/usePreviewRedeem";
 import { useRedeem } from "hooks/useRedeem";
@@ -19,11 +19,12 @@ import { useRedeemFee } from "hooks/useRedeemFee";
 import { useSwapRedeemFees } from "hooks/useSwapRedeemFees";
 import { useTokenConfig } from "hooks/useTokenConfig";
 import { useTotalRedeemFees } from "hooks/useTotalRedeemFees";
+import { mainnet } from "networks/mainnet";
 import { type FormEvent, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
 import { applyBps } from "utils/bigint";
-import { formatNumber } from "utils/format";
+import { formatFiatNumberRoundDown, formatNumber } from "utils/format";
 import { getInputError } from "utils/inputError";
 import { applySlippage } from "utils/slippage";
 import { formatAmount } from "utils/token";
@@ -36,7 +37,6 @@ import { SlippageSettings } from "./slippageSettings";
 import { SubmitButton } from "./submitButton";
 import { SwapFees } from "./swapFees";
 import { type RedeemFlowStatus, SwapRedeemDrawer } from "./swapRedeemDrawer";
-import { ToTokenBalance } from "./toTokenBalance";
 import { TreasuryReserves } from "./treasuryReserves";
 
 type Props = {
@@ -51,8 +51,8 @@ type Props = {
   onReset: VoidFunction;
   onSlippageChange: (slippage: number) => void;
   onToggle: VoidFunction;
-  onTokenChange: (token: TokenWithGateway) => void;
   onToggleApprove10x: VoidFunction;
+  onTokenChange: (token: TokenWithGateway) => void;
   peggedTokens: TokenWithGateway[];
   slippage: number;
   toToken: TokenWithGateway;
@@ -78,7 +78,6 @@ export function OneStepRedeem({
   toToken,
   whitelistedTokens,
 }: Props) {
-  const ethereumChain = useMainnet();
   const { t } = useTranslation();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [flowStatus, setFlowStatus] = useState<RedeemFlowStatus>("idle");
@@ -103,10 +102,10 @@ export function OneStepRedeem({
 
   const { data: fromTokenBalance } = useTokenBalance({
     address: fromToken.address,
-    chainId: ethereumChain.id,
+    chainId: mainnet.id,
   });
 
-  const { data: nativeBalanceData } = useNativeBalance(ethereumChain.id);
+  const { data: nativeBalanceData } = useNativeBalance(mainnet.id);
   const nativeBalance = nativeBalanceData?.value;
 
   const { data: needsApproval, isError: isNeedsApprovalError } =
@@ -305,10 +304,14 @@ export function OneStepRedeem({
         }
         toSection={
           <TokenInput
-            balance={<ToTokenBalance token={toToken} />}
+            balance={<TokenBalance token={toToken} />}
             disabled
             fiatValue={
-              <RenderFiatValue token={toToken} value={redeemPreview} />
+              <RenderFiatValue
+                customFormatter={formatFiatNumberRoundDown}
+                token={toToken}
+                value={redeemPreview}
+              />
             }
             label={t("pages.swap.form.you-will-receive-estimated")}
             tokenSelector={
@@ -379,14 +382,13 @@ export function OneStepRedeem({
           outputValue={outputValue}
           protocolFee={protocolFeeQueryData}
           showApproveStep={startedWithApproval}
-          toToken={toToken}
           totalFees={totalRedeemFeesQueryData}
+          toToken={toToken}
           unitPreview={unitRedeemPreview}
         />
       )}
       {showToast && (
         <Toast
-          closable
           description={t(
             "pages.swap.toast.swap-success-description",
             toastData,

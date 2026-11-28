@@ -1,21 +1,34 @@
-import { useConnectModal } from "@rainbow-me/rainbowkit";
-import { Button, ButtonIcon } from "components/base/button";
+import { ButtonIcon } from "components/base/button";
 import { Toast } from "components/base/toast";
+import { GeoRestrictedButton } from "components/geoRestrictedButton";
 import { TrashIcon } from "components/icons/trashIcon";
+import { RequireWalletConnected } from "components/requireWalletConnected";
 import { Tooltip } from "components/tooltip";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useClaimWithdraw } from "hooks/useClaimWithdraw";
+import { useNowTickingPast } from "hooks/useNowTickingPast";
 import { useVaultPeggedToken } from "hooks/useVaultPeggedToken";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import type { TokenWithGateway } from "types";
 import { isGeoRestricted } from "utils/geoRestriction";
 import { formatAmount } from "utils/token";
-import { useAccount } from "wagmi";
 
 import type { ExitTicket } from "../../types";
 
 import { DeleteTicketModal } from "./deleteTicketModal";
 import { getTicketStatus } from "./getTicketStatus";
+
+type ActivityTextParams = {
+  peggedToken: TokenWithGateway | undefined;
+  t: ReturnType<typeof useTranslation>["t"];
+  ticket: ExitTicket;
+};
+
+type ActionDisabledParams = {
+  disabled: boolean;
+  peggedToken: TokenWithGateway | undefined;
+};
 
 type Props = {
   disabled?: boolean;
@@ -26,51 +39,50 @@ type Props = {
 
 type WithdrawButtonProps = {
   disabled: boolean;
-  geoRestricted: boolean;
   isWithdrawing: boolean;
   onWithdraw: VoidFunction;
 };
 
+const isActionDisabled = ({ disabled, peggedToken }: ActionDisabledParams) =>
+  disabled || !peggedToken;
+
+const getActivityText = ({ peggedToken, t, ticket }: ActivityTextParams) =>
+  peggedToken
+    ? t("pages.earn.activity.claim-withdraw-text", {
+        amount: formatAmount({
+          amount: BigInt(ticket.assets),
+          decimals: peggedToken.decimals,
+          isError: false,
+        }),
+        symbol: peggedToken.symbol,
+      })
+    : "";
+
 function WithdrawButton({
   disabled,
-  geoRestricted,
   isWithdrawing,
   onWithdraw,
 }: WithdrawButtonProps) {
-  const { openConnectModal } = useConnectModal();
   const { t } = useTranslation();
-  const { isConnected } = useAccount();
 
-  if (!isConnected) {
-    return (
-      <Button onClick={openConnectModal} size="xSmall" variant="primary">
-        {t("common.connect-wallet")}
-      </Button>
-    );
-  }
-
-  const button = (
-    <Button
-      disabled={disabled || isWithdrawing || geoRestricted}
-      onClick={onWithdraw}
-      size="xSmall"
-      variant="primary"
-    >
-      <span className="invisible">
-        {t("pages.earn.exit-tickets.withdrawing")}
-      </span>
-      <span className="absolute">
-        {isWithdrawing
-          ? t("pages.earn.exit-tickets.withdrawing")
-          : t("pages.earn.exit-tickets.withdraw")}
-      </span>
-    </Button>
-  );
-
-  return geoRestricted ? (
-    <Tooltip content={t("common.geo-restriction-title")}>{button}</Tooltip>
-  ) : (
-    button
+  return (
+    <RequireWalletConnected size="xSmall">
+      <GeoRestrictedButton
+        disabled={disabled || isWithdrawing}
+        onClick={onWithdraw}
+        size="xSmall"
+        variant="primary"
+      >
+        <span className="invisible">
+          {t("pages.earn.exit-tickets.withdrawing")}
+        </span>
+        <span className="absolute">
+          {isWithdrawing
+            ? t("pages.earn.exit-tickets.withdrawing")
+            : t("pages.earn.exit-tickets.withdraw")}
+        </span>
+      </GeoRestrictedButton>
+    </RequireWalletConnected>
   );
 }
 
@@ -84,24 +96,22 @@ export function ActionsCell({
   const geoRestricted = isGeoRestricted();
 
   const { data: peggedToken } = useVaultPeggedToken(ticket.stakingVaultAddress);
-  const status = getTicketStatus(ticket);
+  const now = useNowTickingPast([ticket], () =>
+    ticket.cancelTxHash || ticket.claimTxHash
+      ? undefined
+      : Number(ticket.claimableAt),
+  );
+  const status = getTicketStatus({ now, ticket });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [showWithdrawToast, setShowWithdrawToast] = useState(false);
 
-  const formattedAmount = formatAmount({
-    amount: BigInt(ticket.assets),
-    decimals: peggedToken?.decimals ?? 18,
-    isError: false,
-  });
+  const activityText = getActivityText({ peggedToken, t, ticket });
 
   const { onCompleted, onFailed, onPending, onTransactionHash } =
     useActivityTracking({
       page: "earn",
-      text: t("pages.earn.activity.claim-withdraw-text", {
-        amount: formattedAmount,
-        symbol: peggedToken?.symbol,
-      }),
+      text: activityText,
       title: `${t("nav.earn")} · ${t("pages.earn.exit-tickets.withdraw")}`,
     });
 
@@ -140,8 +150,10 @@ export function ActionsCell({
         <div className="flex items-center gap-3">
           {status === "ready" && (
             <WithdrawButton
-              disabled={disabled}
-              geoRestricted={geoRestricted}
+              disabled={isActionDisabled({
+                disabled,
+                peggedToken,
+              })}
               isWithdrawing={isWithdrawing}
               onWithdraw={handleWithdraw}
             />
@@ -155,7 +167,11 @@ export function ActionsCell({
           >
             <ButtonIcon
               aria-label={t("pages.earn.exit-tickets.delete-tooltip")}
-              disabled={disabled || isWithdrawing || geoRestricted}
+              disabled={
+                isActionDisabled({ disabled, peggedToken }) ||
+                isWithdrawing ||
+                geoRestricted
+              }
               onClick={() => setIsModalOpen(true)}
               size="xSmall"
               variant="secondary"
@@ -175,7 +191,6 @@ export function ActionsCell({
       )}
       {showWithdrawToast && (
         <Toast
-          closable
           description={t("pages.earn.exit-tickets.withdraw-toast-description")}
           onClose={() => setShowWithdrawToast(false)}
           title={t("pages.earn.exit-tickets.withdraw-toast-title")}

@@ -1,3 +1,4 @@
+import { getTokenConfig } from "@vetro-protocol/treasury/actions";
 import {
   type Address,
   type TransactionReceipt,
@@ -12,12 +13,21 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { getMaxWithdraw } from "../../src/actions/public/getMaxWithdraw.ts";
 import { getPeggedToken } from "../../src/actions/public/getPeggedToken.ts";
+import { getTreasury } from "../../src/actions/public/getTreasury.ts";
 import { getWithdrawalDelayEnabled } from "../../src/actions/public/getWithdrawalDelayEnabled.ts";
 import { isInstantRedeemWhitelisted } from "../../src/actions/public/isInstantRedeemWhitelisted.ts";
 import { redeem } from "../../src/actions/wallet/redeem.ts";
 
 vi.mock("../../src/actions/public/getMaxWithdraw", () => ({
   getMaxWithdraw: vi.fn(),
+}));
+
+vi.mock("@vetro-protocol/treasury/actions", () => ({
+  getTokenConfig: vi.fn(),
+}));
+
+vi.mock("../../src/actions/public/getTreasury", () => ({
+  getTreasury: vi.fn(),
 }));
 
 vi.mock("../../src/actions/public/getPeggedToken", () => ({
@@ -56,6 +66,9 @@ const mockWalletClient = {
 const mockGatewayAddress =
   "0x3333333333333333333333333333333333333333" as Address;
 
+const mockTreasuryAddress =
+  "0x4444444444444444444444444444444444444444" as Address;
+
 const validParameters = {
   gatewayAddress: mockGatewayAddress,
   minAmountOut: BigInt(900),
@@ -68,6 +81,15 @@ describe("redeem", function () {
   beforeEach(function () {
     // Default: treasury has enough balance for all tests
     vi.mocked(getMaxWithdraw).mockResolvedValue(BigInt(1_000_000));
+    vi.mocked(getTreasury).mockResolvedValue(mockTreasuryAddress);
+    vi.mocked(getTokenConfig).mockResolvedValue({
+      decimals: 18,
+      depositActive: true,
+      oracle: zeroAddress,
+      stalePeriod: 0n,
+      vault: zeroAddress,
+      withdrawActive: true,
+    });
   });
 
   it("should emit 'redeem-failed-validation' if client is not defined", async function () {
@@ -421,6 +443,82 @@ describe("redeem", function () {
       "Not enough balance in treasury",
     );
     expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it("should reject redemptions when the Treasury token config disables withdrawals", async function () {
+    vi.mocked(getTokenConfig).mockResolvedValueOnce({
+      decimals: 18,
+      depositActive: true,
+      oracle: zeroAddress,
+      stalePeriod: 0n,
+      vault: zeroAddress,
+      withdrawActive: false,
+    });
+
+    const { emitter, promise } = redeem(mockWalletClient, validParameters);
+    const onRedeemFailedValidation = vi.fn();
+
+    emitter.on("redeem-failed-validation", onRedeemFailedValidation);
+
+    await promise;
+
+    expect(onRedeemFailedValidation).toHaveBeenCalledExactlyOnceWith(
+      "Withdrawals are not active for this token",
+    );
+    expect(getTreasury).toHaveBeenCalledExactlyOnceWith(mockWalletClient, {
+      address: mockGatewayAddress,
+    });
+    expect(getTokenConfig).toHaveBeenCalledExactlyOnceWith(mockWalletClient, {
+      address: mockTreasuryAddress,
+      token: validParameters.tokenOut,
+    });
+    expect(allowance).not.toHaveBeenCalled();
+    expect(approve).not.toHaveBeenCalled();
+    expect(writeContract).not.toHaveBeenCalled();
+  });
+
+  it("should emit 'unexpected-error' when getting the Treasury fails", async function () {
+    vi.mocked(getTreasury).mockRejectedValue(
+      new Error("Failed to get Treasury"),
+    );
+
+    const { emitter, promise } = redeem(mockWalletClient, validParameters);
+    const onUnexpectedError = vi.fn();
+
+    emitter.on("unexpected-error", onUnexpectedError);
+
+    await promise;
+
+    expect(onUnexpectedError).toHaveBeenCalledExactlyOnceWith(
+      expect.any(Error),
+    );
+    expect(getTokenConfig).not.toHaveBeenCalled();
+    expect(allowance).not.toHaveBeenCalled();
+    expect(approve).not.toHaveBeenCalled();
+    expect(writeContract).not.toHaveBeenCalled();
+  });
+
+  it("should emit 'unexpected-error' when getting the Treasury token config fails", async function () {
+    vi.mocked(getTokenConfig).mockRejectedValue(
+      new Error("Failed to get token config"),
+    );
+
+    const { emitter, promise } = redeem(mockWalletClient, validParameters);
+    const onUnexpectedError = vi.fn();
+
+    emitter.on("unexpected-error", onUnexpectedError);
+
+    await promise;
+
+    expect(onUnexpectedError).toHaveBeenCalledExactlyOnceWith(
+      expect.any(Error),
+    );
+    expect(getTreasury).toHaveBeenCalledExactlyOnceWith(mockWalletClient, {
+      address: mockGatewayAddress,
+    });
+    expect(allowance).not.toHaveBeenCalled();
+    expect(approve).not.toHaveBeenCalled();
+    expect(writeContract).not.toHaveBeenCalled();
   });
 
   it("should skip approval if user is not whitelisted and delay is enabled, and proceed to redeem", async function () {

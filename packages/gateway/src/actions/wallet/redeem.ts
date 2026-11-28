@@ -1,3 +1,4 @@
+import { getTokenConfig } from "@vetro-protocol/treasury/actions";
 import { EventEmitter } from "events";
 import { toPromiseEvent } from "to-promise-event";
 import {
@@ -16,6 +17,7 @@ import { gatewayAbi } from "../../abi/gatewayAbi.ts";
 import type { RedeemEvents } from "../../types.ts";
 import { getMaxWithdraw } from "../public/getMaxWithdraw.ts";
 import { getPeggedToken } from "../public/getPeggedToken.ts";
+import { getTreasury } from "../public/getTreasury.ts";
 import { getWithdrawalDelayEnabled } from "../public/getWithdrawalDelayEnabled.ts";
 import { isInstantRedeemWhitelisted } from "../public/isInstantRedeemWhitelisted.ts";
 
@@ -144,11 +146,19 @@ const canRedeem = async function ({
     };
   }
 
-  // Check treasury has enough balance for the requested token
-  const maxWithdrawable = await getMaxWithdraw(client, {
-    address: gatewayAddress,
-    tokenOut,
-  });
+  const [{ withdrawActive }, maxWithdrawable] = await Promise.all([
+    getTreasury(client, { address: gatewayAddress }).then((treasury) =>
+      getTokenConfig(client, { address: treasury, token: tokenOut }),
+    ),
+    getMaxWithdraw(client, { address: gatewayAddress, tokenOut }),
+  ]);
+
+  if (!withdrawActive) {
+    return {
+      canRedeem: false,
+      reason: "Withdrawals are not active for this token",
+    };
+  }
 
   if (minAmountOut > maxWithdrawable) {
     return {

@@ -4,7 +4,7 @@ import type { QueryClient } from "@tanstack/react-query";
 import type { Token } from "@vetro-protocol/core";
 import { encodeSupplyCollateral } from "@vetro-protocol/morpho-blue-market/actions";
 import { morphoMarketOptions } from "hooks/borrow/useMorphoMarket";
-import { createErc20AllowanceStateOverride } from "utils/erc20StateOverride";
+import { createErc20SpendStateOverride } from "utils/erc20StateOverride";
 import { type Address, type Client, type Hash } from "viem";
 import { estimateGas } from "viem/actions";
 
@@ -13,7 +13,6 @@ import { estimateApprovalGasUnits } from "./estimateApprovalGasUnits";
 /**
  * Estimates gas units for a supply collateral operation. Returns the total gas units
  * for the whole flow (approval + supply collateral).
- * Throws if the amount exceeds the user's collateral token balance.
  */
 export const fetchSupplyCollateralGasUnits = async function ({
   amount,
@@ -33,7 +32,7 @@ export const fetchSupplyCollateralGasUnits = async function ({
   token: Token;
 }) {
   const chainId = client.chain!.id;
-  const morphoAddress = getChainAddresses(chainId).morpho;
+  const morphoAddress = getChainAddresses(chainId).blue;
 
   // Fire morphoMarket fetch early but don't block on it yet
   const morphoMarketPromise = queryClient.ensureQueryData(
@@ -47,10 +46,6 @@ export const fetchSupplyCollateralGasUnits = async function ({
       token: { address: token.address, chainId },
     }),
   );
-
-  if (amount > collateralBalance) {
-    throw new Error("Insufficient collateral token balance");
-  }
 
   const [approvalGas, supplyGas] = await Promise.all([
     estimateApprovalGasUnits({
@@ -70,7 +65,9 @@ export const fetchSupplyCollateralGasUnits = async function ({
           marketParams: morphoMarket.params,
           onBehalf: owner,
         }),
-        stateOverride: createErc20AllowanceStateOverride({
+        stateOverride: createErc20SpendStateOverride({
+          amount,
+          balance: collateralBalance,
           owner,
           spender: morphoAddress,
           token,

@@ -16,7 +16,6 @@ export const fetchTreasuryReserves = async function ({
     whitelistedTokensByGatewayOptions({
       client,
       gatewayAddress,
-      queryClient,
     }),
   );
 

@@ -1,7 +1,9 @@
+import type { FetchStatus } from "@tanstack/react-query";
 import { Children, type ReactElement, type ReactNode, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 
 import { ChevronIcon } from "./base/chevronIcon";
+import { QueryResult } from "./base/queryResult";
 import { CollapsibleSection } from "./collapsibleSection";
 import type { FeeDetailsProps } from "./feeDetails";
 import feesSvg from "./icons/fees.svg";
@@ -11,8 +13,8 @@ type FeeChild = ReactElement<FeeDetailsProps> | false | null | undefined;
 
 type Props = {
   children: FeeChild | FeeChild[];
+  fetchStatus?: FetchStatus;
   isError?: boolean;
-  isIdle?: boolean;
   label?: ReactNode;
   sectionClassName?: string;
   totalFees?: ReactNode;
@@ -20,8 +22,8 @@ type Props = {
 
 export function FeesContainer({
   children,
-  isError,
-  isIdle,
+  fetchStatus,
+  isError = false,
   label,
   sectionClassName = "",
   totalFees,
@@ -31,15 +33,6 @@ export function FeesContainer({
 
   // the network fee is unavoidable. So if it's the only one, we can use the "gas" icon
   const icon = Children.toArray(children).length === 1 ? gasSvg : feesSvg;
-
-  const renderedTotalFees =
-    totalFees !== undefined ? (
-      totalFees
-    ) : isError || isIdle ? (
-      "-"
-    ) : (
-      <Skeleton width={50} />
-    );
 
   return (
     <>
@@ -68,7 +61,12 @@ export function FeesContainer({
                 width={icon === feesSvg ? 28 : 16}
               />
               <span className="font-semibold text-gray-500">
-                {renderedTotalFees}
+                <QueryResult
+                  data={(data) => data}
+                  error="-"
+                  loading={<Skeleton width={50} />}
+                  query={{ data: totalFees, fetchStatus, isError }}
+                />
               </span>
             </>
           )}
@@ -84,7 +82,9 @@ export function FeesContainer({
         className={`grid transition-[grid-template-rows] duration-200 ease-out ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
         id="fees-list"
       >
-        <div className="overflow-hidden">{children}</div>
+        <div aria-hidden={!isOpen} className="overflow-hidden" inert={!isOpen}>
+          {children}
+        </div>
       </div>
     </>
   );

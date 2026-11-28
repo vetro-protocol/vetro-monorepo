@@ -1,43 +1,41 @@
-import { useAddTokenToWallet } from "@hemilabs/react-hooks/useAddTokenToWallet";
 import { useAllowance } from "@hemilabs/react-hooks/useAllowance";
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
-import { useConnectModal } from "@rainbow-me/rainbowkit";
 import type { Token } from "@vetro-protocol/core";
 import { ApproveSection } from "components/approveSection";
 import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
 import { RenderFiatValue } from "components/base/fiatValue";
+import type { ToastContent } from "components/base/toast";
 import { CollapsibleSection } from "components/collapsibleSection";
 import { NetworkFees } from "components/networkFees";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenInput } from "components/tokenInput";
-import { Balance } from "components/tokenInput/balance";
+import { TokenBalance } from "components/tokenInput/tokenBalance";
 import { TokenSelectorReadOnly } from "components/tokenSelectorReadOnly";
-import { useActivityTracking } from "hooks/useActivityTracking";
 import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
-import { useMainnet } from "hooks/useMainnet";
 import { useStakeDeposit } from "hooks/useStakeDeposit";
+import { mainnet } from "networks/mainnet";
+import type { DepositStep } from "pages/earn/components/earnForm/stakeFormReducer";
+import { StakeSubmitButton } from "pages/earn/components/earnForm/stakeSubmitButton";
+import { useStakeDepositTracking } from "pages/earn/hooks/useStakeDepositTracking";
 import { useTotalDepositFees } from "pages/earn/hooks/useTotalDepositFees";
-import { type FormEvent, Suspense, lazy, useCallback, useState } from "react";
+import { type FormEvent, Suspense, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
-import { formatAmount } from "utils/token";
+import { lazyWithReload } from "utils/lazyWithReload";
 import { type Address, parseUnits } from "viem";
 import { useAccount } from "wagmi";
 
-import type { DepositStep } from "./stakeFormReducer";
-import { StakeSubmitButton } from "./stakeSubmitButton";
-
-const StakeDepositProgressDrawer = lazy(() =>
+const StakeDepositProgressDrawer = lazyWithReload(() =>
   import("./stakeDepositProgressDrawer").then((m) => ({
     default: m.StakeDepositProgressDrawer,
   })),
 );
 
 type Props = {
-  approve10x: boolean;
   approvalCompleted: boolean;
+  approve10x: boolean;
   depositStep: DepositStep;
   inputValue: string;
   isDrawerOpen: boolean;
@@ -46,7 +44,7 @@ type Props = {
   onDrawerOpenChange: (open: boolean) => void;
   onInputChange: (value: string) => void;
   onResetSteps: VoidFunction;
-  onSuccess: (toast: { description: string; title: string }) => void;
+  onSuccess: (toast: ToastContent) => void;
   peggedToken: TokenWithGateway;
   shareToken: Token;
   stakingVaultAddress: Address;
@@ -107,9 +105,7 @@ export function StakeDepositForm({
   shareToken,
   stakingVaultAddress,
 }: Props) {
-  const { address: account, isConnected } = useAccount();
-  const chain = useMainnet();
-  const { openConnectModal } = useConnectModal();
+  const { address: account } = useAccount();
   const { t } = useTranslation();
   const [requestCloseDrawer, setRequestCloseDrawer] = useState(false);
   const [submitted, setSubmitted] = useState<{
@@ -117,21 +113,12 @@ export function StakeDepositForm({
     assets: bigint;
   } | null>(null);
 
-  const { mutate: watchToken } = useAddTokenToWallet({
-    token: {
-      address: shareToken.address,
-      chainId: chain.id,
-      extensions: { logoURI: shareToken.logoURI },
-    },
+  const { data: peggedTokenBalance } = useTokenBalance({
+    address: peggedToken.address,
+    chainId: mainnet.id,
   });
 
-  const { data: peggedTokenBalance, isError: isPeggedTokenBalanceError } =
-    useTokenBalance({
-      address: peggedToken.address,
-      chainId: chain.id,
-    });
-
-  const { data: nativeBalanceData } = useNativeBalance(chain.id);
+  const { data: nativeBalanceData } = useNativeBalance(mainnet.id);
   const nativeBalance = nativeBalanceData?.value;
 
   const { data: currentAllowance } = useAllowance({
@@ -147,48 +134,24 @@ export function StakeDepositForm({
 
   const approveAmount = approve10x ? amountBigInt * 10n : undefined;
 
-  const { onCompleted, onFailed, onPending, onTransactionHash } =
-    useActivityTracking({
-      page: "earn",
-      text: t("pages.earn.activity.deposit-text", {
-        amount: inputValue,
-        symbol: peggedToken.symbol,
-      }),
-      title: `${t("nav.earn")} · ${t("pages.earn.stake.deposit")}`,
-    });
+  const { onTransactionHash, trackStep } = useStakeDepositTracking({
+    amount: inputValue,
+    onSuccess,
+    shareToken,
+    symbol: peggedToken.symbol,
+  });
 
   const handleDepositStepChange = useCallback(
     function handleDepositStepChange(step: DepositStep) {
       onDepositStepChange(step);
-      const handlers: Partial<Record<DepositStep, () => void>> = {
-        completed: onCompleted,
-        "deposit-failed": onFailed,
-        depositing: onPending,
-      };
-      handlers[step]?.();
+      trackStep(step);
     },
-    [onCompleted, onDepositStepChange, onFailed, onPending],
-  );
-
-  const handleDepositSuccess = useCallback(
-    function handleDepositSuccess() {
-      onSuccess({
-        description: t("pages.earn.stake.deposit-toast-description"),
-        title: t("pages.earn.stake.deposit-toast-title"),
-      });
-      watchToken();
-    },
-    [onSuccess, t, watchToken],
+    [onDepositStepChange, trackStep],
   );
 
   const depositMutation = useStakeDeposit({
-    approveAmount,
-    assets: amountBigInt,
-    onStatusChange: handleDepositStepChange,
-    onSuccess: handleDepositSuccess,
-    onTransactionHash,
-    peggedToken,
-    stakingVaultAddress,
+    onStatusChange: ({ status }) => handleDepositStepChange(status),
+    onTransactionHash: ({ hash }) => onTransactionHash(hash),
   });
 
   const depositFeesQuery = useTotalDepositFees({
@@ -202,12 +165,6 @@ export function StakeDepositForm({
     amount: amountBigInt,
     nativeBalance,
     tokenBalance: peggedTokenBalance,
-  });
-
-  const formattedBalance = formatAmount({
-    amount: peggedTokenBalance,
-    decimals: peggedToken.decimals,
-    isError: isPeggedTokenBalanceError,
   });
 
   const balancesLoaded =
@@ -237,11 +194,25 @@ export function StakeDepositForm({
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!inputError) {
+    if (!inputError && account) {
       setSubmitted({ amount: inputValue, assets: amountBigInt });
       onResetSteps();
       onDrawerOpenChange(true);
-      depositMutation.mutate();
+      depositMutation.mutate(
+        {
+          account,
+          approveAmount,
+          assets: amountBigInt,
+          peggedToken,
+          stakingVaultAddress,
+        },
+        {
+          onError: () =>
+            handleDepositStepChange(
+              needsApproval ? "approve-failed" : "deposit-failed",
+            ),
+        },
+      );
     }
   }
 
@@ -251,9 +222,9 @@ export function StakeDepositForm({
         <div className="p-2">
           <TokenInput
             balance={
-              <Balance
+              <TokenBalance
                 label={t("pages.earn.stake.available-to-deposit")}
-                value={formattedBalance}
+                token={peggedToken}
               />
             }
             errorKey={balancesLoaded ? inputError : undefined}
@@ -275,11 +246,9 @@ export function StakeDepositForm({
         <div className="flex border-y border-gray-200 p-3 *:flex-1">
           <StakeSubmitButton
             actionText={actionText}
-            balancesLoaded={balancesLoaded}
             inputError={inputError}
-            isConnected={isConnected}
+            isLoading={!balancesLoaded}
             isPending={depositMutation.isPending}
-            onConnectWallet={openConnectModal}
             pendingText={pendingText}
           />
         </div>
@@ -300,7 +269,11 @@ export function StakeDepositForm({
         </CollapsibleSection>
       </form>
       {isDrawerOpen && submitted && (
-        <Drawer onClose={handleCloseDrawer} requestClose={requestCloseDrawer}>
+        <Drawer
+          onClose={handleCloseDrawer}
+          requestClose={requestCloseDrawer}
+          title={t("pages.earn.stake.deposit-in-progress")}
+        >
           <Suspense fallback={<DrawerLoader />}>
             <StakeDepositProgressDrawer
               amount={submitted.amount}

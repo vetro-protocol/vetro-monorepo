@@ -3,16 +3,16 @@ import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { useNeedsApproval } from "@hemilabs/react-hooks/useNeedsApproval";
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
 import { type AccrualPosition, getChainAddresses } from "@morpho-org/blue-sdk";
-import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { Button } from "components/base/button";
 import { RenderCryptoValue } from "components/base/cryptoValue";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { MaxButton } from "components/base/maxButton";
-import { Toast } from "components/base/toast";
+import type { ToastContent } from "components/base/toast";
 import { OracleLabel } from "components/borrow/oracleLabel";
 import { FormSection, FormSectionItem } from "components/feesContainer";
 import { ExclamationTriangleIcon } from "components/icons/exclamationTriangleIcon";
 import { NetworkFees } from "components/networkFees";
+import { RequireWalletConnected } from "components/requireWalletConnected";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenInput } from "components/tokenInput";
 import { Balance } from "components/tokenInput/balance";
@@ -25,7 +25,7 @@ import { useSupplyAndBorrow } from "hooks/borrow/useSupplyAndBorrow";
 import { useTotalSupplyAndBorrowFees } from "hooks/borrow/useSupplyAndBorrowFees";
 import { useSupplyAndBorrowReview } from "hooks/borrow/useSupplyAndBorrowReview";
 import { useActivityTracking } from "hooks/useActivityTracking";
-import { useMainnet } from "hooks/useMainnet";
+import { mainnet } from "networks/mainnet";
 import {
   type FormEvent,
   type SetStateAction,
@@ -39,26 +39,18 @@ import { getBorrowRetryState } from "utils/borrowRetry";
 import { formatLtvAsPercentage } from "utils/borrowReview";
 import { formatNumber } from "utils/format";
 import { isGeoRestricted } from "utils/geoRestriction";
-import { type Address, formatUnits, parseUnits } from "viem";
-import { useAccount } from "wagmi";
+import { formatUnits, parseUnits } from "viem";
 
 import { BorrowDrawer, type BorrowFlowStatus } from "./borrowDrawer";
 import { BorrowingReview } from "./borrowingReview";
 import { PositionReview } from "./positionReview";
 
 type SubmitButtonProps = {
-  address: Address | undefined;
   balancesLoaded: boolean;
   inputError: InputError | undefined;
-  openConnectModal: (() => void) | undefined;
 };
 
-function SubmitButton({
-  address,
-  balancesLoaded,
-  inputError,
-  openConnectModal,
-}: SubmitButtonProps) {
+function SubmitButton({ balancesLoaded, inputError }: SubmitButtonProps) {
   const { t } = useTranslation();
 
   if (isGeoRestricted()) {
@@ -70,29 +62,18 @@ function SubmitButton({
     );
   }
 
-  if (!address) {
-    return (
-      <Button
-        onClick={() => openConnectModal?.()}
-        size="small"
-        type="button"
-        variant="primary"
-      >
-        {t("common.connect-wallet")}
-      </Button>
-    );
-  }
-  if (balancesLoaded && inputError) {
-    return (
-      <Button disabled size="small" type="button" variant="primary">
-        {t(`common.${inputError}`)}
-      </Button>
-    );
-  }
   return (
-    <Button size="small" type="submit" variant="primary">
-      {t("pages.borrow.supply-collateral-and-borrow")}
-    </Button>
+    <RequireWalletConnected size="small">
+      {balancesLoaded && inputError ? (
+        <Button disabled size="small" type="button" variant="primary">
+          {t(`common.${inputError}`)}
+        </Button>
+      ) : (
+        <Button size="small" type="submit" variant="primary">
+          {t("pages.borrow.supply-collateral-and-borrow")}
+        </Button>
+      )}
+    </RequireWalletConnected>
   );
 }
 
@@ -141,9 +122,10 @@ type Props = {
   isDrawerOpen: boolean;
   market: MarketData;
   onBorrowChange: (value: string) => void;
+  onClose?: VoidFunction;
   onCollateralChange: (value: string) => void;
   onDrawerOpenChange: (value: SetStateAction<boolean>) => void;
-  onSuccess?: VoidFunction;
+  onSuccess: (toast: ToastContent) => void;
   position?: AccrualPosition;
 };
 
@@ -153,27 +135,24 @@ export function BorrowForm({
   isDrawerOpen,
   market,
   onBorrowChange,
+  onClose,
   onCollateralChange,
   onDrawerOpenChange,
   onSuccess,
   position,
 }: Props) {
   const { t } = useTranslation();
-  const ethereumChain = useMainnet();
-  const { address } = useAccount();
-  const { openConnectModal } = useConnectModal();
   const [flowStatus, setFlowStatus] = useState<BorrowFlowStatus>("idle");
-  const [showToast, setShowToast] = useState(false);
   const [startedWithApproval, setStartedWithApproval] = useState(false);
   const supplyCollateralSucceeded = useRef(false);
   const handleDrawerClose = useCallback(
     function () {
       onDrawerOpenChange(false);
       if (flowStatus === "borrowed") {
-        onSuccess?.();
+        onClose?.();
       }
     },
-    [flowStatus, onDrawerOpenChange, onSuccess],
+    [flowStatus, onClose, onDrawerOpenChange],
   );
 
   const { collateralToken, loanToken, marketId } = market;
@@ -196,11 +175,11 @@ export function BorrowForm({
     chainId: collateralToken.chainId,
   });
 
-  const { data: nativeBalanceData } = useNativeBalance(ethereumChain.id);
+  const { data: nativeBalanceData } = useNativeBalance(mainnet.id);
 
   const { data: needsApproval } = useNeedsApproval({
     amount: collateralAmountBigInt,
-    spender: getChainAddresses(ethereumChain.id).morpho,
+    spender: getChainAddresses(mainnet.id).blue,
     token: collateralToken,
   });
 
@@ -237,7 +216,13 @@ export function BorrowForm({
   const handleBorrowSuccess = function () {
     onCompleted();
     setFlowStatus("borrowed");
-    setShowToast(true);
+    onSuccess({
+      description: t("pages.borrow.toast.description", {
+        amount: formatNumber(borrowInput),
+        symbol: loanToken.symbol,
+      }),
+      title: t("pages.borrow.toast.title"),
+    });
     watchToken();
   };
 
@@ -444,10 +429,8 @@ export function BorrowForm({
         </div>
         <div className="flex items-center justify-center border-y border-gray-200 p-3 *:w-full">
           <SubmitButton
-            address={address}
             balancesLoaded={balancesLoaded}
             inputError={inputError}
-            openConnectModal={openConnectModal}
           />
         </div>
         <FormSection
@@ -496,17 +479,6 @@ export function BorrowForm({
           onClose={handleDrawerClose}
           onRetry={handleRetry}
           showApproveStep={startedWithApproval}
-        />
-      )}
-      {showToast && (
-        <Toast
-          closable
-          description={t("pages.borrow.toast.description", {
-            amount: formatNumber(borrowInput),
-            symbol: loanToken.symbol,
-          })}
-          onClose={() => setShowToast(false)}
-          title={t("pages.borrow.toast.title")}
         />
       )}
     </>

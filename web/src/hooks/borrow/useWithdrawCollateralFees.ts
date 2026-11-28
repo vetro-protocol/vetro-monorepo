@@ -1,13 +1,8 @@
-import {
-  type QueryClient,
-  queryOptions,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { fetchTotalWithdrawCollateralFees } from "fetchers/fetchTotalWithdrawCollateralFees";
 import { fetchWithdrawCollateralGasUnits } from "fetchers/fetchWithdrawCollateralGasUnits";
 import { useEthereumClient } from "hooks/useEthereumClient";
-import { useMainnet } from "hooks/useMainnet";
+import { mainnet } from "networks/mainnet";
 import { type Address, type Chain, type Client, type Hash } from "viem";
 import { useAccount } from "wagmi";
 
@@ -35,18 +30,16 @@ export const withdrawCollateralGasUnitsOptions = ({
   client,
   marketId,
   owner,
-  queryClient,
 }: {
   amount: bigint;
   chainId: Chain["id"];
   client: Client | undefined;
   marketId: Hash;
   owner: Address | undefined;
-  queryClient: QueryClient;
 }) =>
   queryOptions({
     enabled: !!client && !!owner && amount > 0n,
-    queryFn: () =>
+    queryFn: ({ client: queryClient }) =>
       fetchWithdrawCollateralGasUnits({
         amount,
         client: client!,
@@ -86,18 +79,16 @@ const totalWithdrawCollateralFeesOptions = ({
   client,
   marketId,
   owner,
-  queryClient,
 }: {
   amount: bigint;
   chain: Chain;
   client: Client | undefined;
   marketId: Hash;
   owner: Address | undefined;
-  queryClient: QueryClient;
 }) =>
   queryOptions({
     enabled: !!client && !!owner && amount > 0n,
-    queryFn: () =>
+    queryFn: ({ client: queryClient }) =>
       fetchTotalWithdrawCollateralFees({
         amount,
         chain,
@@ -123,17 +114,14 @@ export const useTotalWithdrawCollateralFees = function ({
 }) {
   const { address: owner } = useAccount();
   const client = useEthereumClient();
-  const ethereumChain = useMainnet();
-  const queryClient = useQueryClient();
 
   return useQuery(
     totalWithdrawCollateralFeesOptions({
       amount,
-      chain: ethereumChain,
+      chain: mainnet,
       client,
       marketId,
       owner,
-      queryClient,
     }),
   );
 };

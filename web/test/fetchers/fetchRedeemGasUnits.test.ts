@@ -6,6 +6,7 @@ import {
   treasuryReservesQueryKey,
 } from "hooks/useTreasuryReserves";
 import type { TokenWithGateway } from "types";
+import { createErc20SpendStateOverride } from "utils/erc20StateOverride";
 import { zeroAddress, type Client } from "viem";
 import { estimateGas } from "viem/actions";
 import { describe, expect, it, vi } from "vitest";
@@ -48,6 +49,7 @@ vi.mock("viem/actions", () => ({
 
 vi.mock("utils/erc20StateOverride", () => ({
   createErc20AllowanceStateOverride: vi.fn(),
+  createErc20SpendStateOverride: vi.fn(),
 }));
 
 const chainId = 1;
@@ -160,28 +162,40 @@ describe("fetchRedeemGasUnits", function () {
     expect(result).toBe(operationGas);
   });
 
-  it("throws when amount exceeds token balance for instant redeem", async function () {
+  it("estimates an instant redeem with the balance overridden when the amount exceeds the balance", async function () {
+    const operationGas = 120000n;
     const queryClient = createPrepopulatedQueryClient({ balance: 50n });
-
+    const stateOverride = [{ address: zeroAddress, stateDiff: [] }];
     vi.mocked(redeemDelayOptions).mockReturnValue({
       queryFn: () => 0n,
       queryKey: ["redeem-delay"] as never,
     });
+    vi.mocked(estimateApprovalGasUnits).mockResolvedValue(0n);
+    vi.mocked(estimateGas).mockResolvedValue(operationGas);
+    vi.mocked(createErc20SpendStateOverride).mockReturnValue(stateOverride);
 
-    await expect(
-      fetchRedeemGasUnits({
-        amount: 100n,
-        approveAmount: 100n,
-        client: mockClient,
-        minAmountOut: 90n,
-        owner: mockOwner,
-        queryClient,
-        token: mockToken,
-        tokenOut: mockTokenOut,
-      }),
-    ).rejects.toThrow("Insufficient token balance");
+    const result = await fetchRedeemGasUnits({
+      amount: 100n,
+      approveAmount: 100n,
+      client: mockClient,
+      minAmountOut: 90n,
+      owner: mockOwner,
+      queryClient,
+      token: mockToken,
+      tokenOut: mockTokenOut,
+    });
 
-    expect(estimateGas).not.toHaveBeenCalled();
+    expect(result).toBe(operationGas);
+    expect(createErc20SpendStateOverride).toHaveBeenCalledWith({
+      amount: 100n,
+      balance: 50n,
+      owner: mockOwner,
+      spender: mockToken.gatewayAddress,
+      token: mockToken,
+    });
+    expect(vi.mocked(estimateGas).mock.lastCall?.[1].stateOverride).toBe(
+      stateOverride,
+    );
   });
 
   it("throws when treasury reserves are insufficient for two-step redeem", async function () {

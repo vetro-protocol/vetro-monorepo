@@ -1,15 +1,10 @@
-import {
-  queryOptions,
-  useQuery,
-  useQueryClient,
-  type QueryClient,
-} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import type { Token } from "@vetro-protocol/core";
 import { fetchMarketData } from "fetchers/fetchMarketData";
+import { mainnet } from "networks/mainnet";
 import type { Address, Chain, Client, Hash } from "viem";
 
 import { useEthereumClient } from "../useEthereumClient";
-import { useMainnet } from "../useMainnet";
 
 export type MarketData = {
   borrowApy: number;
@@ -35,31 +30,26 @@ export const marketDataOptions = ({
   chainId,
   client,
   marketId,
-  queryClient,
 }: {
   chainId: Chain["id"];
   client: Client | undefined;
   marketId: Hash;
-  queryClient: QueryClient;
 }) =>
   queryOptions({
     enabled: !!client,
-    queryFn: () =>
+    queryFn: ({ client: queryClient }) =>
       fetchMarketData({ chainId, client: client!, marketId, queryClient }),
     queryKey: marketDataQueryKey({ chainId, marketId }),
   });
 
 export const useMarketData = function (marketId: Hash) {
-  const ethereumChain = useMainnet();
   const client = useEthereumClient();
-  const queryClient = useQueryClient();
 
   return useQuery(
     marketDataOptions({
-      chainId: ethereumChain.id,
+      chainId: mainnet.id,
       client: client!,
       marketId,
-      queryClient,
     }),
   );
 };

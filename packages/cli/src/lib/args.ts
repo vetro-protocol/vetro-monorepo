@@ -1,6 +1,12 @@
 import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { InvalidArgumentError } from "commander";
-import { getAddress, isAddressEqual } from "viem";
+import {
+  getAddress,
+  isAddressEqual,
+  isHash,
+  parseUnits,
+  zeroAddress,
+} from "viem";
 
 import { MAX_SLIPPAGE } from "./slippage.ts";
 
@@ -12,14 +18,37 @@ export function parseAddress(value: string) {
   }
 }
 
-export function parseAmount(value: string) {
+export function parseNonNegativeAmount(value: string) {
   if (!/^\d+(\.\d+)?$/.test(value)) {
     throw new InvalidArgumentError(`Invalid amount: "${value}"`);
   }
+  return value;
+}
+
+export function parseAmount(value: string) {
+  parseNonNegativeAmount(value);
   if (Number(value) === 0) {
     throw new InvalidArgumentError(`Amount must be greater than 0: "${value}"`);
   }
   return value;
+}
+
+export function parseTokenAmount({
+  amount,
+  decimals,
+  token,
+}: {
+  amount: string;
+  decimals: number;
+  token: string;
+}) {
+  const fraction = amount.split(".")[1]?.replace(/0+$/, "") ?? "";
+  if (fraction.length > decimals) {
+    throw new Error(
+      `Amount has more decimals than "${token}" supports: ${decimals}`,
+    );
+  }
+  return parseUnits(amount, decimals);
 }
 
 export function parseGateway(value: string) {
@@ -28,6 +57,40 @@ export function parseGateway(value: string) {
     throw new InvalidArgumentError(`Not an enabled gateway: "${value}"`);
   }
   return address;
+}
+
+export function parseMarket(value: string) {
+  const trimmed = value.trim();
+  if (isHash(trimmed)) {
+    return { marketId: trimmed, value };
+  }
+  const sides = value.split("/").map((side) => side.trim());
+  if (sides.length !== 2 || sides.some((side) => side === "")) {
+    throw new InvalidArgumentError(
+      `Invalid market: "${value}": expected <collateral>/<loan> or a 32-byte market id`,
+    );
+  }
+  const [collateral, loan] = sides;
+  return { collateral, loan, value };
+}
+
+export type MarketSelector = ReturnType<typeof parseMarket>;
+
+export function parseReceiver(value: string) {
+  const address = parseAddress(value);
+  if (isAddressEqual(address, zeroAddress)) {
+    throw new InvalidArgumentError(
+      `Receiver cannot be the zero address: "${value}"`,
+    );
+  }
+  return address;
+}
+
+export function parseRequestId(value: string) {
+  if (!/^\d+$/.test(value)) {
+    throw new InvalidArgumentError(`Invalid request id: "${value}"`);
+  }
+  return BigInt(value);
 }
 
 export function parseRpcUrl(value: string) {

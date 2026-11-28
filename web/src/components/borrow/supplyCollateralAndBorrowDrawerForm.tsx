@@ -1,16 +1,17 @@
 import { Button } from "components/base/button";
 import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
-import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { StatusMessage } from "components/base/statusMessage";
+import type { ToastContent } from "components/base/toast";
 import { WarningCircleIcon } from "components/icons/warningCircleIcon";
 import type { MarketData } from "hooks/borrow/useMarketData";
 import { usePositionInfo } from "hooks/borrow/usePositionInfo";
 import { useAmount } from "hooks/useAmount";
-import { Suspense, lazy, useState } from "react";
+import { Suspense, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { lazyWithReload } from "utils/lazyWithReload";
 
-const BorrowForm = lazy(() =>
+const BorrowForm = lazyWithReload(() =>
   import("./borrowForm").then((m) => ({
     default: m.BorrowForm,
   })),
@@ -19,11 +20,13 @@ const BorrowForm = lazy(() =>
 type Props = {
   market: MarketData;
   onClose: VoidFunction;
+  onSuccess: (toast: ToastContent) => void;
 };
 
 export function SupplyCollateralAndBorrowDrawerForm({
   market,
   onClose,
+  onSuccess,
 }: Props) {
   const { t } = useTranslation();
   const [borrowInput, onBorrowChange] = useAmount();
@@ -71,9 +74,10 @@ export function SupplyCollateralAndBorrowDrawerForm({
             isDrawerOpen={isProgressDrawerOpen}
             market={market}
             onBorrowChange={onBorrowChange}
+            onClose={onClose}
             onCollateralChange={onCollateralChange}
             onDrawerOpenChange={setIsProgressDrawerOpen}
-            onSuccess={onClose}
+            onSuccess={onSuccess}
             position={position}
           />
         </Suspense>
@@ -82,13 +86,11 @@ export function SupplyCollateralAndBorrowDrawerForm({
   };
 
   return (
-    <Drawer onClose={onClose}>
-      <div className="flex h-full flex-col">
-        <DrawerTitle>
-          {t("pages.borrow.supply-collateral-and-borrow")}
-        </DrawerTitle>
-        {renderContent()}
-      </div>
+    <Drawer
+      onClose={onClose}
+      title={t("pages.borrow.supply-collateral-and-borrow")}
+    >
+      <div className="flex h-full flex-col">{renderContent()}</div>
     </Drawer>
   );
 }

@@ -15,16 +15,17 @@
     "@vetro-protocol/core": "workspace:*",
     "@vetro-protocol/earn": "workspace:*",
     "@vetro-protocol/gateway": "workspace:*",
+    "@vetro-protocol/hemi-earn": "workspace:*",
     "@vetro-protocol/treasury": "workspace:*",
     "crypto-shortener": "1.2.0",
     "fetch-plus-plus": "1.0.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "react-router": "8.3.0",
-    "victory": "37.3.6",
+    "react-router": "8.5.0",
+    "victory": "37.4.1",
     "viem": "2.44.4",
-    "viem-erc20": "2.2.0",
-    "viem-erc4626": "1.0.0"
+    "viem-erc20": "2.2.1",
+    "viem-erc4626": "1.2.0"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.23.1",
@@ -38,8 +39,8 @@
     "@vitejs/plugin-react": "6.0.1",
     "tailwindcss": "4.3.0",
     "typescript": "5.9.3",
-    "vite": "8.0.13",
-    "vitest": "4.1.9",
+    "vite": "8.3.4",
+    "vitest": "5.0.5",
     "wrangler": "4.63.0"
   },
   "private": true,

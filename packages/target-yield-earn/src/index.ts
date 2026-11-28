@@ -1,11 +1,24 @@
 import type { Client } from "viem";
 
 import {
-  getCurrentRate,
+  getCancelableDepositRequest,
+  getCancelableRedeemRequest,
+  getCanEntry,
+  getClaimableDepositRequest,
+  getClaimableRedeemRequest,
+  getEntryGate,
+  getEpoch,
   getEpochId,
+  getIsOperator,
+  getIsPaused,
+  getIsShutdown,
+  getIsTerminated,
+  getMaxMint,
   getMaxRequestDeposit,
   getMaxRequestRedeem,
-  pendingDepositRequest,
+  getPendingDepositRequest,
+  getPendingRedeemRequest,
+  getRate,
 } from "./actions/public/index.ts";
 
 export { targetYieldEarnVaultAbi } from "./abi/targetYieldEarnVaultAbi.ts";
@@ -16,17 +29,52 @@ export {
   minExitWindowSeconds,
 } from "./constants.ts";
 
+export {
+  targetYieldVaultAddresses,
+  vusdxAddress,
+} from "./targetYieldVaultAddresses.ts";
+
 // Export factory functions for .extend() pattern
 export const targetYieldEarnPublicActions = () => (client: Client) => ({
-  getCurrentRate: (params: Parameters<typeof getCurrentRate>[1]) =>
-    getCurrentRate(client, params),
+  getCancelableDepositRequest: (
+    params: Parameters<typeof getCancelableDepositRequest>[1],
+  ) => getCancelableDepositRequest(client, params),
+  getCancelableRedeemRequest: (
+    params: Parameters<typeof getCancelableRedeemRequest>[1],
+  ) => getCancelableRedeemRequest(client, params),
+  getCanEntry: (params: Parameters<typeof getCanEntry>[1]) =>
+    getCanEntry(client, params),
+  getClaimableDepositRequest: (
+    params: Parameters<typeof getClaimableDepositRequest>[1],
+  ) => getClaimableDepositRequest(client, params),
+  getClaimableRedeemRequest: (
+    params: Parameters<typeof getClaimableRedeemRequest>[1],
+  ) => getClaimableRedeemRequest(client, params),
+  getEntryGate: (params: Parameters<typeof getEntryGate>[1]) =>
+    getEntryGate(client, params),
+  getEpoch: (params: Parameters<typeof getEpoch>[1]) =>
+    getEpoch(client, params),
   getEpochId: (params: Parameters<typeof getEpochId>[1]) =>
     getEpochId(client, params),
+  getIsOperator: (params: Parameters<typeof getIsOperator>[1]) =>
+    getIsOperator(client, params),
+  getIsPaused: (params: Parameters<typeof getIsPaused>[1]) =>
+    getIsPaused(client, params),
+  getIsShutdown: (params: Parameters<typeof getIsShutdown>[1]) =>
+    getIsShutdown(client, params),
+  getIsTerminated: (params: Parameters<typeof getIsTerminated>[1]) =>
+    getIsTerminated(client, params),
+  getMaxMint: (params: Parameters<typeof getMaxMint>[1]) =>
+    getMaxMint(client, params),
   getMaxRequestDeposit: (params: Parameters<typeof getMaxRequestDeposit>[1]) =>
     getMaxRequestDeposit(client, params),
   getMaxRequestRedeem: (params: Parameters<typeof getMaxRequestRedeem>[1]) =>
     getMaxRequestRedeem(client, params),
-  pendingDepositRequest: (
-    params: Parameters<typeof pendingDepositRequest>[1],
-  ) => pendingDepositRequest(client, params),
+  getPendingDepositRequest: (
+    params: Parameters<typeof getPendingDepositRequest>[1],
+  ) => getPendingDepositRequest(client, params),
+  getPendingRedeemRequest: (
+    params: Parameters<typeof getPendingRedeemRequest>[1],
+  ) => getPendingRedeemRequest(client, params),
+  getRate: (params: Parameters<typeof getRate>[1]) => getRate(client, params),
 });

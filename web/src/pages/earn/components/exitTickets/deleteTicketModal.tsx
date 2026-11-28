@@ -1,13 +1,13 @@
-import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { Button } from "components/base/button";
 import { Modal } from "components/base/modal";
+import { GeoRestrictedButton } from "components/geoRestrictedButton";
+import { RequireWalletConnected } from "components/requireWalletConnected";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useCancelWithdraw } from "hooks/useCancelWithdraw";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
 import { formatAmount } from "utils/token";
-import { useAccount } from "wagmi";
 
 import type { ExitTicket } from "../../types";
 
@@ -25,8 +25,6 @@ export function DeleteTicketModal({
   ticket,
 }: Props) {
   const { t } = useTranslation();
-  const { isConnected } = useAccount();
-  const { openConnectModal } = useConnectModal();
 
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -91,7 +89,7 @@ export function DeleteTicketModal({
               {t("pages.earn.exit-tickets.delete-description")}
             </p>
           </div>
-          <div className="flex gap-3 *:flex-1">
+          <div className="flex gap-3 *:flex-1 [&_button]:w-full">
             <Button
               disabled={isDeleting}
               onClick={close}
@@ -100,8 +98,8 @@ export function DeleteTicketModal({
             >
               {t("pages.earn.exit-tickets.delete-btn-cancel")}
             </Button>
-            {isConnected ? (
-              <Button
+            <RequireWalletConnected size="xSmall">
+              <GeoRestrictedButton
                 disabled={isDeleting}
                 onClick={handleDelete}
                 size="xSmall"
@@ -110,16 +108,8 @@ export function DeleteTicketModal({
                 {isDeleting
                   ? t("pages.earn.exit-tickets.delete-btn-deleting")
                   : t("pages.earn.exit-tickets.delete-btn")}
-              </Button>
-            ) : (
-              <Button
-                onClick={openConnectModal}
-                size="xSmall"
-                variant="primary"
-              >
-                {t("common.connect-wallet")}
-              </Button>
-            )}
+              </GeoRestrictedButton>
+            </RequireWalletConnected>
           </div>
         </div>
       )}

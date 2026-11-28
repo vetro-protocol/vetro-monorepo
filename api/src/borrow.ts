@@ -10,11 +10,7 @@ const whitelistedMarketIds: string[] = [];
  * Validates the given market id by checking it is a valid market and that its
  * loan asset is either VUSD or the market is whitelisted.
  */
-export async function validateMarketId({
-  marketId,
-}: {
-  marketId: string;
-}): Promise<boolean> {
+export async function validateMarketId({ marketId }: { marketId: string }) {
   const loanAssetAddress = await morpho.getLoanAssetAddress({
     marketId,
   });
@@ -67,12 +63,7 @@ export async function getAprHistory({
 }: {
   marketId: string;
   period: string;
-}): Promise<
-  {
-    apr: number;
-    timestamp: number;
-  }[]
-> {
+}) {
   const { interval, startOffset } = periodsToIntervalMap[period];
   const startTimestamp = Math.floor(Date.now() / 1000) - startOffset;
   const data = await morpho.getHistoricalBorrowApy({
@@ -89,9 +80,7 @@ export async function getAprHistory({
 /**
  * Gets the amount of collateral assets in a given Morpho market.
  */
-export async function getCollateralAssets(
-  marketId: string,
-): Promise<{ collateralAssets: number }> {
+export async function getCollateralAssets(marketId: string) {
   const collateralAssets = await morpho.getCollateralAssets({ marketId });
   return { collateralAssets };
 }

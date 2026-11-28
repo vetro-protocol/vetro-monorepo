@@ -1,7 +1,6 @@
 import type { Token } from "@vetro-protocol/core";
 import { RenderCryptoValue } from "components/base/cryptoValue";
 import { DollarSign } from "components/base/dollarSign";
-import { DrawerTitle } from "components/base/drawer/drawerTitle";
 import { RenderFiatValue } from "components/base/fiatValue";
 import {
   TokenInteraction,
@@ -11,13 +10,13 @@ import { VerticalStepper, stepStatus } from "components/base/verticalStepper";
 import { DrawerFeesContainer } from "components/feesContainer";
 import { NetworkFees } from "components/networkFees";
 import { useVaultPreviewWithdraw } from "hooks/useVaultPreviewWithdraw";
+import type { WithdrawStep } from "pages/earn/components/earnForm/stakeFormReducer";
 import type { ComponentProps } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import type { TokenWithGateway } from "types";
+import { formatFiatNumberRoundDown } from "utils/format";
 import type { Address } from "viem";
-
-import type { WithdrawStep } from "./stakeFormReducer";
 
 type SummaryProps = {
   amount: string;
@@ -117,6 +116,17 @@ function InstantWithdrawSummary({
     </>
   );
 
+  const receivedFiatDetail = (
+    <>
+      <DollarSign />
+      <RenderFiatValue
+        customFormatter={formatFiatNumberRoundDown}
+        token={peggedToken}
+        value={assets}
+      />
+    </>
+  );
+
   return (
     <>
       <TokenInteraction
@@ -133,7 +143,7 @@ function InstantWithdrawSummary({
       />
       <TokenInteraction
         amount={amount}
-        detail={fiatDetail}
+        detail={receivedFiatDetail}
         label={t("pages.earn.stake.you-will-receive")}
         token={peggedToken}
       />
@@ -192,8 +202,6 @@ export function StakeWithdrawProgressDrawer({
 
   return (
     <div className="flex h-full flex-col">
-      <DrawerTitle>{t("pages.earn.stake.withdraw-in-progress")}</DrawerTitle>
-
       <TokenInteractionList>
         {canInstantWithdraw ? (
           <InstantWithdrawSummary

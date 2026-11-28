@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import fetch from "fetch-plus-plus";
 import { useEthereumClient } from "hooks/useEthereumClient";
 import { stakingVaultForPeggedTokenOptions } from "hooks/useStakingVaultForPeggedToken";
@@ -17,17 +17,15 @@ export const useShareValueHistory = function ({
   period: ChartPeriod;
 }) {
   const client = useEthereumClient();
-  const queryClient = useQueryClient();
   return useQuery({
     enabled:
       !!client && !!peggedToken && apiUrl !== undefined && URL.canParse(apiUrl),
-    async queryFn() {
+    async queryFn({ client: queryClient }) {
       const stakingVaultAddress = await queryClient.ensureQueryData(
         stakingVaultForPeggedTokenOptions({
           chainId: client!.chain!.id,
           client: client!,
           peggedTokenAddress: peggedToken!.address,
-          queryClient,
         }),
       );
       const data: ApiEntry[] = await fetch(

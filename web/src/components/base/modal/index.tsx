@@ -37,6 +37,7 @@ export function Modal({ ariaLabel, ariaLabelledBy, children, onClose }: Props) {
               ? "translate-y-0 opacity-100"
               : "translate-y-full opacity-100 md:translate-y-0 md:opacity-0"
           }`}
+          data-state={isOpen ? "open" : "closed"}
           onTransitionEnd={handleTransitionEnd}
           ref={ref}
           role="dialog"

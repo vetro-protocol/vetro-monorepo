@@ -10,6 +10,17 @@ const config = {
   },
   server: {
     port: 5175,
+    proxy: {
+      "/vetro-api": {
+        changeOrigin: true,
+        configure: (proxy) =>
+          proxy.on("proxyReq", (proxyReq) =>
+            proxyReq.removeHeader("cf-connecting-ip"),
+          ),
+        rewrite: (path) => path.replace(/^\/vetro-api/, ""),
+        target: "https://vetro-api.letshamsterdance.xyz",
+      },
+    },
   },
 } satisfies UserConfig;
 

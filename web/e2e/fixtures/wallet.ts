@@ -1,7 +1,8 @@
 import { TEST_PRIVATE_KEY } from "@hemilabs/anvil-fork-setup/utils";
+import { installMockWallet } from "@hemilabs/mock-wallet";
 import { test as base } from "@playwright/test";
-import { installMockWallet } from "@vetro-protocol/mock-wallet";
 import {
+  type Address,
   type EIP1193RequestFn,
   type Hex,
   type Transport,
@@ -20,11 +21,31 @@ import { ANVIL_URL } from "../anvil";
 // browser never makes this call and Playwright page routing can't observe it —
 // tapping the wallet's own transport is the reliable way to learn which tx it
 // sent. Reads (eth_call, eth_getLogs, …) pass through untouched.
-function recordingTransport(txHashes: Hex[]): Transport {
+function recordingTransport({
+  failTxAt,
+  txHashes,
+  watchedAssets,
+}: {
+  failTxAt: Set<number>;
+  txHashes: Hex[];
+  watchedAssets: Address[];
+}): Transport {
   const inner = http(ANVIL_URL);
+  let sendCount = 0;
   return function recording(params) {
     const transport = inner(params);
     const request = async function (args: Parameters<EIP1193RequestFn>[0]) {
+      if (args.method === "wallet_watchAsset") {
+        const { options } = args.params as { options: { address: Address } };
+        watchedAssets.push(options.address);
+        return true;
+      }
+      if (
+        args.method === "eth_sendRawTransaction" &&
+        failTxAt.has(sendCount++)
+      ) {
+        throw new Error("User rejected the request.");
+      }
       const result = await transport.request(args);
       if (args.method === "eth_sendRawTransaction") {
         txHashes.push(result as Hex);
@@ -36,20 +57,34 @@ function recordingTransport(txHashes: Hex[]): Transport {
 }
 
 type WalletFixtures = {
+  // 0-based indexes of the wallet sends that must fail. Add to it in the test.
+  failTxAt: Set<number>;
   // Hashes of the txs the mock wallet sent during the test, oldest first.
   walletTxHashes: Hex[];
+  // Token addresses the app asked the wallet to watch, oldest first.
+  walletWatchedAssets: Address[];
 };
 
 // `installMockWallet` injects an EIP-6963-announcing EIP-1193 provider into
 // the page before the dApp scripts run. RainbowKit then sees the wallet via
 // EIP-6963 and connects silently — no extension popup, no confirm clicks.
 export const test = base.extend<WalletFixtures>({
-  async page({ page, walletTxHashes }, use) {
+  // eslint-disable-next-line no-empty-pattern
+  async failTxAt({}, use) {
+    await use(new Set());
+  },
+  async page({ failTxAt, page, walletTxHashes, walletWatchedAssets }, use) {
     await installMockWallet({
       account: privateKeyToAccount(TEST_PRIVATE_KEY),
       chain: mainnet,
       page,
-      transports: { [mainnet.id]: recordingTransport(walletTxHashes) },
+      transports: {
+        [mainnet.id]: recordingTransport({
+          failTxAt,
+          txHashes: walletTxHashes,
+          watchedAssets: walletWatchedAssets,
+        }),
+      },
     });
 
     // The Cloudflare Worker (run by @cloudflare/vite-plugin) sets a
@@ -111,6 +146,10 @@ export const test = base.extend<WalletFixtures>({
   // when the fixture has no dependencies, so the empty pattern is intentional.
   // eslint-disable-next-line no-empty-pattern
   async walletTxHashes({}, use) {
+    await use([]);
+  },
+  // eslint-disable-next-line no-empty-pattern
+  async walletWatchedAssets({}, use) {
     await use([]);
   },
 });

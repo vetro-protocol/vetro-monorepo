@@ -6,8 +6,7 @@ type Props = {
   onClose: VoidFunction;
   peggedToken: Token;
 } & (
-  | { toToken?: undefined; type: "cancel" }
-  | { toToken: Token; type: "redeem" }
+  { toToken?: undefined; type: "cancel" } | { toToken: Token; type: "redeem" }
 );
 
 export function RedeemQueueToasts({
@@ -21,7 +20,6 @@ export function RedeemQueueToasts({
   if (type === "cancel") {
     return (
       <Toast
-        closable
         description={t(
           "pages.swap.redeem-queue.cancel-redeem-toast-description",
           { symbol: peggedToken.symbol },
@@ -34,7 +32,6 @@ export function RedeemQueueToasts({
 
   return (
     <Toast
-      closable
       description={t("pages.swap.redeem-queue.swap-confirmed-description", {
         symbol: toToken.symbol,
       })}

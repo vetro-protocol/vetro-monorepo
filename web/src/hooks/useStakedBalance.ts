@@ -1,13 +1,8 @@
 import { tokenBalanceQueryOptions } from "@hemilabs/react-hooks/useTokenBalance";
-import {
-  type QueryClient,
-  queryOptions,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { convertToAssetsQueryOptions } from "hooks/useConvertToAssets";
 import { useEthereumClient } from "hooks/useEthereumClient";
-import { useMainnet } from "hooks/useMainnet";
+import { mainnet } from "networks/mainnet";
 import type { Address, Client } from "viem";
 import { useAccount } from "wagmi";
 
@@ -25,18 +20,16 @@ export const stakedBalanceQueryOptions = ({
   account,
   chainId,
   client,
-  queryClient,
   stakingVaultAddress,
 }: {
   account: Address | undefined;
   chainId: number;
   client: Client | undefined;
-  queryClient: QueryClient;
   stakingVaultAddress: Address;
 }) =>
   queryOptions({
     enabled: !!client && !!account,
-    async queryFn() {
+    async queryFn({ client: queryClient }) {
       const shares = await queryClient.ensureQueryData(
         tokenBalanceQueryOptions({
           account: account!,
@@ -46,7 +39,7 @@ export const stakedBalanceQueryOptions = ({
       );
       return queryClient.ensureQueryData(
         convertToAssetsQueryOptions({
-          client,
+          client: client!,
           shares,
           stakingVaultAddress,
         }),
@@ -61,16 +54,13 @@ export const stakedBalanceQueryOptions = ({
 
 export function useStakedBalance(stakingVaultAddress: Address) {
   const { address: account } = useAccount();
-  const chain = useMainnet();
   const client = useEthereumClient();
-  const queryClient = useQueryClient();
 
   return useQuery(
     stakedBalanceQueryOptions({
       account,
-      chainId: chain.id,
+      chainId: mainnet.id,
       client,
-      queryClient,
       stakingVaultAddress,
     }),
   );

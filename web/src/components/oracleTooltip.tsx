@@ -2,7 +2,7 @@ import { ExternalLink } from "components/base/externalLink";
 import { ExternalLinkIcon } from "components/icons/externalLinkIcon";
 import { InfoIcon } from "components/icons/infoIcon";
 import { Tooltip } from "components/tooltip";
-import { useMainnet } from "hooks/useMainnet";
+import { mainnet } from "networks/mainnet";
 import { useTranslation } from "react-i18next";
 import { formatEvmAddress } from "utils/format";
 import type { Address } from "viem";
@@ -50,16 +50,23 @@ export function OracleTooltip({
   useParentContainer = false,
   variant = "chainlink",
 }: Props) {
-  const chain = useMainnet();
   const { t } = useTranslation();
-  const explorerBaseUrl = chain.blockExplorers!.default.url;
+  const explorerBaseUrl = mainnet.blockExplorers!.default.url;
 
   const variantConfig = {
-    chainlink: { label: "Chainlink", logo: <ChainlinkLogo /> },
-    oracle: { label: t("common.oracle"), logo: <OracleLogo /> },
+    chainlink: {
+      label: "Chainlink",
+      logo: <ChainlinkLogo />,
+      topic: t("common.chainlink-oracle"),
+    },
+    oracle: {
+      label: t("common.oracle"),
+      logo: <OracleLogo />,
+      topic: t("common.oracle"),
+    },
   };
 
-  const { label, logo } = variantConfig[variant];
+  const { label, logo, topic } = variantConfig[variant];
 
   return (
     <Tooltip
@@ -77,6 +84,7 @@ export function OracleTooltip({
           <ExternalLinkIcon />
         </ExternalLink>
       }
+      topic={topic}
       useParentContainer={useParentContainer}
     >
       <InfoIcon />

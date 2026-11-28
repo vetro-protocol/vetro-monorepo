@@ -5,6 +5,7 @@ import { useUpdateNativeBalanceAfterReceipt } from "@hemilabs/react-hooks/useUpd
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { stakingVaultAbi } from "@vetro-protocol/earn";
 import { requestWithdraw } from "@vetro-protocol/earn/actions";
+import { mainnet } from "networks/mainnet";
 import { exitTicketsQueryKey } from "pages/earn/hooks/useExitTickets";
 import type { ExitTicket } from "pages/earn/types";
 import { type CostBases, reduceCostBasisProportionally } from "utils/costBasis";
@@ -14,7 +15,6 @@ import { useAccount } from "wagmi";
 import { costBasisQueryKey } from "./useCostBasis";
 import { earnedAmountUsdQueryKey } from "./useEarnedAmountUsd";
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
-import { useMainnet } from "./useMainnet";
 import { poolDepositsQueryKey } from "./usePoolDeposits";
 import { stakedBalanceQueryKey } from "./useStakedBalance";
 import { stakedUsdQueryKey } from "./useStakedUsd";
@@ -37,29 +37,28 @@ export const useStakeWithdraw = function ({
   stakingVaultAddress,
 }: Params) {
   const { address: account } = useAccount();
-  const chain = useMainnet();
   const { data: walletClient } = useEthereumWalletClient();
   const ensureConnectedTo = useEnsureConnectedTo();
   const queryClient = useQueryClient();
 
-  const { queryKey: nativeBalanceKey } = useNativeBalance(chain.id);
+  const { queryKey: nativeBalanceKey } = useNativeBalance(mainnet.id);
   const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
-    chain.id,
+    mainnet.id,
   );
 
   const sharesBalanceKey = tokenBalanceQueryKey(
-    { address: stakingVaultAddress, chainId: chain.id },
+    { address: stakingVaultAddress, chainId: mainnet.id },
     account,
   );
 
   const stakedKey = stakedBalanceQueryKey({
     account: account!,
-    chainId: chain.id,
+    chainId: mainnet.id,
     stakingVaultAddress,
   });
 
   const poolDepositsKey = poolDepositsQueryKey({
-    chainId: chain.id,
+    chainId: mainnet.id,
     stakingVaultAddress,
   });
 
@@ -72,7 +71,7 @@ export const useStakeWithdraw = function ({
         throw new Error("No wallet client available");
       }
 
-      await ensureConnectedTo(chain.id);
+      await ensureConnectedTo(mainnet.id);
 
       const { emitter, promise } = requestWithdraw(walletClient, {
         assets,
@@ -86,6 +85,18 @@ export const useStakeWithdraw = function ({
       });
 
       emitter.on("user-signing-request-withdraw-error", function () {
+        onStatusChange?.("request-failed");
+      });
+
+      emitter.on("request-withdraw-failed", function () {
+        onStatusChange?.("request-failed");
+      });
+
+      emitter.on("request-withdraw-failed-validation", function () {
+        onStatusChange?.("request-failed");
+      });
+
+      emitter.on("unexpected-error", function () {
         onStatusChange?.("request-failed");
       });
 
@@ -138,7 +149,9 @@ export const useStakeWithdraw = function ({
             const { args } = logs[0];
             const ticket: ExitTicket = {
               assets: args.assets.toString(),
+              cancelTxHash: null,
               claimableAt: args.claimableAt.toString(),
+              claimTxHash: null,
               owner: args.owner,
               requestId: args.requestId.toString(),
               requestTxHash: receipt.transactionHash,
@@ -156,6 +169,9 @@ export const useStakeWithdraw = function ({
 
       return promise;
     },
+    onError() {
+      onStatusChange?.("request-failed");
+    },
     async onSettled() {
       queryClient.invalidateQueries({
         queryKey: nativeBalanceKey,
@@ -171,7 +187,7 @@ export const useStakeWithdraw = function ({
       queryClient.invalidateQueries({
         queryKey: stakedUsdQueryKey({
           account,
-          chainId: chain.id,
+          chainId: mainnet.id,
           stakingVaultAddress,
         }),
       });
@@ -179,7 +195,7 @@ export const useStakeWithdraw = function ({
       queryClient.invalidateQueries({
         queryKey: earnedAmountUsdQueryKey({
           account,
-          chainId: chain.id,
+          chainId: mainnet.id,
           stakingVaultAddress,
         }),
       });

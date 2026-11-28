@@ -35,7 +35,6 @@ export const fetchTotalSupplyCollateralFees = async function ({
       client,
       marketId,
       owner,
-      queryClient,
       token,
     }),
   );

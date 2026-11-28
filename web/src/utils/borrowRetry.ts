@@ -1,4 +1,4 @@
-export type BorrowRetryState = {
+type BorrowRetryState = {
   action: "borrow-more" | "supply-and-borrow";
   flowStatus: "approving" | "borrowing" | "supply-collateral-ready";
 };

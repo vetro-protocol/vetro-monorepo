@@ -1,5 +1,5 @@
 import { Link, useParams } from "react-router";
-import { type Address, formatUnits, isAddressEqual } from "viem";
+import { type Address, isAddressEqual } from "viem";
 
 import { CampaignsList } from "../components/dex/campaignsList";
 import { ChainLogo } from "../components/dex/chainLogo";
@@ -15,15 +15,17 @@ import { type Dex, dexLabels } from "../config/dexes";
 import { useCurvePoolStats } from "../hooks/useCurvePoolStats";
 import { useGaugeEmissions } from "../hooks/useGaugeEmissions";
 import { useTrackedPools } from "../hooks/useTrackedPools";
+import { stakeDaoStrategyKey } from "../lib/campaigns";
 import {
+  formatAprRange,
   formatOptionalPercent,
   formatOptionalUsd,
   formatPercent,
   formatPrice,
   formatRate,
   formatTokenAmount,
-  formatUsd,
 } from "../lib/format";
+import { strategyUrl } from "../lib/stakeDaoApi";
 import { type PoolCoin, type TrackedPool } from "../lib/types";
 
 // Within 10% of equal value: treat the pair as a peg and surface drift from 1.
@@ -50,13 +52,16 @@ const CurveFeesCard = function ({ pool }: { pool: TrackedPool }) {
   );
 };
 
-// Rolling-24h fees. Sushi's API gives them on the pool object directly; Curve
-// needs a separate per-pool analytics fetch.
 const FeesCard = function ({ pool }: { pool: TrackedPool }) {
-  if (pool.feesUsd24h !== null && pool.feesUsd24h !== undefined) {
-    return <StatCard label="24h Fees" value={formatPrice(pool.feesUsd24h)} />;
+  if (pool.dex === "curve") {
+    return <CurveFeesCard pool={pool} />;
   }
-  return <CurveFeesCard pool={pool} />;
+  return (
+    <StatCard
+      label="24h Fees"
+      value={pool.feesUsd24h === undefined ? "—" : formatPrice(pool.feesUsd24h)}
+    />
+  );
 };
 
 const ExchangeRateCard = function ({ pool }: { pool: TrackedPool }) {
@@ -103,9 +108,8 @@ const CoinBreakdown = function ({
   dex: Dex;
   tvlUsd: number | undefined;
 }) {
-  const balance = Number(formatUnits(coin.balance, coin.decimals));
   const balanceUsd =
-    coin.usdPrice === undefined ? undefined : balance * coin.usdPrice;
+    coin.usdPrice === undefined ? undefined : coin.amount * coin.usdPrice;
   const share =
     balanceUsd !== undefined && tvlUsd
       ? (balanceUsd / tvlUsd) * 100
@@ -124,7 +128,7 @@ const CoinBreakdown = function ({
         <div>
           <dt className="text-xs text-neutral-500">Balance</dt>
           <dd className="font-medium text-neutral-950">
-            {formatTokenAmount(balance)}
+            {formatTokenAmount(coin.amount)}
           </dd>
         </div>
         <div>
@@ -146,6 +150,9 @@ const CoinBreakdown = function ({
 
 const GaugeSection = function ({ pool }: { pool: TrackedPool }) {
   const { data: emission } = useGaugeEmissions({ poolAddress: pool.address });
+  const gaugeReward = pool.rewards.find(
+    (reward) => reward.source === "curveGauge",
+  );
 
   if (!pool.gaugeAddress) {
     return <p className="text-sm text-neutral-600">This pool has no gauge.</p>;
@@ -165,11 +172,15 @@ const GaugeSection = function ({ pool }: { pool: TrackedPool }) {
         value={emission ? formatTokenAmount(emission.estCrvPerDay) : "—"}
       />
       <StatCard
-        label="CRV APY"
+        hint="Unboosted → max boost"
+        label="CRV APR"
         value={
-          pool.rewardApyMax > pool.rewardApy
-            ? `${formatPercent(pool.rewardApy)} – ${formatPercent(pool.rewardApyMax)}`
-            : formatPercent(pool.rewardApy)
+          gaugeReward
+            ? formatAprRange({
+                max: gaugeReward.aprMax ?? gaugeReward.apr,
+                min: gaugeReward.apr,
+              })
+            : "—"
         }
       />
       {!hasEmissions && emission ? (
@@ -196,6 +207,31 @@ const AddressRow = ({
   </div>
 );
 
+const GaugeRow = ({
+  chainId,
+  gauge,
+  strategyKey,
+}: {
+  chainId: number;
+  gauge: Address;
+  strategyKey: string | undefined;
+}) => (
+  <div className="flex items-center justify-between gap-x-4 py-2 text-sm">
+    <span className="text-neutral-600">Gauge</span>
+    <span className="flex items-center gap-x-3">
+      <ExplorerLink address={gauge} chainId={chainId} />
+      {strategyKey ? (
+        <ExternalLink
+          className="font-medium text-blue-600 hover:underline"
+          href={strategyUrl(strategyKey)}
+        >
+          Deposit LP on StakeDAO ↗
+        </ExternalLink>
+      ) : null}
+    </span>
+  </div>
+);
+
 const AddressesSection = ({ pool }: { pool: TrackedPool }) => (
   <div>
     <h3 className="mb-1 text-lg font-semibold text-neutral-950">Addresses</h3>
@@ -215,10 +251,10 @@ const AddressesSection = ({ pool }: { pool: TrackedPool }) => (
         </span>
       </div>
       {pool.gaugeAddress ? (
-        <AddressRow
-          address={pool.gaugeAddress}
+        <GaugeRow
           chainId={pool.chainId}
-          label="Gauge"
+          gauge={pool.gaugeAddress}
+          strategyKey={stakeDaoStrategyKey(pool)}
         />
       ) : null}
       {pool.lpTokenAddress &&
@@ -274,9 +310,7 @@ export const DexPoolPage = function () {
     );
   }
 
-  // The volume / fees / APY cards apply to any full pool; range views are
-  // sub-slices of one pool, so they'd double-count and are hidden. The gauge
-  // section stays Curve-only — Sushi has no gauge.
+  // The gauge section stays Curve-only — Sushi has no gauge.
   const isCurve = pool.dex === "curve";
 
   return (
@@ -298,7 +332,9 @@ export const DexPoolPage = function () {
               <VenueBadge dex={pool.dex} />
               {pool.rangeLabel ? <RangeBadge label={pool.rangeLabel} /> : null}
             </div>
-            <p className="mt-1 text-xs text-neutral-500">{pool.poolType}</p>
+            {pool.poolType ? (
+              <p className="mt-1 text-xs text-neutral-500">{pool.poolType}</p>
+            ) : null}
           </div>
           {pool.url ? (
             <ExternalLink
@@ -313,30 +349,25 @@ export const DexPoolPage = function () {
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         <StatCard label="TVL" value={formatOptionalUsd(pool.tvlUsd)} />
-        {!pool.isRangeView ? (
-          <>
-            <StatCard label="24h Volume" value={formatUsd(pool.volumeUsd24h)} />
-            <FeesCard pool={pool} />
-            <StatCard
-              hint={`${formatOptionalPercent(pool.baseApy)} base + ${formatPercent(pool.rewardApy)} rewards`}
-              label="APY"
-              value={formatOptionalPercent(
-                pool.baseApy === undefined
-                  ? undefined
-                  : pool.baseApy + pool.rewardApy,
-              )}
-            />
-            <StatCard
-              hint="24h volume / TVL"
-              label="Liquidity utilization"
-              value={
-                pool.tvlUsd
-                  ? formatPercent((pool.volumeUsd24h / pool.tvlUsd) * 100)
-                  : "—"
-              }
-            />
-          </>
-        ) : null}
+        <StatCard
+          label="24h Volume"
+          value={formatOptionalUsd(pool.volumeUsd24h)}
+        />
+        <FeesCard pool={pool} />
+        <StatCard
+          hint="Trading fees"
+          label="Pool APY"
+          value={formatOptionalPercent(pool.baseApy)}
+        />
+        <StatCard
+          hint="24h volume / TVL"
+          label="Liquidity utilization"
+          value={
+            pool.tvlUsd && pool.volumeUsd24h !== undefined
+              ? formatPercent((pool.volumeUsd24h / pool.tvlUsd) * 100)
+              : "—"
+          }
+        />
         <ExchangeRateCard pool={pool} />
       </div>
 
@@ -370,7 +401,7 @@ export const DexPoolPage = function () {
         <p className="mb-3 text-sm text-neutral-600">
           Third-party campaigns running on this pool.
         </p>
-        <CampaignsList poolId={pool.id} />
+        <CampaignsList pool={pool} />
       </div>
 
       <AddressesSection pool={pool} />

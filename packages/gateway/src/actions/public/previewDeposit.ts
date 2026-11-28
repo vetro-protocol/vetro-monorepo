@@ -8,8 +8,8 @@ export async function previewDeposit(
   client: Client,
   parameters: {
     address: Address;
-    tokenIn: Address;
     amountIn: bigint;
+    tokenIn: Address;
   },
 ) {
   // Validate client

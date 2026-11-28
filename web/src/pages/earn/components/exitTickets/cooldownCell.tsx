@@ -1,32 +1,12 @@
 import { Tooltip } from "components/tooltip";
+import { useNowTickingPast } from "hooks/useNowTickingPast";
 import { useTranslation } from "react-i18next";
-import { formatDate } from "utils/date";
+import { formatDate, unixNowTimestamp } from "utils/date";
 
 import type { ExitTicket } from "../../types";
 
+import { getCooldownValues, getNextChangeTime } from "./getCooldownTiming";
 import { getTicketStatus } from "./getTicketStatus";
-
-function getCooldownValues(claimableAt: string) {
-  const now = Math.floor(Date.now() / 1000);
-  const remaining = Number(claimableAt) - now;
-
-  if (remaining <= 0) {
-    return { count: 0, unit: "minutes" as const };
-  }
-
-  const days = Math.floor(remaining / 86400);
-  if (days > 0) {
-    return { count: days, unit: "days" as const };
-  }
-
-  const hours = Math.floor(remaining / 3600);
-  if (hours > 0) {
-    return { count: hours, unit: "hours" as const };
-  }
-
-  const minutes = Math.max(1, Math.floor(remaining / 60));
-  return { count: minutes, unit: "minutes" as const };
-}
 
 const unitKeys = {
   days: "pages.earn.exit-tickets.days",
@@ -40,8 +20,17 @@ type Props = {
 
 export function CooldownCell({ ticket }: Props) {
   const { i18n, t } = useTranslation();
-  const status = getTicketStatus(ticket);
-  const { count, unit } = getCooldownValues(ticket.claimableAt);
+  const now = useNowTickingPast([ticket], () =>
+    getNextChangeTime({
+      claimableAt: ticket.claimableAt,
+      now: unixNowTimestamp(),
+    }),
+  );
+  const status = getTicketStatus({ now, ticket });
+  const { count, unit } = getCooldownValues({
+    claimableAt: ticket.claimableAt,
+    now: unixNowTimestamp(),
+  });
   const text = t(unitKeys[unit], { count });
 
   if (status === "cooldown") {
@@ -49,7 +38,6 @@ export function CooldownCell({ ticket }: Props) {
       <Tooltip
         content={t("pages.earn.exit-tickets.cooldown-ends", {
           date: formatDate(ticket.claimableAt, i18n.language),
-          interpolation: { escapeValue: false },
         })}
       >
         <span className="text-xsm font-medium text-gray-900">{text}</span>

@@ -4,8 +4,9 @@ import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
 import { getChainAddresses } from "@morpho-org/blue-sdk";
 import { Button } from "components/base/button";
 import { RenderCryptoValue } from "components/base/cryptoValue";
+import { DrawerRetryFooter } from "components/base/drawer/drawerRetryFooter";
 import { RenderFiatValue } from "components/base/fiatValue";
-import { Toast } from "components/base/toast";
+import type { ToastContent } from "components/base/toast";
 import {
   type Step,
   VerticalStepper,
@@ -17,6 +18,7 @@ import { CollapsibleSection } from "components/collapsibleSection";
 import { DrawerFeesContainer } from "components/feesContainer";
 import { ExclamationTriangleIcon } from "components/icons/exclamationTriangleIcon";
 import { NetworkFees } from "components/networkFees";
+import { RequireWalletConnected } from "components/requireWalletConnected";
 import { SetMaxErc20Balance } from "components/setMaxErc20Balance";
 import { TokenInput } from "components/tokenInput";
 import { Balance } from "components/tokenInput/balance";
@@ -31,14 +33,13 @@ import { useActivityTracking } from "hooks/useActivityTracking";
 import { useAmount } from "hooks/useAmount";
 import { useAnimatedVisibility } from "hooks/useAnimatedVisibility";
 import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
-import { useMainnet } from "hooks/useMainnet";
+import { mainnet } from "networks/mainnet";
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { formatLtvAsPercentage } from "utils/borrowReview";
 import { formatNumber } from "utils/format";
 import { isGeoRestricted } from "utils/geoRestriction";
 import { parseTokenUnits } from "utils/token";
-import { useAccount } from "wagmi";
 
 import { PositionReview } from "./positionReview";
 
@@ -54,7 +55,7 @@ type SupplyCollateralFlowStatus =
 
 const getApproveStepStatus = function (
   status: Exclude<SupplyCollateralFlowStatus, "idle">,
-): Step["status"] {
+) {
   const exceptions: Partial<
     Record<Exclude<SupplyCollateralFlowStatus, "idle">, Step["status"]>
   > = {
@@ -66,7 +67,7 @@ const getApproveStepStatus = function (
 
 const getSupplyStepStatus = function (
   status: Exclude<SupplyCollateralFlowStatus, "idle">,
-): Step["status"] {
+) {
   const exceptions: Partial<
     Record<Exclude<SupplyCollateralFlowStatus, "idle">, Step["status"]>
   > = {
@@ -81,14 +82,12 @@ const getSupplyStepStatus = function (
 };
 
 type SubmitButtonProps = {
-  address: string | undefined;
   balancesLoaded: boolean;
   inputError: InputError | undefined;
   sufficientGas: boolean;
 };
 
 function SubmitButton({
-  address,
   balancesLoaded,
   inputError,
   sufficientGas,
@@ -104,31 +103,37 @@ function SubmitButton({
     );
   }
 
-  if (!address) {
+  function renderButton() {
+    if (balancesLoaded && !sufficientGas) {
+      return (
+        <Button disabled size="small" type="button" variant="primary">
+          {t("common.insufficient-gas")}
+        </Button>
+      );
+    }
+    if (balancesLoaded && inputError) {
+      return (
+        <Button disabled size="small" type="button" variant="primary">
+          {t(`common.${inputError}`)}
+        </Button>
+      );
+    }
     return (
-      <Button disabled size="small" type="button" variant="primary">
-        {t("common.connect-wallet")}
+      <Button
+        disabled={!balancesLoaded}
+        size="small"
+        type="submit"
+        variant="primary"
+      >
+        {t("pages.borrow.supply-collateral-progress.submit")}
       </Button>
     );
   }
-  if (balancesLoaded && !sufficientGas) {
-    return (
-      <Button disabled size="small" type="button" variant="primary">
-        {t("common.insufficient-gas")}
-      </Button>
-    );
-  }
-  if (balancesLoaded && inputError) {
-    return (
-      <Button disabled size="small" type="button" variant="primary">
-        {t(`common.${inputError}`)}
-      </Button>
-    );
-  }
+
   return (
-    <Button size="small" type="submit" variant="primary">
-      {t("pages.borrow.supply-collateral-progress.submit")}
-    </Button>
+    <RequireWalletConnected size="small">
+      {renderButton()}
+    </RequireWalletConnected>
   );
 }
 
@@ -164,8 +169,6 @@ function StepperOverlay({
   steps,
 }: StepperOverlayProps) {
   const { t } = useTranslation();
-  const { render: renderRetry, show: showRetry } =
-    useAnimatedVisibility(isError);
 
   return (
     <>
@@ -189,21 +192,7 @@ function StepperOverlay({
             <VerticalStepper steps={steps} />
           </div>
         </div>
-        {renderRetry && (
-          <div
-            className={`grid transition-[grid-template-rows] duration-300 ease-out ${
-              showRetry ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-            }`}
-          >
-            <div className="overflow-hidden">
-              <div className="border-t border-gray-200 bg-gray-50 px-6 py-3 *:w-full">
-                <Button onClick={onRetry} size="small" variant="primary">
-                  {t("pages.borrow.supply-collateral-progress.retry")}
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
+        <DrawerRetryFooter onRetry={isError ? onRetry : undefined} />
       </div>
     </>
   );
@@ -212,17 +201,15 @@ function StepperOverlay({
 type Props = {
   market: MarketData;
   onClose: VoidFunction;
+  onSuccess: (toast: ToastContent) => void;
 };
 
-export function SupplyCollateralForm({ market, onClose }: Props) {
+export function SupplyCollateralForm({ market, onClose, onSuccess }: Props) {
   const { t } = useTranslation();
-  const ethereumChain = useMainnet();
-  const { address } = useAccount();
 
   const [collateralInput, onCollateralChange] = useAmount();
   const [flowStatus, setFlowStatus] =
     useState<SupplyCollateralFlowStatus>("idle");
-  const [showToast, setShowToast] = useState(false);
   const [startedWithApproval, setStartedWithApproval] = useState(false);
 
   const isActive = flowStatus !== "idle";
@@ -247,11 +234,11 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
     chainId: collateralToken.chainId,
   });
 
-  const { data: nativeBalanceData } = useNativeBalance(ethereumChain.id);
+  const { data: nativeBalanceData } = useNativeBalance(mainnet.id);
 
   const { data: needsApproval } = useNeedsApproval({
     amount: collateralAmountBigInt,
-    spender: getChainAddresses(ethereumChain.id).morpho,
+    spender: getChainAddresses(mainnet.id).blue,
     token: collateralToken,
   });
 
@@ -299,7 +286,16 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
       emitter.on("supply-collateral-transaction-succeeded", function () {
         onCompleted();
         setFlowStatus("supplied-collateral");
-        setShowToast(true);
+        onSuccess({
+          description: t(
+            "pages.borrow.supply-collateral-progress.toast-description",
+            {
+              amount: formatNumber(collateralInput),
+              symbol: collateralToken.symbol,
+            },
+          ),
+          title: t("pages.borrow.supply-collateral-progress.toast-title"),
+        });
       });
       emitter.on("supply-collateral-transaction-reverted", function () {
         onFailed();
@@ -415,7 +411,6 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
         </div>
         <div className="border-y border-gray-200 bg-gray-50 px-6 py-3 *:w-full">
           <SubmitButton
-            address={address}
             balancesLoaded={
               nativeBalance !== undefined && collateralBalance !== undefined
             }
@@ -449,20 +444,6 @@ export function SupplyCollateralForm({ market, onClose }: Props) {
         showStepper={showStepper}
         steps={steps}
       />
-      {showToast && (
-        <Toast
-          closable
-          description={t(
-            "pages.borrow.supply-collateral-progress.toast-description",
-            {
-              amount: formatNumber(collateralInput),
-              symbol: collateralToken.symbol,
-            },
-          )}
-          onClose={() => setShowToast(false)}
-          title={t("pages.borrow.supply-collateral-progress.toast-title")}
-        />
-      )}
     </div>
   );
 }

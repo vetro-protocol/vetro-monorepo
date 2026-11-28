@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { pickCounterpartToken } from "../../src/utils/bridge";
 
-const makeToken = (symbol: string, chainId: number): BridgeableToken =>
+const makeToken = (symbol: string, chainId: number) =>
   ({
     chainId,
     symbol,

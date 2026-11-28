@@ -1,5 +1,5 @@
 import { shorten } from "crypto-shortener";
-import { type Address, getAddress, zeroAddress } from "viem";
+import { type Address, getAddress, isAddressEqual, zeroAddress } from "viem";
 
 const usdFormatter = new Intl.NumberFormat("en-US", {
   currency: "USD",
@@ -16,6 +16,13 @@ export const formatOptionalUsd = (value: number | undefined) =>
 
 export const formatOptionalPercent = (value: number | undefined) =>
   value === undefined ? "—" : formatPercent(value);
+
+// Curve quotes gauge APR as a range from unboosted to max veCRV boost (2.5x).
+// Collapses to a single value when there's no boost spread.
+export const formatAprRange = ({ max, min }: { max: number; min: number }) =>
+  max > min
+    ? `${formatPercent(min)} → ${formatPercent(max)}`
+    : formatPercent(min);
 
 export const formatTokenAmount = (value: number) =>
   value.toLocaleString("en-US", {
@@ -54,7 +61,10 @@ export const shortenAddress = (address: Address) =>
 
 // Checksum a possibly-missing address into a viem Address, treating the zero
 // address as absent. Normalizes raw (string) addresses from external APIs.
-export const normalizeAddress = (address: string | undefined) =>
-  address && address.toLowerCase() !== zeroAddress
-    ? getAddress(address)
-    : undefined;
+export const normalizeAddress = function (address: string | undefined) {
+  if (!address) {
+    return undefined;
+  }
+  const checksummed = getAddress(address);
+  return isAddressEqual(checksummed, zeroAddress) ? undefined : checksummed;
+};

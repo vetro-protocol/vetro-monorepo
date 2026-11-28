@@ -4,19 +4,18 @@
   "description": "Shared Vetro Protocol types, token metadata and utilities.",
   "scripts": {
     "build": "tsc --noEmit",
-    "postbuild": "pnpm bundle && pnpm build:types",
-    "build:types": "tsc -p tsconfig.build.json --declarationDir ./_types --emitDeclarationOnly --declaration --declarationMap",
+    "postbuild": "pnpm bundle",
     "bundle": "node ../../scripts/bundle-package.js",
-    "clean": "rm -rf ./_esm ./_types",
+    "clean": "rm -rf ./_esm",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
     "@tsconfig/node24": "24.0.4",
-    "@vitest/coverage-v8": "4.1.9",
+    "@vitest/coverage-v8": "5.0.5",
     "typescript": "5.9.3",
     "viem": "2.44.4",
-    "vitest": "4.1.9"
+    "vitest": "5.0.5"
   },
   "peerDependencies": {
     "viem": "^2.x"

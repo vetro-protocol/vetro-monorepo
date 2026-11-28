@@ -1,13 +1,13 @@
-import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { Button } from "components/base/button";
 import { Modal } from "components/base/modal";
+import { GeoRestrictedButton } from "components/geoRestrictedButton";
+import { RequireWalletConnected } from "components/requireWalletConnected";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useCancelRedeemRequest } from "hooks/useCancelRedeemRequest";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
 import { formatUnits } from "viem";
-import { useAccount } from "wagmi";
 
 type Props = {
   onClose: VoidFunction;
@@ -22,8 +22,6 @@ export function CancelRedeemModal({
   peggedToken,
   redeemableAmount,
 }: Props) {
-  const { isConnected } = useAccount();
-  const { openConnectModal } = useConnectModal();
   const [isCancelling, setIsCancelling] = useState(false);
   const { t } = useTranslation();
 
@@ -91,7 +89,7 @@ export function CancelRedeemModal({
               })}
             </p>
           </div>
-          <div className="flex gap-3 *:flex-1">
+          <div className="flex gap-3 *:flex-1 [&_button]:w-full">
             <Button
               disabled={isCancelling}
               onClick={close}
@@ -100,8 +98,8 @@ export function CancelRedeemModal({
             >
               {t("pages.swap.redeem-queue.keep-redeem")}
             </Button>
-            {isConnected ? (
-              <Button
+            <RequireWalletConnected size="xSmall">
+              <GeoRestrictedButton
                 disabled={isCancelling}
                 onClick={() => mutate()}
                 size="xSmall"
@@ -110,16 +108,8 @@ export function CancelRedeemModal({
                 {isCancelling
                   ? t("pages.swap.redeem-queue.cancel-redeem-btn-cancelling")
                   : t("pages.swap.redeem-queue.cancel-redeem-btn-cancel")}
-              </Button>
-            ) : (
-              <Button
-                onClick={openConnectModal}
-                size="xSmall"
-                variant="primary"
-              >
-                {t("common.connect-wallet")}
-              </Button>
-            )}
+              </GeoRestrictedButton>
+            </RequireWalletConnected>
           </div>
         </div>
       )}

@@ -1,20 +1,18 @@
-import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { Badge } from "components/base/badge";
-import { Button } from "components/base/button";
 import { FilterMenu } from "components/base/filterMenu";
 import { SectionHeader } from "components/base/sectionHeader";
 import { StatusBadge } from "components/base/statusBadge";
 import { Table, type TableColumnDef } from "components/base/table";
 import { Header } from "components/base/table/header";
 import { Toast } from "components/base/toast";
-import { Tooltip } from "components/tooltip";
+import { GeoRestrictedButton } from "components/geoRestrictedButton";
+import { RequireWalletConnected } from "components/requireWalletConnected";
+import { useNowTickingPast } from "hooks/useNowTickingPast";
 import { TableCellsIcon } from "pages/earn/icons/tableCellsIcon";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { isGeoRestricted } from "utils/geoRestriction";
 import type { Address } from "viem";
-import { useAccount } from "wagmi";
 
 import { useExitTickets } from "../../hooks/useExitTickets";
 import type { ExitTicket } from "../../types";
@@ -33,6 +31,25 @@ const statusLabels = {
   ready: "pages.earn.exit-tickets.ready-to-withdraw",
   withdrawn: "pages.earn.exit-tickets.withdrawn",
 } as const;
+
+type StatusCellProps = {
+  ticket: ExitTicket;
+};
+
+function StatusCell({ ticket }: StatusCellProps) {
+  const { t } = useTranslation();
+  const now = useNowTickingPast([ticket], () =>
+    ticket.cancelTxHash || ticket.claimTxHash
+      ? undefined
+      : Number(ticket.claimableAt),
+  );
+  const status = getTicketStatus({ now, ticket });
+
+  if (status === "cancelled") {
+    return null;
+  }
+  return <StatusBadge variant={status}>{t(statusLabels[status])}</StatusBadge>;
+}
 
 export const getColumns = ({
   isWithdrawingAll,
@@ -68,15 +85,7 @@ export const getColumns = ({
     meta: { width: "136px" },
   },
   {
-    cell({ row }) {
-      const status = getTicketStatus(row.original);
-      if (status === "cancelled") {
-        return null;
-      }
-      return (
-        <StatusBadge variant={status}>{t(statusLabels[status])}</StatusBadge>
-      );
-    },
+    cell: ({ row }) => <StatusCell ticket={row.original} />,
     header: () => <Header text={t("pages.earn.exit-tickets.col-status")} />,
     id: "status",
     meta: { width: "190px" },
@@ -119,39 +128,24 @@ function WithdrawAllButton({
   isWithdrawing,
   onWithdrawAll,
 }: WithdrawAllButtonProps) {
-  const { isConnected } = useAccount();
-  const { openConnectModal } = useConnectModal();
   const { t } = useTranslation();
-  const geoRestricted = isGeoRestricted();
 
-  if (!isConnected) {
-    return (
-      <Button onClick={openConnectModal} size="xSmall" variant="primary">
-        {t("common.connect-wallet")}
-      </Button>
-    );
-  }
-
-  const button = (
-    <Button
-      disabled={disabled || geoRestricted}
-      onClick={onWithdrawAll}
-      size="xSmall"
-      variant="primary"
-    >
-      <span className="flex items-center gap-x-1">
-        {isWithdrawing
-          ? t("pages.earn.exit-tickets.withdrawing")
-          : t("pages.earn.exit-tickets.withdraw-all")}
-        {!isWithdrawing && count > 0 && <Badge variant="blue">{count}</Badge>}
-      </span>
-    </Button>
-  );
-
-  return geoRestricted ? (
-    <Tooltip content={t("common.geo-restriction-title")}>{button}</Tooltip>
-  ) : (
-    button
+  return (
+    <RequireWalletConnected size="xSmall">
+      <GeoRestrictedButton
+        disabled={disabled}
+        onClick={onWithdrawAll}
+        size="xSmall"
+        variant="primary"
+      >
+        <span className="flex items-center gap-x-1">
+          {isWithdrawing
+            ? t("pages.earn.exit-tickets.withdrawing")
+            : t("pages.earn.exit-tickets.withdraw-all")}
+          {!isWithdrawing && count > 0 && <Badge variant="blue">{count}</Badge>}
+        </span>
+      </GeoRestrictedButton>
+    </RequireWalletConnected>
   );
 }
 
@@ -174,6 +168,11 @@ function groupByVault(readyTickets: ExitTicket[]) {
 export function ExitTickets() {
   const { data, isLoading } = useExitTickets();
   const { t } = useTranslation();
+  const now = useNowTickingPast(data, (ticket) =>
+    ticket.cancelTxHash || ticket.claimTxHash
+      ? undefined
+      : Number(ticket.claimableAt),
+  );
   const [selectedFilters, setSelectedFilters] = useState([
     "completed",
     "pending",
@@ -184,8 +183,11 @@ export function ExitTickets() {
   const [withdrawingSingleCount, setWithdrawingSingleCount] = useState(0);
 
   const readyTickets = useMemo(
-    () => (data ?? []).filter((ticket) => getTicketStatus(ticket) === "ready"),
-    [data],
+    () =>
+      (data ?? []).filter(
+        (ticket) => getTicketStatus({ now, ticket }) === "ready",
+      ),
+    [data, now],
   );
 
   const filterOptions = useMemo(
@@ -225,7 +227,7 @@ export function ExitTickets() {
       }
       return data
         .filter(function (ticket) {
-          const status = getTicketStatus(ticket);
+          const status = getTicketStatus({ now, ticket });
           if (
             selectedFilters.includes("pending") &&
             (status === "cooldown" || status === "ready")
@@ -239,15 +241,17 @@ export function ExitTickets() {
         })
         .sort(function (a, b) {
           // Ready tickets first, then most recent first
-          const aReady = getTicketStatus(a) === "ready" ? 0 : 1;
-          const bReady = getTicketStatus(b) === "ready" ? 0 : 1;
+          const aReady =
+            getTicketStatus({ now, ticket: a }) === "ready" ? 0 : 1;
+          const bReady =
+            getTicketStatus({ now, ticket: b }) === "ready" ? 0 : 1;
           if (aReady !== bReady) {
             return aReady - bReady;
           }
           return Number(b.claimableAt) - Number(a.claimableAt);
         });
     },
-    [data, selectedFilters],
+    [data, now, selectedFilters],
   );
 
   return (
@@ -301,7 +305,6 @@ export function ExitTickets() {
       )}
       {showDeleteToast && (
         <Toast
-          closable
           description={t("pages.earn.exit-tickets.delete-toast-description")}
           onClose={() => setShowDeleteToast(false)}
           title={t("pages.earn.exit-tickets.delete-toast-title")}
@@ -309,7 +312,6 @@ export function ExitTickets() {
       )}
       {showWithdrawAllToast && (
         <Toast
-          closable
           description={t(
             "pages.earn.exit-tickets.withdraw-all-toast-description",
           )}

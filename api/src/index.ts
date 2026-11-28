@@ -1,42 +1,76 @@
 import * as Sentry from "@sentry/cloudflare";
 import { sVetBtcAddress, sVusdAddress } from "@vetro-protocol/earn";
 import { type Context, Hono, type Next } from "hono";
+import { bodyLimit } from "hono/body-limit";
 import { cache } from "hono/cache";
 import { cors } from "hono/cors";
-import type { Address } from "viem";
+import { type Address, checksumAddress } from "viem";
 
 import { getApyHistory } from "./apy-history.ts";
 import * as borrow from "./borrow.ts";
 import {
-  buildAttachments,
+  maxRequestBytes,
   sendContactConfirmation,
   sendContactEmail,
   validateContactForm,
   verifyTurnstile,
 } from "./contact.ts";
 import { convertBigIntsToString } from "./convert-bigints-to-string.ts";
-import { getSubgraphUrl } from "./env.ts";
+import {
+  getHemiEarnIndexer,
+  getVetroAppSubgraph,
+  getVeVetroSubgraph,
+} from "./env.ts";
+import { UpstreamGraphQLError } from "./graphql.ts";
+import { getCostBasis as getHemiEarnCostBasis } from "./hemi-earn/cost-basis.ts";
+import { getRequests as getHemiEarnRequests } from "./hemi-earn/requests.ts";
+import {
+  getCurrentTerms,
+  getTermsSigningData,
+  isIssuedAtInWindow,
+  parseAcceptanceRequest,
+  verifyAcceptanceSignature,
+} from "./hemi-earn-terms.ts";
+import { addIncentives } from "./liquidity/incentives.ts";
+import { venues } from "./liquidity/index.ts";
+import { excludeLowTvlPools } from "./liquidity/low-tvl.ts";
+import { getNetRevenue } from "./net-revenue.ts";
 import {
   validateAddress,
   validateGatewayAddress,
   validateParam,
+  validateQueryParams,
   validateStakingVaultAddress,
 } from "./param-validators.ts";
 import { securityHeaders } from "./security-headers.ts";
 import { getShareValueHistory } from "./share-value-history.ts";
+import { getAcceptance, saveAcceptance } from "./terms-acceptance-store.ts";
 import { getTotalDepositsHistory } from "./total-deposits-history.ts";
+import { getTvlHistory } from "./tvl-history.ts";
+import {
+  fulfilledValues,
+  throwIfAllRejected,
+  valueOrEmpty,
+} from "./utils/promises.ts";
 import { createOriginFn, parseOrigins } from "./validate-origin.ts";
 import * as variableStake from "./variable-stake.ts";
+import { getVaultComposition } from "./vault-composition.ts";
 import { validPeriods as vaultHistoryValidPeriods } from "./vault-history-period.ts";
+import { getVeVetro } from "./ve-vetro.ts";
 import { readWarmedTask, warmScheduled } from "./warm-cache.ts";
 import {
   apyTask,
-  collateralizationRatioTask,
+  balanceSheetTask,
+  liquidityCampaignGaugesTask,
+  liquidityMerklRewardsTask,
+  liquidityStrategiesTask,
+  liquidityVenuePoolsTask,
   stakedTask,
   treasuryTask,
   tvlTask,
   warmTasks,
 } from "./warm-tasks.ts";
+import { getYieldSummary } from "./yield-summary.ts";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -48,8 +82,13 @@ app.use("*", async function (c, next) {
 
 app.use("*", securityHeaders);
 
-app.get(
-  "/analytics/collateralization-ratio/:gatewayAddress",
+app.on(
+  "GET",
+  [
+    "/analytics/balance-sheet/:gatewayAddress",
+    // Deprecated: the VETRO landing site still reads this route.
+    "/analytics/collateralization-ratio/:gatewayAddress",
+  ],
   validateGatewayAddress,
   cache({
     cacheControl: "max-age=60",
@@ -61,13 +100,11 @@ app.get(
       const data = await readWarmedTask({
         c,
         item: gatewayAddress,
-        task: collateralizationRatioTask,
+        task: balanceSheetTask,
       });
       return c.json(data);
     } catch (error) {
-      throw new Error(
-        `Failed to get collateralization ratio: ${error.message}`,
-      );
+      throw new Error(`Failed to get balance sheet: ${error.message}`);
     }
   },
 );
@@ -134,6 +171,72 @@ app.get(
       return c.json(data);
     } catch (error) {
       throw new Error(`Failed to get treasury composition: ${error.message}`);
+    }
+  },
+);
+
+app.get(
+  "/analytics/yield/:gatewayAddress",
+  validateGatewayAddress,
+  cache({
+    cacheControl: "max-age=60",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const data = await getYieldSummary({
+        c,
+        gatewayAddress: c.get("gatewayAddress"),
+      });
+      return c.json(convertBigIntsToString(data));
+    } catch (error) {
+      throw new Error(`Failed to get yield summary: ${error.message}`);
+    }
+  },
+);
+
+app.get(
+  "/analytics/net-revenue/:gatewayAddress",
+  validateGatewayAddress,
+  cache({
+    cacheControl: "max-age=60",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const data = await getNetRevenue({
+        c,
+        gatewayAddress: c.get("gatewayAddress"),
+      });
+      return c.json(convertBigIntsToString(data));
+    } catch (error) {
+      throw new Error(`Failed to get net revenue: ${error.message}`);
+    }
+  },
+);
+
+app.get(
+  "/analytics/tvl-history/:gatewayAddress/:period",
+  validateGatewayAddress,
+  validateParam("period", vaultHistoryValidPeriods),
+  cache({
+    cacheControl: "max-age=300",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const gatewayAddress = c.get("gatewayAddress");
+      const period = c.req.param("period");
+      const data = await getTvlHistory({
+        c,
+        gatewayAddress,
+        period,
+        portalApiUrl: c.env.PORTAL_API_URL,
+        subgraph: getVetroAppSubgraph(c.env),
+      });
+      return c.json(data);
+    } catch (error) {
+      throw new Error(`Failed to get TVL history: ${error.message}`);
     }
   },
 );
@@ -208,6 +311,110 @@ app.get(
 );
 
 app.get(
+  "/hemi-earn/cost-basis/:address",
+  validateAddress,
+  cache({
+    cacheControl: "max-age=30",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const costBasis = await getHemiEarnCostBasis({
+        address: c.req.param("address"),
+        indexer: getHemiEarnIndexer(c.env),
+        rpcUrl: c.env.CUSTOM_RPC_URL_HEMI,
+      });
+      return c.json({ costBasis });
+    } catch (error) {
+      if (error instanceof UpstreamGraphQLError) {
+        throw error;
+      }
+      throw new Error(`Failed to get Hemi Earn cost basis: ${error.message}`);
+    }
+  },
+);
+
+app.get(
+  "/hemi-earn/requests/:address",
+  validateAddress,
+  cache({
+    cacheControl: "max-age=10",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const requests = await getHemiEarnRequests({
+        address: c.req.param("address"),
+        indexer: getHemiEarnIndexer(c.env),
+      });
+      return c.json({ requests });
+    } catch (error) {
+      if (error instanceof UpstreamGraphQLError) {
+        throw error;
+      }
+      throw new Error(`Failed to get Hemi Earn requests: ${error.message}`);
+    }
+  },
+);
+
+const includesLowTvl = (c: Context) => c.req.query("includeLowTvl") === "true";
+
+const includesRanges = (c: Context) => c.req.query("includeRanges") === "true";
+
+const readLiquidityPools = async function (c: Context<{ Bindings: Env }>) {
+  const [venueResults, sourceResults] = await Promise.all([
+    Promise.allSettled(
+      venues.map((venue) =>
+        readWarmedTask({ c, item: venue, task: liquidityVenuePoolsTask }),
+      ),
+    ),
+    Promise.allSettled([
+      readWarmedTask({ c, task: liquidityCampaignGaugesTask }),
+      readWarmedTask({ c, task: liquidityMerklRewardsTask }),
+      readWarmedTask({ c, task: liquidityStrategiesTask }),
+    ]),
+  ]);
+  throwIfAllRejected(venueResults);
+  const [campaignGauges, merklRewards, strategies] = sourceResults;
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  const sources = {
+    campaignGauges: valueOrEmpty(campaignGauges),
+    merklRewards: valueOrEmpty(merklRewards),
+    strategies: valueOrEmpty(strategies),
+  };
+  return fulfilledValues(venueResults)
+    .flat()
+    .map((pool) => addIncentives({ nowSeconds, pool, sources }));
+};
+
+app.get(
+  "/liquidity/pools",
+  validateQueryParams({
+    includeLowTvl: ["true", "false"],
+    includeRanges: ["true", "false"],
+  }),
+  cache({
+    cacheControl: "max-age=60",
+    cacheName: "vetro-api",
+    keyGenerator: (c) =>
+      `${new URL(c.req.url).origin}${c.req.path}?includeLowTvl=${includesLowTvl(c)}&includeRanges=${includesRanges(c)}`,
+  }),
+  async function (c) {
+    try {
+      const pools = await readLiquidityPools(c);
+      const poolRows = includesRanges(c)
+        ? pools
+        : pools.filter((pool) => !pool.range);
+      return c.json(
+        includesLowTvl(c) ? poolRows : excludeLowTvlPools(poolRows),
+      );
+    } catch (error) {
+      throw new Error(`Failed to get DEX pools: ${error.message}`);
+    }
+  },
+);
+
+app.get(
   "/variable-stake/cost-basis/:address",
   validateAddress,
   cache({
@@ -217,10 +424,9 @@ app.get(
   async function (c) {
     try {
       const address = c.req.param("address") as `0x${string}`;
-      const url = getSubgraphUrl(c.env);
       const data = await variableStake.getCostBasis({
         address,
-        url,
+        subgraph: getVetroAppSubgraph(c.env),
       });
       return c.json(convertBigIntsToString(data));
     } catch (error) {
@@ -237,8 +443,15 @@ app.get(
   }),
   async function (c) {
     try {
-      const data = await readWarmedTask({ c, task: apyTask });
-      return c.json(data ?? {});
+      const data = await variableStake.getApyByVault({
+        readApy: (stakingVaultAddress) =>
+          readWarmedTask({
+            c,
+            item: stakingVaultAddress,
+            task: apyTask,
+          }),
+      });
+      return c.json(data);
     } catch (error) {
       throw new Error(`Failed to get APY: ${error.message}`);
     }
@@ -281,16 +494,36 @@ app.get(
     try {
       const gatewayAddress = c.get("gatewayAddress");
       const rpcUrl = c.env.CUSTOM_RPC_URL_MAINNET;
-      const subgraphUrl = getSubgraphUrl(c.env);
       const data = await variableStake.getExitTicketQueueSize({
         gatewayAddress,
         rpcUrl,
-        subgraphUrl,
+        subgraph: getVetroAppSubgraph(c.env),
       });
       return c.json(convertBigIntsToString(data));
     } catch (error) {
       console.log(error.stack);
       throw new Error(`Failed to get exit queue data: ${error.message}`);
+    }
+  },
+);
+
+app.get(
+  "/variable-stake/composition/:stakingVaultAddress",
+  validateStakingVaultAddress,
+  cache({
+    cacheControl: "max-age=60",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const stakingVaultAddress = c.get("stakingVaultAddress");
+      const data = await getVaultComposition({
+        c,
+        stakingVaultAddress,
+      });
+      return c.json(convertBigIntsToString(data));
+    } catch (error) {
+      throw new Error(`Failed to get vault composition: ${error.message}`);
     }
   },
 );
@@ -306,13 +539,12 @@ app.get(
   async function (c) {
     try {
       const stakingVaultAddress = c.get("stakingVaultAddress");
-      const url = getSubgraphUrl(c.env);
       const period = c.req.param("period");
       const data = await getShareValueHistory({
         period,
         rpcUrl: c.env.CUSTOM_RPC_URL_MAINNET,
         stakingVaultAddress,
-        url,
+        subgraph: getVetroAppSubgraph(c.env),
       });
       return c.json(data);
     } catch (error) {
@@ -332,13 +564,12 @@ app.get(
   async function (c) {
     try {
       const stakingVaultAddress = c.get("stakingVaultAddress");
-      const url = getSubgraphUrl(c.env);
       const period = c.req.param("period");
       const data = await getApyHistory({
         c,
         period,
         stakingVaultAddress,
-        url,
+        subgraph: getVetroAppSubgraph(c.env),
       });
       return c.json(data);
     } catch (error) {
@@ -358,13 +589,12 @@ app.get(
   async function (c) {
     try {
       const stakingVaultAddress = c.get("stakingVaultAddress");
-      const url = getSubgraphUrl(c.env);
       const period = c.req.param("period");
       const data = await getTotalDepositsHistory({
         period,
         rpcUrl: c.env.CUSTOM_RPC_URL_MAINNET,
         stakingVaultAddress,
-        url,
+        subgraph: getVetroAppSubgraph(c.env),
       });
       return c.json(data);
     } catch (error) {
@@ -383,8 +613,10 @@ app.get(
   async function (c) {
     try {
       const address = c.req.param("address") as `0x${string}`;
-      const url = getSubgraphUrl(c.env);
-      const data = await variableStake.getUserExitTickets({ address, url });
+      const data = await variableStake.getUserExitTickets({
+        address,
+        subgraph: getVetroAppSubgraph(c.env),
+      });
       return c.json(data);
     } catch (error) {
       throw new Error(`Failed to get exit tickets: ${error.message}`);
@@ -392,31 +624,124 @@ app.get(
   },
 );
 
-app.post("/contact", validateContactForm, verifyTurnstile, async function (c) {
-  const { category, email, files, message } = c.get("contactForm");
-  // Read files only now that the captcha has passed (verifyTurnstile ran).
-  const attachments = await buildAttachments(files);
-  await sendContactEmail({
-    attachments,
-    category,
-    email,
-    env: c.env,
-    message,
-  });
-  // The confirmation to the submitter is best-effort: a failure here must not
-  // fail the request, since the support notification already went out.
-  try {
-    await sendContactConfirmation({ category, email, env: c.env });
-  } catch (error) {
-    Sentry.captureException(error);
-  }
-  return c.body(null, 204);
+app.get(
+  "/ve-vetro/:address",
+  validateAddress,
+  cache({
+    cacheControl: "max-age=10",
+    cacheName: "vetro-api",
+  }),
+  async function (c) {
+    try {
+      const data = await getVeVetro({
+        address: c.req.param("address"),
+        subgraph: getVeVetroSubgraph(c.env),
+      });
+      return c.json(data);
+    } catch (error) {
+      if (error instanceof UpstreamGraphQLError) {
+        throw error;
+      }
+      throw new Error(`Failed to get veVETRO claims: ${error.message}`);
+    }
+  },
+);
+
+app.get("/hemi-earn/terms", function (c) {
+  // Do not cache to force accepting the latest terms version.
+  c.header("Cache-Control", "no-store");
+  return c.json(getTermsSigningData(getCurrentTerms(c.env)));
 });
+
+app.get(
+  "/hemi-earn/terms/acceptance/:address",
+  validateAddress,
+  async function (c) {
+    const account = checksumAddress(c.req.param("address") as Address);
+    const acceptance = await getAcceptance({ account, db: c.env.DB });
+    c.header("Cache-Control", "no-store");
+    if (!acceptance) {
+      return c.json({ error: "Not Found" }, 404);
+    }
+    return c.json({ acceptedVersion: acceptance.termsVersion });
+  },
+);
+
+// The body is four short fields; anything larger is not a valid request.
+const maxAcceptanceBodyBytes = 2048;
+
+app.post(
+  "/hemi-earn/terms/acceptance",
+  bodyLimit({
+    maxSize: maxAcceptanceBodyBytes,
+    onError: (c) => c.json({ error: "Request too large" }, 413),
+  }),
+  async function (c) {
+    c.header("Cache-Control", "no-store");
+
+    let body: unknown;
+    try {
+      body = await c.req.json();
+    } catch {
+      return c.json({ error: "Invalid request body" }, 400);
+    }
+    const request = parseAcceptanceRequest(body);
+    if (!request) {
+      return c.json({ error: "Invalid request body" }, 400);
+    }
+
+    const terms = getCurrentTerms(c.env);
+    if (request.termsVersion !== terms.termsVersion) {
+      return c.json({ error: "Outdated terms version" }, 409);
+    }
+    const now = Math.floor(Date.now() / 1000);
+    if (!isIssuedAtInWindow({ issuedAt: request.issuedAt, now })) {
+      return c.json({ error: "issuedAt is out of range" }, 422);
+    }
+    if (!(await verifyAcceptanceSignature({ request, terms }))) {
+      return c.json({ error: "Invalid signature" }, 401);
+    }
+
+    await saveAcceptance({ db: c.env.DB, now, request, terms });
+    return c.json({ acceptedVersion: terms.termsVersion });
+  },
+);
+
+app.post(
+  "/contact",
+  bodyLimit({
+    maxSize: maxRequestBytes,
+    onError: (c) => c.json({ error: "Request too large" }, 413),
+  }),
+  validateContactForm,
+  verifyTurnstile,
+  async function (c) {
+    const { category, email, message } = c.get("contactForm");
+    await sendContactEmail({
+      category,
+      email,
+      env: c.env,
+      message,
+    });
+    // The confirmation to the submitter is best-effort: a failure here must not
+    // fail the request, since the support notification already went out.
+    try {
+      await sendContactConfirmation({ category, email, env: c.env });
+    } catch (error) {
+      Sentry.captureException(error);
+    }
+    return c.body(null, 204);
+  },
+);
 
 app.notFound((c) => c.json({ error: "Not Found" }, 404));
 
 app.onError(function (error, c) {
   Sentry.captureException(error);
+  if (error instanceof UpstreamGraphQLError) {
+    console.warn("Upstream GraphQL error:", error.message);
+    return c.json({ error: "Bad Gateway" }, 502);
+  }
   console.error("Internal Server Error:", error.message);
   return c.json({ error: "Internal Server Error" }, 500);
 });
@@ -434,9 +759,22 @@ const handler = Object.assign(app, {
 
 export default Sentry.withSentry(
   (env: Env) => ({
+    dataCollection: {
+      cookies: false,
+      databaseQueryData: false,
+      genAI: { inputs: false, outputs: false },
+      graphQL: { document: false, variables: false },
+      httpBodies: [],
+      httpHeaders: { deny: ["forwarded", "-ip", "remote-", "via", "-user"] },
+      queues: false,
+      urlQueryParams: { deny: ["forwarded", "-ip", "remote-", "via", "-user"] },
+      userInfo: false,
+    },
     dsn: env.SENTRY_DSN,
-    enableLogs: true,
     environment: "production",
+    integrations: [
+      Sentry.consoleLoggingIntegration({ levels: ["error", "info", "warn"] }),
+    ],
   }),
   handler,
 );

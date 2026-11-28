@@ -1,94 +1,209 @@
-import { type Address, parseUnits } from "viem";
+import { type Address } from "viem";
 import { describe, expect, it } from "vitest";
 
-import { poolTvlUsd } from "./poolMetrics";
-import { type PoolCoin } from "./types";
+import { summarizeDexTvl } from "./poolMetrics";
+import { type PoolCoin, type TrackedPool } from "./types";
 
 const coin = ({
-  balance,
-  decimals,
+  amount,
   usdPrice,
 }: {
-  balance: string;
-  decimals: number;
+  amount: number;
   usdPrice: number | undefined;
-}): PoolCoin => ({
+}) => ({
   address: `0x${"1".repeat(40)}` as Address,
-  balance: parseUnits(balance, decimals),
-  decimals,
+  amount,
   symbol: "TKN",
   usdPrice,
 });
 
-describe("poolTvlUsd", function () {
-  it("values every leg and sums them", function () {
+const pool = ({
+  coins = [],
+  id,
+  isRangeView = false,
+  tvlUsd,
+}: {
+  coins?: PoolCoin[];
+  id: string;
+  isRangeView?: boolean;
+  tvlUsd: number | undefined;
+}): TrackedPool => ({
+  address: `0x${"2".repeat(40)}` as Address,
+  baseApy: undefined,
+  chainId: 1,
+  coins,
+  dex: "sushi",
+  feesUsd24h: undefined,
+  gaugeAddress: undefined,
+  id,
+  isRangeView,
+  lpTokenAddress: undefined,
+  name: "VUSD/USDT",
+  poolType: undefined,
+  rangeLabel: undefined,
+  rewards: [],
+  tvlUsd,
+  url: "https://example.com",
+  volumeUsd24h: 0,
+});
+
+describe("summarizeDexTvl", function () {
+  it("sums the TVL of every pool", function () {
     expect(
-      poolTvlUsd([
-        coin({ balance: "100", decimals: 18, usdPrice: 2 }),
-        coin({ balance: "50", decimals: 18, usdPrice: 3 }),
+      summarizeDexTvl([
+        pool({ id: "a", tvlUsd: 100 }),
+        pool({ id: "b", tvlUsd: 250.5 }),
+        pool({ id: "c", tvlUsd: 1000 }),
       ]),
-    ).toBe(350);
+    ).toEqual({ poolCount: 3, totalTvlUsd: 1350.5, unpricedPoolCount: 0 });
   });
 
-  it("scales each leg by its own decimals", function () {
+  it("excludes range views from the total and the pool count", function () {
     expect(
-      poolTvlUsd([
-        coin({ balance: "1000", decimals: 6, usdPrice: 1 }),
-        coin({ balance: "1000", decimals: 18, usdPrice: 1 }),
+      summarizeDexTvl([
+        pool({ id: "full", tvlUsd: 1000 }),
+        pool({ id: "full-0.96-1.04", isRangeView: true, tvlUsd: 400 }),
+        pool({ id: "other", tvlUsd: 500 }),
       ]),
-    ).toBe(2000);
+    ).toEqual({ poolCount: 2, totalTvlUsd: 1500, unpricedPoolCount: 0 });
   });
 
-  it("prices a fractional balance", function () {
+  it("counts an unpriced pool without adding it to the total", function () {
     expect(
-      poolTvlUsd([coin({ balance: "0.5", decimals: 8, usdPrice: 60_000 })]),
-    ).toBe(30_000);
-  });
-
-  it("counts a leg worth zero as nothing", function () {
-    expect(
-      poolTvlUsd([
-        coin({ balance: "100", decimals: 18, usdPrice: 1 }),
-        coin({ balance: "999", decimals: 18, usdPrice: 0 }),
+      summarizeDexTvl([
+        pool({ id: "a", tvlUsd: 200 }),
+        pool({ id: "b", tvlUsd: undefined }),
       ]),
-    ).toBe(100);
+    ).toEqual({ poolCount: 2, totalTvlUsd: 200, unpricedPoolCount: 1 });
   });
 
-  it("is undefined when a leg has no price", function () {
+  it("keeps a pool worth zero as priced", function () {
     expect(
-      poolTvlUsd([
-        coin({ balance: "100", decimals: 18, usdPrice: 1 }),
-        coin({ balance: "999", decimals: 18, usdPrice: undefined }),
+      summarizeDexTvl([
+        pool({ id: "a", tvlUsd: 0 }),
+        pool({ id: "b", tvlUsd: 50 }),
       ]),
-    ).toBeUndefined();
+    ).toEqual({ poolCount: 2, totalTvlUsd: 50, unpricedPoolCount: 0 });
   });
 
-  it("sums more than two legs", function () {
+  it("totals zero when every pool is unpriced", function () {
     expect(
-      poolTvlUsd([
-        coin({ balance: "1", decimals: 18, usdPrice: 1 }),
-        coin({ balance: "2", decimals: 6, usdPrice: 1 }),
-        coin({ balance: "3", decimals: 8, usdPrice: 1 }),
+      summarizeDexTvl([
+        pool({ id: "a", tvlUsd: undefined }),
+        pool({ id: "b", tvlUsd: undefined }),
       ]),
-    ).toBe(6);
+    ).toEqual({ poolCount: 2, totalTvlUsd: 0, unpricedPoolCount: 2 });
   });
 
-  it("is zero for an empty pool", function () {
-    expect(poolTvlUsd([])).toBe(0);
-  });
-
-  it("is zero when every leg is empty", function () {
+  it("ignores an unpriced range view entirely", function () {
     expect(
-      poolTvlUsd([
-        coin({ balance: "0", decimals: 18, usdPrice: 1 }),
-        coin({ balance: "0", decimals: 6, usdPrice: 1 }),
+      summarizeDexTvl([
+        pool({ id: "full", tvlUsd: 800 }),
+        pool({ id: "full-0.96-1.04", isRangeView: true, tvlUsd: undefined }),
       ]),
-    ).toBe(0);
+    ).toEqual({ poolCount: 1, totalTvlUsd: 800, unpricedPoolCount: 0 });
   });
 
-  it("keeps a balance past Number's exact integer range accurate", function () {
+  it("sums a pool with an unpriced leg and flags it as unpriced", function () {
+    // Mirrors Curve's vetBTC/WBTC: usdTotal only counts the priced WBTC leg.
     expect(
-      poolTvlUsd([coin({ balance: "10000000", decimals: 18, usdPrice: 1.5 })]),
-    ).toBeCloseTo(15_000_000, 2);
+      summarizeDexTvl([
+        pool({
+          coins: [
+            coin({ amount: 0.0269, usdPrice: undefined }),
+            coin({ amount: 0.01835411, usdPrice: 83_304 }),
+          ],
+          id: "partial",
+          tvlUsd: 1528.97,
+        }),
+        pool({
+          coins: [
+            coin({ amount: 100, usdPrice: 1 }),
+            coin({ amount: 100, usdPrice: 1 }),
+          ],
+          id: "priced",
+          tvlUsd: 200,
+        }),
+      ]),
+    ).toEqual({ poolCount: 2, totalTvlUsd: 1728.97, unpricedPoolCount: 1 });
+  });
+
+  it("does not flag a pool whose only unpriced leg is empty", function () {
+    // Mirrors Curve's VUSD/USDC: VUSD has no price but a zero balance.
+    expect(
+      summarizeDexTvl([
+        pool({
+          coins: [
+            coin({ amount: 0, usdPrice: undefined }),
+            coin({ amount: 500, usdPrice: 1 }),
+          ],
+          id: "empty-leg",
+          tvlUsd: 500,
+        }),
+      ]),
+    ).toEqual({ poolCount: 1, totalTvlUsd: 500, unpricedPoolCount: 0 });
+  });
+
+  it("flags a pool when any one of several legs is unpriced", function () {
+    expect(
+      summarizeDexTvl([
+        pool({
+          coins: [
+            coin({ amount: 10, usdPrice: 1 }),
+            coin({ amount: 0, usdPrice: undefined }),
+            coin({ amount: 1, usdPrice: undefined }),
+          ],
+          id: "three-legs",
+          tvlUsd: 10,
+        }),
+      ]),
+    ).toEqual({ poolCount: 1, totalTvlUsd: 10, unpricedPoolCount: 1 });
+  });
+
+  it("counts a pool with no TVL and an unpriced leg once", function () {
+    expect(
+      summarizeDexTvl([
+        pool({
+          coins: [coin({ amount: 5, usdPrice: undefined })],
+          id: "a",
+          tvlUsd: undefined,
+        }),
+        pool({ id: "b", tvlUsd: 40 }),
+      ]),
+    ).toEqual({ poolCount: 2, totalTvlUsd: 40, unpricedPoolCount: 1 });
+  });
+
+  it("ignores a range view with an unpriced leg", function () {
+    expect(
+      summarizeDexTvl([
+        pool({ id: "full", tvlUsd: 800 }),
+        pool({
+          coins: [
+            coin({ amount: 3, usdPrice: undefined }),
+            coin({ amount: 3, usdPrice: 1 }),
+          ],
+          id: "full-0.96-1.04",
+          isRangeView: true,
+          tvlUsd: 3,
+        }),
+      ]),
+    ).toEqual({ poolCount: 1, totalTvlUsd: 800, unpricedPoolCount: 0 });
+  });
+
+  it("is all zeros for an empty list", function () {
+    expect(summarizeDexTvl([])).toEqual({
+      poolCount: 0,
+      totalTvlUsd: 0,
+      unpricedPoolCount: 0,
+    });
+  });
+
+  it("is all zeros when every entry is a range view", function () {
+    expect(
+      summarizeDexTvl([
+        pool({ id: "band-1", isRangeView: true, tvlUsd: 400 }),
+        pool({ id: "band-2", isRangeView: true, tvlUsd: undefined }),
+      ]),
+    ).toEqual({ poolCount: 0, totalTvlUsd: 0, unpricedPoolCount: 0 });
   });
 });

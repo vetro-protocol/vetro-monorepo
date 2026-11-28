@@ -16,6 +16,7 @@ export function Contact() {
           components={{
             emailLink: (
               <a
+                aria-label={supportEmail}
                 className="text-blue-500 underline"
                 href={`mailto:${supportEmail}`}
               />

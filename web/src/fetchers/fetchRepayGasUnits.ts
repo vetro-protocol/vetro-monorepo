@@ -5,7 +5,7 @@ import type { Token } from "@vetro-protocol/core";
 import { encodeRepayAssets } from "@vetro-protocol/morpho-blue-market/actions";
 import { morphoMarketOptions } from "hooks/borrow/useMorphoMarket";
 import { positionInfoOptions } from "hooks/borrow/usePositionInfo";
-import { createErc20AllowanceStateOverride } from "utils/erc20StateOverride";
+import { createErc20SpendStateOverride } from "utils/erc20StateOverride";
 import { type Address, type Client, type Hash } from "viem";
 import { estimateGas } from "viem/actions";
 
@@ -14,7 +14,7 @@ import { estimateApprovalGasUnits } from "./estimateApprovalGasUnits";
 /**
  * Estimates gas units for a repay operation. Returns the total gas units
  * for the whole flow (approval + repay).
- * Throws if the amount exceeds the user's current debt or loan token balance.
+ * Throws if the amount exceeds the user's current debt.
  */
 export const fetchRepayGasUnits = async function ({
   amount,
@@ -34,7 +34,7 @@ export const fetchRepayGasUnits = async function ({
   token: Token;
 }) {
   const chainId = client.chain!.id;
-  const morphoAddress = getChainAddresses(chainId).morpho;
+  const morphoAddress = getChainAddresses(chainId).blue;
 
   const [morphoMarket, position, loanBalance] = await Promise.all([
     queryClient.ensureQueryData(
@@ -60,10 +60,6 @@ export const fetchRepayGasUnits = async function ({
     throw new Error("Amount exceeds current debt");
   }
 
-  if (amount > loanBalance) {
-    throw new Error("Insufficient loan token balance");
-  }
-
   const [approvalGas, repayGas] = await Promise.all([
     estimateApprovalGasUnits({
       amount,
@@ -81,7 +77,9 @@ export const fetchRepayGasUnits = async function ({
         marketParams: morphoMarket.params,
         onBehalf: owner,
       }),
-      stateOverride: createErc20AllowanceStateOverride({
+      stateOverride: createErc20SpendStateOverride({
+        amount,
+        balance: loanBalance,
         owner,
         spender: morphoAddress,
         token,

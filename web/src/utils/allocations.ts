@@ -1,7 +1,10 @@
-import type { Token } from "@vetro-protocol/core";
-import type { TreasuryToken } from "types";
-import { tokenAmountToUsd } from "utils/currency";
-import { formatNumber } from "utils/format";
+import type { StrategySource, Token } from "@vetro-protocol/core";
+import type { fetchAnalyticsYield } from "fetchers/fetchAnalyticsYield";
+import type { TreasuryToken, TvlHistoryEntry } from "types";
+import { formatUsd, tokenAmountToUsd } from "utils/currency";
+import { formatNumber, formatPercentage } from "utils/format";
+import { isUsdPriceMissing } from "utils/token";
+import { getStakeDaoStrategyUrl } from "utils/url";
 import { formatUnits, isAddressEqual, type Address } from "viem";
 
 type Prices = Record<string, string>;
@@ -19,6 +22,9 @@ const colorPalette = [
 
 export const assignColor = (index: number) =>
   colorPalette[index % colorPalette.length] ?? "bg-gray-400";
+
+const assignChartColor = (index: number) =>
+  assignColor(index).replace(/^bg-(.+)$/, "var(--color-$1)");
 
 const findToken = (tokenAddress: Address, whitelistedTokens: Token[]) =>
   whitelistedTokens.find((t) => isAddressEqual(t.address, tokenAddress));
@@ -56,109 +62,237 @@ export const toTvlItems = ({
     ];
   });
 
-// Transforms /analytics/treasury response into yield allocation items,
-// one item per active strategy across all tokens.
-export const toYieldItems = function ({
-  prices,
-  treasuryTokens,
+export const getHistoryOnlyTokenAddresses = ({
+  history,
   whitelistedTokens,
 }: {
-  prices: Prices;
-  treasuryTokens: TreasuryToken[];
+  history: TvlHistoryEntry[];
   whitelistedTokens: Token[];
-}) {
-  const items: { amount: number; color: string; label: string }[] = [];
+}) =>
+  history
+    .flatMap((entry) => entry.tokens.map((token) => token.tokenAddress))
+    .filter(
+      (address, index, addresses) =>
+        !findToken(address, whitelistedTokens) &&
+        addresses.findIndex((candidate) =>
+          isAddressEqual(candidate, address),
+        ) === index,
+    );
 
-  for (const { activeStrategies, tokenAddress } of treasuryTokens) {
-    const token = findToken(tokenAddress, whitelistedTokens);
-    if (!token) {
-      continue;
-    }
+export const toTvlHistorySeries = ({
+  history,
+  tokens,
+}: {
+  history: TvlHistoryEntry[];
+  tokens: Token[];
+}) =>
+  tokens.map((token, index) => ({
+    address: token.address,
+    color: assignChartColor(index),
+    data: history.map(function (entry) {
+      const holding = entry.tokens.find((candidate) =>
+        isAddressEqual(candidate.tokenAddress, token.address),
+      );
+      const rate =
+        holding?.price && holding.unitPrice
+          ? Number(holding.price) / Number(holding.unitPrice)
+          : 0;
+      return {
+        x: entry.timestamp,
+        y:
+          Number(
+            formatUnits(BigInt(holding?.withdrawable ?? 0), token.decimals),
+          ) *
+          rate *
+          (entry.pegBaseUsdPrice ?? 0),
+      };
+    }),
+    symbol: token.symbol,
+  }));
 
-    for (const { name, totalDebt } of activeStrategies) {
-      const amount = tokenAmountToUsd({
-        amount: BigInt(totalDebt),
-        prices,
-        token,
-      });
-      if (amount > 0) {
-        items.push({ amount, color: assignColor(items.length), label: name });
-      }
-    }
+const getStrategyUrl = function (source: StrategySource) {
+  if (source.protocol === "lagoon") {
+    return `https://app.lagoon.finance/vault/1/${source.vaultAddress}`;
   }
-
-  return items;
+  if (source.protocol === "morpho") {
+    return `https://app.morpho.org/ethereum/vault/${source.vaultAddress}`;
+  }
+  if (source.protocol === "stakeDao") {
+    return getStakeDaoStrategyUrl(source.strategyKey);
+  }
+  // make compilation fail if a new protocol was added, and keep a protocol
+  // that only a newer API knows without a link
+  source satisfies never;
+  return undefined;
 };
 
-// Converts collateralization data into percentage-based allocation items.
-// Rounds to 2 decimal places and adjusts the largest item so they sum to exactly 100.
-export const toCollateralizationItems = function (
-  data:
-    | {
-        strategicReserves: string;
-        surplus: string;
-        total: string;
-        treasuryTotal: string;
-      }
-    | undefined,
-  labels: {
-    liquidReserves: string;
-    strategicReserves: string;
-    surplus: string;
-  },
-) {
-  if (!data || BigInt(data.total) <= 0n) {
+type YieldSummary = Awaited<ReturnType<typeof fetchAnalyticsYield>>;
+
+// The API gives one reserve item per token, but the card shows one row for all
+export const toYieldView = function ({
+  prices,
+  reserveBufferLabel,
+  summary: { items, total },
+  token,
+}: {
+  prices: Prices;
+  reserveBufferLabel: string;
+  summary: YieldSummary;
+  token: Token;
+}) {
+  const toUsd = (amount: bigint) => tokenAmountToUsd({ amount, prices, token });
+  const strategyRows = items.flatMap((item) =>
+    item.type === "strategy"
+      ? [
+          {
+            amount: toUsd(item.balance),
+            apy: item.apy,
+            href: item.source ? getStrategyUrl(item.source) : undefined,
+            label: item.name,
+            projectedYield:
+              item.projectedYield === undefined
+                ? undefined
+                : toUsd(item.projectedYield),
+          },
+        ]
+      : [],
+  );
+  const reserveBuffer = items
+    .filter((item) => item.type === "reserve")
+    .reduce((sum, item) => sum + item.balance, 0n);
+  const rows =
+    reserveBuffer > 0n
+      ? [
+          ...strategyRows,
+          {
+            amount: toUsd(reserveBuffer),
+            apy: 0,
+            href: undefined,
+            label: reserveBufferLabel,
+            projectedYield: 0,
+          },
+        ]
+      : strategyRows;
+  return {
+    rows: rows.map((row, index) => ({ ...row, color: assignColor(index) })),
+    strategyCount: strategyRows.length,
+    total: {
+      amount: toUsd(total.balance),
+      apy: total.apy ?? undefined,
+      projectedYield:
+        total.projectedYield === null ? undefined : toUsd(total.projectedYield),
+    },
+  };
+};
+
+// Formats a raw pegged token amount in USD, or "-" when the pegged token has
+// no price, because its USD value is unknown.
+export const formatPeggedAmountUsd = ({
+  amount,
+  prices,
+  token,
+}: {
+  amount: bigint;
+  prices: Prices;
+  token: Token;
+}) =>
+  !isUsdPriceMissing({ prices, token })
+    ? formatUsd(tokenAmountToUsd({ amount, prices, token }))
+    : "-";
+
+export const getCollateralStatus = function ({
+  supply,
+  surplus,
+}: {
+  supply: string;
+  surplus: string;
+}) {
+  if (BigInt(supply) === 0n) {
     return undefined;
   }
-  const total = BigInt(data.total);
-  const toPercentage = (value: string) =>
-    Number((BigInt(value) * 10000n + total / 2n) / total) / 100;
-  const round = (n: number) => Number(n.toFixed(2));
-  const items = [
-    {
-      amount: toPercentage(data.strategicReserves),
-      label: labels.strategicReserves,
-    },
-    {
-      amount: toPercentage(data.treasuryTotal),
-      label: labels.liquidReserves,
-    },
-    {
-      amount: toPercentage(data.surplus),
-      label: labels.surplus,
-    },
-  ].sort((a, b) => b.amount - a.amount);
-
-  // Adjust the largest so percentages sum to exactly 100
-  const sum = items.reduce((acc, item) => acc + item.amount, 0);
-  items[0].amount = round(items[0].amount + (100 - sum));
-
-  return items;
+  const surplusAmount = BigInt(surplus);
+  if (surplusAmount > 0n) {
+    return "over";
+  }
+  return surplusAmount < 0n ? "under" : "full";
 };
 
-// Returns the reserve buffer amount in USD (idle funds not deployed to any strategy).
-// Returns 0 when there is no buffer. Color is intentionally omitted — callers assign it.
-export const toReserveBufferAmount = function ({
+// Transforms /analytics/balance-sheet response into the supply and
+// surplus (or deficit) items. The bar has no segment for a deficit, because a
+// bar cannot show a negative value.
+export const toBalanceSheetItems = function ({
+  data,
+  labels,
   prices,
-  treasuryTokens,
-  whitelistedTokens,
+  token,
 }: {
+  data: { ratio: number; supply: string; surplus: string };
+  labels: {
+    deficit: (percentage: string) => string;
+    supply: string;
+    surplus: (percentage: string) => string;
+    zeroSurplus: string;
+  };
   prices: Prices;
-  treasuryTokens: TreasuryToken[];
-  whitelistedTokens: Token[];
+  token: Token;
 }) {
-  let amount = 0;
+  const supply = BigInt(data.supply);
+  const surplus = BigInt(data.surplus);
+  const isDeficit = surplus < 0n;
+  const absoluteSurplus = isDeficit ? -surplus : surplus;
+  const hasPrice = !isUsdPriceMissing({ prices, token });
+  const percentage =
+    supply > 0n ? formatPercentage(Math.abs(data.ratio - 100)) : "-";
 
-  for (const { tokenAddress, totalDebt, withdrawable } of treasuryTokens) {
-    const token = findToken(tokenAddress, whitelistedTokens);
-    if (!token) continue;
+  const barSurplus = isDeficit ? 0n : surplus;
+  const barTotal = supply + barSurplus;
+  const toBarShare = (amount: bigint) =>
+    barTotal > 0n ? Number((amount * 10000n) / barTotal) / 100 : 0;
 
-    amount += tokenAmountToUsd({
-      amount: BigInt(withdrawable) - BigInt(totalDebt),
+  const getSurplusText = function () {
+    if (!hasPrice) {
+      return "-";
+    }
+    const surplusUsd = tokenAmountToUsd({
+      amount: absoluteSurplus,
       prices,
       token,
     });
-  }
+    if (isDeficit) {
+      return formatUsd(-surplusUsd);
+    }
+    return surplusUsd >= 0.01
+      ? `+${formatUsd(surplusUsd)}`
+      : formatUsd(surplusUsd);
+  };
 
-  return Math.max(0, amount);
+  const getSurplusLabel = function () {
+    if (isDeficit) {
+      return labels.deficit(percentage);
+    }
+    return surplus === 0n ? labels.zeroSurplus : labels.surplus(percentage);
+  };
+
+  const getSurplusClassName = function () {
+    if (!hasPrice || surplus === 0n) {
+      return undefined;
+    }
+    return isDeficit ? "text-rose-500" : "text-emerald-500";
+  };
+
+  return [
+    {
+      amount: toBarShare(supply),
+      color: "bg-blue-500",
+      formattedAmount: formatPeggedAmountUsd({ amount: supply, prices, token }),
+      label: labels.supply,
+    },
+    {
+      amount: toBarShare(barSurplus),
+      amountClassName: getSurplusClassName(),
+      color: isDeficit ? "bg-rose-500" : "bg-emerald-400",
+      formattedAmount: getSurplusText(),
+      label: getSurplusLabel(),
+    },
+  ];
 };

@@ -1,14 +1,9 @@
-import {
-  type QueryClient,
-  queryOptions,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import type { Token } from "@vetro-protocol/core";
 import { fetchRepayGasUnits } from "fetchers/fetchRepayGasUnits";
 import { fetchTotalRepayFees } from "fetchers/fetchTotalRepayFees";
 import { useEthereumClient } from "hooks/useEthereumClient";
-import { useMainnet } from "hooks/useMainnet";
+import { mainnet } from "networks/mainnet";
 import { type Address, type Chain, type Client, type Hash } from "viem";
 import { useAccount } from "wagmi";
 
@@ -40,7 +35,6 @@ export const repayGasUnitsOptions = ({
   client,
   marketId,
   owner,
-  queryClient,
   token,
 }: {
   amount: bigint;
@@ -49,12 +43,11 @@ export const repayGasUnitsOptions = ({
   client: Client | undefined;
   marketId: Hash;
   owner: Address | undefined;
-  queryClient: QueryClient;
   token: Token | undefined;
 }) =>
   queryOptions({
     enabled: !!client && !!owner && !!token && amount > 0n,
-    queryFn: () =>
+    queryFn: ({ client: queryClient }) =>
       fetchRepayGasUnits({
         amount,
         approveAmount,
@@ -101,7 +94,6 @@ const totalRepayFeesOptions = ({
   client,
   marketId,
   owner,
-  queryClient,
   token,
 }: {
   amount: bigint;
@@ -110,12 +102,11 @@ const totalRepayFeesOptions = ({
   client: Client | undefined;
   marketId: Hash;
   owner: Address | undefined;
-  queryClient: QueryClient;
   token: Token | undefined;
 }) =>
   queryOptions({
     enabled: !!client && !!owner && !!token && amount > 0n,
-    queryFn: () =>
+    queryFn: ({ client: queryClient }) =>
       fetchTotalRepayFees({
         amount,
         approveAmount,
@@ -148,18 +139,15 @@ export const useTotalRepayFees = function ({
 }) {
   const { address: owner } = useAccount();
   const client = useEthereumClient();
-  const ethereumChain = useMainnet();
-  const queryClient = useQueryClient();
 
   return useQuery(
     totalRepayFeesOptions({
       amount,
       approveAmount,
-      chain: ethereumChain,
+      chain: mainnet,
       client,
       marketId,
       owner,
-      queryClient,
       token,
     }),
   );

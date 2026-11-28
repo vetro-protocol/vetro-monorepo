@@ -3,6 +3,7 @@ import { type Address } from "viem";
 
 import { appendLivePoint } from "./append-live-point.ts";
 import { aprWadToApy } from "./apr-wad-to-apy.ts";
+import { type Subgraph } from "./env.ts";
 import { paginateSubgraphQuery } from "./paginate-subgraph-query.ts";
 import { getPeriodStart } from "./vault-history-period.ts";
 import { readWarmedTask } from "./warm-cache.ts";
@@ -11,14 +12,14 @@ import { apyTask } from "./warm-tasks.ts";
 type Row = { apr: string; timestamp: string };
 
 /**
- * The vault's current APY as a synthetic "now" point, read from the warmed
- * `variable-stake:apy` cache — `readWarmedTask` serves the pre-computed value and,
- * on a KV miss, falls back to computing it on demand and writes through. The subgraph
- * only writes a VaultAprHistory entry once per UTC day, so its latest point can lag the
+ * The vault's current APY as a synthetic "now" point, read from its vault-specific
+ * warmed `variable-stake:apy` cache entry — `readWarmedTask` serves the
+ * pre-computed value and, on a KV miss, falls back to computing it on demand and
+ * writes through. The subgraph only writes a VaultAprHistory entry once per UTC day,
+ * so its latest point can lag the
  * actual APY by up to ~24h; appending this live point keeps the series' last value in
  * sync with the current rate. Returns null — so the caller falls back to the subgraph
- * series alone — when the vault is absent from the cached record (its on-chain reads
- * failed) or the warmed read itself fails, keeping the endpoint as available as a
+ * series alone — when the warmed read fails, keeping the endpoint as available as a
  * subgraph-only read.
  */
 async function getLiveApyPoint({
@@ -29,9 +30,12 @@ async function getLiveApyPoint({
   stakingVaultAddress: Address;
 }) {
   try {
-    const apyByVault = await readWarmedTask({ c, task: apyTask });
-    const apy = apyByVault?.[stakingVaultAddress]?.apy;
-    return apy === undefined ? null : { apy, timestamp: Date.now() };
+    const data = await readWarmedTask({
+      c,
+      item: stakingVaultAddress,
+      task: apyTask,
+    });
+    return { apy: data.apy, timestamp: Date.now() };
   } catch (error) {
     // A KV read (or fallback compute) failure must not fail the whole endpoint:
     // drop the live point and let the caller serve the subgraph-only series.
@@ -58,13 +62,13 @@ export async function getApyHistory({
   c,
   period,
   stakingVaultAddress,
-  url,
+  subgraph,
 }: {
   c: Context<{ Bindings: Env }>;
   period: string;
   stakingVaultAddress: Address;
-  url: string;
-}): Promise<{ apy: number; timestamp: number }[]> {
+  subgraph: Subgraph;
+}) {
   const stakingVault = stakingVaultAddress.toLowerCase();
   const start = getPeriodStart(period);
   const query = `
@@ -88,13 +92,13 @@ export async function getApyHistory({
   // them concurrently rather than in sequence.
   const [all, livePoint] = await Promise.all([
     paginateSubgraphQuery<Row>({
+      ...subgraph,
       cursor: {
         getValue: (row) => row.timestamp,
         variable: "start",
       },
       field: "vaultAprHistories",
       query,
-      url,
       variables: { stakingVault, start },
     }),
     getLiveApyPoint({ c, stakingVaultAddress }),

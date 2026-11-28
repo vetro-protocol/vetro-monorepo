@@ -67,12 +67,16 @@ describe("swap mint", function () {
       data: request.data,
     });
     const [tokenIn, amountIn, minPeggedTokenOut, receiver] = args;
+    const preview = await previewDeposit(publicClient, {
+      address: request.to,
+      amountIn,
+      tokenIn: usdc.address,
+    });
 
     expect(isAddressEqual(tokenIn, usdc.address)).toBe(true);
     expect(amountIn).toBe(parseUnits(swapAmount, usdc.decimals));
     expect(isAddressEqual(receiver, TEST_ADDRESS)).toBe(true);
-    // The gateway previews 100 USDC 1:1 into VUSD, so 0.5% off it is exactly 99.5.
-    expect(minPeggedTokenOut).toBe(parseUnits("99.5", vusd.decimals));
+    expect(minPeggedTokenOut).toBe((preview * 995n) / 1000n);
   });
 
   it("requires the full preview when --slippage is omitted", async function () {
@@ -129,6 +133,16 @@ describe("swap mint", function () {
     expect(exitCode).toBe(1);
     expect(JSON.parse(stderr).error).toBe(
       `Not a whitelisted token: "${vusd.symbol}"`,
+    );
+  });
+
+  it("rejects an amount with more decimals than the token supports", async function () {
+    const { exitCode, stderr } = await runCliRaw(
+      mintOnFork(["--amount", "0.0000001"]),
+    );
+    expect(exitCode).toBe(1);
+    expect(JSON.parse(stderr).error).toBe(
+      `Amount has more decimals than "${usdc.symbol}" supports: ${usdc.decimals}`,
     );
   });
 

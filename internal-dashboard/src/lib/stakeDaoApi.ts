@@ -28,10 +28,5 @@ export const fetchCurveCampaigns = (
     queryString: { gauges: gauges.join(",") },
   });
 
-export const votemarketGaugeUrl = ({
-  chainId,
-  gauge,
-}: {
-  chainId: number;
-  gauge: Address;
-}) => `https://votemarket.stakedao.org/curve/gauge/${chainId}-${gauge}`;
+export const strategyUrl = (key: string) =>
+  `https://app.stakedao.org/strategy?protocol=curve&vault=${encodeURIComponent(key)}`;

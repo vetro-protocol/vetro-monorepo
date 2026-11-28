@@ -5,7 +5,7 @@ Vetro Protocol staking-vault actions for viem clients. Wraps the `sVUSD` and `sV
 ## Installation
 
 ```sh
-pnpm add @vetro-protocol/earn viem viem-erc20
+pnpm add @vetro-protocol/earn viem
 ```
 
 ## Overview
@@ -69,6 +69,15 @@ The same actions are also available via `.extend()` factories (`earnPublicAction
   - `getTotalAssetsInCooldown(client, params)` — assets locked across all pending requests.
   - `getYieldDistributor(client, params)` — address of the vault's yield distributor.
 - Wallet actions (writes): `deposit`, `requestRedeem`, `requestWithdraw`, `claimWithdraw`, `claimWithdrawBatch`, `cancelWithdraw`. Each returns `{ emitter, promise }`.
+- Calldata encoders, exported from `/actions`: each returns the calldata of one write without sending anything, so a caller can sign and broadcast it elsewhere, or batch it into a multicall:
+  - `encodeCancelWithdraw({ requestId })` — `cancelWithdraw(requestId)`.
+  - `encodeClaimWithdraw({ receiver, requestId })` — `claimWithdraw(requestId, receiver)`.
+  - `encodeClaimWithdrawBatch({ receiver, requestIds })` — `claimWithdrawBatch(requestIds, receiver)`.
+  - `encodeDeposit({ assets, receiver })` — `deposit(assets, receiver)`. Unlike `deposit`, it does not approve the pegged token first. It throws when `assets` is not greater than 0 or `receiver` is not a valid address.
+  - `encodeRedeem({ owner, receiver, shares })` — `redeem(shares, receiver, owner)`. The vault accepts it only when the cooldown is disabled or `owner` is on the instant-withdraw whitelist. It throws when `shares` is not greater than 0 or an address is not valid.
+  - `encodeRequestRedeem({ owner, shares })` — `requestRedeem(shares, owner)`.
+  - `encodeRequestWithdraw({ assets, owner })` — `requestWithdraw(assets, owner)`.
+  - `encodeWithdraw({ assets, owner, receiver })` — `withdraw(assets, receiver, owner)`. The vault accepts it only when the cooldown is disabled or `owner` is on the instant-withdraw whitelist. It throws when `assets` is not greater than 0 or an address is not valid.
 - `earnPublicActions()` / `earnWalletActions()` — viem extension factories that wire the same actions onto a client via `.extend()`.
 - `stakingVaultAbi` — the minimal ABI subset used by the package.
 - Constants: `sVusdAddress`, `sVetBtcAddress`, `stakingVaultAddresses`.

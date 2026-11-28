@@ -2,13 +2,14 @@ import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
 import { type Step, stepStatus } from "components/base/verticalStepper";
 import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
-import { type ComponentProps, type ReactNode, Suspense, lazy } from "react";
+import { type ComponentProps, type ReactNode, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
+import { lazyWithReload } from "utils/lazyWithReload";
 
 import type { SwapFees } from "./swapFees";
 
-const SwapProgressDrawer = lazy(() =>
+const SwapProgressDrawer = lazyWithReload(() =>
   import("./swapProgressDrawer").then((m) => ({
     default: m.SwapProgressDrawer,
   })),
@@ -93,7 +94,7 @@ export function SwapRequestRedeemDrawer({
   }
 
   return (
-    <Drawer onClose={onClose}>
+    <Drawer onClose={onClose} title={t("pages.swap.progress.title")}>
       <Suspense fallback={<DrawerLoader />}>
         <SwapProgressDrawer
           {...props}

@@ -5,7 +5,9 @@ lives on its own tab, mapped to a URL.
 
 - **DEX** (`/dex`) — liquidity of the tracked Vetro pools on Curve, Sushi and
   Uniswap (Ethereum) and BrownFi (Hemi). Each pool also has a detail view at
-  `/dex/:poolId`.
+  `/dex/:poolId` and the page shows the total TVL in USD. The pools come from
+  `GET /liquidity/pools` of the Vetro API, with `includeLowTvl=true` and
+  `includeRanges=true`, so the list also has the pools that web leaves out.
 - **Hemi Earn** (`/hemi-earn`) — status of the Hemi Earn agent: keepers,
   ownership, proxy implementation and its pending vault cooldowns.
 
@@ -20,23 +22,18 @@ Set these in `internal-dashboard/.env` (or a `.env.local` override) before you r
 
 | Variable               | Required | Description                                                                                                                                                          |
 | ---------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `VITE_PORTAL_API_URL`  | Yes      | Hemi Portal API base URL (used for token prices).                                                                                                                    |
+| `VITE_VETRO_API_URL`   | Yes      | Vetro API base URL (used for the DEX pools).                                                                                                                         |
 | `VITE_RPC_URL_MAINNET` | Yes      | RPC URL(s) for Ethereum mainnet. Several URLs joined by `+` become a fallback transport. Baked into the client bundle at build time, thus readable by every visitor. |
 
 The Worker builds its `connect-src` CSP directive from the same two variables (see `src/index.ts`), so an override is allowed by the CSP without more changes.
 
-For the deployed dashboard, set the production values as Cloudflare Workers Builds variables in the Cloudflare dashboard. Vite gives these priority over the committed `.env` at build time. Thus the paid RPC URL stays out of the repository.
+The deployed APIs do not allow `localhost` origins in CORS. The `dev` server proxies `/vetro-api` to the staging API. To use the proxy, set this in `.env.local`:
 
-### Worker secrets
-
-`THEGRAPH_API_KEY` is a The Graph gateway key, used to read the BrownFi subgraph.
-For development, put it in `internal-dashboard/.dev.vars` (gitignored):
-
-```ini
-THEGRAPH_API_KEY = "your-key"
+```sh
+VITE_VETRO_API_URL="http://localhost:5175/vetro-api"
 ```
 
-For the deployed dashboard, add it as a Cloudflare secret (Workers → Settings → Variables and Secrets).
+For the deployed dashboard, set the production values as Cloudflare Workers Builds variables in the Cloudflare dashboard. Vite gives these priority over the committed `.env` at build time. Thus the paid RPC URL stays out of the repository.
 
 ## Development
 

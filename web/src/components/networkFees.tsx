@@ -31,20 +31,18 @@ export const NetworkFees = function ({
       : undefined;
 
   const isError = networkFee.status === "error";
-  const isIdle = networkFee.fetchStatus === "idle";
-
   return (
     <FeesContainer
+      fetchStatus={networkFee.fetchStatus}
       isError={isError}
-      isIdle={isIdle}
       label={label}
       sectionClassName={sectionClassName}
       totalFees={formattedFee}
     >
       <FeeDetails
         className={sectionClassName}
+        fetchStatus={networkFee.fetchStatus}
         isError={isError}
-        isIdle={isIdle}
         label={t("common.network-fee")}
         token={nativeToken}
         value={formattedFee}

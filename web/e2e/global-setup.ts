@@ -1,8 +1,10 @@
 import { startAnvilFork } from "@hemilabs/anvil-fork-setup";
 import { TEST_ADDRESS } from "@hemilabs/anvil-fork-setup/utils";
+import { marketIds } from "@vetro-protocol/morpho-blue-market";
 import { mainnet } from "viem/chains";
 
 import { fundAccount } from "../scripts/fundAccount.ts";
+import { supplyMarketLiquidity } from "../scripts/supplyMarketLiquidity.ts";
 
 import { ANVIL_PORT } from "./anvil.ts";
 
@@ -21,6 +23,11 @@ export default async function globalSetup() {
   });
   try {
     await fundAccount({ address: TEST_ADDRESS, forkUrl: url });
+    await supplyMarketLiquidity({
+      amount: "100000",
+      forkUrl: url,
+      marketId: marketIds[0],
+    });
   } catch (error) {
     await stop();
     throw error;

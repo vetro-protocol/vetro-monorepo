@@ -4,7 +4,7 @@ import { DollarSign } from "components/base/dollarSign";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { FeeDetails } from "components/feeDetails";
 import { FeesContainer } from "components/feesContainer";
-import { useMainnet } from "hooks/useMainnet";
+import { mainnet } from "networks/mainnet";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { formatFiatNumber } from "utils/format";
@@ -44,12 +44,8 @@ export const SwapFees = function ({
   totalFees,
 }: Props) {
   const { t } = useTranslation();
-  const mainnet = useMainnet();
 
   const ethToken = getNativeToken(mainnet);
-
-  const isNetworkFeeIdle = networkFee.fetchStatus === "idle";
-  const isNetworkFeeError = networkFee.status === "error";
 
   const networkFeeValue =
     networkFee.data !== undefined ? (
@@ -67,9 +63,6 @@ export const SwapFees = function ({
       </Container>
     ) : undefined;
 
-  const isTotalFeesIdle = totalFees?.fetchStatus === "idle";
-  const isTotalFeesError = totalFees?.status === "error";
-
   const totalFeesValue =
     totalFees?.data !== undefined ? (
       <Container>
@@ -80,16 +73,16 @@ export const SwapFees = function ({
 
   return (
     <FeesContainer
-      isError={isTotalFeesError}
-      isIdle={isTotalFeesIdle}
+      fetchStatus={totalFees?.fetchStatus}
+      isError={totalFees?.status === "error"}
       label={outputLabel}
       sectionClassName={sectionClassName}
       totalFees={totalFeesValue}
     >
       <FeeDetails
         className={sectionClassName}
-        isError={isNetworkFeeError}
-        isIdle={isNetworkFeeIdle}
+        fetchStatus={networkFee.fetchStatus}
+        isError={networkFee.status === "error"}
         label={t("common.network-fee")}
         token={ethToken}
         value={networkFeeValue}
@@ -97,8 +90,8 @@ export const SwapFees = function ({
       {protocolFee ? (
         <FeeDetails
           className={sectionClassName}
+          fetchStatus={protocolFee.fetchStatus}
           isError={protocolFee.status === "error"}
-          isIdle={protocolFee.fetchStatus === "idle"}
           label={t("pages.swap.fees.fixed-protocol-fee")}
           token={fromToken}
           value={protocolFeeValue}

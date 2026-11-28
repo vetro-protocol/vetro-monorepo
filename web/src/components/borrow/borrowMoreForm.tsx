@@ -1,9 +1,10 @@
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { Button } from "components/base/button";
 import { RenderCryptoValue } from "components/base/cryptoValue";
+import { DrawerRetryFooter } from "components/base/drawer/drawerRetryFooter";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { MaxButton } from "components/base/maxButton";
-import { Toast } from "components/base/toast";
+import type { ToastContent } from "components/base/toast";
 import {
   type Step,
   VerticalStepper,
@@ -15,6 +16,7 @@ import { CollapsibleSection } from "components/collapsibleSection";
 import { DrawerFeesContainer } from "components/feesContainer";
 import { ExclamationTriangleIcon } from "components/icons/exclamationTriangleIcon";
 import { NetworkFees } from "components/networkFees";
+import { RequireWalletConnected } from "components/requireWalletConnected";
 import { TokenInput } from "components/tokenInput";
 import { Balance } from "components/tokenInput/balance";
 import type { InputError } from "components/tokenInput/utils";
@@ -29,7 +31,7 @@ import { useActivityTracking } from "hooks/useActivityTracking";
 import { useAmount } from "hooks/useAmount";
 import { useAnimatedVisibility } from "hooks/useAnimatedVisibility";
 import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
-import { useMainnet } from "hooks/useMainnet";
+import { mainnet } from "networks/mainnet";
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { maxBigInt, minBigInt } from "utils/bigint";
@@ -38,20 +40,15 @@ import { formatNumber } from "utils/format";
 import { isGeoRestricted } from "utils/geoRestriction";
 import { parseTokenUnits } from "utils/token";
 import { formatUnits } from "viem";
-import { useAccount } from "wagmi";
 
 import { PositionReview } from "./positionReview";
 
 type BorrowMoreFlowStatus =
-  | "borrow-error"
-  | "borrow-ready"
-  | "borrowed"
-  | "borrowing"
-  | "idle";
+  "borrow-error" | "borrow-ready" | "borrowed" | "borrowing" | "idle";
 
 const getBorrowStepStatus = function (
   status: Exclude<BorrowMoreFlowStatus, "idle">,
-): Step["status"] {
+) {
   const exceptions: Partial<
     Record<Exclude<BorrowMoreFlowStatus, "idle">, Step["status"]>
   > = {
@@ -63,14 +60,12 @@ const getBorrowStepStatus = function (
 };
 
 type SubmitButtonProps = {
-  address: string | undefined;
   balancesLoaded: boolean;
   inputError: InputError | undefined;
   sufficientGas: boolean;
 };
 
 function SubmitButton({
-  address,
   balancesLoaded,
   inputError,
   sufficientGas,
@@ -86,31 +81,37 @@ function SubmitButton({
     );
   }
 
-  if (!address) {
+  function renderButton() {
+    if (balancesLoaded && !sufficientGas) {
+      return (
+        <Button disabled size="small" type="button" variant="primary">
+          {t("common.insufficient-gas")}
+        </Button>
+      );
+    }
+    if (balancesLoaded && inputError) {
+      return (
+        <Button disabled size="small" type="button" variant="primary">
+          {t(`common.${inputError}`)}
+        </Button>
+      );
+    }
     return (
-      <Button disabled size="small" type="button" variant="primary">
-        {t("common.connect-wallet")}
+      <Button
+        disabled={!balancesLoaded}
+        size="small"
+        type="submit"
+        variant="primary"
+      >
+        {t("pages.borrow.borrow-more-progress.submit")}
       </Button>
     );
   }
-  if (balancesLoaded && !sufficientGas) {
-    return (
-      <Button disabled size="small" type="button" variant="primary">
-        {t("common.insufficient-gas")}
-      </Button>
-    );
-  }
-  if (balancesLoaded && inputError) {
-    return (
-      <Button disabled size="small" type="button" variant="primary">
-        {t(`common.${inputError}`)}
-      </Button>
-    );
-  }
+
   return (
-    <Button size="small" type="submit" variant="primary">
-      {t("pages.borrow.borrow-more-progress.submit")}
-    </Button>
+    <RequireWalletConnected size="small">
+      {renderButton()}
+    </RequireWalletConnected>
   );
 }
 
@@ -151,8 +152,6 @@ function StepperOverlay({
   steps,
 }: StepperOverlayProps) {
   const { t } = useTranslation();
-  const { render: renderRetry, show: showRetry } =
-    useAnimatedVisibility(isError);
 
   return (
     <>
@@ -176,21 +175,7 @@ function StepperOverlay({
             <VerticalStepper steps={steps} />
           </div>
         </div>
-        {renderRetry && (
-          <div
-            className={`grid transition-[grid-template-rows] duration-300 ease-out ${
-              showRetry ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-            }`}
-          >
-            <div className="overflow-hidden">
-              <div className="border-t border-gray-200 bg-gray-50 px-6 py-3 *:w-full">
-                <Button onClick={onRetry} size="small" variant="primary">
-                  {t("pages.borrow.borrow-more-progress.retry")}
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
+        <DrawerRetryFooter onRetry={isError ? onRetry : undefined} />
       </div>
     </>
   );
@@ -199,16 +184,14 @@ function StepperOverlay({
 type Props = {
   market: MarketData;
   onClose: VoidFunction;
+  onSuccess: (toast: ToastContent) => void;
 };
 
-export function BorrowMoreForm({ market, onClose }: Props) {
+export function BorrowMoreForm({ market, onClose, onSuccess }: Props) {
   const { t } = useTranslation();
-  const ethereumChain = useMainnet();
-  const { address } = useAccount();
 
   const [borrowInput, onBorrowChange] = useAmount();
   const [flowStatus, setFlowStatus] = useState<BorrowMoreFlowStatus>("idle");
-  const [showToast, setShowToast] = useState(false);
 
   const isActive = flowStatus !== "idle";
   const isError = flowStatus === "borrow-error";
@@ -223,7 +206,7 @@ export function BorrowMoreForm({ market, onClose }: Props) {
 
   const borrowAmountBigInt = parseTokenUnits(borrowInput, loanToken);
 
-  const { data: nativeBalanceData } = useNativeBalance(ethereumChain.id);
+  const { data: nativeBalanceData } = useNativeBalance(mainnet.id);
 
   const { data: positionInfo } = usePositionInfo(marketId);
 
@@ -281,7 +264,13 @@ export function BorrowMoreForm({ market, onClose }: Props) {
       emitter.on("borrow-assets-transaction-succeeded", function () {
         onCompleted();
         setFlowStatus("borrowed");
-        setShowToast(true);
+        onSuccess({
+          description: t("pages.borrow.toast.description", {
+            amount: formatNumber(borrowInput),
+            symbol: loanToken.symbol,
+          }),
+          title: t("pages.borrow.toast.title"),
+        });
       });
       emitter.on("borrow-assets-transaction-reverted", function () {
         onFailed();
@@ -385,7 +374,6 @@ export function BorrowMoreForm({ market, onClose }: Props) {
         </div>
         <div className="border-y border-gray-200 bg-gray-50 px-6 py-3 *:w-full">
           <SubmitButton
-            address={address}
             balancesLoaded={nativeBalance !== undefined}
             inputError={inputError}
             sufficientGas={sufficientGas}
@@ -417,17 +405,6 @@ export function BorrowMoreForm({ market, onClose }: Props) {
         showStepper={showStepper}
         steps={steps}
       />
-      {showToast && (
-        <Toast
-          closable
-          description={t("pages.borrow.toast.description", {
-            amount: formatNumber(borrowInput),
-            symbol: loanToken.symbol,
-          })}
-          onClose={() => setShowToast(false)}
-          title={t("pages.borrow.toast.title")}
-        />
-      )}
     </div>
   );
 }

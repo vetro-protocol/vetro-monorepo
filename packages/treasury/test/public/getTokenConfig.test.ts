@@ -76,6 +76,15 @@ describe("getTokenConfig", function () {
   });
 
   it("should call readContract if all parameters are valid", async function () {
+    vi.mocked(readContract).mockResolvedValueOnce([
+      "0x0000000000000000000000000000000000000001",
+      "0x0000000000000000000000000000000000000002",
+      86400n,
+      true,
+      false,
+      8,
+    ] as never);
+
     await getTokenConfig(client, validParameters);
 
     expect(readContract).toHaveBeenCalledWith(client, {
@@ -83,6 +92,26 @@ describe("getTokenConfig", function () {
       address: validParameters.address,
       args: [validParameters.token],
       functionName: "tokenConfig",
+    });
+  });
+
+  it("should return the token config as named fields", async function () {
+    vi.mocked(readContract).mockResolvedValueOnce([
+      "0x0000000000000000000000000000000000000001",
+      "0x0000000000000000000000000000000000000002",
+      86400n,
+      true,
+      false,
+      8,
+    ] as never);
+
+    await expect(getTokenConfig(client, validParameters)).resolves.toEqual({
+      decimals: 8,
+      depositActive: true,
+      oracle: "0x0000000000000000000000000000000000000002",
+      stalePeriod: 86400n,
+      vault: "0x0000000000000000000000000000000000000001",
+      withdrawActive: false,
     });
   });
 });

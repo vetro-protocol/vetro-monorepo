@@ -1,4 +1,4 @@
-import { useQueries, useQueryClient } from "@tanstack/react-query";
+import { useQueries } from "@tanstack/react-query";
 import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { Badge } from "components/base/badge";
 import { DollarSign } from "components/base/dollarSign";
@@ -8,10 +8,10 @@ import { BoltIcon } from "components/icons/boltIcon";
 import { TokenLogo } from "components/tokenLogo";
 import { Tooltip } from "components/tooltip";
 import { useEthereumClient } from "hooks/useEthereumClient";
-import { useMainnet } from "hooks/useMainnet";
 import { stakedBalanceQueryOptions } from "hooks/useStakedBalance";
 import { useTotalStakedUsd } from "hooks/useTotalStakedUsd";
 import { useVaultPeggedToken } from "hooks/useVaultPeggedToken";
+import { mainnet } from "networks/mainnet";
 import { useTranslation } from "react-i18next";
 import { formatUsd } from "utils/currency";
 import { formatNumber } from "utils/format";
@@ -58,17 +58,14 @@ function PoolRow({ balance, stakingVaultAddress }: PoolRowProps) {
 function FromPoolsBadge() {
   const { t } = useTranslation();
   const { address: account } = useAccount();
-  const chain = useMainnet();
   const client = useEthereumClient();
-  const queryClient = useQueryClient();
 
   const balanceQueries = useQueries({
     queries: stakingVaultAddresses.map((stakingVaultAddress) =>
       stakedBalanceQueryOptions({
         account,
-        chainId: chain.id,
+        chainId: mainnet.id,
         client,
-        queryClient,
         stakingVaultAddress,
       }),
     ),

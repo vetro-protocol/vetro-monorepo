@@ -1,7 +1,11 @@
 import { SectionHeader } from "components/base/sectionHeader";
 import { Table, type TableColumnDef } from "components/base/table";
 import { Header } from "components/base/table/header";
-import { useBorrowAction } from "hooks/borrow/useBorrowAction";
+import { Toast, type ToastContent } from "components/base/toast";
+import {
+  type BorrowAction,
+  useBorrowAction,
+} from "hooks/borrow/useBorrowAction";
 import { type MarketData, useMarketsData } from "hooks/borrow/useMarketsData";
 import {
   type PositionData,
@@ -9,7 +13,7 @@ import {
 } from "hooks/borrow/usePositionsData";
 import { usePrices } from "hooks/usePrices";
 import { useScrollToHash } from "hooks/useScrollToHash";
-import { lazy, Suspense, useMemo } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { isPositionAtRisk } from "utils/borrowPosition";
 import {
@@ -18,6 +22,7 @@ import {
   formatLtvAsPercentage,
 } from "utils/borrowReview";
 import { formatFiatNumber, formatPercentage } from "utils/format";
+import { lazyWithReload } from "utils/lazyWithReload";
 import { getTokenPrice } from "utils/token";
 import { type Hash, formatUnits } from "viem";
 import { useAccount } from "wagmi";
@@ -32,35 +37,63 @@ import {
 } from "./positionsEmptyState";
 import { TokenValueCell } from "./tokenValueCell";
 
-const BorrowMoreDrawerForm = lazy(() =>
+const BorrowMoreDrawerForm = lazyWithReload(() =>
   import("./borrowMoreDrawerForm").then((m) => ({
     default: m.BorrowMoreDrawerForm,
   })),
 );
 
-const SupplyCollateralDrawerForm = lazy(() =>
+const SupplyCollateralDrawerForm = lazyWithReload(() =>
   import("./supplyCollateralDrawerForm").then((m) => ({
     default: m.SupplyCollateralDrawerForm,
   })),
 );
 
-const SupplyCollateralAndBorrowDrawerForm = lazy(() =>
+const SupplyCollateralAndBorrowDrawerForm = lazyWithReload(() =>
   import("./supplyCollateralAndBorrowDrawerForm").then((m) => ({
     default: m.SupplyCollateralAndBorrowDrawerForm,
   })),
 );
 
-const RepayLoanDrawerForm = lazy(() =>
+const RepayLoanDrawerForm = lazyWithReload(() =>
   import("./repayLoanDrawerForm").then((m) => ({
     default: m.RepayLoanDrawerForm,
   })),
 );
 
-const WithdrawCollateralDrawerForm = lazy(() =>
+const WithdrawCollateralDrawerForm = lazyWithReload(() =>
   import("./withdrawCollateralDrawerForm").then((m) => ({
     default: m.WithdrawCollateralDrawerForm,
   })),
 );
+
+type SupplyCollateralAndBorrowActionDrawerProps = {
+  action: BorrowAction | null;
+  market: MarketData | undefined;
+  onClose: VoidFunction;
+  onSuccess: (toast: ToastContent) => void;
+};
+
+function SupplyCollateralAndBorrowActionDrawer({
+  action,
+  market,
+  onClose,
+  onSuccess,
+}: SupplyCollateralAndBorrowActionDrawerProps) {
+  if (action !== "supply-collateral-and-borrow" || !market) {
+    return null;
+  }
+
+  return (
+    <Suspense>
+      <SupplyCollateralAndBorrowDrawerForm
+        market={market}
+        onClose={onClose}
+        onSuccess={onSuccess}
+      />
+    </Suspense>
+  );
+}
 
 type PositionRow = MarketData & PositionData;
 
@@ -79,6 +112,7 @@ export function PositionsTable({ marketIds }: Props) {
   const { data: prices } = usePrices();
   const [{ borrowAction, marketId: actionMarketId }, setBorrowAction] =
     useBorrowAction();
+  const [toast, setToast] = useState<ToastContent | null>(null);
 
   const clearBorrowAction = () =>
     setBorrowAction({ borrowAction: null, marketId: null });
@@ -89,7 +123,7 @@ export function PositionsTable({ marketIds }: Props) {
       : undefined;
 
   const data = useMemo(
-    (): PositionRow[] =>
+    () =>
       positionsData.reduce<PositionRow[]>(function (acc, position) {
         const market = marketsData.find(
           (m) => m.marketId === position.marketId,
@@ -269,6 +303,7 @@ export function PositionsTable({ marketIds }: Props) {
               <BorrowMoreDrawerForm
                 market={activeMarket}
                 onClose={clearBorrowAction}
+                onSuccess={setToast}
               />
             </Suspense>
           )}
@@ -277,14 +312,7 @@ export function PositionsTable({ marketIds }: Props) {
               <SupplyCollateralDrawerForm
                 market={activeMarket}
                 onClose={clearBorrowAction}
-              />
-            </Suspense>
-          )}
-          {borrowAction === "supply-collateral-and-borrow" && (
-            <Suspense>
-              <SupplyCollateralAndBorrowDrawerForm
-                market={activeMarket}
-                onClose={clearBorrowAction}
+                onSuccess={setToast}
               />
             </Suspense>
           )}
@@ -293,6 +321,7 @@ export function PositionsTable({ marketIds }: Props) {
               <RepayLoanDrawerForm
                 market={activeMarket}
                 onClose={clearBorrowAction}
+                onSuccess={setToast}
               />
             </Suspense>
           )}
@@ -301,10 +330,24 @@ export function PositionsTable({ marketIds }: Props) {
               <WithdrawCollateralDrawerForm
                 market={activeMarket}
                 onClose={clearBorrowAction}
+                onSuccess={setToast}
               />
             </Suspense>
           )}
         </>
+      )}
+      <SupplyCollateralAndBorrowActionDrawer
+        action={borrowAction}
+        market={activeMarket}
+        onClose={clearBorrowAction}
+        onSuccess={setToast}
+      />
+      {toast && (
+        <Toast
+          description={toast.description}
+          onClose={() => setToast(null)}
+          title={toast.title}
+        />
       )}
     </div>
   );

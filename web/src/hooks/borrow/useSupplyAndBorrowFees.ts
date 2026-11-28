@@ -1,14 +1,9 @@
-import {
-  type QueryClient,
-  queryOptions,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import type { Token } from "@vetro-protocol/core";
 import { fetchSupplyAndBorrowGasUnits } from "fetchers/fetchSupplyAndBorrowGasUnits";
 import { fetchTotalSupplyAndBorrowFees } from "fetchers/fetchTotalSupplyAndBorrowFees";
 import { useEthereumClient } from "hooks/useEthereumClient";
-import { useMainnet } from "hooks/useMainnet";
+import { mainnet } from "networks/mainnet";
 import { type Address, type Chain, type Client, type Hash } from "viem";
 import { useAccount } from "wagmi";
 
@@ -45,7 +40,6 @@ export const supplyAndBorrowGasUnitsOptions = ({
   collateralToken,
   marketId,
   owner,
-  queryClient,
 }: {
   approveAmount: bigint | undefined;
   borrowAmount: bigint;
@@ -55,7 +49,6 @@ export const supplyAndBorrowGasUnitsOptions = ({
   collateralToken: Token | undefined;
   marketId: Hash;
   owner: Address | undefined;
-  queryClient: QueryClient;
 }) =>
   queryOptions({
     enabled:
@@ -64,7 +57,7 @@ export const supplyAndBorrowGasUnitsOptions = ({
       !!collateralToken &&
       borrowAmount > 0n &&
       collateralAmount > 0n,
-    queryFn: () =>
+    queryFn: ({ client: queryClient }) =>
       fetchSupplyAndBorrowGasUnits({
         approveAmount,
         borrowAmount,
@@ -118,7 +111,6 @@ const totalSupplyAndBorrowFeesOptions = ({
   collateralToken,
   marketId,
   owner,
-  queryClient,
 }: {
   approveAmount: bigint | undefined;
   borrowAmount: bigint;
@@ -128,7 +120,6 @@ const totalSupplyAndBorrowFeesOptions = ({
   collateralToken: Token | undefined;
   marketId: Hash;
   owner: Address | undefined;
-  queryClient: QueryClient;
 }) =>
   queryOptions({
     enabled:
@@ -137,7 +128,7 @@ const totalSupplyAndBorrowFeesOptions = ({
       !!collateralToken &&
       borrowAmount > 0n &&
       collateralAmount > 0n,
-    queryFn: () =>
+    queryFn: ({ client: queryClient }) =>
       fetchTotalSupplyAndBorrowFees({
         approveAmount,
         borrowAmount,
@@ -174,20 +165,17 @@ export const useTotalSupplyAndBorrowFees = function ({
 }) {
   const { address: owner } = useAccount();
   const client = useEthereumClient();
-  const ethereumChain = useMainnet();
-  const queryClient = useQueryClient();
 
   return useQuery(
     totalSupplyAndBorrowFeesOptions({
       approveAmount,
       borrowAmount,
-      chain: ethereumChain,
+      chain: mainnet,
       client,
       collateralAmount,
       collateralToken,
       marketId,
       owner,
-      queryClient,
     }),
   );
 };

@@ -57,3 +57,12 @@
     transition: none;
   }
 }
+
+/* A disabled control gets no click, so let the tap reach the trigger. */
+.vetro-tooltip-trigger :disabled {
+  pointer-events: none;
+}
+
+.vetro-tooltip-trigger:has(:disabled) {
+  cursor: not-allowed;
+}

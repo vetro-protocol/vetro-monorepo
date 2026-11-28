@@ -29,12 +29,12 @@ export const defaultSetupSymbols = [
 
 type FundableToken = {
   address: Address;
-  balanceSlot: number;
+  balanceSlot: bigint;
   decimals: number;
   symbol: string;
 };
 
-const getDefaultTokens = (): FundableToken[] =>
+const getDefaultTokens = () =>
   knownTokens
     .filter(
       (t) => t.chainId === mainnet.id && defaultSetupSymbols.includes(t.symbol),

@@ -43,15 +43,32 @@ function write(address: Address, activities: Activity[]) {
   notify();
 }
 
+export const upsertActivity = ({
+  activities,
+  activity,
+}: {
+  activities: Activity[];
+  activity: Activity;
+}) =>
+  activities.some((a) => a.txHash === activity.txHash)
+    ? activities.map((a) =>
+        a.txHash === activity.txHash ? { ...a, status: activity.status } : a,
+      )
+    : [activity, ...activities];
+
 export function addActivity(address: Address, activity: Activity) {
-  write(address, [activity, ...read(address)]);
+  write(address, upsertActivity({ activities: read(address), activity }));
 }
 
-export function updateActivity(
-  address: Address,
-  txHash: string,
-  updates: Partial<Omit<Activity, "txHash">>,
-) {
+export function updateActivity({
+  address,
+  txHash,
+  updates,
+}: {
+  address: Address;
+  txHash: string;
+  updates: Partial<Activity>;
+}) {
   write(
     address,
     read(address).map((a) => (a.txHash === txHash ? { ...a, ...updates } : a)),
@@ -63,7 +80,7 @@ function subscribe(cb: () => void) {
   return () => subscribers.delete(cb);
 }
 
-export const useActivities = (address: Address | undefined): Activity[] =>
+export const useActivities = (address: Address | undefined) =>
   useSyncExternalStore(
     subscribe,
     () => (address ? read(address) : empty),

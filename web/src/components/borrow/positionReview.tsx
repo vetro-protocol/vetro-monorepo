@@ -59,7 +59,7 @@ const PositionReviewRow = ({
 }) => (
   <div className="flex items-center justify-between border-b border-gray-200 py-3.5 text-gray-900 last:border-b-0">
     <div className="flex h-5.5 items-center gap-1.5">
-      <Tooltip content={tooltip}>
+      <Tooltip content={tooltip} topic={label}>
         <QuestionIcon />
       </Tooltip>
       <span className="text-b-medium">{label}</span>
@@ -97,14 +97,14 @@ export function PositionReview({
   }: {
     children?: React.ReactNode;
   }) => (
-    <span className="flex items-center justify-end gap-2">
+    <span className="flex w-full items-center justify-end gap-2">
       <TokenLogo {...collateralToken} />
       {children}
     </span>
   );
 
   const LoanContainer = ({ children }: { children?: React.ReactNode }) => (
-    <span className="flex items-center justify-end gap-2">
+    <span className="flex w-full items-center justify-end gap-2">
       <TokenLogo {...loanToken} />
       {children}
     </span>

@@ -1,9 +1,9 @@
 import { tokenBalanceQueryOptions } from "@hemilabs/react-hooks/useTokenBalance";
 import type { QueryClient } from "@tanstack/react-query";
 import type { Token } from "@vetro-protocol/core";
-import { stakingVaultAbi } from "@vetro-protocol/earn";
-import { createErc20AllowanceStateOverride } from "utils/erc20StateOverride";
-import { type Address, type Client, encodeFunctionData } from "viem";
+import { encodeDeposit } from "@vetro-protocol/earn/actions";
+import { createErc20SpendStateOverride } from "utils/erc20StateOverride";
+import { type Address, type Client } from "viem";
 import { estimateGas } from "viem/actions";
 
 import { estimateApprovalGasUnits } from "./estimateApprovalGasUnits";
@@ -11,7 +11,6 @@ import { estimateApprovalGasUnits } from "./estimateApprovalGasUnits";
 /**
  * Estimates gas units for an earn deposit. Returns the total gas units
  * for the whole flow (approval + deposit).
- * Throws if the amount exceeds the user's token balance.
  */
 export const fetchDepositGasUnits = async function ({
   amount,
@@ -38,10 +37,6 @@ export const fetchDepositGasUnits = async function ({
     }),
   );
 
-  if (amount > balance) {
-    throw new Error("Insufficient token balance");
-  }
-
   const [approvalGas, depositGas] = await Promise.all([
     estimateApprovalGasUnits({
       amount,
@@ -54,12 +49,10 @@ export const fetchDepositGasUnits = async function ({
     }),
     estimateGas(client, {
       account: owner,
-      data: encodeFunctionData({
-        abi: stakingVaultAbi,
-        args: [amount, owner],
-        functionName: "deposit",
-      }),
-      stateOverride: createErc20AllowanceStateOverride({
+      data: encodeDeposit({ assets: amount, receiver: owner }),
+      stateOverride: createErc20SpendStateOverride({
+        amount,
+        balance,
         owner,
         spender: stakingVaultAddress,
         token,

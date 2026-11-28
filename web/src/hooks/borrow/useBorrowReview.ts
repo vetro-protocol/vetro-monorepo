@@ -44,7 +44,7 @@ export const useBorrowReview = function ({
   collateralToken,
   loanToken,
   morphoMarket,
-}: Params): ReviewValues {
+}: Params) {
   const { data: prices } = usePrices();
 
   if (!morphoMarket) {

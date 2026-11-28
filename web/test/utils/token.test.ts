@@ -2,6 +2,7 @@ import type { Token } from "@vetro-protocol/core";
 import {
   formatAmount,
   getTokenPrice,
+  isUsdPriceMissing,
   parseTokenUnits,
   removeOftDust,
 } from "utils/token";
@@ -161,6 +162,40 @@ describe("utils/token", function () {
       };
       const prices = { USDT: "0.99" };
       expect(getTokenPrice(token, prices)).toBe("0.99");
+    });
+  });
+
+  describe("isUsdPriceMissing", function () {
+    const token = {
+      address: "0x123",
+      chainId: 1,
+      decimals: 18,
+      logoURI: "",
+      name: "Test Token",
+      symbol: "TOKEN",
+    } as Token;
+
+    it("returns false when the token has a positive price", function () {
+      expect(isUsdPriceMissing({ prices: { TOKEN: "0.99" }, token })).toBe(
+        false,
+      );
+    });
+
+    it("returns true when the token has no price", function () {
+      expect(isUsdPriceMissing({ prices: { OTHER: "1" }, token })).toBe(true);
+    });
+
+    it("returns true when the price is not a positive number", function () {
+      for (const price of ["0", "-1", "NaN"]) {
+        expect(isUsdPriceMissing({ prices: { TOKEN: price }, token })).toBe(
+          true,
+        );
+      }
+    });
+
+    it("returns false while the prices or the token are not loaded", function () {
+      expect(isUsdPriceMissing({ prices: undefined, token })).toBe(false);
+      expect(isUsdPriceMissing({ prices: {}, token: undefined })).toBe(false);
     });
   });
 

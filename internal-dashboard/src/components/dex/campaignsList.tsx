@@ -5,22 +5,29 @@ import {
   campaignSourceLabels,
 } from "../../config/campaignSources";
 import { usePoolCampaigns } from "../../hooks/usePoolCampaigns";
-import { endingSoonTooltip, endsSoon } from "../../lib/campaigns";
+import {
+  endingSoonTooltip,
+  endsSoon,
+  stakeDaoStrategyKey,
+} from "../../lib/campaigns";
 import {
   formatDuration,
   formatPercent,
   formatPrice,
   formatUsd,
 } from "../../lib/format";
+import { strategyUrl } from "../../lib/stakeDaoApi";
 import {
   type MerklPoolCampaign,
   type PoolCampaign,
   type StakeDaoPoolCampaign,
+  type TrackedPool,
 } from "../../lib/types";
 import { CircleWarningIcon } from "../icons/circleWarningIcon";
 import { Tooltip } from "../tooltip";
 
 import { CampaignSourceBadge } from "./campaignSourceBadge";
+import { CopyButton } from "./copyButton";
 import { ExternalLink } from "./externalLink";
 
 const Metric = ({
@@ -57,15 +64,15 @@ const TimeLeftMetric = ({ secondsLeft }: { secondsLeft: number }) => (
 );
 
 const CampaignHeader = ({
+  link,
   source,
   subtitle,
   title,
-  url,
 }: {
+  link: { label: string; url: string } | undefined;
   source: CampaignSource;
   subtitle: string;
   title: string;
-  url: string;
 }) => (
   <div className="flex items-start justify-between gap-x-3">
     <div className="min-w-0">
@@ -74,12 +81,17 @@ const CampaignHeader = ({
     </div>
     <span className="flex shrink-0 items-center gap-x-1.5">
       <CampaignSourceBadge source={source} />
-      <ExternalLink
-        className="text-sm font-medium text-blue-600 hover:underline"
-        href={url}
-      >
-        {campaignSourceLabels[source]} ↗
-      </ExternalLink>
+      {link ? (
+        <>
+          <ExternalLink
+            className="text-sm font-medium text-blue-600 hover:underline"
+            href={link.url}
+          >
+            {link.label} ↗
+          </ExternalLink>
+          <CopyButton text={link.url} />
+        </>
+      ) : null}
     </span>
   </div>
 );
@@ -93,10 +105,13 @@ const MerklCampaignCard = ({
 }) => (
   <div className="rounded-lg border border-neutral-200 p-4">
     <CampaignHeader
+      link={{
+        label: campaignSourceLabels[campaign.source],
+        url: campaign.url,
+      }}
       source={campaign.source}
       subtitle={campaign.name}
       title={`${campaign.rewardTokenSymbol} rewards`}
-      url={campaign.url}
     />
     <dl className="mt-3 grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
       <Metric
@@ -123,16 +138,25 @@ const MerklCampaignCard = ({
 const StakeDaoCampaignCard = ({
   campaign,
   nowSeconds,
+  strategyKey,
 }: {
   campaign: StakeDaoPoolCampaign;
   nowSeconds: number;
+  strategyKey: string | undefined;
 }) => (
   <div className="rounded-lg border border-neutral-200 p-4">
     <CampaignHeader
+      link={
+        strategyKey
+          ? {
+              label: `Deposit LP on ${campaignSourceLabels[campaign.source]}`,
+              url: strategyUrl(strategyKey),
+            }
+          : undefined
+      }
       source={campaign.source}
       subtitle={`Votemarket campaign ${campaign.campaignNumber} · paid to veCRV voters`}
       title={`${campaign.rewardTokenSymbol} vote incentives`}
-      url={campaign.url}
     />
     <dl className="mt-3 grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
       <Metric label="Total budget" value={formatUsd(campaign.totalRewardUsd)} />
@@ -152,22 +176,28 @@ const StakeDaoCampaignCard = ({
 const CampaignCard = ({
   campaign,
   nowSeconds,
+  strategyKey,
 }: {
   campaign: PoolCampaign;
   nowSeconds: number;
+  strategyKey: string | undefined;
 }) =>
   campaign.source === "merkl" ? (
     <MerklCampaignCard campaign={campaign} nowSeconds={nowSeconds} />
   ) : (
-    <StakeDaoCampaignCard campaign={campaign} nowSeconds={nowSeconds} />
+    <StakeDaoCampaignCard
+      campaign={campaign}
+      nowSeconds={nowSeconds}
+      strategyKey={strategyKey}
+    />
   );
 
-export const CampaignsList = function ({ poolId }: { poolId: string }) {
+export const CampaignsList = function ({ pool }: { pool: TrackedPool }) {
   const {
     data: campaigns,
     dataUpdatedAt,
     isError,
-  } = usePoolCampaigns({ poolId });
+  } = usePoolCampaigns({ poolId: pool.id });
 
   if (campaigns) {
     return campaigns.length === 0 ? (
@@ -175,12 +205,13 @@ export const CampaignsList = function ({ poolId }: { poolId: string }) {
         No reward campaigns are running on this pool.
       </p>
     ) : (
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         {campaigns.map((campaign) => (
           <CampaignCard
             campaign={campaign}
             key={`${campaign.source}-${campaign.id}`}
             nowSeconds={dataUpdatedAt / 1000}
+            strategyKey={stakeDaoStrategyKey(pool)}
           />
         ))}
       </div>

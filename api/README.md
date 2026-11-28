@@ -4,11 +4,11 @@ Service that provides data to the Vetro web application.
 
 ## Data endpoints
 
-### `GET /analytics/collateralization-ratio/:gatewayAddress`
+### `GET /analytics/balance-sheet/:gatewayAddress`
 
-Get the collateralization ratio for a given gateway's pegged token: the total backing value divided by the circulating supply. The backing is the sum of the strategic reserves, the protocol surplus and the liquid Treasury reserves (whitelisted holdings valued in the pegged token). Cached for 5 minutes.
+Get the balance sheet for a given gateway's pegged token. `ratio` is the total backing value divided by the circulating supply. The backing (`total`) is the sum of the strategic reserves and the liquid Treasury reserves (`treasuryTotal`, whitelisted holdings valued in the pegged token). `surplus` is the backing minus the supply. It is negative when the pegged token is under-collateralized. Cached for 5 minutes.
 `:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway.
-The monetary fields (`strategicReserves`, `supply`, `surplus`, `total`, `treasuryTotal`) are raw `uint256` amounts in the pegged token's base units (not pre-scaled); format them with the token's decimals on the client. `ratio` is a number: the percentage `(total / supply) * 100` (e.g. `100.04`), or `0` when supply is `0`.
+The monetary fields (`strategicReserves`, `supply`, `total`, `treasuryTotal`) are raw `uint256` amounts in the pegged token's base units (not pre-scaled); format them with the token's decimals on the client. `surplus` is a signed integer in the same base units. `ratio` is a number: the percentage `(total / supply) * 100` (e.g. `100.04`), or `0` when supply is `0`.
 
 #### Sample response
 
@@ -17,11 +17,15 @@ The monetary fields (`strategicReserves`, `supply`, `surplus`, `total`, `treasur
   "ratio": 100.04,
   "strategicReserves": "10000000000000000000",
   "supply": "11425000000000000000000000",
-  "surplus": "1424707358963452827",
-  "total": "11430000004707358963452827",
-  "treasuryTotal": "11429988580000000000000000"
+  "surplus": "4997580000000000000000",
+  "total": "11429997580000000000000000",
+  "treasuryTotal": "11429987580000000000000000"
 }
 ```
+
+### `GET /analytics/collateralization-ratio/:gatewayAddress`
+
+**Deprecated.** Use [`GET /analytics/balance-sheet/:gatewayAddress`](#get-analyticsbalance-sheetgatewayaddress). This route returns the same response.
 
 ### `GET /analytics/tvl/:gatewayAddress`
 
@@ -53,7 +57,7 @@ Get the staked total for a given gateway's pegged token: the amount deposited in
 
 ### `GET /analytics/treasury/:gatewayAddress`
 
-Get the composition of the treasury by whitelisted token for a given gateway.
+Get the composition of the treasury by whitelisted token for a given gateway. Each item of `activeStrategies` has the strategy `address`, its `name`, its `totalDebt`, its `apy` (a percentage), and its `source` (the protocol position that it holds). The `apy` is the current native APY that the protocol of the strategy reports, plus the live APR of its incentives (Merkl campaigns and StakeDAO rewards). When a source fails (Merkl, Morpho, Lagoon, the StakeDAO strategies or the receipt-token read) or the combined APY is not a finite number, the strategy's last good `apy` is used, so it can be up to about an hour old. In those cases, `apy` is omitted when no good value from the last hour is stored. It is also omitted when every source responds but none reports an APY for the strategy. The `source` is kept for up to a day when the StakeDAO strategies or the receipt-token read fails. It is omitted when no good value from the last day is stored or when every input is available and no protocol matches the strategy. Each token also has the oracle price data: `latestPrice` (with its `priceDecimals`) and `updatedAt`, the timestamp in seconds of its last update, plus `stalePeriod`, the seconds after which the Treasury considers the price stale. The price is returned as is: this endpoint does not check whether it is stale, not positive or off par. `tokenDecimals` are the decimals of the token. Cached for 5 minutes.
 `:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway.
 
 #### Sample Response
@@ -63,31 +67,148 @@ Get the composition of the treasury by whitelisted token for a given gateway.
   {
     "activeStrategies": [
       {
+        "address": "0xe53c583767923E3e209ce6FD91f6C5D12AE9A308",
+        "apy": 3.269585328484523,
         "name": "Morpho SkyMoney USDT Savings",
+        "source": {
+          "protocol": "morpho",
+          "vaultAddress": "0x23f5E9c35820f4baB695Ac1F19c203cC3f8e1e11"
+        },
         "totalDebt": "4021526891"
       }
     ],
     "latestPrice": "99987053",
     "priceDecimals": 8,
+    "stalePeriod": "90000",
     "tokenAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+    "tokenDecimals": 6,
     "totalDebt": "4021526891",
+    "updatedAt": "1762380011",
     "withdrawable": "4032465582"
   },
   {
     "activeStrategies": [
       {
+        "address": "0x861a314511cCa4eDC279523De2aC1e1Ae9F6f799",
+        "apy": 6.6709554609169555,
         "name": "Morpho AlphaPing USDC Core",
+        "source": {
+          "protocol": "morpho",
+          "vaultAddress": "0x55C1B6e461a6334B567bAF0FEb5D728715446f05"
+        },
         "totalDebt": "234771834"
       }
     ],
     "latestPrice": "99991000",
     "priceDecimals": 8,
+    "stalePeriod": "90000",
     "tokenAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+    "tokenDecimals": 6,
     "totalDebt": "234771834",
+    "updatedAt": "1762380011",
     "withdrawable": "260862058"
   }
 ]
 ```
+
+### `GET /analytics/yield/:gatewayAddress`
+
+Get the Yield allocation of a gateway's Treasury: one item per active strategy and one reserve buffer item per whitelisted token, sorted by `balance`, largest first. Cached for 1 minute.
+`:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway. Returns `500` if the oracle price of a token that the Treasury holds is not positive.
+
+Amounts are raw strings in the pegged token's base units. Each balance uses the Treasury oracle price of its token, capped at par, as `Treasury.reserve()` does. APYs are percentages (`4.87` means 4.87%). A strategy item has no `apy` and no `projectedYield` when its APY is unknown. `total.apy` and `total.projectedYield` are nullable.
+
+#### Sample response
+
+```jsonc
+{
+  "items": [
+    {
+      "address": "0xe53c583767923E3e209ce6FD91f6C5D12AE9A308",
+      "apy": 3.269585328484523,
+      "balance": "4021006335000000000000",
+      "name": "Morpho SkyMoney USDT Savings",
+      "projectedYield": "131470233167110528800",
+      "source": {
+        "protocol": "morpho",
+        "vaultAddress": "0x23f5E9c35820f4baB695Ac1F19c203cC3f8e1e11",
+      },
+      "token": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+      "type": "strategy",
+    },
+    {
+      "apy": 0,
+      "balance": "10937583900000000000",
+      "projectedYield": "0",
+      "token": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+      "type": "reserve",
+    },
+    // ...
+  ],
+  "total": {
+    "apy": 3.2607158187601577,
+    "balance": "4031943918900000000000",
+    "projectedYield": "131470233167110528800",
+  },
+}
+```
+
+### `GET /analytics/net-revenue/:gatewayAddress`
+
+Get the projected protocol revenue of a gateway: an annualized projection from the current reserve balances, strategy APYs and staking vault APR. Cached for 1 minute.
+`:gatewayAddress` must be a known gateway address. Returns `400` if malformed and `404` if the address is not a whitelisted gateway. Returns `500` in the same cases as `GET /analytics/yield`, or if no staking vault holds the gateway's pegged token.
+
+Amounts are raw strings in the pegged token's base units, and APYs and APRs are percentages. `backendApy`, `backendBalance` and `backendYield` are the `total` of `GET /analytics/yield`. `stakerApr` is the APR of `GET /variable-stake/apy` for the staking vault. It is `null` when the staking vault's APY is not available. `stakerPayouts` is `stakerApr` × `staked`. `netRevenue` can be negative. `backendApy`, `backendYield`, `netRevenue`, `stakerApr` and `stakerPayouts` are nullable.
+
+#### Sample response
+
+```json
+{
+  "backendApy": 4.87,
+  "backendBalance": "665790000000000000000000",
+  "backendYield": "32430000000000000000000",
+  "netRevenue": "20845000000000000000000",
+  "staked": "115850000000000000000000",
+  "stakerApr": 10,
+  "stakerPayouts": "11585000000000000000000",
+  "stakingVaultAddress": "0x476310E34D2810f7d79C43A74E4D79405bd7a925"
+}
+```
+
+### `GET /analytics/tvl-history/:gatewayAddress/:period`
+
+Returns the daily TVL history for a gateway's pegged token: the circulating supply, plus the Treasury's withdrawable holdings per whitelisted token. One record per UTC day, plus a live point for today.
+Valid periods are: `"1w"`, `"1m"`, `"3m"` and `"1y"`.
+`:gatewayAddress` must be a known gateway address. Returns `400` if malformed or the period is invalid, and `404` if the address is not a whitelisted gateway.
+
+#### Sample response
+
+For the VUSD gateway, whose peg unit is USD:
+
+```jsonc
+[
+  {
+    "pegBaseUsdPrice": 1,
+    "peggedTokenAddress": "0xCa83DDE9c22254f58e771bE5E157773212AcBAc3",
+    "timestamp": 1788998400000,
+    "tokens": [
+      {
+        "price": "99991000",
+        "tokenAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        "unitPrice": "100000000",
+        "withdrawable": "258609609875",
+      },
+      // ...one entry per whitelisted token...
+    ],
+    "totalSupply": "443736408129313428461563",
+  },
+  // ...one record per day...
+]
+```
+
+The vetBTC gateway returns the same shape with that day's BTC price, e.g. `"pegBaseUsdPrice": 77248.73`.
+
+`pegBaseUsdPrice` is `null` when the Portal price API fails for a gateway whose peg unit is not USD. A token's `price` and `unitPrice` are `null` for a day on which the oracle read failed.
 
 ### `GET /borrow/:marketId/apr-history/:period`
 
@@ -128,6 +249,334 @@ Gets the amount of collateral assets in a given Morpho market.
 }
 ```
 
+### `GET /hemi-earn/cost-basis/:address`
+
+Returns the cost basis of each Hemi Earn share token that the address holds. Cached for 30 seconds.
+`:address` must be a well-formed Ethereum address. Returns `404` if malformed.
+Returns `502` if the Hemi Earn indexer fails or is not configured.
+Returns `500` if a read of the Router on Hemi fails.
+
+The API replays the processed deposits of the address, its processed and pending redeems, and its share token transfers, in time order:
+
+- A deposit adds the staked value of the shares received (`staked × received ÷ minted`) when it is processed. The share OFT trims the shares that the vault mints to a multiple of its shared decimals (`1e12`), so the received shares can be fewer than the minted ones. A new position does not start below its cost basis.
+- A transfer in adds its value at the share-to-asset rate nearest in time to the transfer.
+- A redeem or a transfer out reduces the cost basis in proportion to the shares that leave.
+
+Cancelled and recovered requests are skipped.
+
+The keys are the checksummed share token addresses on Hemi. The values are decimal strings in the pegged token's base units. A value can have a fractional part after a proportional reduction. The response has only the share tokens with a balance above zero, so `costBasis` is `{}` when the address has no position.
+
+#### Sample Response
+
+```json
+{
+  "costBasis": {
+    "0x0000000000000000000000000000000000000002": "1010000000000000000"
+  }
+}
+```
+
+### `GET /hemi-earn/requests/:address`
+
+Returns the Hemi Earn requests (deposits and redeems) that the address initiated, newest first. Cached for 10 seconds.
+`:address` must be a well-formed Ethereum address. Returns `404` if malformed.
+Returns `502` if the Hemi Earn indexer fails or is not configured.
+
+- `asset` and `receiver` are in the checksummed format.
+- `automatic` is `true` when the indexer has no value for it yet.
+- `status` is `FAILED` when `failed` is `true` and the request is `PENDING`. Otherwise, `status` is the Router status: `PENDING`, `FULFILLED`, `CANCELLED`, `FINALIZED` or `RECOVERED`.
+- `failed` is the raw flag of the Agent. It can be `true` on a `CANCELLED` or `RECOVERED` request.
+- The amounts and the timestamps are strings. The timestamps are in seconds.
+
+`requests` is `[]` when the address has no request.
+
+#### Sample Response
+
+```json
+{
+  "requests": [
+    {
+      "amountIn": "1000000000000000000",
+      "amountOut": "1000000000000000000",
+      "asset": "0x0000000000000000000000000000000000000003",
+      "automatic": true,
+      "cancellationRequested": false,
+      "claimableAt": "1759162900",
+      "claimTxHash": "0x0000000000000000000000000000000000000000000000000000000000000002",
+      "failed": false,
+      "failureReason": null,
+      "kind": "DEPOSIT",
+      "processedAt": "1759162850",
+      "processTxHash": "0x0000000000000000000000000000000000000000000000000000000000000003",
+      "receivedAt": "1759162830",
+      "receiver": "0x0000000000000000000000000000000000000001",
+      "recoverTxHash": null,
+      "requestedAt": "1759162804",
+      "requestId": "6",
+      "requestTxHash": "0x0000000000000000000000000000000000000000000000000000000000000001",
+      "retryCount": 0,
+      "status": "FINALIZED"
+    }
+  ]
+}
+```
+
+### `GET /hemi-earn/terms`
+
+Returns the current Hemi Earn Terms, which a wallet must accept (by signing an EIP-712 message) before its first deposit, and again whenever the version changes.
+The Terms are configured through the `HEMI_EARN_TERMS_*` variables, so publishing a new version needs no frontend change.
+The response also has everything else needed to sign the acceptance (see `POST /hemi-earn/terms/acceptance`), so frontends don't need to hardcode it.
+The response is never cached, so a version change applies immediately.
+
+#### Sample Response
+
+```jsonc
+{
+  "domain": {
+    "chainId": 43111,
+    "name": "Vetro Terms Acceptance",
+    "version": "1",
+  },
+  "primaryType": "TermsAcceptance",
+  "statement": "I agree to the Vetro Terms of Use, …",
+  "termsHash": "0x1111111111111111111111111111111111111111111111111111111111111111", // keccak256 of the Terms document
+  "termsUrl": "https://vetro.org/terms-of-use",
+  "termsVersion": "1",
+  "types": {
+    "TermsAcceptance": [
+      { "name": "statement", "type": "string" },
+      { "name": "termsUrl", "type": "string" },
+      { "name": "termsHash", "type": "bytes32" },
+      { "name": "termsVersion", "type": "string" },
+      { "name": "account", "type": "address" },
+      { "name": "issuedAt", "type": "uint256" },
+    ],
+  },
+}
+```
+
+### `GET /hemi-earn/terms/acceptance/:address`
+
+Returns the version of the Terms that the account last accepted.
+Compare it with `termsVersion` from `GET /hemi-earn/terms`: if they differ, the account must accept again.
+Only the latest accepted version is kept. The response is never cached.
+
+Returns `404` if the account has never accepted any version (or the address is malformed).
+
+#### Sample Response
+
+```jsonc
+{
+  "acceptedVersion": "1",
+}
+```
+
+### `POST /hemi-earn/terms/acceptance`
+
+Records that an account accepted the current Terms.
+The API rebuilds the signed message from the request and the current Terms, verifies that `account` signed it, and stores the acceptance, along with a hash of the signed statement.
+Only regular wallets (EOAs) are supported for now.
+
+#### Request body
+
+`application/json`:
+
+```jsonc
+{
+  "account": "0x0000000000000000000000000000000000000001",
+  "issuedAt": 1798000000, // Unix time in seconds
+  "signature": "0x…",
+  "termsVersion": "1",
+}
+```
+
+The signed EIP-712 message has the `domain`, `primaryType` and `types` returned by `GET /hemi-earn/terms`, currently:
+
+```ts
+// Domain
+{ chainId: 43111, name: "Vetro Terms Acceptance", version: "1" }
+
+// Types, in this field order
+TermsAcceptance: [
+  { name: "statement", type: "string" },
+  { name: "termsUrl", type: "string" },
+  { name: "termsHash", type: "bytes32" },
+  { name: "termsVersion", type: "string" },
+  { name: "account", type: "address" },
+  { name: "issuedAt", type: "uint256" },
+]
+```
+
+`statement`, `termsUrl`, `termsHash` and `termsVersion` are the ones returned by `GET /hemi-earn/terms`. The `statement` is currently:
+
+> I agree to the Vetro Terms of Use, including the Hemi Earn Terms. Hemi Earn is operated by Vetro Service & Support Corp. My agreement is solely with Vetro. Hemispheres Service & Support (BVI) Ltd., Hemi Labs, Inc. and their affiliates are not parties to it. I am not a U.S. person or otherwise a Restricted Person.
+
+`chainId` is always `43111` (Hemi mainnet), the chain where Hemi Earn deposits are made.
+
+#### Response
+
+Returns `200` with the accepted version, as `GET /hemi-earn/terms/acceptance/:address` does.
+Repeating the request for a version the account already accepted is idempotent: it keeps the original record and returns `200` as long as the request is still valid.
+
+```jsonc
+{
+  "acceptedVersion": "1",
+}
+```
+
+Errors:
+
+- `400`: the body is not valid JSON or has missing or malformed fields (e.g. a `signature` that is not 65 bytes long).
+- `401`: `signature` is not a valid signature of the message by `account`.
+- `409`: `termsVersion` is not the current version.
+- `413`: the body is too large.
+- `422`: `issuedAt` is more than 10 minutes in the past or more than 1 minute in the future.
+
+The API does not rate limit requests: configure a Cloudflare rate limiting rule per IP for `POST /hemi-earn/terms/acceptance` before deploying to production.
+
+### `GET /liquidity/pools`
+
+Returns the DEX pools that hold a VETRO token (a pegged token or its share token), on Curve, Uniswap and Sushi (Ethereum) and BrownFi (Hemi).
+
+- `apr` is the pool APR from trading fees, as a percentage number (e.g. `1.8` means 1.8%). It is `null` when `tvlUsd` is `null`, or when `volumeUsd24h` is `null`.
+- `coins` lists each coin of the pool, with its `amount` in the pool in token units (not in raw units) and its `usdPrice` (`null` when the coin has no USD price). On a range row, `amount` is the part of the pool's liquidity inside the range.
+- `tvlUsd` is `null` when a coin of the pool has no USD price, or when the Curve API gives no finite total.
+- Each coin takes its USD price from the venue first (the Curve API, or the subgraph of Uniswap, Sushi or BrownFi; on Uniswap and Sushi, also the pool ratio). A coin with no venue price takes the USD price of its peg if it is a pegged token. A whitelisted token takes its Treasury oracle price, and the portal price (see `PORTAL_API_URL`) when the oracle read fails. Other coins take the portal price.
+- `volumeUsd24h` is the trading volume in USD. On Uniswap, Sushi and BrownFi, it covers the last 24 full hours. On a Sushi range row, it is the part of the volume that occurred inside the range. It is `null` when the pool has no USD price for its coins. On Uniswap and Sushi, it is also `null` when the subgraph has no data for the pool (the query failed, or the subgraph has not indexed the pool yet).
+- `dexMetadata` is only on the Curve and BrownFi pools. On Curve, it has the `poolId`, the `gaugeAddress` (when the pool has a gauge) and the `lpTokenAddress`. Reward campaigns can target the pool, its gauge or its LP token. On BrownFi, it has `fee` and `overrideFee` as the subgraph gives them, in hundredths of a basis point (`3000` is 0.3%). An `overrideFee` of `0` means that the pool uses `fee`.
+- `rewards` includes rewards from Curve gauges, StakeDAO strategies and Merkl campaigns. The full list of gauged StakeDAO strategies is cached; APRs are checked only for strategies whose gauges match the cached Curve pools. If the Curve pool cache is missing, the list is still cached without that check. A strategy with an invalid APR adds no StakeDAO reward to its pool.
+
+By default, the response leaves out each pool with no `rewards` and a `tvlUsd` below 500 or `null`. A pool with any reward (Curve gauge, StakeDAO or Merkl) is always returned. With `includeRanges=true`, the range rows of a pool are returned only if its full-range row is.
+
+Query params:
+
+| Param           | Default | Description                                                                                                                                                                                                                                                 |
+| --------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `includeLowTvl` | `false` | When `true`, the response has every pool, including the pools with no rewards and a `tvlUsd` below 500 or `null`. Returns `400` if it is not `true` or `false`.                                                                                             |
+| `includeRanges` | `false` | When `true`, the response also has one row for each configured price range of a concentrated-liquidity pool (Sushi today). These rows have the same `address` as the full-range row, and they have a `range`. Returns `400` if it is not `true` or `false`. |
+
+#### Sample Response
+
+```jsonc
+[
+  {
+    "address": "0xC4C5e8edB69100108C428E88329039b715E3AAd1",
+    "apr": 5.28,
+    "chainId": 1,
+    "coins": [
+      {
+        "address": "0x476310E34D2810f7d79C43A74E4D79405bd7a925", // sVUSD
+        "amount": 36894.62,
+        "usdPrice": 1.0412,
+      },
+      {
+        "address": "0xCa83DDE9c22254f58e771bE5E157773212AcBAc3", // VUSD
+        "amount": 38189.11,
+        "usdPrice": 0.9996,
+      },
+    ],
+    "dex": "curve",
+    "dexMetadata": {
+      "gaugeAddress": "0x737e7700e03A8c451C9B72103554a40760F1B57A",
+      "lpTokenAddress": "0xC4C5e8edB69100108C428E88329039b715E3AAd1",
+      "poolId": "factory-stable-ng-123",
+    },
+    "rewards": [
+      {
+        "apr": 19.07,
+        "aprMax": 47.67,
+        "source": "curveGauge",
+        "sourceMetadata": {
+          "gaugeAddress": "0x737e7700e03A8c451C9B72103554a40760F1B57A",
+        },
+        "tokens": [
+          {
+            "address": "0xD533a949740bb3306d119CC777fa900bA034cd52", // CRV
+            "chainId": 1,
+          },
+        ],
+      },
+      {
+        "apr": 21.62,
+        "source": "stakeDao",
+        "sourceMetadata": {
+          "strategyKey": "1-0x102a475c8d660fde678d108dcc6d4a2227661af2",
+        },
+        "tokens": [
+          {
+            "address": "0xD533a949740bb3306d119CC777fa900bA034cd52",
+            "chainId": 1,
+          },
+        ],
+      },
+    ],
+    "tvlUsd": 73456.18,
+    "volumeUsd24h": 0,
+  },
+  {
+    "address": "0x6C2bd2F9711f204E595D334c6B7B672851b7d699",
+    "apr": 0.07,
+    "chainId": 1,
+    "coins": [
+      {
+        "address": "0xCa83DDE9c22254f58e771bE5E157773212AcBAc3", // VUSD
+        "amount": 62755.39,
+        "usdPrice": 0.9996,
+      },
+      {
+        "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7", // USDT
+        "amount": 40883.95,
+        "usdPrice": 1.0001,
+      },
+    ],
+    "dex": "sushi",
+    "rewards": [
+      {
+        "apr": 25.61,
+        "source": "merkl",
+        "sourceMetadata": {
+          "campaignId": "0x4b4af9d20d2e20b9bcf7c85ef6d338b1ff25978b7fda9e77df0fd6f887696c3d",
+          "opportunityId": "6762395071463233736",
+        },
+        "tokens": [
+          {
+            "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", // USDC
+            "chainId": 1,
+          },
+        ],
+      },
+    ],
+    "tvlUsd": 110726.31,
+    "volumeUsd24h": 442.56,
+  },
+  // Only with `includeRanges=true`
+  {
+    "address": "0x6C2bd2F9711f204E595D334c6B7B672851b7d699",
+    "apr": 0.11,
+    "chainId": 1,
+    "coins": [
+      {
+        "address": "0xCa83DDE9c22254f58e771bE5E157773212AcBAc3",
+        "amount": 35104.2,
+        "usdPrice": 0.9996,
+      },
+      {
+        "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+        "amount": 35106.2,
+        "usdPrice": 1.0001,
+      },
+    ],
+    "dex": "sushi",
+    "range": { "lowerPrice": 0.96, "upperPrice": 1.04 },
+    "rewards": [
+      // The same rewards as the full-range row
+    ],
+    "tvlUsd": 70210.4,
+    "volumeUsd24h": 442.56,
+  },
+]
+```
+
 ### `GET /variable-stake/cost-basis/:address`
 
 Returns the user's cost basis (in the vault asset's native smallest unit; decimal precision depends on the underlying vault asset) for each known Vetro staking vault. Vaults where the user has no position return `"0"`.
@@ -144,7 +593,7 @@ Returns the user's cost basis (in the vault asset's native smallest unit; decima
 
 ### `GET /variable-stake/apy`
 
-Returns the APY for each supported staking vault, indexed by staking vault address. This is a forward-looking figure computed from each vault's `rewardRate` (read from its `YieldDistributor` contract), annualized over the vault's `totalAssets()` and expressed as a continuous-compounding APY. A vault whose drip has ended (or whose rate or total assets are zero) returns a genuine `{ "apy": 0 }`. A vault whose on-chain reads fail (e.g. RPC error or an unconfigured distributor) is **omitted** from the response rather than returned as `0`, so clients can render "-" for it — distinct from a real 0% APY. If every vault's reads fail, the response is `{}`.
+Returns the APY for each supported staking vault, indexed by staking vault address. This is a forward-looking figure computed from each vault's `rewardRate` (read from its `YieldDistributor` contract), annualized over the vault's `totalAssets()` and expressed as a continuous-compounding APY. A vault whose drip has ended (or whose rate or total assets are zero) returns a genuine `{ "apy": 0 }`. Each vault has its own warmed cache entry. When a vault's reads fail, the endpoint keeps serving its last good value for up to 15 minutes. A vault with no cached or live value is **omitted** from the response rather than returned as `0`, so clients can render "-" for it — distinct from a real 0% APY. If no vault has a cached or live value, the endpoint returns `500`.
 
 #### Sample Response
 
@@ -174,6 +623,36 @@ Valid periods are: `"1w"`, `"1m"`, `"3m"` and `"1y"`.
   { "apy": 9.95, "timestamp": 1707868800000 },
   // ...more records...
 ]
+```
+
+### `GET /variable-stake/composition/:stakingVaultAddress`
+
+Returns the composition of a staking vault's deposits, ready to display. The vault holds only the pegged token, which is a claim on the pooled Treasury (collateral isn't earmarked per holder), so its composition is the Treasury's, pro rata. Each item is one active strategy (its `totalDebt`) or the idle reserve of one whitelisted token (`withdrawable − totalDebt`). Items are valued like `Treasury.reserve()` does (oracle price capped at par, in pegged-token units). `share = value ÷ Σ item values` and `amount = share × total`; the rounding remainder goes to the largest item. The strategic reserves and the protocol-held pegged token are excluded, as they are the pegged token itself. Items with a zero amount are omitted, and the rest are sorted by `amount`, descending. The Treasury data is the one `GET /analytics/treasury` serves, warmed by a cron job and shared with it, so this endpoint does not read each strategy or oracle itself. Only `total` (the vault's `totalAssets`) is read live. Prices are checked when the request arrives, not when the data was warmed: the request fails with an error if the price of any whitelisted token is not positive, or if it was last updated more than its `stalePeriod` ago. A price that is off par does not fail it; it is valued at its price, capped at par. Cached for 1 minute.
+`:stakingVaultAddress` must be a known staking vault. Returns `400` if malformed and `404` if the address is not a known staking vault. Fails with an error when a price is stale or not positive, as described above.
+`total` is the vault's ERC4626 `totalAssets`, and the `amount` of the items add up exactly to it. Both are raw `uint256` amounts in the pegged token's base units (not pre-scaled). `share` is a fraction of `total` (e.g. `0.31` means 31%). `token` is the checksummed address of the whitelisted token the item comes from. `type` is `"strategy"` or `"reserve"`; `name` is only present on `strategy` items, so clients translate the label of `reserve` items. Clients can group by summing `amount` and `share`, either by `token` or by merging the `reserve` items with the strategies.
+
+#### Sample Response
+
+```jsonc
+{
+  "items": [
+    {
+      "amount": "3100000000000000000000000",
+      "name": "Morpho AlphaPing USDC Core",
+      "share": 0.31,
+      "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      "type": "strategy",
+    },
+    {
+      "amount": "200000000000000000000000",
+      "share": 0.02,
+      "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      "type": "reserve",
+    },
+    // ...more items...
+  ],
+  "total": "10000000000000000000000000",
+}
 ```
 
 ### `GET /variable-stake/share-value-history/:stakingVaultAddress/:period`
@@ -213,6 +692,8 @@ Valid periods are: `"1w"`, `"1m"`, `"3m"` and `"1y"`.
 ### `GET /variable-stake/rewards/:address`
 
 Returns all user's rewards from the Merkl campaigns related to Vetro, indexed by staking vault address. Each supported staking vault has an entry in the response, with an empty array if the user has no rewards for that vault.
+`:address` must be a well-formed Ethereum address. Returns `404` if malformed.
+Returns `500` if Merkl fails.
 
 #### Sample Response
 
@@ -263,9 +744,13 @@ Returns all user's variable stake exit tickets to i.e. allow claiming the withdr
 
 The `owner` and `stakingVaultAddress` fields are returned in the checksummed format.
 
-The `cancelTxHash` and `claimTxHash` fields are optional and mutually exclusive: a
-ticket in cooldown or ready to claim has neither, a cancelled ticket has
-`cancelTxHash` and a claimed ticket has `claimTxHash`.
+`:address` must be a well-formed Ethereum address. Returns `404` if malformed.
+Returns `500` if the subgraph fails.
+
+`claimableAt` is a string containing the timestamp in seconds.
+`cancelTxHash` and `claimTxHash` are always present and are `null` when unset. At
+most one is non-null: a cancelled ticket has `cancelTxHash`, and a claimed
+ticket has `claimTxHash`.
 
 #### Sample Response
 
@@ -278,10 +763,54 @@ ticket in cooldown or ready to claim has neither, a cancelled ticket has
     "owner": "0x0000000000000000000000000000000000000001",
     "assets": "1050000000000000000",
     "shares": "1000000000000000000",
-    "claimableAt": 1700000000,
+    "claimableAt": "1700000000",
+    "cancelTxHash": null,
     "claimTxHash": "0x0000000000000000000000000000000000000000000000000000000000000004",
   },
 ]
+```
+
+### `GET /ve-vetro/:address`
+
+Returns the veVETRO claims that the address made and the veVETRO positions that it owns, newest first. Cached for 10 seconds.
+`:address` must be a well-formed Ethereum address. Returns `404` if malformed and `500` if any claims, veVETRO positions, or a claim's veHEMI positions reach the subgraph limit of 1000, rather than return a truncated list.
+
+- `indexedBlock` is the last block that the subgraph indexed. After a claim, wait until it reaches the block of the claim transaction, then read again.
+- `claimant` and `recipient` are in the checksummed format. `recipient` receives the position, so it can differ from `claimant`.
+- `positionTokenId` is the veVETRO position that the claim minted. `veHemiTokenIds` are the veHEMI positions that the claim paid, in ascending order.
+- `positions` includes withdrawn positions, with `status` `withdrawn`. Otherwise, `status` is `active`.
+- `transferable` is `true` when the position can be transferred now. A non-transferable position becomes transferable at its first unlock time.
+- `unlockTime` is the lock end as the contract stores it, rounded down to six days.
+- The amounts and the token ids are strings. The timestamps are numbers, in seconds.
+
+`claims` and `positions` are `[]` when the address has none.
+
+#### Sample Response
+
+```json
+{
+  "claims": [
+    {
+      "amount": "1250000000000000000000",
+      "claimant": "0x0000000000000000000000000000000000000001",
+      "positionTokenId": "42",
+      "recipient": "0x0000000000000000000000000000000000000001",
+      "timestamp": 1801353600,
+      "transactionHash": "0x0000000000000000000000000000000000000000000000000000000000000001",
+      "veHemiTokenIds": ["1203", "1388"]
+    }
+  ],
+  "indexedBlock": 5700123,
+  "positions": [
+    {
+      "amount": "1250000000000000000000",
+      "status": "active",
+      "tokenId": "42",
+      "transferable": false,
+      "unlockTime": 1832889600
+    }
+  ]
+}
 ```
 
 ### `POST /contact`
@@ -310,14 +839,9 @@ set, the hostname reported by siteverify must also match one of its entries.
 | `email`    | text | Must be well-formed.                                                              |
 | `message`  | text | Non-empty, at most 5000 characters.                                               |
 | `token`    | text | Turnstile token; required (and verified) only when `TURNSTILE_SECRET_KEY` is set. |
-| `files`    | file | Optional screenshots (repeat the field for multiple). See limits below.           |
 
-Attachments are optional. Each file must be `image/png` or `image/jpeg`; at most
-5 files may be attached, and their combined size must not exceed 3.5 MB. Valid
-attachments are sent along with the support email as raw binary; the mail
-binding base64-encodes them into the message (they are not included in the
-submitter's confirmation email). The limit leaves headroom under Cloudflare's
-5 MiB total-message cap once the content is base64-encoded.
+Any other field (such as a file) is ignored, but still counts toward the 50,000
+byte limit on the whole request body.
 
 #### Response
 
@@ -326,10 +850,8 @@ confirmation email to the submitter is best-effort: if it fails, the failure is
 reported to Sentry and the response is still `204`.
 
 Returns `400` for an invalid body / email /
-category / message, unsupported or oversized attachments (`Unsupported
-attachment type`, `Too many attachments`, `Attachments too large`), or a missing
-captcha token, `413` (`Request too large`) when the request body exceeds the
-size limit, `403` when captcha verification fails (or cannot be completed —
+category / message, or a missing captcha token, `413` (`Request too large`) when
+the request body exceeds 50,000 bytes, `403` when captcha verification fails (or cannot be completed —
 fail-closed), and `500` if sending the support email fails.
 
 ## Configuration
@@ -337,25 +859,33 @@ fail-closed), and `500` if sending the support email fails.
 Environment variables are configured in `wrangler.jsonc`.
 Secrets are set separately using the Wrangler CLI.
 
-| Variable                    | Description                                                                                                                                                                     | Default                   |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
-| CONTACT_FORM_RECIPIENT      | Destination address for contact form emails. Must be a verified Email Routing destination.                                                                                      | `support@vetro.org`       |
-| CONTACT_FORM_SENDER         | `from` address for contact form emails. Its domain must be a verified Email Routing sending domain.                                                                             | `noreply@forms.vetro.org` |
-| CUSTOM_RPC_URL_MAINNET      | Ethereum RPC node URL(s). Overrides `viem`'s default. Several URLs joined by `+` become a fallback transport.                                                                   |                           |
-| MERKL_OPPORTUNITY_SVETBTC   | Merkl opportunity id for the sVetBTC staking vault. Optional; if unset, that vault yields no rewards.                                                                           |                           |
-| MERKL_OPPORTUNITY_SVUSD     | Merkl opportunity id for the sVUSD staking vault. Optional; if unset, that vault yields no rewards.                                                                             |                           |
-| ORIGINS                     | Comma-separated list of allowed origins. (1)                                                                                                                                    | `http://localhost:5173`   |
-| SENTRY_DSN                  | Sentry DSN. When unset, Sentry is disabled.                                                                                                                                     |                           |
-| SUBGRAPH_API_KEY            | The subgraph API key.                                                                                                                                                           |                           |
-| SUBGRAPH_ID                 | The subgraph id.                                                                                                                                                                |                           |
-| SUBGRAPH_URL_TEMPLATE       | The subgraph URL template. (2)                                                                                                                                                  | (localhost)               |
-| TURNSTILE_ALLOWED_HOSTNAMES | Optional comma-separated hostname allowlist. When set, a Turnstile token whose siteverify `hostname` is not listed is rejected (`403`). Unset (local/staging) skips this check. |                           |
-| TURNSTILE_SECRET_KEY        | Cloudflare Turnstile secret key for verifying `POST /contact` tokens. When unset, verification is skipped. (3)                                                                  |                           |
-| WEBSITE_URL                 | Public URL of the web app, referenced in the contact form confirmation email.                                                                                                   | `http://localhost:5173/`  |
+| Variable                    | Description                                                                                                                                                                                                                                                                          | Default                   |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------- |
+| CONTACT_FORM_RECIPIENT      | Destination address for contact form emails. Must be a verified Email Routing destination.                                                                                                                                                                                           | `support@vetro.org`       |
+| CONTACT_FORM_SENDER         | `from` address for contact form emails. Its domain must be a verified Email Routing sending domain.                                                                                                                                                                                  | `noreply@forms.vetro.org` |
+| CUSTOM_RPC_URL_HEMI         | Hemi RPC node URL(s). Overrides `viem`'s default. Several URLs joined by `+` become a fallback transport. `GET /hemi-earn/cost-basis` reads the Router on Hemi with it.                                                                                                              |                           |
+| CUSTOM_RPC_URL_MAINNET      | Ethereum RPC node URL(s). Overrides `viem`'s default. Several URLs joined by `+` become a fallback transport.                                                                                                                                                                        |                           |
+| HEMI_EARN_INDEXER_API_KEY   | API key of the Hemi Earn indexer. The API sends it as a Bearer token, only when it is set. Set it as a secret. (3)                                                                                                                                                                   |                           |
+| HEMI_EARN_INDEXER_URL       | GraphQL URL of the [Hemi Earn indexer](../subgraphs/hemi-earn-indexer/README.md). `GET /hemi-earn/cost-basis/:address` and `GET /hemi-earn/requests/:address` return `502` when it is not set.                                                                                       | (localhost)               |
+| HEMI_EARN_TERMS_HASH        | keccak256 hash (32-byte hex) of the current Hemi Earn Terms document. Required by the `/hemi-earn/terms` endpoints, which respond with `500` if it is unset or malformed.                                                                                                            |                           |
+| HEMI_EARN_TERMS_URL         | URL of the current Hemi Earn Terms document. Required by the `/hemi-earn/terms` endpoints.                                                                                                                                                                                           |                           |
+| HEMI_EARN_TERMS_VERSION     | Version of the current Hemi Earn Terms. Changing it makes every wallet accept again. Bump it whenever the Terms document (and so its hash) changes, or when a new acceptance is needed for any other reason (e.g. a statement change). Required by the `/hemi-earn/terms` endpoints. |                           |
+| MERKL_OPPORTUNITY_SVETBTC   | Merkl opportunity id for the sVetBTC staking vault. Optional; if unset, that vault yields no rewards.                                                                                                                                                                                |                           |
+| MERKL_OPPORTUNITY_SVUSD     | Merkl opportunity id for the sVUSD staking vault. Optional; if unset, that vault yields no rewards.                                                                                                                                                                                  |                           |
+| ORIGINS                     | Comma-separated list of allowed origins. (1)                                                                                                                                                                                                                                         | `http://localhost:5173`   |
+| PORTAL_API_URL              | Base URL of the portal API. `GET /analytics/tvl-history` reads the daily and current USD price of a non-USD peg unit (BTC) from it. `GET /liquidity/pools` reads from it the USD price of a pool coin when other sources have no price.                                              | `http://localhost:3006`   |
+| SENTRY_DSN                  | Sentry DSN. When unset, Sentry is disabled.                                                                                                                                                                                                                                          |                           |
+| SUBGRAPH_API_KEY            | The Graph API key. Also used for the veVETRO subgraph and for the BrownFi, Sushi and Uniswap subgraphs of `GET /liquidity/pools`.                                                                                                                                                    |                           |
+| TURNSTILE_ALLOWED_HOSTNAMES | Optional comma-separated hostname allowlist. When set, a Turnstile token whose siteverify `hostname` is not listed is rejected (`403`). Unset (local/staging) skips this check.                                                                                                      |                           |
+| TURNSTILE_SECRET_KEY        | Cloudflare Turnstile secret key for verifying `POST /contact` tokens. When unset, verification is skipped. (2)                                                                                                                                                                       |                           |
+| VETRO_APP_SUBGRAPH_ID       | The VETRO app subgraph id.                                                                                                                                                                                                                                                           |                           |
+| VETRO_APP_SUBGRAPH_URL      | The VETRO app subgraph URL. Use it for a local subgraph. When unset, the API uses The Graph gateway with `SUBGRAPH_API_KEY` and `VETRO_APP_SUBGRAPH_ID`.                                                                                                                             | (localhost)               |
+| VE_VETRO_SUBGRAPH_ID        | The veVETRO subgraph id, for `GET /ve-vetro/:address`.                                                                                                                                                                                                                               |                           |
+| VE_VETRO_SUBGRAPH_URL       | The veVETRO subgraph URL. Use it for a local subgraph. When unset, the API uses The Graph gateway with `SUBGRAPH_API_KEY` and `VE_VETRO_SUBGRAPH_ID`.                                                                                                                                | (localhost)               |
+| WEBSITE_URL                 | Public URL of the web app, referenced in the contact form confirmation email.                                                                                                                                                                                                        | `http://localhost:5173/`  |
 
 (1) Globs with stars (`*`) are supported. I.e. `https://*.hemi.xyz` will match any subdomain or subdomain chain.
-(2) API key and id are replaced in the template at the `$API_KEY` and `$ID` positions.
-(3) Per environment: local (`.dev.vars`) and staging (`env.staging.vars`) use Cloudflare's always-passes [test secret](https://developers.cloudflare.com/turnstile/troubleshooting/testing/) `1x0000000000000000000000000000000AA`, since it is public and non-sensitive. Production sets the real key as a Wrangler secret — it is intentionally absent from `env.production.vars` in `wrangler.jsonc`:
+(2) Per environment: local (`.dev.vars`) and staging (`env.staging.vars`) use Cloudflare's always-passes [test secret](https://developers.cloudflare.com/turnstile/troubleshooting/testing/) `1x0000000000000000000000000000000AA`, since it is public and non-sensitive. Production sets the real key as a Wrangler secret — it is intentionally absent from `env.production.vars` in `wrangler.jsonc`:
 
 ```sh
 pnpm wrangler secret put TURNSTILE_SECRET_KEY --env production
@@ -365,9 +895,25 @@ The web app pairs this with the matching **site** key `VITE_TURNSTILE_SITE_KEY` 
 
 The `POST /contact` endpoint also requires a `send_email` binding named `SEND_EMAIL`, configured in `wrangler.jsonc`. Sending only works once the domain is verified and the recipient is added as a destination in Cloudflare Email Routing.
 
+The `/hemi-earn/terms` endpoints store acceptances in a [D1](https://developers.cloudflare.com/d1/) database bound as `DB` in `wrangler.jsonc` (one database per environment). Create the databases, set their ids in `wrangler.jsonc`, and apply the migrations in `migrations/` whenever they change:
+
+```sh
+pnpm wrangler d1 migrations apply DB --env staging --remote
+pnpm wrangler d1 migrations apply DB --env production --remote
+```
+
+Without `--remote`, Wrangler applies them to the local database.
+
+(3) Set the Hemi Earn indexer API key as a Wrangler secret:
+
+```sh
+pnpm wrangler secret put HEMI_EARN_INDEXER_API_KEY --env production
+```
+
 ## Local development
 
 Set secrets in a `.dev.vars` environment variables file.
+Apply the migrations to the local database once, with `pnpm wrangler d1 migrations apply DB --local`.
 Then start the local Cloudflare Workers dev server:
 
 ```sh

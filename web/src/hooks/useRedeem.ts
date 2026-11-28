@@ -7,6 +7,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { RedeemEvents } from "@vetro-protocol/gateway";
 import { redeem } from "@vetro-protocol/gateway/actions";
 import type { EventEmitter } from "events";
+import { mainnet } from "networks/mainnet";
 import type { TokenWithGateway } from "types";
 import { getReceivedAmount } from "utils/receipt";
 import { applySlippage } from "utils/slippage";
@@ -16,7 +17,6 @@ import { useAccount } from "wagmi";
 import { useEthereumWalletClient } from "./useEthereumWalletClient";
 import { redeemRequestQueryKey } from "./useGetRedeemRequest";
 import { redeemRequestsQueryKey } from "./useGetRedeemRequests";
-import { useMainnet } from "./useMainnet";
 import { maxWithdrawQueryKey } from "./useMaxWithdraw";
 import {
   previewRedeemQueryKey,
@@ -43,23 +43,22 @@ export const useRedeem = function ({
   const { address: account } = useAccount();
   const { data: walletClient } = useEthereumWalletClient();
   const ensureConnectedTo = useEnsureConnectedTo();
-  const ethereumChain = useMainnet();
-  const { queryKey: nativeBalanceKey } = useNativeBalance(ethereumChain.id);
+  const { queryKey: nativeBalanceKey } = useNativeBalance(mainnet.id);
   const queryClient = useQueryClient();
 
   const updateNativeBalanceAfterReceipt = useUpdateNativeBalanceAfterReceipt(
-    ethereumChain.id,
+    mainnet.id,
   );
 
   const requestQueryKey = redeemRequestQueryKey({
     address: account,
-    chainId: ethereumChain.id,
+    chainId: mainnet.id,
     gatewayAddress: peggedToken.gatewayAddress,
   });
 
   const requestsQueryKey = redeemRequestsQueryKey({
     address: account,
-    chainId: ethereumChain.id,
+    chainId: mainnet.id,
   });
 
   const allowanceKey = allowanceQueryKey({
@@ -71,20 +70,20 @@ export const useRedeem = function ({
   const peggedTokenBalanceQueryKey = tokenBalanceQueryKey(peggedToken, account);
 
   const treasuryReservesKey = treasuryReservesQueryKey({
-    chainId: ethereumChain.id,
+    chainId: mainnet.id,
     gatewayAddress: peggedToken.gatewayAddress,
   });
 
   const tokenOutBalanceQueryKey = tokenBalanceQueryKey(
     {
       address: tokenOut,
-      chainId: ethereumChain.id,
+      chainId: mainnet.id,
     },
     account,
   );
 
   const maxWithdrawKey = maxWithdrawQueryKey({
-    chainId: ethereumChain.id,
+    chainId: mainnet.id,
     gatewayAddress: peggedToken.gatewayAddress,
     tokenOut,
   });
@@ -94,12 +93,12 @@ export const useRedeem = function ({
       if (!account) {
         throw new Error("No account connected");
       }
-      await ensureConnectedTo(ethereumChain.id);
+      await ensureConnectedTo(mainnet.id);
 
       const [preview, hasDelay] = await Promise.all([
         queryClient.ensureQueryData(
           previewRedeemTokenOptions({
-            chainId: ethereumChain.id,
+            chainId: mainnet.id,
             client: walletClient!,
             gatewayAddress: peggedToken.gatewayAddress,
             peggedTokenIn,
@@ -110,10 +109,9 @@ export const useRedeem = function ({
           .ensureQueryData(
             redeemDelayOptions({
               account,
-              chainId: ethereumChain.id,
+              chainId: mainnet.id,
               client: walletClient,
               gatewayAddress: peggedToken.gatewayAddress,
-              queryClient,
             }),
           )
           .then((redeemDelay) => redeemDelay > 0n),
@@ -157,7 +155,11 @@ export const useRedeem = function ({
         updateNativeBalanceAfterReceipt(receipt);
 
         const actualAmount =
-          getReceivedAmount({ account, logs: receipt.logs }) ?? preview;
+          getReceivedAmount({
+            account,
+            logs: receipt.logs,
+            token: tokenOut,
+          }) ?? preview;
 
         if (hasDelay) {
           // if there's a delay, the PeggedToken was burned from the Gateway vault
@@ -204,10 +206,9 @@ export const useRedeem = function ({
       const hasDelay = await queryClient.ensureQueryData(
         redeemDelayOptions({
           account,
-          chainId: ethereumChain.id,
+          chainId: mainnet.id,
           client: walletClient,
           gatewayAddress: peggedToken.gatewayAddress,
-          queryClient,
         }),
       );
       if (hasDelay) {
@@ -243,7 +244,7 @@ export const useRedeem = function ({
       // again, it has to be recalculated
       queryClient.removeQueries({
         queryKey: previewRedeemQueryKey({
-          chainId: ethereumChain.id,
+          chainId: mainnet.id,
           gatewayAddress: peggedToken.gatewayAddress,
           peggedTokenIn,
           tokenOut,

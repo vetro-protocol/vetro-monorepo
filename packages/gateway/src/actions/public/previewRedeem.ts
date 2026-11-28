@@ -8,8 +8,8 @@ export async function previewRedeem(
   client: Client,
   parameters: {
     address: Address;
-    tokenOut: Address;
     peggedTokenIn: bigint;
+    tokenOut: Address;
   },
 ) {
   // Validate client
