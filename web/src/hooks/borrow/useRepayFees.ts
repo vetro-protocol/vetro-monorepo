@@ -9,15 +9,19 @@ import { useAccount } from "wagmi";
 
 const repayGasUnitsQueryKey = ({
   amount,
+  approveAmount,
   chainId,
   marketId,
   owner,
+  shares,
   token,
 }: {
   amount: bigint;
+  approveAmount: bigint | undefined;
   chainId: Chain["id"];
   marketId: Hash;
   owner: Address | undefined;
+  shares: bigint | undefined;
   token: Token | undefined;
 }) => [
   "borrow-repay-gas-units",
@@ -26,6 +30,8 @@ const repayGasUnitsQueryKey = ({
   token?.address,
   owner,
   amount.toString(),
+  approveAmount?.toString(),
+  shares?.toString(),
 ];
 
 export const repayGasUnitsOptions = ({
@@ -35,6 +41,7 @@ export const repayGasUnitsOptions = ({
   client,
   marketId,
   owner,
+  shares,
   token,
 }: {
   amount: bigint;
@@ -43,6 +50,7 @@ export const repayGasUnitsOptions = ({
   client: Client | undefined;
   marketId: Hash;
   owner: Address | undefined;
+  shares: bigint | undefined;
   token: Token | undefined;
 }) =>
   queryOptions({
@@ -55,28 +63,35 @@ export const repayGasUnitsOptions = ({
         marketId,
         owner: owner!,
         queryClient,
+        shares,
         token: token!,
       }),
     queryKey: repayGasUnitsQueryKey({
       amount,
+      approveAmount,
       chainId,
       marketId,
       owner,
+      shares,
       token,
     }),
   });
 
 const totalRepayFeesQueryKey = ({
   amount,
+  approveAmount,
   chainId,
   marketId,
   owner,
+  shares,
   token,
 }: {
   amount: bigint;
+  approveAmount: bigint | undefined;
   chainId: Chain["id"];
   marketId: Hash;
   owner: Address | undefined;
+  shares: bigint | undefined;
   token: Token | undefined;
 }) => [
   "total-repay-fees",
@@ -85,6 +100,8 @@ const totalRepayFeesQueryKey = ({
   token?.address,
   owner,
   amount.toString(),
+  approveAmount?.toString(),
+  shares?.toString(),
 ];
 
 const totalRepayFeesOptions = ({
@@ -94,6 +111,7 @@ const totalRepayFeesOptions = ({
   client,
   marketId,
   owner,
+  shares,
   token,
 }: {
   amount: bigint;
@@ -102,6 +120,7 @@ const totalRepayFeesOptions = ({
   client: Client | undefined;
   marketId: Hash;
   owner: Address | undefined;
+  shares: bigint | undefined;
   token: Token | undefined;
 }) =>
   queryOptions({
@@ -115,13 +134,16 @@ const totalRepayFeesOptions = ({
         marketId,
         owner: owner!,
         queryClient,
+        shares,
         token: token!,
       }),
     queryKey: totalRepayFeesQueryKey({
       amount,
+      approveAmount,
       chainId: chain.id,
       marketId,
       owner,
+      shares,
       token,
     }),
   });
@@ -130,11 +152,13 @@ export const useTotalRepayFees = function ({
   amount,
   approveAmount,
   marketId,
+  shares,
   token,
 }: {
   amount: bigint;
   approveAmount: bigint | undefined;
   marketId: Hash;
+  shares?: bigint;
   token: Token | undefined;
 }) {
   const { address: owner } = useAccount();
@@ -148,6 +172,7 @@ export const useTotalRepayFees = function ({
       client,
       marketId,
       owner,
+      shares,
       token,
     }),
   );
