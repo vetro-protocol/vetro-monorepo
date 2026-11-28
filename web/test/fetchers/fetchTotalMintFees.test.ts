@@ -89,6 +89,7 @@ describe("fetchTotalMintFees", function () {
       minPeggedTokenOut: 0n,
       owner: mockOwner,
       queryClient,
+      stake: undefined,
     });
 
     // network: 0.001 ETH * 2000 = $2
@@ -126,6 +127,7 @@ describe("fetchTotalMintFees", function () {
       minPeggedTokenOut: 0n,
       owner: mockOwner,
       queryClient,
+      stake: undefined,
     });
 
     expect(result).toBe(0);
@@ -164,6 +166,7 @@ describe("fetchTotalMintFees", function () {
       minPeggedTokenOut: 0n,
       owner: mockOwner,
       queryClient,
+      stake: undefined,
     });
 
     // network: 0

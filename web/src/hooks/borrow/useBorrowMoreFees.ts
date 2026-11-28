@@ -1,9 +1,4 @@
-import {
-  type QueryClient,
-  queryOptions,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { fetchBorrowGasUnits } from "fetchers/fetchBorrowGasUnits";
 import { fetchTotalBorrowFees } from "fetchers/fetchTotalBorrowFees";
 import { useEthereumClient } from "hooks/useEthereumClient";
@@ -29,18 +24,16 @@ export const borrowGasUnitsOptions = ({
   client,
   marketId,
   owner,
-  queryClient,
 }: {
   amount: bigint;
   chainId: Chain["id"];
   client: Client | undefined;
   marketId: Hash;
   owner: Address | undefined;
-  queryClient: QueryClient;
 }) =>
   queryOptions({
     enabled: !!client && !!owner && amount > 0n,
-    queryFn: () =>
+    queryFn: ({ client: queryClient }) =>
       fetchBorrowGasUnits({
         amount,
         client: client!,
@@ -69,18 +62,16 @@ const totalBorrowFeesOptions = ({
   client,
   marketId,
   owner,
-  queryClient,
 }: {
   amount: bigint;
   chain: Chain;
   client: Client | undefined;
   marketId: Hash;
   owner: Address | undefined;
-  queryClient: QueryClient;
 }) =>
   queryOptions({
     enabled: !!client && !!owner && amount > 0n,
-    queryFn: () =>
+    queryFn: ({ client: queryClient }) =>
       fetchTotalBorrowFees({
         amount,
         chain,
@@ -106,7 +97,6 @@ export const useTotalBorrowMoreFees = function ({
 }) {
   const { address: owner } = useAccount();
   const client = useEthereumClient();
-  const queryClient = useQueryClient();
 
   return useQuery(
     totalBorrowFeesOptions({
@@ -115,7 +105,6 @@ export const useTotalBorrowMoreFees = function ({
       client,
       marketId,
       owner,
-      queryClient,
     }),
   );
 };

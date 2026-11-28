@@ -15,6 +15,12 @@ export const Default: Story = {
   render: function Component() {
     const [active, setActive] = useState(false);
 
-    return <ToggleButton active={active} onClick={() => setActive(!active)} />;
+    return (
+      <ToggleButton
+        active={active}
+        label="Toggle"
+        onClick={() => setActive(!active)}
+      />
+    );
   },
 };

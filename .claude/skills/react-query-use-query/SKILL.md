@@ -427,9 +427,7 @@ export const myOptions = () =>
   queryOptions({
     queryFn: async ({ client: queryClient }) => {
       const dependency = await queryClient.ensureQueryData(
-        dependencyOptions({
-          /* params */
-        }),
+        dependencyOptions({/* params */}),
       );
       return fetchData({ dependency });
     },

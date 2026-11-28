@@ -9,20 +9,21 @@ const wagmiConfig = createConfig({
   transports: { [mainnet.id]: http() },
 });
 
-export const withWagmi =
-  (
-    queryClient: QueryClient = new QueryClient({
-      defaultOptions: {
-        queries: {
-          retry: false,
-        },
+export function withWagmi(
+  queryClient: QueryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
       },
-    }),
-  ): Decorator =>
-  (Story) => (
+    },
+  }),
+): Decorator {
+  const WithWagmi: Decorator = (Story) => (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         <Story />
       </QueryClientProvider>
     </WagmiProvider>
   );
+  return WithWagmi;
+}

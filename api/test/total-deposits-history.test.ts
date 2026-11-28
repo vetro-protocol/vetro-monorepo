@@ -26,7 +26,7 @@ const fetchHistory = (period = "1w") =>
     period,
     rpcUrl,
     stakingVaultAddress: sVusdAddress,
-    url,
+    subgraph: { url },
   });
 
 const lastCallVariables = <T>() =>

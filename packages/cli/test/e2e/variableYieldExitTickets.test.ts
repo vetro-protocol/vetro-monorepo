@@ -1,7 +1,7 @@
 import { TEST_ADDRESS } from "@hemilabs/anvil-fork-setup/utils";
 import { sVusdAddress } from "@vetro-protocol/core";
 import { stakingVaultAbi } from "@vetro-protocol/earn";
-import { type Address, type Hex, parseEventLogs, parseUnits } from "viem";
+import { type Address, type Hex, parseUnits } from "viem";
 import { generatePrivateKey, privateKeyToAddress } from "viem/accounts";
 import {
   revert,
@@ -16,6 +16,7 @@ import {
   createClients,
   fastForward,
   fundTestAccount,
+  requestWithdraw,
   runCli,
   runCliRaw,
   setStakingCooldown,
@@ -70,32 +71,6 @@ describe("variable-yield exit-tickets", function () {
     "--rpc-url",
     rpcUrl,
   ];
-
-  const requestWithdraw = async function ({
-    assets,
-    vault,
-  }: {
-    assets: bigint;
-    vault: Address;
-  }) {
-    await fastForward({ rpcUrl, seconds: 60n });
-    const hash = await writeContract(walletClient, {
-      abi: stakingVaultAbi,
-      address: vault,
-      args: [assets, TEST_ADDRESS],
-      functionName: "requestWithdraw",
-    });
-    const { logs, status } = await waitForTransactionReceipt(publicClient, {
-      hash,
-    });
-    expect(status).toBe("success");
-    const [{ args }] = parseEventLogs({
-      abi: stakingVaultAbi,
-      eventName: "WithdrawRequested",
-      logs,
-    });
-    return args;
-  };
 
   const cancelWithdraw = async function ({
     requestId,
@@ -155,11 +130,13 @@ describe("variable-yield exit-tickets", function () {
       async run() {
         const ready = await requestWithdraw({
           assets: parseUnits("10", vusd.decimals),
+          rpcUrl,
           vault: sVusdAddress,
         });
         await fastForward({ rpcUrl, seconds: cooldownDuration });
         const pending = await requestWithdraw({
           assets: parseUnits("20", vusd.decimals),
+          rpcUrl,
           vault: sVusdAddress,
         });
         const shareSymbol = await symbol(publicClient, {
@@ -193,14 +170,17 @@ describe("variable-yield exit-tickets", function () {
       async run() {
         const cancelled = await requestWithdraw({
           assets: parseUnits("10", vusd.decimals),
+          rpcUrl,
           vault: sVusdAddress,
         });
         const second = await requestWithdraw({
           assets: parseUnits("20", vusd.decimals),
+          rpcUrl,
           vault: sVusdAddress,
         });
         const third = await requestWithdraw({
           assets: parseUnits("30", vusd.decimals),
+          rpcUrl,
           vault: sVusdAddress,
         });
         await cancelWithdraw({

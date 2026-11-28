@@ -1,7 +1,7 @@
 import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
 import type { Token } from "@vetro-protocol/core";
+import { RenderCryptoValue } from "components/base/cryptoValue";
 import { useTranslation } from "react-i18next";
-import { formatAmount } from "utils/token";
 
 import { Balance } from "./balance";
 
@@ -13,7 +13,7 @@ type Props = {
 export const TokenBalance = function ({ label, token }: Props) {
   const { t } = useTranslation();
 
-  const { data: balance, isError } = useTokenBalance({
+  const { data: balance, status } = useTokenBalance({
     address: token.address,
     chainId: token.chainId,
   });
@@ -21,11 +21,9 @@ export const TokenBalance = function ({ label, token }: Props) {
   return (
     <Balance
       label={label ?? t("common.balance")}
-      value={formatAmount({
-        amount: balance,
-        decimals: token.decimals,
-        isError,
-      })}
+      value={
+        <RenderCryptoValue status={status} token={token} value={balance} />
+      }
     />
   );
 };

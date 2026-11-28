@@ -149,7 +149,9 @@ export const useStakeWithdraw = function ({
             const { args } = logs[0];
             const ticket: ExitTicket = {
               assets: args.assets.toString(),
+              cancelTxHash: null,
               claimableAt: args.claimableAt.toString(),
+              claimTxHash: null,
               owner: args.owner,
               requestId: args.requestId.toString(),
               requestTxHash: receipt.transactionHash,

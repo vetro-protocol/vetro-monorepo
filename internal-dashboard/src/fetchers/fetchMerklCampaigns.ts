@@ -19,27 +19,23 @@ const runningCampaigns = ({
         campaign.startTimestamp <= nowSeconds &&
         campaign.endTimestamp > nowSeconds,
     )
-    .map(
-      (campaign): PoolCampaign => ({
-        aprPercent: campaign.apr,
-        dailyRewardsUsd: campaign.dailyRewards,
-        endTimestamp: campaign.endTimestamp,
-        id: campaign.id,
-        name: opportunity.name,
-        protocolAprPercent: opportunity.nativeApr,
-        rewardTokenSymbol: campaign.rewardToken.symbol,
-        source: "merkl",
-        tvlUsd: opportunity.tvl,
-        url: merklCampaignUrl({
-          campaignId: campaign.campaignId,
-          opportunityId: opportunity.id,
-        }),
+    .map((campaign): PoolCampaign => ({
+      aprPercent: campaign.apr,
+      dailyRewardsUsd: campaign.dailyRewards,
+      endTimestamp: campaign.endTimestamp,
+      id: campaign.id,
+      name: opportunity.name,
+      protocolAprPercent: opportunity.nativeApr,
+      rewardTokenSymbol: campaign.rewardToken.symbol,
+      source: "merkl",
+      tvlUsd: opportunity.tvl,
+      url: merklCampaignUrl({
+        campaignId: campaign.campaignId,
+        opportunityId: opportunity.id,
       }),
-    );
+    }));
 
-export const fetchMerklCampaigns = async function (
-  identifiers: string[],
-): Promise<Record<string, PoolCampaign[]>> {
+export const fetchMerklCampaigns = async function (identifiers: string[]) {
   const opportunities = await fetchLiveOpportunities(identifiers);
   const nowSeconds = Date.now() / 1000;
 

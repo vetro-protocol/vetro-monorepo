@@ -1,3 +1,4 @@
+import { normalizePath } from "i18n/path";
 import type { ReactNode } from "react";
 import { useLocation } from "react-router";
 
@@ -17,7 +18,7 @@ export function MainContent({
     <div className="relative flex h-full flex-col overflow-y-auto *:mx-auto *:w-[calc(100%-2rem)] md:*:w-[calc(100%-6rem)] xl:*:w-5xl">
       <main
         className="motion-safe:animate-page-in grow border-x border-gray-200"
-        key={pathname}
+        key={normalizePath(pathname)}
       >
         {children}
       </main>

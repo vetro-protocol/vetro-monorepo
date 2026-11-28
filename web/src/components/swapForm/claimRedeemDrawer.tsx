@@ -2,12 +2,13 @@ import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
 import { type Step, stepStatus } from "components/base/verticalStepper";
 import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
-import { type ComponentProps, Suspense, lazy } from "react";
+import { type ComponentProps, Suspense } from "react";
 import { useTranslation } from "react-i18next";
+import { lazyWithReload } from "utils/lazyWithReload";
 
 import { type ClaimRedeemFlowStatus } from "./types";
 
-const ClaimRedeemProgressDrawer = lazy(() =>
+const ClaimRedeemProgressDrawer = lazyWithReload(() =>
   import("./claimRedeemProgressDrawer").then((m) => ({
     default: m.ClaimRedeemProgressDrawer,
   })),
@@ -41,7 +42,12 @@ export function ClaimRedeemDrawer({ onClose, ...props }: Props) {
   ];
 
   return (
-    <Drawer onClose={onClose}>
+    <Drawer
+      onClose={onClose}
+      title={t("pages.swap.redeem-queue.drawer-title", {
+        symbol: props.fromToken.symbol,
+      })}
+    >
       <Suspense fallback={<DrawerLoader />}>
         <ClaimRedeemProgressDrawer
           {...props}

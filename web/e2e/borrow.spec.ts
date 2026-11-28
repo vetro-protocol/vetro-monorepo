@@ -2,12 +2,12 @@ import { TEST_ADDRESS } from "@hemilabs/anvil-fork-setup/utils";
 import type { MarketId } from "@morpho-org/blue-sdk";
 import { fetchPosition } from "@morpho-org/blue-sdk-viem";
 import { type Page, expect } from "@playwright/test";
+import { marketIds } from "@vetro-protocol/morpho-blue-market";
 import { type PublicClient, formatUnits, parseUnits } from "viem";
 import { getBlock } from "viem/actions";
 import { balanceOf } from "viem-erc20/actions";
 
 import { openBorrowPosition } from "../scripts/openBorrowPosition.ts";
-import { marketIds } from "../src/constants/borrow.ts";
 import { formatNumber } from "../src/utils/format.ts";
 
 import { ANVIL_URL, createEthereumClient } from "./anvil";
@@ -99,7 +99,7 @@ async function openManageAction({
 }) {
   await page.locator(`#manage-${hemiBtcVusdMarketId}`).click();
   await page.getByRole("menuitem", { name: action }).click();
-  return page.getByRole("heading", { name: action }).locator("..");
+  return page.getByRole("dialog", { name: action });
 }
 
 test("start a borrow position on the hemiBTC / VUSD market", async function ({
@@ -137,10 +137,12 @@ test("start a borrow position on the hemiBTC / VUSD market", async function ({
   await expect(page.getByText("Borrow successful")).toBeVisible({
     timeout: 60_000,
   });
+  await page.getByText("Borrow successful").hover();
 
   await expect(page.getByText("You have a position already open")).toBeVisible({
     timeout: 20_000,
   });
+  await expect(page.getByText("Borrow successful")).toBeVisible();
 
   await waitForBalance({ client: publicClient, token: vusd.address }).toBe(
     vusdBefore + BORROW_AMOUNT,
@@ -211,6 +213,9 @@ test("borrow more on an open hemiBTC / VUSD position", async function ({
   await expect(page.getByText("Borrow successful")).toBeVisible({
     timeout: 60_000,
   });
+  await page.getByText("Borrow successful").hover();
+  await expect(drawer).toBeHidden({ timeout: 10_000 });
+  await expect(page.getByText("Borrow successful")).toBeVisible();
 
   await waitForBalance({ client: publicClient, token: vusd.address }).toBe(
     vusdBefore + BORROW_MORE_AMOUNT,
@@ -279,6 +284,9 @@ test("supply more collateral to an open hemiBTC / VUSD position", async function
   await expect(page.getByText("Collateral supplied")).toBeVisible({
     timeout: 60_000,
   });
+  await page.getByText("Collateral supplied").hover();
+  await expect(drawer).toBeHidden({ timeout: 10_000 });
+  await expect(page.getByText("Collateral supplied")).toBeVisible();
 
   await waitForBalance({ client: publicClient, token: hemiBtc.address }).toBe(
     hemiBtcBefore - SUPPLY_MORE_AMOUNT,
@@ -343,6 +351,9 @@ test("repay part of the loan on an open hemiBTC / VUSD position", async function
   await expect(page.getByText("Loan repaid")).toBeVisible({
     timeout: 60_000,
   });
+  await page.getByText("Loan repaid").hover();
+  await expect(drawer).toBeHidden({ timeout: 10_000 });
+  await expect(page.getByText("Loan repaid")).toBeVisible();
 
   await waitForBalance({ client: publicClient, token: vusd.address }).toBe(
     vusdBefore - REPAY_AMOUNT,
@@ -409,6 +420,9 @@ test("withdraw collateral from an open hemiBTC / VUSD position", async function 
   await expect(page.getByText("Collateral withdrawn")).toBeVisible({
     timeout: 60_000,
   });
+  await page.getByText("Collateral withdrawn").hover();
+  await expect(drawer).toBeHidden({ timeout: 10_000 });
+  await expect(page.getByText("Collateral withdrawn")).toBeVisible();
 
   await waitForBalance({ client: publicClient, token: hemiBtc.address }).toBe(
     hemiBtcBefore + WITHDRAW_AMOUNT,

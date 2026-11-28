@@ -1,10 +1,7 @@
 import type { BridgeableToken } from "types";
 import { describe, expect, it } from "vitest";
 
-import {
-  type BridgeFormState,
-  bridgeFormReducer,
-} from "../../../src/components/bridgeForm/reducer";
+import { bridgeFormReducer } from "../../../src/components/bridgeForm/reducer";
 
 const mockToken1: BridgeableToken = {
   address: "0xCa83DDE9c22254f58e771bE5E157773212AcBAc3",
@@ -66,7 +63,7 @@ const tokens = [
   mockSvusdToken2,
 ];
 
-const createInitialState = (): BridgeFormState => ({
+const createInitialState = () => ({
   approve10x: false,
   fromInputValue: "0",
   fromToken: mockToken1,

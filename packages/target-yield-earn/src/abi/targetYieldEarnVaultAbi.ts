@@ -8,6 +8,13 @@ export const targetYieldEarnVaultAbi = [
   },
   {
     inputs: [{ name: "controller_", type: "address" }],
+    name: "cancelableRedeemRequest",
+    outputs: [{ type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [{ name: "controller_", type: "address" }],
     name: "cancelDepositRequest",
     outputs: [],
     stateMutability: "nonpayable",
@@ -32,6 +39,16 @@ export const targetYieldEarnVaultAbi = [
   },
   {
     inputs: [
+      { name: "requestId_", type: "uint256" },
+      { name: "controller_", type: "address" },
+    ],
+    name: "claimableRedeemRequest",
+    outputs: [{ type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
       { name: "assets_", type: "uint256" },
       { name: "receiver_", type: "address" },
       { name: "controller_", type: "address" },
@@ -39,6 +56,13 @@ export const targetYieldEarnVaultAbi = [
     name: "deposit",
     outputs: [{ type: "uint256" }],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "entryGate",
+    outputs: [{ type: "address" }],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -138,10 +162,31 @@ export const targetYieldEarnVaultAbi = [
     type: "function",
   },
   {
+    inputs: [
+      { name: "requestId_", type: "uint256" },
+      { name: "controller_", type: "address" },
+    ],
+    name: "pendingRedeemRequest",
+    outputs: [{ type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [{ name: "epochId_", type: "uint256" }],
     name: "rate",
     outputs: [{ type: "uint256" }],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "shares_", type: "uint256" },
+      { name: "receiver_", type: "address" },
+      { name: "controller_", type: "address" },
+    ],
+    name: "redeem",
+    outputs: [{ type: "uint256" }],
+    stateMutability: "nonpayable",
     type: "function",
   },
 ] as const;

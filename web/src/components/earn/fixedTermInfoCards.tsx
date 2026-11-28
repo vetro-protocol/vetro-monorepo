@@ -106,7 +106,7 @@ const TermLengthCard = function ({ stakingVaultAddress }: Props) {
             Math.floor(
               Number(epochPeriod.end - epochPeriod.start) / SECONDS_PER_DAY,
             )
-          : undefined
+          : epochPeriod
       }
       icon={<PlayIcon className="text-blue-500" />}
       isLoading={isLoading}

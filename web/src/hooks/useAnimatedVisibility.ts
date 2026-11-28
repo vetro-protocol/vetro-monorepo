@@ -8,7 +8,9 @@ export function useAnimatedVisibility(active: boolean) {
     function animate() {
       if (active) {
         setRender(true);
-        const frameId = requestAnimationFrame(() => setShow(true));
+        let frameId = requestAnimationFrame(function () {
+          frameId = requestAnimationFrame(() => setShow(true));
+        });
         return () => cancelAnimationFrame(frameId);
       }
       setShow(false);

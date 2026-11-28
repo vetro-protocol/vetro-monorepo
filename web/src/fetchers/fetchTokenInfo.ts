@@ -1,4 +1,4 @@
-import { knownTokens, type Token } from "@vetro-protocol/core";
+import { knownTokens } from "@vetro-protocol/core";
 import { type Address, type Client, isAddressEqual } from "viem";
 import { decimals, name, symbol } from "viem-erc20/actions";
 
@@ -8,7 +8,7 @@ export const fetchTokenInfo = async function ({
 }: {
   address: Address;
   client: Client;
-}): Promise<Token> {
+}) {
   const chainId = client.chain!.id;
 
   const known = knownTokens.find(

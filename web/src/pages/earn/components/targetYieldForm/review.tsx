@@ -11,7 +11,7 @@ type ReviewRowProps = {
 export const ReviewRow = ({ info, label, value }: ReviewRowProps) => (
   <div className="flex items-center justify-between gap-2 border-b border-gray-200 py-3.5 last:border-b-0">
     <div className="text-b-medium flex items-center gap-1 text-gray-900">
-      <Tooltip content={info}>
+      <Tooltip content={info} topic={label}>
         <QuestionMarkCircleIcon className="size-4 text-gray-400 hover:text-gray-900" />
       </Tooltip>
       {label}

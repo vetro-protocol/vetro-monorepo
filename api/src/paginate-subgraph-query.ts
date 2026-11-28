@@ -93,6 +93,7 @@ function resolveNextBound<R>({
 export async function paginateSubgraphQuery<R>({
   cursor,
   field,
+  headers,
   maxSkip = defaultMaxSkip,
   pageSize = defaultPageSize,
   query,
@@ -101,12 +102,13 @@ export async function paginateSubgraphQuery<R>({
 }: {
   cursor?: Cursor<R>;
   field: string;
+  headers?: Record<string, string>;
   maxSkip?: number;
   pageSize?: number;
   query: string;
   url: string;
   variables?: Record<string, unknown>;
-}): Promise<R[]> {
+}) {
   const all: R[] = [];
   const getId = cursor
     ? (cursor.getId ?? ((row: R) => String(cursor.getValue(row))))
@@ -118,6 +120,7 @@ export async function paginateSubgraphQuery<R>({
 
   while (!done) {
     const data = await graphql.runQuery<Record<string, R[]>>({
+      headers,
       query,
       url,
       variables: { ...pageVariables, first: pageSize, skip },

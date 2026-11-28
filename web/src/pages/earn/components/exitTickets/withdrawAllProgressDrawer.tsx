@@ -1,8 +1,8 @@
-import { useQueries, useQueryClient } from "@tanstack/react-query";
-import { Button } from "components/base/button";
+import { useQueries } from "@tanstack/react-query";
 import { DollarSign } from "components/base/dollarSign";
-import { DrawerTitle } from "components/base/drawer/drawerTitle";
+import { DrawerRetryFooter } from "components/base/drawer/drawerRetryFooter";
 import { RenderFiatValue } from "components/base/fiatValue";
+import { QueryResult } from "components/base/queryResult";
 import { Spinner } from "components/base/spinner";
 import { CheckCircleIcon } from "components/base/toast/checkCircleIcon";
 import { TokenInteraction } from "components/base/tokenInteraction";
@@ -11,7 +11,6 @@ import {
   stepStatus,
   VerticalStepper,
 } from "components/base/verticalStepper";
-import { useAnimatedVisibility } from "hooks/useAnimatedVisibility";
 import { useEthereumClient } from "hooks/useEthereumClient";
 import {
   useVaultPeggedToken,
@@ -20,6 +19,7 @@ import {
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import type { TokenWithGateway } from "types";
+import { formatFiatNumberRoundDown } from "utils/format";
 import { formatAmount } from "utils/token";
 import type { Address } from "viem";
 
@@ -89,7 +89,11 @@ const Row = ({ amount, peggedToken, status }: RowProps) => (
       detail={
         <>
           <DollarSign />
-          <RenderFiatValue token={peggedToken} value={amount} />
+          <RenderFiatValue
+            customFormatter={formatFiatNumberRoundDown}
+            token={peggedToken}
+            value={amount}
+          />
         </>
       }
       token={peggedToken}
@@ -107,29 +111,29 @@ type VaultRowProps = {
 // Owns its vault's pegged-token query so the row can render its own loading and
 // error states without blocking the rest of the flow.
 function VaultRow({ amount, stakingVaultAddress, status }: VaultRowProps) {
-  const { data: peggedToken, isError } =
-    useVaultPeggedToken(stakingVaultAddress);
+  const peggedTokenQuery = useVaultPeggedToken(stakingVaultAddress);
 
-  if (isError) {
-    return (
-      <div className="flex items-center justify-between bg-gray-50 p-6">
-        <span className="text-4xl leading-10 font-semibold text-gray-300">
-          -
-        </span>
-        <StatusIcon status={status} />
-      </div>
-    );
-  }
-
-  if (!peggedToken) {
-    return (
-      <div className="flex items-center justify-between bg-gray-50 p-6">
-        <Skeleton className="h-10 w-40" />
-      </div>
-    );
-  }
-
-  return <Row amount={amount} peggedToken={peggedToken} status={status} />;
+  return (
+    <QueryResult
+      data={(token) => (
+        <Row amount={amount} peggedToken={token} status={status} />
+      )}
+      error={
+        <div className="flex items-center justify-between bg-gray-50 p-6">
+          <span className="text-4xl leading-10 font-semibold text-gray-300">
+            -
+          </span>
+          <StatusIcon status={status} />
+        </div>
+      }
+      loading={
+        <div className="flex items-center justify-between bg-gray-50 p-6">
+          <Skeleton className="h-10 w-40" />
+        </div>
+      }
+      query={peggedTokenQuery}
+    />
+  );
 }
 
 const StepperSkeleton = ({ count }: { count: number }) => (
@@ -154,13 +158,11 @@ function VaultStepper({
 }: Pick<Props, "statuses" | "vaults">) {
   const client = useEthereumClient();
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
 
   const peggedTokenQueries = useQueries({
     queries: vaults.map((vault) =>
       vaultPeggedTokenQueryOptions({
         client,
-        queryClient,
         stakingVaultAddress: vault.stakingVaultAddress,
       }),
     ),
@@ -189,15 +191,9 @@ export function WithdrawAllProgressDrawer({
   vaults,
 }: Props) {
   const { t } = useTranslation();
-  const { render: renderRetry, show: showRetry } =
-    useAnimatedVisibility(!!onRetry);
 
   return (
     <div className="flex h-full flex-col">
-      <DrawerTitle>
-        {t("pages.earn.exit-tickets.withdraw-all-progress.title")}
-      </DrawerTitle>
-
       <div className="divide-y divide-gray-200 border-y border-gray-200">
         {vaults.map((vault) => (
           <VaultRow
@@ -220,21 +216,7 @@ export function WithdrawAllProgressDrawer({
         </div>
       </div>
 
-      {renderRetry && (
-        <div
-          className={`grid transition-[grid-template-rows] duration-300 ease-out ${
-            showRetry ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-          }`}
-        >
-          <div className="overflow-hidden">
-            <div className="border-t border-gray-200 bg-gray-50 px-6 py-3 *:w-full">
-              <Button onClick={onRetry} size="small" variant="primary">
-                {t("pages.swap.progress.retry")}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DrawerRetryFooter onRetry={onRetry} />
     </div>
   );
 }

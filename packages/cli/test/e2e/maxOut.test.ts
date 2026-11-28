@@ -1,6 +1,8 @@
+import { gatewayAddresses } from "@vetro-protocol/gateway";
+import { getMaxWithdraw } from "@vetro-protocol/gateway/actions";
 import { describe, expect, inject, it } from "vitest";
 
-import { runCli, runCliRaw, usdc, vusd } from "./helpers.ts";
+import { createClients, runCli, runCliRaw, usdc, vusd } from "./helpers.ts";
 
 describe("swap max-out", function () {
   const rpcUrl = inject("anvilUrl");
@@ -16,9 +18,13 @@ describe("swap max-out", function () {
   // `Treasury.withdrawable` returns 0 rather than reverting for a token it does
   // not hold, so a wrong gateway or a wrong tokenOut would read as a plain "0".
   it("reads the treasury reserves by symbol", async function () {
+    const { publicClient } = createClients(rpcUrl);
+    const expected = await getMaxWithdraw(publicClient, {
+      address: gatewayAddresses[0],
+      tokenOut: usdc.address,
+    });
     const maxOut = await runCli(maxOutOnFork(["--token", usdc.symbol]));
-    expect(maxOut).toMatch(/^\d+$/);
-    expect(BigInt(maxOut)).toBeGreaterThan(0n);
+    expect(maxOut).toBe(expected.toString());
   });
 
   it("reads the same reserves by address as by symbol", async function () {

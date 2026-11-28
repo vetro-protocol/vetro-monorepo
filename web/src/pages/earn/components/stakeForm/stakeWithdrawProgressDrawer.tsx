@@ -1,8 +1,7 @@
 import type { Token } from "@vetro-protocol/core";
-import { Button } from "components/base/button";
 import { RenderCryptoValue } from "components/base/cryptoValue";
 import { DollarSign } from "components/base/dollarSign";
-import { DrawerTitle } from "components/base/drawer/drawerTitle";
+import { DrawerRetryFooter } from "components/base/drawer/drawerRetryFooter";
 import { RenderFiatValue } from "components/base/fiatValue";
 import {
   TokenInteraction,
@@ -11,15 +10,14 @@ import {
 import { VerticalStepper, stepStatus } from "components/base/verticalStepper";
 import { DrawerFeesContainer } from "components/feesContainer";
 import { NetworkFees } from "components/networkFees";
-import { useAnimatedVisibility } from "hooks/useAnimatedVisibility";
 import { useVaultPreviewWithdraw } from "hooks/useVaultPreviewWithdraw";
+import type { WithdrawStep } from "pages/earn/components/earnForm/stakeFormReducer";
 import type { ComponentProps } from "react";
 import { useTranslation } from "react-i18next";
 import Skeleton from "react-loading-skeleton";
 import type { TokenWithGateway } from "types";
+import { formatFiatNumberRoundDown } from "utils/format";
 import type { Address } from "viem";
-
-import type { WithdrawStep } from "./stakeFormReducer";
 
 type SummaryProps = {
   amount: string;
@@ -120,6 +118,17 @@ function InstantWithdrawSummary({
     </>
   );
 
+  const receivedFiatDetail = (
+    <>
+      <DollarSign />
+      <RenderFiatValue
+        customFormatter={formatFiatNumberRoundDown}
+        token={peggedToken}
+        value={assets}
+      />
+    </>
+  );
+
   return (
     <>
       <TokenInteraction
@@ -136,7 +145,7 @@ function InstantWithdrawSummary({
       />
       <TokenInteraction
         amount={amount}
-        detail={fiatDetail}
+        detail={receivedFiatDetail}
         label={t("pages.earn.stake.you-will-receive")}
         token={peggedToken}
       />
@@ -193,13 +202,9 @@ export function StakeWithdrawProgressDrawer({
     cooldownDays,
     withdrawStep,
   });
-  const { render: renderRetry, show: showRetry } =
-    useAnimatedVisibility(!!onRetry);
 
   return (
     <div className="flex h-full flex-col">
-      <DrawerTitle>{t("pages.earn.stake.withdraw-in-progress")}</DrawerTitle>
-
       <TokenInteractionList>
         {canInstantWithdraw ? (
           <InstantWithdrawSummary
@@ -234,21 +239,7 @@ export function StakeWithdrawProgressDrawer({
         </div>
       </div>
 
-      {renderRetry && (
-        <div
-          className={`grid transition-[grid-template-rows] duration-300 ease-out ${
-            showRetry ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-          }`}
-        >
-          <div className="overflow-hidden">
-            <div className="border-t border-gray-200 bg-gray-50 px-6 py-3 *:w-full">
-              <Button onClick={onRetry} size="small" variant="primary">
-                {t("pages.earn.stake.retry")}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DrawerRetryFooter onRetry={onRetry} />
     </div>
   );
 }

@@ -11,12 +11,14 @@ import { mainnet } from "viem/chains";
 import { convertToAssets, totalAssets } from "viem-erc4626/actions";
 
 import { aprWadToApy } from "./apr-wad-to-apy.ts";
+import { type Subgraph } from "./env.ts";
 import * as graphql from "./graphql.ts";
 import * as merkl from "./merkl.ts";
+import { paginateSubgraphQuery } from "./paginate-subgraph-query.ts";
 import { findStakingVaultForPeggedToken } from "./staking-vault.ts";
+import { SECONDS_PER_YEAR } from "./utils/time.ts";
 
 const WAD = 10n ** 18n;
-const SECONDS_PER_YEAR = 31_536_000n; // 365 days
 
 /**
  * Query the subgraph for the user's staking positions across all known vaults
@@ -27,10 +29,10 @@ const SECONDS_PER_YEAR = 31_536_000n; // 365 days
  */
 export async function getCostBasis({
   address,
-  url,
+  subgraph,
 }: {
   address: string;
-  url: string;
+  subgraph: Subgraph;
 }) {
   const query = `
     query ($owner: Bytes!, $vaults: [Bytes!]!) {
@@ -50,7 +52,7 @@ export async function getCostBasis({
       stakingVaultAddress: `0x${string}`;
       totalCostBasis: string;
     }[];
-  }>({ query, url, variables });
+  }>({ ...subgraph, query, variables });
   if (!Array.isArray(userStakingPositions)) {
     throw new Error(
       `Invalid subgraph response for staking positions of ${address}`,
@@ -108,36 +110,40 @@ async function computeVaultApy({
   return 0;
 }
 
-/**
- * Compute a forward-looking APY for each configured staking vault via
- * `computeVaultApy`. Returns a record keyed by checksummed vault address. A vault is
- * included with `{ apy: 0 }` when its reads succeed but no drip is active; a vault
- * whose on-chain reads fail is omitted entirely so the frontend can render "-" for
- * it, distinct from a genuine 0% APY.
- */
-export async function getApy({ rpcUrl }: { rpcUrl: string | undefined }) {
+export async function getApyForVault({
+  rpcUrl,
+  vaultAddress,
+}: {
+  rpcUrl: string | undefined;
+  vaultAddress: Address;
+}) {
   const client = createMainnetClient(rpcUrl);
+  const apy = await computeVaultApy({ client, vaultAddress });
+  return { apy };
+}
 
-  const entries = await Promise.all(
-    stakingVaultAddresses.map(async function (vaultAddress) {
-      try {
-        const apy = await computeVaultApy({ client, vaultAddress });
-        return [vaultAddress, { apy }] as const;
-      } catch (error) {
-        // Omit this vault from the response so the frontend shows "-" rather
-        // than a misleading 0%. A single vault's failed on-chain reads (e.g.
-        // an unconfigured distributor or RPC error) must not affect the rest.
-        console.warn(
-          `Failed to compute APY for vault ${vaultAddress}: ${error.message}`,
-        );
-        return null;
-      }
+export async function getApyByVault({
+  readApy,
+}: {
+  readApy: (vaultAddress: Address) => Promise<{ apy: number }>;
+}) {
+  const results = await Promise.allSettled(
+    stakingVaultAddresses.map(async function (stakingVaultAddress) {
+      const data = await readApy(stakingVaultAddress);
+      return { data, stakingVaultAddress };
     }),
   );
-
-  return Object.fromEntries(
-    entries.filter((entry) => entry !== null),
+  const data = Object.fromEntries(
+    results.flatMap((result) =>
+      result.status === "fulfilled"
+        ? [[result.value.stakingVaultAddress, result.value.data] as const]
+        : [],
+    ),
   ) as Record<Address, { apy: number }>;
+  if (Object.keys(data).length === 0) {
+    throw new Error("Staking vault APYs are not available");
+  }
+  return data;
 }
 
 /**
@@ -225,9 +231,9 @@ export async function getUserRewards({
 
 type ExitTicket = {
   assets: string;
-  cancelTxHash?: Hash | null;
-  claimableAt: number;
-  claimTxHash?: Hash | null;
+  cancelTxHash: Hash | null;
+  claimableAt: string;
+  claimTxHash: Hash | null;
   owner: Address;
   requestId: string;
   requestTxHash: Hash;
@@ -236,21 +242,24 @@ type ExitTicket = {
 };
 
 /**
- * Query the subgraph. Get all exit tickets for the user. No pagination is
- * supported. If more than 100 entities exist, pagination will have to be
- * implemented in the query. Then the function may have to support returning
- * paginated results too.
+ * Query the subgraph. Get all exit tickets for the user, paging through the
+ * results.
  */
 export async function getUserExitTickets({
   address,
-  url,
+  subgraph,
 }: {
   address: string;
-  url: string;
-}): Promise<ExitTicket[]> {
+  subgraph: Subgraph;
+}) {
   const query = `
-    query ($owner: Bytes!) {
-      exitTickets(orderBy: claimableAt, where: { owner: $owner }) {
+    query ($first: Int!, $owner: Bytes!, $skip: Int!) {
+      exitTickets(
+        first: $first,
+        orderBy: claimableAt,
+        skip: $skip,
+        where: { owner: $owner }
+      ) {
         assets
         cancelTxHash
         claimableAt
@@ -265,18 +274,12 @@ export async function getUserExitTickets({
   const variables = {
     owner: address.toLowerCase(),
   };
-  const { exitTickets } = await graphql.runQuery<{
-    exitTickets: ExitTicket[];
-  }>({ query, url, variables });
-  if (!Array.isArray(exitTickets)) {
-    throw new Error(`Invalid subgraph response for exit tickets of ${address}`);
-  }
-  if (exitTickets.length === 100) {
-    // TODO https://github.com/vetro-protocol/vetro-monorepo/issues/339
-    console.warn(
-      `Got exactly 100 exit tickets for ${address}. Implement pagination!`,
-    );
-  }
+  const exitTickets = await paginateSubgraphQuery<ExitTicket>({
+    ...subgraph,
+    field: "exitTickets",
+    query,
+    variables,
+  });
   return exitTickets.map((ticket) => ({
     ...ticket,
     owner: checksumAddress(ticket.owner),
@@ -285,19 +288,19 @@ export async function getUserExitTickets({
 }
 
 /**
- * Queries the subgraph for all open exit tickets scoped to the given gateway's
- * staking vault and returns the number of open tickets and their combined
- * value in the vault's underlying asset (shares converted via the vault's
- * exchange rate).
+ * Reads the exit ticket queue summary of the given gateway's staking vault from
+ * the subgraph and returns the number of open tickets and their combined value
+ * in the vault's underlying asset (shares converted via the vault's exchange
+ * rate).
  */
 export async function getExitTicketQueueSize({
   gatewayAddress,
   rpcUrl,
-  subgraphUrl,
+  subgraph,
 }: {
   gatewayAddress: Address;
   rpcUrl: string | undefined;
-  subgraphUrl: string;
+  subgraph: Subgraph;
 }) {
   const client = createMainnetClient(rpcUrl);
   const peggedTokenAddress = await getPeggedToken(client, {
@@ -308,43 +311,25 @@ export async function getExitTicketQueueSize({
     peggedTokenAddress,
   });
   const query = `
-    query ($stakingVault: Bytes!) {
-      exitTickets(
-        first: 100,
-        where: {
-          stakingVaultAddress: $stakingVault,
-          cancelTxHash: null,
-          claimTxHash: null
-        }
-      ) {
+    query ($id: ID!) {
+      exitTicketQueueSummary(id: $id) {
+        openTickets
         shares
       }
     }`;
-  const variables = { stakingVault: stakingVaultAddress.toLowerCase() };
-  const { exitTickets } = await graphql.runQuery<{
-    exitTickets: { shares: string }[];
-  }>({ query, url: subgraphUrl, variables });
-  if (!Array.isArray(exitTickets)) {
-    throw new Error(
-      `Invalid subgraph response for exit tickets of vault ${stakingVaultAddress}`,
-    );
+  const variables = { id: stakingVaultAddress.toLowerCase() };
+  const { exitTicketQueueSummary } = await graphql.runQuery<{
+    exitTicketQueueSummary: { openTickets: number; shares: string } | null;
+  }>({ ...subgraph, query, variables });
+  if (!exitTicketQueueSummary) {
+    return { assets: 0n, openTickets: 0 };
   }
-  // TODO https://github.com/vetro-protocol/vetro-monorepo/issues/339
-  if (exitTickets.length === 100) {
-    console.warn(
-      `Got exactly 100 open exit tickets for vault ${stakingVaultAddress}. Implement pagination!`,
-    );
-  }
-  const shares = exitTickets.reduce(
-    (acc, ticket) => acc + BigInt(ticket.shares),
-    0n,
-  );
   const assets = await convertToAssets(client, {
     address: stakingVaultAddress,
-    shares,
+    shares: BigInt(exitTicketQueueSummary.shares),
   });
   return {
     assets,
-    openTickets: exitTickets.length,
+    openTickets: exitTicketQueueSummary.openTickets,
   };
 }

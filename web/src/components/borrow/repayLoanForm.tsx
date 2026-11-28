@@ -4,8 +4,9 @@ import { useTokenBalance } from "@hemilabs/react-hooks/useTokenBalance";
 import { getChainAddresses } from "@morpho-org/blue-sdk";
 import { Button } from "components/base/button";
 import { RenderCryptoValue } from "components/base/cryptoValue";
+import { DrawerRetryFooter } from "components/base/drawer/drawerRetryFooter";
 import { RenderFiatValue } from "components/base/fiatValue";
-import { Toast } from "components/base/toast";
+import type { ToastContent } from "components/base/toast";
 import {
   type Step,
   VerticalStepper,
@@ -54,7 +55,7 @@ type RepayFlowStatus =
 
 const getApproveStepStatus = function (
   status: Exclude<RepayFlowStatus, "idle">,
-): Step["status"] {
+) {
   const exceptions: Partial<
     Record<Exclude<RepayFlowStatus, "idle">, Step["status"]>
   > = {
@@ -64,9 +65,7 @@ const getApproveStepStatus = function (
   return exceptions[status] ?? stepStatus.completed;
 };
 
-const getRepayStepStatus = function (
-  status: Exclude<RepayFlowStatus, "idle">,
-): Step["status"] {
+const getRepayStepStatus = function (status: Exclude<RepayFlowStatus, "idle">) {
   const exceptions: Partial<
     Record<Exclude<RepayFlowStatus, "idle">, Step["status"]>
   > = {
@@ -173,8 +172,6 @@ function StepperOverlay({
   steps,
 }: StepperOverlayProps) {
   const { t } = useTranslation();
-  const { render: renderRetry, show: showRetry } =
-    useAnimatedVisibility(isError);
 
   return (
     <>
@@ -198,21 +195,7 @@ function StepperOverlay({
             <VerticalStepper steps={steps} />
           </div>
         </div>
-        {renderRetry && (
-          <div
-            className={`grid transition-[grid-template-rows] duration-300 ease-out ${
-              showRetry ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-            }`}
-          >
-            <div className="overflow-hidden">
-              <div className="border-t border-gray-200 bg-gray-50 px-6 py-3 *:w-full">
-                <Button onClick={onRetry} size="small" variant="primary">
-                  {t("pages.borrow.repay-loan-progress.retry")}
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
+        <DrawerRetryFooter onRetry={isError ? onRetry : undefined} />
       </div>
     </>
   );
@@ -221,14 +204,14 @@ function StepperOverlay({
 type Props = {
   market: MarketData;
   onClose: VoidFunction;
+  onSuccess: (toast: ToastContent) => void;
 };
 
-export function RepayLoanForm({ market, onClose }: Props) {
+export function RepayLoanForm({ market, onClose, onSuccess }: Props) {
   const { t } = useTranslation();
 
   const [repayInput, onRepayChange] = useAmount();
   const [flowStatus, setFlowStatus] = useState<RepayFlowStatus>("idle");
-  const [showToast, setShowToast] = useState(false);
   const [startedWithApproval, setStartedWithApproval] = useState(false);
 
   const isActive = flowStatus !== "idle";
@@ -308,7 +291,13 @@ export function RepayLoanForm({ market, onClose }: Props) {
       emitter.on("repay-assets-transaction-succeeded", function () {
         onCompleted();
         setFlowStatus("repaid");
-        setShowToast(true);
+        onSuccess({
+          description: t("pages.borrow.repay-loan-progress.toast-description", {
+            amount: formatNumber(repayInput),
+            symbol: loanToken.symbol,
+          }),
+          title: t("pages.borrow.repay-loan-progress.toast-title"),
+        });
       });
       emitter.on("repay-assets-transaction-reverted", function () {
         onFailed();
@@ -444,17 +433,6 @@ export function RepayLoanForm({ market, onClose }: Props) {
         showStepper={showStepper}
         steps={steps}
       />
-      {showToast && (
-        <Toast
-          closable
-          description={t("pages.borrow.repay-loan-progress.toast-description", {
-            amount: formatNumber(repayInput),
-            symbol: loanToken.symbol,
-          })}
-          onClose={() => setShowToast(false)}
-          title={t("pages.borrow.repay-loan-progress.toast-title")}
-        />
-      )}
     </div>
   );
 }

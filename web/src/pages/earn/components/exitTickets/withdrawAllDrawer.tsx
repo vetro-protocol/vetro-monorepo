@@ -2,17 +2,18 @@ import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
 import { useClaimWithdrawBatch } from "hooks/useClaimWithdrawBatch";
 import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
-import { Suspense, lazy, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { addActivity, updateActivity } from "stores/activityStore";
 import { unixNowTimestamp } from "utils/date";
+import { lazyWithReload } from "utils/lazyWithReload";
 import { formatAmount } from "utils/token";
 import { type Address, isAddressEqual } from "viem";
 import { useAccount } from "wagmi";
 
 import type { VaultStatus } from "./withdrawAllProgressDrawer";
 
-const WithdrawAllProgressDrawer = lazy(() =>
+const WithdrawAllProgressDrawer = lazyWithReload(() =>
   import("./withdrawAllProgressDrawer").then((m) => ({
     default: m.WithdrawAllProgressDrawer,
   })),
@@ -80,10 +81,18 @@ export function WithdrawAllDrawer({ onClose, onSuccess, withdrawals }: Props) {
           txHash,
         });
       } else if (status === "completed") {
-        updateActivity(account, txHash, { status: "completed" });
+        updateActivity({
+          address: account,
+          txHash,
+          updates: { status: "completed" },
+        });
         delete txHashes.current[stakingVaultAddress];
       } else if (status === "failed") {
-        updateActivity(account, txHash, { status: "failed" });
+        updateActivity({
+          address: account,
+          txHash,
+          updates: { status: "failed" },
+        });
         delete txHashes.current[stakingVaultAddress];
       }
     },
@@ -131,7 +140,10 @@ export function WithdrawAllDrawer({ onClose, onSuccess, withdrawals }: Props) {
   }
 
   return (
-    <Drawer onClose={onClose}>
+    <Drawer
+      onClose={onClose}
+      title={t("pages.earn.exit-tickets.withdraw-all-progress.title")}
+    >
       <Suspense fallback={<DrawerLoader />}>
         <WithdrawAllProgressDrawer
           onRetry={hasFailure ? handleRetry : undefined}

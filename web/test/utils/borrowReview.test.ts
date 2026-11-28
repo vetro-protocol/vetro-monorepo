@@ -78,8 +78,8 @@ describe("utils/borrowReview", function () {
 
       const result = calculateHealthFactor({ morphoMarket, position });
 
-      expect(result).toBeTypeOf("number");
-      expect(result).toBeGreaterThan(0);
+      // 10 collateral * 1 price * 0.86 LLTV / 1000 debt = 0.0086
+      expect(result).toBe(0.0086);
     });
 
     it("returns null when health factor is undefined (no borrow)", function () {
@@ -117,9 +117,7 @@ describe("utils/borrowReview", function () {
 
       const result = calculateLtv({ morphoMarket, position });
 
-      expect(result).toBeTypeOf("number");
-      expect(result).toBeGreaterThan(0);
-      expect(result).toBeLessThan(1);
+      expect(result).toBe(0.1);
     });
 
     it("returns null when there is no borrow and no collateral", function () {
@@ -158,8 +156,8 @@ describe("utils/borrowReview", function () {
         position,
       });
 
-      expect(result).toBeTypeOf("number");
-      expect(result).toBeGreaterThan(0);
+      // 1000 debt / (10 collateral * 0.86 LLTV) = 116.28
+      expect(result).toBeCloseTo(116.28, 2);
     });
 
     it("returns null when loan price is 0", function () {

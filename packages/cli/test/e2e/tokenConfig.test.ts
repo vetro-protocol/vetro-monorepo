@@ -1,14 +1,16 @@
+import { getTokenConfig } from "@vetro-protocol/treasury/actions";
 import { isAddress, isAddressEqual } from "viem";
 import { asset } from "viem-erc4626/actions";
 import { describe, expect, inject, it } from "vitest";
-
-import { type TokenConfig } from "../../src/lib/tokenConfig.ts";
 
 import { createClients, runCli, runCliRaw, usdc, vusd } from "./helpers.ts";
 
 // `printResult` serializes every bigint, so the emitted `stalePeriod` is a
 // decimal string rather than the `bigint` the helper returns.
-type SerializedTokenConfig = Omit<TokenConfig, "stalePeriod"> & {
+type SerializedTokenConfig = Omit<
+  Awaited<ReturnType<typeof getTokenConfig>>,
+  "stalePeriod"
+> & {
   stalePeriod: string;
 };
 

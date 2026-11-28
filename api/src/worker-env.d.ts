@@ -3,20 +3,29 @@
 // update this interface to match.
 interface Env {
   CACHE_KV: KVNamespace;
+  CF_VERSION_METADATA?: WorkerVersionMetadata;
   CONTACT_FORM_RECIPIENT?: string;
   CONTACT_FORM_SENDER?: string;
+  CUSTOM_RPC_URL_HEMI?: string;
   CUSTOM_RPC_URL_MAINNET?: string;
+  DB: D1Database;
+  HEMI_EARN_INDEXER_API_KEY?: string;
+  HEMI_EARN_INDEXER_URL?: string;
+  HEMI_EARN_TERMS_HASH?: string;
+  HEMI_EARN_TERMS_URL?: string;
+  HEMI_EARN_TERMS_VERSION?: string;
   MERKL_OPPORTUNITY_SVETBTC?: string;
   MERKL_OPPORTUNITY_SVUSD?: string;
   ORIGINS: string;
   PORTAL_API_URL: string;
   SEND_EMAIL: SendEmail;
-  CF_VERSION_METADATA?: WorkerVersionMetadata;
   SENTRY_DSN?: string;
   SUBGRAPH_API_KEY?: string;
-  SUBGRAPH_ID?: string;
-  SUBGRAPH_URL?: string;
   TURNSTILE_ALLOWED_HOSTNAMES?: string;
   TURNSTILE_SECRET_KEY?: string;
+  VE_VETRO_SUBGRAPH_ID?: string;
+  VE_VETRO_SUBGRAPH_URL?: string;
+  VETRO_APP_SUBGRAPH_ID?: string;
+  VETRO_APP_SUBGRAPH_URL?: string;
   WEBSITE_URL: string;
 }

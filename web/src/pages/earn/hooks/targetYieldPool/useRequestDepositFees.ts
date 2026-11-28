@@ -9,6 +9,7 @@ const requestDepositFeesOptions = ({
   amount,
   approveAmount,
   client,
+  enabled,
   owner,
   stakingVaultAddress,
   token,
@@ -16,12 +17,13 @@ const requestDepositFeesOptions = ({
   amount: bigint;
   approveAmount: bigint | undefined;
   client: Client | undefined;
+  enabled: boolean;
   owner: Address | undefined;
   stakingVaultAddress: Address;
   token: Token;
 }) =>
   queryOptions({
-    enabled: !!client && !!owner && amount > 0n,
+    enabled: enabled && !!client && !!owner && amount > 0n,
     queryFn: ({ client: queryClient }) =>
       fetchRequestDepositFees({
         amount,
@@ -46,11 +48,13 @@ const requestDepositFeesOptions = ({
 export const useRequestDepositFees = function ({
   amount,
   approveAmount,
+  enabled,
   stakingVaultAddress,
   token,
 }: {
   amount: bigint;
   approveAmount: bigint | undefined;
+  enabled: boolean;
   stakingVaultAddress: Address;
   token: Token;
 }) {
@@ -62,6 +66,7 @@ export const useRequestDepositFees = function ({
       amount,
       approveAmount,
       client,
+      enabled,
       owner,
       stakingVaultAddress,
       token,

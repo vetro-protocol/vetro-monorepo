@@ -9,7 +9,7 @@ import { unixNowTimestamp } from "utils/date";
 export function useNowTickingPast<T>(
   items: T[] | undefined,
   getFutureTimestamp: (item: T) => number | undefined,
-): number {
+) {
   const [now, setNow] = useState(unixNowTimestamp);
 
   const next = items?.reduce<number | undefined>(function findNext(

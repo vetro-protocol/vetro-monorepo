@@ -1,18 +1,10 @@
 import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 import { Button } from "components/base/button";
 import { Dropdown } from "components/base/dropdown";
-import { FileDropzone } from "components/base/fileDropzone";
 import { Input } from "components/base/input";
 import { TextArea } from "components/base/textarea";
 import { Toast } from "components/base/toast";
 import { ChevronUpDownIcon } from "components/icons/chevronUpDownIcon";
-import {
-  type AttachmentError,
-  allowedTypes,
-  maxCount,
-  maxTotalMb,
-  useAttachments,
-} from "hooks/useAttachments";
 import { useSubmitContactForm } from "hooks/useSubmitContactForm";
 import { type ChangeEvent, type FormEvent, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -32,14 +24,7 @@ type Topic = (typeof topics)[number];
 
 const topicTriggerId = "contact-topic";
 const topicErrorId = `${topicTriggerId}-error`;
-const attachmentsLabelId = "contact-attachments-label";
 const maxMessageLength = 5000;
-
-const attachmentErrorKeys = {
-  "invalid-type": "pages.contact.form.attachments-error-invalid-type",
-  "too-large": "pages.contact.form.attachments-error-too-large",
-  "too-many": "pages.contact.form.attachments-error-too-many",
-} as const satisfies Record<AttachmentError, string>;
 
 type UseValidatedFieldParams = {
   errorMessage: string;
@@ -154,7 +139,6 @@ export function ContactForm() {
   const [topicTouched, setTopicTouched] = useState(false);
   const showTopicError = topicTouched && !topic;
 
-  const attachments = useAttachments();
   const turnstile = useTurnstile();
 
   function resetForm() {
@@ -162,7 +146,6 @@ export function ContactForm() {
     message.reset();
     setTopic(undefined);
     setTopicTouched(false);
-    attachments.reset();
     turnstile.reset();
   }
 
@@ -183,7 +166,6 @@ export function ContactForm() {
     // Reset on success so the filled-in form can't be resubmitted as a duplicate.
     mutate(
       {
-        attachments: attachments.files,
         category: topic.key,
         email: email.value,
         message: message.value,
@@ -231,8 +213,8 @@ export function ContactForm() {
               <button
                 {...triggerProps}
                 aria-describedby={showTopicError ? topicErrorId : undefined}
-                aria-invalid={showTopicError || undefined}
                 className="input--base flex items-center justify-between gap-2"
+                data-invalid={showTopicError || undefined}
                 onBlur={() => setTopicTouched(true)}
                 type="button"
               >
@@ -269,36 +251,6 @@ export function ContactForm() {
           value={message.value}
         />
 
-        <div
-          aria-labelledby={attachmentsLabelId}
-          className="flex flex-col gap-2"
-          role="group"
-        >
-          <span className="text-b-medium text-gray-900" id={attachmentsLabelId}>
-            {t("pages.contact.form.attachments-label")}
-          </span>
-          <FileDropzone
-            accept={allowedTypes}
-            errorMessage={
-              attachments.error
-                ? t(attachmentErrorKeys[attachments.error], {
-                    limit: maxTotalMb,
-                    max: maxCount,
-                  })
-                : undefined
-            }
-            files={attachments.files}
-            hint={t("pages.contact.form.attachments-hint")}
-            isUploading={status === "pending"}
-            onFilesAdded={attachments.add}
-            onRemove={attachments.remove}
-            removeLabel={t("pages.contact.form.attachments-remove")}
-            selectLabel={t("pages.contact.form.attachments-select")}
-            uploadedLabel={t("pages.contact.form.attachments-uploaded")}
-            uploadingLabel={t("pages.contact.form.attachments-uploading")}
-          />
-        </div>
-
         <CaptchaField field={turnstile} />
 
         <div className="border-t border-gray-200 py-4 *:w-full">
@@ -311,8 +263,6 @@ export function ContactForm() {
 
         {status === "success" && (
           <Toast
-            autoCloseMs={5000}
-            closable
             description={t("pages.contact.toast.success-description")}
             onClose={reset}
             title={t("pages.contact.toast.success-title")}
@@ -320,8 +270,6 @@ export function ContactForm() {
         )}
         {status === "error" && (
           <Toast
-            autoCloseMs={5000}
-            closable
             description={t("pages.contact.toast.error-description")}
             onClose={reset}
             title={t("pages.contact.toast.error-title")}

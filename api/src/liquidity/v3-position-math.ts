@@ -17,6 +17,7 @@ const Q96 = 2n ** 96n;
 const TICK_BASE = 1.0001;
 
 // SqrtPriceMath.getAmount0Delta (roundUp = false), verbatim.
+// eslint-disable-next-line no-restricted-syntax -- Port of Uniswap's fixed signature.
 const getAmount0Delta = function (
   sqrtRatioAX96: bigint,
   sqrtRatioBX96: bigint,
@@ -32,6 +33,7 @@ const getAmount0Delta = function (
 };
 
 // SqrtPriceMath.getAmount1Delta (roundUp = false), verbatim.
+// eslint-disable-next-line no-restricted-syntax -- Port of Uniswap's fixed signature.
 const getAmount1Delta = function (
   sqrtRatioAX96: bigint,
   sqrtRatioBX96: bigint,
@@ -62,6 +64,19 @@ const priceToSqrtRatioX96 = function ({
 
 const tickToSqrtRatioX96 = (tick: number) =>
   BigInt(Math.floor(Math.sqrt(TICK_BASE ** tick) * 2 ** 96));
+
+export const sqrtRatioX96ToPrice = function ({
+  decimals0,
+  decimals1,
+  sqrtPriceX96,
+}: {
+  decimals0: number;
+  decimals1: number;
+  sqrtPriceX96: bigint;
+}) {
+  const sqrtPrice = Number(sqrtPriceX96) / 2 ** 96;
+  return sqrtPrice ** 2 * 10 ** (decimals0 - decimals1);
+};
 
 export const priceToTick = function ({
   decimals0,
@@ -96,7 +111,7 @@ export const computeBandAmounts = function ({
   lowerPrice: number;
   sqrtPriceX96: bigint;
   upperPrice: number;
-}): { amount0: bigint; amount1: bigint } {
+}) {
   const lowerTick = priceToTick({ decimals0, decimals1, price: lowerPrice });
   const upperTick = priceToTick({ decimals0, decimals1, price: upperPrice });
 

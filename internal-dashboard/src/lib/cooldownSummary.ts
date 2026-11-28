@@ -6,12 +6,7 @@ export type CooldownRequest = {
   requestId: bigint;
 };
 
-type Bucket = {
-  assets: bigint;
-  count: number;
-};
-
-const sumBucket = (requests: CooldownRequest[]): Bucket => ({
+const sumBucket = (requests: CooldownRequest[]) => ({
   assets: requests.reduce((total, request) => total + request.assets, 0n),
   count: requests.length,
 });

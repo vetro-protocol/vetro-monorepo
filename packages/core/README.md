@@ -59,9 +59,31 @@ A hardcoded list of known ERC-20 metadata (symbol, decimals, logo) used to rende
 
 Entries span every chain the app touches, so filter by `chainId` before using it against a single-chain client.
 
+### `restrictedCountries`
+
+`string[]`.
+
+ISO 3166-1 alpha-2 codes of the geo-restricted countries: the EU 27 member states, the EEA (Norway, Iceland, Liechtenstein), the US, Canada and the UK. `@vetro-protocol/hemi-earn/restrictions` re-exports it.
+
+### `sanctionedCountries`
+
+`string[]`.
+
+ISO 3166-1 alpha-2 codes of the sanctioned countries. The Cloudflare rule for `app.vetro.org` mirrors this list, and changes to it come from ops. `@vetro-protocol/hemi-earn/restrictions` re-exports it.
+
+### `vetroLinks`
+
+`{ privacyPolicyUrl: string; supportUrl: string; termsOfUseUrl: string }`.
+
+URLs of pages hosted by Vetro.
+
 ### `stakingVaultAddresses`
 
 `sVusdAddress`, `sVetBtcAddress` and the `stakingVaultAddresses` array.
+
+### `marketIds`
+
+The `marketIds` array of the enabled Morpho Blue markets, and `morphoBlueAddress`.
 
 ### `gateways`
 

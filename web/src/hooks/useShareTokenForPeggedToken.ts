@@ -6,7 +6,7 @@ import type { TokenWithGateway } from "types";
 import { graphShareToken } from "utils/protocolGraph";
 import type { Client } from "viem";
 
-const shareTokenForPeggedTokenOptions = ({
+export const shareTokenForPeggedTokenOptions = ({
   client,
   peggedToken,
 }: {
@@ -24,7 +24,6 @@ const shareTokenForPeggedTokenOptions = ({
           chainId: client!.chain!.id,
           client: client!,
           peggedTokenAddress: peggedToken!.address,
-          queryClient,
         }),
       );
       // The staking vault is an ERC-4626 ERC-20, so its own metadata is the

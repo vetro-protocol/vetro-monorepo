@@ -1,21 +1,32 @@
 import type { QueryClient } from "@tanstack/react-query";
-import type { Token } from "@vetro-protocol/core";
+import { encodeRequestRedeem } from "@vetro-protocol/target-yield-earn/actions";
 import { fetchTotalNetworkFees } from "fetchers/fetchTotalNetworkFees";
 import { getChainById } from "networks";
+import type { Address, Client } from "viem";
+import { estimateGas } from "viem/actions";
 
-// TODO estimate fees from VUSDx contract
-// https://github.com/vetro-protocol/vetro-monorepo/issues/646
-const requestRedeemGasUnits = 600000n;
-
-export const fetchRequestExitFees = ({
+export const fetchRequestExitFees = async function ({
+  client,
+  owner,
   queryClient,
-  token,
+  shares,
+  stakingVaultAddress,
 }: {
+  client: Client;
+  owner: Address;
   queryClient: QueryClient;
-  token: Token;
-}) =>
-  fetchTotalNetworkFees({
-    chain: getChainById(token.chainId),
-    gasUnits: requestRedeemGasUnits,
+  shares: bigint;
+  stakingVaultAddress: Address;
+}) {
+  const gasUnits = await estimateGas(client, {
+    account: owner,
+    data: encodeRequestRedeem({ controller: owner, owner, shares }),
+    to: stakingVaultAddress,
+  });
+
+  return fetchTotalNetworkFees({
+    chain: getChainById(client.chain!.id),
+    gasUnits,
     queryClient,
   });
+};

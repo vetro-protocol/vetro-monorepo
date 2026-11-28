@@ -1,10 +1,9 @@
 import { type Command } from "commander";
-import { previewDeposit } from "viem-erc4626/actions";
 
-import { parseAmount, parseTokenAmount } from "../../../lib/args.ts";
+import { parseAmount } from "../../../lib/args.ts";
 import { type GlobalOptions, createVetroClient } from "../../../lib/client.ts";
 import { printResult } from "../../../lib/output.ts";
-import { resolveStakablePeggedToken } from "../../../lib/tokens.ts";
+import { previewStake } from "../../../lib/stake.ts";
 
 export function register(variableYield: Command) {
   variableYield
@@ -24,26 +23,11 @@ export function register(variableYield: Command) {
       const { client } = await createVetroClient(
         command.optsWithGlobals<GlobalOptions>(),
       );
-      const peggedToken = await resolveStakablePeggedToken({
-        client,
-        value: options.token,
-      });
-
-      const assets = parseTokenAmount({
+      const { shares } = await previewStake({
         amount: options.amount,
-        decimals: peggedToken.decimals,
+        client,
         token: options.token,
       });
-
-      const shares = await previewDeposit(client, {
-        address: peggedToken.stakingVault,
-        assets,
-      });
-      if (shares === 0n) {
-        throw new Error(
-          `Amount is too small to stake "${options.token}": it mints 0`,
-        );
-      }
       printResult(shares);
     });
 }

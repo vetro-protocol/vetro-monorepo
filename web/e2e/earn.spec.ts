@@ -174,10 +174,10 @@ test("deposit VUSD into the Earn pool", async function ({
   // The mock wallet sends approve then deposit, so walletTxHashes ends with the
   // deposit; its receipt carries the vault's ERC-4626 Deposit event, whose
   // `shares` is exactly the sVUSD minted to us — no block-range scan, no summing.
-  const depositTxHash = walletTxHashes.at(-1);
-  expect(depositTxHash).toBeDefined();
+  expect(walletTxHashes).toHaveLength(2);
+  const depositTxHash = walletTxHashes[1];
   const receipt = await getTransactionReceipt(publicClient, {
-    hash: depositTxHash!,
+    hash: depositTxHash,
   });
   const depositLogs = parseEventLogs({
     abi: [depositEvent],
@@ -310,10 +310,10 @@ test("withdraw VUSD from the Earn pool (whitelisted one-step exit)", async funct
     page.locator('input[type="text"]:not([disabled])').first(),
   ).toHaveValue("0");
 
-  const withdrawTxHash = walletTxHashes.at(-1);
-  expect(withdrawTxHash).toBeDefined();
+  expect(walletTxHashes).toHaveLength(1);
+  const withdrawTxHash = walletTxHashes[0];
   const receipt = await getTransactionReceipt(publicClient, {
-    hash: withdrawTxHash!,
+    hash: withdrawTxHash,
   });
   const withdrawLogs = parseEventLogs({
     abi: [withdrawEvent],
@@ -409,10 +409,10 @@ test("withdraw VUSD from the Earn pool (two-step cooldown exit)", async function
   // Read the request tx: WithdrawRequested carries the requestId, the locked
   // shares/assets, and the on-chain claimableAt. This is the same event
   // useStakeWithdraw parses to build its optimistic ticket.
-  const requestTxHash = walletTxHashes.at(-1);
-  expect(requestTxHash).toBeDefined();
+  expect(walletTxHashes).toHaveLength(1);
+  const requestTxHash = walletTxHashes[0];
   const requestReceipt = await getTransactionReceipt(publicClient, {
-    hash: requestTxHash!,
+    hash: requestTxHash,
   });
   const requestLogs = parseEventLogs({
     abi: stakingVaultAbi,
@@ -441,7 +441,9 @@ test("withdraw VUSD from the Earn pool (two-step cooldown exit)", async function
 
   const ticket: ExitTicket = {
     assets: assets.toString(),
+    cancelTxHash: null,
     claimableAt: claimableAt.toString(),
+    claimTxHash: null,
     owner: TEST_ADDRESS,
     requestId: requestId.toString(),
     requestTxHash: requestTxHash!,
@@ -500,10 +502,10 @@ test("withdraw VUSD from the Earn pool (two-step cooldown exit)", async function
   // the receiver in the claim receipt. walletTxHashes ends with the claim tx
   // (seeding used a separate client; the only browser txs are the request then
   // the claim).
-  const claimTxHash = walletTxHashes.at(-1);
-  expect(claimTxHash).toBeDefined();
+  expect(walletTxHashes).toHaveLength(2);
+  const claimTxHash = walletTxHashes[1];
   const claimReceipt = await getTransactionReceipt(publicClient, {
-    hash: claimTxHash!,
+    hash: claimTxHash,
   });
   const vusdReceived = sumTransfersTo({
     receipt: claimReceipt,
@@ -627,7 +629,9 @@ test("delete an exit ticket while it is in cooldown", async function ({
   let exitTicketsBody: ExitTicket[] = [
     {
       assets: assets.toString(),
+      cancelTxHash: null,
       claimableAt: claimableAt.toString(),
+      claimTxHash: null,
       owner: TEST_ADDRESS,
       requestId: requestId.toString(),
       requestTxHash,
@@ -811,7 +815,9 @@ test("withdraw all the ready exit tickets", async function ({
     stakingVaultAddress: Address;
   }): ExitTicket => ({
     assets: request.assets.toString(),
+    cancelTxHash: null,
     claimableAt,
+    claimTxHash: null,
     owner: TEST_ADDRESS,
     requestId: request.requestId.toString(),
     requestTxHash: request.requestTxHash,

@@ -1,6 +1,12 @@
 import { gatewayAddresses } from "@vetro-protocol/gateway";
 import { InvalidArgumentError } from "commander";
-import { getAddress, isAddressEqual, parseUnits } from "viem";
+import {
+  getAddress,
+  isAddressEqual,
+  isHash,
+  parseUnits,
+  zeroAddress,
+} from "viem";
 
 import { MAX_SLIPPAGE } from "./slippage.ts";
 
@@ -51,6 +57,40 @@ export function parseGateway(value: string) {
     throw new InvalidArgumentError(`Not an enabled gateway: "${value}"`);
   }
   return address;
+}
+
+export function parseMarket(value: string) {
+  const trimmed = value.trim();
+  if (isHash(trimmed)) {
+    return { marketId: trimmed, value };
+  }
+  const sides = value.split("/").map((side) => side.trim());
+  if (sides.length !== 2 || sides.some((side) => side === "")) {
+    throw new InvalidArgumentError(
+      `Invalid market: "${value}": expected <collateral>/<loan> or a 32-byte market id`,
+    );
+  }
+  const [collateral, loan] = sides;
+  return { collateral, loan, value };
+}
+
+export type MarketSelector = ReturnType<typeof parseMarket>;
+
+export function parseReceiver(value: string) {
+  const address = parseAddress(value);
+  if (isAddressEqual(address, zeroAddress)) {
+    throw new InvalidArgumentError(
+      `Receiver cannot be the zero address: "${value}"`,
+    );
+  }
+  return address;
+}
+
+export function parseRequestId(value: string) {
+  if (!/^\d+$/.test(value)) {
+    throw new InvalidArgumentError(`Invalid request id: "${value}"`);
+  }
+  return BigInt(value);
 }
 
 export function parseRpcUrl(value: string) {

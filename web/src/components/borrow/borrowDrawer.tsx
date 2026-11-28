@@ -2,10 +2,11 @@ import { Drawer } from "components/base/drawer";
 import { DrawerLoader } from "components/base/drawer/drawerLoader";
 import { type Step, stepStatus } from "components/base/verticalStepper";
 import { useCloseOnSuccess } from "hooks/useCloseOnSuccess";
-import { type ComponentProps, Suspense, lazy } from "react";
+import { type ComponentProps, Suspense } from "react";
 import { useTranslation } from "react-i18next";
+import { lazyWithReload } from "utils/lazyWithReload";
 
-const BorrowProgressDrawer = lazy(() =>
+const BorrowProgressDrawer = lazyWithReload(() =>
   import("./borrowProgressDrawer").then((m) => ({
     default: m.BorrowProgressDrawer,
   })),
@@ -26,7 +27,7 @@ export type BorrowFlowStatus =
 
 const getApproveStepStatus = function (
   status: Exclude<BorrowFlowStatus, "idle">,
-): Step["status"] {
+) {
   const exceptions: Partial<
     Record<Exclude<BorrowFlowStatus, "idle">, Step["status"]>
   > = {
@@ -38,7 +39,7 @@ const getApproveStepStatus = function (
 
 const getSupplyCollateralStepStatus = function (
   status: Exclude<BorrowFlowStatus, "idle">,
-): Step["status"] {
+) {
   const exceptions: Partial<
     Record<Exclude<BorrowFlowStatus, "idle">, Step["status"]>
   > = {
@@ -54,7 +55,7 @@ const getSupplyCollateralStepStatus = function (
 
 const getBorrowStepStatus = function (
   status: Exclude<BorrowFlowStatus, "idle">,
-): Step["status"] {
+) {
   const exceptions: Partial<
     Record<Exclude<BorrowFlowStatus, "idle">, Step["status"]>
   > = {
@@ -109,7 +110,7 @@ export function BorrowDrawer({
   }
 
   return (
-    <Drawer onClose={onClose}>
+    <Drawer onClose={onClose} title={t("pages.borrow.progress.title")}>
       <Suspense fallback={<DrawerLoader />}>
         <BorrowProgressDrawer
           {...props}

@@ -54,11 +54,19 @@ export function OracleTooltip({
   const explorerBaseUrl = mainnet.blockExplorers!.default.url;
 
   const variantConfig = {
-    chainlink: { label: "Chainlink", logo: <ChainlinkLogo /> },
-    oracle: { label: t("common.oracle"), logo: <OracleLogo /> },
+    chainlink: {
+      label: "Chainlink",
+      logo: <ChainlinkLogo />,
+      topic: t("common.chainlink-oracle"),
+    },
+    oracle: {
+      label: t("common.oracle"),
+      logo: <OracleLogo />,
+      topic: t("common.oracle"),
+    },
   };
 
-  const { label, logo } = variantConfig[variant];
+  const { label, logo, topic } = variantConfig[variant];
 
   return (
     <Tooltip
@@ -76,6 +84,7 @@ export function OracleTooltip({
           <ExternalLinkIcon />
         </ExternalLink>
       }
+      topic={topic}
       useParentContainer={useParentContainer}
     >
       <InfoIcon />

@@ -8,9 +8,8 @@ import { client } from "../lib/client";
 import { type WhitelistedToken } from "../lib/types";
 
 // Discovers the collateral each gateway accepts on-chain: gateway → treasury →
-// whitelisted tokens. Together with the tracked tokens these form the token
-// universe the Uniswap pool discovery pairs up (see fetchers/fetchUniswapPools);
-// they're the pools' counterparty legs, like the WBTC in vetBTC/WBTC.
+// whitelisted tokens. They're the pools' counterparty legs, like the WBTC in
+// vetBTC/WBTC.
 export const fetchWhitelistedTokens = async function (): Promise<
   WhitelistedToken[]
 > {

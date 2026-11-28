@@ -1,5 +1,7 @@
 import postJson from "tiny-post-json";
 
+export class UpstreamGraphQLError extends Error {}
+
 type GraphQLResponse<T> = {
   data?: T;
   errors?: { message: string }[];
@@ -23,12 +25,16 @@ export async function runQuery<R>({
       ...(variables ? { variables } : {}),
     },
     headers ? { headers } : undefined,
-  )) as GraphQLResponse<R>;
+  ).catch(function (error) {
+    throw new UpstreamGraphQLError(error.message);
+  })) as GraphQLResponse<R>;
   if (!response) {
-    throw new Error("No response from GraphQL endpoint");
+    throw new UpstreamGraphQLError("No response from GraphQL endpoint");
   }
   if (response.errors) {
-    throw new Error(response.errors.map((e) => e.message).join("; "));
+    throw new UpstreamGraphQLError(
+      response.errors.map((e) => e.message).join("; "),
+    );
   }
   return response.data!;
 }

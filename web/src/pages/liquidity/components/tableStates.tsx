@@ -1,15 +1,10 @@
 import { Button } from "components/base/button";
 import { StatusMessage } from "components/base/statusMessage";
+import { TableState } from "components/base/table/tableState";
+import { FunnelCircleIcon } from "components/icons/funnelCircleIcon";
 import { InboxCircleIcon } from "components/icons/inboxCircleIcon";
 import { WarningCircleIcon } from "components/icons/warningCircleIcon";
-import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-
-const TableState = ({ children }: { children: ReactNode }) => (
-  <div className="flex items-center justify-center border-b border-gray-200 bg-white px-8 py-12">
-    {children}
-  </div>
-);
 
 export function EmptyState() {
   const { t } = useTranslation();
@@ -19,6 +14,33 @@ export function EmptyState() {
         description={t("pages.liquidity.empty-description")}
         icon={<InboxCircleIcon />}
         title={t("pages.liquidity.empty-title")}
+      />
+    </TableState>
+  );
+}
+
+type NoMatchStateProps = {
+  onShowAll: VoidFunction;
+};
+
+export function NoMatchState({ onShowAll }: NoMatchStateProps) {
+  const { t } = useTranslation();
+  return (
+    <TableState>
+      <StatusMessage
+        action={
+          <Button
+            onClick={onShowAll}
+            size="xSmall"
+            type="button"
+            variant="secondary"
+          >
+            {t("pages.liquidity.show-all-pools")}
+          </Button>
+        }
+        description={t("pages.liquidity.no-match-description")}
+        icon={<FunnelCircleIcon />}
+        title={t("pages.liquidity.no-match-title")}
       />
     </TableState>
   );

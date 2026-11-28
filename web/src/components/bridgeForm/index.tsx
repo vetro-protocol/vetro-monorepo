@@ -11,7 +11,6 @@ import { TokenBalance } from "components/tokenInput/tokenBalance";
 import { TokenSelectorModal } from "components/tokenSelectorModal";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useBridge } from "hooks/useBridge";
-import { useBridgeableTokens } from "hooks/useBridgeableTokens";
 import { useBridgeLayerZeroFee } from "hooks/useBridgeLayerZeroFee";
 import { useBridgeNetworkFee } from "hooks/useBridgeNetworkFee";
 import { useTotalBridgeSendFees } from "hooks/useTotalBridgeSendFees";
@@ -20,6 +19,8 @@ import { type FormEvent, useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { BridgeableToken } from "types";
 import { pickCounterpartToken } from "utils/bridge";
+import { knownBridgeableTokens } from "utils/bridgeableTokens";
+import { formatFiatNumberRoundDown } from "utils/format";
 import { getInputError } from "utils/inputError";
 import { getNativeToken } from "utils/nativeToken";
 import { parseTokenUnits, removeOftDust } from "utils/token";
@@ -34,9 +35,9 @@ import {
 } from "./bridgeSubmitDrawer";
 import { BridgeTokenFiatValue } from "./bridgeTokenFiatValue";
 import { Form } from "./form";
-import { bridgeFormReducer, type BridgeFormState } from "./reducer";
+import { bridgeFormReducer } from "./reducer";
 
-function getInitialState(tokens: BridgeableToken[]): BridgeFormState {
+function getInitialState(tokens: BridgeableToken[]) {
   const fromToken = tokens[0];
   return {
     approve10x: false,
@@ -67,16 +68,12 @@ function getBridgeInputError({
   });
 }
 
-type ContentProps = {
-  tokens: BridgeableToken[];
-};
-
-function BridgeFormContent({ tokens }: ContentProps) {
+export function BridgeForm() {
   const { t } = useTranslation();
   const { address: account } = useAccount();
   const [state, dispatch] = useReducer(
     bridgeFormReducer,
-    tokens,
+    knownBridgeableTokens,
     getInitialState,
   );
   const { approve10x, fromInputValue, fromToken, toToken } = state;
@@ -229,22 +226,28 @@ function BridgeFormContent({ tokens }: ContentProps) {
     sourceTokenAddress: fromToken.address,
   });
 
-  const fromTokens = tokens.filter(
+  const fromTokens = knownBridgeableTokens.filter(
     (token) =>
       token.chainId !== fromToken.chainId || token.symbol !== fromToken.symbol,
   );
 
-  const toTokens = tokens.filter(
+  const toTokens = knownBridgeableTokens.filter(
     (token) =>
       token.symbol === fromToken.symbol && token.chainId !== toToken.chainId,
   );
 
   function handleFromTokenChange(token: BridgeableToken) {
-    dispatch({ payload: { token, tokens }, type: "SET_FROM_TOKEN" });
+    dispatch({
+      payload: { token, tokens: knownBridgeableTokens },
+      type: "SET_FROM_TOKEN",
+    });
   }
 
   function handleToTokenChange(token: BridgeableToken) {
-    dispatch({ payload: { token, tokens }, type: "SET_TO_TOKEN" });
+    dispatch({
+      payload: { token, tokens: knownBridgeableTokens },
+      type: "SET_TO_TOKEN",
+    });
   }
 
   function handleInputChange(value: string) {
@@ -312,7 +315,11 @@ function BridgeFormContent({ tokens }: ContentProps) {
             balance={<TokenBalance token={toToken} />}
             disabled
             fiatValue={
-              <BridgeTokenFiatValue token={toToken} value={amountBigInt} />
+              <BridgeTokenFiatValue
+                customFormatter={formatFiatNumberRoundDown}
+                token={toToken}
+                value={amountBigInt}
+              />
             }
             label={t("pages.bridge.form.you-will-receive")}
             tokenSelector={
@@ -361,14 +368,12 @@ function BridgeFormContent({ tokens }: ContentProps) {
           onRetry={handleRetry}
           showApproveStep={startedWithApproval}
           toAmount={toAmountDisplay}
-          toToken={toToken}
           total={total}
+          toToken={toToken}
         />
       )}
       {showToast && (
         <Toast
-          autoCloseMs={5000}
-          closable
           description={t("pages.bridge.toast.bridge-description")}
           onClose={() => setShowToast(false)}
           title={t("pages.bridge.toast.bridge-title")}
@@ -376,9 +381,4 @@ function BridgeFormContent({ tokens }: ContentProps) {
       )}
     </>
   );
-}
-
-export function BridgeForm() {
-  const tokens = useBridgeableTokens();
-  return <BridgeFormContent tokens={tokens} />;
 }

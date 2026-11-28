@@ -221,8 +221,8 @@ function ActiveRedeemDrawer({
       slippageControl={
         <SlippageSettings onChange={setSlippage} slippage={slippage} />
       }
-      toToken={toToken}
       totalFees={totalRedeemFeesQueryData}
+      toToken={toToken}
       unitPreview={unitRedeemPreview}
       whitelistedTokens={drawerWhitelistedTokens}
     />

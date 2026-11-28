@@ -2,8 +2,6 @@ import { useMutation } from "@tanstack/react-query";
 import fetch from "fetch-plus-plus";
 
 type ContactFormValues = {
-  // Optional screenshots; sent as multipart file parts.
-  attachments?: File[];
   category: string;
   email: string;
   message: string;
@@ -18,7 +16,7 @@ export const useSubmitContactForm = () =>
     // The endpoint responds with `204 No Content` (fetch-plus-plus resolves to
     // `undefined`) on success, and throws on any non-2xx so the form surfaces
     // its error toast.
-    mutationFn({ attachments = [], category, email, message, token }) {
+    mutationFn({ category, email, message, token }) {
       if (apiUrl === undefined || !URL.canParse(apiUrl)) {
         throw new Error("VITE_VETRO_API_URL is not configured");
       }
@@ -29,7 +27,6 @@ export const useSubmitContactForm = () =>
       if (token !== undefined) {
         body.append("token", token);
       }
-      attachments.forEach((file) => body.append("files", file));
       // No content-type header: the browser sets multipart/form-data with the
       // boundary itself.
       return fetch(`${apiUrl}/contact`, {

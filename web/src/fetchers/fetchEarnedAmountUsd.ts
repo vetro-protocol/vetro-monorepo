@@ -15,7 +15,7 @@ export const fetchEarnedAmountUsd = async function ({
   client: Client;
   queryClient: QueryClient;
   stakingVaultAddress: Address;
-}): Promise<number> {
+}) {
   const chainId = client.chain?.id;
   if (chainId === undefined) {
     throw new Error("Client is missing a chain");

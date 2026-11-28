@@ -1,4 +1,4 @@
-const heights = {
+const heightClasses = {
   medium: "h-22",
   small: "h-11",
 } as const;
@@ -6,9 +6,9 @@ const heights = {
 export const StripedDivider = ({
   variant = "medium",
 }: {
-  variant?: keyof typeof heights;
+  variant?: keyof typeof heightClasses;
 }) => (
-  <div className={`${heights[variant]} p-2`}>
+  <div className={`${heightClasses[variant]} p-2`}>
     <div
       aria-hidden="true"
       className="size-full"

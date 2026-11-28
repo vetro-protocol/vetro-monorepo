@@ -26,8 +26,7 @@ export type KeyedWarmTask<Item, Data = unknown> = {
  * from `produce`).
  */
 type WarmTask<Item = never, Data = unknown> =
-  | GlobalWarmTask<Data>
-  | KeyedWarmTask<Item, Data>;
+  GlobalWarmTask<Data> | KeyedWarmTask<Item, Data>;
 
 /**
  * Identity helpers that define a task while inferring its produced `Data` (and a
@@ -42,6 +41,22 @@ export const keyedWarmTask = <Item, Data>(task: KeyedWarmTask<Item, Data>) =>
 
 // Warmed values expire after 15 minutes: if the cron stalls (or `produce()` fails)
 const cacheTtl = 15 * 60;
+
+const containsNonFiniteNumber = function (value: unknown): boolean {
+  if (typeof value === "number") {
+    return !Number.isFinite(value);
+  }
+  if (Array.isArray(value)) {
+    return value.some(containsNonFiniteNumber);
+  }
+  if (value !== null && typeof value === "object") {
+    return Object.values(value).some(containsNonFiniteNumber);
+  }
+  return false;
+};
+
+const isCacheableData = (data: unknown) =>
+  data !== null && data !== undefined && !containsNonFiniteNumber(data);
 
 /**
  * Read the warmed value for one `item` of a `task` from within a request. On a
@@ -80,15 +95,16 @@ export async function readWarmedTask<Item = never, Data = unknown>({
     "items" in task
       ? await task.produce(c.env, item as Item)
       : await task.produce(c.env);
+  if (!isCacheableData(data)) {
+    throw new Error(`Warm task produced no data for ${key}`);
+  }
   // Write through so the next reader gets a fast hit, but never cache empty
   // data and report background write failures — mirroring the cron path.
-  if (data !== null && data !== undefined) {
-    c.executionCtx.waitUntil(
-      kv
-        .put(key, JSON.stringify(data), { expirationTtl: cacheTtl })
-        .catch((error) => Sentry.captureException(error)),
-    );
-  }
+  c.executionCtx.waitUntil(
+    kv
+      .put(key, JSON.stringify(data), { expirationTtl: cacheTtl })
+      .catch((error) => Sentry.captureException(error)),
+  );
   return data;
 }
 
@@ -125,7 +141,7 @@ export async function warmScheduled({
       return entries.map(async function ({ key, run }) {
         try {
           const data = await run();
-          if (data === null || data === undefined) {
+          if (!isCacheableData(data)) {
             throw new Error(`Warm task produced no data for ${key}`);
           }
           await kv.put(key, JSON.stringify(data), {

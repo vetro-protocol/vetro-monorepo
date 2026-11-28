@@ -1,5 +1,6 @@
 import { Button } from "components/base/button";
 import { Modal } from "components/base/modal";
+import { GeoRestrictedButton } from "components/geoRestrictedButton";
 import { RequireWalletConnected } from "components/requireWalletConnected";
 import { useActivityTracking } from "hooks/useActivityTracking";
 import { useCancelWithdraw } from "hooks/useCancelWithdraw";
@@ -88,7 +89,7 @@ export function DeleteTicketModal({
               {t("pages.earn.exit-tickets.delete-description")}
             </p>
           </div>
-          <div className="flex gap-3 *:flex-1">
+          <div className="flex gap-3 *:flex-1 [&_button]:w-full">
             <Button
               disabled={isDeleting}
               onClick={close}
@@ -98,7 +99,7 @@ export function DeleteTicketModal({
               {t("pages.earn.exit-tickets.delete-btn-cancel")}
             </Button>
             <RequireWalletConnected size="xSmall">
-              <Button
+              <GeoRestrictedButton
                 disabled={isDeleting}
                 onClick={handleDelete}
                 size="xSmall"
@@ -107,7 +108,7 @@ export function DeleteTicketModal({
                 {isDeleting
                   ? t("pages.earn.exit-tickets.delete-btn-deleting")
                   : t("pages.earn.exit-tickets.delete-btn")}
-              </Button>
+              </GeoRestrictedButton>
             </RequireWalletConnected>
           </div>
         </div>

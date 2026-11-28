@@ -1,9 +1,4 @@
-import {
-  type QueryClient,
-  queryOptions,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import type { Token } from "@vetro-protocol/core";
 import { fetchTotalDepositFees } from "fetchers/fetchTotalDepositFees";
 import { useEthereumClient } from "hooks/useEthereumClient";
@@ -17,7 +12,6 @@ const totalDepositFeesOptions = ({
   chain,
   client,
   owner,
-  queryClient,
   stakingVaultAddress,
   token,
 }: {
@@ -26,13 +20,12 @@ const totalDepositFeesOptions = ({
   chain: Chain;
   client: Client | undefined;
   owner: Address | undefined;
-  queryClient: QueryClient;
   stakingVaultAddress: Address;
   token: Token | undefined;
 }) =>
   queryOptions({
     enabled: !!client && !!owner && !!token && amount > 0n,
-    queryFn: () =>
+    queryFn: ({ client: queryClient }) =>
       fetchTotalDepositFees({
         amount,
         approveAmount,
@@ -66,7 +59,6 @@ export const useTotalDepositFees = function ({
 }) {
   const { address: owner } = useAccount();
   const client = useEthereumClient();
-  const queryClient = useQueryClient();
 
   return useQuery(
     totalDepositFeesOptions({
@@ -75,7 +67,6 @@ export const useTotalDepositFees = function ({
       chain: mainnet,
       client,
       owner,
-      queryClient,
       stakingVaultAddress,
       token,
     }),

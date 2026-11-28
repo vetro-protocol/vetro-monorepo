@@ -18,7 +18,7 @@ const usdc = checksumAddress("0xdddd4444444444444444444444444444444444dd");
 
 const coin = ({ address, symbol }: { address: Address; symbol: string }) => ({
   address,
-  balance: 0n,
+  amount: 0,
   decimals: 18,
   symbol,
   usdPrice: 1,

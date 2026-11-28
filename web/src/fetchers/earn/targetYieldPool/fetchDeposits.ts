@@ -17,15 +17,16 @@ export const fetchDeposits = async function ({
   stakingVaultAddress: Address;
 }) {
   const [epoch, peggedToken, prices] = await Promise.all([
-    queryClient.ensureQueryData(epochOptions({ epochId, stakingVaultAddress })),
+    queryClient.ensureQueryData(
+      epochOptions({ client, epochId, stakingVaultAddress }),
+    ),
     queryClient.ensureQueryData(
       vaultPeggedTokenQueryOptions({
         client,
-        queryClient,
         stakingVaultAddress,
       }),
     ),
-    queryClient.ensureQueryData(pricesOptions({ client, queryClient })),
+    queryClient.ensureQueryData(pricesOptions({ client })),
   ]);
 
   return {

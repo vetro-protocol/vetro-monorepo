@@ -31,8 +31,8 @@ export const previewDepositTokenOptions = ({
   tokenIn,
 }: {
   amountIn: bigint;
-  client: Client;
   chainId: Chain["id"];
+  client: Client;
   gatewayAddress: Address;
   tokenIn: Address;
 }) =>

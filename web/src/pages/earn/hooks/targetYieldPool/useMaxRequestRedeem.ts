@@ -1,41 +1,63 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { fetchMaxRequestRedeem } from "fetchers/earn/targetYieldPool/fetchMaxRequestRedeem";
-import type { Address } from "viem";
+import { useEthereumClient } from "hooks/useEthereumClient";
+import type { Address, Client } from "viem";
 import { useAccount } from "wagmi";
 
-import { combineWithEpochId } from "./combineWithEpochId";
-import { useEpochId } from "./useEpochId";
+import { useIsOpenToExit } from "./useIsOpenToExit";
 
-const maxRequestRedeemOptions = ({
-  epochId,
-  owner,
+export const maxRequestRedeemQueryKey = ({
+  account,
+  isOpenToExit,
   stakingVaultAddress,
 }: {
-  epochId: bigint | undefined;
-  owner: Address | undefined;
+  account: Address | undefined;
+  isOpenToExit: boolean | null | undefined;
+  stakingVaultAddress: Address;
+}) => [
+  "target-yield-pool-max-request-redeem",
+  account,
+  stakingVaultAddress,
+  isOpenToExit,
+];
+
+const maxRequestRedeemOptions = ({
+  account,
+  client,
+  isOpenToExit,
+  stakingVaultAddress,
+}: {
+  account: Address | undefined;
+  client: Client | undefined;
+  isOpenToExit: boolean | null | undefined;
   stakingVaultAddress: Address;
 }) =>
   queryOptions({
-    enabled: !!owner && epochId !== undefined,
-    queryFn: () => fetchMaxRequestRedeem(epochId!),
-    queryKey: [
-      "target-yield-pool-max-request-redeem",
+    enabled: !!account && !!client && isOpenToExit !== undefined,
+    queryFn: () =>
+      fetchMaxRequestRedeem({
+        account: account!,
+        client: client!,
+        stakingVaultAddress,
+      }),
+    queryKey: maxRequestRedeemQueryKey({
+      account,
+      isOpenToExit,
       stakingVaultAddress,
-      owner,
-      epochId?.toString(),
-    ],
+    }),
   });
 
 export function useMaxRequestRedeem(stakingVaultAddress: Address) {
-  const { address: owner } = useAccount();
-  const epochId = useEpochId(stakingVaultAddress);
-  const query = useQuery(
+  const { address: account } = useAccount();
+  const client = useEthereumClient();
+  const { data: isOpenToExit } = useIsOpenToExit(stakingVaultAddress);
+
+  return useQuery(
     maxRequestRedeemOptions({
-      epochId: epochId.data,
-      owner,
+      account,
+      client,
+      isOpenToExit,
       stakingVaultAddress,
     }),
   );
-
-  return combineWithEpochId({ epochId, query });
 }

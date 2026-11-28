@@ -6,17 +6,27 @@ import { runCliRaw } from "./e2e/helpers.ts";
 
 describe("help", function () {
   it.for([
+    ["borrow"],
+    ["borrow", "market"],
+    ["borrow", "markets"],
+    ["borrow", "position"],
+    ["borrow", "positions"],
     ["gateways"],
     ["swap"],
     ["swap", "mint"],
     ["variable-yield"],
     ["variable-yield", "allowance"],
     ["variable-yield", "approve"],
+    ["variable-yield", "cancel"],
+    ["variable-yield", "claim"],
+    ["variable-yield", "claim-all"],
     ["variable-yield", "cooldown"],
     ["variable-yield", "exit-tickets"],
+    ["variable-yield", "instant-withdraw"],
     ["variable-yield", "is-instant-withdraw"],
     ["variable-yield", "position"],
     ["variable-yield", "preview-stake"],
+    ["variable-yield", "stake"],
     ["variable-yield", "total-assets"],
     ["variable-yield", "unstake"],
   ])("lists --rpc-url in the help of %s", async function (command) {

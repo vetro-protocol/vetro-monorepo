@@ -1,11 +1,16 @@
 import { queryOptions } from "@tanstack/react-query";
-import type { Address } from "viem";
+import { getIsPaused } from "@vetro-protocol/target-yield-earn/actions";
+import type { Address, Client } from "viem";
 
-export const isPausedOptions = (stakingVaultAddress: Address) =>
+export const isPausedOptions = ({
+  client,
+  stakingVaultAddress,
+}: {
+  client: Client | undefined;
+  stakingVaultAddress: Address;
+}) =>
   queryOptions({
-    // TODO: read with `getIsPaused` from `@vetro-protocol/target-yield-earn` once
-    // VUSDx is deployed.
-    // See https://github.com/vetro-protocol/vetro-monorepo/issues/646
-    queryFn: () => Promise.resolve(false),
+    enabled: !!client,
+    queryFn: () => getIsPaused(client!, { address: stakingVaultAddress }),
     queryKey: ["target-yield-pool-is-paused", stakingVaultAddress],
   });

@@ -1,11 +1,18 @@
 import type { DexPool } from "@vetro-protocol/core";
 import type { Hash } from "viem";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   addIncentives,
+  getMerklRewards,
   type IncentiveSources,
 } from "../../src/liquidity/incentives.ts";
+import { getLiveOpportunities } from "../../src/merkl.ts";
+
+vi.mock("../../src/merkl.ts", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../../src/merkl.ts")>()),
+  getLiveOpportunities: vi.fn(),
+}));
 
 const nowSeconds = 1_000_000;
 const crv = "0xD533a949740bb3306d119CC777fa900bA034cd52";
@@ -43,6 +50,7 @@ const strategy: IncentiveSources["strategies"][number] = {
   chainId: 1,
   gaugeAddress,
   key: "1-0xstrategy",
+  lpToken: { address: lpTokenAddress },
   rewards: [
     { apr: 0, end: 0, token: { address: crv } },
     { apr: 3, end: nowSeconds + 100, token: { address: sdt } },
@@ -71,6 +79,114 @@ const noSources: IncentiveSources = {
   merklRewards: [],
   strategies: [],
 };
+
+describe("liquidity/getMerklRewards", function () {
+  beforeEach(function () {
+    vi.mocked(getLiveOpportunities).mockReset();
+  });
+
+  it("rejects a campaign without its end timestamp instead of dropping it", async function () {
+    vi.mocked(getLiveOpportunities).mockResolvedValue([
+      {
+        campaigns: [
+          // @ts-expect-error Deliberately missing upstream timestamp.
+          {
+            apr: 3,
+            campaignId: campaignId("1"),
+            rewardToken: { address: usdc, chainId: 1 },
+            startTimestamp: nowSeconds - 100,
+          },
+        ],
+        chainId: 1,
+        id: "missing-window",
+        identifier: poolAddress,
+      },
+    ]);
+    await expect(
+      getMerklRewards({ nowSeconds, pools: [curvePool] }),
+    ).rejects.toThrow("Merkl returned a missing or non-finite campaign window");
+  });
+
+  it.each(["", "  "])(
+    "rejects a blank campaign end timestamp (%j)",
+    async function (endTimestamp) {
+      vi.mocked(getLiveOpportunities).mockResolvedValue([
+        {
+          campaigns: [
+            {
+              apr: 3,
+              campaignId: campaignId("1"),
+              endTimestamp,
+              rewardToken: { address: usdc, chainId: 1 },
+              startTimestamp: nowSeconds - 100,
+            },
+          ],
+          chainId: 1,
+          id: "blank-window",
+          identifier: poolAddress,
+        },
+      ]);
+      await expect(
+        getMerklRewards({ nowSeconds, pools: [curvePool] }),
+      ).rejects.toThrow(
+        "Merkl returned a missing or non-finite campaign window",
+      );
+    },
+  );
+
+  it("ignores missing APR on a campaign outside its active window", async function () {
+    vi.mocked(getLiveOpportunities).mockResolvedValue([
+      {
+        campaigns: [
+          {
+            apr: Number.NaN,
+            campaignId: campaignId("1"),
+            endTimestamp: nowSeconds - 1,
+            rewardToken: { address: usdc, chainId: 1 },
+            startTimestamp: nowSeconds - 100,
+          },
+          {
+            apr: 3,
+            campaignId: campaignId("2"),
+            endTimestamp: nowSeconds + 100,
+            rewardToken: { address: usdc, chainId: 1 },
+            startTimestamp: nowSeconds - 100,
+          },
+        ],
+        chainId: 1,
+        id: "opportunity",
+        identifier: poolAddress,
+      },
+    ] as never);
+
+    await expect(
+      getMerklRewards({ nowSeconds, pools: [curvePool] }),
+    ).resolves.toHaveLength(1);
+  });
+
+  it("rejects a missing APR on an active campaign", async function () {
+    vi.mocked(getLiveOpportunities).mockResolvedValue([
+      {
+        campaigns: [
+          {
+            apr: Number.NaN,
+            campaignId: campaignId("1"),
+            endTimestamp: nowSeconds + 100,
+            rewardToken: { address: usdc, chainId: 1 },
+            startTimestamp: nowSeconds - 100,
+          },
+        ],
+        chainId: 1,
+        id: "opportunity",
+        identifier: poolAddress,
+      },
+    ] as never);
+
+    await expect(
+      getMerklRewards({ nowSeconds, pools: [curvePool] }),
+    ).rejects.toThrow("Merkl returned a missing or non-finite APR");
+  });
+});
 
 describe("liquidity/addIncentives", function () {
   it("keeps the pool and the venue rewards when there is nothing to add", function () {
@@ -125,6 +241,36 @@ describe("liquidity/addIncentives", function () {
     });
 
     expect(pool.rewards.map((reward) => reward.source)).toEqual(["curveGauge"]);
+  });
+
+  it("omits an invalid StakeDAO reward without throwing or dropping other rewards", function () {
+    const reward = merklReward({ apr: 3, id: campaignId("1") });
+    const pool = addIncentives({
+      nowSeconds,
+      pool: curvePool,
+      sources: {
+        ...noSources,
+        campaignGauges: [{ chainId: 1, gauge: gaugeAddress }],
+        merklRewards: [reward],
+        strategies: [{ ...strategy, apr: { current: { total: null } } }],
+      },
+    });
+
+    expect(pool).toEqual({
+      ...curvePool,
+      rewards: [
+        curveGaugeReward,
+        {
+          apr: 3,
+          source: "merkl",
+          sourceMetadata: {
+            campaignId: reward.campaignId,
+            opportunityId: reward.opportunityId,
+          },
+          tokens: [reward.token],
+        },
+      ],
+    });
   });
 
   it("puts the Merkl campaigns last, by APR, and matches them by the gauge or LP token too", function () {

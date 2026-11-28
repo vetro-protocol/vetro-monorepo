@@ -1,9 +1,7 @@
 import type { Address, Client } from "viem";
 import { getBlockNumber, multicall } from "viem/actions";
 
-import { type TickLiquidity } from "./v3-position-math.ts";
-
-const poolAbi = [
+export const poolAbi = [
   {
     inputs: [],
     name: "liquidity",
@@ -144,12 +142,10 @@ export const fetchV3PoolState = async function ({
 
   return {
     currentTick,
-    initializedTicks: ticks.map(
-      (tick, index): TickLiquidity => ({
-        liquidityNet: tickData[index][1],
-        tick,
-      }),
-    ),
+    initializedTicks: ticks.map((tick, index) => ({
+      liquidityNet: tickData[index][1],
+      tick,
+    })),
     liquidity,
     sqrtPriceX96,
   };

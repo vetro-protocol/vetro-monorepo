@@ -1,43 +1,49 @@
 import type { DexPool } from "@vetro-protocol/core";
+import { stakingVaultAddresses } from "@vetro-protocol/earn";
 import { gatewayAddresses } from "@vetro-protocol/gateway";
 
 import {
-  getCollateralizationRatio,
+  getBalanceSheet,
   getStaked,
   getTreasuryComposition,
   getTvl,
 } from "./analytics.ts";
 import { convertBigIntsToString } from "./convert-bigints-to-string.ts";
 import {
+  gaugedStrategiesKey,
   getGaugedStrategies,
   getMerklRewards,
+  strategyMatchesPool,
 } from "./liquidity/incentives.ts";
 import { getVenuePools, venues } from "./liquidity/index.ts";
-import { getCampaignGauges } from "./liquidity/stake-dao.ts";
+import {
+  getCampaignGauges,
+  strategyRewardsApr,
+} from "./liquidity/stake-dao.ts";
 import { withTimeout } from "./utils/promises.ts";
-import { getApy } from "./variable-stake.ts";
+import { getApyForVault } from "./variable-stake.ts";
 import { globalWarmTask, keyedWarmTask } from "./warm-cache.ts";
 
 // Warms `GET /analytics/treasury/:gatewayAddress`
 export const treasuryTask = keyedWarmTask({
-  cron: "* * * * *",
+  cron: "*/5 * * * *",
   items: gatewayAddresses,
   key: (gatewayAddress) => `analytics:treasury:${gatewayAddress}`,
   produce: (env, gatewayAddress) =>
     getTreasuryComposition({
       gatewayAddress,
+      kv: env.CACHE_KV,
       url: env.CUSTOM_RPC_URL_MAINNET,
     }).then(convertBigIntsToString),
 });
 
-// Warms `GET /analytics/collateralization-ratio/:gatewayAddress`
-export const collateralizationRatioTask = keyedWarmTask({
+// Warms `GET /analytics/balance-sheet/:gatewayAddress`
+export const balanceSheetTask = keyedWarmTask({
   cron: "*/5 * * * *",
   items: gatewayAddresses,
-  key: (gatewayAddress) =>
-    `analytics:collateralization-ratio:${gatewayAddress}`,
+  key: (gatewayAddress) => `analytics:balance-sheet:${gatewayAddress}`,
   produce: (env, gatewayAddress) =>
-    getCollateralizationRatio({
+    getBalanceSheet({
       gatewayAddress,
       url: env.CUSTOM_RPC_URL_MAINNET,
     }).then(convertBigIntsToString),
@@ -67,17 +73,18 @@ export const stakedTask = keyedWarmTask({
     }).then(convertBigIntsToString),
 });
 
-// Warms `GET /variable-stake/apy` — a single global key, so no `items`.
-export const apyTask = globalWarmTask({
+// Warms one value per staking vault for GET /variable-stake/apy,
+// /analytics/net-revenue/:gatewayAddress and the APY history live point.
+export const apyTask = keyedWarmTask({
   cron: "* * * * *",
-  key: () => "variable-stake:apy",
-  // getApy omits vaults whose reads fail and returns `{}` only on a total outage.
-  // Mapping that to null makes `warmScheduled` treat it as a failure: it reports to
-  // Sentry and keeps the last-known-good KV value rather than clobbering it with `{}`.
-  produce: (env) =>
-    getApy({ rpcUrl: env.CUSTOM_RPC_URL_MAINNET }).then((data) =>
-      Object.keys(data).length > 0 ? data : null,
-    ),
+  items: stakingVaultAddresses,
+  key: (stakingVaultAddress) =>
+    `variable-stake:apy:${stakingVaultAddress.toLowerCase()}`,
+  produce: (env, stakingVaultAddress) =>
+    getApyForVault({
+      rpcUrl: env.CUSTOM_RPC_URL_MAINNET,
+      vaultAddress: stakingVaultAddress,
+    }),
 });
 
 const nowSeconds = () => Math.floor(Date.now() / 1000);
@@ -123,13 +130,27 @@ export const liquidityMerklRewardsTask = globalWarmTask({
 
 export const liquidityStrategiesTask = globalWarmTask({
   cron: "*/5 * * * *",
-  key: () => "liquidity:strategies",
-  produce: () => withTimeout(getGaugedStrategies()),
+  key: () => gaugedStrategiesKey,
+  async produce(env) {
+    const [pools, strategies] = await Promise.all([
+      env.CACHE_KV.get<DexPool[]>(liquidityVenuePoolsTask.key("curve"), "json"),
+      withTimeout(getGaugedStrategies()),
+    ]);
+    for (const strategy of strategies) {
+      const matchesPool = pools?.some((pool) =>
+        strategyMatchesPool({ pool, strategy }),
+      );
+      if (matchesPool) {
+        strategyRewardsApr(strategy);
+      }
+    }
+    return strategies;
+  },
 });
 
 export const warmTasks = [
   treasuryTask,
-  collateralizationRatioTask,
+  balanceSheetTask,
   tvlTask,
   stakedTask,
   apyTask,

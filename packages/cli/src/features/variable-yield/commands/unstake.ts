@@ -3,45 +3,31 @@ import {
   encodeRequestWithdraw,
   getCooldownEnabled,
 } from "@vetro-protocol/earn/actions";
-import { type Command, Option } from "commander";
+import { type Command } from "commander";
 import { type Address } from "viem";
 
-import {
-  parseAddress,
-  parseAmount,
-  parseTokenAmount,
-} from "../../../lib/args.ts";
+import { parseAddress, parseTokenAmount } from "../../../lib/args.ts";
 import { type GlobalOptions, createVetroClient } from "../../../lib/client.ts";
 import { printTransactionRequest } from "../../../lib/output.ts";
+import { resolveStakingToken } from "../../../lib/tokens.ts";
 import {
-  getGatewayPeggedToken,
-  readToken,
-  resolveStakingToken,
-} from "../../../lib/tokens.ts";
+  addUnstakeAmountOptions,
+  getUnstakeAmount,
+  readSpentToken,
+} from "../../../lib/unstakeAmount.ts";
 
 export function register(variableYield: Command) {
-  variableYield
-    .command("unstake")
-    .description(
-      "Print the calldata to open an exit ticket: the shares are burned, and the pegged token goes into cooldown",
-    )
-    .requiredOption(
-      "--token <token>",
-      "Pegged token or its share token, by symbol or address",
-    )
-    .addOption(
-      new Option(
-        "--amount <n>",
-        "Pegged token amount in human units; one of --amount or --shares is required",
+  addUnstakeAmountOptions(
+    variableYield
+      .command("unstake")
+      .description(
+        "Print the calldata to open an exit ticket: the shares are burned, and the pegged token goes into cooldown",
       )
-        .argParser(parseAmount)
-        .conflicts("shares"),
-    )
-    .option(
-      "--shares <n>",
-      "Share token amount in human units; one of --amount or --shares is required",
-      parseAmount,
-    )
+      .requiredOption(
+        "--token <token>",
+        "Pegged token or its share token, by symbol or address",
+      ),
+  )
     .requiredOption(
       "--account <addr>",
       "Share token owner, normally the signer",
@@ -56,13 +42,7 @@ export function register(variableYield: Command) {
       },
       command: Command,
     ) {
-      const amount = options.amount ?? options.shares;
-      if (amount === undefined) {
-        command.error(
-          "error: one of '--amount <n>' or '--shares <n>' is required",
-        );
-      }
-      const inShares = options.shares !== undefined;
+      const { amount, inShares } = getUnstakeAmount({ command, options });
 
       const { chainId, client } = await createVetroClient(
         command.optsWithGlobals<GlobalOptions>(),
@@ -74,13 +54,11 @@ export function register(variableYield: Command) {
 
       const [cooldownEnabled, spentToken] = await Promise.all([
         getCooldownEnabled(client, { address: stakingVault }),
-        inShares
-          ? readToken({ address: stakingVault, client })
-          : getGatewayPeggedToken({ client, gatewayAddress }),
+        readSpentToken({ client, gatewayAddress, inShares, stakingVault }),
       ]);
       if (!cooldownEnabled) {
         throw new Error(
-          `The cooldown is disabled: the vault takes a one-step withdraw for "${options.token}", which the CLI does not encode yet`,
+          `The cooldown is disabled: the vault takes a one-step withdraw for "${options.token}"; use instant-withdraw instead`,
         );
       }
 

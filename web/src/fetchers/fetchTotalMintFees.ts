@@ -3,7 +3,10 @@ import type { QueryClient } from "@tanstack/react-query";
 import { parseEthPrice } from "hooks/useEthPrice";
 import { mintFeeOptions } from "hooks/useMintFee";
 import { pricesOptions } from "hooks/usePrices";
-import { mintGasUnitsOptions } from "hooks/useSwapMintFees";
+import {
+  type StakeGasParams,
+  mintGasUnitsOptions,
+} from "hooks/useSwapMintFees";
 import { config } from "providers/web3Provider";
 import type { TokenWithGateway } from "types";
 import { applyBps } from "utils/bigint";
@@ -24,6 +27,7 @@ export const fetchTotalMintFees = async function ({
   minPeggedTokenOut,
   owner,
   queryClient,
+  stake,
 }: {
   amount: bigint;
   approveAmount: bigint | undefined;
@@ -33,6 +37,7 @@ export const fetchTotalMintFees = async function ({
   minPeggedTokenOut: bigint;
   owner: Address;
   queryClient: QueryClient;
+  stake: StakeGasParams | undefined;
 }) {
   const gasUnits = await queryClient.ensureQueryData(
     mintGasUnitsOptions({
@@ -43,7 +48,7 @@ export const fetchTotalMintFees = async function ({
       fromToken,
       minPeggedTokenOut,
       owner,
-      queryClient,
+      stake,
     }),
   );
 
@@ -65,7 +70,7 @@ export const fetchTotalMintFees = async function ({
         }),
       )
       .then((protocolFeeBps) => applyBps(amount, protocolFeeBps)),
-    queryClient.ensureQueryData(pricesOptions({ client, queryClient })),
+    queryClient.ensureQueryData(pricesOptions({ client })),
   ]);
 
   const ethPrice = parseEthPrice(prices);

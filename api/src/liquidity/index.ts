@@ -13,9 +13,15 @@ type VenueArgs = {
 };
 
 const venuePools = {
-  brownfi: ({ nowSeconds, subgraphApiKey }: VenueArgs) =>
-    getBrownfiPools({ nowSeconds, subgraphApiKey }),
-  curve: () => getCurvePools(),
+  brownfi: ({ nowSeconds, portalApiUrl, rpcUrl, subgraphApiKey }: VenueArgs) =>
+    getBrownfiPools({
+      client: createMainnetClient(rpcUrl),
+      nowSeconds,
+      portalApiUrl,
+      subgraphApiKey,
+    }),
+  curve: ({ portalApiUrl, rpcUrl }: VenueArgs) =>
+    getCurvePools({ client: createMainnetClient(rpcUrl), portalApiUrl }),
   sushi: ({ nowSeconds, portalApiUrl, rpcUrl, subgraphApiKey }: VenueArgs) =>
     getSushiPools({
       client: createMainnetClient(rpcUrl),
@@ -23,8 +29,13 @@ const venuePools = {
       portalApiUrl,
       subgraphApiKey,
     }),
-  uniswap: ({ portalApiUrl, rpcUrl }: VenueArgs) =>
-    getUniswapPools({ client: createMainnetClient(rpcUrl), portalApiUrl }),
+  uniswap: ({ nowSeconds, portalApiUrl, rpcUrl, subgraphApiKey }: VenueArgs) =>
+    getUniswapPools({
+      client: createMainnetClient(rpcUrl),
+      nowSeconds,
+      portalApiUrl,
+      subgraphApiKey,
+    }),
 } satisfies Record<string, (args: VenueArgs) => Promise<DexPool[]>>;
 
 export const venues = Object.keys(venuePools) as (keyof typeof venuePools)[];
@@ -32,5 +43,4 @@ export const venues = Object.keys(venuePools) as (keyof typeof venuePools)[];
 export const getVenuePools = ({
   venue,
   ...args
-}: VenueArgs & { venue: keyof typeof venuePools }): Promise<DexPool[]> =>
-  venuePools[venue](args);
+}: VenueArgs & { venue: keyof typeof venuePools }) => venuePools[venue](args);

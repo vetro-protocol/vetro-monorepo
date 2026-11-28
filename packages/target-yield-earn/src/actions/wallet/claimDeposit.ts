@@ -4,20 +4,16 @@ import { toPromiseEvent } from "to-promise-event";
 import {
   type Address,
   encodeFunctionData,
-  isAddressEqual,
   maxUint256,
   type TransactionReceipt,
   type WalletClient,
 } from "viem";
-import {
-  readContract,
-  waitForTransactionReceipt,
-  writeContract,
-} from "viem/actions";
+import { waitForTransactionReceipt, writeContract } from "viem/actions";
 import { maxDeposit } from "viem-erc7540/actions";
 
 import { targetYieldEarnVaultAbi } from "../../abi/targetYieldEarnVaultAbi.ts";
 import type { ClaimDepositEvents } from "../../types.ts";
+import { getIsAccountOrOperator } from "../../utils/getIsAccountOrOperator.ts";
 import { getIsShutdown } from "../public/getIsShutdown.ts";
 
 export type ClaimDepositParams = {
@@ -95,13 +91,7 @@ const canClaimDeposit = async function ({
   const account = client.account.address;
   const [isShutdown, isAuthorized, claimableAssets] = await Promise.all([
     getIsShutdown(client, { address }),
-    isAddressEqual(account, controller) ||
-      readContract(client, {
-        abi: targetYieldEarnVaultAbi,
-        address,
-        args: [controller, account],
-        functionName: "isOperator",
-      }),
+    getIsAccountOrOperator({ account, address, client, owner: controller }),
     maxDeposit(client, { address, receiver: controller }),
   ]);
 

@@ -11,10 +11,7 @@ export type TokenParams = {
 // Returns the underlying ERC20 address an OFT/OFTAdapter wraps. For pure OFT
 // contracts this typically returns the OFT address itself; for OFTAdapter
 // contracts it returns the wrapped ERC20 (the contract callers must approve).
-export async function token(
-  client: Client,
-  parameters: TokenParams,
-): Promise<Address> {
+export async function token(client: Client, parameters: TokenParams) {
   if (!client) {
     throw new Error("Client is not defined");
   }

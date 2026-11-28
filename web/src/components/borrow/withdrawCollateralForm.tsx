@@ -1,9 +1,10 @@
 import { useNativeBalance } from "@hemilabs/react-hooks/useNativeBalance";
 import { Button } from "components/base/button";
 import { RenderCryptoValue } from "components/base/cryptoValue";
+import { DrawerRetryFooter } from "components/base/drawer/drawerRetryFooter";
 import { RenderFiatValue } from "components/base/fiatValue";
 import { MaxButton } from "components/base/maxButton";
-import { Toast } from "components/base/toast";
+import type { ToastContent } from "components/base/toast";
 import {
   type Step,
   VerticalStepper,
@@ -41,15 +42,11 @@ import { formatUnits } from "viem";
 import { PositionReview } from "./positionReview";
 
 type WithdrawCollateralFlowStatus =
-  | "idle"
-  | "withdraw-error"
-  | "withdraw-ready"
-  | "withdrawing"
-  | "withdrawn";
+  "idle" | "withdraw-error" | "withdraw-ready" | "withdrawing" | "withdrawn";
 
 const getWithdrawStepStatus = function (
   status: Exclude<WithdrawCollateralFlowStatus, "idle">,
-): Step["status"] {
+) {
   const exceptions: Partial<
     Record<Exclude<WithdrawCollateralFlowStatus, "idle">, Step["status"]>
   > = {
@@ -148,8 +145,6 @@ function StepperOverlay({
   steps,
 }: StepperOverlayProps) {
   const { t } = useTranslation();
-  const { render: renderRetry, show: showRetry } =
-    useAnimatedVisibility(isError);
 
   return (
     <>
@@ -173,21 +168,7 @@ function StepperOverlay({
             <VerticalStepper steps={steps} />
           </div>
         </div>
-        {renderRetry && (
-          <div
-            className={`grid transition-[grid-template-rows] duration-300 ease-out ${
-              showRetry ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-            }`}
-          >
-            <div className="overflow-hidden">
-              <div className="border-t border-gray-200 bg-gray-50 px-6 py-3 *:w-full">
-                <Button onClick={onRetry} size="small" variant="primary">
-                  {t("pages.borrow.withdraw-collateral-progress.retry")}
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
+        <DrawerRetryFooter onRetry={isError ? onRetry : undefined} />
       </div>
     </>
   );
@@ -196,15 +177,15 @@ function StepperOverlay({
 type Props = {
   market: MarketData;
   onClose: VoidFunction;
+  onSuccess: (toast: ToastContent) => void;
 };
 
-export function WithdrawCollateralForm({ market, onClose }: Props) {
+export function WithdrawCollateralForm({ market, onClose, onSuccess }: Props) {
   const { t } = useTranslation();
 
   const [collateralInput, onCollateralChange] = useAmount();
   const [flowStatus, setFlowStatus] =
     useState<WithdrawCollateralFlowStatus>("idle");
-  const [showToast, setShowToast] = useState(false);
 
   const isActive = flowStatus !== "idle";
   const isError = flowStatus === "withdraw-error";
@@ -259,7 +240,16 @@ export function WithdrawCollateralForm({ market, onClose }: Props) {
       emitter.on("withdraw-collateral-transaction-succeeded", function () {
         onCompleted();
         setFlowStatus("withdrawn");
-        setShowToast(true);
+        onSuccess({
+          description: t(
+            "pages.borrow.withdraw-collateral-progress.toast-description",
+            {
+              amount: formatNumber(collateralInput),
+              symbol: collateralToken.symbol,
+            },
+          ),
+          title: t("pages.borrow.withdraw-collateral-progress.toast-title"),
+        });
       });
       emitter.on("withdraw-collateral-transaction-reverted", function () {
         onFailed();
@@ -400,20 +390,6 @@ export function WithdrawCollateralForm({ market, onClose }: Props) {
         showStepper={showStepper}
         steps={steps}
       />
-      {showToast && (
-        <Toast
-          closable
-          description={t(
-            "pages.borrow.withdraw-collateral-progress.toast-description",
-            {
-              amount: formatNumber(collateralInput),
-              symbol: collateralToken.symbol,
-            },
-          )}
-          onClose={() => setShowToast(false)}
-          title={t("pages.borrow.withdraw-collateral-progress.toast-title")}
-        />
-      )}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { type QueryClient, queryOptions } from "@tanstack/react-query";
+import { queryOptions } from "@tanstack/react-query";
 import type { Token } from "@vetro-protocol/core";
 import { fetchDepositGasUnits } from "fetchers/fetchDepositGasUnits";
 import { type Address, type Chain, type Client } from "viem";
@@ -9,7 +9,6 @@ export const depositGasUnitsOptions = ({
   chainId,
   client,
   owner,
-  queryClient,
   stakingVaultAddress,
   token,
 }: {
@@ -18,13 +17,12 @@ export const depositGasUnitsOptions = ({
   chainId: Chain["id"];
   client: Client | undefined;
   owner: Address | undefined;
-  queryClient: QueryClient;
   stakingVaultAddress: Address;
   token: Token | undefined;
 }) =>
   queryOptions({
     enabled: !!client && !!owner && !!token && amount > 0n,
-    queryFn: () =>
+    queryFn: ({ client: queryClient }) =>
       fetchDepositGasUnits({
         amount,
         approveAmount,

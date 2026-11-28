@@ -46,8 +46,8 @@ type Props = {
   onMaxClick: (maxValue: string) => void;
   onReset: VoidFunction;
   onToggle: VoidFunction;
-  onTokenChange: (token: TokenWithGateway) => void;
   onToggleApprove10x: VoidFunction;
+  onTokenChange: (token: TokenWithGateway) => void;
   peggedTokens: TokenWithGateway[];
   toToken: TokenWithGateway;
   whitelistedTokens: TokenWithGateway[];
@@ -335,7 +335,6 @@ export function TwoStepRedeem({
       )}
       {showToast && (
         <Toast
-          closable
           description={t("pages.swap.toast.redeem-queued-description")}
           onClose={() => setShowToast(false)}
           title={t("pages.swap.toast.redeem-queued-title", toastData)}

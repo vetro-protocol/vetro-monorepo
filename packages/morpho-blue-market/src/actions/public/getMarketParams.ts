@@ -3,8 +3,6 @@ import { type Address, type Client, type Hash, zeroHash } from "viem";
 import { readContract } from "viem/actions";
 
 import { morphoBlueAbi } from "../../abi/morphoBlueAbi.ts";
-import type { MarketParams } from "../../types.ts";
-
 export const getMarketParams = async function ({
   address,
   client,
@@ -13,7 +11,7 @@ export const getMarketParams = async function ({
   address: Address;
   client: Client;
   marketId: Hash;
-}): Promise<MarketParams> {
+}) {
   // Validate client
   if (!client) {
     throw new Error("Client is not defined");

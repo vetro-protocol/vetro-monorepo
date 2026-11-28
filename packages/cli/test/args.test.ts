@@ -1,10 +1,14 @@
+import { zeroAddress } from "viem";
 import { describe, expect, it } from "vitest";
 
 import {
   parseAddress,
   parseAmount,
   parseGateway,
+  parseMarket,
   parseNonNegativeAmount,
+  parseReceiver,
+  parseRequestId,
   parseRpcUrl,
   parseSlippage,
   parseTokenAmount,
@@ -134,6 +138,88 @@ describe("parseGateway", function () {
 
   it("throws for a malformed address", function () {
     expect(() => parseGateway("nope")).toThrow('Invalid address: "nope"');
+  });
+});
+
+describe("parseMarket", function () {
+  it("splits a pair into its collateral and loan sides", function () {
+    expect(parseMarket("hemiBTC/VUSD")).toEqual({
+      collateral: "hemiBTC",
+      loan: "VUSD",
+      value: "hemiBTC/VUSD",
+    });
+  });
+
+  it("trims the spaces around each side of a pair", function () {
+    expect(parseMarket(" hemiBTC / VUSD ")).toEqual({
+      collateral: "hemiBTC",
+      loan: "VUSD",
+      value: " hemiBTC / VUSD ",
+    });
+  });
+
+  it("trims the spaces around a market id", function () {
+    const marketId =
+      "0x55609be6e9fab4b1ad7e2f47e5a6b3a2f2bb7c1e3d6ef4a9b0c1d2e3f4a5f2e5";
+    expect(parseMarket(` ${marketId} `)).toEqual({
+      marketId,
+      value: ` ${marketId} `,
+    });
+  });
+
+  it("returns a 32-byte hex value as a market id", function () {
+    const marketId =
+      "0x55609be6e9fab4b1ad7e2f47e5a6b3a2f2bb7c1e3d6ef4a9b0c1d2e3f4a5f2e5";
+    expect(parseMarket(marketId)).toEqual({ marketId, value: marketId });
+  });
+
+  it.for([
+    "hemiBTC",
+    "a/b/c",
+    "/VUSD",
+    "hemiBTC/",
+    " / VUSD",
+    "0xdad503f8b9d42bb7af3afc588358d30163e4416f",
+  ])("throws for %s", function (value) {
+    expect(() => parseMarket(value)).toThrow(
+      `Invalid market: "${value}": expected <collateral>/<loan> or a 32-byte market id`,
+    );
+  });
+});
+
+describe("parseReceiver", function () {
+  it("returns the checksummed address", function () {
+    expect(parseReceiver("0xdad503f8b9d42bb7af3afc588358d30163e4416f")).toBe(
+      "0xDaD503f8B9d42bb7af3AfC588358D30163e4416F",
+    );
+  });
+
+  it("throws for the zero address", function () {
+    expect(() => parseReceiver(zeroAddress)).toThrow(
+      `Receiver cannot be the zero address: "${zeroAddress}"`,
+    );
+  });
+
+  it("throws for an invalid address", function () {
+    expect(() => parseReceiver("not-an-address")).toThrow(
+      'Invalid address: "not-an-address"',
+    );
+  });
+});
+
+describe("parseRequestId", function () {
+  it("returns the id as a bigint", function () {
+    expect(parseRequestId("0")).toBe(0n);
+    expect(parseRequestId("42")).toBe(42n);
+    expect(parseRequestId("18446744073709551616")).toBe(2n ** 64n);
+  });
+
+  it("throws for malformed values", function () {
+    expect(() => parseRequestId("abc")).toThrow('Invalid request id: "abc"');
+    expect(() => parseRequestId("-1")).toThrow('Invalid request id: "-1"');
+    expect(() => parseRequestId("1.5")).toThrow('Invalid request id: "1.5"');
+    expect(() => parseRequestId("0x1")).toThrow('Invalid request id: "0x1"');
+    expect(() => parseRequestId("")).toThrow('Invalid request id: ""');
   });
 });
 
