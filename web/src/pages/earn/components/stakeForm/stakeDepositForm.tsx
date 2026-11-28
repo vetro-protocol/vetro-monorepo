@@ -24,7 +24,7 @@ import { type FormEvent, Suspense, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { TokenWithGateway } from "types";
 import { lazyWithReload } from "utils/lazyWithReload";
-import { type Address, parseUnits } from "viem";
+import { type Address, type Hash, parseUnits } from "viem";
 import { useAccount } from "wagmi";
 
 const StakeDepositProgressDrawer = lazyWithReload(() =>
@@ -110,7 +110,9 @@ export function StakeDepositForm({
   const [requestCloseDrawer, setRequestCloseDrawer] = useState(false);
   const [submitted, setSubmitted] = useState<{
     amount: string;
+    approveAmount?: bigint;
     assets: bigint;
+    hash?: Hash;
   } | null>(null);
 
   const { data: peggedTokenBalance } = useTokenBalance({
@@ -134,7 +136,7 @@ export function StakeDepositForm({
 
   const approveAmount = approve10x ? amountBigInt * 10n : undefined;
 
-  const { onTransactionHash, trackStep } = useStakeDepositTracking({
+  const { onReplaced, onTransactionHash, trackStep } = useStakeDepositTracking({
     amount: inputValue,
     onSuccess,
     shareToken,
@@ -150,9 +152,63 @@ export function StakeDepositForm({
   );
 
   const depositMutation = useStakeDeposit({
-    onStatusChange: ({ status }) => handleDepositStepChange(status),
-    onTransactionHash: ({ hash }) => onTransactionHash(hash),
+    onStatusChange({ status }) {
+      handleDepositStepChange(status);
+    },
+    onTransactionHash({ hash }) {
+      setSubmitted((current) => (current ? { ...current, hash } : current));
+      onTransactionHash(hash);
+    },
+    onTransactionReplaced({ hash }) {
+      setSubmitted((current) => (current ? { ...current, hash } : current));
+      onReplaced(hash);
+    },
   });
+
+  function mutateDeposit({
+    assets,
+    depositApproveAmount,
+    failureStep,
+    pendingHash,
+  }: {
+    assets: bigint;
+    depositApproveAmount?: bigint;
+    failureStep: "approve-failed" | "deposit-failed";
+    pendingHash?: Hash;
+  }) {
+    if (!account) {
+      return;
+    }
+    depositMutation.mutate(
+      {
+        account,
+        approveAmount: depositApproveAmount,
+        assets,
+        peggedToken,
+        pendingHash,
+        stakingVaultAddress,
+      },
+      {
+        onError() {
+          handleDepositStepChange(failureStep);
+        },
+      },
+    );
+  }
+
+  function handleRetry() {
+    if (!submitted) {
+      return;
+    }
+    const isApprovalRetry = depositStep === "approve-failed";
+    handleDepositStepChange(isApprovalRetry ? "approving" : "depositing");
+    mutateDeposit({
+      assets: submitted.assets,
+      depositApproveAmount: submitted.approveAmount,
+      failureStep: isApprovalRetry ? "approve-failed" : "deposit-failed",
+      pendingHash: submitted.hash,
+    });
+  }
 
   const depositFeesQuery = useTotalDepositFees({
     amount: amountBigInt,
@@ -195,24 +251,18 @@ export function StakeDepositForm({
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!inputError && account) {
-      setSubmitted({ amount: inputValue, assets: amountBigInt });
+      setSubmitted({
+        amount: inputValue,
+        approveAmount,
+        assets: amountBigInt,
+      });
       onResetSteps();
       onDrawerOpenChange(true);
-      depositMutation.mutate(
-        {
-          account,
-          approveAmount,
-          assets: amountBigInt,
-          peggedToken,
-          stakingVaultAddress,
-        },
-        {
-          onError: () =>
-            handleDepositStepChange(
-              needsApproval ? "approve-failed" : "deposit-failed",
-            ),
-        },
-      );
+      mutateDeposit({
+        assets: amountBigInt,
+        depositApproveAmount: approveAmount,
+        failureStep: needsApproval ? "approve-failed" : "deposit-failed",
+      });
     }
   }
 
@@ -282,6 +332,12 @@ export function StakeDepositForm({
               depositStep={depositStep}
               needsApproval={needsApproval}
               networkFee={depositFeesQuery}
+              onRetry={
+                depositStep === "approve-failed" ||
+                depositStep === "deposit-failed"
+                  ? handleRetry
+                  : undefined
+              }
               peggedToken={peggedToken}
               shareToken={shareToken}
               stakingVaultAddress={stakingVaultAddress}

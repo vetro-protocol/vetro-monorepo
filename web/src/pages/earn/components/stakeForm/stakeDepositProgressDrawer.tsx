@@ -15,6 +15,7 @@ type Props = {
   depositStep: DepositStep;
   needsApproval: boolean;
   networkFee: ComponentProps<typeof NetworkFees>["networkFee"];
+  onRetry?: VoidFunction;
   peggedToken: TokenWithGateway;
   shareToken: Token;
   stakingVaultAddress: Address;

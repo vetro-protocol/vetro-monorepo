@@ -1,6 +1,7 @@
 import type { Token } from "@vetro-protocol/core";
 import { RenderCryptoValue } from "components/base/cryptoValue";
 import { DollarSign } from "components/base/dollarSign";
+import { DrawerRetryFooter } from "components/base/drawer/drawerRetryFooter";
 import { RenderFiatValue } from "components/base/fiatValue";
 import {
   TokenInteraction,
@@ -28,6 +29,7 @@ type Props = SummaryProps & {
   canInstantWithdraw: boolean;
   cooldownDays: number | undefined;
   networkFee: ComponentProps<typeof NetworkFees>["networkFee"];
+  onRetry?: VoidFunction;
   shareToken: Token;
   stakingVaultAddress: Address;
   withdrawStep: WithdrawStep;
@@ -187,6 +189,7 @@ export function StakeWithdrawProgressDrawer({
   canInstantWithdraw,
   cooldownDays,
   networkFee,
+  onRetry,
   peggedToken,
   shareToken,
   stakingVaultAddress,
@@ -235,6 +238,8 @@ export function StakeWithdrawProgressDrawer({
           <VerticalStepper steps={steps} />
         </div>
       </div>
+
+      <DrawerRetryFooter onRetry={onRetry} />
     </div>
   );
 }
